@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android"],
+  "apple": {
+    "modules": ["CartPriceCalcModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.cartpricecalc.CartPriceCalcModule"]
+  }
+}

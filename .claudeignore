@@ -1,0 +1,10 @@
+# Secrets & environment variables
+.env
+.env.*
+*.local
+
+# Certificates & keys
+*.pem
+*.key
+*.p12
+*.keystore

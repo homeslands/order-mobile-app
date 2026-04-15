@@ -1,0 +1,9 @@
+{
+  "platforms": ["apple", "android", "web"],
+  "apple": {
+    "modules": ["NavigationTriggerModule"]
+  },
+  "android": {
+    "modules": ["expo.modules.navigationtrigger.NavigationTriggerModule"]
+  }
+}

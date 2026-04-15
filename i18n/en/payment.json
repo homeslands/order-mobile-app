@@ -1,0 +1,11 @@
+{
+  "qrGenerate": {
+    "title": "Pay with Points",
+    "generating": "Generating QR...",
+    "expiresIn": "Expires in",
+    "retry": "Retry",
+    "step1": "Show the QR screen to the cashier",
+    "step2": "The cashier scans the QR code on the POS terminal",
+    "step3": "Receive a confirmation notification for successful payment"
+  }
+}

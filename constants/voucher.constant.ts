@@ -1,0 +1,32 @@
+export const VOUCHER_TYPE = {
+    PERCENT_ORDER: 'percent_order',
+    FIXED_VALUE: 'fixed_value',
+    SAME_PRICE_PRODUCT: 'same_price_product',
+  }
+  
+  export enum APPLICABILITY_RULE {
+    ALL_REQUIRED = 'all_required',
+    AT_LEAST_ONE_REQUIRED = 'at_least_one_required',
+  }
+  
+  export const VOUCHER_PAYMENT_METHOD = {
+    CASH: 'cash',
+    POINT: 'point',
+    BANK_TRANSFER: 'bank-transfer',
+    CREDIT_CARD: 'credit-card',
+  }
+  
+  export enum VOUCHER_USAGE_FREQUENCY_UNIT {
+    HOUR = 'hour',
+    DAY = 'day',
+    WEEK = 'week',
+    MONTH = 'month',
+    YEAR = 'year',
+  }
+  
+  export enum VOUCHER_CUSTOMER_TYPE {
+    ALL = 'all',
+    GROUP = 'group',
+    PERSON = 'person',
+  }
+  

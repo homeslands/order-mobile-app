@@ -1,0 +1,121 @@
+import { changePassword } from '@/api/profile'
+import { Button, Input } from '@/components/ui'
+import { ScreenContainer } from '@/components/layout'
+import { colors } from '@/constants'
+import { navigateNative } from '@/lib/navigation'
+import { showToast } from '@/utils'
+import { ArrowLeft } from 'lucide-react-native'
+import React, { useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import { Text, View, useColorScheme } from 'react-native'
+
+function ChangePasswordScreen() {
+  const { t } = useTranslation('profile')
+  const colorScheme = useColorScheme()
+  const isDark = colorScheme === 'dark'
+  const primaryColor = isDark ? colors.primary.dark : colors.primary.light
+
+  const [oldPassword, setOldPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleSubmit = () => {
+    if (!oldPassword || !newPassword || !confirmPassword) {
+      showToast(t('changePassword.fillRequired'))
+      return
+    }
+
+    if (newPassword !== confirmPassword) {
+      showToast(t('changePassword.passwordMismatch'))
+      return
+    }
+
+    setIsSubmitting(true)
+    changePassword({ oldPassword, newPassword })
+      .then(() => {
+        showToast(t('changePassword.success'))
+        navigateNative.back()
+      })
+      .catch(() => {
+        showToast(t('changePassword.error'))
+      })
+      .finally(() => { setIsSubmitting(false) })
+  }
+
+  return (
+    <ScreenContainer edges={['top', 'bottom']} className="flex-1 bg-gray-50 dark:bg-gray-900">
+      {/* Header */}
+      <View className="bg-white dark:bg-gray-800 px-4 py-3 flex-row items-center border-b border-gray-200 dark:border-gray-700">
+        <Button
+          variant="ghost"
+          className="mr-2 px-0 min-h-0 h-10 w-10 rounded-full justify-center items-center"
+          onPress={() => navigateNative.back()}
+        >
+          <ArrowLeft size={22} color={isDark ? colors.mutedForeground.dark : colors.mutedForeground.light} />
+        </Button>
+        <Text className="text-lg font-semibold text-gray-900 dark:text-gray-50">
+          {t('changePassword.title')}
+        </Text>
+      </View>
+
+      <View className="flex-1 px-4 py-6">
+        <View className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
+          <View className="mb-4">
+            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">{t('oldPassword')}</Text>
+            <Input
+              value={oldPassword}
+              onChangeText={setOldPassword}
+              placeholder={t('enterOldPassword')}
+              secureTextEntry
+            />
+          </View>
+
+          <View className="mb-4">
+            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">{t('newPassword')}</Text>
+            <Input
+              value={newPassword}
+              onChangeText={setNewPassword}
+              placeholder={t('enterNewPassword')}
+              secureTextEntry
+            />
+          </View>
+
+          <View className="mb-2">
+            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
+              {t('confirmPassword')}
+            </Text>
+            <Input
+              value={confirmPassword}
+              onChangeText={setConfirmPassword}
+              placeholder={t('enterConfirmPassword')}
+              secureTextEntry
+            />
+          </View>
+
+          <Text className="mt-1 text-xs text-gray-400 dark:text-gray-500">
+            {t('changePassword.passwordHint')}
+          </Text>
+        </View>
+
+        <View className="mt-6">
+          <Button
+            className="w-full h-11 rounded-lg"
+            style={{ backgroundColor: primaryColor }}
+            disabled={isSubmitting}
+            onPress={handleSubmit}
+          >
+            <Text className="text-sm font-semibold text-white">
+              {isSubmitting ? t('changePassword.updating') : t('changePassword.save')}
+            </Text>
+          </Button>
+        </View>
+      </View>
+    </ScreenContainer>
+  )
+}
+
+ChangePasswordScreen.displayName = 'ChangePasswordScreen'
+export default React.memo(ChangePasswordScreen)
+
+

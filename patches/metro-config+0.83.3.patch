@@ -1,0 +1,19 @@
+diff --git a/node_modules/metro-config/src/loadConfig.js b/node_modules/metro-config/src/loadConfig.js
+index 7ac9d88..e34c85e 100644
+--- a/node_modules/metro-config/src/loadConfig.js
++++ b/node_modules/metro-config/src/loadConfig.js
+@@ -176,12 +176,12 @@ async function mergeConfigAsync(baseConfig, ...reversedConfigs) {
+ }
+ function mergeConfig(base, ...configs) {
+   let currentConfig = typeof base === "function" ? base() : base;
+-  const reversedConfigs = configs.toReversed();
++  const reversedConfigs = [...configs].reverse();
+   let next;
+   while ((next = reversedConfigs.pop())) {
+     const nextConfig = typeof next === "function" ? next(currentConfig) : next;
+     if (nextConfig instanceof Promise) {
+-      return mergeConfigAsync(nextConfig, reversedConfigs.toReversed());
++      return mergeConfigAsync(nextConfig, [...reversedConfigs].reverse());
+     }
+     currentConfig = mergeConfigObjects(currentConfig, nextConfig);
+   }

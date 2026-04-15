@@ -1,0 +1,250 @@
+{
+  "selected": "Đã chọn",
+  "status": {
+    "available": "Khả dụng",
+    "used": "Đã dùng",
+    "expired": "Hết hạn"
+  },
+  "orderStatus": {
+    "completed": "Hoàn thành",
+    "completedShort": "Hoàn tất",
+    "pending": "Chờ thanh toán",
+    "pendingShort": "Chờ TT",
+    "failed": "Thất bại",
+    "cancelled": "Đã huỷ"
+  },
+  "type": {
+    "self": "Bản thân",
+    "gift": "Tặng bạn",
+    "buy": "Mua lô"
+  },
+  "hub": {
+    "title": "Thẻ quà tặng & Xu",
+    "balance": "Số xu hiện tại",
+    "sectionCoin": "Xu",
+    "sectionGiftCard": "Thẻ quà tặng",
+    "coinHistory": "Lịch sử giao dịch xu",
+    "myCards": "Thẻ của tôi",
+    "redeem": "Dùng thẻ",
+    "buy": "Mua thẻ",
+    "history": "Lịch sử",
+    "useCard": "Sử dụng thẻ",
+    "orderHistory": "Lịch sử đơn thẻ"
+  },
+  "list": {
+    "title": "Thẻ quà tặng",
+    "countCards": "{{count}} thẻ",
+    "dateFrom": "Từ {{date}}",
+    "dateTo": "Đến {{date}}",
+    "empty": {
+      "noCards": "Chưa có thẻ nào",
+      "noMatches": "Không tìm thấy thẻ phù hợp với bộ lọc",
+      "noOwned": "Bạn chưa sở hữu thẻ quà tặng nào"
+    },
+    "item": {
+      "points": "Xu nhận được:",
+      "expiry": "Hạn sử dụng:",
+      "copyCode": "Sao chép mã:"
+    }
+  },
+  "orders": {
+    "title": "Lịch sử mua thẻ",
+    "countOrders": "{{count}} đơn",
+    "cards": "{{count}} thẻ",
+    "types": {
+      "all": "Tất cả"
+    },
+    "filterTitle": "Bộ lọc",
+    "dateRange": "Khoảng thời gian",
+    "fromDate": "Từ ngày",
+    "toDate": "Đến ngày",
+    "apply": "Áp dụng",
+    "empty": {
+      "noOrders": "Chưa có đơn nào",
+      "noOwned": "Bạn chưa mua thẻ quà tặng nào",
+      "noType": "Không có đơn loại \"{{type}}\""
+    }
+  },
+  "detail": {
+    "notFound": "Không tìm thấy thẻ",
+    "points": "Điểm quy đổi",
+    "codeSection": "Mã thẻ",
+    "serial": "Serial",
+    "code": "Mã thẻ",
+    "copyBoth": "Sao chép cả hai",
+    "copied": "Đã sao chép!",
+    "copiedLabel": "Đã sao chép {{label}}",
+    "copiedBoth": "Đã sao chép serial và mã thẻ",
+    "issuedAt": "Ngày mua",
+    "expiresAt": "Hết hạn",
+    "usedAt": "Đã dùng lúc",
+    "daysLeft": "còn {{days}} ngày",
+    "redeemNow": "Nạp điểm ngay"
+  },
+  "filter": {
+    "title": "Bộ lọc",
+    "statusLabel": "Trạng thái",
+    "dateRange": "Khoảng thời gian",
+    "fromDate": "Từ ngày",
+    "toDate": "Đến ngày",
+    "apply": "Áp dụng"
+  },
+  "typeSelector": {
+    "title": "Loại thẻ quà tặng",
+    "self": {
+      "label": "Nạp tiền cho bản thân",
+      "description": "Điểm sẽ được cộng vào tài khoản của bạn"
+    },
+    "gift": {
+      "label": "Tặng cho người khác",
+      "description": "Gửi thẻ quà tặng đến bạn bè hoặc người thân"
+    },
+    "buy": {
+      "label": "Mua làm quà tặng",
+      "description": "Nhận mã thẻ, tự chia sẻ cho người khác"
+    }
+  },
+  "checkout": {
+    "title": "Thanh toán thẻ quà tặng",
+    "allLocked": "Tất cả loại thẻ đang tạm khoá. Vui lòng quay lại sau.",
+    "recipientList": "Danh sách người nhận",
+    "addRecipient": "Thêm người nhận",
+    "summary": "Tóm tắt đơn hàng",
+    "cardPrice": "Giá thẻ",
+    "quantity": "Số lượng",
+    "totalAmount": "Tổng tiền thanh toán",
+    "totalPoints": "Tổng điểm nhận được",
+    "confirmButton": "Xác nhận — {{amount}}",
+    "lockType": {
+      "self": "Bản thân",
+      "gift": "Tặng bạn",
+      "buy": "Mua thêm"
+    },
+    "confirm": {
+      "title": "Xác nhận đặt hàng thẻ",
+      "typeLabel": "Loại",
+      "typeSelf": "Nạp cho bản thân",
+      "typeGift": "Tặng người khác",
+      "typeBuy": "Mua làm quà tặng",
+      "quantityWithRecipients": "{{qty}} thẻ · {{count}} người nhận",
+      "quantityWithCode": "{{qty}} thẻ · Nhận serial+code",
+      "quantity": "{{qty}} thẻ",
+      "totalPayment": "Tổng thanh toán",
+      "pointsEarned": "Điểm nhận được",
+      "placeOrder": "Đặt hàng"
+    },
+    "error": {
+      "addRecipient": "Vui lòng thêm ít nhất một người nhận",
+      "typeLocked": "Loại thẻ này hiện đang bị khoá. Vui lòng chọn loại khác.",
+      "orderFailed": "Đặt hàng thất bại. Vui lòng thử lại."
+    }
+  },
+  "redeem": {
+    "title": "Nạp thẻ quà tặng",
+    "heroTitle": "Nhập thông tin thẻ",
+    "heroHint": "Serial và mã thẻ nằm trên mặt sau thẻ quà tặng",
+    "serialLabel": "Serial",
+    "codeLabel": "Mã thẻ",
+    "serialPlaceholder": "Ví dụ: 100003042026715485",
+    "codePlaceholder": "Ví dụ: 635657315046",
+    "serialRequired": "Nhập serial thẻ",
+    "codeRequired": "Nhập mã thẻ",
+    "submitButton": "Nạp điểm",
+    "continueBtn": "Về trang chủ",
+    "success": {
+      "title": "Nạp điểm thành công",
+      "subtitle": "Xu đã được cộng vào tài khoản",
+      "pointsLabel": "Điểm nhận được",
+      "pointsValue": "+{{points}} xu",
+      "cardName": "Tên thẻ",
+      "serial": "Serial",
+      "usedAt": "Thời gian"
+    }
+  },
+  "orderDetail": {
+    "title": "Đơn thẻ quà tặng",
+    "status": "Trạng thái",
+    "orderDate": "Ngày đặt hàng",
+    "paymentMethod": "Phương thức TT",
+    "quantity": "Số lượng",
+    "type": "Loại",
+    "orderCode": "Mã đơn hàng",
+    "giftCardsSection": "Danh sách thẻ ({{count}})",
+    "notFound": "Không tìm thấy đơn hàng"
+  },
+  "orderSuccess": {
+    "title": "Chi tiết đơn hàng",
+    "orderCode": "Mã đơn:",
+    "section": {
+      "detail": "Chi tiết đơn hàng",
+      "codes": "Mã thẻ quà tặng ({{count}})",
+      "recipients": "Người nhận ({{count}})"
+    },
+    "info": {
+      "card": "Thẻ quà tặng",
+      "quantity": "Số lượng",
+      "points": "Điểm nhận được",
+      "totalPayment": "Tổng thanh toán",
+      "quantityValue": "{{count}} thẻ",
+      "pointsValue": "+{{points}} điểm"
+    },
+    "codeHint": "Nhấn vào biểu tượng sao chép để lưu mã",
+    "buyHint": "Chia sẻ serial và mã cho người nhận để họ nạp điểm",
+    "codeItem": {
+      "serial": "Serial",
+      "code": "Mã",
+      "expiry": "HSD"
+    },
+    "resendSmsSuccess": "Đã gửi lại SMS thành công",
+    "resendSmsFailed": "Gửi lại SMS thất bại",
+    "notFound": "Không tìm thấy đơn hàng"
+  },
+  "selectedSheet": {
+    "pointsPerCard": "+{{points}} điểm / thẻ",
+    "pricePerCard": "{{price}} / thẻ",
+    "quantity": "Số lượng",
+    "totalAmount": "Tổng tiền",
+    "pointsEarned": "Điểm nhận được",
+    "addToCart": "Thêm vào giỏ"
+  },
+  "warningDialog": {
+    "title": "Thay thế thẻ quà tặng?",
+    "currentCard": "Hiện có",
+    "replaceWith": "Thay bằng",
+    "keepCurrent": "Giữ lại",
+    "replace": "Thay thế"
+  },
+  "sortAsc": "Giá tăng dần",
+  "sortDesc": "Giá giảm dần",
+  "paymentStatus": {
+    "completed": "Thành công",
+    "pending": "Chờ thanh toán",
+    "failed": "Thất bại",
+    "cancelled": "Đã huỷ"
+  },
+  "paymentMethod": {
+    "zalopay": "Ví ZaloPay",
+    "cash": "Tiền mặt",
+    "vnpay": "VNPay",
+    "momo": "Ví MoMo",
+    "banking": "Ngân hàng"
+  },
+  "recipientForm": {
+    "recipientTitle": "Người nhận {{index}}",
+    "phone": "Số điện thoại",
+    "phonePlaceholder": "Nhập số điện thoại",
+    "searching": "Đang tìm...",
+    "tapToFill": "Nhấn để điền tên",
+    "name": "Tên người nhận",
+    "namePlaceholder": "Họ và tên (tùy chọn)",
+    "quantityLabel": "Số lượng thẻ",
+    "messageLabel": "Lời nhắn",
+    "messagePlaceholder": "Lời chúc (tùy chọn)",
+    "error": {
+      "phone": "Số điện thoại không hợp lệ (10-11 số, bắt đầu bằng 0)",
+      "quantity": "Nhập số lượng hợp lệ",
+      "quantityMin": "Tối thiểu 1",
+      "messageMax": "Tối đa 200 ký tự"
+    }
+  }
+}

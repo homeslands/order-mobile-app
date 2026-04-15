@@ -1,0 +1,250 @@
+{
+  "selected": "Selected",
+  "status": {
+    "available": "Available",
+    "used": "Used",
+    "expired": "Expired"
+  },
+  "orderStatus": {
+    "completed": "Completed",
+    "completedShort": "Done",
+    "pending": "Awaiting payment",
+    "pendingShort": "Pending",
+    "failed": "Failed",
+    "cancelled": "Cancelled"
+  },
+  "type": {
+    "self": "For me",
+    "gift": "Gift",
+    "buy": "Bulk buy"
+  },
+  "hub": {
+    "title": "Gift Cards & Coins",
+    "balance": "Current balance",
+    "sectionCoin": "Coins",
+    "sectionGiftCard": "Gift Cards",
+    "coinHistory": "Coin Transaction History",
+    "myCards": "My Cards",
+    "redeem": "Redeem",
+    "buy": "Buy Cards",
+    "history": "History",
+    "useCard": "Use Card",
+    "orderHistory": "Card Order History"
+  },
+  "list": {
+    "title": "Gift Cards",
+    "countCards": "{{count}} cards",
+    "dateFrom": "From {{date}}",
+    "dateTo": "To {{date}}",
+    "empty": {
+      "noCards": "No cards yet",
+      "noMatches": "No cards match the current filter",
+      "noOwned": "You don't own any gift cards"
+    },
+    "item": {
+      "points": "Points earned:",
+      "expiry": "Expires:",
+      "copyCode": "Copy code:"
+    }
+  },
+  "orders": {
+    "title": "Purchase History",
+    "countOrders": "{{count}} orders",
+    "cards": "{{count}} cards",
+    "types": {
+      "all": "All"
+    },
+    "filterTitle": "Filter",
+    "dateRange": "Date Range",
+    "fromDate": "From Date",
+    "toDate": "To Date",
+    "apply": "Apply",
+    "empty": {
+      "noOrders": "No orders yet",
+      "noOwned": "You haven't purchased any gift cards",
+      "noType": "No orders of type \"{{type}}\""
+    }
+  },
+  "detail": {
+    "notFound": "Card not found",
+    "points": "Points value",
+    "codeSection": "Card Code",
+    "serial": "Serial",
+    "code": "Code",
+    "copyBoth": "Copy both",
+    "copied": "Copied!",
+    "copiedLabel": "Copied {{label}}",
+    "copiedBoth": "Copied serial and code",
+    "issuedAt": "Issued",
+    "expiresAt": "Expires",
+    "usedAt": "Used at",
+    "daysLeft": "{{days}} days left",
+    "redeemNow": "Redeem Now"
+  },
+  "filter": {
+    "title": "Filters",
+    "statusLabel": "Status",
+    "dateRange": "Date range",
+    "fromDate": "From date",
+    "toDate": "To date",
+    "apply": "Apply"
+  },
+  "typeSelector": {
+    "title": "Gift Card Type",
+    "self": {
+      "label": "Top up for myself",
+      "description": "Points will be added to your account"
+    },
+    "gift": {
+      "label": "Gift to someone",
+      "description": "Send a gift card to friends or family"
+    },
+    "buy": {
+      "label": "Buy as gifts",
+      "description": "Receive card codes, share with others"
+    }
+  },
+  "checkout": {
+    "title": "Gift Card Checkout",
+    "allLocked": "All card types are temporarily locked. Please try again later.",
+    "recipientList": "Recipient List",
+    "addRecipient": "Add Recipient",
+    "summary": "Order Summary",
+    "cardPrice": "Card price",
+    "quantity": "Quantity",
+    "totalAmount": "Total payment",
+    "totalPoints": "Total points earned",
+    "confirmButton": "Confirm — {{amount}}",
+    "lockType": {
+      "self": "For me",
+      "gift": "Gift",
+      "buy": "Bulk"
+    },
+    "confirm": {
+      "title": "Confirm Gift Card Order",
+      "typeLabel": "Type",
+      "typeSelf": "Top up for myself",
+      "typeGift": "Gift to others",
+      "typeBuy": "Buy as gifts",
+      "quantityWithRecipients": "{{qty}} cards · {{count}} recipients",
+      "quantityWithCode": "{{qty}} cards · Receive serial+code",
+      "quantity": "{{qty}} cards",
+      "totalPayment": "Total payment",
+      "pointsEarned": "Points earned",
+      "placeOrder": "Place Order"
+    },
+    "error": {
+      "addRecipient": "Please add at least one recipient",
+      "typeLocked": "This card type is currently locked. Please select another.",
+      "orderFailed": "Order failed. Please try again."
+    }
+  },
+  "redeem": {
+    "title": "Redeem Gift Card",
+    "heroTitle": "Enter card details",
+    "heroHint": "Serial and code are printed on the back of the card",
+    "serialLabel": "Serial",
+    "codeLabel": "Code",
+    "serialPlaceholder": "e.g. 100003042026715485",
+    "codePlaceholder": "e.g. 635657315046",
+    "serialRequired": "Enter card serial",
+    "codeRequired": "Enter card code",
+    "submitButton": "Redeem",
+    "continueBtn": "Go to Home",
+    "success": {
+      "title": "Redeemed successfully",
+      "subtitle": "Points have been added to your account",
+      "pointsLabel": "Points received",
+      "pointsValue": "+{{points}} points",
+      "cardName": "Card name",
+      "serial": "Serial",
+      "usedAt": "Redeemed at"
+    }
+  },
+  "orderDetail": {
+    "title": "Gift Card Order",
+    "status": "Status",
+    "orderDate": "Order Date",
+    "paymentMethod": "Payment Method",
+    "quantity": "Quantity",
+    "type": "Type",
+    "orderCode": "Order Code",
+    "giftCardsSection": "Gift Cards ({{count}})",
+    "notFound": "Order not found"
+  },
+  "orderSuccess": {
+    "title": "Order Details",
+    "orderCode": "Order code:",
+    "section": {
+      "detail": "Order Details",
+      "codes": "Gift Card Codes ({{count}})",
+      "recipients": "Recipients ({{count}})"
+    },
+    "info": {
+      "card": "Gift card",
+      "quantity": "Quantity",
+      "points": "Points earned",
+      "totalPayment": "Total payment",
+      "quantityValue": "{{count}} cards",
+      "pointsValue": "+{{points}} points"
+    },
+    "codeHint": "Tap the copy icon to save the code",
+    "buyHint": "Share the serial and code with recipients to let them redeem points",
+    "codeItem": {
+      "serial": "Serial",
+      "code": "Code",
+      "expiry": "Exp."
+    },
+    "resendSmsSuccess": "SMS resent successfully",
+    "resendSmsFailed": "Failed to resend SMS",
+    "notFound": "Order not found"
+  },
+  "selectedSheet": {
+    "pointsPerCard": "+{{points}} points / card",
+    "pricePerCard": "{{price}} / card",
+    "quantity": "Quantity",
+    "totalAmount": "Total",
+    "pointsEarned": "Points earned",
+    "addToCart": "Add to Cart"
+  },
+  "warningDialog": {
+    "title": "Replace gift card?",
+    "currentCard": "Current",
+    "replaceWith": "Replace with",
+    "keepCurrent": "Keep current",
+    "replace": "Replace"
+  },
+  "sortAsc": "Price: Low to High",
+  "sortDesc": "Price: High to Low",
+  "paymentStatus": {
+    "completed": "Successful",
+    "pending": "Pending payment",
+    "failed": "Failed",
+    "cancelled": "Cancelled"
+  },
+  "paymentMethod": {
+    "zalopay": "ZaloPay Wallet",
+    "cash": "Cash",
+    "vnpay": "VNPay",
+    "momo": "MoMo Wallet",
+    "banking": "Bank transfer"
+  },
+  "recipientForm": {
+    "recipientTitle": "Recipient {{index}}",
+    "phone": "Phone number",
+    "phonePlaceholder": "Enter phone number",
+    "searching": "Searching...",
+    "tapToFill": "Tap to fill name",
+    "name": "Recipient name",
+    "namePlaceholder": "Full name (optional)",
+    "quantityLabel": "Number of cards",
+    "messageLabel": "Message",
+    "messagePlaceholder": "Personal message (optional)",
+    "error": {
+      "phone": "Invalid phone number (10-11 digits, starts with 0)",
+      "quantity": "Enter a valid quantity",
+      "quantityMin": "Minimum 1",
+      "messageMax": "Maximum 200 characters"
+    }
+  }
+}

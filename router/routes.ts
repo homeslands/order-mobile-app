@@ -1,0 +1,215 @@
+// /**
+//  * Router Routes Configuration for Expo Router
+//  * 
+//  * Note: Với Expo Router (file-based routing), routes được định nghĩa bằng cấu trúc file trong thư mục `app/`
+//  * File này chỉ định nghĩa metadata (title, icon, permission) cho sidebar navigation
+//  * 
+//  * Để navigate, sử dụng:
+//  * ```tsx
+//  * import { useRouter } from 'expo-router'
+//  * const router = useRouter()
+//  * router.push(route.path) // hoặc router.replace(route.path)
+//  * ```
+//  */
+
+// import {
+//   Archive,
+//   Banknote,
+//   Bolt,
+//   ChartColumn,
+//   ChefHat,
+//   ClipboardList,
+//   CoinsIcon,
+//   CookingPot,
+//   FileChartColumnIncreasing,
+//   Gift,
+//   Grid2x2,
+//   LayoutGrid,
+//   LockOpen,
+//   Newspaper,
+//   ShoppingCart,
+//   Store,
+//   Tag,
+//   Ticket,
+//   TicketCheck,
+//   UserCog,
+//   Users,
+// } from 'lucide-react-native'
+
+// import { Permission, ROUTE } from '@/constants'
+// import type { ISidebarRoute } from '@/types'
+
+// export const sidebarRoutes: ISidebarRoute[] = [
+//   {
+//     title: 'sidebar.overview',
+//     path: ROUTE.SYSTEM_OVERVIEW,
+//     permission: Permission.OVERVIEW,
+//     icon: ChartColumn,
+//   },
+//   {
+//     title: 'sidebar.menu',
+//     path: ROUTE.SYSTEM_MENU,
+//     icon: LayoutGrid,
+//     permission: Permission.STAFF_MENU,
+//   },
+//   {
+//     title: 'sidebar.giftCardMenu',
+//     path: ROUTE.SYSTEM_GIFT_CARD_MENU,
+//     icon: TicketCheck,
+//     permission: Permission.CARD_MENU,
+//   },
+//   {
+//     title: 'sidebar.deliveryManagement',
+//     path: ROUTE.STAFF_DELIVERY_MANAGEMENT,
+//     icon: ShoppingCart,
+//     permission: Permission.DELIVERY_MANAGEMENT,
+//     notificationCount: 0,
+//   },
+//   {
+//     title: 'sidebar.chefOrderManagement',
+//     path: ROUTE.STAFF_CHEF_ORDER,
+//     icon: CookingPot,
+//     permission: Permission.CHEF_ORDER_MANAGEMENT,
+//     notificationCount: 0,
+//   },
+//   {
+//     title: 'sidebar.cardOrderManagement',
+//     path: ROUTE.STAFF_CARD_ORDER_MANAGEMENT,
+//     icon: CoinsIcon,
+//     permission: Permission.CARD_ORDER_MANAGEMENT,
+//     notificationCount: 0,
+//   },
+//   {
+//     title: 'sidebar.orderManagement',
+//     path: ROUTE.STAFF_ORDER_MANAGEMENT,
+//     icon: Archive,
+//     permission: Permission.ORDER_MANAGEMENT,
+//     notificationCount: 0,
+//   },
+//   {
+//     title: 'sidebar.tableManagement',
+//     path: ROUTE.STAFF_TABLE_MANAGEMENT,
+//     icon: Grid2x2,
+//     permission: Permission.TABLE_MANAGEMENT,
+//   },
+//   {
+//     title: 'sidebar.menuManagement',
+//     path: ROUTE.STAFF_MENU_MANAGEMENT,
+//     icon: ClipboardList,
+//     permission: Permission.MENU_MANAGEMENT,
+//   },
+//   {
+//     title: 'sidebar.dishManagement',
+//     path: ROUTE.STAFF_PRODUCT_MANAGEMENT,
+//     icon: CookingPot,
+//     permission: Permission.PRODUCT_MANAGEMENT,
+//   },
+//   {
+//     title: 'sidebar.customerManagement',
+//     path: ROUTE.STAFF_CUSTOMER_MANAGEMENT,
+//     icon: Users,
+//     permission: Permission.CUSTOMER_MANAGEMENT,
+//   },
+//   {
+//     title: 'sidebar.userManagement',
+//     path: ROUTE.STAFF_USER_MANAGEMENT,
+//     icon: Users,
+//     permission: Permission.EMPLOYEE_MANAGEMENT,
+//   },
+//   {
+//     title: 'sidebar.customerGroupManagement',
+//     path: ROUTE.STAFF_CUSTOMER_GROUP_MANAGEMENT,
+//     icon: Users,
+//     permission: Permission.CUSTOMER_MANAGEMENT,
+//   },
+//   {
+//     title: 'sidebar.branchManagement',
+//     path: ROUTE.STAFF_BRANCH,
+//     icon: Store,
+//     permission: Permission.BRANCH_MANAGEMENT,
+//   },
+//   {
+//     title: 'sidebar.roleManagement',
+//     path: ROUTE.STAFF_ROLE_MANAGEMENT,
+//     icon: UserCog,
+//     permission: Permission.ROLE_MANAGEMENT,
+//   },
+//   {
+//     title: 'sidebar.chefAreaManagement',
+//     path: ROUTE.STAFF_CHEF_AREA_MANAGEMENT,
+//     icon: ChefHat,
+//     permission: Permission.CHEF_AREA_MANAGEMENT,
+//   },
+//   {
+//     title: 'sidebar.staticPageManagement',
+//     path: ROUTE.STAFF_STATIC_PAGE,
+//     icon: FileChartColumnIncreasing,
+//     permission: Permission.PAGE_MANAGEMENT,
+//   },
+//   {
+//     title: 'sidebar.logManagement',
+//     path: ROUTE.STAFF_LOG_MANAGEMENT,
+//     icon: FileChartColumnIncreasing,
+//     permission: Permission.LOG_MANAGEMENT,
+//   },
+//   {
+//     title: 'sidebar.bankConfig',
+//     path: ROUTE.STAFF_BANK_CONFIG,
+//     icon: Banknote,
+//     permission: Permission.BANK_MANAGEMENT,
+//   },
+//   {
+//     title: 'sidebar.config',
+//     path: ROUTE.STAFF_CONFIG,
+//     icon: Bolt,
+//     permission: Permission.CONFIG_MANAGEMENT,
+//   },
+//   {
+//     title: 'sidebar.voucher',
+//     path: ROUTE.STAFF_VOUCHER_GROUP,
+//     icon: Ticket,
+//     permission: Permission.VOUCHER_MANAGEMENT,
+//   },
+//   {
+//     title: 'sidebar.promotion',
+//     path: ROUTE.STAFF_PROMOTION,
+//     icon: Tag,
+//     permission: Permission.PROMOTION_MANAGEMENT,
+//   },
+//   {
+//     title: 'sidebar.giftCardManagement',
+//     path: ROUTE.STAFF_GIFT_CARD,
+//     icon: Gift,
+//     permission: Permission.CARD_MANAGEMENT,
+//   },
+//   // {
+//   //   title: 'sidebar.giftCardFeatureFlag',
+//   //   path: ROUTE.STAFF_GIFT_CARD_FEATURE_FLAG,
+//   //   icon: LockOpen,
+//   //   permission: Permission.BANNER_MANAGEMENT,
+//   // },
+//   // {
+//   //   title: 'sidebar.coinPolicy',
+//   //   path: ROUTE.STAFF_COIN_POLICY,
+//   //   icon: ShieldCheckIcon,
+//   //   permission: Permission.BANNER_MANAGEMENT,
+//   // },
+//   {
+//     title: 'sidebar.systemLockManagement',
+//     path: ROUTE.STAFF_SYSTEM_LOCK_MANAGEMENT,
+//     icon: LockOpen,
+//     permission: Permission.BANNER_MANAGEMENT,
+//   },
+//   {
+//     title: 'sidebar.banner',
+//     path: ROUTE.STAFF_BANNER,
+//     icon: Newspaper,
+//     permission: Permission.BANNER_MANAGEMENT,
+//   },
+//   {
+//     title: 'sidebar.clientView',
+//     path: ROUTE.STAFF_CUSTOMER_DISPLAY,
+//     icon: Users,
+//     permission: Permission.CLIENT_VIEW,
+//   },
+// ]
