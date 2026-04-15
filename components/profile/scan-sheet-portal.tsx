@@ -72,8 +72,9 @@ const QrContent = memo(function QrContent({
           <QRCode
             value={slug}
             size={QR_SIZE}
-            color={isDark ? colors.gray[50] : colors.gray[900]}
-            backgroundColor="transparent"
+            color="#000000"
+            backgroundColor="#FFFFFF"
+            ecl="H"
           />
         ) : (
           <View style={s.qrPlaceholder}>
