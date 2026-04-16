@@ -173,7 +173,9 @@ export default function GiftCardScreen() {
         return
       }
 
-      if (!giftCardItem) {
+      // Đọc từ store state tại thời điểm gọi — không subscribe, không recreate callback
+      const currentGiftCardItem = useGiftCardStore.getState().giftCardItem
+      if (!currentGiftCardItem) {
         setGiftCardItem({
           id: item.slug,
           slug: item.slug,
@@ -193,7 +195,7 @@ export default function GiftCardScreen() {
       // Khác loại thẻ → replace dialog
       setPendingCard(item)
     },
-    [giftCardItem, setGiftCardItem, router],
+    [setGiftCardItem, router],
   )
 
   // #4 — cart icon: nếu đã có item → vào checkout, không thì không làm gì
