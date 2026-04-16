@@ -231,17 +231,18 @@ export default function GiftCardScreen() {
     setPendingCard(null)
   }, [])
 
-  // ── renderItem — re-create khi giftCardItem thay đổi (để inCart đúng) ──
+  // ── renderItem — chỉ phụ thuộc slug (primitive), không re-create khi qty thay đổi ──
+  const giftCardItemSlug = giftCardItem?.slug
   const renderItem = useCallback(
     ({ item }: { item: IGiftCard }) => (
       <GiftCardListItem
         item={item}
         primaryColor={primaryColor}
-        inCart={giftCardItem?.slug === item.slug}
+        inCart={giftCardItemSlug === item.slug}
         onSelect={handleSelect}
       />
     ),
-    [primaryColor, handleSelect, giftCardItem],
+    [primaryColor, handleSelect, giftCardItemSlug],
   )
 
   // ── Colors ────────────────────────────────────────────────────────────────
