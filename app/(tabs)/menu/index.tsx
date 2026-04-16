@@ -546,12 +546,13 @@ export default function MenuPage() {
           rawPrice={data.rawPrice}
           promotionValue={data.promotionValue}
           primaryColor={primaryColor}
+          isDark={isDark}
           onDetail={handleOpenDetail}
           onAddToCart={handleAddToCart}
         />
       )
     },
-    [handleOpenDetail, handleAddToCart, primaryColor, catalogHeaderColor],
+    [handleOpenDetail, handleAddToCart, primaryColor, isDark, catalogHeaderColor],
   )
 
   const handleScrollBeginDrag = useCallback(() => {

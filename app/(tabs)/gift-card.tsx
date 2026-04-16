@@ -173,7 +173,9 @@ export default function GiftCardScreen() {
         return
       }
 
-      if (!giftCardItem) {
+      // Đọc từ store state tại thời điểm gọi — không subscribe, không recreate callback
+      const currentGiftCardItem = useGiftCardStore.getState().giftCardItem
+      if (!currentGiftCardItem) {
         setGiftCardItem({
           id: item.slug,
           slug: item.slug,
@@ -193,7 +195,7 @@ export default function GiftCardScreen() {
       // Khác loại thẻ → replace dialog
       setPendingCard(item)
     },
-    [giftCardItem, setGiftCardItem, router],
+    [setGiftCardItem, router],
   )
 
   // #4 — cart icon: nếu đã có item → vào checkout, không thì không làm gì
@@ -231,17 +233,19 @@ export default function GiftCardScreen() {
     setPendingCard(null)
   }, [])
 
-  // ── renderItem — re-create khi giftCardItem thay đổi (để inCart đúng) ──
+  // ── renderItem — chỉ phụ thuộc slug (primitive), không re-create khi qty thay đổi ──
+  const giftCardItemSlug = giftCardItem?.slug
   const renderItem = useCallback(
     ({ item }: { item: IGiftCard }) => (
       <GiftCardListItem
         item={item}
         primaryColor={primaryColor}
-        inCart={giftCardItem?.slug === item.slug}
+        isDark={isDark}
+        inCart={giftCardItemSlug === item.slug}
         onSelect={handleSelect}
       />
     ),
-    [primaryColor, handleSelect, giftCardItem],
+    [primaryColor, isDark, handleSelect, giftCardItemSlug],
   )
 
   // ── Colors ────────────────────────────────────────────────────────────────

@@ -249,7 +249,12 @@ const OrderItemRow = memo(
   },
   (prev, next) =>
     prev.item === next.item &&
-    prev.displayItem === next.displayItem &&
+    // Value comparison — calculateOrderDisplayAndTotals always creates new objects,
+    // so reference equality would re-render all items on every qty change.
+    (prev.displayItem?.finalPrice ?? 0) === (next.displayItem?.finalPrice ?? 0) &&
+    (prev.displayItem?.priceAfterPromotion ?? 0) === (next.displayItem?.priceAfterPromotion ?? 0) &&
+    (prev.displayItem?.voucherDiscount ?? 0) === (next.displayItem?.voucherDiscount ?? 0) &&
+    (prev.displayItem?.promotionDiscount ?? 0) === (next.displayItem?.promotionDiscount ?? 0) &&
     prev.primaryColor === next.primaryColor &&
     prev.isDark === next.isDark &&
     prev.totalOrderItems === next.totalOrderItems &&

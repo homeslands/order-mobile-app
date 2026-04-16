@@ -181,9 +181,11 @@ function assertFlashListsHaveOverrideLayout(component: React.ReactElement) {
   try {
     const { UNSAFE_getAllByType } = renderResult
     const lists = UNSAFE_getAllByType(FlashList)
-    lists.forEach((list, i) => {
-      expect(typeof list.props.overrideItemLayout).toBe('function') // FlashList[i] must have overrideItemLayout
+    lists.forEach((list, _i) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      expect(typeof list.props.overrideItemLayout).toBe('function') // FlashList[_i] must have overrideItemLayout
       const layout: { size?: number } = {}
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       list.props.overrideItemLayout(layout)
       expect(layout.size).toBeGreaterThan(0) // overrideItemLayout must set layout.size > 0
     })
