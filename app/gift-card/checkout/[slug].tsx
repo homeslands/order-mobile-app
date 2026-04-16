@@ -103,16 +103,19 @@ const PaymentCountdownBadge = memo(function PaymentCountdownBadge({
     },
   )
 
-  // Background color reactive on UI thread — warning → destructive in last 60s
+  // Background color + opacity reactive on UI thread.
+  // opacity: 0 when value === 0 prevents "Hết hạn" flash before effect initializes.
+  // warning → destructive in last 60s
   const pillStyle = useAnimatedStyle(() => ({
     backgroundColor: secondsShared.value <= 60
       ? isDark ? colors.destructive.dark : colors.destructive.light
       : colors.warning.light,
+    opacity: secondsShared.value > 0 ? 1 : 0,
   }), [isDark])
 
   // Text formatted on UI thread via animatedProps
   const textProps = useAnimatedProps(() => ({
-    value: formatCountdownUI(secondsShared.value),
+    value: secondsShared.value > 0 ? formatCountdownUI(secondsShared.value) : '',
   }))
 
   return (
