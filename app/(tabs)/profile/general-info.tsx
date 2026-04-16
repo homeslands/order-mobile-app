@@ -67,7 +67,7 @@ const ICON_COLORS = {
 
 // ─── Header — cart style ──────────────────────────────────────────────────────
 
-function GIHeader({
+const GIHeader = React.memo(function GIHeader({
   onBack,
   onEdit,
   isDark,
@@ -131,7 +131,7 @@ function GIHeader({
       </View>
     </View>
   )
-}
+})
 
 const hStyles = StyleSheet.create({
   container: {
