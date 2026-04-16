@@ -1,7 +1,7 @@
 import { Image } from 'expo-image'
 import { Coins, Gift, Plus } from 'lucide-react-native'
 import { memo, useCallback } from 'react'
-import { Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { colors } from '@/constants'
 import { IGiftCard } from '@/types'
@@ -15,14 +15,14 @@ export const GIFT_CARD_IMAGE_SIZE = 128
 interface GiftCardListItemProps {
   item: IGiftCard
   primaryColor: string
+  isDark: boolean
   /** true khi thẻ này đang được chọn trong giỏ */
   inCart: boolean
   onSelect: (item: IGiftCard) => void
 }
 
 export const GiftCardListItem = memo(
-  function GiftCardListItem({ item, primaryColor, inCart, onSelect }: GiftCardListItemProps) {
-    const isDark = useColorScheme() === 'dark'
+  function GiftCardListItem({ item, primaryColor, isDark, inCart, onSelect }: GiftCardListItemProps) {
     const handleSelect = useCallback(() => onSelect(item), [item, onSelect])
     const imageUrl = getProductImageUrl(item.image)
     const { t } = useTranslation('giftCard')
@@ -117,6 +117,7 @@ export const GiftCardListItem = memo(
     prev.item.version === next.item.version &&
     prev.inCart === next.inCart &&
     prev.primaryColor === next.primaryColor &&
+    prev.isDark === next.isDark &&
     prev.onSelect === next.onSelect,
 )
 

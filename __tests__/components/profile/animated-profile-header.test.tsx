@@ -2,7 +2,7 @@ import { render } from '@testing-library/react-native'
 import { useSharedValue } from 'react-native-reanimated'
 
 jest.mock('react-native-reanimated', () =>
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-return
   require('react-native-reanimated/mock'),
 )
 jest.mock('expo-blur', () => ({ BlurView: 'BlurView' }))
