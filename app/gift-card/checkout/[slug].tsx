@@ -54,9 +54,10 @@ import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useInitiateCardOrderPayment } from '@/hooks/use-card-order'
 import { useGiftCardOrderPayment } from '@/hooks/use-gift-card-order-payment'
 import { useAnimatedCountdown } from '@/hooks/use-animated-countdown'
+import { PAID_NOTIFICATION_CODES } from '@/hooks'
 import { useCancelCardOrder } from '@/hooks/use-card-order'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
-import { useGiftCardStore } from '@/stores'
+import { useGiftCardStore, useNotificationStore } from '@/stores'
 import { navigateNative, scheduleTransitionTask } from '@/lib/navigation'
 import { formatCurrency, formatPoints, showErrorToastMessage } from '@/utils'
 
@@ -322,6 +323,18 @@ export default function GiftCardPaymentScreen() {
     [order?.payment?.createdAt, order?.createdAt],
   )
 
+  // FCM-based success detection — immediate, no refetch wait
+  // Mirrors usePaymentStatusDetector pattern from food/drink payment
+  const fcmPaid = useNotificationStore((s) =>
+    s.notifications.some(
+      (n) =>
+        !n.isRead &&
+        PAID_NOTIFICATION_CODES.has(n.message) &&
+        n.metadata?.order === slug,
+    ),
+  )
+  const showSuccess = fcmPaid || order?.paymentStatus === CardOrderStatus.COMPLETED
+
   // UI-thread countdown — zero JS re-renders per tick
   const activeQR = qrCode ?? order?.payment?.qrCode ?? null
   const secondsShared = useAnimatedCountdown({
@@ -346,20 +359,16 @@ export default function GiftCardPaymentScreen() {
     },
   )
 
-  // Navigate to success when order is paid
+  // Navigate to success when paid — fires on FCM (immediate) or polling confirm
   useEffect(() => {
-    if (
-      !hasNavigatedRef.current &&
-      order?.paymentStatus === CardOrderStatus.COMPLETED &&
-      slug
-    ) {
+    if (!hasNavigatedRef.current && showSuccess && slug) {
       hasNavigatedRef.current = true
       navigateNative.replace(
         `/gift-card/order-success/${slug}` as Parameters<typeof navigateNative.replace>[0],
       )
       scheduleTransitionTask(() => clearGiftCard(false))
     }
-  }, [order?.paymentStatus, slug, clearGiftCard])
+  }, [showSuccess, slug, clearGiftCard])
 
   // Clear QR image memory on blur
   useFocusEffect(
@@ -413,7 +422,6 @@ export default function GiftCardPaymentScreen() {
   const totalAmount = (order?.cardPrice ?? 0) * (order?.quantity ?? 0)
   const alreadyHasQR = !!order?.payment?.qrCode
   const isCancelled = order?.paymentStatus === CardOrderStatus.CANCELLED
-  const isCompleted = order?.paymentStatus === CardOrderStatus.COMPLETED
 
   // ── Render ────────────────────────────────────────────────────────────────
 
@@ -434,7 +442,7 @@ export default function GiftCardPaymentScreen() {
           <CircleX size={48} color={colors.gray[400]} />
           <Text style={[s.emptyText, { color: subColor }]}>Không tìm thấy đơn hàng</Text>
         </View>
-      ) : isCompleted ? (
+      ) : showSuccess ? (
         // Briefly shown while navigate fires
         <View style={[s.empty, { marginTop: STATIC_TOP_INSET + 56 }]}>
           <CheckCircle2 size={48} color={colors.success?.light ?? primaryColor} />
