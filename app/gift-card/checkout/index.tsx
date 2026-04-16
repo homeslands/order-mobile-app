@@ -56,6 +56,8 @@ import { capitalizeFirst, formatCurrency, formatPoints, showErrorToastMessage } 
 // ─── Schema ──────────────────────────────────────────────────────────────────
 
 const recipientSchema = z.object({
+  // recipientSlug is set when user selects a suggestion — required for routing
+  recipientSlug: z.string().min(10, 'Vui lòng chọn người nhận từ gợi ý'),
   phone: z
     .string()
     .regex(/^0[0-9]{9,10}$/, 'Số điện thoại không hợp lệ (10-11 số, bắt đầu bằng 0)'),
@@ -182,7 +184,7 @@ export default function GiftCardCheckoutScreen() {
   )
 
   const handleAddRecipient = useCallback(() => {
-    append({ phone: '', name: '', quantity: 1, message: '' })
+    append({ recipientSlug: '', phone: '', name: '', quantity: 1, message: '' })
   }, [append])
 
   const handleRemoveRecipient = useCallback(
@@ -213,8 +215,7 @@ export default function GiftCardCheckoutScreen() {
           receipients:
             data.cardOrderType === GiftCardType.GIFT
               ? data.recipients.map((r) => ({
-                  phone: r.phone,
-                  name: r.name,
+                  recipientSlug: r.recipientSlug,
                   quantity: r.quantity,
                   message: r.message,
                 }))
