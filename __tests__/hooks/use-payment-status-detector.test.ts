@@ -9,7 +9,7 @@ import { OrderStatus } from '@/types'
 const mockUseNotificationStore = jest.fn<unknown, [((s: any) => unknown)]>()
 
 jest.mock('@/stores', () => ({
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
+   
   useNotificationStore: (sel: (s: unknown) => unknown) => mockUseNotificationStore(sel),
 }))
 
@@ -21,7 +21,7 @@ type FakeNotification = {
 }
 
 function setNotifications(notifications: FakeNotification[]) {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
+   
   mockUseNotificationStore.mockImplementation((sel) => sel({ notifications }))
 }
 
