@@ -4,7 +4,7 @@
  * Perf patterns:
  * - useGiftCardOrderPayment: FCM refetch + useFocusEffect — không dùng setInterval polling
  * - QRSection memo-isolated — không re-render khi isInitiating thay đổi
- * - useCountdown chạy trên setInterval(1s), không làm JS thread spike
+ * - useAnimatedCountdown chạy trên UI thread — zero JS re-renders per tick
  * - Clear QR memory cache khi blur
  */
 import { Image as ExpoImage } from 'expo-image'
@@ -29,11 +29,19 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   useColorScheme,
   View,
 } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import Animated, {
+  runOnJS,
+  useAnimatedProps,
+  useAnimatedReaction,
+  useAnimatedStyle,
+  type SharedValue,
+} from 'react-native-reanimated'
 
 import { FloatingHeader } from '@/components/navigation/floating-header'
 import { Skeleton } from '@/components/ui'
@@ -45,7 +53,7 @@ import {
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useInitiateCardOrderPayment } from '@/hooks/use-card-order'
 import { useGiftCardOrderPayment } from '@/hooks/use-gift-card-order-payment'
-import { useCountdown } from '@/hooks/use-countdown'
+import { useAnimatedCountdown } from '@/hooks/use-animated-countdown'
 import { useCancelCardOrder } from '@/hooks/use-card-order'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { useGiftCardStore } from '@/stores'
@@ -53,18 +61,96 @@ import { navigateNative, scheduleTransitionTask } from '@/lib/navigation'
 import { formatCurrency, formatPoints, showErrorToastMessage } from '@/utils'
 
 // Payment QR expires 15 minutes after initiation
-const QR_EXPIRY_MINUTES = 15
+const QR_EXPIRY_SECONDS = 900
 
 function calcExpiryFromCreatedAt(createdAt?: string): string | undefined {
   if (!createdAt) return undefined
-  return new Date(new Date(createdAt).getTime() + QR_EXPIRY_MINUTES * 60_000).toISOString()
+  return new Date(new Date(createdAt).getTime() + QR_EXPIRY_SECONDS * 1000).toISOString()
 }
 
-function formatCountdown(seconds: number): string {
-  const m = Math.floor(seconds / 60)
-  const s = seconds % 60
-  return `${m}:${String(s).padStart(2, '0')}`
+// Animated TextInput — lets Reanimated update text content on the UI thread (no re-renders)
+const AnimatedTextInput = Animated.createAnimatedComponent(TextInput)
+
+function formatCountdownUI(sec: number): string {
+  'worklet'
+  if (sec <= 0) return 'Hết hạn'
+  const m = Math.floor(sec / 60)
+  const s = sec % 60
+  return `${m}:${s < 10 ? '0' : ''}${s}`
 }
+
+// ─── Payment Countdown Badge ──────────────────────────────────────────────────
+
+const PaymentCountdownBadge = memo(function PaymentCountdownBadge({
+  secondsShared,
+  onExpire,
+}: {
+  secondsShared: SharedValue<number>
+  onExpire?: () => void
+}) {
+  const isDark = useColorScheme() === 'dark'
+  const onExpireRef = useRef(onExpire)
+  useEffect(() => { onExpireRef.current = onExpire })
+
+  const fireExpire = useCallback(() => { onExpireRef.current?.() }, [])
+  useAnimatedReaction(
+    () => secondsShared.value,
+    (current, previous) => {
+      if (current === 0 && previous !== null && previous > 0) {
+        runOnJS(fireExpire)()
+      }
+    },
+  )
+
+  // Background color reactive on UI thread — warning → destructive in last 60s
+  const pillStyle = useAnimatedStyle(() => ({
+    backgroundColor: secondsShared.value <= 60
+      ? isDark ? colors.destructive.dark : colors.destructive.light
+      : colors.warning.light,
+  }), [isDark])
+
+  // Text formatted on UI thread via animatedProps
+  const textProps = useAnimatedProps(() => ({
+    value: formatCountdownUI(secondsShared.value),
+  }))
+
+  return (
+    <Animated.View style={[bds.pill, bds.shadow, pillStyle]}>
+      <AnimatedTextInput
+        animatedProps={textProps}
+        editable={false}
+        pointerEvents="none"
+        style={bds.text}
+      />
+    </Animated.View>
+  )
+})
+
+const bds = StyleSheet.create({
+  pill: {
+    height: 38,
+    borderRadius: 19,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  text: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: colors.white.light,
+    letterSpacing: 0.5,
+    textAlign: 'center',
+    padding: 0,
+    minWidth: 44,
+  },
+})
 
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
@@ -104,17 +190,26 @@ const QRSection = memo(function QRSection({
   totalAmount,
   primaryColor,
   isDark,
-  countdown,
+  secondsShared,
   isExpired,
 }: {
   qrCode: string
   totalAmount: number
   primaryColor: string
   isDark: boolean
-  countdown: number
+  secondsShared: SharedValue<number>
   isExpired: boolean
 }) {
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
+
+  // Countdown row hides on UI thread when expired or at 0
+  const countdownRowStyle = useAnimatedStyle(() => ({
+    display: secondsShared.value > 0 && !isExpired ? 'flex' : 'none',
+  }))
+
+  const countdownTextProps = useAnimatedProps(() => ({
+    value: `Hết hạn sau ${formatCountdownUI(secondsShared.value)}`,
+  }))
 
   return (
     <View style={[qs.container, { borderColor: isDark ? colors.gray[700] : colors.gray[200] }]}>
@@ -141,14 +236,15 @@ const QRSection = memo(function QRSection({
         </Text>
       </View>
 
-      {!isExpired && countdown > 0 && (
-        <View style={[qs.countdownRow, { backgroundColor: `${primaryColor}15` }]}>
-          <Timer size={14} color={primaryColor} />
-          <Text style={[qs.countdownText, { color: primaryColor }]}>
-            Hết hạn sau {formatCountdown(countdown)}
-          </Text>
-        </View>
-      )}
+      <Animated.View style={[qs.countdownRow, { backgroundColor: `${primaryColor}15` }, countdownRowStyle]}>
+        <Timer size={14} color={primaryColor} />
+        <AnimatedTextInput
+          animatedProps={countdownTextProps}
+          editable={false}
+          pointerEvents="none"
+          style={[qs.countdownText, { color: primaryColor }]}
+        />
+      </Animated.View>
 
       <View style={qs.noteRow}>
         <Text style={[qs.note, { color: subColor }]}>
@@ -194,7 +290,11 @@ const qs = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 999,
   },
-  countdownText: { fontSize: 13, fontWeight: '600' },
+  countdownText: {
+    fontSize: 13,
+    fontWeight: '600',
+    padding: 0,
+  },
   noteRow: { paddingHorizontal: 8 },
   note: { fontSize: 12, textAlign: 'center', lineHeight: 18 },
 })
@@ -222,10 +322,29 @@ export default function GiftCardPaymentScreen() {
     [order?.payment?.createdAt, order?.createdAt],
   )
 
-  const countdown = useCountdown({
+  // UI-thread countdown — zero JS re-renders per tick
+  const activeQR = qrCode ?? order?.payment?.qrCode ?? null
+  const secondsShared = useAnimatedCountdown({
     expiresAt: expiryTime,
-    enabled: !!qrCode && !isExpired,
+    enabled: !!activeQR && !isExpired,
   })
+
+  const handleExpire = useCallback(() => {
+    setIsExpired(true)
+    if (slug) {
+      cancelOrder(slug, { onSettled: () => void refetch() })
+    }
+  }, [slug, cancelOrder, refetch])
+
+  // Bridge expiry from UI thread → JS
+  useAnimatedReaction(
+    () => secondsShared.value,
+    (current, previous) => {
+      if (current === 0 && previous !== null && previous > 0 && activeQR) {
+        runOnJS(handleExpire)()
+      }
+    },
+  )
 
   // Navigate to success when order is paid
   useEffect(() => {
@@ -242,18 +361,6 @@ export default function GiftCardPaymentScreen() {
     }
   }, [order?.paymentStatus, slug, clearGiftCard])
 
-  // Trigger expire when countdown hits 0 — reacting to timer event, not cascading render
-  useEffect(() => {
-    if (countdown !== 0 || !qrCode || isExpired) return
-    const id = requestAnimationFrame(() => {
-      setIsExpired(true)
-      if (slug) {
-        cancelOrder(slug, { onSettled: () => void refetch() })
-      }
-    })
-    return () => cancelAnimationFrame(id)
-  }, [countdown, qrCode, isExpired, slug, cancelOrder, refetch])
-
   // Clear QR image memory on blur
   useFocusEffect(
     useCallback(() => {
@@ -262,6 +369,19 @@ export default function GiftCardPaymentScreen() {
       }
     }, []),
   )
+
+  // Memoize badge so FloatingHeader (memo'd) doesn't re-render per parent render.
+  // secondsShared is a stable SharedValue ref — safe as memo dep.
+  const countdownRight = useMemo(() => {
+    if (!activeQR || isExpired) return undefined
+    return (
+      <PaymentCountdownBadge
+        secondsShared={secondsShared}
+        onExpire={handleExpire}
+      />
+    )
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeQR, isExpired])
 
   const handleInitiatePayment = useCallback(() => {
     if (!slug) return
@@ -292,7 +412,6 @@ export default function GiftCardPaymentScreen() {
 
   const totalAmount = (order?.cardPrice ?? 0) * (order?.quantity ?? 0)
   const alreadyHasQR = !!order?.payment?.qrCode
-  const activeQR = qrCode ?? order?.payment?.qrCode ?? null
   const isCancelled = order?.paymentStatus === CardOrderStatus.CANCELLED
   const isCompleted = order?.paymentStatus === CardOrderStatus.COMPLETED
 
@@ -300,9 +419,11 @@ export default function GiftCardPaymentScreen() {
 
   return (
     <View style={[s.container, { backgroundColor: bg }]}>
-      <FloatingHeader title="Thanh toán" 
-          disableBlur
-        />
+      <FloatingHeader
+        title="Thanh toán"
+        disableBlur
+        rightElement={countdownRight}
+      />
 
       {isPending ? (
         <View style={{ marginTop: STATIC_TOP_INSET + 56 }}>
@@ -396,7 +517,7 @@ export default function GiftCardPaymentScreen() {
                 totalAmount={totalAmount || order.totalAmount}
                 primaryColor={primaryColor}
                 isDark={isDark}
-                countdown={countdown}
+                secondsShared={secondsShared}
                 isExpired={isExpired}
               />
             )}
