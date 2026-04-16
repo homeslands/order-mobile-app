@@ -5,7 +5,7 @@ import { capitalizeFirst } from '@/utils'
 import { formatCurrencyNative } from 'cart-price-calc'
 import { Plus } from 'lucide-react-native'
 import React, { createContext, memo, useCallback, useContext } from 'react'
-import { Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 /** Number of items allowed to show images (listIndex < value). 0 = none. */
 export const MenuImagePhaseContext = createContext(0)
@@ -49,6 +49,7 @@ export const MenuItemRow = memo(
     rawPrice,
     promotionValue,
     primaryColor,
+    isDark,
     onDetail,
     onAddToCart,
   }: {
@@ -59,10 +60,10 @@ export const MenuItemRow = memo(
     rawPrice: number
     promotionValue: number
     primaryColor: string
+    isDark: boolean
     onDetail: (id: string) => void
     onAddToCart: (id: string) => void
   }) {
-    const isDark = useColorScheme() === 'dark'
     const phaseCount = useContext(MenuImagePhaseContext)
     const showImage = listIndex < phaseCount
     const imagePriority =
@@ -140,6 +141,7 @@ export const MenuItemRow = memo(
     prev.rawPrice === next.rawPrice &&
     prev.promotionValue === next.promotionValue &&
     prev.primaryColor === next.primaryColor &&
+    prev.isDark === next.isDark &&
     prev.onDetail === next.onDetail &&
     prev.onAddToCart === next.onAddToCart,
 )

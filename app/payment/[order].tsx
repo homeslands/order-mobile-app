@@ -6,7 +6,8 @@ import { useLocalSearchParams } from 'expo-router'
 import { CircleAlert, CircleX, Ticket } from 'lucide-react-native'
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, useColorScheme, View } from 'react-native'
+import Animated, { runOnJS, useAnimatedProps, useAnimatedReaction, useAnimatedStyle } from 'react-native-reanimated'
 import { ScrollView as GestureScrollView } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -15,6 +16,7 @@ import { Skeleton } from '@/components/ui'
 import { colors, NotificationMessageCode, PaymentMethod, TAB_ROUTES } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useInitiatePayment, useInitiatePublicPayment, useOrderBySlug, useRunAfterTransition, useUpdatePublicVoucherInOrder, useUpdateVoucherInOrder } from '@/hooks'
+import { useAnimatedCountdown } from '@/hooks/use-animated-countdown'
 import { useCoinBalance } from '@/hooks/use-coin-balance'
 import { useLoyaltyPoints } from '@/hooks/use-loyalty-point'
 import { navigateNative } from '@/lib/navigation'
@@ -253,6 +255,17 @@ function computePaymentRemaining(startTime: string): number {
   return Math.max(0, PAYMENT_TIMEOUT_SECONDS - elapsed)
 }
 
+// Animated TextInput — lets Reanimated update text content on the UI thread (no re-renders)
+const AnimatedTextInput = Animated.createAnimatedComponent(TextInput)
+
+function formatCountdown(sec: number): string {
+  'worklet'
+  if (sec <= 0) return 'Hết hạn'
+  const m = Math.floor(sec / 60)
+  const s = sec % 60
+  return `${m}:${s < 10 ? '0' : ''}${s}`
+}
+
 const PaymentCountdownBadge = memo(function PaymentCountdownBadge({
   startTime,
   onExpire,
@@ -261,62 +274,56 @@ const PaymentCountdownBadge = memo(function PaymentCountdownBadge({
   onExpire?: () => void
 }) {
   const isDark = useColorScheme() === 'dark'
-  const [seconds, setSeconds] = useState(() => computePaymentRemaining(startTime))
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const startTimeRef = useRef(startTime)
   const onExpireRef = useRef(onExpire)
   useEffect(() => { onExpireRef.current = onExpire })
 
+  // Convert startTime → expiresAt for the hook
+  const expiresAt = useMemo(() => {
+    const d = new Date(startTime)
+    d.setSeconds(d.getSeconds() + PAYMENT_TIMEOUT_SECONDS)
+    return d.toISOString()
+  }, [startTime])
+
+  // SharedValue — updates on UI thread, zero re-renders
+  const secondsShared = useAnimatedCountdown({ expiresAt })
+
+  // Handle already-expired on mount
   useEffect(() => {
-    const initial = computePaymentRemaining(startTimeRef.current)
-    setSeconds(initial)
-    if (initial <= 0) {
-      onExpireRef.current?.()
-      return
-    }
+    if (computePaymentRemaining(startTime) <= 0) onExpireRef.current?.()
+  }, [startTime])
 
-    timerRef.current = setInterval(() => {
-      const remaining = computePaymentRemaining(startTimeRef.current)
-      setSeconds(remaining)
-      if (remaining <= 0) {
-        clearInterval(timerRef.current!)
-        timerRef.current = null
-        onExpireRef.current?.()
+  // Bridge expiry event from UI thread → JS (runOnJS only when countdown hits 0)
+  const fireExpire = useCallback(() => { onExpireRef.current?.() }, [])
+  useAnimatedReaction(
+    () => secondsShared.value,
+    (current, previous) => {
+      if (current === 0 && previous !== null && previous > 0) {
+        runOnJS(fireExpire)()
       }
-    }, 1000)
-    return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current)
-        timerRef.current = null
-      }
-    }
-  }, [])
+    },
+  )
 
-  // Single useMemo: display string + bgColor computed together
-  const { display, bgColor } = useMemo(() => {
-    const m = Math.floor(seconds / 60)
-    const s = seconds % 60
-    const isUrgent = seconds <= 60
-    return {
-      display: `${m}:${String(s).padStart(2, '0')}`,
-      bgColor: isUrgent
-        ? (isDark ? colors.destructive.dark : colors.destructive.light)
-        : colors.warning.light,
-    }
-  }, [seconds, isDark])
+  // Background color — reactive on UI thread, no re-render needed
+  const pillStyle = useAnimatedStyle(() => ({
+    backgroundColor: secondsShared.value <= 60
+      ? isDark ? colors.destructive.dark : colors.destructive.light
+      : colors.warning.light,
+  }), [isDark])
 
-  if (seconds === 0) {
-    return (
-      <View style={[cds.pill, cds.shadow, { backgroundColor: isDark ? colors.destructive.dark : colors.destructive.light }]}>
-        <Text style={cds.text}>Hết hạn</Text>
-      </View>
-    )
-  }
+  // Text — formatted on UI thread via animatedProps
+  const textProps = useAnimatedProps(() => ({
+    value: formatCountdown(secondsShared.value),
+  }))
 
   return (
-    <View style={[cds.pill, cds.shadow, { backgroundColor: bgColor }]}>
-      <Text style={cds.text}>{display}</Text>
-    </View>
+    <Animated.View style={[cds.pill, cds.shadow, pillStyle]}>
+      <AnimatedTextInput
+        animatedProps={textProps}
+        editable={false}
+        pointerEvents="none"
+        style={cds.text}
+      />
+    </Animated.View>
   )
 })
 
@@ -333,6 +340,8 @@ const cds = StyleSheet.create({
     fontWeight: '700',
     color: colors.white.light,
     letterSpacing: 0.5,
+    textAlign: 'center',
+    padding: 0,
   },
   shadow: {
     shadowColor: '#000',
