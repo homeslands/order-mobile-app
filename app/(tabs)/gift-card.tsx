@@ -238,11 +238,12 @@ export default function GiftCardScreen() {
       <GiftCardListItem
         item={item}
         primaryColor={primaryColor}
+        isDark={isDark}
         inCart={giftCardItemSlug === item.slug}
         onSelect={handleSelect}
       />
     ),
-    [primaryColor, handleSelect, giftCardItemSlug],
+    [primaryColor, isDark, handleSelect, giftCardItemSlug],
   )
 
   // ── Colors ────────────────────────────────────────────────────────────────
