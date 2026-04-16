@@ -49,7 +49,7 @@ jest.mock('react-i18next', () => ({
 import SliderRelatedProducts from '@/components/menu/slider-related-products'
 
 it('is wrapped in React.memo', () => {
-  expect((SliderRelatedProducts as any).$$typeof).toBe(
+  expect((SliderRelatedProducts as { $$typeof?: symbol }).$$typeof).toBe(
     Symbol.for('react.memo'),
   )
 })

@@ -33,6 +33,7 @@ jest.mock('@/constants/colors.constant', () => ({
 }))
 
 import React from 'react'
+import { PanResponder } from 'react-native'
 import { render } from '@testing-library/react-native'
 import DualRangeSlider from '@/components/menu/dual-range-slider'
 
@@ -45,7 +46,7 @@ describe('DualRangeSlider', () => {
   })
 
   it('does not recreate pan responders on re-render', () => {
-    const createSpy = jest.spyOn(require('react-native').PanResponder, 'create')
+    const createSpy = jest.spyOn(PanResponder, 'create')
     createSpy.mockClear()
 
     const onValueChange = jest.fn()

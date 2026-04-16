@@ -1,4 +1,5 @@
 #!/usr/bin/env ts-node
+/* eslint-disable no-console */
 /**
  * Detects FlashList / BottomSheetFlashList instances missing overrideItemLayout prop.
  * Run: npx ts-node scripts/check-flashlist-sizes.ts

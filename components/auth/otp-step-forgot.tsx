@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 import Animated, {
@@ -83,15 +83,16 @@ export const OTPStepForgot = React.memo(function OTPStepForgot({
     if (!expiresAt) return true
     return new Date(expiresAt).getTime() <= Date.now()
   })
+  const [prevExpiresAt, setPrevExpiresAt] = useState(expiresAt)
 
-  // Reset when expiresAt changes (new OTP sent via resend)
-  useEffect(() => {
-    if (!expiresAt) {
-      setIsExpired(true)
-      return
-    }
-    setIsExpired(new Date(expiresAt).getTime() <= Date.now())
-  }, [expiresAt])
+  // Sync isExpired when expiresAt changes (new OTP sent via resend).
+  // "setState during render" pattern — avoids useEffect+setState cascade.
+  // New expiresAt from resend is always in the future; extreme clock skew
+  // is handled immediately by useAnimatedReaction firing handleExpired.
+  if (prevExpiresAt !== expiresAt) {
+    setPrevExpiresAt(expiresAt)
+    setIsExpired(false)
+  }
 
   // Bridge expiry from UI thread → JS (fires once per OTP lifecycle)
   const handleExpired = useCallback(() => {
