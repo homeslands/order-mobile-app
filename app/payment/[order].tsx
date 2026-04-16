@@ -15,7 +15,7 @@ import PaymentMethodRadioGroup from '@/components/radio/payment-method-radio-gro
 import { Skeleton } from '@/components/ui'
 import { colors, NotificationMessageCode, PaymentMethod, TAB_ROUTES } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
-import { useInitiatePayment, useInitiatePublicPayment, useOrderBySlug, useRunAfterTransition, useUpdatePublicVoucherInOrder, useUpdateVoucherInOrder } from '@/hooks'
+import { PAID_NOTIFICATION_CODES, useInitiatePayment, useInitiatePublicPayment, useOrderBySlug, usePaymentStatusDetector, useRunAfterTransition, useUpdatePublicVoucherInOrder, useUpdateVoucherInOrder } from '@/hooks'
 import { useAnimatedCountdown } from '@/hooks/use-animated-countdown'
 import { useCoinBalance } from '@/hooks/use-coin-balance'
 import { useLoyaltyPoints } from '@/hooks/use-loyalty-point'
@@ -61,12 +61,6 @@ const skeletonStyles = StyleSheet.create({
   header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: colors.white.light, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.gray[200] },
   card: { marginBottom: 16, borderRadius: 12, backgroundColor: colors.white.light, borderWidth: 1, borderColor: colors.gray[100], padding: 16, gap: 12 },
 })
-
-// Module-scope: stable Set, shared across renders + all closures. No useMemo needed.
-const PAID_NOTIFICATION_CODES: ReadonlySet<NotificationMessageCode> = new Set([
-  NotificationMessageCode.ORDER_PAID,
-  NotificationMessageCode.CARD_ORDER_PAID,
-])
 
 const pSectionStyles = StyleSheet.create({
   // card: { marginBottom: 16, borderRadius: 12, borderWidth: 1, overflow: 'hidden' },
@@ -453,18 +447,6 @@ function PaymentPageContent() {
   //   }
   // }, [orderSlug, isPending, order, orderError])
 
-  // Show success screen when:
-  // 1. Foreground FCM arrived → unread ORDER_PAID / CARD_ORDER_PAID notification in store, OR
-  // 2. order.status already PAID (e.g. background FCM + refetch, or staff POS confirm)
-  const hasOrderPaidNotification = useNotificationStore((s) =>
-    s.notifications.some(
-      (n) =>
-        !n.isRead &&
-        PAID_NOTIFICATION_CODES.has(n.message as NotificationMessageCode) &&
-        n.metadata?.order === orderSlug,
-    ),
-  )
-  const showSuccess = hasOrderPaidNotification || order?.status === OrderStatus.PAID
   const markNotificationRead = useNotificationStore((s) => s.markAsRead)
 
   const handleViewDetail = useCallback(() => {
@@ -478,21 +460,6 @@ function PaymentPageContent() {
     if (paid) markNotificationRead(paid.slug)
     navigateNative.replace(`/order/${orderSlug}` as Parameters<typeof navigateNative.replace>[0])
   }, [markNotificationRead, orderSlug])
-
-  // Auto-refetch when FCM "order paid" notification arrives for this order
-  const processedRef = useRef<Set<string>>(new Set())
-  const latestNotification = useNotificationStore((s) => s.notifications[0])
-  useEffect(() => {
-    if (!latestNotification || latestNotification.isRead) return
-    if (processedRef.current.has(latestNotification.slug)) return
-    if (
-      PAID_NOTIFICATION_CODES.has(latestNotification.message as NotificationMessageCode) &&
-      latestNotification.metadata?.order === orderSlug
-    ) {
-      processedRef.current.add(latestNotification.slug)
-      refetchOrder()
-    }
-  }, [latestNotification, orderSlug, refetchOrder])
 
   const orderItems = useMemo(() => order?.orderItems || [], [order?.orderItems])
   const voucher = useMemo(() => order?.voucher ?? null, [order?.voucher])
@@ -512,6 +479,7 @@ function PaymentPageContent() {
     }
   }, [from])
 
+  const [paymentSubmittedAt, setPaymentSubmittedAt] = useState<number | null>(null)
   const [isExpired, setIsExpired] = useState(false)
   const handleExpire = useCallback(() => {
     setIsExpired(true)
@@ -601,20 +569,13 @@ function PaymentPageContent() {
   const selectedTransactionId = paymentForm.transactionId
   const qrCode = paymentForm.qrCode
 
-  // Fallback polling when QR is visible — covers FCM delivery failures.
-  // Keep refetchOrder in a ref: react-query returns a new function ref per render,
-  // which would otherwise tear down + recreate the interval on every voucher/state
-  // tick (3-4 teardowns in the first second).
-  const refetchOrderRef = React.useRef(refetchOrder)
-  useEffect(() => {
-    refetchOrderRef.current = refetchOrder
-  }, [refetchOrder])
-
-  useEffect(() => {
-    if (!qrCode || showSuccess) return
-    const id = setInterval(() => void refetchOrderRef.current(), 10_000)
-    return () => clearInterval(id)
-  }, [qrCode, showSuccess])
+  const { showSuccess } = usePaymentStatusDetector({
+    orderSlug: orderSlug ?? '',
+    method: selectedPaymentMethod,
+    submittedAt: paymentSubmittedAt,
+    orderStatus: order?.status,
+    onPaid: refetchOrder,
+  })
 
   const handleMethodChange = useCallback((method: PaymentMethod, transactionId?: string) => {
     dispatchPaymentForm({ type: 'SET_METHOD', method, transactionId })
@@ -696,6 +657,7 @@ function PaymentPageContent() {
     initiatePayment(payload, {
       onSuccess: (response) => {
         if (response?.result?.qrCode) dispatchPaymentForm({ type: 'SET_QR', qrCode: response.result.qrCode })
+        setPaymentSubmittedAt(Date.now())
         void refetchOrder()
         if (selectedPaymentMethod === PaymentMethod.POINT) {
           showToast(t('paymentMethod.coinPaymentSubmitted', 'Đã thanh toán bằng xu thành công'))

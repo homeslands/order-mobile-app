@@ -5,8 +5,7 @@ import { useNotificationStore } from '@/stores'
 import { OrderStatus } from '@/types'
 
 // Notification codes that indicate a customer order was paid.
-// Mirrors the constant in app/payment/[order].tsx — both must stay in sync if codes change.
-const PAID_NOTIFICATION_CODES = new Set<string>([
+export const PAID_NOTIFICATION_CODES = new Set<string>([
   NotificationMessageCode.ORDER_PAID,
   NotificationMessageCode.CARD_ORDER_PAID,
 ])
