@@ -317,10 +317,10 @@ export default function GiftCardPaymentScreen() {
   const [isExpired, setIsExpired] = useState(false)
   const hasNavigatedRef = useRef(false)
 
-  // Expiry — use payment.createdAt + 15min
+  // Expiry — counted from orderDate (set at order creation, before QR initiation)
   const expiryTime = useMemo(
-    () => calcExpiryFromCreatedAt(order?.payment?.createdAt ?? order?.createdAt),
-    [order?.payment?.createdAt, order?.createdAt],
+    () => calcExpiryFromCreatedAt(order?.orderDate),
+    [order?.orderDate],
   )
 
   // FCM-based success detection — immediate, no refetch wait
@@ -335,11 +335,11 @@ export default function GiftCardPaymentScreen() {
   )
   const showSuccess = fcmPaid || order?.paymentStatus === CardOrderStatus.COMPLETED
 
-  // UI-thread countdown — zero JS re-renders per tick
+  // UI-thread countdown — starts as soon as order loads, not waiting for QR
   const activeQR = qrCode ?? order?.payment?.qrCode ?? null
   const secondsShared = useAnimatedCountdown({
     expiresAt: expiryTime,
-    enabled: !!activeQR && !isExpired,
+    enabled: !!order && !isExpired,
   })
 
   const handleExpire = useCallback(() => {
@@ -349,11 +349,11 @@ export default function GiftCardPaymentScreen() {
     }
   }, [slug, cancelOrder, refetch])
 
-  // Bridge expiry from UI thread → JS
+  // Bridge expiry from UI thread → JS (fires regardless of QR state)
   useAnimatedReaction(
     () => secondsShared.value,
     (current, previous) => {
-      if (current === 0 && previous !== null && previous > 0 && activeQR) {
+      if (current === 0 && previous !== null && previous > 0) {
         runOnJS(handleExpire)()
       }
     },
@@ -379,10 +379,13 @@ export default function GiftCardPaymentScreen() {
     }, []),
   )
 
+  const isCancelled = order?.paymentStatus === CardOrderStatus.CANCELLED
+
   // Memoize badge so FloatingHeader (memo'd) doesn't re-render per parent render.
+  // Show as soon as order loads — countdown starts from orderDate, not QR initiation.
   // secondsShared is a stable SharedValue ref — safe as memo dep.
   const countdownRight = useMemo(() => {
-    if (!activeQR || isExpired) return undefined
+    if (!order || isExpired || isCancelled || showSuccess) return undefined
     return (
       <PaymentCountdownBadge
         secondsShared={secondsShared}
@@ -390,7 +393,7 @@ export default function GiftCardPaymentScreen() {
       />
     )
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeQR, isExpired])
+  }, [order, isExpired, isCancelled, showSuccess])
 
   const handleInitiatePayment = useCallback(() => {
     if (!slug) return
@@ -421,7 +424,6 @@ export default function GiftCardPaymentScreen() {
 
   const totalAmount = (order?.cardPrice ?? 0) * (order?.quantity ?? 0)
   const alreadyHasQR = !!order?.payment?.qrCode
-  const isCancelled = order?.paymentStatus === CardOrderStatus.CANCELLED
 
   // ── Render ────────────────────────────────────────────────────────────────
 
