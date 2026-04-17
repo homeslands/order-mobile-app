@@ -1,6 +1,7 @@
 import { changePassword } from '@/api/profile'
-import { Button, Input } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { ScreenContainer } from '@/components/layout'
+import { PasswordInputField, PasswordRulesInput } from '@/components/input'
 import { colors } from '@/constants'
 import { navigateNative } from '@/lib/navigation'
 import { showToast } from '@/utils'
@@ -61,35 +62,43 @@ function ChangePasswordScreen() {
 
       <View className="flex-1 px-4 py-6">
         <View className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
+
+          {/* Mật khẩu cũ */}
           <View className="mb-4">
-            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">{t('oldPassword')}</Text>
-            <Input
+            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
+              {t('oldPassword')}
+            </Text>
+            <PasswordInputField
               value={oldPassword}
-              onChangeText={setOldPassword}
+              onChange={setOldPassword}
               placeholder={t('enterOldPassword')}
-              secureTextEntry
+              disabled={isSubmitting}
             />
           </View>
 
+          {/* Mật khẩu mới — có strength bar + rules */}
           <View className="mb-4">
-            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">{t('newPassword')}</Text>
-            <Input
+            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
+              {t('newPassword')}
+            </Text>
+            <PasswordRulesInput
               value={newPassword}
-              onChangeText={setNewPassword}
+              onChange={setNewPassword}
               placeholder={t('enterNewPassword')}
-              secureTextEntry
+              disabled={isSubmitting}
             />
           </View>
 
+          {/* Xác nhận mật khẩu */}
           <View className="mb-2">
             <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
               {t('confirmPassword')}
             </Text>
-            <Input
+            <PasswordInputField
               value={confirmPassword}
-              onChangeText={setConfirmPassword}
+              onChange={setConfirmPassword}
               placeholder={t('enterConfirmPassword')}
-              secureTextEntry
+              disabled={isSubmitting}
             />
           </View>
 
@@ -117,5 +126,3 @@ function ChangePasswordScreen() {
 
 ChangePasswordScreen.displayName = 'ChangePasswordScreen'
 export default React.memo(ChangePasswordScreen)
-
-
