@@ -29,7 +29,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TextInput,
   useColorScheme,
   View,
 } from 'react-native'
@@ -37,7 +36,6 @@ import { useFocusEffect } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Animated, {
   runOnJS,
-  useAnimatedProps,
   useAnimatedReaction,
   useAnimatedStyle,
   type SharedValue,
@@ -69,11 +67,7 @@ function calcExpiryFromCreatedAt(createdAt?: string): string | undefined {
   return new Date(new Date(createdAt).getTime() + QR_EXPIRY_SECONDS * 1000).toISOString()
 }
 
-// Animated TextInput — lets Reanimated update text content on the UI thread (no re-renders)
-const AnimatedTextInput = Animated.createAnimatedComponent(TextInput)
-
 function formatCountdownUI(sec: number): string {
-  'worklet'
   if (sec <= 0) return 'Hết hạn'
   const m = Math.floor(sec / 60)
   const s = sec % 60
@@ -94,18 +88,27 @@ const PaymentCountdownBadge = memo(function PaymentCountdownBadge({
   useEffect(() => { onExpireRef.current = onExpire })
 
   const fireExpire = useCallback(() => { onExpireRef.current?.() }, [])
+
+  // Initialize text directly from secondsShared to avoid 0-value flash
+  const [displayText, setDisplayText] = useState(() =>
+    secondsShared.value > 0 ? formatCountdownUI(secondsShared.value) : ''
+  )
+  const updateText = useCallback((sec: number) => {
+    setDisplayText(sec > 0 ? formatCountdownUI(sec) : '')
+  }, [])
+
+  // Single reaction: update text + fire expiry when countdown hits 0
   useAnimatedReaction(
     () => secondsShared.value,
     (current, previous) => {
+      runOnJS(updateText)(current)
       if (current === 0 && previous !== null && previous > 0) {
         runOnJS(fireExpire)()
       }
     },
   )
 
-  // Background color + opacity reactive on UI thread.
-  // opacity: 0 when value === 0 prevents "Hết hạn" flash before effect initializes.
-  // warning → destructive in last 60s
+  // Background color + visibility reactive on UI thread
   const pillStyle = useAnimatedStyle(() => ({
     backgroundColor: secondsShared.value <= 60
       ? isDark ? colors.destructive.dark : colors.destructive.light
@@ -113,19 +116,9 @@ const PaymentCountdownBadge = memo(function PaymentCountdownBadge({
     opacity: secondsShared.value > 0 ? 1 : 0,
   }), [isDark])
 
-  // Text formatted on UI thread via animatedProps
-  const textProps = useAnimatedProps(() => ({
-    value: secondsShared.value > 0 ? formatCountdownUI(secondsShared.value) : '',
-  }))
-
   return (
     <Animated.View style={[bds.pill, bds.shadow, pillStyle]}>
-      <AnimatedTextInput
-        animatedProps={textProps}
-        editable={false}
-        pointerEvents="none"
-        style={bds.text}
-      />
+      <Text style={bds.text}>{displayText}</Text>
     </Animated.View>
   )
 })
@@ -211,9 +204,17 @@ const QRSection = memo(function QRSection({
     display: secondsShared.value > 0 && !isExpired ? 'flex' : 'none',
   }))
 
-  const countdownTextProps = useAnimatedProps(() => ({
-    value: `Hết hạn sau ${formatCountdownUI(secondsShared.value)}`,
-  }))
+  // Text updated via runOnJS — animatedProps on TextInput.value unreliable in Reanimated 4.x
+  const [countdownText, setCountdownText] = useState(() =>
+    secondsShared.value > 0 ? `Hết hạn sau ${formatCountdownUI(secondsShared.value)}` : ''
+  )
+  const updateCountdownText = useCallback((sec: number) => {
+    setCountdownText(sec > 0 ? `Hết hạn sau ${formatCountdownUI(sec)}` : '')
+  }, [])
+  useAnimatedReaction(
+    () => secondsShared.value,
+    (current) => { runOnJS(updateCountdownText)(current) },
+  )
 
   return (
     <View style={[qs.container, { borderColor: isDark ? colors.gray[700] : colors.gray[200] }]}>
@@ -242,12 +243,7 @@ const QRSection = memo(function QRSection({
 
       <Animated.View style={[qs.countdownRow, { backgroundColor: `${primaryColor}15` }, countdownRowStyle]}>
         <Timer size={14} color={primaryColor} />
-        <AnimatedTextInput
-          animatedProps={countdownTextProps}
-          editable={false}
-          pointerEvents="none"
-          style={[qs.countdownText, { color: primaryColor }]}
-        />
+        <Text style={[qs.countdownText, { color: primaryColor }]}>{countdownText}</Text>
       </Animated.View>
 
       <View style={qs.noteRow}>

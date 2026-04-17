@@ -6,8 +6,8 @@ import { useLocalSearchParams } from 'expo-router'
 import { CircleAlert, CircleX, Ticket } from 'lucide-react-native'
 import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, useColorScheme, View } from 'react-native'
-import Animated, { runOnJS, useAnimatedProps, useAnimatedReaction, useAnimatedStyle } from 'react-native-reanimated'
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native'
+import Animated, { runOnJS, useAnimatedReaction, useAnimatedStyle } from 'react-native-reanimated'
 import { ScrollView as GestureScrollView } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -249,11 +249,7 @@ function computePaymentRemaining(startTime: string): number {
   return Math.max(0, PAYMENT_TIMEOUT_SECONDS - elapsed)
 }
 
-// Animated TextInput — lets Reanimated update text content on the UI thread (no re-renders)
-const AnimatedTextInput = Animated.createAnimatedComponent(TextInput)
-
 function formatCountdown(sec: number): string {
-  'worklet'
   if (sec <= 0) return 'Hết hạn'
   const m = Math.floor(sec / 60)
   const s = sec % 60
@@ -278,7 +274,7 @@ const PaymentCountdownBadge = memo(function PaymentCountdownBadge({
     return d.toISOString()
   }, [startTime])
 
-  // SharedValue — updates on UI thread, zero re-renders
+  // SharedValue — updates via setInterval, drives both text and color
   const secondsShared = useAnimatedCountdown({ expiresAt })
 
   // Handle already-expired on mount
@@ -286,37 +282,36 @@ const PaymentCountdownBadge = memo(function PaymentCountdownBadge({
     if (computePaymentRemaining(startTime) <= 0) onExpireRef.current?.()
   }, [startTime])
 
-  // Bridge expiry event from UI thread → JS (runOnJS only when countdown hits 0)
+  // Initialize text from startTime directly to avoid 0-value flash
+  const [displayText, setDisplayText] = useState(() =>
+    formatCountdown(computePaymentRemaining(startTime))
+  )
+
   const fireExpire = useCallback(() => { onExpireRef.current?.() }, [])
+  const updateText = useCallback((sec: number) => { setDisplayText(formatCountdown(sec)) }, [])
+
+  // Single reaction: update text + fire expiry when countdown hits 0
   useAnimatedReaction(
     () => secondsShared.value,
     (current, previous) => {
+      runOnJS(updateText)(current)
       if (current === 0 && previous !== null && previous > 0) {
         runOnJS(fireExpire)()
       }
     },
   )
 
-  // Background color — reactive on UI thread, no re-render needed
+  // Background color + visibility reactive on UI thread
   const pillStyle = useAnimatedStyle(() => ({
     backgroundColor: secondsShared.value <= 60
       ? isDark ? colors.destructive.dark : colors.destructive.light
       : colors.warning.light,
+    opacity: secondsShared.value > 0 ? 1 : 0,
   }), [isDark])
-
-  // Text — formatted on UI thread via animatedProps
-  const textProps = useAnimatedProps(() => ({
-    value: formatCountdown(secondsShared.value),
-  }))
 
   return (
     <Animated.View style={[cds.pill, cds.shadow, pillStyle]}>
-      <AnimatedTextInput
-        animatedProps={textProps}
-        editable={false}
-        pointerEvents="none"
-        style={cds.text}
-      />
+      <Text style={cds.text}>{displayText}</Text>
     </Animated.View>
   )
 })
