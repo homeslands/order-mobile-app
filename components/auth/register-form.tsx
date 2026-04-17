@@ -1,7 +1,6 @@
 import dayjs from 'dayjs'
-import { Eye, EyeOff } from 'lucide-react-native'
-import { useCallback, useState } from 'react'
-import { useController } from 'react-hook-form'
+import { useCallback } from 'react'
+import { Controller, useController } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import {
   ActivityIndicator,
@@ -11,6 +10,7 @@ import {
 } from 'react-native'
 
 import { FormInput } from '@/components/form/form-input'
+import { PasswordInputField, PasswordRulesInput } from '@/components/input'
 import { DobExpandablePicker } from '@/components/profile'
 import { usePostAuthActions, useRegister, useZodForm } from '@/hooks'
 import { navigateNative } from '@/lib/navigation'
@@ -22,14 +22,12 @@ const DEFAULT_DOB = dayjs().subtract(18, 'year').format('DD/MM/YYYY')
 export default function RegisterForm() {
   const { t } = useTranslation('auth')
   const registerSchema = useRegisterSchema()
-  const [showPassword, setShowPassword] = useState(false)
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const {
     control,
     handleSubmit,
     setValue,
-    formState: { isSubmitting },
+    formState: { isSubmitting, errors },
   } = useZodForm(registerSchema, {
     mode: 'onTouched',
     defaultValues: {
@@ -53,7 +51,6 @@ export default function RegisterForm() {
 
   const handleDobSelect = useCallback(
     (date: string) => {
-      // Picker returns YYYY-MM-DD, convert to DD/MM/YYYY for schema
       const d = dayjs(date)
       if (d.isValid()) {
         setValue('dob', d.format('DD/MM/YYYY'))
@@ -148,68 +145,47 @@ export default function RegisterForm() {
         transformOnChange={(v) => v.replace(/\D/g, '')}
       />
 
-      {/* Mật khẩu */}
-      <View>
+      {/* Mật khẩu mới — PasswordRulesInput */}
+      <View className="mb-4">
         <Text className="mb-1 text-xs text-muted-foreground">
           {t('register.password')}
         </Text>
-        <View className="mb-4">
-          <FormInput
-            control={control}
-            name="password"
-            placeholder={t('register.enterPassword')}
-            secureTextEntry={!showPassword}
-            autoCapitalize="none"
-            disabled={isLoading}
-            useTextInput
-            containerClassName="mb-0"
-            className="pr-12"
-          />
-          <TouchableOpacity
-            className="absolute bottom-3 right-4 p-1"
-            onPress={() => setShowPassword((v) => !v)}
-            disabled={isLoading}
-            hitSlop={8}
-          >
-            {showPassword ? (
-              <EyeOff size={20} color="#9ca3af" />
-            ) : (
-              <Eye size={20} color="#9ca3af" />
-            )}
-          </TouchableOpacity>
-        </View>
+        <Controller
+          control={control}
+          name="password"
+          render={({ field: { onChange, value } }) => (
+            <PasswordRulesInput
+              value={value}
+              onChange={onChange}
+              placeholder={t('register.enterPassword')}
+              disabled={isLoading}
+            />
+          )}
+        />
+        {errors.password && (
+          <Text className="mt-1 text-xs text-destructive">{errors.password.message}</Text>
+        )}
       </View>
 
-      {/* Xác nhận mật khẩu */}
-      <View>
+      {/* Xác nhận mật khẩu — PasswordInputField */}
+      <View className="mb-8">
         <Text className="mb-1 text-xs text-muted-foreground">
           {t('register.confirmPassword')}
         </Text>
-        <View className="mb-8">
-          <FormInput
-            control={control}
-            name="confirmPassword"
-            placeholder={t('register.enterConfirmPassword')}
-            secureTextEntry={!showConfirmPassword}
-            autoCapitalize="none"
-            disabled={isLoading}
-            useTextInput
-            containerClassName="mb-0"
-            className="pr-12"
-          />
-          <TouchableOpacity
-            className="absolute bottom-3 right-4 p-1"
-            onPress={() => setShowConfirmPassword((v) => !v)}
-            disabled={isLoading}
-            hitSlop={8}
-          >
-            {showConfirmPassword ? (
-              <EyeOff size={20} color="#9ca3af" />
-            ) : (
-              <Eye size={20} color="#9ca3af" />
-            )}
-          </TouchableOpacity>
-        </View>
+        <Controller
+          control={control}
+          name="confirmPassword"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <PasswordInputField
+              value={value}
+              onChange={onChange}
+              onBlur={onBlur}
+              placeholder={t('register.enterConfirmPassword')}
+              disabled={isLoading}
+              error={errors.confirmPassword?.message}
+            />
+          )}
+        />
       </View>
 
       {/* Submit */}
