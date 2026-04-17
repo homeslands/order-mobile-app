@@ -6,7 +6,7 @@ import { colors } from '@/constants'
 import { cn } from '@/lib/utils'
 
 export interface PasswordInputFieldProps {
-  value: string
+  value: string | undefined
   onChange: (value: string) => void
   onBlur?: () => void
   placeholder?: string
@@ -36,13 +36,14 @@ export function PasswordInputField({
             error
               ? 'border-red-500 dark:border-red-500'
               : 'border-gray-200 dark:border-gray-700',
+            disabled && 'opacity-50',
           )}
           style={{ fontFamily: 'BeVietnamPro_400Regular' }}
           placeholder={placeholder}
           placeholderTextColor={
             isDark ? colors.mutedForeground.dark : colors.mutedForeground.light
           }
-          value={value}
+          value={value ?? ''}
           onChangeText={onChange}
           onBlur={onBlur}
           secureTextEntry={!showPassword}
@@ -56,9 +57,15 @@ export function PasswordInputField({
           hitSlop={8}
         >
           {showPassword ? (
-            <EyeOff size={20} color="#9ca3af" />
+            <EyeOff
+              size={20}
+              color={isDark ? '#9ca3af' : '#6b7280'}
+            />
           ) : (
-            <Eye size={20} color="#9ca3af" />
+            <Eye
+              size={20}
+              color={isDark ? '#9ca3af' : '#6b7280'}
+            />
           )}
         </TouchableOpacity>
       </View>
