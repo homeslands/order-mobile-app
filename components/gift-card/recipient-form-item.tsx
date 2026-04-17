@@ -62,6 +62,7 @@ export const RecipientFormItem = memo(function RecipientFormItem({
   const handleRemove = useCallback(() => onRemove(index), [index, onRemove])
 
   const phoneError = errors.recipients?.[index]?.phone?.message
+  const recipientSlugError = errors.recipients?.[index]?.recipientSlug?.message
   const quantityError = errors.recipients?.[index]?.quantity?.message
 
   const phoneValue = useWatch({ control, name: `recipients.${index}.phone` })
@@ -80,14 +81,16 @@ export const RecipientFormItem = memo(function RecipientFormItem({
   const showSuggestion = !!fullName && !nameLocked && !currentName
 
   const handleSelectSuggestion = useCallback(() => {
-    if (fullName) {
+    if (fullName && suggestedUser) {
       Keyboard.dismiss()
+      setValue(`recipients.${index}.recipientSlug`, suggestedUser.slug, { shouldValidate: true })
       setValue(`recipients.${index}.name`, fullName, { shouldValidate: false })
       setNameLocked(true)
     }
-  }, [fullName, index, setValue])
+  }, [fullName, suggestedUser, index, setValue])
 
   const handleUnlockName = useCallback(() => {
+    setValue(`recipients.${index}.recipientSlug`, '', { shouldValidate: false })
     setValue(`recipients.${index}.name`, '', { shouldValidate: false })
     setValue(`recipients.${index}.phone`, '', { shouldValidate: false })
     setNameLocked(false)
@@ -126,6 +129,9 @@ export const RecipientFormItem = memo(function RecipientFormItem({
           )}
         />
         {!!phoneError && <Text style={s.errorText}>{phoneError}</Text>}
+        {!phoneError && !!recipientSlugError && (
+          <Text style={s.errorText}>{recipientSlugError}</Text>
+        )}
 
         {/* Suggestion / loading */}
         {isFetching && (

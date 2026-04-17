@@ -423,7 +423,8 @@
 				"invalidDob": "Ngày sinh không hợp lệ",
 				"branchConfigNotFound": "Không tìm thấy cấu hình chi nhánh",
 				"updateBranchConfigSuccess": "Cập nhật cấu hình chi nhánh thành công",
-				"deleteBranchConfigSuccess": "Xóa cấu hình chi nhánh thành công"
+				"deleteBranchConfigSuccess": "Xóa cấu hình chi nhánh thành công",
+				"findOneVoucherFailed": "Không tìm thấy voucher"
 
 			}
 		}

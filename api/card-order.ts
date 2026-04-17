@@ -11,11 +11,28 @@ import { http } from '@/utils'
 export async function createCardOrder(
   data: ICardOrderRequest,
 ): Promise<IApiResponse<ICardOrderResponse>> {
-  const response = await http.post<IApiResponse<ICardOrderResponse>>(
-    '/card-order',
-    data,
-  )
-  return response.data
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log('[createCardOrder] POST /card-order', JSON.stringify(data, null, 2))
+  }
+  try {
+    const response = await http.post<IApiResponse<ICardOrderResponse>>(
+      '/card-order',
+      data,
+    )
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log('[createCardOrder] response:', JSON.stringify(response.data, null, 2))
+    }
+    return response.data
+  } catch (error: unknown) {
+    const e = error as { response?: { status?: number; data?: unknown } }
+    if (__DEV__) {
+      // eslint-disable-next-line no-console
+      console.log('[createCardOrder] error:', e?.response?.status, JSON.stringify(e?.response?.data, null, 2))
+    }
+    throw error
+  }
 }
 
 export async function getCardOrders(

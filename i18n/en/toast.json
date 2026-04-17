@@ -424,6 +424,7 @@
     "invalidDob": "Invalid date of birth",
     "branchConfigNotFound": "Branch config not found",
     "updateBranchConfigSuccess": "Update branch config successfully",
-    "deleteBranchConfigSuccess": "Delete branch config successfully"
+    "deleteBranchConfigSuccess": "Delete branch config successfully",
+    "findOneVoucherFailed": "Voucher not found"
   }
 }

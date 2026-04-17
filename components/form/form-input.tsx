@@ -1,8 +1,9 @@
 import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form'
-import { Text, TextInput, View } from 'react-native'
+import { Text, TextInput, View, useColorScheme } from 'react-native'
 import { useRef, useEffect, useState } from 'react'
 
 import { Input } from '@/components/ui'
+import { colors } from '@/constants'
 import { cn } from '@/lib/utils'
 
 interface FormInputProps<T extends FieldValues> {
@@ -68,6 +69,8 @@ function FormInputField({
   helperText,
   transformOnChange,
 }: FormInputFieldProps) {
+  const colorScheme = useColorScheme()
+  const isDark = colorScheme === 'dark'
   const [localValue, setLocalValue] = useState(value ?? '')
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const prevValueRef = useRef<string | undefined>(value)
@@ -130,7 +133,7 @@ function FormInputField({
           )}
         >
           {label}
-          {required && <Text className="text-red-500"> *</Text>}
+          {required && <Text className="text-destructive"> *</Text>}
         </Text>
       )}
       {useTextInput ? (
@@ -142,7 +145,7 @@ function FormInputField({
             className
           )}
           placeholder={placeholder}
-          placeholderTextColor="#9ca3af"
+          placeholderTextColor={isDark ? colors.mutedForeground.dark : colors.mutedForeground.light}
           value={localValue}
           onChangeText={handleChangeText}
           onBlur={handleBlur}
@@ -168,7 +171,7 @@ function FormInputField({
       {showError && (
         <Text
           className={cn(
-            'mt-1 text-xs text-red-500',
+            'mt-1 text-xs text-destructive',
             errorClassName
           )}
         >
