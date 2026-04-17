@@ -21,6 +21,41 @@ export interface PasswordRulesInputProps {
   showRules?: boolean
 }
 
+function segmentColor(index: number, metCount: number): string {
+  if (index >= metCount) return 'bg-gray-200 dark:bg-gray-700'
+  if (metCount === 1) return 'bg-red-500'
+  if (metCount === 2) return 'bg-amber-500'
+  return 'bg-green-500'
+}
+
+function strengthLabelColor(metCount: number): string {
+  if (metCount === 1) return 'text-red-500'
+  if (metCount === 2) return 'text-amber-500'
+  return 'text-green-600 dark:text-green-400'
+}
+
+function RuleTag({ met, label }: { met: boolean; label: string }) {
+  return (
+    <View
+      className={cn(
+        'rounded-full px-2 py-0.5',
+        met ? 'bg-green-100 dark:bg-green-900/40' : 'bg-gray-100 dark:bg-gray-800',
+      )}
+    >
+      <Text
+        className={cn(
+          'text-xs font-medium',
+          met
+            ? 'text-green-700 dark:text-green-400'
+            : 'text-gray-400 dark:text-gray-500',
+        )}
+      >
+        {met ? '✓ ' : '✗ '}{label}
+      </Text>
+    </View>
+  )
+}
+
 export function PasswordRulesInput({
   value,
   onChange,
@@ -34,20 +69,22 @@ export function PasswordRulesInput({
   const [showPassword, setShowPassword] = useState(false)
   const [touched, setTouched] = useState(false)
 
-  // Nếu không có props từ bên ngoài, dùng hook (backward compatibility)
   const hookResult = usePasswordRules(value)
-  const rules = rulesProp || hookResult.rules
+  const rules = rulesProp ?? hookResult.rules
   const strength = strengthProp ?? hookResult.strength
-  const labels = labelsProp || hookResult.labels
+  const labels = labelsProp ?? hookResult.labels
+
+  const metCount = [rules.minLength, rules.hasLetter, rules.hasNumber].filter(Boolean).length
 
   return (
     <View className="gap-2">
+      {/* Input + toggle */}
       <View className="relative">
         <TextInput
           className={cn(
             'bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-4 py-3 pr-12 text-base border',
             'border-gray-300 dark:border-gray-700',
-            disabled && 'opacity-50'
+            disabled && 'opacity-50',
           )}
           placeholder={placeholder}
           placeholderTextColor="#999"
@@ -71,46 +108,32 @@ export function PasswordRulesInput({
         </TouchableOpacity>
       </View>
 
+      {/* Strength bar + rule tags — only shown after touched */}
       {showRules && touched && (
-        <View className="gap-1">
-          <Text
-            className={cn(
-              'text-xs',
-              rules.minLength ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'
-            )}
-          >
-            • {labels.minLength}
-          </Text>
-          <Text
-            className={cn(
-              'text-xs',
-              rules.hasLetter ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'
-            )}
-          >
-            • {labels.hasLetter}
-          </Text>
-          <Text
-            className={cn(
-              'text-xs',
-              rules.hasNumber ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'
-            )}
-          >
-            • {labels.hasNumber}
-          </Text>
+        <View className="gap-1.5">
+          {/* Strength bar — 3 segments */}
+          <View className="flex-row gap-1">
+            {[0, 1, 2].map((i) => (
+              <View
+                key={i}
+                className={cn('h-1 flex-1 rounded-full', segmentColor(i, metCount))}
+              />
+            ))}
+          </View>
 
-          {strength && (
-            <Text
-              className={cn(
-                'text-xs font-medium mt-1',
-                // So sánh strength string để xác định màu (weak/medium/strong)
-                strength.toLowerCase().includes('weak') && 'text-red-600 dark:text-red-400',
-                strength.toLowerCase().includes('medium') && 'text-yellow-600 dark:text-yellow-400',
-                strength.toLowerCase().includes('strong') && 'text-green-600 dark:text-green-400'
-              )}
-            >
-              {labels.strength}: {strength}
-            </Text>
-          )}
+          {/* Rule tags + strength label */}
+          <View className="flex-row items-center justify-between">
+            <View className="flex-row flex-wrap gap-1.5">
+              <RuleTag met={rules.minLength} label={labels.minLength} />
+              <RuleTag met={rules.hasLetter} label={labels.hasLetter} />
+              <RuleTag met={rules.hasNumber} label={labels.hasNumber} />
+            </View>
+            {strength !== null && (
+              <Text className={cn('ml-2 text-xs font-semibold', strengthLabelColor(metCount))}>
+                {strength}
+              </Text>
+            )}
+          </View>
         </View>
       )}
     </View>
