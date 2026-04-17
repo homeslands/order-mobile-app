@@ -29,13 +29,13 @@ export default function LoginScreen() {
   }
 
   return (
-    <ScreenContainer edges={['top']} className="flex-1">
+    <ScreenContainer edges={['top']} className="flex-1 bg-background">
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
-          className="flex-1"
+          className="flex-1 bg-background"
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
