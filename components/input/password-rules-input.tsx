@@ -1,13 +1,15 @@
 import { Eye, EyeOff } from 'lucide-react-native'
 import { memo, useState } from 'react'
-import { Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { Text, TextInput, TouchableOpacity, View, useColorScheme } from 'react-native'
 
+import { colors } from '@/constants'
 import { usePasswordRules, type PasswordRules } from '@/hooks'
 import { cn } from '@/lib/utils'
 
 export interface PasswordRulesInputProps {
   value: string | undefined
   onChange: (value: string) => void
+  onBlur?: () => void
   placeholder?: string
   disabled?: boolean
   rules?: PasswordRules
@@ -60,6 +62,7 @@ const RuleTag = memo(function RuleTag({ met, label }: { met: boolean; label: str
 export function PasswordRulesInput({
   value,
   onChange,
+  onBlur,
   placeholder,
   disabled,
   rules: rulesProp,
@@ -69,6 +72,8 @@ export function PasswordRulesInput({
 }: PasswordRulesInputProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [touched, setTouched] = useState(false)
+  const colorScheme = useColorScheme()
+  const isDark = colorScheme === 'dark'
 
   const hookResult = usePasswordRules(value)
   const rules = rulesProp ?? hookResult.rules
@@ -88,13 +93,16 @@ export function PasswordRulesInput({
             disabled && 'opacity-50',
           )}
           placeholder={placeholder}
-          placeholderTextColor="#999"
+          placeholderTextColor={isDark ? colors.mutedForeground.dark : colors.mutedForeground.light}
           value={value}
           onChangeText={(text) => {
             onChange(text)
             if (!touched) setTouched(true)
           }}
-          onBlur={() => setTouched(true)}
+          onBlur={() => {
+            setTouched(true)
+            onBlur?.()
+          }}
           secureTextEntry={!showPassword}
           autoCapitalize="none"
           editable={!disabled}
@@ -104,6 +112,7 @@ export function PasswordRulesInput({
           className="absolute right-4 top-0 bottom-0 justify-center"
           onPress={() => setShowPassword(!showPassword)}
           disabled={disabled}
+          hitSlop={8}
         >
           {showPassword ? <EyeOff size={20} color="#999" /> : <Eye size={20} color="#999" />}
         </TouchableOpacity>

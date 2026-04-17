@@ -168,7 +168,7 @@ function FormInputField({
       {showError && (
         <Text
           className={cn(
-            'mt-1 text-xs text-red-500',
+            'mt-1 text-xs text-destructive',
             errorClassName
           )}
         >

@@ -153,10 +153,11 @@ export default function RegisterForm() {
         <Controller
           control={control}
           name="password"
-          render={({ field: { onChange, value } }) => (
+          render={({ field: { onChange, onBlur, value } }) => (
             <PasswordRulesInput
               value={value}
               onChange={onChange}
+              onBlur={onBlur}
               placeholder={t('register.enterPassword')}
               disabled={isLoading}
             />
