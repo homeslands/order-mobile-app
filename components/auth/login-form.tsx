@@ -1,14 +1,14 @@
-import { Eye, EyeOff } from 'lucide-react-native'
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { Controller } from 'react-hook-form'
 import {
   ActivityIndicator,
   Text,
   TouchableOpacity,
-  View
+  View,
 } from 'react-native'
 
 import { FormInput } from '@/components/form/form-input'
+import { PasswordInputField } from '@/components/input'
 import { ROUTE } from '@/constants'
 import { useLogin, usePostAuthActions, useZodForm } from '@/hooks'
 import { navigateNative } from '@/lib/navigation'
@@ -22,10 +22,8 @@ interface LoginFormProps {
 
 export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
   const { t } = useTranslation('auth')
-  // const passwordRef = useRef<TextInput>(null)
-  const [showPassword, setShowPassword] = useState(false)
 
-  const { control, handleSubmit, formState: { isSubmitting } } =
+  const { control, handleSubmit, formState: { isSubmitting, errors } } =
     useZodForm(loginSchema, {
       defaultValues: { phonenumber: '', password: '' },
     })
@@ -99,29 +97,20 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
             </Text>
           </TouchableOpacity>
         </View>
-        <FormInput
+        <Controller
           control={control}
           name="password"
-          placeholder={t('login.enterPassword')}
-          secureTextEntry={!showPassword}
-          autoCapitalize="none"
-          disabled={isLoading}
-          useTextInput
-          containerClassName="mb-0"
-          className="pr-12"
-        />
-        <TouchableOpacity
-          className="absolute bottom-3 right-4 p-1"
-          onPress={() => setShowPassword((v) => !v)}
-          disabled={isLoading}
-          hitSlop={8}
-        >
-          {showPassword ? (
-            <EyeOff size={20} color="#9ca3af" />
-          ) : (
-            <Eye size={20} color="#9ca3af" />
+          render={({ field: { onChange, onBlur, value } }) => (
+            <PasswordInputField
+              value={value}
+              onChange={onChange}
+              onBlur={onBlur}
+              placeholder={t('login.enterPassword')}
+              disabled={isLoading}
+              error={errors.password?.message}
+            />
           )}
-        </TouchableOpacity>
+        />
       </View>
 
       {/* Quick login — dev helper, hardcoded acc */}
