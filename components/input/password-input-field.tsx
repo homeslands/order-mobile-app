@@ -34,7 +34,7 @@ export function PasswordInputField({
             'h-10 rounded-lg border bg-white dark:bg-gray-800 px-3 py-2 pr-10 text-base',
             'text-gray-900 dark:text-white',
             error
-              ? 'border-red-500 dark:border-red-500'
+              ? 'border-destructive dark:border-destructive'
               : 'border-gray-200 dark:border-gray-700',
             disabled && 'opacity-50',
           )}

@@ -3,8 +3,7 @@ import { Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, Text, View } from 'react-native'
 
-import { PasswordInputField } from '@/components/input'
-import { PasswordRulesInput } from '@/components/input'
+import { PasswordInputField, PasswordRulesInput } from '@/components/input'
 import { Button } from '@/components/ui'
 import { ROUTE } from '@/constants'
 import { useZodForm } from '@/hooks'
@@ -95,7 +94,7 @@ export function ResetPasswordForm({ onSubmit, isLoading = false, token }: ResetP
 
       <Button variant="ghost" className="mt-2" disabled={isLoading} onPress={() => navigateNative.replace(ROUTE.LOGIN)}>
         <Text className="text-center text-sm font-sans-medium text-primary">
-          Quay lại đăng nhập
+          {t('forgotPassword.backToLogin')}
         </Text>
       </Button>
     </View>
