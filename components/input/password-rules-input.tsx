@@ -122,29 +122,29 @@ export function PasswordRulesInput({
 
       {/* Strength bar + rule tags — only shown after touched */}
       {showRules && touched && (
-        <View className="gap-1.5">
-          {/* Strength bar — 3 segments */}
-          <View className="flex-row gap-1">
-            {[0, 1, 2].map((i) => (
-              <View
-                key={i}
-                className={cn('h-1 flex-1 rounded-full', segmentColor(i, metCount))}
-              />
-            ))}
-          </View>
-
-          {/* Rule tags + strength label */}
-          <View className="flex-row items-center justify-between">
-            <View className="flex-row flex-wrap gap-1.5">
-              <RuleTag met={rules.minLength} label={labels.minLength} />
-              <RuleTag met={rules.hasLetter} label={labels.hasLetter} />
-              <RuleTag met={rules.hasNumber} label={labels.hasNumber} />
+        <View className="gap-2">
+          {/* Strength bar + label on same row */}
+          <View className="flex-row items-center gap-2">
+            <View className="flex-1 flex-row gap-1">
+              {[0, 1, 2].map((i) => (
+                <View
+                  key={i}
+                  className={cn('h-1 flex-1 rounded-full', segmentColor(i, metCount))}
+                />
+              ))}
             </View>
             {strength !== null && (
-              <Text className={cn('ml-2 text-xs font-semibold', strengthLabelColor(metCount))}>
+              <Text className={cn('text-xs font-semibold', strengthLabelColor(metCount))}>
                 {strength}
               </Text>
             )}
+          </View>
+
+          {/* Rule tags */}
+          <View className="flex-row flex-wrap gap-1.5">
+            <RuleTag met={rules.minLength} label={labels.minLength} />
+            <RuleTag met={rules.hasLetter} label={labels.hasLetter} />
+            <RuleTag met={rules.hasNumber} label={labels.hasNumber} />
           </View>
         </View>
       )}
