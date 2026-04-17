@@ -40,7 +40,7 @@ export function ResetPasswordForm({ onSubmit, isLoading = false, token }: ResetP
     <View className="gap-4">
       {/* Mật khẩu mới */}
       <View>
-        <Text className="mb-2 text-sm font-sans-medium text-foreground">
+        <Text className="mb-2 text-sm font-sans-medium text-gray-900 dark:text-white">
           {t('forgotPassword.newPassword')}
         </Text>
         <Controller
@@ -57,13 +57,13 @@ export function ResetPasswordForm({ onSubmit, isLoading = false, token }: ResetP
           )}
         />
         {errors.newPassword && (
-          <Text className="mt-1 text-sm text-destructive">{errors.newPassword.message}</Text>
+          <Text className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.newPassword.message}</Text>
         )}
       </View>
 
       {/* Xác nhận mật khẩu — PasswordInputField thay TextInput thuần */}
       <View>
-        <Text className="mb-2 text-sm font-sans-medium text-foreground">
+        <Text className="mb-2 text-sm font-sans-medium text-gray-900 dark:text-white">
           {t('forgotPassword.confirmNewPassword')}
         </Text>
         <Controller
@@ -86,14 +86,14 @@ export function ResetPasswordForm({ onSubmit, isLoading = false, token }: ResetP
         {isLoading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text className="text-sm font-sans-semibold text-primary-foreground">
+          <Text className="text-sm font-sans-semibold text-white">
             {t('forgotPassword.reset')}
           </Text>
         )}
       </Button>
 
       <Button variant="ghost" className="mt-2" disabled={isLoading} onPress={() => navigateNative.replace(ROUTE.LOGIN)}>
-        <Text className="text-center text-sm font-sans-medium text-primary">
+        <Text className="text-center text-sm font-sans-medium text-amber-500 dark:text-amber-400">
           {t('forgotPassword.backToLogin')}
         </Text>
       </Button>

@@ -128,12 +128,12 @@ function FormInputField({
       {label && (
         <Text
           className={cn(
-            'mb-1 text-xs text-muted-foreground',
+            'mb-1 text-xs text-gray-500 dark:text-gray-400',
             labelClassName
           )}
         >
           {label}
-          {required && <Text className="text-destructive"> *</Text>}
+          {required && <Text className="text-red-500 dark:text-red-400"> *</Text>}
         </Text>
       )}
       {useTextInput ? (
@@ -171,7 +171,7 @@ function FormInputField({
       {showError && (
         <Text
           className={cn(
-            'mt-1 text-xs text-destructive',
+            'mt-1 text-xs text-red-500 dark:text-red-400',
             errorClassName
           )}
         >
@@ -180,7 +180,7 @@ function FormInputField({
       )}
 
       {showHelper && (
-        <Text className="mt-1 text-xs text-muted-foreground">
+        <Text className="mt-1 text-xs text-gray-500 dark:text-gray-400">
           {helperText}
         </Text>
       )}

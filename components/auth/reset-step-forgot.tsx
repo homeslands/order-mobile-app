@@ -50,7 +50,7 @@ export const ResetStepForgot = React.memo(function ResetStepForgot({
 
       {tokenExpired ? (
         <View className="gap-3">
-          <Text className="text-center text-sm font-sans text-destructive">
+          <Text className="text-center text-sm font-sans text-red-500 dark:text-red-400">
             {t('forgotPassword.sessionExpired')}
           </Text>
           <Button
@@ -58,12 +58,12 @@ export const ResetStepForgot = React.memo(function ResetStepForgot({
             className="h-11 rounded-lg"
             onPress={onStartOver}
           >
-            <Text className="text-sm font-sans-semibold text-primary-foreground">
+            <Text className="text-sm font-sans-semibold text-white">
               {t('forgotPassword.sessionExpiredAction')}
             </Text>
           </Button>
           <TouchableOpacity onPress={onBackToLogin} className="py-2">
-            <Text className="text-center text-sm font-sans-medium text-primary">
+            <Text className="text-center text-sm font-sans-medium text-amber-500 dark:text-amber-400">
               {t('forgotPassword.backToLogin')}
             </Text>
           </TouchableOpacity>

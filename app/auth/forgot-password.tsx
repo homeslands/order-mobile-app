@@ -473,12 +473,12 @@ export default function ForgotPasswordScreen() {
           >
             <View className="flex-1 px-6 pt-8">
               {title ? (
-                <Text className="mb-2 text-3xl font-sans-bold text-foreground">
+                <Text className="mb-2 text-3xl font-sans-bold text-gray-900 dark:text-white">
                   {title}
                 </Text>
               ) : null}
               {description ? (
-                <Text className="mb-8 text-base font-sans text-muted-foreground">
+                <Text className="mb-8 text-base font-sans text-gray-500 dark:text-gray-400">
                   {description}
                 </Text>
               ) : null}
@@ -511,7 +511,7 @@ export default function ForgotPasswordScreen() {
                   onPress={handleBack}
                   className="py-2"
                 >
-                  <Text className="text-center text-sm font-sans-medium text-primary">
+                  <Text className="text-center text-sm font-sans-medium text-amber-500 dark:text-amber-400">
                     {t('forgotPassword.backButton')}
                   </Text>
                 </TouchableOpacity>
@@ -530,7 +530,7 @@ export default function ForgotPasswordScreen() {
                 />
               ) : activeStep === 3 ? (
                 <View className="gap-3">
-                  <Text className="text-center text-sm font-sans text-destructive">
+                  <Text className="text-center text-sm font-sans text-red-500 dark:text-red-400">
                     {t('forgotPassword.sessionExpired')}
                   </Text>
                   <Button
@@ -538,7 +538,7 @@ export default function ForgotPasswordScreen() {
                     className="h-11 rounded-lg"
                     onPress={handleStartOver}
                   >
-                    <Text className="text-sm font-sans-semibold text-primary-foreground">
+                    <Text className="text-sm font-sans-semibold text-white">
                       {t('forgotPassword.sessionExpiredAction')}
                     </Text>
                   </Button>

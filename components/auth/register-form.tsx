@@ -88,10 +88,10 @@ export default function RegisterForm() {
 
   return (
     <View className="flex-1 px-6 pt-8">
-      <Text className="mb-2 text-3xl font-sans-bold text-foreground">
+      <Text className="mb-2 text-3xl font-sans-bold text-gray-900 dark:text-white">
         {t('register.title')}
       </Text>
-      <Text className="mb-8 text-base font-sans text-muted-foreground">
+      <Text className="mb-8 text-base font-sans text-gray-500 dark:text-gray-400">
         {t('register.subtitle')}
       </Text>
 
@@ -119,7 +119,7 @@ export default function RegisterForm() {
 
       {/* Ngày sinh */}
       <View className="mb-4">
-        <Text className="mb-1 text-xs text-muted-foreground">
+        <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
           {t('register.dob')}
         </Text>
         <DobExpandablePicker
@@ -128,7 +128,7 @@ export default function RegisterForm() {
           placeholder={t('register.selectDob')}
         />
         {dobError && (
-          <Text className="mt-1 text-xs text-destructive">{dobError.message}</Text>
+          <Text className="mt-1 text-xs text-red-500 dark:text-red-400">{dobError.message}</Text>
         )}
       </View>
 
@@ -147,7 +147,7 @@ export default function RegisterForm() {
 
       {/* Mật khẩu mới — PasswordRulesInput */}
       <View className="mb-4">
-        <Text className="mb-1 text-xs text-muted-foreground">
+        <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
           {t('register.password')}
         </Text>
         <Controller
@@ -164,13 +164,13 @@ export default function RegisterForm() {
           )}
         />
         {errors.password && (
-          <Text className="mt-1 text-xs text-destructive">{errors.password.message}</Text>
+          <Text className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.password.message}</Text>
         )}
       </View>
 
       {/* Xác nhận mật khẩu — PasswordInputField */}
       <View className="mb-8">
-        <Text className="mb-1 text-xs text-muted-foreground">
+        <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
           {t('register.confirmPassword')}
         </Text>
         <Controller
@@ -198,7 +198,7 @@ export default function RegisterForm() {
         {isLoading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text className="text-base font-sans-semibold text-primary-foreground">
+          <Text className="text-base font-sans-semibold text-white">
             {t('register.register')}
           </Text>
         )}
@@ -210,9 +210,9 @@ export default function RegisterForm() {
         onPress={() => navigateNative.replace('/auth/login')}
         disabled={isLoading}
       >
-        <Text className="text-sm font-sans text-muted-foreground">
+        <Text className="text-sm font-sans text-gray-500 dark:text-gray-400">
           {t('register.haveAccount')}{' '}
-          <Text className="font-sans-semibold text-primary">{t('register.login')}</Text>
+          <Text className="font-sans-semibold text-amber-500 dark:text-amber-400">{t('register.login')}</Text>
         </Text>
       </TouchableOpacity>
 
@@ -222,7 +222,7 @@ export default function RegisterForm() {
         onPress={() => navigateNative.replace('/(tabs)/home')}
         disabled={isLoading}
       >
-        <Text className="text-sm font-sans text-muted-foreground">
+        <Text className="text-sm font-sans text-gray-500 dark:text-gray-400">
           {t('register.goBackToHome')}
         </Text>
       </TouchableOpacity>

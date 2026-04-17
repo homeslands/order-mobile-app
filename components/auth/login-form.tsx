@@ -60,10 +60,10 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
 
   return (
     <View className="flex-1 px-6 pt-12">
-      <Text className="mb-2 text-3xl font-sans-bold text-foreground">
+      <Text className="mb-2 text-3xl font-sans-bold text-gray-900 dark:text-white">
         {t('login.title')}
       </Text>
-      <Text className="mb-8 text-base font-sans text-muted-foreground">
+      <Text className="mb-8 text-base font-sans text-gray-500 dark:text-gray-400">
         {t('login.description')}
       </Text>
 
@@ -78,13 +78,13 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         disabled={isLoading}
         useTextInput
         transformOnChange={(v) => v.replace(/\D/g, '')}
-        labelClassName="text-md font-sans-medium text-muted-foreground"
+        labelClassName="text-md font-sans-medium text-gray-500 dark:text-gray-400"
       />
 
       {/* Password */}
       <View className="mb-6">
         <View className="mb-1 flex-row items-center justify-between">
-          <Text className="text-md font-sans-medium text-muted-foreground">
+          <Text className="text-md font-sans-medium text-gray-500 dark:text-gray-400">
             {t('login.password')}
           </Text>
           <TouchableOpacity
@@ -92,7 +92,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
             disabled={isLoading}
             hitSlop={8}
           >
-            <Text className="text-sm font-sans-semibold text-primary">
+            <Text className="text-sm font-sans-semibold text-amber-500 dark:text-amber-400">
               {t('login.forgotPassword')}
             </Text>
           </TouchableOpacity>
@@ -119,7 +119,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         onPress={handleQuickLogin}
         disabled={isLoading}
       >
-        <Text className="text-sm font-sans text-muted-foreground">
+        <Text className="text-sm font-sans text-gray-500 dark:text-gray-400">
           Đăng nhập nhanh (0324567894)
         </Text>
       </TouchableOpacity> */}
@@ -133,7 +133,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         {isLoading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text className="text-base font-sans-semibold text-primary-foreground">
+          <Text className="text-base font-sans-semibold text-white">
             {t('login.login')}
           </Text>
         )}
@@ -145,9 +145,9 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         onPress={() => navigateNative.replace('/auth/register')}
         disabled={isLoading}
       >
-        <Text className="text-sm font-sans text-muted-foreground">
+        <Text className="text-sm font-sans text-gray-500 dark:text-gray-400">
           {t('login.noAccount')}{' '}
-          <Text className="font-sans-semibold text-primary">
+          <Text className="font-sans-semibold text-amber-500 dark:text-amber-400">
             {t('login.register')}
           </Text>
         </Text>
@@ -159,7 +159,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         onPress={() => navigateNative.replace('/(tabs)/home')}
         disabled={isLoading}
       >
-        <Text className="text-sm font-sans text-muted-foreground">
+        <Text className="text-sm font-sans text-gray-500 dark:text-gray-400">
           {t('login.goBackToHome')}
         </Text>
       </TouchableOpacity>

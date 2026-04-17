@@ -121,7 +121,7 @@ export const OTPStepForgot = React.memo(function OTPStepForgot({
   return (
     <View className="gap-4">
       {maskedIdentity ? (
-        <Text className="text-center text-sm font-sans text-muted-foreground">
+        <Text className="text-center text-sm font-sans text-gray-500 dark:text-gray-400">
           {t('forgotPassword.otpSentTo', { identity: maskedIdentity })}
         </Text>
       ) : null}
@@ -142,7 +142,7 @@ export const OTPStepForgot = React.memo(function OTPStepForgot({
           className="text-center text-sm font-sans"
         />
       ) : (
-        <Text className="text-center text-sm font-sans text-destructive">
+        <Text className="text-center text-sm font-sans text-red-500 dark:text-red-400">
           {t('forgotPassword.otpExpired')}
         </Text>
       )}
@@ -156,7 +156,7 @@ export const OTPStepForgot = React.memo(function OTPStepForgot({
         {isVerifyingOTP ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text className="text-sm font-sans-semibold text-primary-foreground">
+          <Text className="text-sm font-sans-semibold text-white">
             {t('forgotPassword.verify')}
           </Text>
         )}
@@ -178,17 +178,17 @@ export const OTPStepForgot = React.memo(function OTPStepForgot({
             <ResendCountdownLabel
               countdownShared={otpShared}
               label={t('forgotPassword.resend')}
-              className="text-sm font-sans-semibold text-muted-foreground"
+              className="text-sm font-sans-semibold text-gray-500 dark:text-gray-400"
             />
           ) : (
-            <Text className="text-sm font-sans-semibold text-primary-foreground">
+            <Text className="text-sm font-sans-semibold text-white">
               {t('forgotPassword.resend')}
             </Text>
           )}
         </Button>
 
         <TouchableOpacity onPress={onBack} className="py-2">
-          <Text className="text-center text-sm font-sans-medium text-primary">
+          <Text className="text-center text-sm font-sans-medium text-amber-500 dark:text-amber-400">
             {t('forgotPassword.changeIdentity')}
           </Text>
         </TouchableOpacity>
