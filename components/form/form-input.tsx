@@ -139,8 +139,8 @@ function FormInputField({
       {useTextInput ? (
         <TextInput
           className={cn(
-            'bg-card text-foreground rounded-lg px-4 py-3 text-base border font-sans',
-            showError ? 'border-destructive' : 'border-border',
+            'bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-4 py-3 text-base border font-sans',
+            showError ? 'border-red-500 dark:border-red-400' : 'border-gray-200 dark:border-gray-700',
             disabled && 'opacity-50',
             className
           )}
