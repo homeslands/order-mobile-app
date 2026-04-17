@@ -59,12 +59,12 @@ export function PasswordInputField({
           {showPassword ? (
             <EyeOff
               size={20}
-              color={isDark ? '#9ca3af' : '#6b7280'}
+              color={isDark ? colors.mutedForeground.dark : colors.mutedForeground.light}
             />
           ) : (
             <Eye
               size={20}
-              color={isDark ? '#9ca3af' : '#6b7280'}
+              color={isDark ? colors.mutedForeground.dark : colors.mutedForeground.light}
             />
           )}
         </TouchableOpacity>
