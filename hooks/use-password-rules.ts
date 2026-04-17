@@ -44,10 +44,10 @@ export function usePasswordRules(value: string | undefined): PasswordRulesResult
 
   // Tính strength
   const strength = useMemo<string | null>(() => {
-    const passed = Object.values(rules).filter(Boolean).length
     if (!hasInput) return null
-    if (passed <= 1) return t('rule.weak')
-    if (passed === 2 || passed === 3) return t('rule.medium')
+    const passed = Object.values(rules).filter(Boolean).length
+    if (passed === 1) return t('rule.weak')
+    if (passed === 2) return t('rule.medium')
     return t('rule.strong')
   }, [rules, hasInput, t])
 

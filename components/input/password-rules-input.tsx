@@ -1,5 +1,5 @@
 import { Eye, EyeOff } from 'lucide-react-native'
-import { useState } from 'react'
+import { memo, useState } from 'react'
 import { Text, TextInput, TouchableOpacity, View } from 'react-native'
 
 import { usePasswordRules, type PasswordRules } from '@/hooks'
@@ -29,12 +29,13 @@ function segmentColor(index: number, metCount: number): string {
 }
 
 function strengthLabelColor(metCount: number): string {
+  if (metCount === 0) return 'text-gray-400 dark:text-gray-500'
   if (metCount === 1) return 'text-red-500'
   if (metCount === 2) return 'text-amber-500'
   return 'text-green-600 dark:text-green-400'
 }
 
-function RuleTag({ met, label }: { met: boolean; label: string }) {
+const RuleTag = memo(function RuleTag({ met, label }: { met: boolean; label: string }) {
   return (
     <View
       className={cn(
@@ -54,7 +55,7 @@ function RuleTag({ met, label }: { met: boolean; label: string }) {
       </Text>
     </View>
   )
-}
+})
 
 export function PasswordRulesInput({
   value,
