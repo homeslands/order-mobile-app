@@ -114,7 +114,9 @@ export function PasswordRulesInput({
           disabled={disabled}
           hitSlop={8}
         >
-          {showPassword ? <EyeOff size={20} color="#999" /> : <Eye size={20} color="#999" />}
+          {showPassword
+            ? <EyeOff size={20} color={isDark ? colors.mutedForeground.dark : colors.mutedForeground.light} />
+            : <Eye size={20} color={isDark ? colors.mutedForeground.dark : colors.mutedForeground.light} />}
         </TouchableOpacity>
       </View>
 
