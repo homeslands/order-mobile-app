@@ -532,11 +532,8 @@ const ProfileTest = () => {
   const handleAvatarLibrary = useCallback(() => {
     setIsAvatarSheetOpen(false)
     setTimeout(async () => {
-      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync()
-      if (status !== 'granted') {
-        showToast(t('profile.avatarPermissionRequired'))
-        return
-      }
+      // Android 13+ uses the system photo picker which requires no permissions.
+      // Requesting READ_MEDIA_IMAGES violates Play Store policy for infrequent use.
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: Platform.OS === 'ios',
@@ -546,7 +543,7 @@ const ProfileTest = () => {
       if (result.canceled) return
       uploadAvatarAsset(result.assets[0])
     }, 350)
-  }, [uploadAvatarAsset, t])
+  }, [uploadAvatarAsset])
 
   const openGeneralInfo = useCallback(() => {
     router.push('/(tabs)/profile/general-info')
