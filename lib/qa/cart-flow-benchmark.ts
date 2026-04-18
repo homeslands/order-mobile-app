@@ -17,9 +17,9 @@ const flowState: FlowState = {
 function getGlobalFlags(): {
   __ENABLE_CART_FLOW_BENCHMARK?: boolean
 } {
-  return (globalThis as unknown as {
+  return globalThis as unknown as {
     __ENABLE_CART_FLOW_BENCHMARK?: boolean
-  })
+  }
 }
 
 function isEnabled(): boolean {
@@ -57,7 +57,7 @@ export function printCartFlowBenchmarkReport(): void {
   if (!isEnabled()) return
   if (flowState.events.length === 0) {
     // eslint-disable-next-line no-console
-    console.log('[CartFlowBenchmark] no events')
+    console['log']('[CartFlowBenchmark] no events')
     return
   }
   const rows = flowState.events.map((e, i) => ({
@@ -69,4 +69,3 @@ export function printCartFlowBenchmarkReport(): void {
   // eslint-disable-next-line no-console
   console.table(rows)
 }
-
