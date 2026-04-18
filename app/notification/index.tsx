@@ -21,7 +21,10 @@ import { colors } from '@/constants'
 import { NOTIFICATION_ITEM_HEIGHT } from '@/constants/list-item-sizes'
 import { NotificationMessageCode } from '@/constants/notification.constant'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
-import { useMarkNotificationAsRead, useNotifications } from '@/hooks/use-notification'
+import {
+  useMarkNotificationAsRead,
+  useNotifications,
+} from '@/hooks/use-notification'
 import { navigateNative } from '@/lib/navigation'
 import { useUserStore } from '@/stores'
 import { useNotificationStore } from '@/stores/notification.store'
@@ -33,20 +36,34 @@ type TFn = (key: string, opts?: Record<string, unknown>) => string
 
 function getNotificationTitle(message: string, t: TFn): string {
   switch (message) {
-    case NotificationMessageCode.ORDER_NEEDS_PROCESSED: return t('titleOrderNeedsProcessed')
-    case NotificationMessageCode.ORDER_NEEDS_DELIVERED: return t('titleOrderNeedsDelivered')
-    case NotificationMessageCode.ORDER_NEEDS_READY_TO_GET: return t('titleOrderNeedsReadyToGet')
-    case NotificationMessageCode.ORDER_NEEDS_CANCELLED: return t('titleOrderNeedsCancelled')
-    case NotificationMessageCode.ORDER_BILL_FAILED_PRINTING: return t('titleOrderBillFailedPrinting')
-    case NotificationMessageCode.ORDER_CHEF_ORDER_FAILED_PRINTING: return t('titleOrderChefOrderFailedPrinting')
-    case NotificationMessageCode.ORDER_LABEL_TICKET_FAILED_PRINTING: return t('titleOrderLabelTicketFailedPrinting')
-    case NotificationMessageCode.ORDER_PAID: return t('titleOrderPaid')
-    case NotificationMessageCode.CARD_ORDER_PAID: return t('titleCardOrderPaid')
-    default: return message || t('titleDefault')
+    case NotificationMessageCode.ORDER_NEEDS_PROCESSED:
+      return t('titleOrderNeedsProcessed')
+    case NotificationMessageCode.ORDER_NEEDS_DELIVERED:
+      return t('titleOrderNeedsDelivered')
+    case NotificationMessageCode.ORDER_NEEDS_READY_TO_GET:
+      return t('titleOrderNeedsReadyToGet')
+    case NotificationMessageCode.ORDER_NEEDS_CANCELLED:
+      return t('titleOrderNeedsCancelled')
+    case NotificationMessageCode.ORDER_BILL_FAILED_PRINTING:
+      return t('titleOrderBillFailedPrinting')
+    case NotificationMessageCode.ORDER_CHEF_ORDER_FAILED_PRINTING:
+      return t('titleOrderChefOrderFailedPrinting')
+    case NotificationMessageCode.ORDER_LABEL_TICKET_FAILED_PRINTING:
+      return t('titleOrderLabelTicketFailedPrinting')
+    case NotificationMessageCode.ORDER_PAID:
+      return t('titleOrderPaid')
+    case NotificationMessageCode.CARD_ORDER_PAID:
+      return t('titleCardOrderPaid')
+    default:
+      return message || t('titleDefault')
   }
 }
 
-function getNotificationBody(message: string, orderSlug: string, t: TFn): string {
+function getNotificationBody(
+  message: string,
+  orderSlug: string,
+  t: TFn,
+): string {
   const ref = orderSlug ? `#${orderSlug}` : ''
   switch (message) {
     case NotificationMessageCode.ORDER_NEEDS_PROCESSED:
@@ -88,11 +105,11 @@ const NotificationSkeletonItem = memo(function NotificationSkeletonItem() {
   return (
     <View style={ns.itemContainer}>
       <View style={ns.itemInner}>
-        <Skeleton className="w-10 h-10 rounded-xl" />
+        <Skeleton className="h-10 w-10 rounded-xl" />
         <View style={{ flex: 1, gap: 6 }}>
-          <Skeleton className="h-3.5 rounded w-2/3" />
-          <Skeleton className="h-3 rounded w-full" />
-          <Skeleton className="h-3 rounded w-1/4" />
+          <Skeleton className="h-3.5 w-2/3 rounded" />
+          <Skeleton className="h-3 w-full rounded" />
+          <Skeleton className="h-3 w-1/4 rounded" />
         </View>
       </View>
     </View>
@@ -118,21 +135,34 @@ const NotificationItem = memo(function NotificationItem({
     onMarkRead(item.slug)
     const orderSlug = item.metadata?.order
     if (orderSlug) {
-      navigateNative.push({ pathname: '/order/[id]', params: { id: orderSlug } })
+      navigateNative.push({
+        pathname: '/order/[id]',
+        params: { id: orderSlug },
+      })
     }
   }, [item.slug, item.metadata?.order, onMarkRead])
 
-  const title = useMemo(() => getNotificationTitle(item.message, t), [item.message, t])
+  const title = useMemo(
+    () => getNotificationTitle(item.message, t),
+    [item.message, t],
+  )
   const orderSlug = item.metadata?.order ?? ''
   const body = useMemo(
     () => getNotificationBody(item.message, orderSlug, t),
     [item.message, orderSlug, t],
   )
-  const timeAgo = useMemo(() => formatTimeAgo(item.createdAt, t), [item.createdAt, t])
+  const timeAgo = useMemo(
+    () => formatTimeAgo(item.createdAt, t),
+    [item.createdAt, t],
+  )
 
   const cardBg = item.isRead
-    ? (isDark ? colors.gray[900] : '#fff')
-    : (isDark ? `${primaryColor}18` : `${primaryColor}12`)
+    ? isDark
+      ? colors.gray[900]
+      : '#fff'
+    : isDark
+      ? `${primaryColor}18`
+      : `${primaryColor}12`
 
   return (
     <Pressable
@@ -144,7 +174,9 @@ const NotificationItem = memo(function NotificationItem({
           borderWidth: 1,
           borderColor: !item.isRead
             ? `${primaryColor}40`
-            : (isDark ? colors.gray[800] : colors.gray[200]),
+            : isDark
+              ? colors.gray[800]
+              : colors.gray[200],
         },
       ]}
     >
@@ -165,14 +197,22 @@ const NotificationItem = memo(function NotificationItem({
           </Text>
           {!!body && (
             <Text
-              style={[ns.itemBody, { color: isDark ? colors.gray[400] : colors.gray[500] }]}
+              style={[
+                ns.itemBody,
+                { color: isDark ? colors.gray[400] : colors.gray[500] },
+              ]}
               numberOfLines={2}
             >
               {body}
             </Text>
           )}
           <View style={ns.itemBottomRow}>
-            <Text style={[ns.itemTime, { color: isDark ? colors.gray[500] : colors.gray[400] }]}>
+            <Text
+              style={[
+                ns.itemTime,
+                { color: isDark ? colors.gray[500] : colors.gray[400] },
+              ]}
+            >
               {timeAgo}
             </Text>
             {!item.isRead && (
@@ -209,19 +249,39 @@ const NotificationTabHeader = memo(function NotificationTabHeader({
   return (
     <View style={ns.tabs}>
       <Pressable
-        style={[ns.tab, { backgroundColor: activeTab === 'all' ? primaryColor : inactiveBg }]}
+        style={[
+          ns.tab,
+          { backgroundColor: activeTab === 'all' ? primaryColor : inactiveBg },
+        ]}
         onPress={() => onTabChange('all')}
       >
-        <Text style={[ns.tabText, { color: activeTab === 'all' ? '#fff' : inactiveText }]}>
+        <Text
+          style={[
+            ns.tabText,
+            { color: activeTab === 'all' ? '#fff' : inactiveText },
+          ]}
+        >
           {t('tabAll')}
         </Text>
       </Pressable>
       <Pressable
-        style={[ns.tab, { backgroundColor: activeTab === 'unread' ? primaryColor : inactiveBg }]}
+        style={[
+          ns.tab,
+          {
+            backgroundColor: activeTab === 'unread' ? primaryColor : inactiveBg,
+          },
+        ]}
         onPress={() => onTabChange('unread')}
       >
-        <Text style={[ns.tabText, { color: activeTab === 'unread' ? '#fff' : inactiveText }]}>
-          {unreadCount > 0 ? t('tabUnreadCount', { count: unreadCount }) : t('tabUnread')}
+        <Text
+          style={[
+            ns.tabText,
+            { color: activeTab === 'unread' ? '#fff' : inactiveText },
+          ]}
+        >
+          {unreadCount > 0
+            ? t('tabUnreadCount', { count: unreadCount })
+            : t('tabUnread')}
         </Text>
       </Pressable>
     </View>
@@ -247,13 +307,38 @@ export default function NotificationScreen() {
   // ── Tab filter ──────────────────────────────────────────────────────────
   const [activeTab, setActiveTab] = useState<'all' | 'unread'>('all')
   const displayedNotifications = useMemo(
-    () => activeTab === 'unread' ? notifications.filter((n) => !n.isRead) : notifications,
+    () =>
+      activeTab === 'unread'
+        ? notifications.filter((n) => !n.isRead)
+        : notifications,
     [activeTab, notifications],
   )
 
   // ── Pagination ──────────────────────────────────────────────────────────
-  const [page, setPage] = useState(1)
-  const { data: apiData, isRefetching, isFetching, refetch } = useNotifications(
+  // Pair page with the userSlug it belongs to — when userSlug changes the
+  // derived `page` is automatically 1, no setState needed inside an effect.
+  const [pagination, setPagination] = useState({
+    forSlug: userSlug ?? '',
+    page: 1,
+  })
+  const page = pagination.forSlug === (userSlug ?? '') ? pagination.page : 1
+
+  // Clear local store when the logged-in user changes. Updating external state
+  // (notification store) is the only side-effect here — no setState call.
+  const prevUserSlugRef = React.useRef(userSlug)
+  useEffect(() => {
+    if (prevUserSlugRef.current !== userSlug) {
+      prevUserSlugRef.current = userSlug
+      useNotificationStore.getState().clearAll()
+    }
+  }, [userSlug])
+
+  const {
+    data: apiData,
+    isRefetching,
+    isFetching,
+    refetch,
+  } = useNotifications(
     { receiver: userSlug, page, size: PAGE_SIZE },
     { enabled: !!userSlug },
   )
@@ -269,18 +354,23 @@ export default function NotificationScreen() {
   }, [apiData])
 
   const handleRefresh = useCallback(() => {
-    setPage(1)
+    setPagination({ forSlug: userSlug ?? '', page: 1 })
     refetch()
-  }, [refetch])
+  }, [refetch, userSlug])
 
   const handleLoadMore = useCallback(() => {
     if (!hasMore || isFetching) return
-    setPage((p) => p + 1)
-  }, [hasMore, isFetching])
+    setPagination({ forSlug: userSlug ?? '', page: page + 1 })
+  }, [hasMore, isFetching, page, userSlug])
 
   // ── Mark as read ────────────────────────────────────────────────────────
   const { mutate: markReadApi } = useMarkNotificationAsRead()
-  const handleMarkRead = useCallback((slug: string) => { markReadApi(slug) }, [markReadApi])
+  const handleMarkRead = useCallback(
+    (slug: string) => {
+      markReadApi(slug)
+    },
+    [markReadApi],
+  )
 
   // ── Render helpers ──────────────────────────────────────────────────────
   const renderItem = useCallback(
@@ -297,10 +387,15 @@ export default function NotificationScreen() {
 
   const keyExtractor = useCallback((item: INotification) => item.slug, [])
 
-  const handleTabChange = useCallback((tab: 'all' | 'unread') => setActiveTab(tab), [])
+  const handleTabChange = useCallback(
+    (tab: 'all' | 'unread') => setActiveTab(tab),
+    [],
+  )
 
   const overrideItemLayout = useCallback(
-    (layout: { span?: number; size?: number }) => { layout.size = NOTIFICATION_ITEM_HEIGHT },
+    (layout: { span?: number; size?: number }) => {
+      layout.size = NOTIFICATION_ITEM_HEIGHT
+    },
     [],
   )
 
@@ -308,11 +403,24 @@ export default function NotificationScreen() {
     () =>
       isFirstLoad ? null : (
         <View style={ns.emptyWrap}>
-          <Bell size={56} color={isDark ? colors.gray[600] : colors.gray[300]} />
-          <Text style={[ns.emptyTitle, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>
+          <Bell
+            size={56}
+            color={isDark ? colors.gray[600] : colors.gray[300]}
+          />
+          <Text
+            style={[
+              ns.emptyTitle,
+              { color: isDark ? colors.gray[50] : colors.gray[900] },
+            ]}
+          >
             {activeTab === 'unread' ? t('emptyUnreadTitle') : t('emptyTitle')}
           </Text>
-          <Text style={[ns.emptyDesc, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>
+          <Text
+            style={[
+              ns.emptyDesc,
+              { color: isDark ? colors.gray[400] : colors.gray[500] },
+            ]}
+          >
             {activeTab === 'unread' ? t('emptyUnreadDesc') : t('emptyDesc')}
           </Text>
         </View>
@@ -362,7 +470,10 @@ export default function NotificationScreen() {
       )}
 
       {/* Fixed tab bar — transparent, nằm trong vùng gradient của FloatingHeader */}
-      <View style={[ns.tabsFixed, { top: STATIC_TOP_INSET + 52 }]} pointerEvents="box-none">
+      <View
+        style={[ns.tabsFixed, { top: STATIC_TOP_INSET + 52 }]}
+        pointerEvents="box-none"
+      >
         <NotificationTabHeader
           activeTab={activeTab}
           unreadCount={unreadCount}
@@ -384,7 +495,11 @@ const LIST_PADDING_TOP = TAB_BAR_TOP + 52
 
 const ns = StyleSheet.create({
   flex: { flex: 1 },
-  listPadding: { paddingTop: LIST_PADDING_TOP, paddingBottom: 32, paddingHorizontal: 16 },
+  listPadding: {
+    paddingTop: LIST_PADDING_TOP,
+    paddingBottom: 32,
+    paddingHorizontal: 16,
+  },
   skeletonList: { paddingTop: LIST_PADDING_TOP, paddingHorizontal: 16, gap: 8 },
 
   // Fixed tab bar
@@ -433,7 +548,12 @@ const ns = StyleSheet.create({
   itemTitle: { fontSize: 14, lineHeight: 20 },
   itemTitleUnread: { fontWeight: '700' },
   itemBody: { fontSize: 13, lineHeight: 18 },
-  itemBottomRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 2 },
+  itemBottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 2,
+  },
   itemTime: { fontSize: 11 },
   statusLabel: { fontSize: 11, fontWeight: '600' },
 
@@ -445,5 +565,10 @@ const ns = StyleSheet.create({
     paddingVertical: 64,
   },
   emptyTitle: { marginTop: 14, fontSize: 17, fontWeight: '600' },
-  emptyDesc: { marginTop: 6, fontSize: 14, textAlign: 'center', lineHeight: 20 },
+  emptyDesc: {
+    marginTop: 6,
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+  },
 })

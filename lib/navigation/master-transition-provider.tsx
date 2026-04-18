@@ -243,12 +243,7 @@ export function MasterTransitionProvider({
         }, OVERLAY_HIDE_DELAY_MS)
       }
     },
-    [
-      isTransitioning,
-      transitionProgress,
-      pathname,
-      queryClient,
-    ],
+    [isTransitioning, transitionProgress, pathname, queryClient],
   )
 
   const showLoadingFor = useCallback((ms = TAB_SWITCH_OVERLAY_MS) => {

@@ -9,12 +9,17 @@ import {
   type BottomSheetBackdropProps,
   BottomSheetModal,
 } from '@gorhom/bottom-sheet'
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { StyleSheet, Text, TextInput, View } from 'react-native'
 import { colors } from '@/constants'
-import {
-  TouchableOpacity as GHTouchable,
-} from 'react-native-gesture-handler'
+import { TouchableOpacity as GHTouchable } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 const PRICE_PRESETS = [
@@ -59,8 +64,12 @@ export const PriceFilterSheet = memo(function PriceFilterSheet({
   const insets = useSafeAreaInsets()
   const sheetRef = useRef<BottomSheetModal>(null)
 
-  const [localMin, setLocalMin] = useState(() => currentMin > 0 ? String(currentMin) : '')
-  const [localMax, setLocalMax] = useState(() => currentMax < 300_000 ? String(currentMax) : '')
+  const [localMin, setLocalMin] = useState(() =>
+    currentMin > 0 ? String(currentMin) : '',
+  )
+  const [localMax, setLocalMax] = useState(() =>
+    currentMax < 300_000 ? String(currentMax) : '',
+  )
 
   const bgStyle = useMemo(
     () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
@@ -134,115 +143,141 @@ export const PriceFilterSheet = memo(function PriceFilterSheet({
       handleIndicatorStyle={handleIndicator}
       onDismiss={onClose}
     >
-          <View style={[styles.content, { paddingBottom: insets.bottom + 16 }]}>
-            {/* Top section */}
-            <View>
-              <View style={styles.header}>
-                <Text style={[styles.title, { color: inputColor }]}>
-                  {labels.title}
-                </Text>
-              </View>
+      <View style={[styles.content, { paddingBottom: insets.bottom + 16 }]}>
+        {/* Top section */}
+        <View>
+          <View style={styles.header}>
+            <Text style={[styles.title, { color: inputColor }]}>
+              {labels.title}
+            </Text>
+          </View>
 
-              <View style={styles.inputRow}>
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.inputLabel, { color: labelColor }]}>
-                    {labels.from}
-                  </Text>
-                  <TextInput
-                    value={localMin}
-                    onChangeText={setLocalMin}
-                    placeholder="0"
-                    placeholderTextColor={labelColor}
-                    keyboardType="number-pad"
-                    style={[styles.input, { backgroundColor: inputBg, color: inputColor, fontFamily: 'BeVietnamPro_400Regular' }]}
-                  />
-                  <Text style={[styles.suffix, { color: labelColor }]}>đ</Text>
-                </View>
-
-                <Text style={[styles.dash, { color: labelColor }]}>–</Text>
-
-                <View style={styles.inputGroup}>
-                  <Text style={[styles.inputLabel, { color: labelColor }]}>
-                    {labels.to}
-                  </Text>
-                  <TextInput
-                    value={localMax}
-                    onChangeText={setLocalMax}
-                    placeholder="300000"
-                    placeholderTextColor={labelColor}
-                    keyboardType="number-pad"
-                    style={[styles.input, { backgroundColor: inputBg, color: inputColor, fontFamily: 'BeVietnamPro_400Regular' }]}
-                  />
-                  <Text style={[styles.suffix, { color: labelColor }]}>đ</Text>
-                </View>
-              </View>
-
-              <Text style={[styles.sectionLabel, { color: labelColor }]}>
-                {labels.quickSelect}
+          <View style={styles.inputRow}>
+            <View style={styles.inputGroup}>
+              <Text style={[styles.inputLabel, { color: labelColor }]}>
+                {labels.from}
               </Text>
-              <View style={styles.grid}>
-                {PRICE_PRESETS.map((p) => {
-                  const localMinNum = Number(localMin) || 0
-                  const localMaxNum = Number(localMax) || 300_000
-                  const isAll = p.min === 0 && p.max === 300_000
-                  const sel = isAll
-                    ? localMinNum === 0 && localMaxNum >= 300_000
-                    : localMinNum === p.min && localMaxNum === p.max
-
-                  return (
-                    <GHTouchable
-                      key={p.label || 'all'}
-                      onPress={() => handlePreset(p.min, p.max)}
-                      activeOpacity={0.7}
-                      style={[
-                        styles.presetBtn,
-                        sel
-                          ? { backgroundColor: primaryColor }
-                          : { backgroundColor: inputBg },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          styles.presetText,
-                          sel
-                            ? { color: colors.white.light, fontWeight: '700' }
-                            : { color: isDark ? colors.gray[300] : colors.gray[700] },
-                        ]}
-                      >
-                        {p.label || labels.allPrices}
-                      </Text>
-                    </GHTouchable>
-                  )
-                })}
-              </View>
+              <TextInput
+                value={localMin}
+                onChangeText={setLocalMin}
+                placeholder="0"
+                placeholderTextColor={labelColor}
+                keyboardType="number-pad"
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: inputBg,
+                    color: inputColor,
+                    fontFamily: 'BeVietnamPro_400Regular',
+                  },
+                ]}
+              />
+              <Text style={[styles.suffix, { color: labelColor }]}>đ</Text>
             </View>
 
-            {/* Footer buttons — pushed to bottom by justifyContent: space-between */}
-            <View style={styles.btnRow}>
-              <View style={styles.btnWrap}>
-                <GHTouchable
-                  onPress={handleReset}
-                  activeOpacity={0.8}
-                  style={[styles.btn, { backgroundColor: isDark ? colors.gray[700] : colors.gray[100] }]}
-                >
-                  <Text style={[styles.btnText, { color: isDark ? colors.gray[50] : colors.gray[700] }]}>
-                    {labels.reset}
-                  </Text>
-                </GHTouchable>
-              </View>
-              <View style={styles.btnWrap}>
-                <GHTouchable
-                  onPress={handleApply}
-                  activeOpacity={0.8}
-                  style={[styles.btn, { backgroundColor: primaryColor }]}
-                >
-                  <Text style={[styles.btnText, { color: colors.white.light }]}>
-                    {labels.apply}
-                  </Text>
-                </GHTouchable>
-              </View>
+            <Text style={[styles.dash, { color: labelColor }]}>–</Text>
+
+            <View style={styles.inputGroup}>
+              <Text style={[styles.inputLabel, { color: labelColor }]}>
+                {labels.to}
+              </Text>
+              <TextInput
+                value={localMax}
+                onChangeText={setLocalMax}
+                placeholder="300000"
+                placeholderTextColor={labelColor}
+                keyboardType="number-pad"
+                style={[
+                  styles.input,
+                  {
+                    backgroundColor: inputBg,
+                    color: inputColor,
+                    fontFamily: 'BeVietnamPro_400Regular',
+                  },
+                ]}
+              />
+              <Text style={[styles.suffix, { color: labelColor }]}>đ</Text>
             </View>
           </View>
+
+          <Text style={[styles.sectionLabel, { color: labelColor }]}>
+            {labels.quickSelect}
+          </Text>
+          <View style={styles.grid}>
+            {PRICE_PRESETS.map((p) => {
+              const localMinNum = Number(localMin) || 0
+              const localMaxNum = Number(localMax) || 300_000
+              const isAll = p.min === 0 && p.max === 300_000
+              const sel = isAll
+                ? localMinNum === 0 && localMaxNum >= 300_000
+                : localMinNum === p.min && localMaxNum === p.max
+
+              return (
+                <GHTouchable
+                  key={p.label || 'all'}
+                  onPress={() => handlePreset(p.min, p.max)}
+                  activeOpacity={0.7}
+                  style={[
+                    styles.presetBtn,
+                    sel
+                      ? { backgroundColor: primaryColor }
+                      : { backgroundColor: inputBg },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      styles.presetText,
+                      sel
+                        ? { color: colors.white.light, fontWeight: '700' }
+                        : {
+                            color: isDark ? colors.gray[300] : colors.gray[700],
+                          },
+                    ]}
+                  >
+                    {p.label || labels.allPrices}
+                  </Text>
+                </GHTouchable>
+              )
+            })}
+          </View>
+        </View>
+
+        {/* Footer buttons — pushed to bottom by justifyContent: space-between */}
+        <View style={styles.btnRow}>
+          <View style={styles.btnWrap}>
+            <GHTouchable
+              onPress={handleReset}
+              activeOpacity={0.8}
+              style={[
+                styles.btn,
+                {
+                  backgroundColor: isDark ? colors.gray[700] : colors.gray[100],
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.btnText,
+                  { color: isDark ? colors.gray[50] : colors.gray[700] },
+                ]}
+              >
+                {labels.reset}
+              </Text>
+            </GHTouchable>
+          </View>
+          <View style={styles.btnWrap}>
+            <GHTouchable
+              onPress={handleApply}
+              activeOpacity={0.8}
+              style={[styles.btn, { backgroundColor: primaryColor }]}
+            >
+              <Text style={[styles.btnText, { color: colors.white.light }]}>
+                {labels.apply}
+              </Text>
+            </GHTouchable>
+          </View>
+        </View>
+      </View>
     </BottomSheetModal>
   )
 })

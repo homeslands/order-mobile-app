@@ -230,14 +230,15 @@
 
 ### 3.1 Token Storage
 
-| Item | Storage | Key | Format |
-|------|---------|-----|--------|
-| **Access Token** | localStorage | `auth-storage` → token | JWT string |
-| **Refresh Token** | localStorage | `auth-storage` → refreshToken | JWT string |
-| **Token Expiry** | localStorage | `auth-storage` → expireTime | ISO 8601 date |
+| Item               | Storage      | Key                                     | Format        |
+| ------------------ | ------------ | --------------------------------------- | ------------- |
+| **Access Token**   | localStorage | `auth-storage` → token                  | JWT string    |
+| **Refresh Token**  | localStorage | `auth-storage` → refreshToken           | JWT string    |
+| **Token Expiry**   | localStorage | `auth-storage` → expireTime             | ISO 8601 date |
 | **Refresh Expiry** | localStorage | `auth-storage` → expireTimeRefreshToken | ISO 8601 date |
 
 **Zustand Persist Middleware**:
+
 ```typescript
 // All auth state auto-persisted to localStorage
 const authStore = create(
@@ -515,7 +516,6 @@ const hasPermission = permissions.includes('PERMISSION_VIEW_ORDER')
 
 ```typescript
 function calculateLoginRedirection() {
-
   // 1. Check saved redirect URL
   const savedRedirect = sessionStorage.getItem('redirectAfterLogin')
   if (savedRedirect && !savedRedirect.includes('/login')) {
@@ -524,7 +524,7 @@ function calculateLoginRedirection() {
 
   // 2. Extract role from JWT
   const decoded = jwtDecode(token)
-  const role = decoded.authorities?.[0]  // e.g., ROLE_STAFF
+  const role = decoded.authorities?.[0] // e.g., ROLE_STAFF
 
   // 3. Determine default destination
   if (role?.includes('STAFF')) {
@@ -538,7 +538,7 @@ function calculateLoginRedirection() {
 
   // 5. Safe navigation (prevent loops)
   if (destination === currentPage) {
-    return currentPage  // Already there
+    return currentPage // Already there
   }
   return destination
 }
@@ -1018,8 +1018,8 @@ login(
     onError: (error) => {
       // Error auto-shown as toast
       // Manual handling for specific codes if needed
-    }
-  }
+    },
+  },
 )
 
 // Register
@@ -1028,9 +1028,13 @@ const { mutate: register } = useRegister()
 register(
   { phoneNumber, password, firstName, lastName },
   {
-    onSuccess: () => { /* ... */ },
-    onError: () => { /* auto toast */ }
-  }
+    onSuccess: () => {
+      /* ... */
+    },
+    onError: () => {
+      /* auto toast */
+    },
+  },
 )
 ```
 
@@ -1104,7 +1108,7 @@ interface IAuthStore {
   // ✅ Check authentication
   isAuthenticated(): boolean
   isTokenValid(): boolean
-  getAuthState(): AuthState  // AUTHENTICATED | LOADING | REFRESHING | EXPIRED | UNAUTHENTICATED
+  getAuthState(): AuthState // AUTHENTICATED | LOADING | REFRESHING | EXPIRED | UNAUTHENTICATED
   needsUserInfo(): boolean
 
   // ✅ Set tokens
@@ -1174,110 +1178,117 @@ const { userInfo, setUserInfo, removeUserInfo } = useUserStore()
 
 ### 12.1 Authentication Endpoints
 
-| Endpoint | Method | Purpose | Params |
-|----------|--------|---------|--------|
-| `/auth/login` | POST | Login with credentials | phoneNumber, password |
-| `/auth/register` | POST | Create new account | phoneNumber, password, firstName, lastName |
-| `/auth/refresh` | POST | Refresh token pair | accessToken, refreshToken |
+| Endpoint         | Method | Purpose                | Params                                     |
+| ---------------- | ------ | ---------------------- | ------------------------------------------ |
+| `/auth/login`    | POST   | Login with credentials | phoneNumber, password                      |
+| `/auth/register` | POST   | Create new account     | phoneNumber, password, firstName, lastName |
+| `/auth/refresh`  | POST   | Refresh token pair     | accessToken, refreshToken                  |
 
 ### 12.2 Password Recovery Endpoints
 
-| Endpoint | Method | Purpose | Params |
-|----------|--------|---------|--------|
-| `/auth/forgot-password/initiate` | POST | Start password reset | email OR phoneNumber |
-| `/auth/forgot-password/confirm` | POST | Verify OTP code | code |
-| `/auth/forgot-password/resend` | POST | Resend OTP | N/A |
-| `/auth/forgot-password/change` | POST | Set new password | token/code, newPassword |
+| Endpoint                         | Method | Purpose              | Params                  |
+| -------------------------------- | ------ | -------------------- | ----------------------- |
+| `/auth/forgot-password/initiate` | POST   | Start password reset | email OR phoneNumber    |
+| `/auth/forgot-password/confirm`  | POST   | Verify OTP code      | code                    |
+| `/auth/forgot-password/resend`   | POST   | Resend OTP           | N/A                     |
+| `/auth/forgot-password/change`   | POST   | Set new password     | token/code, newPassword |
 
 ### 12.3 Email Verification Endpoints
 
-| Endpoint | Method | Purpose | Params |
-|----------|--------|---------|--------|
-| `/auth/initiate-verify-email` | POST | Start email verification | email |
-| `/auth/confirm-email-verification/code` | POST | Verify email code | token, code |
-| `/auth/resend-verify-email` | POST | Resend verification | email |
+| Endpoint                                | Method | Purpose                  | Params      |
+| --------------------------------------- | ------ | ------------------------ | ----------- |
+| `/auth/initiate-verify-email`           | POST   | Start email verification | email       |
+| `/auth/confirm-email-verification/code` | POST   | Verify email code        | token, code |
+| `/auth/resend-verify-email`             | POST   | Resend verification      | email       |
 
 ### 12.4 Phone Verification Endpoints
 
-| Endpoint | Method | Purpose | Params |
-|----------|--------|---------|--------|
-| `/auth/initiate-verify-phone-number` | POST | Send OTP to phone | phoneNumber |
-| `/auth/confirm-phone-number-verification/code` | POST | Verify phone OTP | code |
-| `/auth/resend-verify-phone-number` | POST | Resend OTP | phoneNumber |
+| Endpoint                                       | Method | Purpose           | Params      |
+| ---------------------------------------------- | ------ | ----------------- | ----------- |
+| `/auth/initiate-verify-phone-number`           | POST   | Send OTP to phone | phoneNumber |
+| `/auth/confirm-phone-number-verification/code` | POST   | Verify phone OTP  | code        |
+| `/auth/resend-verify-phone-number`             | POST   | Resend OTP        | phoneNumber |
 
 ### 12.5 User/Profile Endpoints
 
-| Endpoint | Method | Purpose | Params |
-|----------|--------|---------|--------|
-| `/profile` | GET | Get current user | N/A |
-| `/user/{slug}` | PATCH | Update user info | firstName, lastName, etc |
-| `/user/{slug}/reset-password` | POST | Admin reset password | newPassword |
+| Endpoint                      | Method | Purpose              | Params                   |
+| ----------------------------- | ------ | -------------------- | ------------------------ |
+| `/profile`                    | GET    | Get current user     | N/A                      |
+| `/user/{slug}`                | PATCH  | Update user info     | firstName, lastName, etc |
+| `/user/{slug}/reset-password` | POST   | Admin reset password | newPassword              |
 
 ---
 
 ## 13. Error Codes (Auth-Related)
 
-| Code | Message Key | Meaning |
-|------|-------------|---------|
-| `119000` | `toast.invalidPhoneNumber` | Phone number format invalid |
-| `119001` | `toast.invalidPassword` | Password not strong enough |
-| `119002` | `toast.invalidFirstName` | First name invalid |
-| `119003` | `toast.invalidLastName` | Last name invalid |
-| `119004` | `toast.invalidUserId` | User ID invalid |
-| `119005` | `toast.userExists` | User already registered |
-| `119006` | `toast.userNotFound` | User doesn't exist |
-| `119007` | `toast.invalidOldPassword` | Current password wrong |
-| `119008` | `toast.forgotTokenExpired` | Password reset token expired |
-| `119009` | `toast.forgotPasswordTokenExists` | Reset already in progress |
-| `119010` | `toast.invalidCredentials` | Username/password incorrect |
-| `119014` | `toast.invalidDob` | Date of birth invalid |
-| `119016` | `toast.emailAlreadyExists` | Email already registered |
-| `119017` | `toast.emailTokenExists` | Email verification in progress |
-| `119018` | `toast.emailTokenNotFound` | Email verification token invalid |
-| `119019` | `toast.emailTokenExpired` | Email verification token expired |
-| `119020` | `toast.errorWhenConfirmEmailVerification` | Error confirming email |
-| `119021` | `toast.emailAlreadyExists` | (duplicate) |
-| `119022` | `toast.invalidEmail` | Email format invalid |
-| `119027` | `toast.verifyPhoneNumberTokenExists` | Phone verification in progress |
-| `119030` | `toast.verifyPhoneNumberTokenNotFound` | Phone verification token invalid |
-| `119033` | `toast.accountDisabled` | Account disabled by admin |
-| `119035` | `toast.userPhoneNumberNotVerified` | Phone not verified |
-| `119038` | `toast.forgotPasswordTokenNotExists` | No reset in progress |
+| Code     | Message Key                               | Meaning                          |
+| -------- | ----------------------------------------- | -------------------------------- |
+| `119000` | `toast.invalidPhoneNumber`                | Phone number format invalid      |
+| `119001` | `toast.invalidPassword`                   | Password not strong enough       |
+| `119002` | `toast.invalidFirstName`                  | First name invalid               |
+| `119003` | `toast.invalidLastName`                   | Last name invalid                |
+| `119004` | `toast.invalidUserId`                     | User ID invalid                  |
+| `119005` | `toast.userExists`                        | User already registered          |
+| `119006` | `toast.userNotFound`                      | User doesn't exist               |
+| `119007` | `toast.invalidOldPassword`                | Current password wrong           |
+| `119008` | `toast.forgotTokenExpired`                | Password reset token expired     |
+| `119009` | `toast.forgotPasswordTokenExists`         | Reset already in progress        |
+| `119010` | `toast.invalidCredentials`                | Username/password incorrect      |
+| `119014` | `toast.invalidDob`                        | Date of birth invalid            |
+| `119016` | `toast.emailAlreadyExists`                | Email already registered         |
+| `119017` | `toast.emailTokenExists`                  | Email verification in progress   |
+| `119018` | `toast.emailTokenNotFound`                | Email verification token invalid |
+| `119019` | `toast.emailTokenExpired`                 | Email verification token expired |
+| `119020` | `toast.errorWhenConfirmEmailVerification` | Error confirming email           |
+| `119021` | `toast.emailAlreadyExists`                | (duplicate)                      |
+| `119022` | `toast.invalidEmail`                      | Email format invalid             |
+| `119027` | `toast.verifyPhoneNumberTokenExists`      | Phone verification in progress   |
+| `119030` | `toast.verifyPhoneNumberTokenNotFound`    | Phone verification token invalid |
+| `119033` | `toast.accountDisabled`                   | Account disabled by admin        |
+| `119035` | `toast.userPhoneNumberNotVerified`        | Phone not verified               |
+| `119038` | `toast.forgotPasswordTokenNotExists`      | No reset in progress             |
 
 ---
 
 ## 14. Security Features
 
 ✅ **Token Encryption**
+
 - JWTs signed by backend
 - Can't be modified without signature breaking
 
 ✅ **Token Expiration**
+
 - Access token: Short expiry (typically 1 hour)
 - Refresh token: Long expiry (typically 30 days)
 - Automatic refresh before expiration
 
 ✅ **Secure Storage**
+
 - Tokens in localStorage (with Zustand persist)
 - Not in sessionStorage (survives page reload)
 - Not in cookies (no XSS from scripts)
 
 ✅ **Request Protection**
+
 - Bearer token in Authorization header
 - Token validation on every request
 - Refresh on token expiry
 
 ✅ **Error Handling**
+
 - Invalid token → redirect to login
 - Expired token → auto-refresh or logout
 - Failed refresh → logout immediately
 
 ✅ **CORS & Credentials**
+
 - CORS enabled for authenticated requests
 - Credentials sent with requests
 - Server validates CORS origin
 
 ✅ **Permission Validation**
+
 - Permissions stored in JWT
 - Decoded on client for routing
 - Backend validates again on API calls
@@ -1380,6 +1391,7 @@ Possible causes:
 ## 17. Best Practices
 
 ✅ **DO:**
+
 - Always use `useLogin()` and `useRegister()` hooks instead of manual API calls
 - Check `isAuthenticated()` before accessing protected resources
 - Use `ProtectedElement` to wrap protected routes
@@ -1387,6 +1399,7 @@ Possible causes:
 - Save redirect URL before logout for re-login
 
 ❌ **DON'T:**
+
 - Manually extract token from localStorage (use store)
 - Bypass `ProtectedElement` and route guards
 - Try to refresh token manually (it's automatic)

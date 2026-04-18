@@ -28,7 +28,6 @@ import { CartSizeSheet } from './cart-size-sheet'
 
 // ─── List helpers (module-level — 0 allocation per render) ───────────────────
 
-
 const ItemSeparator = () => <View style={listStyles.separator} />
 
 const listStyles = StyleSheet.create({
@@ -39,9 +38,14 @@ const listStyles = StyleSheet.create({
 
 // ─── Main Content ────────────────────────────────────────────────────────────
 
-export default function CartContent({ scrollY }: { scrollY?: SharedValue<number> }) {
+export default function CartContent({
+  scrollY,
+}: {
+  scrollY?: SharedValue<number>
+}) {
   const router = useRouter()
   const { t } = useTranslation('menu')
+  const { t: tToast } = useTranslation('toast')
   const isDark = useColorScheme() === 'dark'
   const primaryColor = usePrimaryColor()
   const rawItems = useCartItems()
@@ -51,14 +55,22 @@ export default function CartContent({ scrollY }: { scrollY?: SharedValue<number>
   const perfVoucher = useCartVoucher()
   const voucherProducts = perfVoucher?.voucherProducts
   const voucherProductSet = useMemo(
-    () => new Set<string>(voucherProducts?.map((vp) => vp.product?.slug).filter((s): s is string => !!s) ?? []),
+    () =>
+      new Set<string>(
+        voucherProducts
+          ?.map((vp) => vp.product?.slug)
+          .filter((s): s is string => !!s) ?? [],
+      ),
     [voucherProducts],
   )
   // Stable ref via useShallow — only changes when products added/removed,
   // not on qty/note mutations (vs. inline rawItems.map which allocates per store update).
   const cartProductSlugs = useCartProductSlugs()
   // Stable primitive key — only changes when products are added/removed, not on qty/note changes
-  const cartSlugKey = useMemo(() => cartProductSlugs.join(','), [cartProductSlugs])
+  const cartSlugKey = useMemo(
+    () => cartProductSlugs.join(','),
+    [cartProductSlugs],
+  )
   const hasMountedRef = useRef(false)
   useEffect(() => {
     // Skip first render — avoid state update before mount completes
@@ -67,13 +79,18 @@ export default function CartContent({ scrollY }: { scrollY?: SharedValue<number>
       return
     }
     if (!perfVoucher) return
-    const shouldRemove = shouldAutoRemoveVoucher(perfVoucher, voucherProductSet, cartProductSlugs, rawItems)
+    const shouldRemove = shouldAutoRemoveVoucher(
+      perfVoucher,
+      voucherProductSet,
+      cartProductSlugs,
+      rawItems,
+    )
     if (shouldRemove) {
       cartActions.setVoucher(null)
-      showToast('Voucher không còn hợp lệ, đã tự động gỡ')
+      showToast(tToast('toast.voucherAutoRemoved'))
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [perfVoucher, voucherProductSet, cartSlugKey])
+  }, [perfVoucher, voucherProductSet, cartSlugKey, tToast])
 
   // ── Cart validation against today's menu (auto, once per day) ──
   const { validate } = useCartValidation()
@@ -85,7 +102,10 @@ export default function CartContent({ scrollY }: { scrollY?: SharedValue<number>
   }, [validate, rawItems.length])
 
   const [sizeSheetItemId, setSizeSheetItemId] = useState<string | null>(null)
-  const handleSizePress = useCallback((cartKey: string) => setSizeSheetItemId(cartKey), [])
+  const handleSizePress = useCallback(
+    (cartKey: string) => setSizeSheetItemId(cartKey),
+    [],
+  )
   const handleSizeClose = useCallback(() => setSizeSheetItemId(null), [])
 
   const handleBrowse = useCallback(() => {
@@ -126,7 +146,7 @@ export default function CartContent({ scrollY }: { scrollY?: SharedValue<number>
       <CartEmpty
         isDark={isDark}
         onBrowse={handleBrowse}
-        browseLabel={t('menu.viewMenu', 'Xem thực đơn')}
+        browseLabel={t('menu.viewMenu')}
         emptyText={t('menu.emptyCart')}
       />
     )
@@ -146,10 +166,7 @@ export default function CartContent({ scrollY }: { scrollY?: SharedValue<number>
         ItemSeparatorComponent={ItemSeparator}
         ListFooterComponent={<CartOrderNote isDark={isDark} />}
       />
-      <CartFooter
-        primaryColor={primaryColor}
-        isDark={isDark}
-      />
+      <CartFooter primaryColor={primaryColor} isDark={isDark} />
       <CartSizeSheet
         visible={!!sizeSheetItemId}
         itemId={sizeSheetItemId}

@@ -34,15 +34,25 @@ function EditProfileScreen() {
   }
 
   return (
-    <ScreenContainer edges={['top', 'bottom']} className="flex-1 bg-gray-50 dark:bg-gray-900">
+    <ScreenContainer
+      edges={['top', 'bottom']}
+      className="flex-1 bg-gray-50 dark:bg-gray-900"
+    >
       {/* Header */}
-      <View className="bg-white dark:bg-gray-800 px-4 py-3 flex-row items-center border-b border-gray-200 dark:border-gray-700">
+      <View className="flex-row items-center border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
         <Button
           variant="ghost"
-          className="mr-2 px-0 min-h-0 h-10 w-10 rounded-full justify-center items-center"
+          className="mr-2 h-10 min-h-0 w-10 items-center justify-center rounded-full px-0"
           onPress={() => navigateNative.back()}
         >
-          <ArrowLeft size={22} color={isDark ? colors.mutedForeground.dark : colors.mutedForeground.light} />
+          <ArrowLeft
+            size={22}
+            color={
+              isDark
+                ? colors.mutedForeground.dark
+                : colors.mutedForeground.light
+            }
+          />
         </Button>
         <Text className="text-lg font-semibold text-gray-900 dark:text-gray-50">
           {t('contactInfo.edit')}
@@ -54,9 +64,11 @@ function EditProfileScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
       >
-        <View className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
+        <View className="rounded-xl border border-gray-100 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
           <View className="mb-4">
-            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">{t('lastName')}</Text>
+            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
+              {t('lastName')}
+            </Text>
             <Input
               value={firstName}
               onChangeText={setFirstName}
@@ -66,7 +78,9 @@ function EditProfileScreen() {
           </View>
 
           <View className="mb-4">
-            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">{t('firstName')}</Text>
+            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
+              {t('firstName')}
+            </Text>
             <Input
               value={lastName}
               onChangeText={setLastName}
@@ -76,7 +90,9 @@ function EditProfileScreen() {
           </View>
 
           <View className="mb-4">
-            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">{t('address')}</Text>
+            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
+              {t('address')}
+            </Text>
             <Input
               value={address}
               onChangeText={setAddress}
@@ -110,11 +126,13 @@ function EditProfileScreen() {
 
         <View className="mt-6">
           <Button
-            className="w-full h-11 rounded-lg"
+            className="h-11 w-full rounded-lg"
             style={{ backgroundColor: primaryColor }}
             onPress={handleSave}
           >
-            <Text className="text-sm font-semibold text-white">{t('saveChanges')}</Text>
+            <Text className="text-sm font-semibold text-white">
+              {t('saveChanges')}
+            </Text>
           </Button>
         </View>
       </ScrollView>
@@ -124,5 +142,3 @@ function EditProfileScreen() {
 
 EditProfileScreen.displayName = 'EditProfileScreen'
 export default React.memo(EditProfileScreen)
-
-

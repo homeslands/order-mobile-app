@@ -20,7 +20,9 @@ export interface PasswordRulesResult {
   }
 }
 
-export function usePasswordRules(value: string | undefined): PasswordRulesResult {
+export function usePasswordRules(
+  value: string | undefined,
+): PasswordRulesResult {
   const { t } = useTranslation('auth')
 
   const hasInput = value && value.length > 0
@@ -44,10 +46,10 @@ export function usePasswordRules(value: string | undefined): PasswordRulesResult
 
   // Tính strength
   const strength = useMemo<string | null>(() => {
-    const passed = Object.values(rules).filter(Boolean).length
     if (!hasInput) return null
-    if (passed <= 1) return t('rule.weak')
-    if (passed === 2 || passed === 3) return t('rule.medium')
+    const passed = Object.values(rules).filter(Boolean).length
+    if (passed === 1) return t('rule.weak')
+    if (passed === 2) return t('rule.medium')
     return t('rule.strong')
   }, [rules, hasInput, t])
 
@@ -59,7 +61,7 @@ export function usePasswordRules(value: string | undefined): PasswordRulesResult
       hasNumber: t('rule.hasNumber'),
       strength: t('rule.strength'),
     }),
-    [t]
+    [t],
   )
 
   return {
@@ -68,4 +70,3 @@ export function usePasswordRules(value: string | undefined): PasswordRulesResult
     labels,
   }
 }
-

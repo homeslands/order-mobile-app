@@ -10,4 +10,3 @@ import {
 export default function MenuDetailLayout() {
   return <CustomStack screenOptions={profileNativeStackScreenOptions} />
 }
-

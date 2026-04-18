@@ -9,7 +9,7 @@ export interface NavigationBarColorModuleSpec extends NativeModule {
   changeNavigationBarColor(
     backgroundColor: string,
     light: boolean,
-    animated: boolean
+    animated: boolean,
   ): Promise<{ success: boolean }>
   hideNavigationBar(): Promise<{ success: boolean }>
   showNavigationBar(): Promise<{ success: boolean }>
@@ -18,7 +18,8 @@ export interface NavigationBarColorModuleSpec extends NativeModule {
 let nativeModule: NavigationBarColorModuleSpec | null = null
 
 try {
-  nativeModule = requireNativeModule<NavigationBarColorModuleSpec>('NavigationBarColor')
+  nativeModule =
+    requireNativeModule<NavigationBarColorModuleSpec>('NavigationBarColor')
 } catch {
   // Module không khả dụng (Expo Go, web, iOS)
 }

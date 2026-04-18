@@ -1,5 +1,6 @@
 {
   "selected": "Selected",
+  "unavailable": "Unavailable",
   "status": {
     "available": "Available",
     "used": "Used",
@@ -228,6 +229,33 @@
     "vnpay": "VNPay",
     "momo": "MoMo Wallet",
     "banking": "Bank transfer"
+  },
+  "payment": {
+    "title": "Payment",
+    "notFound": "Order not found",
+    "qrExpired": "QR code expired",
+    "amountLabel": "Amount to pay",
+    "expiresIn": "Expires in {{time}}",
+    "qrInstructions": "Scan the QR code with your banking app to complete payment",
+    "successTitle": "Payment successful!",
+    "successSubtitleCard": "Gift card order \"{{cardTitle}}\" has been paid.",
+    "successSubtitleOrder": "Order #{{slug}} has been paid.",
+    "viewDetail": "View order detail",
+    "buyMore": "Buy more cards",
+    "orderInfo": "Order details",
+    "cardLabel": "Gift card",
+    "pointsPerCard": "Points / card",
+    "pointsValue": "+{{points}} points",
+    "quantityCards": "{{count}} cards",
+    "totalAmount": "Total amount",
+    "paymentMethodSection": "Payment method",
+    "bankTransfer": "Bank transfer",
+    "bankTransferDesc": "Scan QR code to pay",
+    "orderCancelled": "Order has been cancelled or payment expired",
+    "checkStatus": "Check status",
+    "reorder": "Reorder",
+    "generateQR": "Generate QR code",
+    "initiateError": "Unable to initiate payment. Please try again."
   },
   "recipientForm": {
     "recipientTitle": "Recipient {{index}}",

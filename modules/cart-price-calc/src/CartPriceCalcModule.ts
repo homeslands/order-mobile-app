@@ -8,11 +8,11 @@ import type { NativeModule } from 'expo'
 export interface CartPriceCalcModuleSpec extends NativeModule {
   calculateDisplayItems(
     orderItemsJson: string,
-    voucherJson: string | null
+    voucherJson: string | null,
   ): string
   calculateDisplayItemsAsync?(
     orderItemsJson: string,
-    voucherJson: string | null
+    voucherJson: string | null,
   ): Promise<string>
   calculateRawSubTotal(orderItemsJson: string): number
   formatCurrency(value: number, currency: string): string
@@ -20,7 +20,7 @@ export interface CartPriceCalcModuleSpec extends NativeModule {
     price: number,
     quantity: number,
     toppingExtra: number,
-    promotionPercent: number
+    promotionPercent: number,
   ): number
 }
 

@@ -1,5 +1,5 @@
-import { IApiResponse, IFeatureLock } from '@/types';
-import { http } from '@/utils';
+import { IApiResponse, IFeatureLock } from '@/types'
+import { http } from '@/utils'
 
 export async function getSystemFeatureFlagsByGroup(
   groupName: string,

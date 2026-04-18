@@ -5,6 +5,7 @@
  */
 import { useRouter } from 'expo-router'
 import { useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { BackHandler, Platform } from 'react-native'
 
 import { showToast } from '@/utils'
@@ -14,6 +15,8 @@ const EXIT_DELAY_MS = 2000
 export function useBackHandlerForExit() {
   const router = useRouter()
   const lastBackPress = useRef(0)
+  const { t: tToast } = useTranslation('toast')
+  const { t: tCommon } = useTranslation('common')
 
   useEffect(() => {
     if (Platform.OS !== 'android') return
@@ -31,11 +34,11 @@ export function useBackHandlerForExit() {
       }
 
       lastBackPress.current = now
-      showToast('Nhấn lại để thoát', 'Thông báo')
+      showToast(tToast('toast.pressBackToExit'), tCommon('common.notification'))
       return true
     }
 
     const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress)
     return () => sub.remove()
-  }, [router])
+  }, [router, tToast, tCommon])
 }

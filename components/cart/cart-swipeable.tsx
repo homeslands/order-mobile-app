@@ -42,18 +42,25 @@ function CartSwipeableBase({
         .activeOffsetX([-30, 30])
         .failOffsetY([-6, 6])
         .minDistance(8)
-        .onStart(() => { startX.value = translateX.value })
+        .onStart(() => {
+          startX.value = translateX.value
+        })
         .onUpdate((e) => {
           if (isRemoving.value) return
           let next = startX.value + e.translationX
           if (next > 0) next *= 0.1
-          if (next < -SWIPE_WIDTH) next = -SWIPE_WIDTH + (next + SWIPE_WIDTH) * 0.15
+          if (next < -SWIPE_WIDTH)
+            next = -SWIPE_WIDTH + (next + SWIPE_WIDTH) * 0.15
           translateX.value = next
         })
         .onEnd((e) => {
           if (isRemoving.value) return
-          const open = translateX.value < -SWIPE_WIDTH * 0.72 || e.velocityX < -700
-          translateX.value = withSpring(open ? -SWIPE_WIDTH : 0, SPRING_CONFIGS.swipe)
+          const open =
+            translateX.value < -SWIPE_WIDTH * 0.72 || e.velocityX < -700
+          translateX.value = withSpring(
+            open ? -SWIPE_WIDTH : 0,
+            SPRING_CONFIGS.swipe,
+          )
         }),
     [translateX, startX, isRemoving],
   )
@@ -70,7 +77,12 @@ function CartSwipeableBase({
     if (animatedHeight.value < 0) return {}
     return {
       height: animatedHeight.value,
-      opacity: interpolate(animatedHeight.value, [0, rowHeight.value * 0.3], [0, 1], 'clamp'),
+      opacity: interpolate(
+        animatedHeight.value,
+        [0, rowHeight.value * 0.3],
+        [0, 1],
+        'clamp',
+      ),
       overflow: 'hidden' as const,
     }
   })
@@ -79,14 +91,22 @@ function CartSwipeableBase({
 
   const handleDelete = useCallback(() => {
     isRemoving.value = true
-    translateX.value = withTiming(-400, { duration: SLIDE_OUT_DURATION }, (done) => {
-      if (!done) return
-      animatedHeight.value = rowHeight.value
-      animatedHeight.value = withTiming(0, { duration: COLLAPSE_DURATION }, (finished) => {
-        if (!finished) return
-        runOnJS(triggerDelete)()
-      })
-    })
+    translateX.value = withTiming(
+      -400,
+      { duration: SLIDE_OUT_DURATION },
+      (done) => {
+        if (!done) return
+        animatedHeight.value = rowHeight.value
+        animatedHeight.value = withTiming(
+          0,
+          { duration: COLLAPSE_DURATION },
+          (finished) => {
+            if (!finished) return
+            runOnJS(triggerDelete)()
+          },
+        )
+      },
+    )
   }, [translateX, animatedHeight, rowHeight, isRemoving, triggerDelete])
 
   const [needsMeasure, setNeedsMeasure] = useState(true)
@@ -99,7 +119,10 @@ function CartSwipeableBase({
   )
 
   return (
-    <Animated.View style={wrapperStyle} onLayout={needsMeasure ? onLayout : undefined}>
+    <Animated.View
+      style={wrapperStyle}
+      onLayout={needsMeasure ? onLayout : undefined}
+    >
       <Animated.View style={[swipeStyles.deleteBox, deleteOpacity]}>
         <View
           style={swipeStyles.deleteTap}
@@ -110,9 +133,7 @@ function CartSwipeableBase({
         </View>
       </Animated.View>
       <GestureDetector gesture={gesture}>
-        <Animated.View style={fgStyle}>
-          {children}
-        </Animated.View>
+        <Animated.View style={fgStyle}>{children}</Animated.View>
       </GestureDetector>
     </Animated.View>
   )

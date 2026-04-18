@@ -21,19 +21,23 @@ export const Textarea = forwardRef<TextInput, TextareaProps>(
         multiline
         textAlignVertical="top"
         className={cn(
-          'min-h-[80px] rounded-lg border bg-white dark:bg-gray-800 px-3 py-2 text-base',
+          'min-h-[80px] rounded-lg border bg-white px-3 py-2 text-base dark:bg-gray-800',
           'text-gray-900 dark:text-white',
           'border-gray-200 dark:border-gray-700',
           error && 'border-red-500 dark:border-red-500',
           'placeholder:text-gray-500 dark:placeholder:text-gray-400',
-          className
+          className,
         )}
         style={{ fontFamily: 'BeVietnamPro_400Regular' }}
-        placeholderTextColor={colorScheme === 'dark' ? colors.mutedForeground.dark : colors.mutedForeground.light}
+        placeholderTextColor={
+          colorScheme === 'dark'
+            ? colors.mutedForeground.dark
+            : colors.mutedForeground.light
+        }
         {...props}
       />
     )
-  }
+  },
 )
 
 Textarea.displayName = 'Textarea'

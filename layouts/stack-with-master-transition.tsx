@@ -19,7 +19,9 @@ import {
 import { Stack } from 'expo-router'
 
 function isTransitionFPSMonitorEnabled(): boolean {
-  const g = globalThis as { __ENABLE_TRANSITION_FPS_MONITOR?: boolean } | undefined
+  const g = globalThis as
+    | { __ENABLE_TRANSITION_FPS_MONITOR?: boolean }
+    | undefined
   return !!g?.__ENABLE_TRANSITION_FPS_MONITOR
 }
 
@@ -77,12 +79,30 @@ export function NativeStackWithMasterTransition() {
       screenOptions={screenOptions}
       screenListeners={mergedListeners}
     >
-      <Stack.Screen name="onboarding" options={{ headerShown: false, gestureEnabled: false, animation: 'fade' }} />
+      <Stack.Screen
+        name="onboarding"
+        options={{
+          headerShown: false,
+          gestureEnabled: false,
+          animation: 'fade',
+        }}
+      />
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="notification" options={{ headerShown: false }} />
       <Stack.Screen name="payment" options={{ headerShown: false }} />
       <Stack.Screen name="profile" options={{ headerShown: false }} />
-      <Stack.Screen name="auth" options={{ headerShown: false }} />
+      <Stack.Screen
+        name="auth"
+        options={{
+          headerShown: false,
+          // Auth screens use white/gray-900, not the app background (#F0F2F5/#0F0F10).
+          // Matching contentStyle prevents the background color flash during the
+          // push transition from home → auth/login.
+          contentStyle: {
+            backgroundColor: isDark ? colors.gray[900] : '#ffffff',
+          },
+        }}
+      />
       <Stack.Screen name="cart" options={{ headerShown: false }} />
       <Stack.Screen name="product" options={{ headerShown: false }} />
       <Stack.Screen name="system/payment" options={{ headerShown: false }} />

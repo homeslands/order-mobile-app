@@ -34,6 +34,7 @@ import { Button } from '@/components/ui/button'
 ```
 
 **Props**:
+
 ```tsx
 interface ButtonProps {
   variant?: 'default' | 'secondary' | 'outline' | 'destructive' | 'ghost'
@@ -47,6 +48,7 @@ interface ButtonProps {
 ```
 
 **Variants**:
+
 - `default` — Black button, white text
 - `secondary` — Gray background, dark text
 - `outline` — Border only, transparent bg
@@ -78,6 +80,7 @@ import { Input } from '@/components/ui/input'
 ```
 
 **Props**:
+
 ```tsx
 interface InputProps extends TextInput.Props {
   error?: boolean
@@ -92,9 +95,9 @@ interface InputProps extends TextInput.Props {
 ```tsx
 import { Card } from '@/components/ui/card'
 
-<Card className="p-4">
+;<Card className="p-4">
   <Text className="text-lg font-semibold">Card Title</Text>
-  <Text className="text-sm text-muted-foreground mt-2">
+  <Text className="mt-2 text-sm text-muted-foreground">
     Card content goes here
   </Text>
 </Card>
@@ -128,7 +131,7 @@ Bottom sheet modal for selections:
 ```tsx
 import { Sheet } from '@/components/ui/sheet'
 
-<Sheet open={open} onOpenChange={setOpen}>
+;<Sheet open={open} onOpenChange={setOpen}>
   <SheetContent>
     <SheetHeader>
       <SheetTitle>Select Option</SheetTitle>
@@ -150,7 +153,7 @@ import { Sheet } from '@/components/ui/sheet'
 ```tsx
 import { Dialog } from '@/components/dialog'
 
-<Dialog open={showConfirm} onOpenChange={setShowConfirm}>
+;<Dialog open={showConfirm} onOpenChange={setShowConfirm}>
   <DialogContent>
     <DialogHeader>
       <DialogTitle>Confirm Action</DialogTitle>
@@ -175,7 +178,7 @@ import { Dialog } from '@/components/dialog'
 ```tsx
 import { QuantitySelector } from '@/components/button'
 
-<QuantitySelector
+;<QuantitySelector
   value={quantity}
   onValueChange={setQuantity}
   min={1}
@@ -190,7 +193,7 @@ import { QuantitySelector } from '@/components/button'
 ```tsx
 import { PriceTag } from '@/components/menu/price-tag'
 
-<PriceTag price={29.99} discountedPrice={19.99} />
+;<PriceTag price={29.99} discountedPrice={19.99} />
 ```
 
 ### Favorite Button
@@ -200,10 +203,7 @@ import { PriceTag } from '@/components/menu/price-tag'
 ```tsx
 import { FavoriteButton } from '@/components/menu'
 
-<FavoriteButton
-  isFavorite={isFav}
-  onPress={toggleFavorite}
-/>
+;<FavoriteButton isFavorite={isFav} onPress={toggleFavorite} />
 ```
 
 ### Skeleton Loaders
@@ -241,7 +241,7 @@ Integrates with React Hook Form:
 ```tsx
 import { FormInput } from '@/components/form'
 
-<FormInput
+;<FormInput
   control={form.control}
   name="email"
   label="Email"
@@ -257,11 +257,7 @@ import { FormInput } from '@/components/form'
 ```tsx
 import { OtpInput } from '@/components/auth'
 
-<OtpInput
-  value={otp}
-  onValueChange={setOtp}
-  length={6}
-/>
+;<OtpInput value={otp} onValueChange={setOtp} length={6} />
 ```
 
 ### Password Rules Input
@@ -273,10 +269,7 @@ Shows password strength requirements:
 ```tsx
 import { PasswordRulesInput } from '@/components/input'
 
-<PasswordRulesInput
-  value={password}
-  onChangeText={setPassword}
-/>
+;<PasswordRulesInput value={password} onChangeText={setPassword} />
 ```
 
 ## Navigation Components
@@ -302,7 +295,7 @@ Pressable that handles navigation + prefetch:
 ```tsx
 import { NavigatePressable } from '@/components/navigation'
 
-<NavigatePressable
+;<NavigatePressable
   to="/(tabs)/menu"
   params={{ menuId: 123 }}
   disabled={isLoading}
@@ -322,12 +315,7 @@ Complex table component for web/desktop:
 ```tsx
 import { DataTable } from '@/components/ui/data-table'
 
-<DataTable
-  columns={columns}
-  data={data}
-  pagination={true}
-  search={true}
-/>
+;<DataTable columns={columns} data={data} pagination={true} search={true} />
 ```
 
 ### Carousel
@@ -339,7 +327,7 @@ For image galleries:
 ```tsx
 import { Carousel } from '@/components/ui/carousel'
 
-<Carousel
+;<Carousel
   data={images}
   renderItem={({ item }) => <Image source={{ uri: item.url }} />}
 />
@@ -354,7 +342,7 @@ Optimized for product images with zoom:
 ```tsx
 import { ProductImageCarousel } from '@/components/menu'
 
-<ProductImageCarousel images={product.images} />
+;<ProductImageCarousel images={product.images} />
 ```
 
 ## Selection Components
@@ -366,7 +354,7 @@ import { ProductImageCarousel } from '@/components/menu'
 ```tsx
 import { Select } from '@/components/select'
 
-<Select
+;<Select
   options={[
     { label: 'Option 1', value: '1' },
     { label: 'Option 2', value: '2' },
@@ -386,7 +374,7 @@ For size/color/flavor selection:
 ```tsx
 import { ProductVariantSelect } from '@/components/select'
 
-<ProductVariantSelect
+;<ProductVariantSelect
   variants={product.variants}
   onSelect={setSelectedVariant}
 />
@@ -401,10 +389,7 @@ For selecting dine-in tables:
 ```tsx
 import { TableSelectSheet } from '@/components/select'
 
-<TableSelectSheet
-  tables={availableTables}
-  onSelect={selectTable}
-/>
+;<TableSelectSheet tables={availableTables} onSelect={selectTable} />
 ```
 
 ## Auth Components
@@ -416,7 +401,7 @@ import { TableSelectSheet } from '@/components/select'
 ```tsx
 import { LoginForm } from '@/components/auth'
 
-<LoginForm onSuccess={handleLoginSuccess} />
+;<LoginForm onSuccess={handleLoginSuccess} />
 ```
 
 ### Auth Form Layout
@@ -472,11 +457,7 @@ export function LoginScreen() {
 
   return (
     <View className="flex-1 p-4">
-      <FormInput
-        control={form.control}
-        name="email"
-        placeholder="Email"
-      />
+      <FormInput control={form.control} name="email" placeholder="Email" />
       <FormInput
         control={form.control}
         name="password"
@@ -502,21 +483,27 @@ import { Pressable, useColorScheme } from 'react-native'
 // This prevents the component from being recreated on every parent render.
 // Pass isDark as a prop instead of calling useColorScheme() inside the item
 // to avoid hook overhead in recycled cells.
-const OrderItem = memo(({ item, onPress, isDark }: {
-  item: IOrder
-  onPress: (id: string) => void
-  isDark: boolean
-}) => (
-  <Pressable onPress={() => onPress(item.id)}>
-    <View className="p-3 border-b border-border">
-      <Text className="font-semibold text-foreground">{item.id}</Text>
-      {/* text-muted-foreground = --muted-foreground token from global.css */}
-      <Text className="text-sm text-muted-foreground">
-        {item.total.toLocaleString('vi-VN')}đ
-      </Text>
-    </View>
-  </Pressable>
-))
+const OrderItem = memo(
+  ({
+    item,
+    onPress,
+    isDark,
+  }: {
+    item: IOrder
+    onPress: (id: string) => void
+    isDark: boolean
+  }) => (
+    <Pressable onPress={() => onPress(item.id)}>
+      <View className="border-b border-border p-3">
+        <Text className="font-semibold text-foreground">{item.id}</Text>
+        {/* text-muted-foreground = --muted-foreground token from global.css */}
+        <Text className="text-sm text-muted-foreground">
+          {item.total.toLocaleString('vi-VN')}đ
+        </Text>
+      </View>
+    </Pressable>
+  ),
+)
 
 export function OrderList({ orders }: { orders: IOrder[] }) {
   const isDark = useColorScheme() === 'dark'
@@ -525,16 +512,19 @@ export function OrderList({ orders }: { orders: IOrder[] }) {
     router.push({ pathname: '/payment/[order]', params: { order: orderId } })
   }, [])
 
-  const renderItem = useCallback(({ item }: { item: IOrder }) => (
-    <OrderItem item={item} onPress={handlePress} isDark={isDark} />
-  ), [handlePress, isDark])
+  const renderItem = useCallback(
+    ({ item }: { item: IOrder }) => (
+      <OrderItem item={item} onPress={handlePress} isDark={isDark} />
+    ),
+    [handlePress, isDark],
+  )
 
   return (
     <FlashList
       data={orders}
       renderItem={renderItem}
       keyExtractor={(item) => item.id}
-      estimatedItemSize={68}  // measure actual rendered height, don't guess
+      estimatedItemSize={68} // measure actual rendered height, don't guess
     />
   )
 }
@@ -616,18 +606,9 @@ export interface MyComponentProps {
   className?: string
 }
 
-export const MyComponent = React.forwardRef<
-  View,
-  MyComponentProps
->(
+export const MyComponent = React.forwardRef<View, MyComponentProps>(
   (
-    {
-      title,
-      onPress,
-      variant = 'default',
-      disabled = false,
-      className,
-    },
+    { title, onPress, variant = 'default', disabled = false, className },
     ref,
   ) => {
     const isDark = useColorScheme() === 'dark'
@@ -644,16 +625,14 @@ export const MyComponent = React.forwardRef<
         onPress={handlePress}
         disabled={disabled}
         className={cn(
-          'px-4 py-3 rounded-lg',
+          'rounded-lg px-4 py-3',
           variant === 'default' && 'bg-primary',
           variant === 'secondary' && 'bg-gray-200 dark:bg-gray-700',
           disabled && 'opacity-50',
           className,
         )}
       >
-        <Text className="text-center font-semibold text-white">
-          {title}
-        </Text>
+        <Text className="text-center font-semibold text-white">{title}</Text>
       </Pressable>
     )
   },

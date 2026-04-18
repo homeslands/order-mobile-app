@@ -27,7 +27,10 @@ function zodResolver<T extends FieldValues>(schema: ZodType<T>) {
     const result = schema.safeParse(values)
 
     if (result.success) {
-      return { errors: {} as FieldErrors<T>, values: result.data } as ResolverResult<T>
+      return {
+        errors: {} as FieldErrors<T>,
+        values: result.data,
+      } as ResolverResult<T>
     }
 
     const zodError = result.error as ZodError

@@ -41,11 +41,7 @@ export function useNavigationBarFixed(
           return
         }
 
-        await module.changeNavigationBarColor(
-          backgroundColor,
-          light,
-          animated,
-        )
+        await module.changeNavigationBarColor(backgroundColor, light, animated)
       } catch (error) {
         // Chỉ log error nếu không phải lỗi "not attached to Activity"
         const errorMessage =

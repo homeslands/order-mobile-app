@@ -92,7 +92,12 @@ function SelectTrigger({
       )}
     >
       {children}
-      <ChevronDown size={16} color={isDark ? colors.mutedForeground.dark : colors.mutedForeground.light} />
+      <ChevronDown
+        size={16}
+        color={
+          isDark ? colors.mutedForeground.dark : colors.mutedForeground.light
+        }
+      />
     </Pressable>
   )
 }
@@ -118,7 +123,7 @@ function SelectValue({
     return (
       <Text
         className={cn(
-          'text-sm flex-1',
+          'flex-1 text-sm',
           children ? 'text-gray-900 dark:text-gray-50' : 'text-gray-400',
           className,
         )}
@@ -134,7 +139,7 @@ function SelectValue({
   return (
     <Text
       className={cn(
-        'text-sm flex-1',
+        'flex-1 text-sm',
         ctx.value ? 'text-gray-900 dark:text-gray-50' : 'text-gray-400',
         className,
       )}
@@ -160,7 +165,7 @@ function SelectContent({
   noModal?: boolean
 }) {
   const ctx = React.useContext(SelectContext)
-  
+
   // Shared values for UI thread animations
   const scale = useSharedValue(0.95)
   const opacity = useSharedValue(0)

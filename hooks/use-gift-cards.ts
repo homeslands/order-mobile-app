@@ -1,6 +1,11 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 
-import { getGiftCardBySlug, getGiftCards, getUserGiftCardBySlug, getUserGiftCards } from '@/api'
+import {
+  getGiftCardBySlug,
+  getGiftCards,
+  getUserGiftCardBySlug,
+  getUserGiftCards,
+} from '@/api'
 import { QUERYKEY } from '@/constants'
 import type {
   IApiResponse,

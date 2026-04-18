@@ -16,7 +16,10 @@ export default function PickupTimeSelect({
   onPickupTimeSelect,
 }: IPickupTimeSelectProps) {
   const { t } = useTranslation('menu')
-  const { shouldRender, selectedValue, handleChange } = usePickupTime(defaultValue, onPickupTimeSelect)
+  const { shouldRender, selectedValue, handleChange } = usePickupTime(
+    defaultValue,
+    onPickupTimeSelect,
+  )
 
   // Don't render if not a take-out order
   if (!shouldRender) {
@@ -28,7 +31,7 @@ export default function PickupTimeSelect({
       <Select.Trigger
         className={cn(
           'w-full bg-white dark:bg-gray-900',
-          !selectedValue && 'highlight-blink-border'
+          !selectedValue && 'highlight-blink-border',
         )}
       >
         <Select.Value placeholder={t('menu.pickupTime')} />

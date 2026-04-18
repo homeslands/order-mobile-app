@@ -16,7 +16,9 @@ if (NavigationTriggerModule) {
   }
 }
 
-export default function NavigationTriggerView(props: NavigationTriggerViewProps) {
+export default function NavigationTriggerView(
+  props: NavigationTriggerViewProps,
+) {
   if (NativeView) {
     return <NativeView {...props} />
   }

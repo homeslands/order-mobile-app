@@ -45,11 +45,24 @@ export const PressableWithFeedback = React.forwardRef<
   View,
   PressableWithFeedbackProps
 >(function PressableWithFeedback(
-  { children, onPress, disabled, style, className, hitSlop, hapticStyle = 'none' },
+  {
+    children,
+    onPress,
+    disabled,
+    style,
+    className,
+    hitSlop,
+    hapticStyle = 'none',
+  },
   ref,
 ) {
   const pressScale = useSharedValue(1)
-  const triggerHaptic = hapticStyle === 'medium' ? triggerHapticMedium : hapticStyle === 'light' ? triggerHapticLight : null
+  const triggerHaptic =
+    hapticStyle === 'medium'
+      ? triggerHapticMedium
+      : hapticStyle === 'light'
+        ? triggerHapticLight
+        : null
 
   const handlePress = useCallback(() => {
     onPress?.()

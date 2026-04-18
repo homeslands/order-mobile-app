@@ -18,7 +18,9 @@ export const CartOrderNote = memo(function CartOrderNote({
   isDark: boolean
 }) {
   const { t } = useTranslation('menu')
-  const initialNote = useOrderFlowStore((s) => s.orderingData?.description ?? '')
+  const initialNote = useOrderFlowStore(
+    (s) => s.orderingData?.description ?? '',
+  )
   const [localNote, setLocalNote] = useState(initialNote)
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -44,10 +46,23 @@ export const CartOrderNote = memo(function CartOrderNote({
 
   return (
     <View style={styles.wrapper}>
-      <View style={[styles.container, { backgroundColor: isDark ? colors.gray[800] : colors.white.light }]}>
+      <View
+        style={[
+          styles.container,
+          { backgroundColor: isDark ? colors.gray[800] : colors.white.light },
+        ]}
+      >
         <View style={styles.titleRow}>
-          <NotebookText size={14} color={isDark ? colors.gray[400] : colors.gray[500]} />
-          <Text style={[styles.title, { color: isDark ? colors.gray[300] : colors.gray[600] }]}>
+          <NotebookText
+            size={14}
+            color={isDark ? colors.gray[400] : colors.gray[500]}
+          />
+          <Text
+            style={[
+              styles.title,
+              { color: isDark ? colors.gray[300] : colors.gray[600] },
+            ]}
+          >
             {t('order.orderNote')}
           </Text>
         </View>

@@ -85,86 +85,77 @@ export const NotificationPermissionSheet = memo(
         backgroundStyle={bgStyle}
         onDismiss={onClose}
       >
-            <View style={[s.content, { paddingBottom: bottomInset + 8 }]}>
-              <View style={s.body}>
-                <View
-                  style={[
-                    s.iconWrap,
-                    {
-                      backgroundColor: isDark
-                        ? colors.gray[800]
-                        : '#fef3c7',
-                    },
-                  ]}
-                >
-                  <Bell size={28} color="#f59e0b" />
-                </View>
-
-                <Text
-                  style={[
-                    s.title,
-                    {
-                      color: isDark ? colors.gray[50] : colors.gray[900],
-                    },
-                  ]}
-                >
-                  {t('enableTitle')}
-                </Text>
-
-                <Text
-                  style={[
-                    s.description,
-                    {
-                      color: isDark ? colors.gray[400] : colors.gray[500],
-                    },
-                  ]}
-                >
-                  {Platform.OS === 'ios'
-                    ? t('enableInstructionIos')
-                    : t('enableInstructionAndroid')}
-                </Text>
-              </View>
-
-              <View style={s.spacer} />
-
-              <View style={s.footer}>
-                <Pressable
-                  onPress={onClose}
-                  style={[
-                    s.btn,
-                    {
-                      backgroundColor: isDark
-                        ? colors.gray[800]
-                        : colors.gray[100],
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[
-                      s.btnText,
-                      {
-                        color: isDark
-                          ? colors.gray[50]
-                          : colors.gray[700],
-                      },
-                    ]}
-                  >
-                    {t('enableLater')}
-                  </Text>
-                </Pressable>
-
-                <Pressable
-                  onPress={handleOpenSettings}
-                  style={[
-                    s.btn,
-                    { backgroundColor: '#f59e0b' },
-                  ]}
-                >
-                  <Settings size={16} color="#fff" />
-                  <Text style={s.settingsText}>{t('enableOpenSettings')}</Text>
-                </Pressable>
-              </View>
+        <View style={[s.content, { paddingBottom: bottomInset + 8 }]}>
+          <View style={s.body}>
+            <View
+              style={[
+                s.iconWrap,
+                {
+                  backgroundColor: isDark ? colors.gray[800] : '#fef3c7',
+                },
+              ]}
+            >
+              <Bell size={28} color="#f59e0b" />
             </View>
+
+            <Text
+              style={[
+                s.title,
+                {
+                  color: isDark ? colors.gray[50] : colors.gray[900],
+                },
+              ]}
+            >
+              {t('enableTitle')}
+            </Text>
+
+            <Text
+              style={[
+                s.description,
+                {
+                  color: isDark ? colors.gray[400] : colors.gray[500],
+                },
+              ]}
+            >
+              {Platform.OS === 'ios'
+                ? t('enableInstructionIos')
+                : t('enableInstructionAndroid')}
+            </Text>
+          </View>
+
+          <View style={s.spacer} />
+
+          <View style={s.footer}>
+            <Pressable
+              onPress={onClose}
+              style={[
+                s.btn,
+                {
+                  backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  s.btnText,
+                  {
+                    color: isDark ? colors.gray[50] : colors.gray[700],
+                  },
+                ]}
+              >
+                {t('enableLater')}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={handleOpenSettings}
+              style={[s.btn, { backgroundColor: '#f59e0b' }]}
+            >
+              <Settings size={16} color="#fff" />
+              <Text style={s.settingsText}>{t('enableOpenSettings')}</Text>
+            </Pressable>
+          </View>
+        </View>
       </BottomSheetModal>
     )
   },

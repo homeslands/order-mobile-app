@@ -91,7 +91,7 @@
 // File: src/app/client/payment/page.tsx (Line 29)
 
 export function ClientPaymentPage() {
-  const { userInfo } = useUserStore()  // From auth store
+  const { userInfo } = useUserStore() // From auth store
 
   // Detect if authenticated
   const isUnauthenticated = !userInfo
@@ -137,10 +137,10 @@ export function PaymentPage() {
 // File: src/constants/payment.ts
 
 export enum PaymentMethod {
-  BANK_TRANSFER = 'bank-transfer',   // ✅ All roles
-  CASH = 'cash',                     // ❌ Guests, ✅ Staff
-  POINT = 'point',                   // ❌ Guests, ✅ Customers/Staff
-  CREDIT_CARD = 'credit-card',       // ❌ Guests, ✅ Staff
+  BANK_TRANSFER = 'bank-transfer', // ✅ All roles
+  CASH = 'cash', // ❌ Guests, ✅ Staff
+  POINT = 'point', // ❌ Guests, ✅ Customers/Staff
+  CREDIT_CARD = 'credit-card', // ❌ Guests, ✅ Staff
 }
 ```
 
@@ -152,17 +152,12 @@ export enum PaymentMethod {
 function getAvailableMethodsByRole(role: Role | null): PaymentMethod[] {
   if (!role) {
     // Unauthenticated (Guest)
-    return [
-      PaymentMethod.BANK_TRANSFER
-    ]
+    return [PaymentMethod.BANK_TRANSFER]
   }
 
   if (role === Role.CUSTOMER) {
     // Authenticated Customer
-    return [
-      PaymentMethod.BANK_TRANSFER,
-      PaymentMethod.POINT
-    ]
+    return [PaymentMethod.BANK_TRANSFER, PaymentMethod.POINT]
   }
 
   if (role === Role.STAFF || role === Role.ADMIN) {
@@ -171,22 +166,22 @@ function getAvailableMethodsByRole(role: Role | null): PaymentMethod[] {
       PaymentMethod.BANK_TRANSFER,
       PaymentMethod.CASH,
       PaymentMethod.CREDIT_CARD,
-      PaymentMethod.POINT
+      PaymentMethod.POINT,
     ]
   }
 
-  return [PaymentMethod.BANK_TRANSFER]  // Default fallback
+  return [PaymentMethod.BANK_TRANSFER] // Default fallback
 }
 ```
 
 ### 4.3 Available Payment Methods Table
 
-| Payment Method | Unauthenticated | Customer | Staff |
-|---|---|---|---|
-| **BANK_TRANSFER** | ✅ | ✅ | ✅ |
-| **CASH** | ❌ | ❌ | ✅ |
-| **CREDIT_CARD** | ❌ | ❌ | ✅ |
-| **POINT** (Loyalty) | ❌ | ✅ | ✅ |
+| Payment Method      | Unauthenticated | Customer | Staff |
+| ------------------- | --------------- | -------- | ----- |
+| **BANK_TRANSFER**   | ✅              | ✅       | ✅    |
+| **CASH**            | ❌              | ❌       | ✅    |
+| **CREDIT_CARD**     | ❌              | ❌       | ✅    |
+| **POINT** (Loyalty) | ❌              | ✅       | ✅    |
 
 ---
 
@@ -202,7 +197,7 @@ export async function initiatePayment(
   params: IInitiatePaymentRequest,
 ): Promise<IApiResponse<IPayment>> {
   return await http.post<IApiResponse<IPayment>>(
-    `/payment/initiate`,  // ← Authenticated endpoint
+    `/payment/initiate`, // ← Authenticated endpoint
     params,
   )
 }
@@ -212,7 +207,7 @@ export async function initiatePublicPayment(
   params: IInitiatePaymentRequest,
 ): Promise<IApiResponse<IPayment>> {
   return await http.post<IApiResponse<IPayment>>(
-    `/payment/initiate/public`,  // ← Public endpoint
+    `/payment/initiate/public`, // ← Public endpoint
     params,
   )
 }
@@ -448,7 +443,7 @@ const handleConfirmPayment = () => {
     paymentMethod: selectedPaymentMethod,
     amount: totalAmount,
     ...(selectedLoyaltyPoints && {
-      accumulatedPointsToUse: selectedLoyaltyPoints
+      accumulatedPointsToUse: selectedLoyaltyPoints,
     }),
   }
 
@@ -459,31 +454,29 @@ const handleConfirmPayment = () => {
       // Guest can only pay via bank transfer
       setIsLoading(true)
 
-      initiatePublicPayment(paymentRequest)  // ← PUBLIC endpoint
-        .then(response => {
+      initiatePublicPayment(paymentRequest) // ← PUBLIC endpoint
+        .then((response) => {
           // Show QR code
           handlePaymentSuccess(response)
         })
-        .catch(error => {
+        .catch((error) => {
           // Error automatically shown as toast
           setIsLoading(false)
         })
     }
-
   } else if (userInfo.role.name === Role.CUSTOMER) {
     // ========== AUTHENTICATED CUSTOMER ==========
 
     if (paymentMethod === PaymentMethod.BANK_TRANSFER) {
       setIsLoading(true)
 
-      initiatePayment(paymentRequest)  // ← AUTH endpoint
-        .then(response => {
+      initiatePayment(paymentRequest) // ← AUTH endpoint
+        .then((response) => {
           handlePaymentSuccess(response)
         })
-        .catch(error => {
+        .catch((error) => {
           setIsLoading(false)
         })
-
     } else if (paymentMethod === PaymentMethod.POINT) {
       // Use loyalty points
       setIsLoading(true)
@@ -491,25 +484,24 @@ const handleConfirmPayment = () => {
       initiatePayment({
         ...paymentRequest,
         accumulatedPointsToUse: selectedLoyaltyPoints,
-      })  // ← AUTH endpoint
-        .then(response => {
+      }) // ← AUTH endpoint
+        .then((response) => {
           // Deduct points from account
           updateUserLoyaltyPoints(response.pointsDeducted)
           handlePaymentSuccess(response)
         })
-        .catch(error => {
+        .catch((error) => {
           setIsLoading(false)
         })
     }
-
   } else {
     // ========== STAFF ACCESSING CLIENT PAYMENT ==========
     // (rare case, but handled)
-    initiatePayment(paymentRequest)  // ← AUTH endpoint
-      .then(response => {
+    initiatePayment(paymentRequest) // ← AUTH endpoint
+      .then((response) => {
         handlePaymentSuccess(response)
       })
-      .catch(error => {
+      .catch((error) => {
         setIsLoading(false)
       })
   }
@@ -518,7 +510,7 @@ const handleConfirmPayment = () => {
 // Payment success - start polling
 const handlePaymentSuccess = (paymentResponse: IPayment) => {
   setPaymentData(paymentResponse)
-  startPollingOrderStatus()  // Check status every 2 seconds
+  startPollingOrderStatus() // Check status every 2 seconds
 }
 ```
 
@@ -538,33 +530,30 @@ const handleConfirmPayment = () => {
 
   if (paymentMethod === PaymentMethod.BANK_TRANSFER) {
     setIsLoading(true)
-    initiatePayment(paymentRequest)  // Always AUTH endpoint
-      .then(response => handlePaymentSuccess(response))
-      .catch(error => setIsLoading(false))
-
+    initiatePayment(paymentRequest) // Always AUTH endpoint
+      .then((response) => handlePaymentSuccess(response))
+      .catch((error) => setIsLoading(false))
   } else if (paymentMethod === PaymentMethod.CASH) {
     // Cash payment - immediate
     setIsLoading(true)
-    initiatePayment(paymentRequest)  // Always AUTH endpoint
-      .then(response => {
+    initiatePayment(paymentRequest) // Always AUTH endpoint
+      .then((response) => {
         // Immediately mark as paid
         handlePaymentSuccess(response)
       })
-      .catch(error => setIsLoading(false))
-
+      .catch((error) => setIsLoading(false))
   } else if (paymentMethod === PaymentMethod.CREDIT_CARD) {
     // Credit card processing
     setIsLoading(true)
-    initiatePayment(paymentRequest)  // Always AUTH endpoint
-      .then(response => handlePaymentSuccess(response))
-      .catch(error => setIsLoading(false))
-
+    initiatePayment(paymentRequest) // Always AUTH endpoint
+      .then((response) => handlePaymentSuccess(response))
+      .catch((error) => setIsLoading(false))
   } else if (paymentMethod === PaymentMethod.POINT) {
     // Loyalty points
     setIsLoading(true)
-    initiatePayment(paymentRequest)  // Always AUTH endpoint
-      .then(response => handlePaymentSuccess(response))
-      .catch(error => setIsLoading(false))
+    initiatePayment(paymentRequest) // Always AUTH endpoint
+      .then((response) => handlePaymentSuccess(response))
+      .catch((error) => setIsLoading(false))
   }
 }
 ```
@@ -583,34 +572,32 @@ const handleSelectPaymentMethod = (method: PaymentMethod) => {
 
   // If a voucher is applied, validate it against new payment method
   if (appliedVoucher?.slug) {
-
     if (!userInfo) {
       // ========== UNAUTHENTICATED ==========
       validatePublicVoucherPaymentMethod({
         voucherSlug: appliedVoucher.slug,
         paymentMethod: method,
-      })  // ← PUBLIC endpoint
+      }) // ← PUBLIC endpoint
         .then(() => {
           // Voucher is compatible
           setVoucherValidationError(null)
         })
-        .catch(error => {
+        .catch((error) => {
           // Voucher incompatible with this method
           showErrorToast(error.statusCode)
           setVoucherValidationError(true)
         })
-
     } else {
       // ========== AUTHENTICATED ==========
       validateVoucherPaymentMethod({
         voucherSlug: appliedVoucher.slug,
         paymentMethod: method,
-      })  // ← AUTH endpoint
+      }) // ← AUTH endpoint
         .then(() => {
           // Voucher is compatible
           setVoucherValidationError(null)
         })
-        .catch(error => {
+        .catch((error) => {
           // Voucher incompatible
           showErrorToast(error.statusCode)
           setVoucherValidationError(true)
@@ -649,14 +636,13 @@ const startPollingOrderStatus = () => {
           navigate(`/order-success/${orderSlug}`)
         }
       }
-
     } catch (error) {
       // Error during polling
       clearInterval(pollingInterval)
       setIsLoading(false)
       showErrorToast(error.code)
     }
-  }, 2000)  // Poll every 2 seconds
+  }, 2000) // Poll every 2 seconds
 
   // Stop polling after 5 minutes (safety)
   setTimeout(() => {
@@ -671,18 +657,18 @@ const startPollingOrderStatus = () => {
 
 ### 10.1 Comparison Table
 
-| Aspect | Unauthenticated | Authenticated Customer | Staff |
-|--------|---|---|---|
-| **Route** | `/payment` | `/payment` | `/system/payment` |
-| **Page Component** | ClientPaymentPage | ClientPaymentPage | PaymentPage |
-| **Auth Check** | `!userInfo` | `userInfo?.role === CUSTOMER` | Protected by ProtectedElement |
-| **Payment API** | `/payment/initiate/public` | `/payment/initiate` | `/payment/initiate` |
-| **Voucher API** | `/validate-payment-method/public` | `/validate-payment-method` | `/validate-payment-method` |
-| **Payment Methods** | BANK_TRANSFER only | BANK_TRANSFER, POINT | BANK_TRANSFER, CASH, CREDIT_CARD, POINT |
-| **Conditional Logic** | ✅ Yes (if !userInfo) | ✅ Yes (if userInfo?.role) | ❌ No (always Auth) |
-| **Loyalty Points** | ❌ No | ✅ Yes | ✅ Yes |
-| **Success Route** | `/client/order-success/:slug` | `/client/order-success/:slug` | `/order-success/:slug` |
-| **Layout Wrapper** | ClientLayout | ClientLayout | SystemLayout |
+| Aspect                | Unauthenticated                   | Authenticated Customer        | Staff                                   |
+| --------------------- | --------------------------------- | ----------------------------- | --------------------------------------- |
+| **Route**             | `/payment`                        | `/payment`                    | `/system/payment`                       |
+| **Page Component**    | ClientPaymentPage                 | ClientPaymentPage             | PaymentPage                             |
+| **Auth Check**        | `!userInfo`                       | `userInfo?.role === CUSTOMER` | Protected by ProtectedElement           |
+| **Payment API**       | `/payment/initiate/public`        | `/payment/initiate`           | `/payment/initiate`                     |
+| **Voucher API**       | `/validate-payment-method/public` | `/validate-payment-method`    | `/validate-payment-method`              |
+| **Payment Methods**   | BANK_TRANSFER only                | BANK_TRANSFER, POINT          | BANK_TRANSFER, CASH, CREDIT_CARD, POINT |
+| **Conditional Logic** | ✅ Yes (if !userInfo)             | ✅ Yes (if userInfo?.role)    | ❌ No (always Auth)                     |
+| **Loyalty Points**    | ❌ No                             | ✅ Yes                        | ✅ Yes                                  |
+| **Success Route**     | `/client/order-success/:slug`     | `/client/order-success/:slug` | `/order-success/:slug`                  |
+| **Layout Wrapper**    | ClientLayout                      | ClientLayout                  | SystemLayout                            |
 
 ### 10.2 API Endpoints Used
 
@@ -851,17 +837,21 @@ USER ENTERS PAYMENT
 ## 14. Summary
 
 ✅ **Not exactly "same route"** - There are TWO routes:
+
 - `/payment` - For customers (both auth & unauth)
 - `/system/payment` - For staff (auth only)
 
 ✅ **Same Component, Different Logic**
+
 - ClientPaymentPage handles both auth states
 - Uses conditional logic based on `userInfo`
 
 ✅ **Different Backends Called**
+
 - `initiatePayment()` vs `initiatePublicPayment()`
 - `validateVoucherPaymentMethod()` vs `validatePublicVoucherPaymentMethod()`
 
 ✅ **User Experience is Consistent**
+
 - Same UI flow for both auth states
 - Only differences are available payment methods & features

@@ -18,7 +18,9 @@ const clearTimeoutIfAny = () => {
 
 export const isTransitionLocked = () => Date.now() < lockUntil
 
-export const acquireTransitionLock = (durationMs = STACK_TRANSITION_DURATION_MS) => {
+export const acquireTransitionLock = (
+  durationMs = STACK_TRANSITION_DURATION_MS,
+) => {
   clearTimeoutIfAny()
   const lockMs = Math.min(durationMs + 200, FALLBACK_LOCK_MS)
   lockUntil = Date.now() + lockMs

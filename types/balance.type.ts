@@ -1,40 +1,39 @@
 export interface IBalanceResponse {
+  slug: string
+  points: number
+  user: {
     slug: string
-    points: number
-    user: {
+    phonenumber: string
+    firstName: string
+    lastName: string
+    dob: string
+    email: string
+    address: string
+    branch: {
       slug: string
-      phonenumber: string
-      firstName: string
-      lastName: string
-      dob: string
-      email: string
+      name: string
       address: string
-      branch: {
-        slug: string
-        name: string
-        address: string
-      }
-      role: {
-        slug: string
-        name: string
-        description: string
-      }
-      isVerifiedEmail: boolean
-      isVerifiedPhonenumber: boolean
     }
+    role: {
+      slug: string
+      name: string
+      description: string
+    }
+    isVerifiedEmail: boolean
+    isVerifiedPhonenumber: boolean
   }
-  
-  export interface IBalanceTransactionResponse {
-    id: string
-    amount: number
-    description: string
-    date: string
-    transactionType: 'add' | 'subtract'
-    code: string
-  }
-  
-  
-  export interface IBalanceAnalysisResponse {
-    maxPoints: number;
-    minPoints: number;
-  }
+}
+
+export interface IBalanceTransactionResponse {
+  id: string
+  amount: number
+  description: string
+  date: string
+  transactionType: 'add' | 'subtract'
+  code: string
+}
+
+export interface IBalanceAnalysisResponse {
+  maxPoints: number
+  minPoints: number
+}

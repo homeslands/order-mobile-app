@@ -15,7 +15,7 @@ export function NavigationLoadingOverlay() {
   if (!isLoading) return null
 
   return (
-    <View className="absolute inset-0 bg-black/50 justify-center items-center z-50">
+    <View className="absolute inset-0 z-50 items-center justify-center bg-black/50">
       <ActivityIndicator size="large" color="#fff" />
     </View>
   )

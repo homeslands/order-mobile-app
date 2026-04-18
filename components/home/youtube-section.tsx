@@ -3,7 +3,15 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { Play } from 'lucide-react-native'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Linking, Pressable, StyleSheet, Text, View, useColorScheme, useWindowDimensions } from 'react-native'
+import {
+  Linking,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useColorScheme,
+  useWindowDimensions,
+} from 'react-native'
 
 import { colors } from '@/constants'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
@@ -39,7 +47,9 @@ export const YouTubeVideoSection = React.memo(function YouTubeVideoSection({
   }
 
   const cardBg = isDark ? colors.card.dark : colors.card.light
-  const mutedFg = isDark ? colors.mutedForeground.dark : colors.mutedForeground.light
+  const mutedFg = isDark
+    ? colors.mutedForeground.dark
+    : colors.mutedForeground.light
   const borderColor = isDark ? colors.border.dark : colors.border.light
 
   return (

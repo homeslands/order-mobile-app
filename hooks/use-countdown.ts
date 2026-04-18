@@ -6,7 +6,10 @@ interface UseCountdownOptions {
 }
 
 function calcTimeLeft(expiresAt: string): number {
-  return Math.max(0, Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000))
+  return Math.max(
+    0,
+    Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000),
+  )
 }
 
 /**
@@ -18,7 +21,10 @@ function calcTimeLeft(expiresAt: string): number {
  * Uses a tick counter to drive re-renders; seconds are derived at render time
  * from expiresAt — avoids synchronous setState inside an effect body.
  */
-export function useCountdown({ expiresAt, enabled = true }: UseCountdownOptions) {
+export function useCountdown({
+  expiresAt,
+  enabled = true,
+}: UseCountdownOptions) {
   // Tick counter — incremented by the interval to force re-renders
   const [, setTick] = useState(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)

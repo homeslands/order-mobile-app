@@ -61,21 +61,18 @@ export const PaymentMethodOption = memo(function PaymentMethodOption({
           disabled={!isSupported}
           className="mt-0.5"
         />
-        <Pressable
-          onPress={handlePress}
-          className="flex-1"
-        >
+        <Pressable onPress={handlePress} className="flex-1">
           <View className="flex-col gap-1">
             <View
               className={cn(
-                'flex-row gap-1 items-center pl-2',
+                'flex-row items-center gap-1 pl-2',
                 isSupported ? 'opacity-100' : 'opacity-50',
               )}
             >
               <Icon size={20} color={iconColor} />
               <Label
                 className={cn(
-                  'flex-row gap-1 items-center',
+                  'flex-row items-center gap-1',
                   !isSupported && 'opacity-50',
                 )}
               >
@@ -106,14 +103,14 @@ export const PaymentMethodOption = memo(function PaymentMethodOption({
           <Pressable onPress={handlePress}>
             <View
               className={cn(
-                'flex-row gap-1 items-center pl-2',
+                'flex-row items-center gap-1 pl-2',
                 isSupported ? 'opacity-100' : 'opacity-50',
               )}
             >
               <Icon size={20} color={iconColor} />
               <Label
                 className={cn(
-                  'flex-row gap-1 items-center',
+                  'flex-row items-center gap-1',
                   !isSupported && 'opacity-50',
                 )}
               >

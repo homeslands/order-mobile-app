@@ -1,37 +1,43 @@
 {
-    "home": {
-      "aboutUsDescription": "We provide high-quality coffee with clear origins. Visit our store!",
-      "bestSeller": "Best seller",
-      "contactUs": "Contact us",
-      "description": "This is the home page",
-      "exploreMenu": "Featured products",
-      "fanpage": "Facebook",
-      "homeDescription": "Trend Coffee is a rustic, cozy space where coffee aromas blend with warm, familiar atmosphere.",
-      "homeDescription2": "Every detail in the cafe – from rough wooden tables to soft yellow lighting and fresh coffee aromas – is carefully tended to bring a cozy, familiar feeling as if you're stepping into a familiar corner in the city.",
-      "learnAboutUs": "Learn about us",
-      "learnMore": "Learn more",
-      "menu": "Menu",
-      "newProduct": "New product",
-      "title": "Home",
-      "topPromotion": "Top promotion",
-      "newsSection": {
-        "title": "News & Event"
-      },
-      "videoSection": {
-        "label": "Guide",
-        "title": "Register for membership",
-        "subtitle": "Watch our video guide to earn points and unlock exclusive offers.",
-        "tap": "Tap to watch",
-        "cta": "Watch now"
-      },
-      "viewMenu": "View more MENU",
-      "viewMore": "View more",
-      "highlightMenu": {
-        "tea": "Tea",
-        "coffee": "Coffee",
-        "smoothie": "Smoothie",
-        "food": "Food"
-      }
+  "home": {
+    "aboutUsDescription": "We provide high-quality coffee with clear origins. Visit our store!",
+    "bestSeller": "Best seller",
+    "contactUs": "Contact us",
+    "description": "This is the home page",
+    "exploreMenu": "Featured products",
+    "fanpage": "Facebook",
+    "homeDescription": "Trend Coffee is a rustic, cozy space where coffee aromas blend with warm, familiar atmosphere.",
+    "homeDescription2": "Every detail in the cafe – from rough wooden tables to soft yellow lighting and fresh coffee aromas – is carefully tended to bring a cozy, familiar feeling as if you're stepping into a familiar corner in the city.",
+    "learnAboutUs": "Learn about us",
+    "learnMore": "Learn more",
+    "menu": "Menu",
+    "newProduct": "New product",
+    "title": "Home",
+    "topPromotion": "Top promotion",
+    "newsSection": {
+      "title": "News & Event"
+    },
+    "videoSection": {
+      "label": "Guide",
+      "title": "Register for membership",
+      "subtitle": "Watch our video guide to earn points and unlock exclusive offers.",
+      "tap": "Tap to watch",
+      "cta": "Watch now"
+    },
+    "viewMenu": "View more MENU",
+    "viewMore": "View more",
+    "loyaltyCard": {
+      "balanceLabel": "Your loyalty points",
+      "coinUnit": "pts",
+      "loginCta": "Login to earn points",
+      "loginSubtitle": "Get great deals and gifts",
+      "loginButton": "Login"
+    },
+    "highlightMenu": {
+      "tea": "Tea",
+      "coffee": "Coffee",
+      "smoothie": "Smoothie",
+      "food": "Food"
     }
   }
-  
+}

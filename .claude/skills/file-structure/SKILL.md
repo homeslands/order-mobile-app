@@ -113,6 +113,7 @@ mobile-movie-app/
 ### `app/` — Expo Router (File-based Routing)
 
 **Structure**:
+
 - `app/_layout.tsx` — Root layout with **global providers** (QueryClient, GestureHandler, BottomSheet, MasterTransition, SharedElement, Toast, I18n)
 - `app/(tabs)/` — Group for tab-based navigation
   - `app/(tabs)/_layout.tsx` — Tab navigator with animated bar
@@ -120,6 +121,7 @@ mobile-movie-app/
 - Nested routes use `[id]` syntax: `/payment/[order]`, `/menu/product/[id]`
 
 **File naming**:
+
 - Use `_layout.tsx` for layout files
 - Use `index.tsx` for default routes
 - Use `[param].tsx` for dynamic routes
@@ -127,6 +129,7 @@ mobile-movie-app/
 ### `components/` — Reusable UI Components
 
 **Subdirectories by category**:
+
 - `ui/` — Atomic components (Button, Input, Card, Badge, Modal, Sheet, etc.)
 - `button/` — Button variants (QuantitySelector, etc.)
 - `dialog/` — Dialog/Modal wrappers
@@ -141,6 +144,7 @@ mobile-movie-app/
 - `skeletons/` — Loading skeletons
 
 **File naming**:
+
 - PascalCase: `Button.tsx`, `MenuItem.tsx`
 - Barrel exports: `index.tsx` re-exports from component file
 - Example:
@@ -156,6 +160,7 @@ mobile-movie-app/
 **Naming**: `use-*.ts`
 
 **Patterns**:
+
 - Data fetching: `use-menu.ts`, `use-order.ts`
 - State management: `use-auth.ts`, `use-cart.ts`
 - Navigation: `use-screen-transition.ts`, `use-navigation-bar.ts`
@@ -167,11 +172,13 @@ mobile-movie-app/
 ### `stores/` — Zustand State Management
 
 **Current stores** (39 files):
+
 - Large stores: `order-flow.store.ts` (52KB), `update-order.store.ts` (29KB)
 - Auth: `auth.store.ts`, `user.store.ts`
 - Domain: `cart.store.ts`, `menu.store.ts`, `order.store.ts`, `branch.store.ts`
 
 **Selectors**: `stores/selectors/` — Memoized selectors for store access
+
 - `menu-filter.selectors.ts`
 - `order-flow.selectors.ts`
 
@@ -180,6 +187,7 @@ mobile-movie-app/
 ### `api/` — API Services
 
 **Endpoints by domain**:
+
 - `auth.ts` — Login, logout, token refresh
 - `order.ts` — Create, fetch, update, cancel orders
 - `menu.ts` — Get menu items, specific menus
@@ -189,6 +197,7 @@ mobile-movie-app/
 - etc.
 
 **Pattern**:
+
 ```tsx
 export async function getOrder(id: string): Promise<IApiResponse<IOrder>> {
   const response = await http.get(`/orders/${id}`)
@@ -206,6 +215,7 @@ export async function createOrder(
 ### `types/` — Type Definitions
 
 **Organize by domain**:
+
 - `api.ts` — Generic API types (`IApiResponse<T>`)
 - `auth.ts` — Auth types
 - `order.ts` — Order & OrderItem types
@@ -218,6 +228,7 @@ export async function createOrder(
 ### `utils/` — Utility Functions
 
 **Utilities by purpose**:
+
 - `http.ts` — Axios instance with interceptors
 - `cn.ts` — Tailwind classname merger
 - `format.ts` — Format currency, date, etc.
@@ -231,6 +242,7 @@ export async function createOrder(
 ### `constants/` — Configuration & Constants
 
 **Files**:
+
 - `colors.constant.ts` — Color palette
 - `motion.ts` — Animation constants
 - `route.constant.ts` — Route paths
@@ -241,6 +253,7 @@ export async function createOrder(
 ### `lib/` — Internal Libraries
 
 **Subfolders**:
+
 - `navigation/` — Custom navigation engine (MasterTransition, GhostMount)
 - `shared-element/` — Shared element transition logic
 - `transitions/` — Animation configs
@@ -251,6 +264,7 @@ export async function createOrder(
 ### `providers/` — Context Providers
 
 **Global context providers**:
+
 - `toast-provider.tsx` — Toast notifications
 - `i18n-provider.tsx` — i18n configuration
 - `notification-provider.tsx` — Push notifications
@@ -259,12 +273,14 @@ export async function createOrder(
 ### `modules/` — Native Modules
 
 **Local modules**:
+
 - `cart-price-calc/` — Native price calculation engine (C++ or native code)
 - `navigation-bar-color/` — Android navigation bar color control
 
 ### `i18n/` — Internationalization
 
 **Structure**:
+
 ```
 i18n/
 ├── en/
@@ -321,9 +337,11 @@ export async function getNewFeature(): Promise<IApiResponse<INewFeature>> {
 ## Import Path Aliases
 
 **Configured in `tsconfig.json` & `babel.config.js`**:
+
 - `@/*` → `./` (project root)
 
 **Examples**:
+
 ```tsx
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/hooks/use-auth'
@@ -351,12 +369,12 @@ import { Button, Input, Card } from '@/components/ui'
 
 ## Rules Summary
 
-| Category | Location | Case | Re-export |
-|----------|----------|------|-----------|
-| Component | `components/*/` | PascalCase | Yes (barrel) |
-| Hook | `hooks/` | kebab-case | No (named) |
-| API Service | `api/` | kebab-case | Re-export in `api/index.ts` |
-| Type | `types/` | PascalCase | Re-export in `types/index.ts` |
-| Constant | `constants/` | PascalCase | Export as named |
-| Util | `utils/` | kebab-case | Export as named |
-| Store | `stores/` | kebab-case | Export directly |
+| Category    | Location        | Case       | Re-export                     |
+| ----------- | --------------- | ---------- | ----------------------------- |
+| Component   | `components/*/` | PascalCase | Yes (barrel)                  |
+| Hook        | `hooks/`        | kebab-case | No (named)                    |
+| API Service | `api/`          | kebab-case | Re-export in `api/index.ts`   |
+| Type        | `types/`        | PascalCase | Re-export in `types/index.ts` |
+| Constant    | `constants/`    | PascalCase | Export as named               |
+| Util        | `utils/`        | kebab-case | Export as named               |
+| Store       | `stores/`       | kebab-case | Export directly               |

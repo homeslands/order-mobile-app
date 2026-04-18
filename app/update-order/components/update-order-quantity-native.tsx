@@ -10,10 +10,14 @@ interface UpdateOrderQuantityNativeProps {
 export default function UpdateOrderQuantityNative({
   orderItem,
 }: UpdateOrderQuantityNativeProps) {
-  const updateDraftItemQuantity = useOrderFlowStore((s) => s.updateDraftItemQuantity)
+  const updateDraftItemQuantity = useOrderFlowStore(
+    (s) => s.updateDraftItemQuantity,
+  )
 
   const handleChange = (newQuantity: number) => {
-    scheduleStoreUpdate(() => updateDraftItemQuantity(orderItem.id!, newQuantity))
+    scheduleStoreUpdate(() =>
+      updateDraftItemQuantity(orderItem.id!, newQuantity),
+    )
   }
 
   return (

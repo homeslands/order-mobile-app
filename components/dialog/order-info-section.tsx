@@ -1,10 +1,4 @@
-import {
-  Clock,
-  MapPin,
-  Notebook,
-  Phone,
-  Receipt,
-} from 'lucide-react-native'
+import { Clock, MapPin, Notebook, Phone, Receipt } from 'lucide-react-native'
 import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Text, View } from 'react-native'
@@ -34,9 +28,7 @@ function OrderInfoSectionInner({ order }: OrderInfoSectionProps) {
         >
           <Text
             className={
-              order?.type !== OrderTypeEnum.AT_TABLE
-                ? 'text-blue-500'
-                : ''
+              order?.type !== OrderTypeEnum.AT_TABLE ? 'text-blue-500' : ''
             }
           >
             {order?.type === OrderTypeEnum.AT_TABLE
@@ -75,34 +67,30 @@ function OrderInfoSectionInner({ order }: OrderInfoSectionProps) {
           <Text className="font-medium">{`Bàn số ${order.tableName}`}</Text>
         </View>
       )}
-      {order?.type === OrderTypeEnum.DELIVERY &&
-        order?.deliveryAddress && (
-          <View className="flex-row justify-between rounded-md border bg-gray-100 px-2 py-3 text-sm dark:bg-gray-900">
-            <View className="flex-row items-center gap-2">
-              <MapPin size={16} color="#6b7280" />
-              <Text className="text-gray-600 dark:text-gray-400">
-                {t('menu.deliveryAddress')}
-              </Text>
-            </View>
-            <Text className="max-w-[70%] text-right font-medium">
-              {order.deliveryAddress}
+      {order?.type === OrderTypeEnum.DELIVERY && order?.deliveryAddress && (
+        <View className="flex-row justify-between rounded-md border bg-gray-100 px-2 py-3 text-sm dark:bg-gray-900">
+          <View className="flex-row items-center gap-2">
+            <MapPin size={16} color="#6b7280" />
+            <Text className="text-gray-600 dark:text-gray-400">
+              {t('menu.deliveryAddress')}
             </Text>
           </View>
-        )}
-      {order?.type === OrderTypeEnum.DELIVERY &&
-        order?.deliveryPhone && (
-          <View className="flex-row justify-between rounded-md border bg-gray-100 px-2 py-3 text-sm dark:bg-gray-900">
-            <View className="flex-row items-center gap-2">
-              <Phone size={16} color="#6b7280" />
-              <Text className="text-gray-600 dark:text-gray-400">
-                {t('menu.deliveryPhone')}
-              </Text>
-            </View>
-            <Text className="font-medium">
-              {order.deliveryPhone}
+          <Text className="max-w-[70%] text-right font-medium">
+            {order.deliveryAddress}
+          </Text>
+        </View>
+      )}
+      {order?.type === OrderTypeEnum.DELIVERY && order?.deliveryPhone && (
+        <View className="flex-row justify-between rounded-md border bg-gray-100 px-2 py-3 text-sm dark:bg-gray-900">
+          <View className="flex-row items-center gap-2">
+            <Phone size={16} color="#6b7280" />
+            <Text className="text-gray-600 dark:text-gray-400">
+              {t('menu.deliveryPhone')}
             </Text>
           </View>
-        )}
+          <Text className="font-medium">{order.deliveryPhone}</Text>
+        </View>
+      )}
       {order?.description && (
         <View className="flex-row justify-between rounded-md border bg-gray-100 px-2 py-3 text-sm dark:bg-gray-900">
           <View className="flex-row items-center gap-2">

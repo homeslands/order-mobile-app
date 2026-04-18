@@ -15,7 +15,14 @@ const PREFETCH_DEBOUNCE_MS = 150
 const PREFETCH_COOLDOWN_MS = 3000
 
 /** Tương thích với FlatMenuItem từ menu/index.tsx */
-type ViewableItem = { type: string; id: string; item?: { slug?: string; product?: { slug?: string; image?: string; images?: string[] } } }
+type ViewableItem = {
+  type: string
+  id: string
+  item?: {
+    slug?: string
+    product?: { slug?: string; image?: string; images?: string[] }
+  }
+}
 
 function getSlugFromItem(item: ViewableItem): string | null {
   if (item.type !== 'row' || !item.item) return null
@@ -34,7 +41,8 @@ export function useViewableMenuPrefetch() {
       const now = Date.now()
       unique.forEach((slug) => {
         if (!slug?.trim()) return
-        if (now - (lastPrefetchRef.current[slug] ?? 0) < PREFETCH_COOLDOWN_MS) return
+        if (now - (lastPrefetchRef.current[slug] ?? 0) < PREFETCH_COOLDOWN_MS)
+          return
         lastPrefetchRef.current[slug] = now
 
         getSpecificMenuItem(slug)

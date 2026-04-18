@@ -3,7 +3,11 @@ import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Text, TouchableOpacity, useColorScheme, View } from 'react-native'
 
-import { DropdownMenu, DropdownMenuContent, DropdownMenuTrigger } from '@/components/ui'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from '@/components/ui'
 import { cn } from '@/lib/utils'
 import { IProductVariant } from '@/types'
 
@@ -55,33 +59,39 @@ export default function ProductVariantDropdown({
         <View className="self-start">
           <TouchableOpacity
             className={cn(
-              'flex-row items-center gap-2 px-3 py-2 rounded-md',
+              'flex-row items-center gap-2 rounded-md px-3 py-2',
               'bg-transparent',
               'border border-gray-200 dark:border-gray-700',
-              'active:bg-gray-100/50 dark:active:bg-gray-800/50'
+              'active:bg-gray-100/50 dark:active:bg-gray-800/50',
             )}
           >
-          <ChevronDown size={16} color={isDark ? '#9ca3af' : '#6b7280'} />
-          {selectedVariant ? (
-            <Text
-              className="text-sm font-medium text-gray-900 dark:text-gray-50"
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {selectedVariant.name}
-            </Text>
-          ) : (
-            <Text className="text-sm text-gray-500 dark:text-gray-400">
-              {t('productVariant.selectProductVariantSize', 'Chọn kích thước phân loại')}
-            </Text>
-          )}
+            <ChevronDown size={16} color={isDark ? '#9ca3af' : '#6b7280'} />
+            {selectedVariant ? (
+              <Text
+                className="text-sm font-medium text-gray-900 dark:text-gray-50"
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {selectedVariant.name}
+              </Text>
+            ) : (
+              <Text className="text-sm text-gray-500 dark:text-gray-400">
+                {t(
+                  'productVariant.selectProductVariantSize',
+                  'Chọn kích thước phân loại',
+                )}
+              </Text>
+            )}
           </TouchableOpacity>
         </View>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-fit" align="start" sideOffset={8}>
-        <View className="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
+        <View className="border-b border-gray-200 px-3 py-2 dark:border-gray-700">
           <Text className="text-sm font-semibold text-gray-900 dark:text-gray-50">
-            {t('productVariant.selectProductVariantSize', 'Chọn kích thước phân loại')}
+            {t(
+              'productVariant.selectProductVariantSize',
+              'Chọn kích thước phân loại',
+            )}
           </Text>
         </View>
         <View className="max-h-[300px]">
@@ -94,10 +104,10 @@ export default function ProductVariantDropdown({
                   key={item.slug}
                   onPress={() => handleSelectChange(item.slug)}
                   className={cn(
-                    'px-4 py-3 flex-row items-center gap-3',
+                    'flex-row items-center gap-3 px-4 py-3',
                     !isLast && 'border-b border-gray-100 dark:border-gray-800',
                     isSelected && 'bg-gray-50 dark:bg-gray-800/50',
-                    'active:bg-gray-100 dark:active:bg-gray-700'
+                    'active:bg-gray-100 dark:active:bg-gray-700',
                   )}
                 >
                   <View className="flex-1">
@@ -106,7 +116,7 @@ export default function ProductVariantDropdown({
                         'text-sm font-medium',
                         isSelected
                           ? 'text-primary dark:text-primary'
-                          : 'text-gray-900 dark:text-gray-50'
+                          : 'text-gray-900 dark:text-gray-50',
                       )}
                       numberOfLines={1}
                     >
@@ -120,7 +130,7 @@ export default function ProductVariantDropdown({
               )
             })
           ) : (
-            <View className="px-4 py-8 items-center">
+            <View className="items-center px-4 py-8">
               <Text className="text-sm text-gray-500 dark:text-gray-400">
                 {t('productVariant.noVariants', 'Không có biến thể nào')}
               </Text>

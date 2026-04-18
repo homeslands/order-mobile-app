@@ -21,7 +21,10 @@ import {
 } from 'react-native-reanimated'
 import type Animated from 'react-native-reanimated'
 
-import { useSharedElementOptional, type ElementRect } from './shared-element-provider'
+import {
+  useSharedElementOptional,
+  type ElementRect,
+} from './shared-element-provider'
 
 type SharedElementDestResult = {
   animatedRef: ReturnType<typeof useAnimatedRef<Animated.View>>
@@ -53,7 +56,10 @@ export function useSharedElementDest(): SharedElementDestResult {
             sharedElement.setDestRect(rect)
             setHasMeasured(true)
             // Show real content sau overlay. withDelay trên UI thread — tránh mutate trong useEffect (React Compiler).
-            contentVisible.value = withDelay(350, withTiming(1, { duration: 0 }))
+            contentVisible.value = withDelay(
+              350,
+              withTiming(1, { duration: 0 }),
+            )
           }
         } catch {
           // View not ready yet

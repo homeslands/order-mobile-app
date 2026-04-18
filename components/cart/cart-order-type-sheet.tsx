@@ -1,5 +1,8 @@
 import { colors } from '@/constants'
-import { type OrderTypeOption, useOrderTypeOptions } from '@/hooks/use-order-type-options'
+import {
+  type OrderTypeOption,
+  useOrderTypeOptions,
+} from '@/hooks/use-order-type-options'
 import {
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
@@ -29,7 +32,11 @@ export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
   const { t } = useTranslation('menu')
   const { bottom: bottomInset } = useSafeAreaInsets()
   // Fetch feature flags only when sheet is visible — defer pattern
-  const { orderTypes, selectedType, handleChange: selectType } = useOrderTypeOptions({
+  const {
+    orderTypes,
+    selectedType,
+    handleChange: selectType,
+  } = useOrderTypeOptions({
     enabled: visible,
   })
 
@@ -43,7 +50,13 @@ export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
   )
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.4} pressBehavior="close" />
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.4}
+        pressBehavior="close"
+      />
     ),
     [],
   )
@@ -52,10 +65,13 @@ export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
     else sheetRef.current?.dismiss()
   }, [visible])
 
-  const handleSelect = useCallback((value: string) => {
-    selectType(value)
-    sheetRef.current?.dismiss()
-  }, [selectType])
+  const handleSelect = useCallback(
+    (value: string) => {
+      selectType(value)
+      sheetRef.current?.dismiss()
+    },
+    [selectType],
+  )
 
   return (
     <BottomSheetModal
@@ -69,44 +85,82 @@ export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
       backgroundStyle={bgStyle}
       onDismiss={onClose}
     >
-          <View style={[orderTypeSheetStyles.content, { paddingBottom: bottomInset }]}>
-            <Text style={[orderTypeSheetStyles.title, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>
-              {t('menu.orderType')}
-            </Text>
-            {orderTypes.length === 0 && (
-              <Text style={{ fontSize: 14, color: isDark ? colors.gray[400] : colors.gray[500], textAlign: 'center', paddingVertical: 16 }}>
-                {t('menu.noData')}
+      <View
+        style={[orderTypeSheetStyles.content, { paddingBottom: bottomInset }]}
+      >
+        <Text
+          style={[
+            orderTypeSheetStyles.title,
+            { color: isDark ? colors.gray[50] : colors.gray[900] },
+          ]}
+        >
+          {t('menu.orderType')}
+        </Text>
+        {orderTypes.length === 0 && (
+          <Text
+            style={{
+              fontSize: 14,
+              color: isDark ? colors.gray[400] : colors.gray[500],
+              textAlign: 'center',
+              paddingVertical: 16,
+            }}
+          >
+            {t('menu.noData')}
+          </Text>
+        )}
+        {orderTypes.map((opt: OrderTypeOption) => {
+          const selected = selectedType?.value === opt.value
+          const iconColor = selected
+            ? primaryColor
+            : isDark
+              ? colors.gray[400]
+              : colors.gray[500]
+          const Icon = opt.value === 'take-out' ? PackageCheck : UtensilsCrossed
+          return (
+            <TouchableOpacity
+              activeOpacity={0.7}
+              key={opt.value}
+              onPress={() => handleSelect(opt.value)}
+              style={[
+                orderTypeSheetStyles.option,
+                {
+                  borderColor: selected
+                    ? primaryColor
+                    : isDark
+                      ? colors.gray[700]
+                      : colors.gray[200],
+                  backgroundColor: selected
+                    ? `${primaryColor}10`
+                    : 'transparent',
+                },
+              ]}
+            >
+              <Icon size={18} color={iconColor} />
+              <Text
+                style={[
+                  orderTypeSheetStyles.optionLabel,
+                  {
+                    fontWeight: selected ? '600' : '400',
+                    color: isDark ? colors.gray[50] : colors.gray[900],
+                  },
+                ]}
+              >
+                {opt.label}
               </Text>
-            )}
-            {orderTypes.map((opt: OrderTypeOption) => {
-              const selected = selectedType?.value === opt.value
-              const iconColor = selected ? primaryColor : isDark ? colors.gray[400] : colors.gray[500]
-              const Icon = opt.value === 'take-out' ? PackageCheck : UtensilsCrossed
-              return (
-                <TouchableOpacity activeOpacity={0.7}
-                  key={opt.value}
-                  onPress={() => handleSelect(opt.value)}
+              {selected && (
+                <View
                   style={[
-                    orderTypeSheetStyles.option,
-                    {
-                      borderColor: selected ? primaryColor : isDark ? colors.gray[700] : colors.gray[200],
-                      backgroundColor: selected ? `${primaryColor}10` : 'transparent',
-                    },
+                    orderTypeSheetStyles.radio,
+                    { backgroundColor: primaryColor },
                   ]}
                 >
-                  <Icon size={18} color={iconColor} />
-                  <Text style={[orderTypeSheetStyles.optionLabel, { fontWeight: selected ? '600' : '400', color: isDark ? colors.gray[50] : colors.gray[900] }]}>
-                    {opt.label}
-                  </Text>
-                  {selected && (
-                    <View style={[orderTypeSheetStyles.radio, { backgroundColor: primaryColor }]}>
-                      <View style={orderTypeSheetStyles.radioDot} />
-                    </View>
-                  )}
-                </TouchableOpacity>
-              )
-            })}
-          </View>
+                  <View style={orderTypeSheetStyles.radioDot} />
+                </View>
+              )}
+            </TouchableOpacity>
+          )
+        })}
+      </View>
     </BottomSheetModal>
   )
 })

@@ -1,9 +1,19 @@
-import { Clock, Coins, RefreshCw, TrendingDown, TrendingUp } from 'lucide-react-native'
+import {
+  Clock,
+  Coins,
+  RefreshCw,
+  TrendingDown,
+  TrendingUp,
+} from 'lucide-react-native'
 import { memo, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
-import { colors, LoyaltyPointHistoryType, LoyaltyPointTransactionStatus } from '@/constants'
+import {
+  colors,
+  LoyaltyPointHistoryType,
+  LoyaltyPointTransactionStatus,
+} from '@/constants'
 import type { ILoyaltyPointHistory } from '@/types'
 import { formatPoints } from '@/utils'
 
@@ -97,118 +107,135 @@ function areEqual(
   )
 }
 
-export const LoyaltyPointTransactionCard = memo(function LoyaltyPointTransactionCard({
-  item,
-  primaryColor,
-  isDark,
-  onPress,
-}: LoyaltyPointTransactionCardProps) {
-  const { t } = useTranslation('profile')
+export const LoyaltyPointTransactionCard = memo(
+  function LoyaltyPointTransactionCard({
+    item,
+    primaryColor,
+    isDark,
+    onPress,
+  }: LoyaltyPointTransactionCardProps) {
+    const { t } = useTranslation('profile')
 
-  const cfg = TYPE_CONFIG[item.type] ?? FALLBACK_CONFIG
+    const cfg = TYPE_CONFIG[item.type] ?? FALLBACK_CONFIG
 
-  const textColor = isDark ? colors.gray[50] : colors.gray[900]
-  const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const bg = isDark ? colors.gray[900] : colors.white.light
-  const borderColor = isDark ? colors.gray[700] : colors.gray[100]
+    const textColor = isDark ? colors.gray[50] : colors.gray[900]
+    const subColor = isDark ? colors.gray[400] : colors.gray[500]
+    const bg = isDark ? colors.gray[900] : colors.white.light
+    const borderColor = isDark ? colors.gray[700] : colors.gray[100]
 
-  const iconBg = isDark ? cfg.iconBgDark : cfg.iconBgLight
-  const pillBg = isDark ? cfg.pillBgDark : cfg.pillBgLight
-  const pillText = isDark ? cfg.pillTextDark : cfg.pillTextLight
-  const pointsColor = isDark ? cfg.pointsColorDark : cfg.pointsColorLight
+    const iconBg = isDark ? cfg.iconBgDark : cfg.iconBgLight
+    const pillBg = isDark ? cfg.pillBgDark : cfg.pillBgLight
+    const pillText = isDark ? cfg.pillTextDark : cfg.pillTextLight
+    const pointsColor = isDark ? cfg.pointsColorDark : cfg.pointsColorLight
 
-  const isPending = item.status === LoyaltyPointTransactionStatus.PENDING
+    const isPending = item.status === LoyaltyPointTransactionStatus.PENDING
 
-  const { formattedDate } = useMemo(() => ({
-    formattedDate: item.date
-      ? new Date(item.date).toLocaleDateString('vi-VN', {
-          hour: '2-digit',
-          minute: '2-digit',
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        })
-      : '—',
-  }), [item.date])
+    const { formattedDate } = useMemo(
+      () => ({
+        formattedDate: item.date
+          ? new Date(item.date).toLocaleDateString('vi-VN', {
+              hour: '2-digit',
+              minute: '2-digit',
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+            })
+          : '—',
+      }),
+      [item.date],
+    )
 
-  const typeLabel = useMemo(() => {
-    const keyMap: Record<string, string> = {
-      [LoyaltyPointHistoryType.ADD]: 'profile.points.add',
-      [LoyaltyPointHistoryType.USE]: 'profile.points.use',
-      [LoyaltyPointHistoryType.RESERVE]: 'profile.points.reserve',
-      [LoyaltyPointHistoryType.REFUND]: 'profile.points.refund',
-    }
-    const key = keyMap[item.type]
-    return key ? t(key) : item.type
-  }, [item.type, t])
+    const typeLabel = useMemo(() => {
+      const keyMap: Record<string, string> = {
+        [LoyaltyPointHistoryType.ADD]: 'profile.points.add',
+        [LoyaltyPointHistoryType.USE]: 'profile.points.use',
+        [LoyaltyPointHistoryType.RESERVE]: 'profile.points.reserve',
+        [LoyaltyPointHistoryType.REFUND]: 'profile.points.refund',
+      }
+      const key = keyMap[item.type]
+      return key ? t(key) : item.type
+    }, [item.type, t])
 
-  const handlePress = useCallback(() => onPress(item), [onPress, item])
+    const handlePress = useCallback(() => onPress(item), [onPress, item])
 
-  const { TypeIcon } = useMemo(() => ({ TypeIcon: cfg.Icon }), [cfg.Icon])
+    const { TypeIcon } = useMemo(() => ({ TypeIcon: cfg.Icon }), [cfg.Icon])
 
-  return (
-    <Pressable
-      onPress={handlePress}
-      style={[s.item, { backgroundColor: bg, borderColor }]}
-    >
-      {/* Top row */}
-      <View style={s.topRow}>
-        <View style={[s.iconCircle, { backgroundColor: iconBg }]}>
-          <TypeIcon size={14} color={pillText} />
+    return (
+      <Pressable
+        onPress={handlePress}
+        style={[s.item, { backgroundColor: bg, borderColor }]}
+      >
+        {/* Top row */}
+        <View style={s.topRow}>
+          <View style={[s.iconCircle, { backgroundColor: iconBg }]}>
+            <TypeIcon size={14} color={pillText} />
+          </View>
+          <View style={[s.typePill, { backgroundColor: pillBg }]}>
+            <Text style={[s.typePillText, { color: pillText }]}>
+              {typeLabel}
+            </Text>
+          </View>
+          {isPending && (
+            <View
+              style={[
+                s.pendingPill,
+                {
+                  backgroundColor: isDark ? colors.gray[700] : colors.gray[200],
+                },
+              ]}
+            >
+              <Text style={[s.pendingText, { color: subColor }]}>
+                {t('profile.points.pending')}
+              </Text>
+            </View>
+          )}
+          <View style={s.spacer} />
+          <View style={s.dateRow}>
+            <Clock size={10} color={subColor} />
+            <Text style={[s.dateText, { color: subColor }]}>
+              {formattedDate}
+            </Text>
+          </View>
         </View>
-        <View style={[s.typePill, { backgroundColor: pillBg }]}>
-          <Text style={[s.typePillText, { color: pillText }]}>{typeLabel}</Text>
+
+        {/* Points */}
+        <View style={s.pointsRow}>
+          <Coins size={15} color={pointsColor} />
+          <Text style={[s.pointsText, { color: pointsColor }]}>
+            {cfg.prefix}
+            {formatPoints(item.points)} {t('profile.points.point')}
+          </Text>
         </View>
-        {isPending && (
-          <View style={[s.pendingPill, { backgroundColor: isDark ? colors.gray[700] : colors.gray[200] }]}>
-            <Text style={[s.pendingText, { color: subColor }]}>
-              {t('profile.points.pending')}
+
+        {/* Balance */}
+        <View style={s.infoRow}>
+          <Text style={[s.infoLabel, { color: subColor }]}>
+            {t('profile.points.lastPoints')}:{' '}
+          </Text>
+          <Text style={[s.infoVal, { color: textColor }]}>
+            {formatPoints(item.lastPoints)} {t('profile.points.point')}
+          </Text>
+        </View>
+
+        {/* Order slug */}
+        {!!item.orderSlug && (
+          <View style={s.infoRow}>
+            <Text style={[s.infoLabel, { color: subColor }]}>
+              {t('profile.points.orderSlug')}:{' '}
+            </Text>
+            <Text
+              style={[s.infoVal, { color: primaryColor }]}
+              numberOfLines={1}
+            >
+              {item.orderSlug}
             </Text>
           </View>
         )}
-        <View style={s.spacer} />
-        <View style={s.dateRow}>
-          <Clock size={10} color={subColor} />
-          <Text style={[s.dateText, { color: subColor }]}>{formattedDate}</Text>
-        </View>
-      </View>
-
-      {/* Points */}
-      <View style={s.pointsRow}>
-        <Coins size={15} color={pointsColor} />
-        <Text style={[s.pointsText, { color: pointsColor }]}>
-          {cfg.prefix}{formatPoints(item.points)} {t('profile.points.point')}
-        </Text>
-      </View>
-
-      {/* Balance */}
-      <View style={s.infoRow}>
-        <Text style={[s.infoLabel, { color: subColor }]}>
-          {t('profile.points.lastPoints')}:{' '}
-        </Text>
-        <Text style={[s.infoVal, { color: textColor }]}>
-          {formatPoints(item.lastPoints)} {t('profile.points.point')}
-        </Text>
-      </View>
-
-      {/* Order slug */}
-      {!!item.orderSlug && (
-        <View style={s.infoRow}>
-          <Text style={[s.infoLabel, { color: subColor }]}>
-            {t('profile.points.orderSlug')}:{' '}
-          </Text>
-          <Text
-            style={[s.infoVal, { color: primaryColor }]}
-            numberOfLines={1}
-          >
-            {item.orderSlug}
-          </Text>
-        </View>
-      )}
-    </Pressable>
-  )
-},
-areEqual)
+      </Pressable>
+    )
+  },
+  areEqual,
+)
 
 const s = StyleSheet.create({
   item: {

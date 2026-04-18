@@ -1,14 +1,18 @@
 import {
-    IApiResponse,
-    IBanner,
-    IBannerRequest,
-    ICreateBannerRequest,
-    IUpdateBannerRequest,
+  IApiResponse,
+  IBanner,
+  IBannerRequest,
+  ICreateBannerRequest,
+  IUpdateBannerRequest,
 } from '@/types'
 import { http } from '@/utils'
 
-export async function getBanners(params?: IBannerRequest): Promise<IApiResponse<IBanner[]>> {
-  const response = await http.get<IApiResponse<IBanner[]>>(`/banner`, { params })
+export async function getBanners(
+  params?: IBannerRequest,
+): Promise<IApiResponse<IBanner[]>> {
+  const response = await http.get<IApiResponse<IBanner[]>>(`/banner`, {
+    params,
+  })
   return response.data
 }
 

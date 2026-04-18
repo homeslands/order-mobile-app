@@ -42,12 +42,10 @@ let onLogout: HttpOnLogout | null = null
  * Cấu hình auth provider cho http client.
  * Gọi ngay khi app khởi động (vd. trong lib/http-setup.ts).
  */
-export function configureHttpAuth(
-  provider: {
-    getAuthState: () => HttpAuthState
-    onLogout: HttpOnLogout
-  },
-): void {
+export function configureHttpAuth(provider: {
+  getAuthState: () => HttpAuthState
+  onLogout: HttpOnLogout
+}): void {
   getAuthState = provider.getAuthState
   onLogout = provider.onLogout
 }
@@ -91,18 +89,6 @@ const isPublicRoute = (url: string, method: string): boolean =>
 
 http.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
-    // ─── Logging: Request Details ───
-    // const hasToken = !!getAuthState?.()?.token
-    // const logData = {
-    //   method: config.method?.toUpperCase(),
-    //   url: config.url,
-    //   hasToken,
-    //   timestamp: new Date().toISOString(),
-    // }
-    // if (__DEV__) {
-    //   console.log('[HTTP Request]', logData)
-    // }
-
     if (!getAuthState) {
       return config
     }
@@ -143,15 +129,8 @@ http.interceptors.request.use(
         setExpireTime(result.expireTime)
         setExpireTimeRefreshToken(result.expireTimeRefreshToken)
 
-        // if (__DEV__) {
-        //   console.log('[HTTP] Token refreshed successfully')
-        // }
-
         processQueue(null, result.accessToken)
       } catch (error) {
-        // if (__DEV__) {
-        //   console.error('[HTTP] Token refresh failed:', error)
-        // }
         processQueue(error, null)
         setLogout()
         onLogout?.()
@@ -184,50 +163,14 @@ http.interceptors.request.use(
 )
 
 http.interceptors.response.use(
-  (response) => {
-    // // ─── Logging: Success Response ───
-    // if (__DEV__) {
-    //   console.log('[HTTP Response]', {
-    //     status: response.status,
-    //     url: response.config.url,
-    //     code: response.data?.code,
-    //     message: response.data?.message,
-    //     timestamp: new Date().toISOString(),
-    //   })
-    // }
-    return response
-  },
+  (response) => response,
   (error) => {
-    // ─── Logging: Error Response ───
     if (axios.isAxiosError(error)) {
       const statusCode = error.response?.status
-      // const apiCode = error.response?.data?.code
-      // const apiMessage = error.response?.data?.message
-
-      // if (__DEV__) {
-      //   console.error('[HTTP Error]', {
-      //     httpStatus: statusCode,
-      //     apiCode,
-      //     apiMessage,
-      //     url: error.config?.url,
-      //     method: error.config?.method?.toUpperCase(),
-      //     hasToken: !!error.config?.headers?.Authorization,
-      //     timestamp: new Date().toISOString(),
-      //     fullError: {
-      //       message: error.message,
-      //       response: error.response?.data,
-      //     },
-      //   })
-      // }
-
       if (statusCode === 401) {
         getAuthState?.().setLogout()
         onLogout?.()
       }
-    } else {
-      // if (__DEV__) {
-      //   console.error('[HTTP Error] Non-Axios error:', error)
-      // }
     }
     return Promise.reject(error)
   },

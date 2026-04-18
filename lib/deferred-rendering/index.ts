@@ -1,1 +1,4 @@
-export { withDeferredRendering, type WithDeferredRenderingOptions } from './with-deferred-rendering'
+export {
+  withDeferredRendering,
+  type WithDeferredRenderingOptions,
+} from './with-deferred-rendering'

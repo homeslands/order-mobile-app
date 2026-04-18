@@ -32,13 +32,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { FloatingHeader } from '@/components/navigation/floating-header'
 import { Skeleton } from '@/components/ui'
-import {
-  CardOrderStatus,
-  GiftCardType,
-  colors,
-} from '@/constants'
+import { CardOrderStatus, GiftCardType, colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
-import { useCardOrderBySlug, useResendGiftCardSms } from '@/hooks/use-card-order'
+import {
+  useCardOrderBySlug,
+  useResendGiftCardSms,
+} from '@/hooks/use-card-order'
 import { useRunAfterTransition } from '@/hooks'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { formatCurrency, formatPoints } from '@/utils'
@@ -89,22 +88,32 @@ const GiftCardCodeItem = memo(function GiftCardCodeItem({
     <View style={[ci.container, { borderColor, backgroundColor: bgColor }]}>
       <View style={ci.row}>
         <View style={[ci.badge, { backgroundColor: `${primaryColor}20` }]}>
-          <Text style={[ci.badgeText, { color: primaryColor }]}>#{index + 1}</Text>
+          <Text style={[ci.badgeText, { color: primaryColor }]}>
+            #{index + 1}
+          </Text>
         </View>
         <View style={ci.info}>
           <View style={ci.codeRow}>
-            <Text style={[ci.label, { color: subColor }]}>{t('orderSuccess.codeItem.serial')}</Text>
+            <Text style={[ci.label, { color: subColor }]}>
+              {t('orderSuccess.codeItem.serial')}
+            </Text>
             <Text style={[ci.value, { color: textColor }]}>{item.serial}</Text>
           </View>
           <View style={ci.codeRow}>
-            <Text style={[ci.label, { color: subColor }]}>{t('orderSuccess.codeItem.code')}</Text>
-            <Text style={[ci.value, { color: primaryColor, fontWeight: '700' }]}>
+            <Text style={[ci.label, { color: subColor }]}>
+              {t('orderSuccess.codeItem.code')}
+            </Text>
+            <Text
+              style={[ci.value, { color: primaryColor, fontWeight: '700' }]}
+            >
               {item.code}
             </Text>
           </View>
           {item.expiredAt && (
             <View style={ci.codeRow}>
-              <Text style={[ci.label, { color: subColor }]}>{t('orderSuccess.codeItem.expiry')}</Text>
+              <Text style={[ci.label, { color: subColor }]}>
+                {t('orderSuccess.codeItem.expiry')}
+              </Text>
               <Text style={[ci.value, { color: subColor }]}>
                 {new Date(item.expiredAt).toLocaleDateString('vi-VN')}
               </Text>
@@ -114,7 +123,10 @@ const GiftCardCodeItem = memo(function GiftCardCodeItem({
         <Pressable
           onPress={handleCopy}
           hitSlop={8}
-          style={[ci.copyBtn, { backgroundColor: copied ? `${primaryColor}20` : 'transparent' }]}
+          style={[
+            ci.copyBtn,
+            { backgroundColor: copied ? `${primaryColor}20` : 'transparent' },
+          ]}
         >
           <Copy size={16} color={copied ? primaryColor : subColor} />
         </Pressable>
@@ -205,9 +217,11 @@ const RecipientRow = memo(function RecipientRow({
             hitSlop={8}
             style={[rr.resendBtn, { backgroundColor: `${primaryColor}15` }]}
           >
-            {isResending
-              ? <ActivityIndicator size="small" color={primaryColor} />
-              : <Send size={13} color={primaryColor} />}
+            {isResending ? (
+              <ActivityIndicator size="small" color={primaryColor} />
+            ) : (
+              <Send size={13} color={primaryColor} />
+            )}
           </Pressable>
         )}
       </View>
@@ -252,7 +266,12 @@ function OrderStatusBadge({ status }: { status: string }) {
   const { t } = useTranslation('giftCard')
   const isDark = useColorScheme() === 'dark'
 
-  type BadgeConfig = { bg: string; fg: string; Icon: typeof CheckCircle2; label: string }
+  type BadgeConfig = {
+    bg: string
+    fg: string
+    Icon: typeof CheckCircle2
+    label: string
+  }
   const config: BadgeConfig | null = (() => {
     switch (status) {
       case CardOrderStatus.COMPLETED:
@@ -372,23 +391,26 @@ export default function GiftCardOrderSuccessScreen() {
   const [resendingId, setResendingId] = useState<string | null>(null)
   const { mutate: resendSms } = useResendGiftCardSms()
 
-  const handleResend = useCallback((recipientId: string) => {
-    if (!slug) return
-    setResendingId(recipientId)
-    resendSms(
-      { orderSlug: slug, recipientId },
-      {
-        onSuccess: () => {
-          setResendingId(null)
-          showToast(t('orderSuccess.resendSmsSuccess'))
+  const handleResend = useCallback(
+    (recipientId: string) => {
+      if (!slug) return
+      setResendingId(recipientId)
+      resendSms(
+        { orderSlug: slug, recipientId },
+        {
+          onSuccess: () => {
+            setResendingId(null)
+            showToast(t('orderSuccess.resendSmsSuccess'))
+          },
+          onError: () => {
+            setResendingId(null)
+            showErrorToastMessage(t('orderSuccess.resendSmsFailed'))
+          },
         },
-        onError: () => {
-          setResendingId(null)
-          showErrorToastMessage(t('orderSuccess.resendSmsFailed'))
-        },
-      },
-    )
-  }, [slug, resendSms, t])
+      )
+    },
+    [slug, resendSms, t],
+  )
 
   const totalPoints = useMemo(() => {
     if (!order) return 0
@@ -406,9 +428,7 @@ export default function GiftCardOrderSuccessScreen() {
 
   return (
     <View style={[s.container, { backgroundColor: bg }]}>
-      <FloatingHeader title={t('orderSuccess.title')} 
-          disableBlur
-        />
+      <FloatingHeader title={t('orderSuccess.title')} disableBlur />
 
       {isPending || !allowFetch ? (
         <View style={{ marginTop: STATIC_TOP_INSET + 56 }}>
@@ -430,9 +450,16 @@ export default function GiftCardOrderSuccessScreen() {
             showsVerticalScrollIndicator={false}
           >
             {/* Hero card  */}
-            <View style={[s.heroCard, { backgroundColor: cardBg, borderColor }]}>
+            <View
+              style={[s.heroCard, { backgroundColor: cardBg, borderColor }]}
+            >
               <View style={s.heroTop}>
-                <View style={[s.successIcon, { backgroundColor: `${primaryColor}18` }]}>
+                <View
+                  style={[
+                    s.successIcon,
+                    { backgroundColor: `${primaryColor}18` },
+                  ]}
+                >
                   <CheckCircle2 size={32} color={primaryColor} />
                 </View>
                 <OrderStatusBadge status={order.paymentStatus} />
@@ -441,7 +468,10 @@ export default function GiftCardOrderSuccessScreen() {
                 {order.cardTitle}
               </Text>
               <Text style={[s.heroSub, { color: subColor }]}>
-                {t('orderSuccess.orderCode')} <Text style={{ fontWeight: '700', color: textColor }}>{slug}</Text>
+                {t('orderSuccess.orderCode')}{' '}
+                <Text style={{ fontWeight: '700', color: textColor }}>
+                  {slug}
+                </Text>
               </Text>
             </View>
 
@@ -449,36 +479,63 @@ export default function GiftCardOrderSuccessScreen() {
             <View style={[s.card, { backgroundColor: cardBg, borderColor }]}>
               <View style={s.cardHeader}>
                 <Gift size={16} color={primaryColor} />
-                <Text style={[s.cardTitle, { color: textColor }]}>{t('orderSuccess.section.detail')}</Text>
+                <Text style={[s.cardTitle, { color: textColor }]}>
+                  {t('orderSuccess.section.detail')}
+                </Text>
               </View>
 
               <View style={s.infoRows}>
                 <View style={s.infoRow}>
-                  <Text style={[s.infoKey, { color: subColor }]}>{t('orderSuccess.info.card')}</Text>
-                  <Text style={[s.infoVal, { color: textColor }]} numberOfLines={2}>
+                  <Text style={[s.infoKey, { color: subColor }]}>
+                    {t('orderSuccess.info.card')}
+                  </Text>
+                  <Text
+                    style={[s.infoVal, { color: textColor }]}
+                    numberOfLines={2}
+                  >
                     {order.cardTitle}
                   </Text>
                 </View>
                 <View style={s.infoRow}>
-                  <Text style={[s.infoKey, { color: subColor }]}>{t('orderSuccess.info.quantity')}</Text>
+                  <Text style={[s.infoKey, { color: subColor }]}>
+                    {t('orderSuccess.info.quantity')}
+                  </Text>
                   <Text style={[s.infoVal, { color: textColor }]}>
-                    {t('orderSuccess.info.quantityValue', { count: order.quantity })}
+                    {t('orderSuccess.info.quantityValue', {
+                      count: order.quantity,
+                    })}
                   </Text>
                 </View>
                 {!isBuy && (
                   <View style={s.infoRow}>
-                    <Text style={[s.infoKey, { color: subColor }]}>{t('orderSuccess.info.points')}</Text>
-                    <Text style={[s.infoVal, { color: primaryColor, fontWeight: '700' }]}>
-                      {t('orderSuccess.info.pointsValue', { points: formatPoints(totalPoints) })}
+                    <Text style={[s.infoKey, { color: subColor }]}>
+                      {t('orderSuccess.info.points')}
+                    </Text>
+                    <Text
+                      style={[
+                        s.infoVal,
+                        { color: primaryColor, fontWeight: '700' },
+                      ]}
+                    >
+                      {t('orderSuccess.info.pointsValue', {
+                        points: formatPoints(totalPoints),
+                      })}
                     </Text>
                   </View>
                 )}
                 <View style={[s.divider, { backgroundColor: borderColor }]} />
                 <View style={s.infoRow}>
-                  <Text style={[s.infoKey, { color: subColor, fontWeight: '600' }]}>
+                  <Text
+                    style={[s.infoKey, { color: subColor, fontWeight: '600' }]}
+                  >
                     {t('orderSuccess.info.totalPayment')}
                   </Text>
-                  <Text style={[s.infoVal, { color: textColor, fontWeight: '800', fontSize: 16 }]}>
+                  <Text
+                    style={[
+                      s.infoVal,
+                      { color: textColor, fontWeight: '800', fontSize: 16 },
+                    ]}
+                  >
                     {formatCurrency(order.totalAmount)}
                   </Text>
                 </View>
@@ -491,14 +548,15 @@ export default function GiftCardOrderSuccessScreen() {
                 <View style={s.cardHeader}>
                   <Gift size={16} color={primaryColor} />
                   <Text style={[s.cardTitle, { color: textColor }]}>
-                    {t('orderSuccess.section.codes', { count: order.giftCards.length })}
+                    {t('orderSuccess.section.codes', {
+                      count: order.giftCards.length,
+                    })}
                   </Text>
                 </View>
                 <Text style={[s.cardHint, { color: subColor }]}>
                   {isBuy
                     ? t('orderSuccess.buyHint')
-                    : t('orderSuccess.codeHint')
-                  }
+                    : t('orderSuccess.codeHint')}
                 </Text>
                 <View style={s.codeList}>
                   {order.giftCards.map((gc, idx) => (
@@ -520,7 +578,9 @@ export default function GiftCardOrderSuccessScreen() {
                 <View style={s.cardHeader}>
                   <Users size={16} color={primaryColor} />
                   <Text style={[s.cardTitle, { color: textColor }]}>
-                    {t('orderSuccess.section.recipients', { count: order.receipients.length })}
+                    {t('orderSuccess.section.recipients', {
+                      count: order.receipients.length,
+                    })}
                   </Text>
                 </View>
                 <View style={s.recipientList}>
@@ -598,5 +658,4 @@ const s = StyleSheet.create({
 
   codeList: { gap: 8 },
   recipientList: { gap: 0 },
-
 })

@@ -3,7 +3,9 @@ import { Pressable } from 'react-native'
 
 import type { NavigationTriggerViewProps } from './NavigationTrigger.types'
 
-export default function NavigationTriggerView(props: NavigationTriggerViewProps) {
+export default function NavigationTriggerView(
+  props: NavigationTriggerViewProps,
+) {
   const { href, type = 'push', onPress, style, children } = props
 
   const handlePress = React.useCallback(() => {

@@ -1,4 +1,8 @@
-import { BottomSheetBackdrop, type BottomSheetBackdropProps, BottomSheetModal } from '@gorhom/bottom-sheet'
+import {
+  BottomSheetBackdrop,
+  type BottomSheetBackdropProps,
+  BottomSheetModal,
+} from '@gorhom/bottom-sheet'
 import { TriangleAlert } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useRef } from 'react'
 import { StyleSheet, Text, useColorScheme, View } from 'react-native'
@@ -70,77 +74,107 @@ export const GiftCardExistsWarningDialog = memo(
     }, [onReplace, closeSheet])
 
     return (
-          <BottomSheetModal
-            ref={sheetRef}
-            snapPoints={SNAP_POINTS}
-            enablePanDownToClose
-            enableContentPanningGesture={false}
-            enableHandlePanningGesture
-            enableDynamicSizing={false}
-            backdropComponent={renderBackdrop}
-            backgroundStyle={{ backgroundColor: isDark ? colors.gray[900] : colors.white.light }}
-            handleIndicatorStyle={{ backgroundColor: isDark ? colors.gray[600] : colors.gray[300] }}
-            onDismiss={onCancel}
-          >
-            <View style={[s.content, { paddingBottom: insets.bottom + 16 }]}>
-              {/* Body */}
-              <View style={s.body}>
-                <TriangleAlert size={32} color={colors.warning.light} />
-                <Text style={[s.title, { color: textColor }]}>{t('warningDialog.title')}</Text>
+      <BottomSheetModal
+        ref={sheetRef}
+        snapPoints={SNAP_POINTS}
+        enablePanDownToClose
+        enableContentPanningGesture={false}
+        enableHandlePanningGesture
+        enableDynamicSizing={false}
+        backdropComponent={renderBackdrop}
+        backgroundStyle={{
+          backgroundColor: isDark ? colors.gray[900] : colors.white.light,
+        }}
+        handleIndicatorStyle={{
+          backgroundColor: isDark ? colors.gray[600] : colors.gray[300],
+        }}
+        onDismiss={onCancel}
+      >
+        <View style={[s.content, { paddingBottom: insets.bottom + 16 }]}>
+          {/* Body */}
+          <View style={s.body}>
+            <TriangleAlert size={32} color={colors.warning.light} />
+            <Text style={[s.title, { color: textColor }]}>
+              {t('warningDialog.title')}
+            </Text>
 
-                {/* Card comparison */}
-                <View style={[s.comparison, { borderColor }]}>
-                  <View style={s.cardRow}>
-                    <Text style={[s.cardLabel, { color: subColor }]}>{t('warningDialog.currentCard')}</Text>
-                    <Text style={[s.cardName, { color: textColor }]} numberOfLines={1}>
-                      {currentCard.title}
-                    </Text>
-                    <Text style={[s.cardDetail, { color: subColor }]}>
-                      {currentQuantity} × {formatPoints(currentCard.points)} điểm ={' '}
-                      {formatCurrency(currentCard.price * currentQuantity)}
-                    </Text>
-                  </View>
-
-                  <View style={[s.divider, { backgroundColor: borderColor }]} />
-
-                  <View style={s.cardRow}>
-                    <Text style={[s.cardLabel, { color: subColor }]}>{t('warningDialog.replaceWith')}</Text>
-                    <Text style={[s.cardName, { color: textColor }]} numberOfLines={1}>
-                      {newCard.title}
-                    </Text>
-                    <Text style={[s.cardDetail, { color: subColor }]}>
-                      {newQuantity} × {formatPoints(newCard.points)} điểm ={' '}
-                      {formatCurrency(newCard.price * newQuantity)}
-                    </Text>
-                  </View>
-                </View>
+            {/* Card comparison */}
+            <View style={[s.comparison, { borderColor }]}>
+              <View style={s.cardRow}>
+                <Text style={[s.cardLabel, { color: subColor }]}>
+                  {t('warningDialog.currentCard')}
+                </Text>
+                <Text
+                  style={[s.cardName, { color: textColor }]}
+                  numberOfLines={1}
+                >
+                  {currentCard.title}
+                </Text>
+                <Text style={[s.cardDetail, { color: subColor }]}>
+                  {currentQuantity} × {formatPoints(currentCard.points)} điểm ={' '}
+                  {formatCurrency(currentCard.price * currentQuantity)}
+                </Text>
               </View>
 
-              {/* Footer buttons */}
-              <View style={s.btnRow}>
-                <View style={s.btnWrap}>
-                  <GHTouchable
-                    onPress={closeSheet}
-                    activeOpacity={0.8}
-                    style={[s.btn, { backgroundColor: isDark ? colors.gray[700] : colors.gray[100] }]}
-                  >
-                    <Text style={[s.btnText, { color: isDark ? colors.gray[50] : colors.gray[700] }]}>
-                      {t('warningDialog.keepCurrent')}
-                    </Text>
-                  </GHTouchable>
-                </View>
-                <View style={s.btnWrap}>
-                  <GHTouchable
-                    onPress={handleReplace}
-                    activeOpacity={0.8}
-                    style={[s.btn, { backgroundColor: colors.primary.light }]}
-                  >
-                    <Text style={[s.btnText, { color: colors.white.light }]}>{t('warningDialog.replace')}</Text>
-                  </GHTouchable>
-                </View>
+              <View style={[s.divider, { backgroundColor: borderColor }]} />
+
+              <View style={s.cardRow}>
+                <Text style={[s.cardLabel, { color: subColor }]}>
+                  {t('warningDialog.replaceWith')}
+                </Text>
+                <Text
+                  style={[s.cardName, { color: textColor }]}
+                  numberOfLines={1}
+                >
+                  {newCard.title}
+                </Text>
+                <Text style={[s.cardDetail, { color: subColor }]}>
+                  {newQuantity} × {formatPoints(newCard.points)} điểm ={' '}
+                  {formatCurrency(newCard.price * newQuantity)}
+                </Text>
               </View>
             </View>
-          </BottomSheetModal>
+          </View>
+
+          {/* Footer buttons */}
+          <View style={s.btnRow}>
+            <View style={s.btnWrap}>
+              <GHTouchable
+                onPress={closeSheet}
+                activeOpacity={0.8}
+                style={[
+                  s.btn,
+                  {
+                    backgroundColor: isDark
+                      ? colors.gray[700]
+                      : colors.gray[100],
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    s.btnText,
+                    { color: isDark ? colors.gray[50] : colors.gray[700] },
+                  ]}
+                >
+                  {t('warningDialog.keepCurrent')}
+                </Text>
+              </GHTouchable>
+            </View>
+            <View style={s.btnWrap}>
+              <GHTouchable
+                onPress={handleReplace}
+                activeOpacity={0.8}
+                style={[s.btn, { backgroundColor: colors.primary.light }]}
+              >
+                <Text style={[s.btnText, { color: colors.white.light }]}>
+                  {t('warningDialog.replace')}
+                </Text>
+              </GHTouchable>
+            </View>
+          </View>
+        </View>
+      </BottomSheetModal>
     )
   },
 )

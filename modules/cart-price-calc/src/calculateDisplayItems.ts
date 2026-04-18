@@ -50,7 +50,9 @@ export function resetDisplayItemsNativeStats(): void {
   displayItemsNativeStats.nativeParseError = 0
 }
 
-function serializeVoucher(input: CalculateDisplayItemsInput['voucher']): string | null {
+function serializeVoucher(
+  input: CalculateDisplayItemsInput['voucher'],
+): string | null {
   if (!input) return null
   return JSON.stringify({
     type: input.type,
@@ -104,7 +106,10 @@ export async function calculateDisplayItemsNativeAsync(
       displayItemsNativeStats.asyncFallbackToSync += 1
     }
     const resultJson = CartPriceCalc.calculateDisplayItemsAsync
-      ? await CartPriceCalc.calculateDisplayItemsAsync(orderItemsJson, voucherJson)
+      ? await CartPriceCalc.calculateDisplayItemsAsync(
+          orderItemsJson,
+          voucherJson,
+        )
       : CartPriceCalc.calculateDisplayItems(orderItemsJson, voucherJson)
 
     const parsed = JSON.parse(resultJson) as {

@@ -228,7 +228,6 @@ export const BranchSheet = memo(function BranchSheet({
             primaryColor={primaryColor}
           />
         ))}
-
       </BottomSheetScrollView>
     </BottomSheetModal>
   )

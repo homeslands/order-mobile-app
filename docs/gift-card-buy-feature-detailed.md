@@ -38,16 +38,16 @@ Purpose:
 
 ### 2.2 Comparison Matrix
 
-| Aspect | SELF | GIFT | BUY |
-|--------|------|------|-----|
-| **Who buys?** | Customer | Customer | Customer |
-| **Recipients specified?** | NO | YES (upfront) | NO |
-| **Codes generated?** | YES | YES | YES |
-| **SMS sent?** | NO | YES (auto) | NO |
-| **Auto-redeem?** | YES (to buyer) | NO | NO |
-| **Points added?** | YES (buyer) | YES (recipient) | NO |
-| **When redeem?** | Instant | Recipient redeems later | Anyone can redeem |
-| **Use case** | Personal top-up | Gift to friends | Bulk gift cards |
+| Aspect                    | SELF            | GIFT                    | BUY               |
+| ------------------------- | --------------- | ----------------------- | ----------------- |
+| **Who buys?**             | Customer        | Customer                | Customer          |
+| **Recipients specified?** | NO              | YES (upfront)           | NO                |
+| **Codes generated?**      | YES             | YES                     | YES               |
+| **SMS sent?**             | NO              | YES (auto)              | NO                |
+| **Auto-redeem?**          | YES (to buyer)  | NO                      | NO                |
+| **Points added?**         | YES (buyer)     | YES (recipient)         | NO                |
+| **When redeem?**          | Instant         | Recipient redeems later | Anyone can redeem |
+| **Use case**              | Personal top-up | Gift to friends         | Bulk gift cards   |
 
 ---
 
@@ -170,7 +170,10 @@ async bulkGen(payload: {
 ```typescript
 // File: client-gift-card-sheet.tsx:143-155
 
-if (watchedGiftType === GiftCardType.SELF || watchedGiftType === GiftCardType.BUY) {
+if (
+  watchedGiftType === GiftCardType.SELF ||
+  watchedGiftType === GiftCardType.BUY
+) {
   // Clear any existing validation errors for receivers
   form.clearErrors('receivers')
   // Reset receivers array to empty when BUY is selected
@@ -182,6 +185,7 @@ if (watchedGiftType === GiftCardType.SELF || watchedGiftType === GiftCardType.BU
 ```
 
 **Form Fields for BUY:**
+
 - Type: BUY (hidden)
 - Card: Selected gift card
 - Quantity: 1-10 (no receiver-specific quantities)
@@ -225,6 +229,7 @@ const handleCopyCode = useCallback(
 ```
 
 **UX Flow:**
+
 1. Go to Profile → Gift Cards
 2. See list of all gift cards (from BUY orders)
 3. Each item shows:
@@ -337,6 +342,7 @@ Benefit:
 ```
 
 **Response:**
+
 ```json
 {
   "statusCode": 201,
@@ -363,6 +369,7 @@ Benefit:
 ```
 
 **Response:**
+
 ```json
 {
   "statusCode": 200,
@@ -402,7 +409,7 @@ Benefit:
         "code": "DEF456UVW8",
         "status": "AVAILABLE",
         "cardPoints": 100000
-      },
+      }
       // ... 3 more cards
     ]
   }
@@ -414,6 +421,7 @@ Benefit:
 **GET** `/gift-card/user?page=1&limit=10&status=AVAILABLE`
 
 **Response:**
+
 ```json
 {
   "statusCode": 200,
@@ -428,7 +436,7 @@ Benefit:
       "createdAt": "2026-04-03T10:30:00Z",
       "expiredAt": "2027-04-03T23:59:59Z",
       "usedAt": null
-    },
+    }
     // ... more gift cards
   ]
 }
@@ -446,6 +454,7 @@ Benefit:
 ```
 
 **Response:**
+
 ```json
 {
   "statusCode": 200,
@@ -468,45 +477,45 @@ Benefit:
 @Entity('card_order')
 export class CardOrder {
   @Column({ type: 'varchar', length: 50 })
-  slug: string;
+  slug: string
 
   @Column({ type: 'varchar', length: 20 })
-  type: CardOrderType; // "BUY"
+  type: CardOrderType // "BUY"
 
   @Column({ type: 'varchar', length: 20 })
-  status: CardOrderStatus; // "PENDING" → "COMPLETED"
+  status: CardOrderStatus // "PENDING" → "COMPLETED"
 
   @Column({ type: 'int' })
-  quantity: number; // How many cards to generate
+  quantity: number // How many cards to generate
 
   @Column({ type: 'varchar', length: 50 })
-  cardSlug: string; // Which card template
+  cardSlug: string // Which card template
 
   @Column({ type: 'decimal', precision: 15, scale: 2 })
-  totalAmount: number; // Price × Quantity
+  totalAmount: number // Price × Quantity
 
   @Column({ type: 'varchar', length: 50 })
-  customerSlug: string; // Who's buying
+  customerSlug: string // Who's buying
 
   @Column({ type: 'varchar', length: 100 })
-  customerName: string;
+  customerName: string
 
   @Column({ type: 'varchar', length: 15 })
-  customerPhone: string;
+  customerPhone: string
 
   // BUY type specific: NO receipients
-  @OneToMany(() => Recipient, r => r.cardOrder)
-  receipients: Recipient[]; // Empty array for BUY
+  @OneToMany(() => Recipient, (r) => r.cardOrder)
+  receipients: Recipient[] // Empty array for BUY
 
   // Generated gift cards
-  @OneToMany(() => GiftCard, gc => gc.cardOrder)
-  giftCards: GiftCard[]; // Contains serial+code pairs
+  @OneToMany(() => GiftCard, (gc) => gc.cardOrder)
+  giftCards: GiftCard[] // Contains serial+code pairs
 
-  @OneToOne(() => Payment, p => p.cardOrder)
-  payment: Payment;
+  @OneToOne(() => Payment, (p) => p.cardOrder)
+  payment: Payment
 
   @Column({ type: 'datetime' })
-  createdAt: Date;
+  createdAt: Date
 }
 ```
 
@@ -516,37 +525,37 @@ export class CardOrder {
 @Entity('gift_card')
 export class GiftCard {
   @Column({ type: 'varchar', length: 50 })
-  slug: string; // Unique ID
+  slug: string // Unique ID
 
   @Column({ type: 'varchar', length: 20 })
-  serial: string; // GC-2026-ABC1234567
+  serial: string // GC-2026-ABC1234567
 
   @Column({ type: 'varchar', length: 20 })
-  code: string; // ABC123XYZ7
+  code: string // ABC123XYZ7
 
   @Column({ type: 'varchar', length: 20 })
-  status: GiftCardStatus; // "AVAILABLE" → "USED"
+  status: GiftCardStatus // "AVAILABLE" → "USED"
 
   @Column({ type: 'int' })
-  cardPoints: number; // e.g., 100000
+  cardPoints: number // e.g., 100000
 
   @Column({ type: 'varchar', length: 50 })
-  cardSlug: string; // Reference to gift card template
+  cardSlug: string // Reference to gift card template
 
   @Column({ type: 'varchar', length: 50 })
-  cardOrderSlug: string; // BUY order slug
+  cardOrderSlug: string // BUY order slug
 
   @Column({ type: 'varchar', length: 50, nullable: true })
-  usedBySlug: string; // Who redeemed it
+  usedBySlug: string // Who redeemed it
 
   @Column({ type: 'datetime', nullable: true })
-  usedAt: Date; // When redeemed
+  usedAt: Date // When redeemed
 
   @Column({ type: 'datetime' })
-  expiredAt: Date; // Expiry date
+  expiredAt: Date // Expiry date
 
   @Column({ type: 'datetime' })
-  createdAt: Date;
+  createdAt: Date
 }
 ```
 
@@ -558,12 +567,13 @@ export class GiftCard {
 
 ```typescript
 const buyTypeValidation = z.object({
-  cardSlug: z.string().min(1, "Card required"),
-  quantity: z.number()
-    .min(1, "Quantity at least 1")
-    .max(10, "Max 10 cards per order"),
+  cardSlug: z.string().min(1, 'Card required'),
+  quantity: z
+    .number()
+    .min(1, 'Quantity at least 1')
+    .max(10, 'Max 10 cards per order'),
   giftType: z.literal('BUY'),
-  receivers: z.array(z.any()).length(0, "BUY type has no receivers"),
+  receivers: z.array(z.any()).length(0, 'BUY type has no receivers'),
 })
 ```
 
@@ -590,7 +600,7 @@ if (createCardOrderDto.cardOrderType === CardOrderType.BUY) {
 
 // 4. Check feature flag
 const flag = await featureFlagRepository.findOne({
-  where: { name: 'BUY' }
+  where: { name: 'BUY' },
 })
 if (flag?.isLocked) {
   throw new CardOrderException(FEATURE_LOCKED)
@@ -691,16 +701,16 @@ BUY:
 
 ## 11. Key Code Files Reference
 
-| File | Lines | Purpose |
-|------|-------|---------|
-| `card-order.service.ts` | 926-933 | BUY payment completion handler |
-| `card-order.service.ts` | 597-710 | Order creation (no recipients for BUY) |
-| `client-gift-card-sheet.tsx` | 143-155 | Checkout form (empty receivers for BUY) |
-| `gift-card-order-details-sheet.tsx` | 279-282 | Show "View Details" for completed BUY |
-| `customer-gift-card-tabs-content.tsx` | 92-101 | Copy serial+code in profile |
-| `gift-card.service.ts` | - | bulkGen() method |
-| `card-order.entity.ts` | - | CardOrder with giftCards relation |
-| `gift-card.entity.ts` | - | GiftCard with serial, code, status |
+| File                                  | Lines   | Purpose                                 |
+| ------------------------------------- | ------- | --------------------------------------- |
+| `card-order.service.ts`               | 926-933 | BUY payment completion handler          |
+| `card-order.service.ts`               | 597-710 | Order creation (no recipients for BUY)  |
+| `client-gift-card-sheet.tsx`          | 143-155 | Checkout form (empty receivers for BUY) |
+| `gift-card-order-details-sheet.tsx`   | 279-282 | Show "View Details" for completed BUY   |
+| `customer-gift-card-tabs-content.tsx` | 92-101  | Copy serial+code in profile             |
+| `gift-card.service.ts`                | -       | bulkGen() method                        |
+| `card-order.entity.ts`                | -       | CardOrder with giftCards relation       |
+| `gift-card.entity.ts`                 | -       | GiftCard with serial, code, status      |
 
 ---
 
@@ -817,4 +827,3 @@ Tx: Card expires
 
 **Status**: Complete
 **Last Updated**: 2026-04-03
-

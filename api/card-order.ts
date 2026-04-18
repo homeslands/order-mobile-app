@@ -67,26 +67,9 @@ export async function initiateCardOrderPayment(
   data: IInitiateCardOrderPaymentRequest,
 ): Promise<IApiResponse<ICardOrderResponse>> {
   const { cardorderSlug, ...body } = data
-  if (__DEV__) {
-    // eslint-disable-next-line no-console
-    console.log('[initiateCardOrderPayment] POST /card-order/payment/initiate', JSON.stringify({ cardorderSlug, ...body }, null, 2))
-  }
-  try {
-    const response = await http.post<IApiResponse<ICardOrderResponse>>(
-      '/card-order/payment/initiate',
-      { cardorderSlug, ...body },
-    )
-    if (__DEV__) {
-      // eslint-disable-next-line no-console
-      console.log('[initiateCardOrderPayment] response:', JSON.stringify(response.data, null, 2))
-    }
-    return response.data
-  } catch (error: unknown) {
-    const e = error as { response?: { status?: number; data?: unknown } }
-    if (__DEV__) {
-      // eslint-disable-next-line no-console
-      console.log('[initiateCardOrderPayment] error:', e?.response?.status, JSON.stringify(e?.response?.data, null, 2))
-    }
-    throw error
-  }
+  const response = await http.post<IApiResponse<ICardOrderResponse>>(
+    '/card-order/payment/initiate',
+    { cardorderSlug, ...body },
+  )
+  return response.data
 }

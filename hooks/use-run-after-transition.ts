@@ -1,7 +1,10 @@
 import { type DependencyList, useEffect, useRef } from 'react'
 import { InteractionManager, Platform } from 'react-native'
 
-import { STACK_TRANSITION_DURATION_MS, TRANSITION_DURATION_MS } from '@/lib/navigation'
+import {
+  STACK_TRANSITION_DURATION_MS,
+  TRANSITION_DURATION_MS,
+} from '@/lib/navigation'
 
 export type UseRunAfterTransitionOptions = {
   /**
@@ -50,7 +53,9 @@ export function useRunAfterTransition(
 
     // Duration tương ứng với loại transition thực tế — tránh fire quá sớm/muộn
     const estimatedDurationMs =
-      transitionType === 'stack' ? STACK_TRANSITION_DURATION_MS : TRANSITION_DURATION_MS
+      transitionType === 'stack'
+        ? STACK_TRANSITION_DURATION_MS
+        : TRANSITION_DURATION_MS
 
     if (Platform.OS === 'android' && androidDelay < 0) {
       const fireAtMs = Math.max(0, estimatedDurationMs + androidDelay)

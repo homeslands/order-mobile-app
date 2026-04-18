@@ -1,5 +1,8 @@
 import { IApiResponse, IPaginationResponse } from '@/types'
-import type { IAllNotificationRequest, INotification } from '@/types/notification.type'
+import type {
+  IAllNotificationRequest,
+  INotification,
+} from '@/types/notification.type'
 import { http } from '@/utils'
 
 export interface IRegisterDeviceTokenRequest {
@@ -35,10 +38,9 @@ export async function unregisterDeviceToken(
 export async function getNotifications(
   params: IAllNotificationRequest,
 ): Promise<IApiResponse<IPaginationResponse<INotification>>> {
-  const response = await http.get<IApiResponse<IPaginationResponse<INotification>>>(
-    '/notification',
-    { params },
-  )
+  const response = await http.get<
+    IApiResponse<IPaginationResponse<INotification>>
+  >('/notification', { params })
   return response.data
 }
 

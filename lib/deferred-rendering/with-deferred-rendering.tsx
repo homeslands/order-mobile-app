@@ -43,7 +43,8 @@ export function withDeferredRendering<P extends object>(
   }
 
   DeferredRenderingWrapper.displayName =
-    displayName ?? `WithDeferredRendering(${WrappedComponent.displayName ?? WrappedComponent.name ?? 'Component'})`
+    displayName ??
+    `WithDeferredRendering(${WrappedComponent.displayName ?? WrappedComponent.name ?? 'Component'})`
 
   return DeferredRenderingWrapper
 }

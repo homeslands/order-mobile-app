@@ -78,7 +78,9 @@ export const useProductDetailSelectionStore = create<
       const qty = params.quantity !== undefined ? params.quantity : s.quantity
       return {
         ...s,
-        ...(params.variant !== undefined && { selectedVariant: params.variant }),
+        ...(params.variant !== undefined && {
+          selectedVariant: params.variant,
+        }),
         ...(params.size !== undefined && { size: params.size }),
         ...(params.price !== undefined && { price: params.price }),
         ...(params.quantity !== undefined && { quantity: params.quantity }),

@@ -6,19 +6,19 @@ import { Text, TouchableOpacity, useColorScheme, View } from 'react-native'
 
 import { Images } from '@/assets/images'
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuTrigger,
-    Select,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  Select,
 } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import { useThemeStore, useUserStore } from '@/stores'
 
 /**
  * SettingsDropdown Component
- * 
+ *
  * Displays a settings dropdown with language and theme selection.
- * 
+ *
  * @example
  * ```tsx
  * <SettingsDropdown />
@@ -67,7 +67,9 @@ export default function SettingsDropdown() {
 
   const getThemeLabel = () => {
     const currentTheme = theme || 'light'
-    return currentTheme === 'light' ? t('setting.light', 'Sáng') : t('setting.dark', 'Tối')
+    return currentTheme === 'light'
+      ? t('setting.light', 'Sáng')
+      : t('setting.dark', 'Tối')
   }
 
   return (
@@ -75,9 +77,9 @@ export default function SettingsDropdown() {
       <DropdownMenuTrigger asChild>
         <TouchableOpacity
           className={cn(
-            'w-10 h-10 items-center justify-center rounded-md',
+            'h-10 w-10 items-center justify-center rounded-md',
             'bg-transparent',
-            'active:bg-gray-100/50 dark:active:bg-gray-800/50'
+            'active:bg-gray-100/50 dark:active:bg-gray-800/50',
           )}
         >
           <Settings size={18} color={isDark ? '#9ca3af' : '#6b7280'} />
@@ -93,14 +95,14 @@ export default function SettingsDropdown() {
 
         {/* Language Selection */}
         <View className="px-3 py-3">
-          <Text className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+          <Text className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">
             {t('setting.language', 'Ngôn ngữ')}
           </Text>
           <Select
             value={i18nInstance.language || 'vi'}
             onValueChange={handleUpdateLanguage}
           >
-            <Select.Trigger className="w-full h-9">
+            <Select.Trigger className="h-9 w-full">
               <Select.Value
                 className="text-sm"
                 placeholder={t('setting.selectLanguage', 'Chọn ngôn ngữ')}
@@ -113,7 +115,7 @@ export default function SettingsDropdown() {
                 <View className="flex-row items-center">
                   <Image
                     source={Images.Flags.US}
-                    className="w-4 h-4 mr-2"
+                    className="mr-2 h-4 w-4"
                     contentFit="contain"
                   />
                   <Text className="text-xs">English</Text>
@@ -123,7 +125,7 @@ export default function SettingsDropdown() {
                 <View className="flex-row items-center">
                   <Image
                     source={Images.Flags.VI}
-                    className="w-4 h-4 mr-2"
+                    className="mr-2 h-4 w-4"
                     contentFit="contain"
                   />
                   <Text className="text-xs">Tiếng Việt</Text>
@@ -137,14 +139,16 @@ export default function SettingsDropdown() {
 
         {/* Theme Selection */}
         <View className="px-3 py-3">
-          <Text className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+          <Text className="mb-2 text-xs font-medium text-gray-500 dark:text-gray-400">
             {t('setting.theme', 'Giao diện')}
           </Text>
           <Select
             value={theme || 'light'}
-            onValueChange={(value) => handleUpdateTheme(value as 'light' | 'dark')}
+            onValueChange={(value) =>
+              handleUpdateTheme(value as 'light' | 'dark')
+            }
           >
-            <Select.Trigger className="w-full h-9">
+            <Select.Trigger className="h-9 w-full">
               <Select.Value
                 placeholder={t('setting.selectTheme', 'Chọn giao diện')}
               >
@@ -155,13 +159,17 @@ export default function SettingsDropdown() {
               <Select.Item value="light">
                 <View className="flex-row items-center">
                   <Sun size={16} color="#6b7280" />
-                  <Text className="text-xs ml-2">{t('setting.light', 'Sáng')}</Text>
+                  <Text className="ml-2 text-xs">
+                    {t('setting.light', 'Sáng')}
+                  </Text>
                 </View>
               </Select.Item>
               <Select.Item value="dark">
                 <View className="flex-row items-center">
                   <Moon size={16} color="#6b7280" />
-                  <Text className="text-xs ml-2">{t('setting.dark', 'Tối')}</Text>
+                  <Text className="ml-2 text-xs">
+                    {t('setting.dark', 'Tối')}
+                  </Text>
                 </View>
               </Select.Item>
             </Select.Content>
@@ -171,4 +179,3 @@ export default function SettingsDropdown() {
     </DropdownMenu>
   )
 }
-

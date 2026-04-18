@@ -34,7 +34,9 @@ export const useCartDisplayStore = create<CartDisplayStore>((set) => ({
   displayItems: null,
 
   setRawSubTotal: (value) =>
-    set((state) => (state.rawSubTotal === value ? state : { rawSubTotal: value })),
+    set((state) =>
+      state.rawSubTotal === value ? state : { rawSubTotal: value },
+    ),
 
   setCartDisplay: (items, totals) =>
     set((state) => {

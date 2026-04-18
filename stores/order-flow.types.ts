@@ -169,7 +169,10 @@ export interface IOrderFlowStore {
   addApprovalBy: (approvalBy: string) => void
   addOrderType: (orderType: OrderTypeEnum) => void
   addOrderNote: (note: string) => void
-  setPaymentMethod: (method: PaymentMethod | string, transactionId?: string) => void
+  setPaymentMethod: (
+    method: PaymentMethod | string,
+    transactionId?: string,
+  ) => void
   setQrCode: (qrCode: string) => void
   setOrderSlug: (slug: string) => void
   removeCartItem: (itemId: string) => void

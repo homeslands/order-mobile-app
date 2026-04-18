@@ -21,7 +21,10 @@ export const PickupTimeChips = memo(function PickupTimeChips({
   onSelect,
 }: PickupTimeChipsProps) {
   const { t } = useTranslation('menu')
-  const { shouldRender, selectedValue, handleChange } = usePickupTime(defaultValue, onSelect)
+  const { shouldRender, selectedValue, handleChange } = usePickupTime(
+    defaultValue,
+    onSelect,
+  )
 
   const getLabel = useCallback(
     (minutes: number) =>
@@ -50,7 +53,10 @@ export const PickupTimeChips = memo(function PickupTimeChips({
               s.chip,
               isSelected
                 ? { backgroundColor: primaryColor, borderColor: primaryColor }
-                : { backgroundColor: 'transparent', borderColor: unselectedBorder },
+                : {
+                    backgroundColor: 'transparent',
+                    borderColor: unselectedBorder,
+                  },
             ]}
           >
             <Text

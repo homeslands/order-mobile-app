@@ -23,7 +23,9 @@ export const useUserStore = create<IUserStore>()(
       },
       getUserInfo: () => get().userInfo,
       removeUserInfo: () => {
-        set({ userInfo: null })
+        // Clear deviceToken so the next login re-registers FCM for the new account.
+        // If this is omitted, token === storedToken on next login → registration skipped.
+        set({ userInfo: null, deviceToken: null })
         useGiftCardStore.getState().clearGiftCard(false)
       },
       setIsVerifyingEmail: (isVerifyingEmail: boolean) =>

@@ -36,7 +36,10 @@ export const menuViewabilityConfig = {
   itemVisiblePercentThreshold: 50,
   minimumViewTime: 80,
 }
-export const menuOverrideItemLayout = (layout: { span?: number; size?: number }) => {
+export const menuOverrideItemLayout = (layout: {
+  span?: number
+  size?: number
+}) => {
   layout.size = MENU_ITEM_ESTIMATED_HEIGHT
 }
 
@@ -67,7 +70,9 @@ export const MenuItemRow = memo(
     const phaseCount = useContext(MenuImagePhaseContext)
     const showImage = listIndex < phaseCount
     const imagePriority =
-      showImage && listIndex < MENU_IMAGE_HIGH_PRIORITY_COUNT ? 'high' : 'normal'
+      showImage && listIndex < MENU_IMAGE_HIGH_PRIORITY_COUNT
+        ? 'high'
+        : 'normal'
     const hasPromotion = promotionValue > 0 && rawPrice > 0
     const discountedPrice = hasPromotion
       ? rawPrice * (1 - promotionValue / 100)
@@ -78,7 +83,9 @@ export const MenuItemRow = memo(
 
     const cardBg = isDark ? colors.card.dark : colors.card.light
     const nameColor = isDark ? colors.gray[50] : colors.gray[900]
-    const discountedColor = isDark ? colors.warning.dark : colors.warning.textLight
+    const discountedColor = isDark
+      ? colors.warning.dark
+      : colors.warning.textLight
     const originalColor = isDark ? colors.gray[500] : colors.gray[400]
     const badgeBg = isDark ? colors.destructive.dark : colors.destructive.light
 
@@ -98,28 +105,38 @@ export const MenuItemRow = memo(
             </View>
           </View>
           <View style={styles.content}>
-            <Text style={[styles.productName, { color: nameColor }]} numberOfLines={1}>
+            <Text
+              style={[styles.productName, { color: nameColor }]}
+              numberOfLines={1}
+            >
               {capitalizeFirst(name)}
             </Text>
             {hasPromotion ? (
-                <View style={styles.priceRow}>
-                  <Text style={[styles.priceDiscounted, { color: discountedColor }]}>
-                    {formatCurrencyNative(discountedPrice)}
-                  </Text>
-                  <View style={[styles.pricePromotionBadge, { backgroundColor: badgeBg }]}>
-                    <Text style={styles.pricePromotionText}>
-                      -{promotionValue}%
-                    </Text>
-                  </View>
-                  <Text style={[styles.priceOriginal, { color: originalColor }]}>
-                    {formatCurrencyNative(rawPrice)}
+              <View style={styles.priceRow}>
+                <Text
+                  style={[styles.priceDiscounted, { color: discountedColor }]}
+                >
+                  {formatCurrencyNative(discountedPrice)}
+                </Text>
+                <View
+                  style={[
+                    styles.pricePromotionBadge,
+                    { backgroundColor: badgeBg },
+                  ]}
+                >
+                  <Text style={styles.pricePromotionText}>
+                    -{promotionValue}%
                   </Text>
                 </View>
-              ) : (
-                <Text style={[styles.priceRegular, { color: primaryColor }]}>
+                <Text style={[styles.priceOriginal, { color: originalColor }]}>
                   {formatCurrencyNative(rawPrice)}
                 </Text>
-              )}
+              </View>
+            ) : (
+              <Text style={[styles.priceRegular, { color: primaryColor }]}>
+                {formatCurrencyNative(rawPrice)}
+              </Text>
+            )}
             <View style={styles.addButtonWrap}>
               <Pressable
                 onPress={handleAdd}

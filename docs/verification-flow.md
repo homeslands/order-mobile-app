@@ -2,18 +2,18 @@
 
 ## API Endpoints
 
-| Loại | Endpoint | Chức năng |
-|------|----------|-----------|
-| **Email** | `POST /auth/initiate-verify-email` | Gửi OTP |
-| | `POST /auth/confirm-email-verification/code` | Xác thực OTP |
-| | `POST /auth/resend-verify-email` | Gửi lại OTP |
-| **Phone** | `POST /auth/initiate-verify-phone-number` | Gửi OTP SMS |
-| | `POST /auth/confirm-phone-number-verification/code` | Xác thực OTP |
-| | `POST /auth/resend-verify-phone-number` | Gửi lại OTP |
-| **Forgot password** | `POST /auth/forgot-password/initiate` | Gửi OTP |
-| | `POST /auth/forgot-password/confirm` | Verify OTP → nhận token |
-| | `POST /auth/forgot-password/resend` | Gửi lại OTP |
-| | `POST /auth/forgot-password/change` | Đổi password bằng token |
+| Loại                | Endpoint                                            | Chức năng               |
+| ------------------- | --------------------------------------------------- | ----------------------- |
+| **Email**           | `POST /auth/initiate-verify-email`                  | Gửi OTP                 |
+|                     | `POST /auth/confirm-email-verification/code`        | Xác thực OTP            |
+|                     | `POST /auth/resend-verify-email`                    | Gửi lại OTP             |
+| **Phone**           | `POST /auth/initiate-verify-phone-number`           | Gửi OTP SMS             |
+|                     | `POST /auth/confirm-phone-number-verification/code` | Xác thực OTP            |
+|                     | `POST /auth/resend-verify-phone-number`             | Gửi lại OTP             |
+| **Forgot password** | `POST /auth/forgot-password/initiate`               | Gửi OTP                 |
+|                     | `POST /auth/forgot-password/confirm`                | Verify OTP → nhận token |
+|                     | `POST /auth/forgot-password/resend`                 | Gửi lại OTP             |
+|                     | `POST /auth/forgot-password/change`                 | Đổi password bằng token |
 
 ---
 
@@ -64,17 +64,17 @@ Step 3 — Đổi mật khẩu
 
 ## Components
 
-| File | Chức năng |
-|------|-----------|
-| `src/components/ui/otp-input.tsx` | 6 ô OTP, auto-focus, paste, arrow keys |
-| `src/components/ui/countdown-timer.tsx` | Đếm ngược từ `expiresAt`, callback `onExpired` |
-| `src/components/app/dialog/send-verify-email-dialog.tsx` | Dialog xác thực email (2 state: nhập email → nhập OTP) |
-| `src/components/app/dialog/send-verify-phone-number-dialog.tsx` | Dialog xác thực SĐT (2 state: confirm SĐT → nhập OTP) |
-| `src/components/app/form/forgot-password-by-phone-form.tsx` | Form nhập SĐT cho forgot password |
-| `src/components/app/form/forgot-password-by-email-form.tsx` | Form nhập email cho forgot password |
-| `src/components/app/form/update-phone-number-form.tsx` | Form cập nhật SĐT (dùng trong scan RFID dialog) |
-| `src/app/auth/forgot-password-by-phone.tsx` | Page forgot password qua SĐT (3 bước) |
-| `src/app/auth/forgot-password-by-email.tsx` | Page forgot password qua email (3 bước) |
+| File                                                            | Chức năng                                              |
+| --------------------------------------------------------------- | ------------------------------------------------------ |
+| `src/components/ui/otp-input.tsx`                               | 6 ô OTP, auto-focus, paste, arrow keys                 |
+| `src/components/ui/countdown-timer.tsx`                         | Đếm ngược từ `expiresAt`, callback `onExpired`         |
+| `src/components/app/dialog/send-verify-email-dialog.tsx`        | Dialog xác thực email (2 state: nhập email → nhập OTP) |
+| `src/components/app/dialog/send-verify-phone-number-dialog.tsx` | Dialog xác thực SĐT (2 state: confirm SĐT → nhập OTP)  |
+| `src/components/app/form/forgot-password-by-phone-form.tsx`     | Form nhập SĐT cho forgot password                      |
+| `src/components/app/form/forgot-password-by-email-form.tsx`     | Form nhập email cho forgot password                    |
+| `src/components/app/form/update-phone-number-form.tsx`          | Form cập nhật SĐT (dùng trong scan RFID dialog)        |
+| `src/app/auth/forgot-password-by-phone.tsx`                     | Page forgot password qua SĐT (3 bước)                  |
+| `src/app/auth/forgot-password-by-email.tsx`                     | Page forgot password qua email (3 bước)                |
 
 ---
 
@@ -84,20 +84,20 @@ File: `src/hooks/use-auth.ts`
 
 ```ts
 // Email Verification
-useVerifyEmail()                  // POST /auth/initiate-verify-email
-useConfirmEmailVerification()     // POST /auth/confirm-email-verification/code
-useResendEmailVerification()      // POST /auth/resend-verify-email
+useVerifyEmail() // POST /auth/initiate-verify-email
+useConfirmEmailVerification() // POST /auth/confirm-email-verification/code
+useResendEmailVerification() // POST /auth/resend-verify-email
 
 // Phone Verification
-useVerifyPhoneNumber()            // POST /auth/initiate-verify-phone-number
+useVerifyPhoneNumber() // POST /auth/initiate-verify-phone-number
 useConfirmPhoneNumberVerification() // POST /auth/confirm-phone-number-verification/code
-useResendPhoneNumberVerification()  // POST /auth/resend-verify-phone-number
+useResendPhoneNumberVerification() // POST /auth/resend-verify-phone-number
 
 // Forgot Password
-useInitiateForgotPassword()       // POST /auth/forgot-password/initiate
-useVerifyOTPForgotPassword()      // POST /auth/forgot-password/confirm
-useResendOTPForgotPassword()      // POST /auth/forgot-password/resend
-useConfirmForgotPassword()        // POST /auth/forgot-password/change
+useInitiateForgotPassword() // POST /auth/forgot-password/initiate
+useVerifyOTPForgotPassword() // POST /auth/forgot-password/confirm
+useResendOTPForgotPassword() // POST /auth/forgot-password/resend
+useConfirmForgotPassword() // POST /auth/forgot-password/change
 ```
 
 ---
@@ -105,6 +105,7 @@ useConfirmForgotPassword()        // POST /auth/forgot-password/change
 ## State Management
 
 ### useUserStore (`src/stores/user.store.ts`)
+
 ```ts
 emailVerificationStatus: { expiresAt: string; slug?: string } | null
 phoneNumberVerificationStatus: { expiresAt: string; slug?: string } | null
@@ -113,14 +114,15 @@ isVerifyingPhoneNumber: boolean
 ```
 
 ### useForgotPasswordStore (`src/stores/forgot-password.store.ts`)
+
 ```ts
-step: number              // 1: nhập phone/email, 2: OTP, 3: reset password
-token: string             // reset token nhận từ /confirm
+step: number // 1: nhập phone/email, 2: OTP, 3: reset password
+token: string // reset token nhận từ /confirm
 email: string
 phoneNumber: string
 verificationMethod: 'email' | 'phone-number'
-expireTime: string        // OTP expiration (ISO)
-tokenExpireTime: string   // token expiration (FE tự tính, 5 phút)
+expireTime: string // OTP expiration (ISO)
+tokenExpireTime: string // token expiration (FE tự tính, 5 phút)
 ```
 
 ---
@@ -128,31 +130,33 @@ tokenExpireTime: string   // token expiration (FE tự tính, 5 phút)
 ## Types
 
 File: `src/types/auth.type.ts`
+
 ```ts
-IInitiateForgotPasswordRequest    // { email?, phonenumber?, verificationMethod }
-IVerifyOTPForgotPasswordRequest   // { code }
-IResendOTPForgotPasswordRequest   // { email?, phonenumber?, verificationMethod }
-IConfirmForgotPasswordRequest     // { newPassword, token }
-IInitiateForgotPasswordResponse   // { expiresAt }
-IVerifyOTPForgotPasswordResponse  // { token }
+IInitiateForgotPasswordRequest // { email?, phonenumber?, verificationMethod }
+IVerifyOTPForgotPasswordRequest // { code }
+IResendOTPForgotPasswordRequest // { email?, phonenumber?, verificationMethod }
+IConfirmForgotPasswordRequest // { newPassword, token }
+IInitiateForgotPasswordResponse // { expiresAt }
+IVerifyOTPForgotPasswordResponse // { token }
 ```
 
 File: `src/types/profile.type.ts`
+
 ```ts
-IVerifyEmailRequest               // { accessToken, email }
-IEmailVerificationResponse        // { expiresAt, slug, createdAt }
+IVerifyEmailRequest // { accessToken, email }
+IEmailVerificationResponse // { expiresAt, slug, createdAt }
 ```
 
 ---
 
 ## Validation
 
-| Field | Rule |
-|-------|------|
-| SĐT | `/^[0-9]{10,11}$/` |
-| Email | `z.string().email()` |
-| OTP | 6 ký tự (số hoặc chữ tùy `allowText` prop) |
-| Password | min 8, max 20 ký tự |
+| Field    | Rule                                       |
+| -------- | ------------------------------------------ |
+| SĐT      | `/^[0-9]{10,11}$/`                         |
+| Email    | `z.string().email()`                       |
+| OTP      | 6 ký tự (số hoặc chữ tùy `allowText` prop) |
+| Password | min 8, max 20 ký tự                        |
 
 ---
 

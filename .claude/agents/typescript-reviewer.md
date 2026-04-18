@@ -18,6 +18,7 @@ You are a TypeScript strict-mode reviewer for this Expo + React Native project. 
 ## What to audit
 
 ### 1. Unsafe `any`
+
 - Explicit `any` in type annotations → use `unknown` and narrow
 - Implicit `any` from untyped function params, missing generics
 - `as any` casts → replace with proper type or `as unknown as T` with comment
@@ -35,6 +36,7 @@ function handle(data: unknown) {
 ```
 
 ### 2. Unhandled Promises
+
 - `async` function called without `await` or `.catch()` → floating promise
 - `useEffect` callback that is `async` (React doesn't handle the returned Promise)
 - `Promise.all` not awaited
@@ -42,7 +44,9 @@ function handle(data: unknown) {
 
 ```ts
 // Bad — useEffect async
-useEffect(async () => { await fetchData() }, [])
+useEffect(async () => {
+  await fetchData()
+}, [])
 
 // Good
 useEffect(() => {
@@ -51,6 +55,7 @@ useEffect(() => {
 ```
 
 ### 3. Missing Return Types
+
 - Exported functions without explicit return type annotation
 - Custom hooks missing return type
 - API service functions without `Promise<IApiResponse<T>>`
@@ -62,18 +67,23 @@ export function useCart() {
 }
 
 // Good
-export function useCart(): { items: ICartItem[]; addItem: (item: ICartItem) => void } {
+export function useCart(): {
+  items: ICartItem[]
+  addItem: (item: ICartItem) => void
+} {
   return { items, addItem }
 }
 ```
 
 ### 4. API / Zod Type Alignment
+
 - Zod schema fields don't match the corresponding `I*` interface
 - `z.infer<typeof schema>` not used where the schema exists (duplicated manual types)
 - API response typed as `any` or `unknown` without narrowing
 - `IApiResponse<T>` generic not applied (raw `response.data` without typing)
 
 ### 5. React Component Typing
+
 - Props interface not defined (inline object type or no type at all)
 - `React.FC` used (prefer explicit props + return type)
 - `forwardRef` ref type not matching the element
@@ -81,16 +91,19 @@ export function useCart(): { items: ICartItem[]; addItem: (item: ICartItem) => v
 - `children?: React.ReactNode` missing when component renders children
 
 ### 6. Zustand Store Typing
+
 - Store state interface not defined separately (inline object type in `create<>`)
 - Selectors returning `any` or missing explicit return types
 - Store actions with untyped parameters
 
 ### 7. Null / Undefined Safety
+
 - Optional chaining `?.` missing where value can be `null | undefined`
 - Non-null assertion `!` used without certainty
 - Array index access `arr[0]` without checking length (noUncheckedIndexedAccess)
 
 ### 8. Enum / Const patterns
+
 - `enum` used → prefer `as const` objects (tree-shakeable, more predictable)
 - String literals not extracted to a const union type
 
@@ -115,6 +128,7 @@ Group findings by file, then by severity:
 ```
 
 Severity:
+
 - **HIGH** — will cause runtime errors, breaks strict mode build, or hides real bugs
 - **MED** — passes build but reduces type safety in ways that can mask future bugs
 - **LOW** — style/convention issues that reduce readability

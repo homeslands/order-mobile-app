@@ -36,57 +36,57 @@ function OrderItemsListInner({
   return (
     <>
       {!pricingSummaryOnly && (
-      <View className="mt-6 flex-col gap-4 border-t border-dashed border-gray-300 px-2 py-4 dark:border-gray-600">
-        {order?.orderItems.map((item) => (
-          <View
-            key={item.id}
-            className="flex-row items-center justify-between"
-          >
-            <View className="flex-1 flex-col gap-2">
-              <Text className="font-bold">{item.name}</Text>
-              <View className="flex-row gap-2">
-                <Badge className="w-fit text-xs" variant="outline">
-                  <Text className="text-gray-600 dark:text-gray-400">
-                    Size {item.size.toUpperCase()}
+        <View className="mt-6 flex-col gap-4 border-t border-dashed border-gray-300 px-2 py-4 dark:border-gray-600">
+          {order?.orderItems.map((item) => (
+            <View
+              key={item.id}
+              className="flex-row items-center justify-between"
+            >
+              <View className="flex-1 flex-col gap-2">
+                <Text className="font-bold">{item.name}</Text>
+                <View className="flex-row gap-2">
+                  <Badge className="w-fit text-xs" variant="outline">
+                    <Text className="text-gray-600 dark:text-gray-400">
+                      Size {item.size.toUpperCase()}
+                    </Text>
+                  </Badge>
+                  <Text className="text-sm text-gray-600 dark:text-gray-400">
+                    x{item.quantity}
                   </Text>
-                </Badge>
-                <Text className="text-sm text-gray-600 dark:text-gray-400">
-                  x{item.quantity}
-                </Text>
+                </View>
               </View>
-            </View>
-            {(() => {
-              const finalPrice =
-                (displayItemsBySlug.get(item.slug ?? '')?.finalPrice ??
-                  0) * item.quantity
-              const original =
-                (item.originalPrice ?? item.originalPrice ?? 0) *
-                item.quantity
+              {(() => {
+                const finalPrice =
+                  (displayItemsBySlug.get(item.slug ?? '')?.finalPrice ?? 0) *
+                  item.quantity
+                const original =
+                  (item.originalPrice ?? item.originalPrice ?? 0) *
+                  item.quantity
 
-              const hasDiscount = original > finalPrice
+                const hasDiscount = original > finalPrice
 
-              return (
-                <View className="flex-row items-center gap-1">
-                  {hasDiscount ? (
-                    <>
-                      <Text className="mr-1 text-gray-400 line-through">
-                        {formatCurrency(original)}
-                      </Text>
+                return (
+                  <View className="flex-row items-center gap-1">
+                    {hasDiscount ? (
+                      <>
+                        <Text className="mr-1 text-gray-400 line-through">
+                          {formatCurrency(original)}
+                        </Text>
+                        <Text className="font-bold text-primary dark:text-primary">
+                          {formatCurrency(finalPrice)}
+                        </Text>
+                      </>
+                    ) : (
                       <Text className="font-bold text-primary dark:text-primary">
                         {formatCurrency(finalPrice)}
                       </Text>
-                    </>
-                  ) : (
-                    <Text className="font-bold text-primary dark:text-primary">
-                      {formatCurrency(finalPrice)}
-                    </Text>
-                  )}
-                </View>
-              )
-            })()}
-          </View>
-        ))}
-      </View>
+                    )}
+                  </View>
+                )
+              })()}
+            </View>
+          ))}
+        </View>
       )}
 
       {/* Pricing Summary */}
@@ -132,9 +132,7 @@ function OrderItemsListInner({
             {t('order.totalPayment')}:{' '}
           </Text>
           <Text className="text-2xl font-extrabold text-primary">
-            {formatCurrency(
-              cartTotals.finalTotal + deliveryFee,
-            )}
+            {formatCurrency(cartTotals.finalTotal + deliveryFee)}
           </Text>
         </View>
       </View>

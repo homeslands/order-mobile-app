@@ -23,11 +23,11 @@ export const useThemeStore = create<IThemeStore>()(
         set({ theme })
         applyTheme(theme as ThemeMode)
       },
-      getTheme: () => get().theme
+      getTheme: () => get().theme,
     }),
     {
       name: 'theme-storage',
       storage: createJSONStorage(() => createSafeStorage()),
-    }
-  )
+    },
+  ),
 )

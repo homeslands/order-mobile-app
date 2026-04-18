@@ -52,7 +52,7 @@ export const ForgotPasswordIdentityForm = React.memo(
           {isLoading ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text className="text-sm font-sans-semibold text-primary-foreground">
+            <Text className="font-sans-semibold text-sm text-white">
               {t('forgotPassword.sendCode')}
             </Text>
           )}
@@ -62,7 +62,7 @@ export const ForgotPasswordIdentityForm = React.memo(
           onPress={() => navigateNative.replace(ROUTE.LOGIN)}
           disabled={isLoading}
         >
-          <Text className="text-center text-sm font-sans-medium text-primary">
+          <Text className="text-center font-sans-medium text-sm text-amber-500 dark:text-amber-400">
             {t('forgotPassword.backToLogin')}
           </Text>
         </TouchableOpacity>

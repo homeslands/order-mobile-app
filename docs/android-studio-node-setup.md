@@ -101,6 +101,7 @@ cd android && ./gradlew tasks
 ### Lỗi "Invalid Gradle JDK configuration"
 
 Trong Android Studio:
+
 - **File → Settings → Build, Execution, Deployment → Build Tools → Gradle**
 - **Gradle JDK** → chọn **"jbr-21 Android Studio default JDK"** hoặc click **"Use Embedded JDK"**
 

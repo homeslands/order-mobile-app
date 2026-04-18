@@ -37,7 +37,9 @@ function getFormatCurrencyNative(): ((v: number, c: string) => string) | null {
   if (_formatCurrencyNative != null) return _formatCurrencyNative
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports -- Optional native; dynamic require cho fallback web/Expo Go
-    const mod = require('cart-price-calc') as { formatCurrencyNative: (v: number, c: string) => string }
+    const mod = require('cart-price-calc') as {
+      formatCurrencyNative: (v: number, c: string) => string
+    }
     _formatCurrencyNative = mod.formatCurrencyNative
     return _formatCurrencyNative
   } catch {
@@ -71,8 +73,10 @@ export function formatCurrency(value: number, currency = 'đ'): string {
  * @param withSymbol - Whether to include currency symbol (default: true)
  * @returns Formatted string (e.g., "100.000 ₫" or "100.000")
  */
-export const formatCurrencyWithSymbol = (value: number, withSymbol = true): string =>
-  formatCurrency(value, withSymbol ? '₫' : '')
+export const formatCurrencyWithSymbol = (
+  value: number,
+  withSymbol = true,
+): string => formatCurrency(value, withSymbol ? '₫' : '')
 
 /**
  * Format currency to short format (e.g., "100K")
@@ -112,5 +116,3 @@ export function capitalizeFirst(text: string): string {
   if (!text) return text
   return text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()
 }
-
-

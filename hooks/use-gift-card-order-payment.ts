@@ -13,7 +13,9 @@ import { NotificationMessageCode } from '@/constants'
 import { useNotificationStore } from '@/stores/notification.store'
 import { useCardOrderBySlug } from './use-card-order'
 
-export function useGiftCardOrderPayment(cardOrderSlug: string | null | undefined) {
+export function useGiftCardOrderPayment(
+  cardOrderSlug: string | null | undefined,
+) {
   const { data: order, isPending, refetch } = useCardOrderBySlug(cardOrderSlug)
 
   // Refetch on screen focus — catches background FCM that didn't go through store
@@ -31,13 +33,12 @@ export function useGiftCardOrderPayment(cardOrderSlug: string | null | undefined
     if (!latestNotification || latestNotification.isRead) return
     if (processedRef.current.has(latestNotification.slug)) return
     if (
-      latestNotification.message === NotificationMessageCode.CARD_ORDER_PAID &&
-      latestNotification.metadata?.order === cardOrderSlug
+      latestNotification.message === NotificationMessageCode.CARD_ORDER_PAID
     ) {
       processedRef.current.add(latestNotification.slug)
       void refetch()
     }
-  }, [latestNotification, cardOrderSlug, refetch])
+  }, [latestNotification, refetch])
 
   return { order, isPending, refetch }
 }

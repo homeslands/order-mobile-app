@@ -62,6 +62,7 @@ export const RecipientFormItem = memo(function RecipientFormItem({
   const handleRemove = useCallback(() => onRemove(index), [index, onRemove])
 
   const phoneError = errors.recipients?.[index]?.phone?.message
+  const recipientSlugError = errors.recipients?.[index]?.recipientSlug?.message
   const quantityError = errors.recipients?.[index]?.quantity?.message
 
   const phoneValue = useWatch({ control, name: `recipients.${index}.phone` })
@@ -80,14 +81,18 @@ export const RecipientFormItem = memo(function RecipientFormItem({
   const showSuggestion = !!fullName && !nameLocked && !currentName
 
   const handleSelectSuggestion = useCallback(() => {
-    if (fullName) {
+    if (fullName && suggestedUser) {
       Keyboard.dismiss()
+      setValue(`recipients.${index}.recipientSlug`, suggestedUser.slug, {
+        shouldValidate: true,
+      })
       setValue(`recipients.${index}.name`, fullName, { shouldValidate: false })
       setNameLocked(true)
     }
-  }, [fullName, index, setValue])
+  }, [fullName, suggestedUser, index, setValue])
 
   const handleUnlockName = useCallback(() => {
+    setValue(`recipients.${index}.recipientSlug`, '', { shouldValidate: false })
     setValue(`recipients.${index}.name`, '', { shouldValidate: false })
     setValue(`recipients.${index}.phone`, '', { shouldValidate: false })
     setNameLocked(false)
@@ -108,7 +113,8 @@ export const RecipientFormItem = memo(function RecipientFormItem({
       {/* Phone */}
       <View style={s.field}>
         <Text style={[s.fieldLabel, { color: subColor }]}>
-          {t('recipientForm.phone')} <Text style={{ color: colors.destructive.light }}>*</Text>
+          {t('recipientForm.phone')}{' '}
+          <Text style={{ color: colors.destructive.light }}>*</Text>
         </Text>
         <Controller
           control={control}
@@ -126,25 +132,47 @@ export const RecipientFormItem = memo(function RecipientFormItem({
           )}
         />
         {!!phoneError && <Text style={s.errorText}>{phoneError}</Text>}
+        {!phoneError && !!recipientSlugError && (
+          <Text style={s.errorText}>{recipientSlugError}</Text>
+        )}
 
         {/* Suggestion / loading */}
         {isFetching && (
-          <View style={[s.suggestion, { backgroundColor: suggestionBg, borderColor }]}>
+          <View
+            style={[
+              s.suggestion,
+              { backgroundColor: suggestionBg, borderColor },
+            ]}
+          >
             <ActivityIndicator size="small" color={subColor} />
-            <Text style={[s.suggestionHint, { color: subColor }]}>{t('recipientForm.searching')}</Text>
+            <Text style={[s.suggestionHint, { color: subColor }]}>
+              {t('recipientForm.searching')}
+            </Text>
           </View>
         )}
         {!isFetching && showSuggestion && (
           <Pressable
             onPress={handleSelectSuggestion}
-            style={[s.suggestion, { backgroundColor: suggestionBg, borderColor }]}
+            style={[
+              s.suggestion,
+              { backgroundColor: suggestionBg, borderColor },
+            ]}
           >
-            <View style={[s.suggestionAvatar, { backgroundColor: `${primaryColor}20` }]}>
+            <View
+              style={[
+                s.suggestionAvatar,
+                { backgroundColor: `${primaryColor}20` },
+              ]}
+            >
               <UserRound size={14} color={primaryColor} />
             </View>
             <View style={s.suggestionText}>
-              <Text style={[s.suggestionName, { color: textColor }]}>{fullName}</Text>
-              <Text style={[s.suggestionHint, { color: subColor }]}>{t('recipientForm.tapToFill')}</Text>
+              <Text style={[s.suggestionName, { color: textColor }]}>
+                {fullName}
+              </Text>
+              <Text style={[s.suggestionHint, { color: subColor }]}>
+                {t('recipientForm.tapToFill')}
+              </Text>
             </View>
           </Pressable>
         )}
@@ -152,12 +180,25 @@ export const RecipientFormItem = memo(function RecipientFormItem({
 
       {/* Name */}
       <View style={s.field}>
-        <Text style={[s.fieldLabel, { color: subColor }]}>{t('recipientForm.name')}</Text>
+        <Text style={[s.fieldLabel, { color: subColor }]}>
+          {t('recipientForm.name')}
+        </Text>
         {nameLocked ? (
           /* Readonly — autofill từ suggestion */
-          <View style={[s.nameLockedWrap, { borderColor: `${primaryColor}60`, backgroundColor: `${primaryColor}10` }]}>
+          <View
+            style={[
+              s.nameLockedWrap,
+              {
+                borderColor: `${primaryColor}60`,
+                backgroundColor: `${primaryColor}10`,
+              },
+            ]}
+          >
             <UserRound size={14} color={primaryColor} />
-            <Text style={[s.nameLockedText, { color: primaryColor }]} numberOfLines={1}>
+            <Text
+              style={[s.nameLockedText, { color: primaryColor }]}
+              numberOfLines={1}
+            >
               {currentName}
             </Text>
             <Pressable onPress={handleUnlockName} hitSlop={8}>
@@ -183,7 +224,8 @@ export const RecipientFormItem = memo(function RecipientFormItem({
       {/* Quantity — stepper */}
       <View style={s.field}>
         <Text style={[s.fieldLabel, { color: subColor }]}>
-          {t('recipientForm.quantityLabel')} <Text style={{ color: colors.destructive.light }}>*</Text>
+          {t('recipientForm.quantityLabel')}{' '}
+          <Text style={{ color: colors.destructive.light }}>*</Text>
         </Text>
         <Controller
           control={control}
@@ -224,7 +266,9 @@ export const RecipientFormItem = memo(function RecipientFormItem({
 
       {/* Message */}
       <View style={s.field}>
-        <Text style={[s.fieldLabel, { color: subColor }]}>{t('recipientForm.messageLabel')}</Text>
+        <Text style={[s.fieldLabel, { color: subColor }]}>
+          {t('recipientForm.messageLabel')}
+        </Text>
         <Controller
           control={control}
           name={`recipients.${index}.message`}

@@ -11,7 +11,13 @@
 const TARGET_MIN_FPS = 45
 
 function isDisabled(): boolean {
-  const g = typeof global !== 'undefined' ? (global as { __ENABLE_TRANSITION_FPS_MONITOR?: boolean; __DISABLE_TRANSITION_FPS_MONITOR?: boolean }) : null
+  const g =
+    typeof global !== 'undefined'
+      ? (global as {
+          __ENABLE_TRANSITION_FPS_MONITOR?: boolean
+          __DISABLE_TRANSITION_FPS_MONITOR?: boolean
+        })
+      : null
   if (!g) return true
   if (g.__DISABLE_TRANSITION_FPS_MONITOR) return true
   return !g.__ENABLE_TRANSITION_FPS_MONITOR
@@ -98,19 +104,23 @@ export function stopTransitionFPSMonitor(): void {
 
   const status = result.passed ? '✅ PASS' : '❌ FAIL'
   // eslint-disable-next-line no-console
-  console.log(
+  console['log'](
     `[TransitionFPS] ${status} attempt ${attemptCount}: min=${result.minFps} fps (target ≥${TARGET_MIN_FPS}), frames=${result.frames}, duration=${result.durationMs}ms`,
   )
 }
 
 /** Tắt FPS monitor (gọi trước app mount) */
 export function disableTransitionFPSMonitor(): void {
-  ;(global as { __DISABLE_TRANSITION_FPS_MONITOR?: boolean }).__DISABLE_TRANSITION_FPS_MONITOR = true
+  ;(
+    global as { __DISABLE_TRANSITION_FPS_MONITOR?: boolean }
+  ).__DISABLE_TRANSITION_FPS_MONITOR = true
 }
 
 /** Bật FPS monitor để profile (mặc định tắt) */
 export function enableTransitionFPSMonitor(): void {
-  ;(global as { __ENABLE_TRANSITION_FPS_MONITOR?: boolean }).__ENABLE_TRANSITION_FPS_MONITOR = true
+  ;(
+    global as { __ENABLE_TRANSITION_FPS_MONITOR?: boolean }
+  ).__ENABLE_TRANSITION_FPS_MONITOR = true
 }
 
 export function getTransitionFPSResults(): FPSResult[] {

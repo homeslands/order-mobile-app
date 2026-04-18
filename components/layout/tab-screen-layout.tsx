@@ -26,7 +26,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '@/constants'
 
 /**
- * Chiều cao tab bar vật lý: BAR_HEIGHT(64) + BAR_PADDING(8) + FADE buffer(16).
+ * Chiều cao tab bar vật lý: BAR_HEIGHT(64) + BAR_PADDING(8) + MIN_GAP(8) + FADE buffer(8).
  * Đây là phần cố định — không phụ thuộc safe area.
  */
 const TAB_BAR_HEIGHT = 88

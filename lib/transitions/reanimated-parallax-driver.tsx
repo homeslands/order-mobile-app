@@ -25,7 +25,9 @@ export type ParallaxDriverContextValue = {
   screenWidth: number
 }
 
-const ParallaxDriverContext = createContext<ParallaxDriverContextValue | null>(null)
+const ParallaxDriverContext = createContext<ParallaxDriverContextValue | null>(
+  null,
+)
 
 export function ParallaxDriverProvider({
   children,
@@ -49,7 +51,9 @@ export function ParallaxDriverProvider({
 export function useParallaxDriver(): ParallaxDriverContextValue {
   const ctx = useContext(ParallaxDriverContext)
   if (!ctx) {
-    throw new Error('useParallaxDriver must be used within ParallaxDriverProvider')
+    throw new Error(
+      'useParallaxDriver must be used within ParallaxDriverProvider',
+    )
   }
   return ctx
 }
@@ -132,7 +136,9 @@ export function useShadowOpacityStyle(isClosing: boolean) {
     const shadowOpacity = interpolate(
       p,
       [0, 1],
-      isClosing ? [PARALLAX_SHADOW_OPACITY_END, 0] : [0, PARALLAX_SHADOW_OPACITY_END],
+      isClosing
+        ? [PARALLAX_SHADOW_OPACITY_END, 0]
+        : [0, PARALLAX_SHADOW_OPACITY_END],
     )
     return { shadowOpacity }
   })

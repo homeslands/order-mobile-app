@@ -12,57 +12,65 @@ interface PickupTimeChipsInUpdateOrderProps {
   primaryColor: string
 }
 
-export const PickupTimeChipsInUpdateOrder = memo(function PickupTimeChipsInUpdateOrder({
-  isDark,
-  primaryColor,
-}: PickupTimeChipsInUpdateOrderProps) {
-  const { t } = useTranslation('menu')
-  const { shouldRender, selectedValue, handleChange } = usePickupTimeForUpdateOrder()
+export const PickupTimeChipsInUpdateOrder = memo(
+  function PickupTimeChipsInUpdateOrder({
+    isDark,
+    primaryColor,
+  }: PickupTimeChipsInUpdateOrderProps) {
+    const { t } = useTranslation('menu')
+    const { shouldRender, selectedValue, handleChange } =
+      usePickupTimeForUpdateOrder()
 
-  const getLabel = useCallback(
-    (minutes: number) =>
-      minutes === 0 ? t('menu.immediately') : `${minutes} ${t('menu.minutes')}`,
-    [t],
-  )
+    const getLabel = useCallback(
+      (minutes: number) =>
+        minutes === 0
+          ? t('menu.immediately')
+          : `${minutes} ${t('menu.minutes')}`,
+      [t],
+    )
 
-  if (!shouldRender) return null
+    if (!shouldRender) return null
 
-  const unselectedBorder = isDark ? colors.gray[700] : colors.gray[200]
-  const unselectedText = isDark ? colors.gray[400] : colors.gray[500]
+    const unselectedBorder = isDark ? colors.gray[700] : colors.gray[200]
+    const unselectedText = isDark ? colors.gray[400] : colors.gray[500]
 
-  return (
-    <ScrollView
-      horizontal
-      showsHorizontalScrollIndicator={false}
-      contentContainerStyle={s.row}
-    >
-      {PICKUP_TIME_OPTIONS.map((minutes) => {
-        const isSelected = selectedValue === minutes.toString()
-        return (
-          <Pressable
-            key={minutes}
-            onPress={() => handleChange(minutes.toString())}
-            style={[
-              s.chip,
-              isSelected
-                ? { backgroundColor: primaryColor, borderColor: primaryColor }
-                : { backgroundColor: 'transparent', borderColor: unselectedBorder },
-            ]}
-          >
-            <Text
+    return (
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={s.row}
+      >
+        {PICKUP_TIME_OPTIONS.map((minutes) => {
+          const isSelected = selectedValue === minutes.toString()
+          return (
+            <Pressable
+              key={minutes}
+              onPress={() => handleChange(minutes.toString())}
               style={[
-                s.chipText,
-                { color: isSelected ? colors.white.light : unselectedText },
+                s.chip,
+                isSelected
+                  ? { backgroundColor: primaryColor, borderColor: primaryColor }
+                  : {
+                      backgroundColor: 'transparent',
+                      borderColor: unselectedBorder,
+                    },
               ]}
             >
-              {getLabel(minutes)}
-            </Text>
-          </Pressable>
-        )
-      })}
-    </ScrollView>
-  )
-})
+              <Text
+                style={[
+                  s.chipText,
+                  { color: isSelected ? colors.white.light : unselectedText },
+                ]}
+              >
+                {getLabel(minutes)}
+              </Text>
+            </Pressable>
+          )
+        })}
+      </ScrollView>
+    )
+  },
+)
 
 const s = StyleSheet.create({
   row: {

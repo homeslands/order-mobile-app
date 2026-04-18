@@ -43,7 +43,9 @@ export const SimpleOrderTypeSheetInUpdateOrder = memo(
     )
 
     const bgStyle = useMemo(
-      () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
+      () => ({
+        backgroundColor: isDark ? colors.gray[900] : colors.white.light,
+      }),
       [isDark],
     )
 
@@ -88,60 +90,67 @@ export const SimpleOrderTypeSheetInUpdateOrder = memo(
         backgroundStyle={bgStyle}
         onDismiss={onClose}
       >
-            <View style={s.content}>
-              <Text style={[s.title, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>
-                {t('menu.orderType')}
-              </Text>
-              {orderTypes.map((opt) => {
-                const selected = selectedType === opt.value
-                const iconColor = selected
-                  ? primaryColor
-                  : isDark
-                    ? colors.gray[400]
-                    : colors.gray[500]
-                const Icon =
-                  opt.value === OrderTypeEnum.TAKE_OUT
-                    ? PackageCheck
-                    : opt.value === OrderTypeEnum.DELIVERY
-                      ? Bike
-                      : UtensilsCrossed
-                return (
-                  <Pressable
-                    key={opt.value}
-                    onPress={() => handleSelect(opt.value)}
-                    style={[
-                      s.option,
-                      {
-                        borderColor: selected
-                          ? primaryColor
-                          : isDark
-                            ? colors.gray[700]
-                            : colors.gray[200],
-                        backgroundColor: selected ? `${primaryColor}10` : 'transparent',
-                      },
-                    ]}
-                  >
-                    <Icon size={18} color={iconColor} />
-                    <Text
-                      style={[
-                        s.optionLabel,
-                        {
-                          fontWeight: selected ? '600' : '400',
-                          color: isDark ? colors.gray[50] : colors.gray[900],
-                        },
-                      ]}
-                    >
-                      {opt.label}
-                    </Text>
-                    {selected && (
-                      <View style={[s.radio, { backgroundColor: primaryColor }]}>
-                        <View style={s.radioDot} />
-                      </View>
-                    )}
-                  </Pressable>
-                )
-              })}
-            </View>
+        <View style={s.content}>
+          <Text
+            style={[
+              s.title,
+              { color: isDark ? colors.gray[50] : colors.gray[900] },
+            ]}
+          >
+            {t('menu.orderType')}
+          </Text>
+          {orderTypes.map((opt) => {
+            const selected = selectedType === opt.value
+            const iconColor = selected
+              ? primaryColor
+              : isDark
+                ? colors.gray[400]
+                : colors.gray[500]
+            const Icon =
+              opt.value === OrderTypeEnum.TAKE_OUT
+                ? PackageCheck
+                : opt.value === OrderTypeEnum.DELIVERY
+                  ? Bike
+                  : UtensilsCrossed
+            return (
+              <Pressable
+                key={opt.value}
+                onPress={() => handleSelect(opt.value)}
+                style={[
+                  s.option,
+                  {
+                    borderColor: selected
+                      ? primaryColor
+                      : isDark
+                        ? colors.gray[700]
+                        : colors.gray[200],
+                    backgroundColor: selected
+                      ? `${primaryColor}10`
+                      : 'transparent',
+                  },
+                ]}
+              >
+                <Icon size={18} color={iconColor} />
+                <Text
+                  style={[
+                    s.optionLabel,
+                    {
+                      fontWeight: selected ? '600' : '400',
+                      color: isDark ? colors.gray[50] : colors.gray[900],
+                    },
+                  ]}
+                >
+                  {opt.label}
+                </Text>
+                {selected && (
+                  <View style={[s.radio, { backgroundColor: primaryColor }]}>
+                    <View style={s.radioDot} />
+                  </View>
+                )}
+              </Pressable>
+            )
+          })}
+        </View>
       </BottomSheetModal>
     )
   },

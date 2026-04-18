@@ -47,6 +47,7 @@
     "createMenuFailed": "Failed to create menu",
     "createMenuSuccess": "Menu created successfully",
     "createMultipleTablesSuccess": "Multiple tables created successfully",
+    "createOrderFailed": "Failed to place order",
     "createOrderSuccess": "Order placed successfully",
     "createOrderTrackingByRobotSuccess": "Order assigned to robot successfully",
     "createOrderTrackingByStaffSuccess": "Order assigned to staff successfully",
@@ -243,6 +244,7 @@
     "removeGiftCardSuccess": "Gift card removed from cart successfully",
     "removeSuccess": "Successfully removed product from cart",
     "removeVoucherSuccess": "Voucher removed successfully",
+    "removeVoucherFailed": "Failed to remove voucher",
     "reprintFailedChefOrderSuccess": "Reprint failed chef order successfully",
     "reprintFailedLabelJobsSuccess": "Reprint failed label jobs successfully",
     "reprintFailedOrderPrinterJobsSuccess": "Invoice reprinted successfully",
@@ -424,6 +426,10 @@
     "invalidDob": "Invalid date of birth",
     "branchConfigNotFound": "Branch config not found",
     "updateBranchConfigSuccess": "Update branch config successfully",
-    "deleteBranchConfigSuccess": "Delete branch config successfully"
+    "deleteBranchConfigSuccess": "Delete branch config successfully",
+    "findOneVoucherFailed": "Voucher not found",
+    "invoiceExportError": "Error exporting invoice",
+    "voucherAutoRemoved": "Voucher is no longer valid and has been removed",
+    "pressBackToExit": "Press back again to exit"
   }
 }

@@ -10,7 +10,11 @@ import {
   BottomSheetModal,
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet'
-import { FlashList, type FlashListRef, type ListRenderItem } from '@shopify/flash-list'
+import {
+  FlashList,
+  type FlashListRef,
+  type ListRenderItem,
+} from '@shopify/flash-list'
 import dayjs from 'dayjs'
 import {
   ArrowRight,
@@ -82,12 +86,31 @@ const FilterBar = memo(function FilterBar({
             style={[
               s.filterChip,
               {
-                backgroundColor: active ? primaryColor : (isDark ? colors.gray[800] : colors.gray[100]),
-                borderColor: active ? primaryColor : (isDark ? colors.gray[700] : colors.gray[200]),
+                backgroundColor: active
+                  ? primaryColor
+                  : isDark
+                    ? colors.gray[800]
+                    : colors.gray[100],
+                borderColor: active
+                  ? primaryColor
+                  : isDark
+                    ? colors.gray[700]
+                    : colors.gray[200],
               },
             ]}
           >
-            <Text style={[s.filterText, { color: active ? colors.white.light : (isDark ? colors.gray[300] : colors.gray[600]) }]}>
+            <Text
+              style={[
+                s.filterText,
+                {
+                  color: active
+                    ? colors.white.light
+                    : isDark
+                      ? colors.gray[300]
+                      : colors.gray[600],
+                },
+              ]}
+            >
               {f.label}
             </Text>
           </Pressable>
@@ -107,11 +130,17 @@ function StatusBadge({ status, isDark }: { status: string; isDark: boolean }) {
   let label = status
 
   if (upper === 'COMPLETED' || upper === 'PAID') {
-    bg = '#dcfce7'; color = '#16a34a'; label = t('orderStatus.completedShort')
+    bg = '#dcfce7'
+    color = '#16a34a'
+    label = t('orderStatus.completedShort')
   } else if (upper === 'PENDING') {
-    bg = '#fef9c3'; color = '#b45309'; label = t('orderStatus.pendingShort')
+    bg = '#fef9c3'
+    color = '#b45309'
+    label = t('orderStatus.pendingShort')
   } else if (upper === 'CANCELLED') {
-    bg = '#fee2e2'; color = '#dc2626'; label = t('orderStatus.cancelled')
+    bg = '#fee2e2'
+    color = '#dc2626'
+    label = t('orderStatus.cancelled')
   }
 
   return (
@@ -122,7 +151,13 @@ function StatusBadge({ status, isDark }: { status: string; isDark: boolean }) {
 }
 
 const sb = StyleSheet.create({
-  wrap: { width: 68, paddingVertical: 3, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
+  wrap: {
+    width: 68,
+    paddingVertical: 3,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   text: { fontSize: 10, fontWeight: '700' },
 })
 
@@ -156,17 +191,25 @@ const OrderListItem = memo(function OrderListItem({
   const borderColor = isDark ? colors.gray[700] : colors.gray[100]
 
   const { t } = useTranslation('giftCard')
-  const handlePress = useCallback(() => onPress(item.slug), [item.slug, onPress])
+  const handlePress = useCallback(
+    () => onPress(item.slug),
+    [item.slug, onPress],
+  )
 
   const dateLabel = useMemo(
-    () => new Date(item.orderDate ?? item.createdAt ?? '').toLocaleDateString('vi-VN'),
+    () =>
+      new Date(item.orderDate ?? item.createdAt ?? '').toLocaleDateString(
+        'vi-VN',
+      ),
     [item.orderDate, item.createdAt],
   )
 
   const typeLabel =
-    item.type === GiftCardType.GIFT ? t('type.gift')
-    : item.type === GiftCardType.BUY ? t('type.buy')
-    : t('type.self')
+    item.type === GiftCardType.GIFT
+      ? t('type.gift')
+      : item.type === GiftCardType.BUY
+        ? t('type.buy')
+        : t('type.self')
 
   return (
     <Pressable
@@ -187,15 +230,16 @@ const OrderListItem = memo(function OrderListItem({
           <StatusBadge status={item.paymentStatus} isDark={isDark} />
         </View>
         <Text style={[s.itemType, { color: subColor }]}>
-          {typeLabel} · {t('orders.cards', { count: item.quantity })} · {formatCurrency(item.totalAmount)}
+          {typeLabel} · {t('orders.cards', { count: item.quantity })} ·{' '}
+          {formatCurrency(item.totalAmount)}
         </Text>
         <View style={s.itemMeta}>
           <Clock size={11} color={subColor} />
-          <Text style={[s.itemDate, { color: subColor }]}>
-            {dateLabel}
-          </Text>
+          <Text style={[s.itemDate, { color: subColor }]}>{dateLabel}</Text>
           {item.code && (
-            <Text style={[s.itemCode, { color: subColor }]}>· #{item.code}</Text>
+            <Text style={[s.itemCode, { color: subColor }]}>
+              · #{item.code}
+            </Text>
           )}
         </View>
       </View>
@@ -209,7 +253,11 @@ function SkeletonList() {
   return (
     <View style={{ paddingHorizontal: 16, gap: 10, paddingTop: 10 }}>
       {Array.from({ length: 5 }).map((_, i) => (
-        <Skeleton key={i} className="w-full rounded-2xl" style={{ height: ITEM_HEIGHT }} />
+        <Skeleton
+          key={i}
+          className="w-full rounded-2xl"
+          style={{ height: ITEM_HEIGHT }}
+        />
       ))}
     </View>
   )
@@ -221,7 +269,10 @@ const ItemSeparator = () => <View style={{ height: 10 }} />
 
 // ─── Date filter sheet ───────────────────────────────────────────────────────
 
-interface DateFilter { fromDate: Date | null; toDate: Date | null }
+interface DateFilter {
+  fromDate: Date | null
+  toDate: Date | null
+}
 
 const DATE_SNAP = ['50%']
 
@@ -246,22 +297,28 @@ const DateFilterSheet = memo(function DateFilterSheet({
   const { t: tCommon } = useTranslation('common')
 
   const [localFrom, setLocalFrom] = useState<Date | null>(value.fromDate)
-  const [localTo,   setLocalTo]   = useState<Date | null>(value.toDate)
-  const [fromOpen,  setFromOpen]  = useState(false)
-  const [toOpen,    setToOpen]    = useState(false)
+  const [localTo, setLocalTo] = useState<Date | null>(value.toDate)
+  const [fromOpen, setFromOpen] = useState(false)
+  const [toOpen, setToOpen] = useState(false)
 
-  const bg       = isDark ? colors.gray[900]  : colors.white.light
-  const textColor = isDark ? colors.gray[50]  : colors.gray[900]
-  const subColor  = isDark ? colors.gray[400] : colors.gray[500]
-  const chipBg    = isDark ? colors.gray[800] : colors.gray[100]
-  const dateBg    = isDark ? colors.gray[800] : colors.gray[50]
+  const bg = isDark ? colors.gray[900] : colors.white.light
+  const textColor = isDark ? colors.gray[50] : colors.gray[900]
+  const subColor = isDark ? colors.gray[400] : colors.gray[500]
+  const chipBg = isDark ? colors.gray[800] : colors.gray[100]
+  const dateBg = isDark ? colors.gray[800] : colors.gray[50]
   const dateBorder = isDark ? colors.gray[700] : colors.gray[200]
 
   const defaultNow = useMemo(() => new Date(), [])
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.4} pressBehavior="close" />
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.4}
+        pressBehavior="close"
+      />
     ),
     [],
   )
@@ -291,114 +348,210 @@ const DateFilterSheet = memo(function DateFilterSheet({
       enableHandlePanningGesture
       backdropComponent={renderBackdrop}
       backgroundStyle={{ backgroundColor: bg }}
-      handleIndicatorStyle={{ backgroundColor: isDark ? colors.gray[600] : colors.gray[300] }}
+      handleIndicatorStyle={{
+        backgroundColor: isDark ? colors.gray[600] : colors.gray[300],
+      }}
       onDismiss={onClose}
     >
-          <View style={[ds.content, { paddingBottom: bottom + 16 }]}>
-            <View>
-              <Text style={[ds.title, { color: textColor }]}>{t('orders.filterTitle')}</Text>
-              <Text style={[ds.sectionLabel, { color: subColor }]}>{t('orders.dateRange')}</Text>
+      <View style={[ds.content, { paddingBottom: bottom + 16 }]}>
+        <View>
+          <Text style={[ds.title, { color: textColor }]}>
+            {t('orders.filterTitle')}
+          </Text>
+          <Text style={[ds.sectionLabel, { color: subColor }]}>
+            {t('orders.dateRange')}
+          </Text>
 
-              <View style={ds.dateRow}>
-                {/* From */}
-                <View style={ds.dateWrap}>
-                  <GHTouchable
-                    onPress={() => setFromOpen(true)}
-                    activeOpacity={0.7}
-                    style={[ds.datePicker, { backgroundColor: dateBg, borderColor: localFrom ? primaryColor : dateBorder }]}
+          <View style={ds.dateRow}>
+            {/* From */}
+            <View style={ds.dateWrap}>
+              <GHTouchable
+                onPress={() => setFromOpen(true)}
+                activeOpacity={0.7}
+                style={[
+                  ds.datePicker,
+                  {
+                    backgroundColor: dateBg,
+                    borderColor: localFrom ? primaryColor : dateBorder,
+                  },
+                ]}
+              >
+                <CalendarDays
+                  size={13}
+                  color={localFrom ? primaryColor : subColor}
+                />
+                <View style={ds.dateText}>
+                  <Text style={[ds.dateHint, { color: subColor }]}>
+                    {t('orders.fromDate')}
+                  </Text>
+                  <Text
+                    style={[
+                      ds.dateVal,
+                      { color: localFrom ? textColor : subColor },
+                    ]}
                   >
-                    <CalendarDays size={13} color={localFrom ? primaryColor : subColor} />
-                    <View style={ds.dateText}>
-                      <Text style={[ds.dateHint, { color: subColor }]}>{t('orders.fromDate')}</Text>
-                      <Text style={[ds.dateVal, { color: localFrom ? textColor : subColor }]}>
-                        {localFrom ? dayjs(localFrom).format('DD/MM/YYYY') : '––/––/––––'}
-                      </Text>
-                    </View>
-                    {localFrom && (
-                      <GHTouchable onPress={() => setLocalFrom(null)} hitSlop={10}>
-                        <X size={12} color={subColor} />
-                      </GHTouchable>
-                    )}
-                  </GHTouchable>
+                    {localFrom
+                      ? dayjs(localFrom).format('DD/MM/YYYY')
+                      : '––/––/––––'}
+                  </Text>
                 </View>
-
-                <ArrowRight size={16} color={subColor} />
-
-                {/* To */}
-                <View style={ds.dateWrap}>
-                  <GHTouchable
-                    onPress={() => setToOpen(true)}
-                    activeOpacity={0.7}
-                    style={[ds.datePicker, { backgroundColor: dateBg, borderColor: localTo ? primaryColor : dateBorder }]}
-                  >
-                    <CalendarDays size={13} color={localTo ? primaryColor : subColor} />
-                    <View style={ds.dateText}>
-                      <Text style={[ds.dateHint, { color: subColor }]}>{t('orders.toDate')}</Text>
-                      <Text style={[ds.dateVal, { color: localTo ? textColor : subColor }]}>
-                        {localTo ? dayjs(localTo).format('DD/MM/YYYY') : '––/––/––––'}
-                      </Text>
-                    </View>
-                    {localTo && (
-                      <GHTouchable onPress={() => setLocalTo(null)} hitSlop={10}>
-                        <X size={12} color={subColor} />
-                      </GHTouchable>
-                    )}
+                {localFrom && (
+                  <GHTouchable onPress={() => setLocalFrom(null)} hitSlop={10}>
+                    <X size={12} color={subColor} />
                   </GHTouchable>
-                </View>
-              </View>
+                )}
+              </GHTouchable>
             </View>
 
-            {/* Footer */}
-            <View style={ds.footer}>
-              <View style={ds.btnWrap}>
-                <GHTouchable onPress={handleReset} activeOpacity={0.8} style={[ds.btn, { backgroundColor: chipBg }]}>
-                  <Text style={[ds.btnText, { color: isDark ? colors.gray[50] : colors.gray[700] }]}>
-                    {tCommon('common.reset')}
+            <ArrowRight size={16} color={subColor} />
+
+            {/* To */}
+            <View style={ds.dateWrap}>
+              <GHTouchable
+                onPress={() => setToOpen(true)}
+                activeOpacity={0.7}
+                style={[
+                  ds.datePicker,
+                  {
+                    backgroundColor: dateBg,
+                    borderColor: localTo ? primaryColor : dateBorder,
+                  },
+                ]}
+              >
+                <CalendarDays
+                  size={13}
+                  color={localTo ? primaryColor : subColor}
+                />
+                <View style={ds.dateText}>
+                  <Text style={[ds.dateHint, { color: subColor }]}>
+                    {t('orders.toDate')}
                   </Text>
-                </GHTouchable>
-              </View>
-              <View style={ds.btnWrap}>
-                <GHTouchable onPress={handleApply} activeOpacity={0.8} style={[ds.btn, { backgroundColor: primaryColor }]}>
-                  <Text style={[ds.btnText, { color: colors.white.light }]}>{t('orders.apply')}</Text>
-                </GHTouchable>
-              </View>
+                  <Text
+                    style={[
+                      ds.dateVal,
+                      { color: localTo ? textColor : subColor },
+                    ]}
+                  >
+                    {localTo
+                      ? dayjs(localTo).format('DD/MM/YYYY')
+                      : '––/––/––––'}
+                  </Text>
+                </View>
+                {localTo && (
+                  <GHTouchable onPress={() => setLocalTo(null)} hitSlop={10}>
+                    <X size={12} color={subColor} />
+                  </GHTouchable>
+                )}
+              </GHTouchable>
             </View>
           </View>
+        </View>
 
-          <DatePicker
-            modal open={fromOpen} date={localFrom ?? defaultNow} mode="date"
-            maximumDate={localTo ?? defaultNow}
-            onConfirm={(d) => { setLocalFrom(d); setFromOpen(false) }}
-            onCancel={() => setFromOpen(false)}
-            confirmText={tCommon('common.confirm')} cancelText={tCommon('common.cancel')}
-            theme={isDark ? 'dark' : 'light'}
-          />
-          <DatePicker
-            modal open={toOpen} date={localTo ?? defaultNow} mode="date"
-            minimumDate={localFrom ?? undefined} maximumDate={defaultNow}
-            onConfirm={(d) => { setLocalTo(d); setToOpen(false) }}
-            onCancel={() => setToOpen(false)}
-            confirmText={tCommon('common.confirm')} cancelText={tCommon('common.cancel')}
-            theme={isDark ? 'dark' : 'light'}
-          />
+        {/* Footer */}
+        <View style={ds.footer}>
+          <View style={ds.btnWrap}>
+            <GHTouchable
+              onPress={handleReset}
+              activeOpacity={0.8}
+              style={[ds.btn, { backgroundColor: chipBg }]}
+            >
+              <Text
+                style={[
+                  ds.btnText,
+                  { color: isDark ? colors.gray[50] : colors.gray[700] },
+                ]}
+              >
+                {tCommon('common.reset')}
+              </Text>
+            </GHTouchable>
+          </View>
+          <View style={ds.btnWrap}>
+            <GHTouchable
+              onPress={handleApply}
+              activeOpacity={0.8}
+              style={[ds.btn, { backgroundColor: primaryColor }]}
+            >
+              <Text style={[ds.btnText, { color: colors.white.light }]}>
+                {t('orders.apply')}
+              </Text>
+            </GHTouchable>
+          </View>
+        </View>
+      </View>
+
+      <DatePicker
+        modal
+        open={fromOpen}
+        date={localFrom ?? defaultNow}
+        mode="date"
+        maximumDate={localTo ?? defaultNow}
+        onConfirm={(d) => {
+          setLocalFrom(d)
+          setFromOpen(false)
+        }}
+        onCancel={() => setFromOpen(false)}
+        confirmText={tCommon('common.confirm')}
+        cancelText={tCommon('common.cancel')}
+        theme={isDark ? 'dark' : 'light'}
+      />
+      <DatePicker
+        modal
+        open={toOpen}
+        date={localTo ?? defaultNow}
+        mode="date"
+        minimumDate={localFrom ?? undefined}
+        maximumDate={defaultNow}
+        onConfirm={(d) => {
+          setLocalTo(d)
+          setToOpen(false)
+        }}
+        onCancel={() => setToOpen(false)}
+        confirmText={tCommon('common.confirm')}
+        cancelText={tCommon('common.cancel')}
+        theme={isDark ? 'dark' : 'light'}
+      />
     </BottomSheetModal>
   )
 })
 
 const ds = StyleSheet.create({
-  content:     { flex: 1, paddingHorizontal: 20, paddingTop: 8, justifyContent: 'space-between' },
-  title:       { fontSize: 17, fontWeight: '700', marginBottom: 20 },
-  sectionLabel:{ fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.6, marginBottom: 10 },
-  dateRow:     { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  dateWrap:    { flex: 1 },
-  datePicker:  { flexDirection: 'row', alignItems: 'center', gap: 7, height: 52, borderRadius: 10, paddingHorizontal: 10, borderWidth: 1 },
-  dateText:    { flex: 1, gap: 2 },
-  dateHint:    { fontSize: 10, fontWeight: '500' },
-  dateVal:     { fontSize: 13, fontWeight: '600' },
-  footer:      { flexDirection: 'row', gap: 10 },
-  btnWrap:     { flex: 1 },
-  btn:         { height: 46, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  btnText:     { fontSize: 15, fontWeight: '700' },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    justifyContent: 'space-between',
+  },
+  title: { fontSize: 17, fontWeight: '700', marginBottom: 20 },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: 10,
+  },
+  dateRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  dateWrap: { flex: 1 },
+  datePicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    height: 52,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+  },
+  dateText: { flex: 1, gap: 2 },
+  dateHint: { fontSize: 10, fontWeight: '500' },
+  dateVal: { fontSize: 13, fontWeight: '600' },
+  footer: { flexDirection: 'row', gap: 10 },
+  btnWrap: { flex: 1 },
+  btn: {
+    height: 46,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnText: { fontSize: 15, fontWeight: '700' },
 })
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
@@ -418,17 +571,23 @@ export default function GiftCardOrdersScreen() {
     [bottom],
   )
 
-  const TYPE_FILTERS = useMemo(() => [
-    { label: t('orders.types.all'), value: 'ALL' },
-    { label: t('type.self'),        value: GiftCardType.SELF },
-    { label: t('type.gift'),        value: GiftCardType.GIFT },
-    { label: t('type.buy'),         value: GiftCardType.BUY },
-  ], [t])
+  const TYPE_FILTERS = useMemo(
+    () => [
+      { label: t('orders.types.all'), value: 'ALL' },
+      { label: t('type.self'), value: GiftCardType.SELF },
+      { label: t('type.gift'), value: GiftCardType.GIFT },
+      { label: t('type.buy'), value: GiftCardType.BUY },
+    ],
+    [t],
+  )
 
   const [ready, setReady] = useState(false)
   const [selectedType, setSelectedType] = useState('ALL')
   const [detailSlug, setDetailSlug] = useState<string | null>(null)
-  const [dateFilter, setDateFilter] = useState<DateFilter>({ fromDate: null, toDate: null })
+  const [dateFilter, setDateFilter] = useState<DateFilter>({
+    fromDate: null,
+    toDate: null,
+  })
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
 
   const flashListRef = useRef<FlashListRef<ICardOrderResponse>>(null)
@@ -439,8 +598,12 @@ export default function GiftCardOrdersScreen() {
     () => ({
       customerSlug: userSlug,
       sort: '-createdAt',
-      ...(dateFilter.fromDate ? { fromDate: dayjs(dateFilter.fromDate).format('YYYY-MM-DD') } : {}),
-      ...(dateFilter.toDate ? { toDate: dayjs(dateFilter.toDate).format('YYYY-MM-DD') } : {}),
+      ...(dateFilter.fromDate
+        ? { fromDate: dayjs(dateFilter.fromDate).format('YYYY-MM-DD') }
+        : {}),
+      ...(dateFilter.toDate
+        ? { toDate: dayjs(dateFilter.toDate).format('YYYY-MM-DD') }
+        : {}),
     }),
     [userSlug, dateFilter],
   )
@@ -460,9 +623,10 @@ export default function GiftCardOrdersScreen() {
   )
 
   const items = useMemo(
-    () => selectedType === 'ALL'
-      ? allItems
-      : allItems.filter((o) => (o.type ?? '').toUpperCase() === selectedType),
+    () =>
+      selectedType === 'ALL'
+        ? allItems
+        : allItems.filter((o) => (o.type ?? '').toUpperCase() === selectedType),
     [allItems, selectedType],
   )
 
@@ -474,7 +638,6 @@ export default function GiftCardOrdersScreen() {
   useEffect(() => {
     flashListRef.current?.scrollToOffset({ offset: 0, animated: false })
   }, [dateFilter])
-
 
   const bg = isDark ? colors.background.dark : colors.background.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
@@ -489,7 +652,8 @@ export default function GiftCardOrdersScreen() {
     setFilterSheetOpen(false)
   }, [])
 
-  const isDateActive = dateFilter.fromDate !== null || dateFilter.toDate !== null
+  const isDateActive =
+    dateFilter.fromDate !== null || dateFilter.toDate !== null
 
   const handleEndReached = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage()
@@ -510,24 +674,30 @@ export default function GiftCardOrdersScreen() {
   const keyExtractor = useCallback((item: ICardOrderResponse) => item.slug, [])
 
   const overrideItemLayout = useCallback(
-    (layout: { span?: number; size?: number }) => { layout.size = GIFT_CARD_ORDER_ITEM_HEIGHT },
+    (layout: { span?: number; size?: number }) => {
+      layout.size = GIFT_CARD_ORDER_ITEM_HEIGHT
+    },
     [],
   )
 
   const borderColor = isDark ? colors.gray[700] : colors.gray[200]
 
-  const ListFooter = isFetchingNextPage
-    ? <ActivityIndicator color={primaryColor} style={{ paddingVertical: 16 }} />
-    : null
+  const ListFooter = isFetchingNextPage ? (
+    <ActivityIndicator color={primaryColor} style={{ paddingVertical: 16 }} />
+  ) : null
 
   const ListEmpty = !isLoading ? (
     <View style={s.emptyWrap}>
       <Gift size={40} color={colors.gray[400]} />
-      <Text style={[s.emptyTitle, { color: textColor }]}>{t('orders.empty.noOrders')}</Text>
+      <Text style={[s.emptyTitle, { color: textColor }]}>
+        {t('orders.empty.noOrders')}
+      </Text>
       <Text style={[s.emptyHint, { color: subColor }]}>
         {selectedType === 'ALL'
           ? t('orders.empty.noOwned')
-          : t('orders.empty.noType', { type: TYPE_FILTERS.find(f => f.value === selectedType)?.label })}
+          : t('orders.empty.noType', {
+              type: TYPE_FILTERS.find((f) => f.value === selectedType)?.label,
+            })}
       </Text>
     </View>
   ) : null
@@ -540,16 +710,45 @@ export default function GiftCardOrdersScreen() {
         rightElement={
           <Pressable
             onPress={handleFilterOpen}
-            style={[s.headerIconBtn, { backgroundColor: isDateActive ? `${primaryColor}15` : (isDark ? colors.gray[800] : colors.white.light) }]}
+            style={[
+              s.headerIconBtn,
+              {
+                backgroundColor: isDateActive
+                  ? `${primaryColor}15`
+                  : isDark
+                    ? colors.gray[800]
+                    : colors.white.light,
+              },
+            ]}
           >
-            <SlidersHorizontal size={16} color={isDateActive ? primaryColor : (isDark ? colors.gray[300] : colors.gray[600])} />
-            {isDateActive && <View style={[s.activeDot, { backgroundColor: primaryColor }]} />}
+            <SlidersHorizontal
+              size={16}
+              color={
+                isDateActive
+                  ? primaryColor
+                  : isDark
+                    ? colors.gray[300]
+                    : colors.gray[600]
+              }
+            />
+            {isDateActive && (
+              <View style={[s.activeDot, { backgroundColor: primaryColor }]} />
+            )}
           </Pressable>
         }
       />
 
       {/* ── Fixed filter bar ─────────────────────────────────────────── */}
-      <View style={[s.filterBarFixed, { paddingTop: STATIC_TOP_INSET + 64, backgroundColor: bg, borderBottomColor: borderColor }]}>
+      <View
+        style={[
+          s.filterBarFixed,
+          {
+            paddingTop: STATIC_TOP_INSET + 64,
+            backgroundColor: bg,
+            borderBottomColor: borderColor,
+          },
+        ]}
+      >
         <View style={s.filterRow}>
           <FilterBar
             selected={selectedType}
@@ -562,27 +761,51 @@ export default function GiftCardOrdersScreen() {
         {isDateActive && (
           <View style={s.dateChipRow}>
             {dateFilter.fromDate && (
-              <View style={[s.dateChip, { backgroundColor: `${primaryColor}15`, borderColor: `${primaryColor}30` }]}>
+              <View
+                style={[
+                  s.dateChip,
+                  {
+                    backgroundColor: `${primaryColor}15`,
+                    borderColor: `${primaryColor}30`,
+                  },
+                ]}
+              >
                 <Text style={[s.dateChipText, { color: primaryColor }]}>
-                  {t('orders.fromDate')}: {dayjs(dateFilter.fromDate).format('DD/MM/YYYY')}
+                  {t('orders.fromDate')}:{' '}
+                  {dayjs(dateFilter.fromDate).format('DD/MM/YYYY')}
                 </Text>
               </View>
             )}
             {dateFilter.toDate && (
-              <View style={[s.dateChip, { backgroundColor: `${primaryColor}15`, borderColor: `${primaryColor}30` }]}>
+              <View
+                style={[
+                  s.dateChip,
+                  {
+                    backgroundColor: `${primaryColor}15`,
+                    borderColor: `${primaryColor}30`,
+                  },
+                ]}
+              >
                 <Text style={[s.dateChipText, { color: primaryColor }]}>
-                  {t('orders.toDate')}: {dayjs(dateFilter.toDate).format('DD/MM/YYYY')}
+                  {t('orders.toDate')}:{' '}
+                  {dayjs(dateFilter.toDate).format('DD/MM/YYYY')}
                 </Text>
               </View>
             )}
-            <Pressable onPress={() => setDateFilter({ fromDate: null, toDate: null })} hitSlop={8}>
-              <X size={14} color={isDark ? colors.gray[400] : colors.gray[500]} />
+            <Pressable
+              onPress={() => setDateFilter({ fromDate: null, toDate: null })}
+              hitSlop={8}
+            >
+              <X
+                size={14}
+                color={isDark ? colors.gray[400] : colors.gray[500]}
+              />
             </Pressable>
           </View>
         )}
       </View>
 
-      {(!ready || isLoading) ? (
+      {!ready || isLoading ? (
         <SkeletonList />
       ) : (
         <FlashList
@@ -633,18 +856,36 @@ const s = StyleSheet.create({
   },
   filterRow: { flexDirection: 'row', alignItems: 'center', paddingRight: 12 },
   headerIconBtn: {
-    width: 36, height: 36, borderRadius: 10,
-    alignItems: 'center', justifyContent: 'center',
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   activeDot: {
-    width: 6, height: 6, borderRadius: 3,
-    position: 'absolute', top: 6, right: 6,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    position: 'absolute',
+    top: 6,
+    right: 6,
   },
   dateChipRow: {
-    flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap',
-    gap: 6, paddingHorizontal: 12, paddingBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingBottom: 8,
   },
-  dateChip: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, borderWidth: 1 },
+  dateChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
   dateChipText: { fontSize: 11, fontWeight: '600' },
   filterScroll: { paddingVertical: 12, paddingHorizontal: 12, gap: 8 },
   filterChip: {
@@ -685,5 +926,10 @@ const s = StyleSheet.create({
   itemCode: { fontSize: 11 },
   emptyWrap: { paddingTop: 60, alignItems: 'center', gap: 10 },
   emptyTitle: { fontSize: 16, fontWeight: '700' },
-  emptyHint: { fontSize: 13, textAlign: 'center', paddingHorizontal: 32, lineHeight: 18 },
+  emptyHint: {
+    fontSize: 13,
+    textAlign: 'center',
+    paddingHorizontal: 32,
+    lineHeight: 18,
+  },
 })

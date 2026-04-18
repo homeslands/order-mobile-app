@@ -36,7 +36,9 @@ export const GiftCardCartItem = memo(function GiftCardCartItem({
   const qtyBtnText = isDark ? colors.gray[300] : colors.gray[700]
   const qtyText = isDark ? colors.gray[50] : colors.gray[900]
 
-  const updateGiftCardQuantity = useGiftCardStore((s) => s.updateGiftCardQuantity)
+  const updateGiftCardQuantity = useGiftCardStore(
+    (s) => s.updateGiftCardQuantity,
+  )
   const clearGiftCard = useGiftCardStore((s) => s.clearGiftCard)
 
   const [pendingQty, setPendingQty] = useState<number | null>(null)
@@ -44,18 +46,24 @@ export const GiftCardCartItem = memo(function GiftCardCartItem({
   const displayQty = overrideQty ?? pendingQty ?? item.quantity
   const isOverridden = overrideQty !== undefined
 
-  useEffect(() => () => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-  }, [])
+  useEffect(
+    () => () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+    },
+    [],
+  )
 
-  const scheduleSync = useCallback((qty: number) => {
-    if (debounceRef.current) clearTimeout(debounceRef.current)
-    debounceRef.current = setTimeout(() => {
-      updateGiftCardQuantity(qty)
-      setPendingQty(null)
-      debounceRef.current = null
-    }, 200)
-  }, [updateGiftCardQuantity])
+  const scheduleSync = useCallback(
+    (qty: number) => {
+      if (debounceRef.current) clearTimeout(debounceRef.current)
+      debounceRef.current = setTimeout(() => {
+        updateGiftCardQuantity(qty)
+        setPendingQty(null)
+        debounceRef.current = null
+      }, 200)
+    },
+    [updateGiftCardQuantity],
+  )
 
   const handleIncrease = useCallback(() => {
     if (displayQty >= MAX_QTY) return
@@ -117,7 +125,12 @@ export const GiftCardCartItem = memo(function GiftCardCartItem({
               <Text style={[s.totalPrice, { color: primaryColor }]}>
                 {formatCurrency(totalAmount)}
               </Text>
-              <Text style={[s.unitPrice, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>
+              <Text
+                style={[
+                  s.unitPrice,
+                  { color: isDark ? colors.gray[400] : colors.gray[500] },
+                ]}
+              >
                 {formatCurrency(item.price)} / thẻ
               </Text>
             </View>
@@ -126,7 +139,11 @@ export const GiftCardCartItem = memo(function GiftCardCartItem({
               <Pressable
                 onPress={handleDecrease}
                 disabled={isOverridden || displayQty <= MIN_QTY}
-                style={[s.qtyBtn, { borderColor: qtyBtnBorder }, (isOverridden || displayQty <= MIN_QTY) && s.qtyBtnDisabled]}
+                style={[
+                  s.qtyBtn,
+                  { borderColor: qtyBtnBorder },
+                  (isOverridden || displayQty <= MIN_QTY) && s.qtyBtnDisabled,
+                ]}
               >
                 <Text style={[s.qtyBtnText, { color: qtyBtnText }]}>−</Text>
               </Pressable>
@@ -134,7 +151,11 @@ export const GiftCardCartItem = memo(function GiftCardCartItem({
               <Pressable
                 onPress={handleIncrease}
                 disabled={isOverridden || displayQty >= MAX_QTY}
-                style={[s.qtyBtn, { borderColor: qtyBtnBorder }, (isOverridden || displayQty >= MAX_QTY) && s.qtyBtnDisabled]}
+                style={[
+                  s.qtyBtn,
+                  { borderColor: qtyBtnBorder },
+                  (isOverridden || displayQty >= MAX_QTY) && s.qtyBtnDisabled,
+                ]}
               >
                 <Text style={[s.qtyBtnText, { color: qtyBtnText }]}>+</Text>
               </Pressable>

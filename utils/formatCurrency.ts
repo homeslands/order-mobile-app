@@ -40,7 +40,10 @@ export function formatCurrency(value: number, currency = 'đ'): string {
  * @param withSymbol - Whether to include currency symbol (default: true)
  * @returns Formatted string (e.g., "100.000 ₫" or "100.000")
  */
-export const formatCurrencyWithSymbol = (value: number, withSymbol = true): string => {
+export const formatCurrencyWithSymbol = (
+  value: number,
+  withSymbol = true,
+): string => {
   const safeValue = clampNegative(value)
   const formatted = integerFormatter.format(safeValue)
   return withSymbol ? `${formatted} ₫` : formatted

@@ -2,6 +2,7 @@ import { VoucherCard } from '@/components/cart/voucher-card'
 import type { ProcessedVoucher } from '@/components/sheet/voucher-validation'
 import { colors } from '@/constants'
 import type { IVoucher } from '@/types'
+import { useTranslation } from 'react-i18next'
 import { StyleSheet, Text, View } from 'react-native'
 
 type InvalidListProps = {
@@ -19,6 +20,7 @@ export function InvalidList({
   isDark,
   primaryColor,
 }: InvalidListProps) {
+  const { t } = useTranslation('voucher')
   if (vouchers.length === 0) return null
 
   return (
@@ -31,11 +33,15 @@ export function InvalidList({
             color: isDark ? colors.gray[400] : colors.gray[500],
           }}
         >
-          Không khả dụng
+          {t('unavailable')}
         </Text>
       </View>
       {vouchers.slice(0, 5).map((p) => (
-        <View key={p.voucher.slug} style={{ opacity: 0.5 }} pointerEvents="none">
+        <View
+          key={p.voucher.slug}
+          style={{ opacity: 0.5 }}
+          pointerEvents="none"
+        >
           <VoucherCard
             voucher={p.voucher}
             isSelected={false}

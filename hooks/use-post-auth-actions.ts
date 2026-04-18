@@ -30,16 +30,21 @@ export function usePostAuthActions() {
   const queryClient = useQueryClient()
   const masterTransition = useMasterTransitionOptional()
 
-  const { setToken, setRefreshToken, setExpireTime, setExpireTimeRefreshToken, setLogout } =
-    useAuthStore(
-      useShallow((s) => ({
-        setToken: s.setToken,
-        setRefreshToken: s.setRefreshToken,
-        setExpireTime: s.setExpireTime,
-        setExpireTimeRefreshToken: s.setExpireTimeRefreshToken,
-        setLogout: s.setLogout,
-      })),
-    )
+  const {
+    setToken,
+    setRefreshToken,
+    setExpireTime,
+    setExpireTimeRefreshToken,
+    setLogout,
+  } = useAuthStore(
+    useShallow((s) => ({
+      setToken: s.setToken,
+      setRefreshToken: s.setRefreshToken,
+      setExpireTime: s.setExpireTime,
+      setExpireTimeRefreshToken: s.setExpireTimeRefreshToken,
+      setLogout: s.setLogout,
+    })),
+  )
 
   const { setUserInfo, removeUserInfo } = useUserStore(
     useShallow((s) => ({
@@ -98,7 +103,11 @@ export function usePostAuthActions() {
       // 5. Prefetch loyalty points để Profile render từ cache
       if (profileResult.slug) {
         await queryClient.prefetchQuery({
-          queryKey: [QUERYKEY.loyaltyPoints, 'total', { slug: profileResult.slug }],
+          queryKey: [
+            QUERYKEY.loyaltyPoints,
+            'total',
+            { slug: profileResult.slug },
+          ],
           queryFn: () => getLoyaltyPoints(profileResult.slug),
         })
       }

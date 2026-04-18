@@ -12,11 +12,26 @@ import {
   OrderStatus,
 } from '@/types'
 
-import { createOriginalOrderCustomerMethods, createUpdateOrderCustomerMethods } from './slices/update-order-customer.slice'
-import { createOriginalOrderItemsMethods, createUpdateOrderItemsMethods } from './slices/update-order-items.slice'
-import { createOriginalOrderPaymentMethods, createUpdateOrderPaymentMethods } from './slices/update-order-payment.slice'
-import { createOriginalOrderTableMethods, createUpdateOrderTableMethods } from './slices/update-order-table.slice'
-import { createOriginalOrderVoucherMethods, createUpdateOrderVoucherMethods } from './slices/update-order-voucher.slice'
+import {
+  createOriginalOrderCustomerMethods,
+  createUpdateOrderCustomerMethods,
+} from './slices/update-order-customer.slice'
+import {
+  createOriginalOrderItemsMethods,
+  createUpdateOrderItemsMethods,
+} from './slices/update-order-items.slice'
+import {
+  createOriginalOrderPaymentMethods,
+  createUpdateOrderPaymentMethods,
+} from './slices/update-order-payment.slice'
+import {
+  createOriginalOrderTableMethods,
+  createUpdateOrderTableMethods,
+} from './slices/update-order-table.slice'
+import {
+  createOriginalOrderVoucherMethods,
+  createUpdateOrderVoucherMethods,
+} from './slices/update-order-voucher.slice'
 
 // ─── ID generators (local — used only in setOrderItems / setOriginalOrderItems) ─
 
@@ -33,7 +48,9 @@ export const useUpdateOrderStore = create<IUpdateOrderStore>()(
 
       getOrderItems: () => get().orderItems,
 
-      clearStore: () => { set({ orderItems: null }) },
+      clearStore: () => {
+        set({ orderItems: null })
+      },
 
       setOrderItems: (order: IOrder) => {
         requestClearStoresExcept('update-order')
@@ -114,7 +131,9 @@ export const useOriginalOrderStore = create<IOriginalOrderStore>()(
 
       getOriginalOrderItems: () => get().originalOrderItems,
 
-      clearOriginalStore: () => { set({ originalOrderItems: null }) },
+      clearOriginalStore: () => {
+        set({ originalOrderItems: null })
+      },
 
       setOriginalOrderItems: (order: IOrder) => {
         const { originalOrderItems } = get()

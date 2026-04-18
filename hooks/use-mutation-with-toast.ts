@@ -22,6 +22,6 @@ export function withToast<TData, TVariables>(
         showToast(messages.error, 'error')
       }
       options.onError?.(error, vars, ctx, ...args)
-    },  
+    },
   }
 }

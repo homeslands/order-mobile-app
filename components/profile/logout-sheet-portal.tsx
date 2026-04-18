@@ -86,10 +86,20 @@ const LogoutSheetContent = memo(function LogoutSheetContent({
 
   return (
     <View style={[s.content, { paddingBottom: bottomInset + 8 }]}>
-      <Text style={[s.title, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>
+      <Text
+        style={[
+          s.title,
+          { color: isDark ? colors.gray[50] : colors.gray[900] },
+        ]}
+      >
         {t('logout.title', 'Đăng xuất')}
       </Text>
-      <Text style={[s.description, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>
+      <Text
+        style={[
+          s.description,
+          { color: isDark ? colors.gray[400] : colors.gray[500] },
+        ]}
+      >
         {t('logout.description', 'Bạn có chắc chắn muốn đăng xuất không?')}
       </Text>
 
@@ -98,17 +108,23 @@ const LogoutSheetContent = memo(function LogoutSheetContent({
       <View style={s.footer}>
         <Pressable
           onPress={onCancel}
-          style={[s.cancelBtn, { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] }]}
+          style={[
+            s.cancelBtn,
+            { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] },
+          ]}
         >
-          <Text style={[s.cancelText, { color: isDark ? colors.gray[50] : colors.gray[700] }]}>
+          <Text
+            style={[
+              s.cancelText,
+              { color: isDark ? colors.gray[50] : colors.gray[700] },
+            ]}
+          >
             {tCommon('common.cancel', 'Huỷ')}
           </Text>
         </Pressable>
 
         <Pressable onPress={onConfirm} style={s.confirmBtn}>
-          <Text style={s.confirmText}>
-            {t('logout.logout', 'Đăng xuất')}
-          </Text>
+          <Text style={s.confirmText}>{t('logout.logout', 'Đăng xuất')}</Text>
         </Pressable>
       </View>
     </View>

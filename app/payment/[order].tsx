@@ -4,25 +4,65 @@ import { useFocusEffect } from '@react-navigation/native'
 import { Image as ExpoImage } from 'expo-image'
 import { useLocalSearchParams } from 'expo-router'
 import { CircleAlert, CircleX, Ticket } from 'lucide-react-native'
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, useColorScheme, View } from 'react-native'
-import Animated, { runOnJS, useAnimatedProps, useAnimatedReaction, useAnimatedStyle } from 'react-native-reanimated'
+import {
+  ActivityIndicator,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native'
+import Animated, {
+  runOnJS,
+  useAnimatedReaction,
+  useAnimatedStyle,
+} from 'react-native-reanimated'
 import { ScrollView as GestureScrollView } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import PaymentMethodRadioGroup from '@/components/radio/payment-method-radio-group'
 import { Skeleton } from '@/components/ui'
-import { colors, NotificationMessageCode, PaymentMethod, TAB_ROUTES } from '@/constants'
-import { STATIC_TOP_INSET } from '@/constants/status-bar'
-import { useInitiatePayment, useInitiatePublicPayment, useOrderBySlug, useRunAfterTransition, useUpdatePublicVoucherInOrder, useUpdateVoucherInOrder } from '@/hooks'
+import {
+  colors,
+  NotificationMessageCode,
+  PaymentMethod,
+  TAB_ROUTES,
+} from '@/constants'
+import { FOOTER_BOTTOM_EXTRA, STATIC_TOP_INSET } from '@/constants/status-bar'
+import {
+  PAID_NOTIFICATION_CODES,
+  useInitiatePayment,
+  useInitiatePublicPayment,
+  useOrderBySlug,
+  usePaymentStatusDetector,
+  useRunAfterTransition,
+  useUpdatePublicVoucherInOrder,
+  useUpdateVoucherInOrder,
+} from '@/hooks'
 import { useAnimatedCountdown } from '@/hooks/use-animated-countdown'
 import { useCoinBalance } from '@/hooks/use-coin-balance'
 import { useLoyaltyPoints } from '@/hooks/use-loyalty-point'
 import { navigateNative } from '@/lib/navigation'
 import { useNotificationStore, useUserStore } from '@/stores'
 import { OrderStatus } from '@/types'
-import { calculateOrderDisplayAndTotals, formatCurrency, showErrorToast, showErrorToastMessage, showToast } from '@/utils'
+import {
+  calculateOrderDisplayAndTotals,
+  formatCurrency,
+  showErrorToast,
+  showErrorToastMessage,
+  showToast,
+} from '@/utils'
 
 import LoyaltyPointsInput from './loyalty-points-input'
 import VoucherConflictBottomSheet from './voucher-conflict-bottom-sheet'
@@ -35,9 +75,14 @@ import { PointConfirmDialog } from './payment-point-confirm-dialog'
 
 function PaymentSkeletonShell() {
   return (
-    <ScreenContainer edges={['top']} style={{ flex: 1, backgroundColor: colors.background.light }}>
+    <ScreenContainer
+      edges={['top']}
+      style={{ flex: 1, backgroundColor: colors.background.light }}
+    >
       <View style={skeletonStyles.header}>
-        <Skeleton style={{ width: 32, height: 32, borderRadius: 16, marginRight: 12 }} />
+        <Skeleton
+          style={{ width: 32, height: 32, borderRadius: 16, marginRight: 12 }}
+        />
         <Skeleton style={{ height: 20, width: 192, borderRadius: 6 }} />
       </View>
       <ScrollView contentContainerStyle={{ padding: 16 }}>
@@ -58,19 +103,33 @@ function PaymentSkeletonShell() {
 }
 
 const skeletonStyles = StyleSheet.create({
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: colors.white.light, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.gray[200] },
-  card: { marginBottom: 16, borderRadius: 12, backgroundColor: colors.white.light, borderWidth: 1, borderColor: colors.gray[100], padding: 16, gap: 12 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: colors.white.light,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: colors.gray[200],
+  },
+  card: {
+    marginBottom: 16,
+    borderRadius: 12,
+    backgroundColor: colors.white.light,
+    borderWidth: 1,
+    borderColor: colors.gray[100],
+    padding: 16,
+    gap: 12,
+  },
 })
-
-// Module-scope: stable Set, shared across renders + all closures. No useMemo needed.
-const PAID_NOTIFICATION_CODES: ReadonlySet<NotificationMessageCode> = new Set([
-  NotificationMessageCode.ORDER_PAID,
-  NotificationMessageCode.CARD_ORDER_PAID,
-])
 
 const pSectionStyles = StyleSheet.create({
   // card: { marginBottom: 16, borderRadius: 12, borderWidth: 1, overflow: 'hidden' },
-  cardHeader: { paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth },
+  cardHeader: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
   // cardHeaderText: { fontSize: 14, fontWeight: '500' },
   cardBody: { padding: 16 },
 })
@@ -92,17 +151,46 @@ const QRSection = React.memo(function QRSection({
 }) {
   const { t } = useTranslation('menu')
   return (
-    <View style={[ps.qrSection, { borderTopColor: isDark ? colors.gray[700] : colors.gray[100] }]}>
+    <View
+      style={[
+        ps.qrSection,
+        { borderTopColor: isDark ? colors.gray[700] : colors.gray[100] },
+      ]}
+    >
       <View style={ps.qrCenter}>
-        <ExpoImage source={qrCode || paymentQrCode || ''} style={ps.qrImage} contentFit="contain" cachePolicy="none" />
+        <ExpoImage
+          source={qrCode || paymentQrCode || ''}
+          style={ps.qrImage}
+          contentFit="contain"
+          cachePolicy="none"
+        />
         <View style={ps.qrInfoCol}>
           <View style={ps.qrTotalRow}>
-            <Text style={[ps.smText, { color: isDark ? colors.gray[300] : colors.gray[700] }]}>{t('paymentMethod.total', 'Tổng tiền')}:</Text>
-            <Text style={[ps.lgBold, { color: primaryColor }]}>{formatCurrency(subtotal)}</Text>
+            <Text
+              style={[
+                ps.smText,
+                { color: isDark ? colors.gray[300] : colors.gray[700] },
+              ]}
+            >
+              {t('paymentMethod.total')}:
+            </Text>
+            <Text style={[ps.lgBold, { color: primaryColor }]}>
+              {formatCurrency(subtotal)}
+            </Text>
           </View>
           <View style={ps.qrNoteRow}>
             <CircleAlert size={12} color="#3b82f6" />
-            <Text style={[ps.xsText, { color: isDark ? colors.gray[400] : colors.gray[500], textAlign: 'center' }]}>{t('paymentMethod.paymentNote', 'Quét QR code để thanh toán')}</Text>
+            <Text
+              style={[
+                ps.xsText,
+                {
+                  color: isDark ? colors.gray[400] : colors.gray[500],
+                  textAlign: 'center',
+                },
+              ]}
+            >
+              {t('paymentMethod.paymentNote')}
+            </Text>
           </View>
         </View>
       </View>
@@ -138,18 +226,63 @@ const PaymentMethodSection = React.memo(function PaymentMethodSection({
   if (!order || order.status !== OrderStatus.PENDING) return null
 
   return (
-    <View style={[ps.card, { backgroundColor: isDark ? colors.gray[800] : colors.white.light, borderColor: isDark ? colors.gray[700] : colors.gray[100] }]}>
-      <View style={[pSectionStyles.cardHeader, { backgroundColor: isDark ? colors.gray[900] : colors.gray[50], borderBottomColor: isDark ? colors.gray[700] : colors.gray[100] }]}>
-        <Text style={[ps.semibold, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>{t('paymentMethod.title', 'Phương thức thanh toán')}</Text>
-        <Text style={[ps.xsText, { color: isDark ? colors.gray[400] : colors.gray[500], marginTop: 4 }]}>({t('paymentMethod.cashMethodNote', 'Chọn phương thức thanh toán')})</Text>
+    <View
+      style={[
+        ps.card,
+        {
+          backgroundColor: isDark ? colors.gray[800] : colors.white.light,
+          borderColor: isDark ? colors.gray[700] : colors.gray[100],
+        },
+      ]}
+    >
+      <View
+        style={[
+          pSectionStyles.cardHeader,
+          {
+            backgroundColor: isDark ? colors.gray[900] : colors.gray[50],
+            borderBottomColor: isDark ? colors.gray[700] : colors.gray[100],
+          },
+        ]}
+      >
+        <Text
+          style={[
+            ps.semibold,
+            { color: isDark ? colors.gray[50] : colors.gray[900] },
+          ]}
+        >
+          {t('paymentMethod.title')}
+        </Text>
+        <Text
+          style={[
+            ps.xsText,
+            {
+              color: isDark ? colors.gray[400] : colors.gray[500],
+              marginTop: 4,
+            },
+          ]}
+        >
+          ({t('paymentMethod.cashMethodNote')})
+        </Text>
       </View>
       <View style={pSectionStyles.cardBody}>
         <PaymentMethodRadioGroup
           order={order}
           value={selectedMethod}
           defaultValue={order.payment?.paymentMethod || null}
-          disabledMethods={order.payment?.paymentMethod ? [order.payment.paymentMethod as PaymentMethod] : []}
-          disabledReasons={order.payment?.paymentMethod ? { [order.payment.paymentMethod as PaymentMethod]: t('paymentMethod.alreadyPaid', 'Đã thanh toán') } as Record<PaymentMethod, string> : undefined}
+          disabledMethods={
+            order.payment?.paymentMethod
+              ? [order.payment.paymentMethod as PaymentMethod]
+              : []
+          }
+          disabledReasons={
+            order.payment?.paymentMethod
+              ? ({
+                  [order.payment.paymentMethod as PaymentMethod]: t(
+                    'paymentMethod.alreadyPaid',
+                  ),
+                } as Record<PaymentMethod, string>)
+              : undefined
+          }
           onSelect={onMethodChange}
           onConflict={onConflict}
           coinBalance={coinBalance}
@@ -158,18 +291,26 @@ const PaymentMethodSection = React.memo(function PaymentMethodSection({
       {isInitiating && (
         <View style={ps.processingRow}>
           <ActivityIndicator size="small" color={primaryColor} />
-          <Text style={[ps.xsText, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>{t('paymentMethod.processing', 'Đang xử lý...')}</Text>
+          <Text
+            style={[
+              ps.xsText,
+              { color: isDark ? colors.gray[400] : colors.gray[500] },
+            ]}
+          >
+            {t('paymentMethod.processing')}
+          </Text>
         </View>
       )}
-      {(qrCode || order.payment?.qrCode) && order.payment?.paymentMethod === PaymentMethod.BANK_TRANSFER && (
-        <QRSection
-          qrCode={qrCode}
-          paymentQrCode={order.payment?.qrCode}
-          subtotal={order.subtotal || 0}
-          primaryColor={primaryColor}
-          isDark={isDark}
-        />
-      )}
+      {(qrCode || order.payment?.qrCode) &&
+        order.payment?.paymentMethod === PaymentMethod.BANK_TRANSFER && (
+          <QRSection
+            qrCode={qrCode}
+            paymentQrCode={order.payment?.qrCode}
+            subtotal={order.subtotal || 0}
+            primaryColor={primaryColor}
+            isDark={isDark}
+          />
+        )}
     </View>
   )
 })
@@ -196,7 +337,10 @@ const PaymentSuccessScreen = React.memo(function PaymentSuccessScreen({
   }, [])
 
   return (
-    <ScreenContainer edges={['top']} style={{ flex: 1, backgroundColor: screenBg }}>
+    <ScreenContainer
+      edges={['top']}
+      style={{ flex: 1, backgroundColor: screenBg }}
+    >
       <View style={[suc.container, { paddingBottom: insets.bottom + 24 }]}>
         <ExpoImage
           // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
@@ -205,28 +349,43 @@ const PaymentSuccessScreen = React.memo(function PaymentSuccessScreen({
           contentFit="contain"
         />
         <Text style={[suc.title, { color: primaryColor }]}>
-          {t('payment.successTitle', 'Thanh toán thành công!')}
+          {t('payment.successTitle')}
         </Text>
-        <Text style={[suc.subtitle, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>
-          {t('payment.successSubtitle', 'Đơn hàng #{{slug}} của bạn đã được thanh toán.', { slug: orderSlug })}
+        <Text
+          style={[
+            suc.subtitle,
+            { color: isDark ? colors.gray[400] : colors.gray[500] },
+          ]}
+        >
+          {t('payment.successSubtitle', { slug: orderSlug })}
         </Text>
 
         <View style={suc.actions}>
           <Pressable
             onPress={onViewDetail}
-            style={[suc.btnSecondary, { backgroundColor: isDark ? colors.gray[700] : colors.gray[100], borderColor: isDark ? colors.gray[500] : colors.gray[300], flex: 1 }]}
+            style={[
+              suc.btnSecondary,
+              {
+                backgroundColor: isDark ? colors.gray[700] : colors.gray[100],
+                borderColor: isDark ? colors.gray[500] : colors.gray[300],
+                flex: 1,
+              },
+            ]}
           >
-            <Text style={[suc.btnSecondaryText, { color: isDark ? colors.gray[200] : colors.gray[700] }]}>
-              {t('payment.viewOrderDetail', 'Xem chi tiết đơn')}
+            <Text
+              style={[
+                suc.btnSecondaryText,
+                { color: isDark ? colors.gray[200] : colors.gray[700] },
+              ]}
+            >
+              {t('payment.viewOrderDetail')}
             </Text>
           </Pressable>
           <Pressable
             onPress={handleGoMenu}
             style={[suc.btnPrimary, { backgroundColor: primaryColor, flex: 1 }]}
           >
-            <Text style={suc.btnPrimaryText}>
-              {t('payment.goToMenu', 'Xem thực đơn')}
-            </Text>
+            <Text style={suc.btnPrimaryText}>{t('payment.goToMenu')}</Text>
           </Pressable>
         </View>
       </View>
@@ -235,14 +394,35 @@ const PaymentSuccessScreen = React.memo(function PaymentSuccessScreen({
 })
 
 const suc = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 12 },
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    gap: 12,
+  },
   image: { width: 200, height: 200, marginBottom: 8 },
   title: { fontSize: 22, fontWeight: '800', textAlign: 'center' },
   subtitle: { fontSize: 14, textAlign: 'center', lineHeight: 20 },
   actions: { width: '100%', flexDirection: 'row', gap: 12, marginTop: 16 },
-  btnPrimary: { height: 50, borderRadius: 9999, alignItems: 'center', justifyContent: 'center' },
-  btnPrimaryText: { fontSize: 15, fontWeight: '700', color: colors.white.light },
-  btnSecondary: { height: 50, borderRadius: 9999, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5 },
+  btnPrimary: {
+    height: 50,
+    borderRadius: 9999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnPrimaryText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.white.light,
+  },
+  btnSecondary: {
+    height: 50,
+    borderRadius: 9999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+  },
   btnSecondaryText: { fontSize: 15, fontWeight: '600' },
 })
 
@@ -251,15 +431,13 @@ const suc = StyleSheet.create({
 const PAYMENT_TIMEOUT_SECONDS = 900 // 15 minutes, per payment-expiration-calculation doc
 
 function computePaymentRemaining(startTime: string): number {
-  const elapsed = Math.floor((Date.now() - new Date(startTime).getTime()) / 1000)
+  const elapsed = Math.floor(
+    (Date.now() - new Date(startTime).getTime()) / 1000,
+  )
   return Math.max(0, PAYMENT_TIMEOUT_SECONDS - elapsed)
 }
 
-// Animated TextInput — lets Reanimated update text content on the UI thread (no re-renders)
-const AnimatedTextInput = Animated.createAnimatedComponent(TextInput)
-
 function formatCountdown(sec: number): string {
-  'worklet'
   if (sec <= 0) return 'Hết hạn'
   const m = Math.floor(sec / 60)
   const s = sec % 60
@@ -273,9 +451,12 @@ const PaymentCountdownBadge = memo(function PaymentCountdownBadge({
   startTime: string
   onExpire?: () => void
 }) {
+  const { t: tPayment } = useTranslation('payment')
   const isDark = useColorScheme() === 'dark'
   const onExpireRef = useRef(onExpire)
-  useEffect(() => { onExpireRef.current = onExpire })
+  useEffect(() => {
+    onExpireRef.current = onExpire
+  })
 
   // Convert startTime → expiresAt for the hook
   const expiresAt = useMemo(() => {
@@ -284,7 +465,7 @@ const PaymentCountdownBadge = memo(function PaymentCountdownBadge({
     return d.toISOString()
   }, [startTime])
 
-  // SharedValue — updates on UI thread, zero re-renders
+  // SharedValue — updates via setInterval, drives both text and color
   const secondsShared = useAnimatedCountdown({ expiresAt })
 
   // Handle already-expired on mount
@@ -292,37 +473,51 @@ const PaymentCountdownBadge = memo(function PaymentCountdownBadge({
     if (computePaymentRemaining(startTime) <= 0) onExpireRef.current?.()
   }, [startTime])
 
-  // Bridge expiry event from UI thread → JS (runOnJS only when countdown hits 0)
-  const fireExpire = useCallback(() => { onExpireRef.current?.() }, [])
+  // Initialize text from startTime directly to avoid 0-value flash
+  const [displayText, setDisplayText] = useState(() =>
+    formatCountdown(computePaymentRemaining(startTime)),
+  )
+
+  const fireExpire = useCallback(() => {
+    onExpireRef.current?.()
+  }, [])
+  const updateText = useCallback(
+    (sec: number) => {
+      setDisplayText(
+        sec > 0 ? formatCountdown(sec) : tPayment('countdown.expired'),
+      )
+    },
+    [tPayment],
+  )
+
+  // Single reaction: update text + fire expiry when countdown hits 0
   useAnimatedReaction(
     () => secondsShared.value,
     (current, previous) => {
+      runOnJS(updateText)(current)
       if (current === 0 && previous !== null && previous > 0) {
         runOnJS(fireExpire)()
       }
     },
   )
 
-  // Background color — reactive on UI thread, no re-render needed
-  const pillStyle = useAnimatedStyle(() => ({
-    backgroundColor: secondsShared.value <= 60
-      ? isDark ? colors.destructive.dark : colors.destructive.light
-      : colors.warning.light,
-  }), [isDark])
-
-  // Text — formatted on UI thread via animatedProps
-  const textProps = useAnimatedProps(() => ({
-    value: formatCountdown(secondsShared.value),
-  }))
+  // Background color + visibility reactive on UI thread
+  const pillStyle = useAnimatedStyle(
+    () => ({
+      backgroundColor:
+        secondsShared.value <= 60
+          ? isDark
+            ? colors.destructive.dark
+            : colors.destructive.light
+          : colors.warning.light,
+      opacity: secondsShared.value > 0 ? 1 : 0,
+    }),
+    [isDark],
+  )
 
   return (
     <Animated.View style={[cds.pill, cds.shadow, pillStyle]}>
-      <AnimatedTextInput
-        animatedProps={textProps}
-        editable={false}
-        pointerEvents="none"
-        style={cds.text}
-      />
+      <Text style={cds.text}>{displayText}</Text>
     </Animated.View>
   )
 })
@@ -375,10 +570,11 @@ const BottomActionBar = React.memo(function BottomActionBar({
 }) {
   const { t } = useTranslation('menu')
   const { t: tCommon } = useTranslation('common')
+  const { t: tPayment } = useTranslation('payment')
 
   const barStyle = useMemo(
     () => ({
-      paddingBottom: insetBottom,
+      paddingBottom: insetBottom + FOOTER_BOTTOM_EXTRA,
       backgroundColor: isDark ? colors.gray[800] : colors.white.light,
       borderTopColor: isDark ? colors.gray[700] : colors.gray[200],
     }),
@@ -388,10 +584,14 @@ const BottomActionBar = React.memo(function BottomActionBar({
   const btnStyle = useMemo(
     () => ({
       backgroundColor: isExpired
-        ? (isDark ? colors.destructive.dark : colors.destructive.light)
+        ? isDark
+          ? colors.destructive.dark
+          : colors.destructive.light
         : selectedPaymentMethod
           ? primaryColor
-          : (isDark ? colors.gray[600] : colors.gray[300]),
+          : isDark
+            ? colors.gray[600]
+            : colors.gray[300],
       opacity: isExpired ? 0.7 : 1,
     }),
     [isExpired, isDark, selectedPaymentMethod, primaryColor],
@@ -404,16 +604,17 @@ const BottomActionBar = React.memo(function BottomActionBar({
         disabled={isExpired || !selectedPaymentMethod || isInitiatingPayment}
         style={[ps.checkoutBtn, btnStyle]}
       >
-        {isInitiatingPayment
-          ? <ActivityIndicator color={colors.white.light} />
-          : <Text style={ps.checkoutBtnText}>
-              {isExpired
-                ? 'Hết hạn thanh toán'
-                : selectedPaymentMethod
-                  ? tCommon('common.checkout', 'Thanh toán')
-                  : t('paymentMethod.noMethodSelected', 'Chưa chọn phương thức')}
-            </Text>
-        }
+        {isInitiatingPayment ? (
+          <ActivityIndicator color={colors.white.light} />
+        ) : (
+          <Text style={ps.checkoutBtnText}>
+            {isExpired
+              ? tPayment('order.expiredButton')
+              : selectedPaymentMethod
+                ? tCommon('common.checkout')
+                : t('paymentMethod.noMethodSelected')}
+          </Text>
+        )}
       </Pressable>
       {children}
     </View>
@@ -425,12 +626,36 @@ const BottomActionBar = React.memo(function BottomActionBar({
 function PaymentPageContent() {
   const { t } = useTranslation('menu')
   const { t: tCommon } = useTranslation('common')
-  const { order: orderSlug, from } = useLocalSearchParams<{ order: string; from?: string }>()
+  const { t: tPayment } = useTranslation('payment')
+  const { order: orderSlug, from } = useLocalSearchParams<{
+    order: string
+    from?: string
+  }>()
+
+  const getPaymentMethodLabel = useCallback(
+    (method: PaymentMethod | null): string => {
+      if (!method) return ''
+      const keyMap: Record<PaymentMethod, string> = {
+        [PaymentMethod.BANK_TRANSFER]:
+          'voucherSheet.paymentMethod.bankTransfer',
+        [PaymentMethod.CASH]: 'voucherSheet.paymentMethod.cash',
+        [PaymentMethod.POINT]: 'voucherSheet.paymentMethod.point',
+        [PaymentMethod.CREDIT_CARD]: 'voucherSheet.paymentMethod.creditCard',
+      }
+      return tPayment(keyMap[method]) ?? method
+    },
+    [tPayment],
+  )
   const isDark = useColorScheme() === 'dark'
   const primaryColor = isDark ? colors.primary.dark : colors.primary.light
 
   const insets = useSafeAreaInsets()
-  const { data: orderResponse, isPending, isError: isOrderError, refetch: refetchOrder } = useOrderBySlug(orderSlug)
+  const {
+    data: orderResponse,
+    isPending,
+    isError: isOrderError,
+    refetch: refetchOrder,
+  } = useOrderBySlug(orderSlug)
   const order = orderResponse?.result
   const screenBg = isDark ? colors.background.dark : colors.background.light
 
@@ -438,33 +663,13 @@ function PaymentPageContent() {
   const [transitionReady, setTransitionReady] = useState(false)
   useRunAfterTransition(() => setTransitionReady(true), [])
 
-  // ─── Debug Logging ───
-  // useEffect(() => {
-  //   if (__DEV__) {
-  //     console.log('[Payment Page] Loaded', {
-  //       orderSlug,
-  //       isLoggedIn: !!useUserStore.getState().userInfo,
-  //       isPending,
-  //       hasOrder: !!order,
-  //       error: orderError ? {
-  //         message: orderError instanceof Error ? orderError.message : String(orderError),
-  //       } : null,
-  //     })
-  //   }
-  // }, [orderSlug, isPending, order, orderError])
+  const [isRefreshing, setIsRefreshing] = useState(false)
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true)
+    await refetchOrder()
+    setIsRefreshing(false)
+  }, [refetchOrder])
 
-  // Show success screen when:
-  // 1. Foreground FCM arrived → unread ORDER_PAID / CARD_ORDER_PAID notification in store, OR
-  // 2. order.status already PAID (e.g. background FCM + refetch, or staff POS confirm)
-  const hasOrderPaidNotification = useNotificationStore((s) =>
-    s.notifications.some(
-      (n) =>
-        !n.isRead &&
-        PAID_NOTIFICATION_CODES.has(n.message as NotificationMessageCode) &&
-        n.metadata?.order === orderSlug,
-    ),
-  )
-  const showSuccess = hasOrderPaidNotification || order?.status === OrderStatus.PAID
   const markNotificationRead = useNotificationStore((s) => s.markAsRead)
 
   const handleViewDetail = useCallback(() => {
@@ -476,29 +681,19 @@ function PaymentPageContent() {
           n.metadata?.order === orderSlug,
       )
     if (paid) markNotificationRead(paid.slug)
-    navigateNative.replace(`/order/${orderSlug}` as Parameters<typeof navigateNative.replace>[0])
+    navigateNative.replace(
+      `/order/${orderSlug}` as Parameters<typeof navigateNative.replace>[0],
+    )
   }, [markNotificationRead, orderSlug])
-
-  // Auto-refetch when FCM "order paid" notification arrives for this order
-  const processedRef = useRef<Set<string>>(new Set())
-  const latestNotification = useNotificationStore((s) => s.notifications[0])
-  useEffect(() => {
-    if (!latestNotification || latestNotification.isRead) return
-    if (processedRef.current.has(latestNotification.slug)) return
-    if (
-      PAID_NOTIFICATION_CODES.has(latestNotification.message as NotificationMessageCode) &&
-      latestNotification.metadata?.order === orderSlug
-    ) {
-      processedRef.current.add(latestNotification.slug)
-      refetchOrder()
-    }
-  }, [latestNotification, orderSlug, refetchOrder])
 
   const orderItems = useMemo(() => order?.orderItems || [], [order?.orderItems])
   const voucher = useMemo(() => order?.voucher ?? null, [order?.voucher])
 
   const { displayItemMap, cartTotals } = useMemo(() => {
-    const { displayItems, cartTotals } = calculateOrderDisplayAndTotals(orderItems, voucher)
+    const { displayItems, cartTotals } = calculateOrderDisplayAndTotals(
+      orderItems,
+      voucher,
+    )
     const map = new Map<string, (typeof displayItems)[number]>()
     for (const di of displayItems) map.set(di.slug, di)
     return { displayItemMap: map, cartTotals }
@@ -512,6 +707,9 @@ function PaymentPageContent() {
     }
   }, [from])
 
+  const [paymentSubmittedAt, setPaymentSubmittedAt] = useState<number | null>(
+    null,
+  )
   const [isExpired, setIsExpired] = useState(false)
   const handleExpire = useCallback(() => {
     setIsExpired(true)
@@ -525,7 +723,12 @@ function PaymentPageContent() {
   const countdownStartTime = order?.payment?.createdAt ?? order?.createdAt ?? ''
   const countdownRight = useMemo(() => {
     if (orderStatus !== OrderStatus.PENDING) return undefined
-    return <PaymentCountdownBadge startTime={countdownStartTime} onExpire={handleExpire} />
+    return (
+      <PaymentCountdownBadge
+        startTime={countdownStartTime}
+        onExpire={handleExpire}
+      />
+    )
   }, [orderStatus, countdownStartTime, handleExpire])
 
   // Refetch when screen regains focus — catches background FCM that didn't go through store
@@ -554,7 +757,9 @@ function PaymentPageContent() {
 
   // Loyalty points — chỉ fetch khi logged in + order PENDING
   const loyaltyData = useLoyaltyPoints(
-    order?.status === OrderStatus.PENDING && isLoggedIn ? (userInfo?.slug ?? undefined) : undefined,
+    order?.status === OrderStatus.PENDING && isLoggedIn
+      ? (userInfo?.slug ?? undefined)
+      : undefined,
   )
   const userTotalPoints = loyaltyData.data?.totalPoints ?? 0
   const refetchLoyalty = loyaltyData.refetch
@@ -569,14 +774,26 @@ function PaymentPageContent() {
     }, [isLoggedIn, refetchCoinBalance, refetchLoyalty]),
   )
 
-  const { mutate: initiatePaymentAuth, isPending: isInitiatingPaymentAuth } = useInitiatePayment()
-  const { mutate: initiatePaymentPublic, isPending: isInitiatingPaymentPublic } = useInitiatePublicPayment()
-  const initiatePayment = isLoggedIn ? initiatePaymentAuth : initiatePaymentPublic
-  const isInitiatingPayment = isLoggedIn ? isInitiatingPaymentAuth : isInitiatingPaymentPublic
+  const { mutate: initiatePaymentAuth, isPending: isInitiatingPaymentAuth } =
+    useInitiatePayment()
+  const {
+    mutate: initiatePaymentPublic,
+    isPending: isInitiatingPaymentPublic,
+  } = useInitiatePublicPayment()
+  const initiatePayment = isLoggedIn
+    ? initiatePaymentAuth
+    : initiatePaymentPublic
+  const isInitiatingPayment = isLoggedIn
+    ? isInitiatingPaymentAuth
+    : isInitiatingPaymentPublic
 
   const [paymentForm, dispatchPaymentForm] = React.useReducer(
     (
-      state: { method: PaymentMethod | null; transactionId: string; qrCode: string | null },
+      state: {
+        method: PaymentMethod | null
+        transactionId: string
+        qrCode: string | null
+      },
       action:
         | { type: 'SET_METHOD'; method: PaymentMethod; transactionId?: string }
         | { type: 'SET_QR'; qrCode: string }
@@ -601,24 +818,20 @@ function PaymentPageContent() {
   const selectedTransactionId = paymentForm.transactionId
   const qrCode = paymentForm.qrCode
 
-  // Fallback polling when QR is visible — covers FCM delivery failures.
-  // Keep refetchOrder in a ref: react-query returns a new function ref per render,
-  // which would otherwise tear down + recreate the interval on every voucher/state
-  // tick (3-4 teardowns in the first second).
-  const refetchOrderRef = React.useRef(refetchOrder)
-  useEffect(() => {
-    refetchOrderRef.current = refetchOrder
-  }, [refetchOrder])
+  const { showSuccess } = usePaymentStatusDetector({
+    orderSlug: orderSlug ?? '',
+    method: selectedPaymentMethod,
+    submittedAt: paymentSubmittedAt,
+    orderStatus: order?.status,
+    onPaid: refetchOrder,
+  })
 
-  useEffect(() => {
-    if (!qrCode || showSuccess) return
-    const id = setInterval(() => void refetchOrderRef.current(), 10_000)
-    return () => clearInterval(id)
-  }, [qrCode, showSuccess])
-
-  const handleMethodChange = useCallback((method: PaymentMethod, transactionId?: string) => {
-    dispatchPaymentForm({ type: 'SET_METHOD', method, transactionId })
-  }, [])
+  const handleMethodChange = useCallback(
+    (method: PaymentMethod, transactionId?: string) => {
+      dispatchPaymentForm({ type: 'SET_METHOD', method, transactionId })
+    },
+    [],
+  )
 
   // ── Voucher ↔ Payment Method conflict (Feature 2) ───────────────────────────
   const { mutate: updateVoucherAuth } = useUpdateVoucherInOrder()
@@ -636,14 +849,18 @@ function PaymentPageContent() {
     void refetchOrder()
   }, [refetchOrder])
 
-  const [conflictPendingMethod, setConflictPendingMethod] = useState<PaymentMethod | null>(null)
+  const [conflictPendingMethod, setConflictPendingMethod] =
+    useState<PaymentMethod | null>(null)
   const [showConflictSheet, setShowConflictSheet] = useState(false)
   const [isRemovingVoucher, setIsRemovingVoucher] = useState(false)
 
-  const handlePaymentMethodConflict = useCallback((blockedMethod: PaymentMethod) => {
-    setConflictPendingMethod(blockedMethod)
-    setShowConflictSheet(true)
-  }, [])
+  const handlePaymentMethodConflict = useCallback(
+    (blockedMethod: PaymentMethod) => {
+      setConflictPendingMethod(blockedMethod)
+      setShowConflictSheet(true)
+    },
+    [],
+  )
 
   const handleKeepVoucher = useCallback(() => {
     setShowConflictSheet(false)
@@ -674,11 +891,22 @@ function PaymentPageContent() {
         },
         onError: () => {
           setIsRemovingVoucher(false)
-          showErrorToastMessage('Không thể xóa voucher')
+          showErrorToastMessage(t('toast:toast.removeVoucherFailed'))
         },
       },
     )
-  }, [orderSlug, order, isLoggedIn, isRemovingVoucher, conflictPendingMethod, updateVoucherAuth, updateVoucherPublic, handleMethodChange, refetchOrder])
+  }, [
+    orderSlug,
+    order,
+    isLoggedIn,
+    isRemovingVoucher,
+    conflictPendingMethod,
+    updateVoucherAuth,
+    updateVoucherPublic,
+    handleMethodChange,
+    refetchOrder,
+    t,
+  ])
 
   // ── Point payment confirm dialog ──
   const [showPointConfirm, setShowPointConfirm] = useState(false)
@@ -687,43 +915,79 @@ function PaymentPageContent() {
   const executePayment = useCallback(() => {
     if (!selectedPaymentMethod || !orderSlug || !order) return
 
-    const payload: { paymentMethod: string; orderSlug: string; transactionId?: string } = {
+    const payload: {
+      paymentMethod: string
+      orderSlug: string
+      transactionId?: string
+    } = {
       paymentMethod: selectedPaymentMethod,
       orderSlug,
     }
-    if (selectedTransactionId.trim()) payload.transactionId = selectedTransactionId.trim()
+    if (selectedTransactionId.trim())
+      payload.transactionId = selectedTransactionId.trim()
 
     initiatePayment(payload, {
       onSuccess: (response) => {
-        if (response?.result?.qrCode) dispatchPaymentForm({ type: 'SET_QR', qrCode: response.result.qrCode })
+        if (response?.result?.qrCode)
+          dispatchPaymentForm({
+            type: 'SET_QR',
+            qrCode: response.result.qrCode,
+          })
+        setPaymentSubmittedAt(Date.now())
         void refetchOrder()
         if (selectedPaymentMethod === PaymentMethod.POINT) {
-          showToast(t('paymentMethod.coinPaymentSubmitted', 'Đã thanh toán bằng xu thành công'))
+          showToast(t('paymentMethod.coinPaymentSubmitted'))
           void refetchCoinBalance()
         }
       },
       onError: (error: unknown) => {
         if (error && typeof error === 'object' && 'response' in error) {
-          const axiosError = error as { response?: { data?: { statusCode?: number; message?: string } } }
-          if (axiosError.response?.data?.statusCode) { showErrorToast(axiosError.response.data.statusCode); return }
+          const axiosError = error as {
+            response?: { data?: { statusCode?: number; message?: string } }
+          }
+          if (axiosError.response?.data?.statusCode) {
+            showErrorToast(axiosError.response.data.statusCode)
+            return
+          }
           if (axiosError.response?.data?.message) {
-            if (axiosError.response.data.message?.toLowerCase().includes('insufficient balance')) {
-              showErrorToastMessage(t('toast:toast.insufficientBalance', 'Bạn không đủ số dư để thanh toán đơn hàng'))
+            if (
+              axiosError.response.data.message
+                ?.toLowerCase()
+                .includes('insufficient balance')
+            ) {
+              showErrorToastMessage(t('toast:toast.insufficientBalance'))
               return
             }
             showErrorToastMessage(axiosError.response.data.message)
             return
           }
         }
-        showToast(t('paymentMethod.paymentError', 'Lỗi khi cập nhật phương thức thanh toán'))
+        showToast(t('paymentMethod.paymentError'))
       },
     })
-  }, [selectedPaymentMethod, selectedTransactionId, orderSlug, order, initiatePayment, refetchOrder, refetchCoinBalance, t])
+  }, [
+    selectedPaymentMethod,
+    selectedTransactionId,
+    orderSlug,
+    order,
+    initiatePayment,
+    refetchOrder,
+    refetchCoinBalance,
+    t,
+  ])
 
   const handlePaymentSubmit = useCallback(() => {
     if (!selectedPaymentMethod || !orderSlug || !order) return
-    if (order.payment?.paymentMethod && order.payment.statusMessage === OrderStatus.COMPLETED) return
-    if (selectedPaymentMethod === PaymentMethod.CREDIT_CARD && !selectedTransactionId.trim()) return
+    if (
+      order.payment?.paymentMethod &&
+      order.payment.statusMessage === OrderStatus.COMPLETED
+    )
+      return
+    if (
+      selectedPaymentMethod === PaymentMethod.CREDIT_CARD &&
+      !selectedTransactionId.trim()
+    )
+      return
 
     // Show confirm dialog for point payment
     if (selectedPaymentMethod === PaymentMethod.POINT) {
@@ -732,7 +996,13 @@ function PaymentPageContent() {
     }
 
     executePayment()
-  }, [selectedPaymentMethod, selectedTransactionId, orderSlug, order, executePayment])
+  }, [
+    selectedPaymentMethod,
+    selectedTransactionId,
+    orderSlug,
+    order,
+    executePayment,
+  ])
 
   const handleConfirmPointPayment = useCallback(() => {
     setShowPointConfirm(false)
@@ -756,14 +1026,43 @@ function PaymentPageContent() {
 
   if (isOrderError) {
     return (
-      <ScreenContainer edges={['top']} style={[{ flex: 1, backgroundColor: screenBg }]}>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 }}>
-          <CircleX size={64} color={isDark ? colors.gray[400] : colors.gray[500]} />
-          <Text style={{ marginTop: 16, textAlign: 'center', color: isDark ? colors.gray[400] : colors.gray[600] }}>
-            {t('payment.loadFailed', 'Không thể tải đơn hàng. Vui lòng thử lại.')}
+      <ScreenContainer
+        edges={['top']}
+        style={[{ flex: 1, backgroundColor: screenBg }]}
+      >
+        <View
+          style={{
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingHorizontal: 16,
+          }}
+        >
+          <CircleX
+            size={64}
+            color={isDark ? colors.gray[400] : colors.gray[500]}
+          />
+          <Text
+            style={{
+              marginTop: 16,
+              textAlign: 'center',
+              color: isDark ? colors.gray[400] : colors.gray[600],
+            }}
+          >
+            {t('payment.loadFailed')}
           </Text>
-          <Pressable onPress={() => void refetchOrder()} style={[ps.checkoutBtn, { backgroundColor: primaryColor, marginTop: 16, paddingHorizontal: 24 }]}>
-            <Text style={ps.checkoutBtnText}>{tCommon('common.retry', 'Thử lại')}</Text>
+          <Pressable
+            onPress={() => void refetchOrder()}
+            style={[
+              ps.checkoutBtn,
+              {
+                backgroundColor: primaryColor,
+                marginTop: 16,
+                paddingHorizontal: 24,
+              },
+            ]}
+          >
+            <Text style={ps.checkoutBtnText}>{tCommon('common.retry')}</Text>
           </Pressable>
         </View>
       </ScreenContainer>
@@ -772,14 +1071,43 @@ function PaymentPageContent() {
 
   if (!order) {
     return (
-      <ScreenContainer edges={['top']} style={[{ flex: 1, backgroundColor: screenBg }]}>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16 }}>
-          <CircleX size={64} color={isDark ? colors.gray[400] : colors.gray[500]} />
-          <Text style={{ marginTop: 16, textAlign: 'center', color: isDark ? colors.gray[400] : colors.gray[600] }}>
-            {t('menu.noData', 'Không có dữ liệu')}
+      <ScreenContainer
+        edges={['top']}
+        style={[{ flex: 1, backgroundColor: screenBg }]}
+      >
+        <View
+          style={{
+            flex: 1,
+            alignItems: 'center',
+            justifyContent: 'center',
+            paddingHorizontal: 16,
+          }}
+        >
+          <CircleX
+            size={64}
+            color={isDark ? colors.gray[400] : colors.gray[500]}
+          />
+          <Text
+            style={{
+              marginTop: 16,
+              textAlign: 'center',
+              color: isDark ? colors.gray[400] : colors.gray[600],
+            }}
+          >
+            {t('menu.noData')}
           </Text>
-          <Pressable onPress={handleBack} style={[ps.checkoutBtn, { backgroundColor: primaryColor, marginTop: 16, paddingHorizontal: 24 }]}>
-            <Text style={ps.checkoutBtnText}>{tCommon('common.goBack', 'Quay lại')}</Text>
+          <Pressable
+            onPress={handleBack}
+            style={[
+              ps.checkoutBtn,
+              {
+                backgroundColor: primaryColor,
+                marginTop: 16,
+                paddingHorizontal: 24,
+              },
+            ]}
+          >
+            <Text style={ps.checkoutBtnText}>{tCommon('common.goBack')}</Text>
           </Pressable>
         </View>
       </ScreenContainer>
@@ -792,27 +1120,74 @@ function PaymentPageContent() {
         {/* Content — GestureScrollView tránh conflict với Stack swipe-back */}
         <GestureScrollView
           style={{ flex: 1 }}
-          contentContainerStyle={{ paddingTop: STATIC_TOP_INSET + 60, paddingBottom: 100 }}
+          contentContainerStyle={{
+            paddingTop: STATIC_TOP_INSET + 60,
+            paddingBottom: 100,
+          }}
           showsVerticalScrollIndicator={true}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              progressViewOffset={STATIC_TOP_INSET + 60}
+            />
+          }
         >
-        <View style={ps.contentPad}>
-          {/* Banner hết hạn */}
-          {isExpired && (
-            <View style={[ps.expiredBanner, { backgroundColor: isDark ? `${colors.destructive.dark}18` : `${colors.destructive.light}12`, borderColor: isDark ? colors.destructive.dark : colors.destructive.light }]}>
-              <Text style={[ps.expiredBannerTitle, { color: isDark ? colors.destructive.dark : colors.destructive.light }]}>
-                Đơn hàng đã hết hạn thanh toán
-              </Text>
-              <Text style={[ps.expiredBannerSub, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>
-                Thời gian thanh toán 15 phút đã hết. Vui lòng tạo đơn mới.
-              </Text>
-            </View>
-          )}
+          <View style={ps.contentPad}>
+            {/* Banner hết hạn */}
+            {isExpired && (
+              <View
+                style={[
+                  ps.expiredBanner,
+                  {
+                    backgroundColor: isDark
+                      ? `${colors.destructive.dark}18`
+                      : `${colors.destructive.light}12`,
+                    borderColor: isDark
+                      ? colors.destructive.dark
+                      : colors.destructive.light,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    ps.expiredBannerTitle,
+                    {
+                      color: isDark
+                        ? colors.destructive.dark
+                        : colors.destructive.light,
+                    },
+                  ]}
+                >
+                  {tPayment('order.expiredTitle')}
+                </Text>
+                <Text
+                  style={[
+                    ps.expiredBannerSub,
+                    { color: isDark ? colors.gray[400] : colors.gray[500] },
+                  ]}
+                >
+                  {tPayment('order.expiredDesc')}
+                </Text>
+              </View>
+            )}
 
-          {/* Order Info — extracted to dedicated memoized component */}
-          <PaymentOrderInfoCard order={order} isDark={isDark} />
+            {/* Order Info — extracted to dedicated memoized component */}
+            <PaymentOrderInfoCard order={order} isDark={isDark} />
 
-          {/* Order Items List — no section header, clean */}
-          <View style={[ps.card, { backgroundColor: isDark ? colors.gray[800] : colors.white.light, borderColor: isDark ? colors.gray[700] : colors.gray[100], padding: 16 }]}>
+            {/* Order Items List — no section header, clean */}
+            <View
+              style={[
+                ps.card,
+                {
+                  backgroundColor: isDark
+                    ? colors.gray[800]
+                    : colors.white.light,
+                  borderColor: isDark ? colors.gray[700] : colors.gray[100],
+                  padding: 16,
+                },
+              ]}
+            >
               {orderItems.map((item, index) => (
                 <PaymentProductItem
                   key={item.slug || index}
@@ -822,77 +1197,120 @@ function PaymentPageContent() {
                   primaryColor={primaryColor}
                   isDark={isDark}
                   isLast={index === orderItems.length - 1}
-                  noNoteLabel={t('order.noNote', 'Không có ghi chú')}
+                  noNoteLabel={t('order.noNote')}
                 />
               ))}
-          </View>
+            </View>
 
-          {/* Payment Method Selection — isolated component */}
-          <PaymentMethodSection
-            order={order}
-            primaryColor={primaryColor}
-            isDark={isDark}
-            selectedMethod={selectedPaymentMethod}
-            onMethodChange={handleMethodChange}
-            onConflict={handlePaymentMethodConflict}
-            isInitiating={isInitiatingPayment}
-            qrCode={qrCode}
-            coinBalance={coinBalance}
-          />
-
-          {/* Voucher Row */}
-          {order.status === OrderStatus.PENDING && (
-            <Pressable
-              onPress={() => setShowVoucherSheet(true)}
-              style={[ps.card, ps.voucherTrigger, { backgroundColor: isDark ? colors.gray[800] : colors.white.light, borderColor: isDark ? colors.gray[700] : colors.gray[100] }]}
-            >
-              <Ticket size={14} color={isDark ? colors.gray[400] : colors.gray[500]} />
-              <Text style={[ps.voucherLabel, { flex: 1, color: isDark ? colors.gray[400] : colors.gray[500] }]}>
-                Mã giảm giá
-              </Text>
-              {order.voucher && (
-                <View style={ps.voucherRight}>
-                  {(cartTotals?.voucherDiscount ?? 0) > 0 && (
-                    <View style={[ps.discountBadge, { borderColor: primaryColor }]}>
-                      <Text style={[ps.discountBadgeText, { color: primaryColor }]}>
-                        -{formatCurrency(cartTotals?.voucherDiscount ?? 0)}
-                      </Text>
-                    </View>
-                  )}
-                  <Text style={[ps.voucherName, { color: primaryColor }]} numberOfLines={1}>
-                    {order.voucher.title || order.voucher.code}
-                  </Text>
-                </View>
-              )}
-            </Pressable>
-          )}
-
-          {/* Loyalty Points Input — deferred until after navigation transition */}
-          {transitionReady && isLoggedIn && order.status === OrderStatus.PENDING && (
-            <LoyaltyPointsInput
-              orderSlug={orderSlug ?? ''}
-              orderTotal={(order.subtotal ?? 0) + (order.accumulatedPointsToUse ?? 0)}
-              userTotalPoints={userTotalPoints}
-              currentPointsUsed={order.accumulatedPointsToUse ?? 0}
-              isDark={isDark}
+            {/* Payment Method Selection — isolated component */}
+            <PaymentMethodSection
+              order={order}
               primaryColor={primaryColor}
-              onApplied={refetchOrder}
-              onCancelled={refetchOrder}
+              isDark={isDark}
+              selectedMethod={selectedPaymentMethod}
+              onMethodChange={handleMethodChange}
+              onConflict={handlePaymentMethodConflict}
+              isInitiating={isInitiatingPayment}
+              qrCode={qrCode}
+              coinBalance={coinBalance}
             />
-          )}
 
-          {/* Payment Summary — extracted to dedicated memoized component */}
-          <PaymentSummaryCard
-            order={order}
-            cartTotals={cartTotals}
-            coinBalance={coinBalance}
-            primaryColor={primaryColor}
-            isDark={isDark}
-          />
+            {/* Voucher Row */}
+            {order.status === OrderStatus.PENDING && (
+              <Pressable
+                onPress={() => setShowVoucherSheet(true)}
+                style={[
+                  ps.card,
+                  ps.voucherTrigger,
+                  {
+                    backgroundColor: isDark
+                      ? colors.gray[800]
+                      : colors.white.light,
+                    borderColor: isDark ? colors.gray[700] : colors.gray[100],
+                  },
+                ]}
+              >
+                <Ticket
+                  size={14}
+                  color={isDark ? colors.gray[400] : colors.gray[500]}
+                />
+                <Text
+                  style={[
+                    ps.voucherLabel,
+                    {
+                      flex: 1,
+                      color: isDark ? colors.gray[400] : colors.gray[500],
+                    },
+                  ]}
+                >
+                  {t('menu.voucher')}
+                </Text>
+                {order.voucher && (
+                  <View style={ps.voucherRight}>
+                    {(cartTotals?.voucherDiscount ?? 0) > 0 && (
+                      <View
+                        style={[
+                          ps.discountBadge,
+                          { borderColor: primaryColor },
+                        ]}
+                      >
+                        <Text
+                          style={[
+                            ps.discountBadgeText,
+                            { color: primaryColor },
+                          ]}
+                        >
+                          -{formatCurrency(cartTotals?.voucherDiscount ?? 0)}
+                        </Text>
+                      </View>
+                    )}
+                    <Text
+                      style={[ps.voucherName, { color: primaryColor }]}
+                      numberOfLines={1}
+                    >
+                      {order.voucher.title || order.voucher.code}
+                    </Text>
+                  </View>
+                )}
+              </Pressable>
+            )}
 
-          {/* Invoice — deferred until after navigation transition */}
-          {transitionReady && <InvoiceSection order={order} primaryColor={primaryColor} isDark={isDark} />}
-        </View>
+            {/* Loyalty Points Input — deferred until after navigation transition */}
+            {transitionReady &&
+              isLoggedIn &&
+              order.status === OrderStatus.PENDING && (
+                <LoyaltyPointsInput
+                  orderSlug={orderSlug ?? ''}
+                  orderTotal={
+                    (order.subtotal ?? 0) + (order.accumulatedPointsToUse ?? 0)
+                  }
+                  userTotalPoints={userTotalPoints}
+                  currentPointsUsed={order.accumulatedPointsToUse ?? 0}
+                  isDark={isDark}
+                  primaryColor={primaryColor}
+                  onApplied={refetchOrder}
+                  onCancelled={refetchOrder}
+                />
+              )}
+
+            {/* Payment Summary — extracted to dedicated memoized component */}
+            <PaymentSummaryCard
+              order={order}
+              cartTotals={cartTotals}
+              coinBalance={coinBalance}
+              primaryColor={primaryColor}
+              isDark={isDark}
+            />
+
+            {/* Invoice — deferred until after navigation transition */}
+            {transitionReady && (
+              <InvoiceSection
+                order={order}
+                primaryColor={primaryColor}
+                isDark={isDark}
+              />
+            )}
+          </View>
         </GestureScrollView>
 
         {/* Bottom Action Bar */}
@@ -905,14 +1323,12 @@ function PaymentPageContent() {
             selectedPaymentMethod={selectedPaymentMethod}
             primaryColor={primaryColor}
             onSubmit={handlePaymentSubmit}
-          >
-          </BottomActionBar>
+          ></BottomActionBar>
         )}
         <FloatingHeader
-          title={t('order.payment', 'Thanh toán')}
+          title={t('order.payment')}
           onBack={handleBack}
           rightElement={countdownRight}
-        
           disableBlur
         />
         {showVoucherSheet && (
@@ -953,42 +1369,82 @@ function PaymentPageContent() {
   )
 }
 
-function getPaymentMethodLabel(method: PaymentMethod | null): string {
-  if (!method) return ''
-  const labels: Record<PaymentMethod, string> = {
-    [PaymentMethod.BANK_TRANSFER]: 'Chuyển khoản',
-    [PaymentMethod.CASH]: 'Tiền mặt',
-    [PaymentMethod.POINT]: 'Điểm tích lũy',
-    [PaymentMethod.CREDIT_CARD]: 'Thẻ tín dụng',
-  }
-  return labels[method] ?? method
-}
-
 const ps = StyleSheet.create({
   contentPad: { paddingHorizontal: 16, paddingVertical: 16 },
-  card: { marginBottom: 16, borderRadius: 12, borderWidth: 1, overflow: 'hidden' },
+  card: {
+    marginBottom: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
   semibold: { fontSize: 16, fontWeight: '600' },
   smText: { fontSize: 14 },
   xsText: { fontSize: 12 },
   lgBold: { fontSize: 18, fontWeight: '700' },
-  processingRow: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 16, paddingBottom: 16 },
-  qrSection: { paddingHorizontal: 16, paddingBottom: 16, paddingTop: 16, borderTopWidth: StyleSheet.hairlineWidth },
+  processingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  qrSection: {
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+    paddingTop: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
   qrCenter: { alignItems: 'center' },
   qrImage: { width: '40%', aspectRatio: 1 },
   qrInfoCol: { gap: 8, alignItems: 'center', marginTop: 8 },
   qrTotalRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  qrNoteRow: { flexDirection: 'row', alignItems: 'center', gap: 4, paddingHorizontal: 16 },
-  bottomBar: { borderTopWidth: StyleSheet.hairlineWidth, paddingHorizontal: 16, paddingTop: 16 },
-  checkoutBtn: { height: 48, borderRadius: 9999, alignItems: 'center', justifyContent: 'center' },
-  checkoutBtnText: { fontSize: 15, fontWeight: '700', color: colors.white.light },
-  expiredBanner: { borderWidth: 1, borderRadius: 10, padding: 12, gap: 4, marginBottom: 12 },
+  qrNoteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 16,
+  },
+  bottomBar: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  checkoutBtn: {
+    height: 48,
+    borderRadius: 9999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  checkoutBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.white.light,
+  },
+  expiredBanner: {
+    borderWidth: 1,
+    borderRadius: 10,
+    padding: 12,
+    gap: 4,
+    marginBottom: 12,
+  },
   expiredBannerTitle: { fontSize: 14, fontWeight: '700' },
   expiredBannerSub: { fontSize: 12, lineHeight: 18 },
-  voucherTrigger: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 14, paddingHorizontal: 16 },
+  voucherTrigger: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+  },
   voucherLabel: { fontSize: 13, fontWeight: '600' },
   voucherRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   voucherName: { fontSize: 13, fontWeight: '600', maxWidth: 120 },
-  discountBadge: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 2 },
+  discountBadge: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
   discountBadgeText: { fontSize: 11, fontWeight: '700' },
 })
 

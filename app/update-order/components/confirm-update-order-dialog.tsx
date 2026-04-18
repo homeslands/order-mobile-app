@@ -55,6 +55,7 @@ export default memo(function ConfirmUpdateOrderDialog({
 }: ConfirmUpdateOrderDialogProps) {
   const { t } = useTranslation('menu')
   const { t: tToast } = useTranslation('toast')
+  const { t: tCommon } = useTranslation('common')
   const [sheetVisible, setSheetVisible] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const sheetRef = useRef<BottomSheetModal>(null)
@@ -82,10 +83,15 @@ export default memo(function ConfirmUpdateOrderDialog({
   const accumulatedPoints = originalOrder?.accumulatedPointsToUse ?? 0
 
   const { displayItems, cartTotals } = useMemo(
-    () => calculateOrderDisplayAndTotals(transformOrderItemToOrderDetail(orderItems), voucher),
+    () =>
+      calculateOrderDisplayAndTotals(
+        transformOrderItemToOrderDetail(orderItems),
+        voucher,
+      ),
     [orderItems, voucher],
   )
-  const finalTotal = (cartTotals?.finalTotal ?? 0) + deliveryFee - accumulatedPoints
+  const finalTotal =
+    (cartTotals?.finalTotal ?? 0) + deliveryFee - accumulatedPoints
 
   // ── Submit ──────────────────────────────────────────────────────────────────
 
@@ -93,10 +99,8 @@ export default memo(function ConfirmUpdateOrderDialog({
     if (!draft || !originalOrder || !orderSlug || isSubmitting) return
     setIsSubmitting(true)
     try {
-      const { toDelete, toAdd, toUpdateQty, toUpdateNote } = computeOrderApiDiff(
-        originalOrder.orderItems,
-        draft.orderItems,
-      )
+      const { toDelete, toAdd, toUpdateQty, toUpdateNote } =
+        computeOrderApiDiff(originalOrder.orderItems, draft.orderItems)
 
       const metaChanged =
         originalOrder.type !== draft.type ||
@@ -115,7 +119,8 @@ export default memo(function ConfirmUpdateOrderDialog({
             table: draft.table || null,
             description: draft.description ?? '',
             timeLeftTakeOut: draft.timeLeftTakeOut ?? 0,
-            deliveryTo: draft.deliveryTo?.placeId ?? draft.deliveryPlaceId ?? undefined,
+            deliveryTo:
+              draft.deliveryTo?.placeId ?? draft.deliveryPlaceId ?? undefined,
             deliveryPhone: draft.deliveryPhone ?? undefined,
           },
         })
@@ -144,11 +149,16 @@ export default memo(function ConfirmUpdateOrderDialog({
       }
 
       if (toUpdateQty.length > 0) {
-        const originalBySlug = new Map(originalOrder.orderItems.map((i) => [i.slug, i]))
+        const originalBySlug = new Map(
+          originalOrder.orderItems.map((i) => [i.slug, i]),
+        )
         await Promise.all(
           toUpdateQty.map((item) => {
             const orig = originalBySlug.get(item.slug)
-            const action = (item.quantity ?? 1) > (orig?.quantity ?? 1) ? 'increment' : 'decrement'
+            const action =
+              (item.quantity ?? 1) > (orig?.quantity ?? 1)
+                ? 'increment'
+                : 'decrement'
             return updateOrderItem({
               slug: item.slug,
               data: {
@@ -170,7 +180,10 @@ export default memo(function ConfirmUpdateOrderDialog({
             const realSlug = isTempOrderItem(item.slug)
               ? (newItemSlugMap.get(item.slug) ?? item.slug)
               : item.slug
-            return updateNoteOrderItem({ slug: realSlug, data: { note: item.note ?? '' } })
+            return updateNoteOrderItem({
+              slug: realSlug,
+              data: { note: item.note ?? '' },
+            })
           }),
         )
       }
@@ -178,13 +191,15 @@ export default memo(function ConfirmUpdateOrderDialog({
       const voucherChanged =
         (originalOrder.voucher?.slug ?? null) !== (draft.voucher?.slug ?? null)
       if (voucherChanged) {
-        const orderItemsParam: IOrderItemsParam[] = draft.orderItems.map((item) => ({
-          quantity: item.quantity,
-          variant: item.variant.slug,
-          note: item.note ?? '',
-          promotion: item.promotion?.slug ?? null,
-          order: orderSlug,
-        }))
+        const orderItemsParam: IOrderItemsParam[] = draft.orderItems.map(
+          (item) => ({
+            quantity: item.quantity,
+            variant: item.variant.slug,
+            note: item.note ?? '',
+            promotion: item.promotion?.slug ?? null,
+            order: orderSlug,
+          }),
+        )
         await updateVoucherInOrder({
           slug: orderSlug,
           voucher: draft.voucher?.slug ?? null,
@@ -205,7 +220,7 @@ export default memo(function ConfirmUpdateOrderDialog({
         onSuccess?.()
       })
     } catch {
-      showErrorToastMessage(t('order.updateOrderFailed', 'Cập nhật thất bại, vui lòng thử lại'))
+      showErrorToastMessage(t('order.updateOrderFailed'))
     } finally {
       setIsSubmitting(false)
     }
@@ -256,12 +271,31 @@ export default memo(function ConfirmUpdateOrderDialog({
         onPress={() => setSheetVisible(true)}
         style={[
           cd.btn,
-          { backgroundColor: disabled || isSubmitting ? (isDark ? colors.gray[700] : colors.gray[300]) : primaryColor },
+          {
+            backgroundColor:
+              disabled || isSubmitting
+                ? isDark
+                  ? colors.gray[700]
+                  : colors.gray[300]
+                : primaryColor,
+          },
           (disabled || isSubmitting) && cd.btnDisabled,
         ]}
       >
-        <Text style={[cd.btnText, { color: disabled || isSubmitting ? (isDark ? colors.gray[400] : colors.gray[500]) : colors.white.light }]}>
-          {t('order.confirmUpdate', 'Xác nhận cập nhật')}
+        <Text
+          style={[
+            cd.btnText,
+            {
+              color:
+                disabled || isSubmitting
+                  ? isDark
+                    ? colors.gray[400]
+                    : colors.gray[500]
+                  : colors.white.light,
+            },
+          ]}
+        >
+          {t('order.confirm', 'Xác nhận cập nhật')}
         </Text>
       </Pressable>
 
@@ -277,152 +311,213 @@ export default memo(function ConfirmUpdateOrderDialog({
         backgroundStyle={bgStyle}
         onDismiss={() => setSheetVisible(false)}
       >
-              {/* Header */}
-              <View style={[cd.sheetHeader, { borderBottomColor: dividerColor }]}>
-                <Text style={[cd.sheetTitle, { color: valueColor }]}>
-                  {t('order.confirmUpdateOrder', 'Xác nhận cập nhật đơn hàng')}
+        {/* Header */}
+        <View style={[cd.sheetHeader, { borderBottomColor: dividerColor }]}>
+          <Text style={[cd.sheetTitle, { color: valueColor }]}>
+            {t('order.confirmUpdateOrder', 'Xác nhận cập nhật đơn hàng')}
+          </Text>
+        </View>
+
+        {/* Scrollable content */}
+        <BottomSheetScrollView
+          contentContainerStyle={cd.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Order info */}
+          <View style={cd.infoSection}>
+            <View
+              style={[
+                cd.infoRow,
+                {
+                  backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
+                },
+              ]}
+            >
+              <Text style={[cd.infoLabel, { color: labelColor }]}>
+                {t('menu.orderType', 'Loại đơn')}
+              </Text>
+              <Text style={[cd.infoValue, { color: valueColor }]}>
+                {orderTypeLabel}
+              </Text>
+            </View>
+            {draft?.table ? (
+              <View
+                style={[
+                  cd.infoRow,
+                  {
+                    backgroundColor: isDark
+                      ? colors.gray[800]
+                      : colors.gray[100],
+                  },
+                ]}
+              >
+                <Text style={[cd.infoLabel, { color: labelColor }]}>
+                  {t('menu.tableName', 'Bàn')}
+                </Text>
+                <Text style={[cd.infoValue, { color: valueColor }]}>
+                  {draft.table}
                 </Text>
               </View>
+            ) : null}
+          </View>
 
-              {/* Scrollable content */}
-              <BottomSheetScrollView
-                contentContainerStyle={cd.scrollContent}
-                showsVerticalScrollIndicator={false}
-              >
-                {/* Order info */}
-                <View style={cd.infoSection}>
-                  <View style={[cd.infoRow, { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] }]}>
-                    <Text style={[cd.infoLabel, { color: labelColor }]}>
-                      {t('menu.orderType', 'Loại đơn')}
+          {/* Items */}
+          <View style={[cd.itemsSection, { borderTopColor: dividerColor }]}>
+            {displayItems.map((item, idx) => (
+              <View key={idx} style={cd.itemRow}>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[cd.itemName, { color: valueColor }]}
+                    numberOfLines={1}
+                  >
+                    {(item as { name?: string }).name ?? ''} × {item.quantity}
+                  </Text>
+                  {(item as { size?: string }).size ? (
+                    <Text style={[cd.itemSize, { color: labelColor }]}>
+                      Size{' '}
+                      {((item as { size?: string }).size ?? '').toUpperCase()}
                     </Text>
-                    <Text style={[cd.infoValue, { color: valueColor }]}>{orderTypeLabel}</Text>
-                  </View>
-                  {draft?.table ? (
-                    <View style={[cd.infoRow, { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] }]}>
-                      <Text style={[cd.infoLabel, { color: labelColor }]}>
-                        {t('menu.tableName', 'Bàn')}
-                      </Text>
-                      <Text style={[cd.infoValue, { color: valueColor }]}>
-                        {draft.table}
-                      </Text>
-                    </View>
                   ) : null}
                 </View>
-
-                {/* Items */}
-                <View style={[cd.itemsSection, { borderTopColor: dividerColor }]}>
-                  {displayItems.map((item, idx) => (
-                    <View key={idx} style={cd.itemRow}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={[cd.itemName, { color: valueColor }]} numberOfLines={1}>
-                          {(item as { name?: string }).name ?? ''} × {item.quantity}
-                        </Text>
-                        {(item as { size?: string }).size ? (
-                          <Text style={[cd.itemSize, { color: labelColor }]}>
-                            Size {((item as { size?: string }).size ?? '').toUpperCase()}
-                          </Text>
-                        ) : null}
-                      </View>
-                      <Text style={[cd.itemPrice, { color: primaryColor }]}>
-                        {formatCurrencyNative(
-                          ((item as { finalPrice?: number }).finalPrice ?? 0) * item.quantity,
-                        )}
-                      </Text>
-                    </View>
-                  ))}
-                </View>
-
-                {/* Totals */}
-                <View style={[cd.totalsSection, { borderTopColor: dividerColor }]}>
-                  <View style={cd.totalRow}>
-                    <Text style={{ fontSize: 13, color: labelColor }}>
-                      {t('order.subtotalBeforeDiscount', 'Tạm tính')}
-                    </Text>
-                    <Text style={{ fontSize: 13, color: labelColor }}>
-                      {formatCurrencyNative(cartTotals?.subTotalBeforeDiscount ?? 0)}
-                    </Text>
-                  </View>
-                  {(cartTotals?.promotionDiscount ?? 0) > 0 && (
-                    <View style={cd.totalRow}>
-                      <Text style={{ fontSize: 13, color: isDark ? colors.warning.dark : colors.warning.textLight }}>
-                        {t('order.promotionDiscount', 'Khuyến mãi')}
-                      </Text>
-                      <Text style={{ fontSize: 13, color: isDark ? colors.warning.dark : colors.warning.textLight }}>
-                        -{formatCurrencyNative(cartTotals?.promotionDiscount ?? 0)}
-                      </Text>
-                    </View>
+                <Text style={[cd.itemPrice, { color: primaryColor }]}>
+                  {formatCurrencyNative(
+                    ((item as { finalPrice?: number }).finalPrice ?? 0) *
+                      item.quantity,
                   )}
-                  {(cartTotals?.voucherDiscount ?? 0) > 0 && (
-                    <View style={cd.totalRow}>
-                      <Text style={{ fontSize: 13, color: isDark ? colors.success.dark : colors.success.light }}>
-                        {t('order.voucherDiscount', 'Voucher')}
-                      </Text>
-                      <Text style={{ fontSize: 13, color: isDark ? colors.success.dark : colors.success.light }}>
-                        -{formatCurrencyNative(cartTotals?.voucherDiscount ?? 0)}
-                      </Text>
-                    </View>
-                  )}
-                  {orderType === OrderTypeEnum.DELIVERY && deliveryFee > 0 && (
-                    <View style={cd.totalRow}>
-                      <Text style={{ fontSize: 13, color: labelColor }}>
-                        {t('order.deliveryFee', 'Phí giao hàng')}
-                      </Text>
-                      <Text style={{ fontSize: 13, color: labelColor }}>
-                        {formatCurrencyNative(deliveryFee)}
-                      </Text>
-                    </View>
-                  )}
-                  {accumulatedPoints > 0 && (
-                    <View style={cd.totalRow}>
-                      <Text style={{ fontSize: 13, color: primaryColor }}>
-                        {t('order.accumulatedPointsToUse', 'Điểm tích lũy')}
-                      </Text>
-                      <Text style={{ fontSize: 13, color: primaryColor }}>
-                        -{formatCurrencyNative(accumulatedPoints)}
-                      </Text>
-                    </View>
-                  )}
-                  <View style={[cd.totalRow, cd.finalRow, { borderTopColor: dividerColor }]}>
-                    <Text style={[cd.finalLabel, { color: valueColor }]}>
-                      {t('order.totalPayment', 'Tổng thanh toán')}
-                    </Text>
-                    <Text style={[cd.finalValue, { color: primaryColor }]}>
-                      {formatCurrencyNative(finalTotal)}
-                    </Text>
-                  </View>
-                </View>
-              </BottomSheetScrollView>
-
-              {/* Footer */}
-              <View style={[cd.footer, { paddingBottom: bottomInset + 8 }]}>
-                <Pressable
-                  onPress={() => sheetRef.current?.dismiss()}
-                  style={[
-                    cd.cancelBtn,
-                    { backgroundColor: isDark ? colors.gray[700] : colors.gray[100] },
-                  ]}
-                >
-                  <Text style={[cd.cancelText, { color: isDark ? colors.gray[50] : colors.gray[700] }]}>
-                    {t('common.cancel', 'Huỷ')}
-                  </Text>
-                </Pressable>
-                <Pressable
-                  onPress={handleConfirm}
-                  disabled={isSubmitting}
-                  style={[
-                    cd.submitBtn,
-                    { backgroundColor: primaryColor, opacity: isSubmitting ? 0.6 : 1 },
-                  ]}
-                >
-                  {isSubmitting ? (
-                    <ActivityIndicator size="small" color={colors.white.light} />
-                  ) : (
-                    <Text style={[cd.submitText, { color: colors.white.light }]}>
-                      {t('order.confirmUpdate', 'Xác nhận')}
-                    </Text>
-                  )}
-                </Pressable>
+                </Text>
               </View>
+            ))}
+          </View>
+
+          {/* Totals */}
+          <View style={[cd.totalsSection, { borderTopColor: dividerColor }]}>
+            <View style={cd.totalRow}>
+              <Text style={{ fontSize: 13, color: labelColor }}>
+                {t('order.subtotalBeforeDiscount', 'Tạm tính')}
+              </Text>
+              <Text style={{ fontSize: 13, color: labelColor }}>
+                {formatCurrencyNative(cartTotals?.subTotalBeforeDiscount ?? 0)}
+              </Text>
+            </View>
+            {(cartTotals?.promotionDiscount ?? 0) > 0 && (
+              <View style={cd.totalRow}>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    color: isDark
+                      ? colors.warning.dark
+                      : colors.warning.textLight,
+                  }}
+                >
+                  {t('order.promotionDiscount', 'Khuyến mãi')}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    color: isDark
+                      ? colors.warning.dark
+                      : colors.warning.textLight,
+                  }}
+                >
+                  -{formatCurrencyNative(cartTotals?.promotionDiscount ?? 0)}
+                </Text>
+              </View>
+            )}
+            {(cartTotals?.voucherDiscount ?? 0) > 0 && (
+              <View style={cd.totalRow}>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    color: isDark ? colors.success.dark : colors.success.light,
+                  }}
+                >
+                  {t('order.voucherDiscount', 'Voucher')}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 13,
+                    color: isDark ? colors.success.dark : colors.success.light,
+                  }}
+                >
+                  -{formatCurrencyNative(cartTotals?.voucherDiscount ?? 0)}
+                </Text>
+              </View>
+            )}
+            {orderType === OrderTypeEnum.DELIVERY && deliveryFee > 0 && (
+              <View style={cd.totalRow}>
+                <Text style={{ fontSize: 13, color: labelColor }}>
+                  {t('order.deliveryFee', 'Phí giao hàng')}
+                </Text>
+                <Text style={{ fontSize: 13, color: labelColor }}>
+                  {formatCurrencyNative(deliveryFee)}
+                </Text>
+              </View>
+            )}
+            {accumulatedPoints > 0 && (
+              <View style={cd.totalRow}>
+                <Text style={{ fontSize: 13, color: primaryColor }}>
+                  {t('order.accumulatedPointsToUse', 'Điểm tích lũy')}
+                </Text>
+                <Text style={{ fontSize: 13, color: primaryColor }}>
+                  -{formatCurrencyNative(accumulatedPoints)}
+                </Text>
+              </View>
+            )}
+            <View
+              style={[
+                cd.totalRow,
+                cd.finalRow,
+                { borderTopColor: dividerColor },
+              ]}
+            >
+              <Text style={[cd.finalLabel, { color: valueColor }]}>
+                {t('order.totalPayment', 'Tổng thanh toán')}
+              </Text>
+              <Text style={[cd.finalValue, { color: primaryColor }]}>
+                {formatCurrencyNative(finalTotal)}
+              </Text>
+            </View>
+          </View>
+        </BottomSheetScrollView>
+
+        {/* Footer */}
+        <View style={[cd.footer, { paddingBottom: bottomInset + 8 }]}>
+          <Pressable
+            onPress={() => sheetRef.current?.dismiss()}
+            style={[
+              cd.cancelBtn,
+              { backgroundColor: isDark ? colors.gray[700] : colors.gray[100] },
+            ]}
+          >
+            <Text
+              style={[
+                cd.cancelText,
+                { color: isDark ? colors.gray[50] : colors.gray[700] },
+              ]}
+            >
+              {tCommon('common.cancel', 'Huỷ')}
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={handleConfirm}
+            disabled={isSubmitting}
+            style={[
+              cd.submitBtn,
+              {
+                backgroundColor: primaryColor,
+                opacity: isSubmitting ? 0.6 : 1,
+              },
+            ]}
+          >
+            {isSubmitting ? (
+              <ActivityIndicator size="small" color={colors.white.light} />
+            ) : (
+              <Text style={[cd.submitText, { color: colors.white.light }]}>
+                {t('order.confirm', 'Xác nhận')}
+              </Text>
+            )}
+          </Pressable>
+        </View>
       </BottomSheetModal>
     </>
   )

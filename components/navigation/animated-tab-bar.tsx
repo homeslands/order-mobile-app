@@ -146,7 +146,10 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   return (
     <View style={[styles.tabBar, { backgroundColor: 'transparent' }]}>
       <View
-        style={[styles.pill, { paddingHorizontal: paddingH, backgroundColor: colors.card }]}
+        style={[
+          styles.pill,
+          { paddingHorizontal: paddingH, backgroundColor: colors.card },
+        ]}
         onLayout={onPillLayout}
       >
         <Animated.View

@@ -10,7 +10,10 @@ interface DataTableBodyProps<T> {
 }
 
 /** Virtualized body: FlatList only. keyExtractor and renderItem memoized. */
-export function DataTableBody<T>({ columns, emptyComponent }: DataTableBodyProps<T>) {
+export function DataTableBody<T>({
+  columns,
+  emptyComponent,
+}: DataTableBodyProps<T>) {
   const {
     rows,
     getRowId,
@@ -37,17 +40,24 @@ export function DataTableBody<T>({ columns, emptyComponent }: DataTableBodyProps
         />
       )
     },
-    [columns, getRowId, selectedRows, toggleRowSelection, onRowPress, selectable]
+    [
+      columns,
+      getRowId,
+      selectedRows,
+      toggleRowSelection,
+      onRowPress,
+      selectable,
+    ],
   )
 
   const keyExtractor = useCallback(
     (item: T, index: number) => String(getRowId(item, index)),
-    [getRowId]
+    [getRowId],
   )
 
   const listEmptyComponent = useMemo(
     () => (emptyComponent ? () => <>{emptyComponent}</> : null),
-    [emptyComponent]
+    [emptyComponent],
   )
 
   return (

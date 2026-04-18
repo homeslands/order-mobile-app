@@ -117,9 +117,7 @@ function ProductVariantSheet({
 
       return (
         <View className="px-4 py-1.5">
-          <View
-            className="flex-row items-center justify-between rounded-xl border border-gray-100 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900"
-          >
+          <View className="flex-row items-center justify-between rounded-xl border border-gray-100 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
             <View className="flex-1">
               <Text
                 className="text-sm font-medium text-gray-900 dark:text-gray-50"
@@ -130,9 +128,7 @@ function ProductVariantSheet({
             </View>
 
             <View className="ml-3">
-              <View
-                className="h-5 w-5 items-center justify-center rounded-full border border-gray-300 dark:border-gray-600"
-              >
+              <View className="h-5 w-5 items-center justify-center rounded-full border border-gray-300 dark:border-gray-600">
                 {isSelected && (
                   <Text className="text-[11px] font-semibold text-primary">
                     ✓
