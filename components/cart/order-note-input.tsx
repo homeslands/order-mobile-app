@@ -9,12 +9,15 @@ interface OrderNoteInputProps {
 }
 
 // Presentational component (cart-specific layout), không truy cập store
-export default function OrderNoteInput({ value, onChange }: OrderNoteInputProps) {
+export default function OrderNoteInput({
+  value,
+  onChange,
+}: OrderNoteInputProps) {
   const { t } = useTranslation('menu')
 
   return (
     <View className="flex w-full flex-row items-center justify-center gap-2.5">
-      <View className="flex flex-row flex-1 gap-2 justify-between items-start w-full">
+      <View className="flex w-full flex-1 flex-row items-start justify-between gap-2">
         <Textarea
           defaultValue={value || ''}
           className="bg-white text-[11px] shadow-none xl:text-sm dark:border-muted-foreground/60 dark:bg-transparent"

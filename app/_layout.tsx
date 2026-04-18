@@ -1,5 +1,11 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
-import { focusManager, MutationCache, QueryCache, QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import {
+  focusManager,
+  MutationCache,
+  QueryCache,
+  QueryClient,
+  QueryClientProvider,
+} from '@tanstack/react-query'
 import * as SplashScreen from 'expo-splash-screen'
 import * as SystemUI from 'expo-system-ui'
 
@@ -95,7 +101,9 @@ if (typeof global !== 'undefined' && !global.onunhandledrejection) {
 }
 
 function extractStatusCode(error: unknown): number | null {
-  const err = error as { response?: { data?: { statusCode?: number; code?: number } } }
+  const err = error as {
+    response?: { data?: { statusCode?: number; code?: number } }
+  }
   return err?.response?.data?.statusCode ?? err?.response?.data?.code ?? null
 }
 
@@ -136,7 +144,7 @@ function AppContent() {
   // Apply saved theme on app start
   useEffect(() => {
     applyTheme(savedTheme as Parameters<typeof applyTheme>[0])
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useEffect(() => {

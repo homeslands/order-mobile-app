@@ -1,4 +1,7 @@
-import { CustomStack, profileNativeStackScreenOptions } from '@/layouts/custom-stack'
+import {
+  CustomStack,
+  profileNativeStackScreenOptions,
+} from '@/layouts/custom-stack'
 
 /**
  * Test stack cho Hero Transition trên Native Stack (UI thread).
@@ -9,4 +12,3 @@ import { CustomStack, profileNativeStackScreenOptions } from '@/layouts/custom-s
 export default function MenuHeroTestLayout() {
   return <CustomStack screenOptions={profileNativeStackScreenOptions} />
 }
-

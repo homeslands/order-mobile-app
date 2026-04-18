@@ -5,7 +5,6 @@ import { Text, View } from 'react-native'
 import { PressableWithFeedback } from '@/components/navigation'
 import { HIT_SLOP_SMALL } from '@/lib/navigation/constants'
 
-
 interface NonPropQuantitySelectorProps {
   quantity: number
   onChange: (quantity: number) => void
@@ -27,7 +26,11 @@ export default function NonPropQuantitySelector({
     if (disabled) return
     const newQuantity = quantity + 1
     // Check stock limit if isLimit is true
-    if (isLimit && currentQuantity !== undefined && newQuantity > currentQuantity) {
+    if (
+      isLimit &&
+      currentQuantity !== undefined &&
+      newQuantity > currentQuantity
+    ) {
       return
     }
     // Check max quantity if provided
@@ -79,12 +82,8 @@ export default function NonPropQuantitySelector({
         hitSlop={HIT_SLOP_SMALL}
         className={incrementClassName}
       >
-        <Plus
-          size={16}
-          color={isIncrementDisabled ? '#9ca3af' : '#374151'}
-        />
+        <Plus size={16} color={isIncrementDisabled ? '#9ca3af' : '#374151'} />
       </PressableWithFeedback>
     </View>
   )
 }
-

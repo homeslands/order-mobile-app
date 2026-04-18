@@ -89,17 +89,17 @@ export const BrandSection = React.memo(function BrandSection() {
     <View className="mt-6 px-4">
       {/* Title */}
       <Text
-        className="text-3xl font-bold text-center mb-3"
+        className="mb-3 text-center text-3xl font-bold"
         style={{ color: primaryColor }}
       >
         TREND Coffee
       </Text>
 
       {/* Description */}
-      <Text className="text-base text-foreground leading-7 text-center mb-2">
+      <Text className="mb-2 text-center text-base leading-7 text-foreground">
         {t('homeDescription')}
       </Text>
-      <Text className="text-base text-muted-foreground leading-7 text-center mb-5">
+      <Text className="mb-5 text-center text-base leading-7 text-muted-foreground">
         {t('homeDescription2')}
       </Text>
 

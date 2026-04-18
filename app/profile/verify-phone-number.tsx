@@ -24,7 +24,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AnimatedCountdownText, OTPInput } from '@/components/auth'
 import { Button, Skeleton } from '@/components/ui'
 import { QUERYKEY, colors } from '@/constants'
-import { STATIC_TOP_INSET } from '@/constants/status-bar'
+import { FOOTER_BOTTOM_EXTRA, STATIC_TOP_INSET } from '@/constants/status-bar'
 import {
   useAnimatedCountdown,
   useConfirmPhoneNumberVerification,
@@ -64,17 +64,25 @@ const VerifyPhoneHeader = React.memo(function VerifyPhoneHeader({
     [pageBg],
   )
   const titleAnimStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(scrollY.value, [0, HEADER_FADE_DISTANCE], [0.6, 1], 'clamp'),
+    opacity: interpolate(
+      scrollY.value,
+      [0, HEADER_FADE_DISTANCE],
+      [0.6, 1],
+      'clamp',
+    ),
   }))
 
   return (
     <View style={headerStyles.container} pointerEvents="box-none">
-<LinearGradient
+      <LinearGradient
         colors={gradientColors}
         locations={[0, 0.5, 1]}
         style={StyleSheet.absoluteFill}
       />
-      <View style={[headerStyles.row, { paddingTop: STATIC_TOP_INSET + 10 }]} pointerEvents="auto">
+      <View
+        style={[headerStyles.row, { paddingTop: STATIC_TOP_INSET + 10 }]}
+        pointerEvents="auto"
+      >
         <Pressable
           onPress={onBack}
           hitSlop={8}
@@ -84,10 +92,17 @@ const VerifyPhoneHeader = React.memo(function VerifyPhoneHeader({
             headerStyles.shadow,
           ]}
         >
-          <ChevronLeft size={20} color={isDark ? colors.gray[50] : colors.gray[900]} />
+          <ChevronLeft
+            size={20}
+            color={isDark ? colors.gray[50] : colors.gray[900]}
+          />
         </Pressable>
         <Animated.Text
-          style={[headerStyles.title, { color: isDark ? colors.gray[50] : colors.gray[900] }, titleAnimStyle]}
+          style={[
+            headerStyles.title,
+            { color: isDark ? colors.gray[50] : colors.gray[900] },
+            titleAnimStyle,
+          ]}
           numberOfLines={1}
         >
           {title}
@@ -145,15 +160,31 @@ const PhoneNumberCard = React.memo(function PhoneNumberCard({
 }) {
   const { t } = useTranslation('profile')
   return (
-    <View style={{
-      backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
-      borderRadius: 12,
-      paddingVertical: 12,
-    }}>
-      <Text style={{ fontSize: 12, color: isDark ? colors.gray[400] : colors.gray[500], marginBottom: 2, paddingHorizontal: 16 }}>
+    <View
+      style={{
+        backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
+        borderRadius: 12,
+        paddingVertical: 12,
+      }}
+    >
+      <Text
+        style={{
+          fontSize: 12,
+          color: isDark ? colors.gray[400] : colors.gray[500],
+          marginBottom: 2,
+          paddingHorizontal: 16,
+        }}
+      >
         {t('profile.verifyPhone.smsWillBeSentTo')}
       </Text>
-      <Text style={{ fontSize: 16, fontWeight: '600', color: isDark ? colors.gray[50] : colors.gray[900], paddingHorizontal: 16 }}>
+      <Text
+        style={{
+          fontSize: 16,
+          fontWeight: '600',
+          color: isDark ? colors.gray[50] : colors.gray[900],
+          paddingHorizontal: 16,
+        }}
+      >
         {phonenumber}
       </Text>
     </View>
@@ -169,6 +200,7 @@ const OTPStepPhone = React.memo(function OTPStepPhone({
   onResend,
   onBack,
   onExpired,
+  isDark,
 }: {
   expiresAt: string
   otpValue: string
@@ -206,10 +238,11 @@ const OTPStepPhone = React.memo(function OTPStepPhone({
         <AnimatedCountdownText
           countdownShared={otpShared}
           label={t('profile.otpExpiredIn')}
-          className="text-center text-sm font-sans"
+          className="text-center font-sans text-sm"
+          isDark={isDark}
         />
       ) : (
-        <Text className="text-center text-sm font-sans text-destructive">
+        <Text className="text-center font-sans text-sm text-destructive">
           {t('profile.verifyPhone.otpExpired')}
         </Text>
       )}
@@ -223,13 +256,15 @@ const OTPStepPhone = React.memo(function OTPStepPhone({
         {isResending ? (
           <ActivityIndicator color={otpExpired ? '#fff' : undefined} />
         ) : (
-          <Text className={`text-sm font-sans-semibold ${
-            isResendDisabled
-              ? 'text-muted-foreground'
-              : otpExpired
-                ? 'text-primary-foreground'
-                : 'text-foreground'
-          }`}>
+          <Text
+            className={`font-sans-semibold text-sm ${
+              isResendDisabled
+                ? 'text-muted-foreground'
+                : otpExpired
+                  ? 'text-primary-foreground'
+                  : 'text-foreground'
+            }`}
+          >
             {otpSeconds > 0
               ? `${t('profile.resendVerificationPhoneNumber')} (${otpTimeDisplay})`
               : t('profile.resendVerificationPhoneNumber')}
@@ -238,7 +273,7 @@ const OTPStepPhone = React.memo(function OTPStepPhone({
       </Button>
 
       <TouchableOpacity onPress={onBack} className="py-2">
-        <Text className="text-center text-sm font-sans-medium text-primary">
+        <Text className="text-center font-sans-medium text-sm text-primary">
           {t('profile.verifyPhone.backToEdit')}
         </Text>
       </TouchableOpacity>
@@ -246,37 +281,53 @@ const OTPStepPhone = React.memo(function OTPStepPhone({
   )
 })
 
-const VerifyPhoneNumberSkeleton = React.memo(function VerifyPhoneNumberSkeleton() {
-  const isDark = useColorScheme() === 'dark'
-  const scrollY = useSharedValue(0)
-  const { t } = useTranslation('profile')
+const VerifyPhoneNumberSkeleton = React.memo(
+  function VerifyPhoneNumberSkeleton() {
+    const isDark = useColorScheme() === 'dark'
+    const scrollY = useSharedValue(0)
+    const { t } = useTranslation('profile')
 
-  return (
-    <View style={{ flex: 1, backgroundColor: isDark ? colors.background.dark : colors.background.light }}>
-      <VerifyPhoneHeader
-        title={t('profile.verifyPhone.title')}
-        onBack={() => navigateNative.back()}
-        isDark={isDark}
-        scrollY={scrollY}
-      />
-      <View style={{ padding: 24, paddingTop: STATIC_TOP_INSET + 72, gap: 16 }}>
-        <Skeleton style={{ height: 56, borderRadius: 12 }} />
-        <Skeleton style={{ height: 44, borderRadius: 10 }} />
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: isDark
+            ? colors.background.dark
+            : colors.background.light,
+        }}
+      >
+        <VerifyPhoneHeader
+          title={t('profile.verifyPhone.title')}
+          onBack={() => navigateNative.back()}
+          isDark={isDark}
+          scrollY={scrollY}
+        />
+        <View
+          style={{ padding: 24, paddingTop: STATIC_TOP_INSET + 72, gap: 16 }}
+        >
+          <Skeleton style={{ height: 56, borderRadius: 12 }} />
+          <Skeleton style={{ height: 44, borderRadius: 10 }} />
+        </View>
       </View>
-    </View>
-  )
-})
+    )
+  },
+)
 
 function VerifyPhoneNumberContent() {
   const { t } = useTranslation('profile')
+  const { t: tCommon } = useTranslation('common')
   const isDark = useColorScheme() === 'dark'
   const insets = useSafeAreaInsets()
   const queryClient = useQueryClient()
   const scrollY = useSharedValue(0)
 
   const userInfo = useUserStore((s) => s.userInfo)
-  const phoneNumberVerificationStatus = useUserStore((s) => s.phoneNumberVerificationStatus)
-  const setPhoneNumberVerificationStatus = useUserStore((s) => s.setPhoneNumberVerificationStatus)
+  const phoneNumberVerificationStatus = useUserStore(
+    (s) => s.phoneNumberVerificationStatus,
+  )
+  const setPhoneNumberVerificationStatus = useUserStore(
+    (s) => s.setPhoneNumberVerificationStatus,
+  )
 
   const [otpValue, setOtpValue] = useState('')
   const [otpExpired, setOtpExpired] = useState(false)
@@ -284,9 +335,12 @@ function VerifyPhoneNumberContent() {
   const expiresAt = phoneNumberVerificationStatus?.expiresAt
   const showOtpStep = !!expiresAt
 
-  const { mutate: verifyPhoneNumber, isPending: isSending } = useVerifyPhoneNumber()
-  const { mutate: confirmPhoneNumberVerification, isPending: isConfirming } = useConfirmPhoneNumberVerification()
-  const { mutate: resendPhoneNumberVerification, isPending: isResending } = useResendPhoneNumberVerification()
+  const { mutate: verifyPhoneNumber, isPending: isSending } =
+    useVerifyPhoneNumber()
+  const { mutate: confirmPhoneNumberVerification, isPending: isConfirming } =
+    useConfirmPhoneNumberVerification()
+  const { mutate: resendPhoneNumberVerification, isPending: isResending } =
+    useResendPhoneNumberVerification()
 
   useEffect(() => {
     if (!userInfo || !userInfo.phonenumber) navigateNative.back()
@@ -325,20 +379,26 @@ function VerifyPhoneNumberContent() {
   const handleSendCode = useCallback(() => {
     verifyPhoneNumber(undefined, {
       onSuccess: (response) => {
-        queryClient.invalidateQueries({ queryKey: [QUERYKEY.profile], exact: true })
-        setPhoneNumberVerificationStatus({ expiresAt: applyOtpBuffer(response.result.expiresAt) })
+        queryClient.invalidateQueries({
+          queryKey: [QUERYKEY.profile],
+          exact: true,
+        })
+        setPhoneNumberVerificationStatus({
+          expiresAt: applyOtpBuffer(response.result.expiresAt),
+        })
         setOtpValue('')
         showToast(t('profile.verifyPhone.otpSent'))
       },
       onError: (err: unknown) => {
-        const code =
-          (err as { response?: { data?: { statusCode?: number } } })
-            ?.response?.data?.statusCode
+        const code = (err as { response?: { data?: { statusCode?: number } } })
+          ?.response?.data?.statusCode
         if (code === 119027) {
           // Token already exists — resend to get a fresh expiresAt and show OTP step
           resendPhoneNumberVerification(undefined, {
             onSuccess: (response) => {
-              setPhoneNumberVerificationStatus({ expiresAt: applyOtpBuffer(response.result.expiresAt) })
+              setPhoneNumberVerificationStatus({
+                expiresAt: applyOtpBuffer(response.result.expiresAt),
+              })
               setOtpValue('')
               showToast(t('profile.verifyPhone.otpResent'))
             },
@@ -346,17 +406,30 @@ function VerifyPhoneNumberContent() {
         } else if (typeof code === 'number') {
           showErrorToast(code)
         } else {
-          showToast(t('profile.verifyPhone.sendFailed'), 'Lỗi')
+          showToast(
+            t('profile.verifyPhone.sendFailed'),
+            tCommon('common.error'),
+          )
         }
       },
     })
-  }, [verifyPhoneNumber, resendPhoneNumberVerification, queryClient, setPhoneNumberVerificationStatus, t])
+  }, [
+    verifyPhoneNumber,
+    resendPhoneNumberVerification,
+    queryClient,
+    setPhoneNumberVerificationStatus,
+    t,
+    tCommon,
+  ])
 
   const handleVerifyOtp = useCallback(() => {
     if (otpValue.length !== 6) return
     confirmPhoneNumberVerification(otpValue, {
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: [QUERYKEY.profile], exact: true })
+        queryClient.invalidateQueries({
+          queryKey: [QUERYKEY.profile],
+          exact: true,
+        })
         showToast(t('profile.verifyPhone.success'))
         setPhoneNumberVerificationStatus(null)
         setOtpValue('')
@@ -366,12 +439,20 @@ function VerifyPhoneNumberContent() {
         setOtpValue('')
       },
     })
-  }, [otpValue, confirmPhoneNumberVerification, queryClient, setPhoneNumberVerificationStatus, t])
+  }, [
+    otpValue,
+    confirmPhoneNumberVerification,
+    queryClient,
+    setPhoneNumberVerificationStatus,
+    t,
+  ])
 
   const handleResendOtp = useCallback(() => {
     resendPhoneNumberVerification(undefined, {
       onSuccess: (response) => {
-        setPhoneNumberVerificationStatus({ expiresAt: applyOtpBuffer(response.result.expiresAt) })
+        setPhoneNumberVerificationStatus({
+          expiresAt: applyOtpBuffer(response.result.expiresAt),
+        })
         setOtpValue('')
         showToast(t('profile.verifyPhone.otpResent'))
       },
@@ -383,16 +464,24 @@ function VerifyPhoneNumberContent() {
   const handleExpired = useCallback(() => setOtpExpired(true), [])
 
   const headerTitle = useMemo(
-    () => showOtpStep
-      ? t('profile.verifyPhone.otpInputTitle')
-      : t('profile.verifyPhone.title'),
+    () =>
+      showOtpStep
+        ? t('profile.verifyPhone.otpInputTitle')
+        : t('profile.verifyPhone.title'),
     [showOtpStep, t],
   )
 
   if (!userInfo || !userInfo.phonenumber) return null
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? colors.background.dark : colors.background.light }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: isDark
+          ? colors.background.dark
+          : colors.background.light,
+      }}
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={32}
@@ -404,8 +493,15 @@ function VerifyPhoneNumberContent() {
           gap: 16,
         }}
       >
-        <Text style={{ fontSize: 15, color: isDark ? colors.gray[400] : colors.gray[500] }}>
-          {showOtpStep ? t('profile.verifyPhone.enterOtp') : t('profile.verifyPhone.description')}
+        <Text
+          style={{
+            fontSize: 15,
+            color: isDark ? colors.gray[400] : colors.gray[500],
+          }}
+        >
+          {showOtpStep
+            ? t('profile.verifyPhone.enterOtp')
+            : t('profile.verifyPhone.description')}
         </Text>
 
         {!showOtpStep ? (
@@ -426,25 +522,33 @@ function VerifyPhoneNumberContent() {
       </ScrollView>
 
       {/* Footer — confirm button */}
-      <View style={{
-        paddingHorizontal: 24,
-        paddingBottom: insets.bottom + 16,
-        paddingTop: 12,
-        backgroundColor: isDark ? colors.background.dark : colors.background.light,
-      }}>
+      <View
+        style={{
+          paddingHorizontal: 24,
+          paddingBottom: insets.bottom + FOOTER_BOTTOM_EXTRA,
+          paddingTop: 12,
+          backgroundColor: isDark
+            ? colors.background.dark
+            : colors.background.light,
+        }}
+      >
         <Button
           variant="primary"
           className="h-11 rounded-lg"
-          disabled={showOtpStep
-            ? (isConfirming || otpValue.length !== 6 || otpExpired)
-            : (isSending || isResending)}
+          disabled={
+            showOtpStep
+              ? isConfirming || otpValue.length !== 6 || otpExpired
+              : isSending || isResending
+          }
           onPress={showOtpStep ? handleVerifyOtp : handleSendCode}
         >
-          {(isConfirming || isSending || isResending) ? (
+          {isConfirming || isSending || isResending ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text className="text-sm font-sans-semibold text-primary-foreground">
-              {showOtpStep ? t('profile.verify') : t('profile.sendVerifyPhoneNumber')}
+            <Text className="font-sans-semibold text-sm text-primary-foreground">
+              {showOtpStep
+                ? t('profile.verify')
+                : t('profile.sendVerifyPhoneNumber')}
             </Text>
           )}
         </Button>

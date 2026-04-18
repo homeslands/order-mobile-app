@@ -70,23 +70,22 @@ export function getReactProfilerStats(): Array<{
 export function printReactProfilerStats(): void {
   if (!isEnabled()) {
     // eslint-disable-next-line no-console
-    console.log('[ReactProfiler] disabled (__ENABLE_REACT_PROFILER is false)')
+    console['log']('[ReactProfiler] disabled (__ENABLE_REACT_PROFILER is false)')
     return
   }
   const rows = getReactProfilerStats()
   if (rows.length === 0) {
     // eslint-disable-next-line no-console
-    console.log('[ReactProfiler] no samples')
+    console['log']('[ReactProfiler] no samples')
     return
   }
   // console.table may not show reliably on React Native logcat, so emit line logs too.
   // eslint-disable-next-line no-console
-  console.log(`[ReactProfiler] rows=${rows.length}`)
+  console['log'](`[ReactProfiler] rows=${rows.length}`)
   rows.forEach((row, index) => {
     // eslint-disable-next-line no-console
-    console.log(
+    console['log'](
       `[ReactProfiler] #${index + 1} ${row.id} samples=${row.samples} avgActual=${row.avgActualDurationMs}ms maxActual=${row.maxActualDurationMs}ms totalActual=${row.totalActualDurationMs}ms avgBase=${row.avgBaseDurationMs}ms`,
     )
   })
 }
-

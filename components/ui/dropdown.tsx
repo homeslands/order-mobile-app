@@ -89,7 +89,9 @@ interface DropdownSubProps {
   children: React.ReactNode
 }
 
-interface DropdownSubTriggerProps extends ComponentProps<typeof TouchableOpacity> {
+interface DropdownSubTriggerProps extends ComponentProps<
+  typeof TouchableOpacity
+> {
   children: React.ReactNode
   className?: string
   disabled?: boolean
@@ -108,7 +110,9 @@ interface DropdownPortalProps {
   children: React.ReactNode
 }
 
-interface DropdownCheckboxItemProps extends ComponentProps<typeof TouchableOpacity> {
+interface DropdownCheckboxItemProps extends ComponentProps<
+  typeof TouchableOpacity
+> {
   children: React.ReactNode
   checked?: boolean
   onCheckedChange?: (checked: boolean) => void
@@ -116,7 +120,9 @@ interface DropdownCheckboxItemProps extends ComponentProps<typeof TouchableOpaci
   disabled?: boolean
 }
 
-interface DropdownRadioItemProps extends ComponentProps<typeof TouchableOpacity> {
+interface DropdownRadioItemProps extends ComponentProps<
+  typeof TouchableOpacity
+> {
   children: React.ReactNode
   value: string
   className?: string
@@ -130,8 +136,11 @@ interface DropdownRadioGroupProps {
 }
 
 // Type guard to check if component is a specific type
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-function isComponentType(child: React.ReactNode, componentType: React.ComponentType<any>): boolean {
+function isComponentType(
+  child: React.ReactNode,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  componentType: React.ComponentType<any>,
+): boolean {
   if (!React.isValidElement(child)) return false
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const childType = child.type as React.ComponentType<any>
@@ -149,7 +158,8 @@ function Dropdown({
   children,
 }: DropdownProps) {
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false)
-  const [triggerLayout, setTriggerLayout] = React.useState<TriggerLayout | null>(null)
+  const [triggerLayout, setTriggerLayout] =
+    React.useState<TriggerLayout | null>(null)
   // isMounted stays true while open OR during exit animation
   const [showContent, setShowContent] = React.useState(false)
 
@@ -168,10 +178,10 @@ function Dropdown({
   // Separate trigger and content from children
   const childrenArray = React.Children.toArray(children)
   const trigger = childrenArray.find((child) =>
-    isComponentType(child, DropdownTrigger)
+    isComponentType(child, DropdownTrigger),
   )
   const content = childrenArray.find((child) =>
-    isComponentType(child, DropdownContent)
+    isComponentType(child, DropdownContent),
   )
 
   return (
@@ -234,7 +244,6 @@ function DropdownTrigger({
     }
   }, [shouldMeasure])
 
-
   const handlePress = () => {
     // Trigger measurement via state
     setShouldMeasure(true)
@@ -254,13 +263,11 @@ function DropdownTrigger({
   }
 
   if (asChild && React.isValidElement(children)) {
-    const child = children as React.ReactElement<ComponentProps<typeof TouchableOpacity>>
+    const child = children as React.ReactElement<
+      ComponentProps<typeof TouchableOpacity>
+    >
     return (
-      <View 
-        ref={triggerRef} 
-        collapsable={false}
-        onLayout={handleLayout}
-      >
+      <View ref={triggerRef} collapsable={false} onLayout={handleLayout}>
         {React.cloneElement(child, {
           ...child.props,
           onPress: (e: unknown) => {
@@ -276,16 +283,8 @@ function DropdownTrigger({
   }
 
   return (
-    <View 
-      ref={triggerRef} 
-      collapsable={false}
-      onLayout={handleLayout}
-    >
-      <TouchableOpacity
-        onPress={handlePress}
-        className={className}
-        {...props}
-      >
+    <View ref={triggerRef} collapsable={false} onLayout={handleLayout}>
+      <TouchableOpacity onPress={handlePress} className={className} {...props}>
         {children}
       </TouchableOpacity>
     </View>
@@ -305,7 +304,10 @@ function DropdownContent({
 }: DropdownContentProps) {
   const context = React.useContext(DropdownContext)
   const contentRef = useRef<View>(null)
-  const [contentLayout, setContentLayout] = React.useState<{ width: number; height: number } | null>(null)
+  const [contentLayout, setContentLayout] = React.useState<{
+    width: number
+    height: number
+  } | null>(null)
   const { width: screenWidth } = useWindowDimensions()
 
   const scale = useSharedValue(0.95)
@@ -313,7 +315,9 @@ function DropdownContent({
   const slideX = useSharedValue(0)
   const slideY = useSharedValue(0)
 
-  const handleContentLayout = (event: { nativeEvent: { layout: { width: number; height: number } } }) => {
+  const handleContentLayout = (event: {
+    nativeEvent: { layout: { width: number; height: number } }
+  }) => {
     const { width, height } = event.nativeEvent.layout
     setContentLayout({ width, height })
   }
@@ -347,15 +351,11 @@ function DropdownContent({
     scale.value = withSpring(0.95, SPRING)
     opacity.value = withSpring(0, SPRING)
     slideX.value = withSpring(initial.x, SPRING)
-    slideY.value = withSpring(
-      initial.y,
-      SPRING,
-      (finished) => {
-        if (finished && context?.onExitComplete) {
-          runOnJS(context.onExitComplete)()
-        }
-      },
-    )
+    slideY.value = withSpring(initial.y, SPRING, (finished) => {
+      if (finished && context?.onExitComplete) {
+        runOnJS(context.onExitComplete)()
+      }
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [context?.open, side])
 
@@ -398,10 +398,7 @@ function DropdownContent({
   }, [context?.triggerLayout, contentLayout, side, sideOffset, screenWidth])
 
   return (
-    <Pressable
-      className="flex-1"
-      onPress={() => context?.onOpenChange(false)}
-    >
+    <Pressable className="flex-1" onPress={() => context?.onOpenChange(false)}>
       <Pressable onPress={(e) => e.stopPropagation()}>
         <Animated.View
           ref={contentRef}
@@ -411,12 +408,9 @@ function DropdownContent({
             'bg-white dark:bg-gray-900',
             'border-gray-200 dark:border-gray-700',
             'shadow-md',
-            className
+            className,
           )}
-          style={[
-            positionStyle,
-            animatedStyle,
-          ]}
+          style={[positionStyle, animatedStyle]}
         >
           {children}
         </Animated.View>
@@ -434,10 +428,14 @@ function DropdownLabel({
 }: DropdownLabelProps) {
   return (
     <View
-      className={cn('px-2 py-1.5 text-sm font-semibold', inset && 'pl-8', className)}
+      className={cn(
+        'px-2 py-1.5 text-sm font-semibold',
+        inset && 'pl-8',
+        className,
+      )}
       {...props}
     >
-      <Text className="text-gray-900 dark:text-gray-50 font-semibold text-sm">
+      <Text className="text-sm font-semibold text-gray-900 dark:text-gray-50">
         {children}
       </Text>
     </View>
@@ -474,7 +472,7 @@ function DropdownItem({
         'active:bg-gray-100 dark:active:bg-gray-800',
         disabled && 'opacity-50',
         disabled && 'pointer-events-none',
-        className
+        className,
       )}
       onPress={handlePress}
       disabled={disabled}
@@ -490,10 +488,7 @@ function DropdownItem({
 function DropdownSeparator({ className, ...props }: DropdownSeparatorProps) {
   return (
     <View
-      className={cn(
-        '-mx-1 my-1 h-px bg-gray-200 dark:bg-gray-700',
-        className
-      )}
+      className={cn('-mx-1 my-1 h-px bg-gray-200 dark:bg-gray-700', className)}
       {...props}
     />
   )
@@ -509,10 +504,14 @@ function DropdownGroup({ children, className, ...props }: DropdownGroupProps) {
 }
 
 // Shortcut - displays keyboard shortcut (right-aligned text)
-function DropdownShortcut({ children, className, ...props }: DropdownShortcutProps) {
+function DropdownShortcut({
+  children,
+  className,
+  ...props
+}: DropdownShortcutProps) {
   return (
     <View className={cn('ml-auto', className)} {...props}>
-      <Text className="text-gray-500 dark:text-gray-400 text-xs tracking-widest opacity-60">
+      <Text className="text-xs tracking-widest text-gray-500 opacity-60 dark:text-gray-400">
         {children}
       </Text>
     </View>
@@ -526,10 +525,10 @@ function DropdownSub({ children }: DropdownSubProps) {
   // Extract SubTrigger and SubContent
   const childrenArray = React.Children.toArray(children)
   const trigger = childrenArray.find((child) =>
-    isComponentType(child, DropdownSubTrigger)
+    isComponentType(child, DropdownSubTrigger),
   )
   const content = childrenArray.find((child) =>
-    isComponentType(child, DropdownSubContent)
+    isComponentType(child, DropdownSubContent),
   )
 
   return (
@@ -540,10 +539,10 @@ function DropdownSub({ children }: DropdownSubProps) {
           {
             onPress: () => setOpen(!open),
             isOpen: open,
-          } as Partial<DropdownSubTriggerProps>
+          } as Partial<DropdownSubTriggerProps>,
         )}
       {open && content && (
-        <View className="absolute left-full top-0 ml-1 z-50">{content}</View>
+        <View className="absolute left-full top-0 z-50 ml-1">{content}</View>
       )}
     </View>
   )
@@ -560,7 +559,7 @@ function DropdownSubTrigger({
   ...props
 }: DropdownSubTriggerProps & { inset?: boolean }) {
   const isDark = useColorScheme() === 'dark'
-  
+
   return (
     <TouchableOpacity
       className={cn(
@@ -571,7 +570,7 @@ function DropdownSubTrigger({
         disabled && 'opacity-50',
         disabled && 'pointer-events-none',
         isOpen && 'bg-gray-100 dark:bg-gray-800',
-        className
+        className,
       )}
       disabled={disabled}
       onPress={onPress}
@@ -580,7 +579,12 @@ function DropdownSubTrigger({
     >
       {children}
       <View className="ml-auto">
-        <ChevronRight size={16} color={isDark ? colors.mutedForeground.dark : colors.mutedForeground.light} />
+        <ChevronRight
+          size={16}
+          color={
+            isDark ? colors.mutedForeground.dark : colors.mutedForeground.light
+          }
+        />
       </View>
     </TouchableOpacity>
   )
@@ -601,7 +605,7 @@ function DropdownSubContent({
         'bg-white dark:bg-gray-900',
         'border-gray-200 dark:border-gray-700',
         'shadow-lg',
-        className
+        className,
       )}
       style={{
         marginLeft: alignOffset,
@@ -644,7 +648,7 @@ function DropdownCheckboxItem({
         'active:bg-gray-100 dark:active:bg-gray-800',
         disabled && 'opacity-50',
         disabled && 'pointer-events-none',
-        className
+        className,
       )}
       onPress={handlePress}
       disabled={disabled}
@@ -652,9 +656,7 @@ function DropdownCheckboxItem({
       {...props}
     >
       <View className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
-        {checked && (
-          <Check size={16} color={isDark ? '#60a5fa' : '#3b82f6'} />
-        )}
+        {checked && <Check size={16} color={isDark ? '#60a5fa' : '#3b82f6'} />}
       </View>
       <Text className="text-sm text-gray-900 dark:text-gray-50">
         {children}
@@ -669,7 +671,9 @@ interface RadioGroupContextType {
   onValueChange?: (value: string) => void
 }
 
-const RadioGroupContext = React.createContext<RadioGroupContextType | null>(null)
+const RadioGroupContext = React.createContext<RadioGroupContextType | null>(
+  null,
+)
 
 // RadioGroup - container for radio items
 function DropdownRadioGroup({
@@ -716,7 +720,7 @@ function DropdownRadioItem({
         'active:bg-gray-100 dark:active:bg-gray-800',
         disabled && 'opacity-50',
         disabled && 'pointer-events-none',
-        className
+        className,
       )}
       onPress={handlePress}
       disabled={disabled}
@@ -725,7 +729,7 @@ function DropdownRadioItem({
     >
       <View className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
         {isSelected && (
-          <View 
+          <View
             className="h-2 w-2 rounded-full"
             style={{ backgroundColor: isDark ? '#60a5fa' : '#3b82f6' }}
           />
@@ -771,15 +775,19 @@ Dropdown.Portal = DropdownPortal
 // Export with shadcn naming convention
 export {
   Dropdown,
-  Dropdown as DropdownMenu, DropdownCheckboxItem as DropdownMenuCheckboxItem, DropdownContent as DropdownMenuContent,
+  Dropdown as DropdownMenu,
+  DropdownCheckboxItem as DropdownMenuCheckboxItem,
+  DropdownContent as DropdownMenuContent,
   DropdownGroup as DropdownMenuGroup,
-  DropdownItem as DropdownMenuItem, DropdownLabel as DropdownMenuLabel,
-  DropdownPortal as DropdownMenuPortal, DropdownRadioGroup as DropdownMenuRadioGroup,
-  DropdownRadioItem as DropdownMenuRadioItem, DropdownSeparator as DropdownMenuSeparator,
+  DropdownItem as DropdownMenuItem,
+  DropdownLabel as DropdownMenuLabel,
+  DropdownPortal as DropdownMenuPortal,
+  DropdownRadioGroup as DropdownMenuRadioGroup,
+  DropdownRadioItem as DropdownMenuRadioItem,
+  DropdownSeparator as DropdownMenuSeparator,
   DropdownShortcut as DropdownMenuShortcut,
   DropdownSub as DropdownMenuSub,
   DropdownSubContent as DropdownMenuSubContent,
   DropdownSubTrigger as DropdownMenuSubTrigger,
-  DropdownTrigger as DropdownMenuTrigger
+  DropdownTrigger as DropdownMenuTrigger,
 }
-

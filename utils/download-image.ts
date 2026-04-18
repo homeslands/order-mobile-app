@@ -12,19 +12,19 @@ export async function requestMediaLibraryPermission(): Promise<boolean> {
     // Request write-only permission to avoid requesting audio permission
     // writeOnly: true means we only need permission to save photos, not read them
     const { status } = await MediaLibrary.requestPermissionsAsync(true)
-    
+
     if (status === 'granted') {
       return true
     }
-    
+
     if (status === 'denied') {
       Alert.alert(
-        i18n.t('common.photoLibraryPermissionDenied', { ns: 'common', defaultValue: 'Quyền truy cập bị từ chối' }),
-        i18n.t('common.photoLibraryPermissionMessage', { ns: 'common', defaultValue: 'Vui lòng cấp quyền truy cập thư viện ảnh trong cài đặt để lưu ảnh.' }),
+        i18n.t('common.photoLibraryPermissionDenied', { ns: 'common' }),
+        i18n.t('common.photoLibraryPermissionMessage', { ns: 'common' }),
         [
-          { text: i18n.t('common.cancel', { ns: 'common', defaultValue: 'Hủy' }), style: 'cancel' },
+          { text: i18n.t('common.cancel', { ns: 'common' }), style: 'cancel' },
           {
-            text: i18n.t('common.openSettings', { ns: 'common', defaultValue: 'Mở cài đặt' }),
+            text: i18n.t('common.openSettings', { ns: 'common' }),
             onPress: () => {
               if (Platform.OS === 'ios') {
                 Linking.openURL('app-settings:')
@@ -37,7 +37,7 @@ export async function requestMediaLibraryPermission(): Promise<boolean> {
       )
       return false
     }
-    
+
     return false
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -75,17 +75,20 @@ export async function downloadAndSaveImage(
   try {
     // Validate URL
     if (!imageUrl || typeof imageUrl !== 'string') {
-      showToast(i18n.t('common.invalidImageURL', { ns: 'common', defaultValue: 'URL ảnh không hợp lệ' }))
+      showToast(i18n.t('common.invalidImageURL', { ns: 'common' }))
       return false
     }
 
     // Ensure URL is absolute
     let finalImageUrl = imageUrl.trim()
-    if (!finalImageUrl.startsWith('http://') && !finalImageUrl.startsWith('https://')) {
+    if (
+      !finalImageUrl.startsWith('http://') &&
+      !finalImageUrl.startsWith('https://')
+    ) {
       // If relative URL, try to prepend publicFileURL
       const { publicFileURL } = await import('@/constants')
       if (!publicFileURL) {
-        showToast(i18n.t('common.invalidURLConfig', { ns: 'common', defaultValue: 'Cấu hình URL không hợp lệ' }))
+        showToast(i18n.t('common.invalidURLConfig', { ns: 'common' }))
         return false
       }
       finalImageUrl = `${publicFileURL}/${finalImageUrl.replace(/^\//, '')}`
@@ -97,41 +100,41 @@ export async function downloadAndSaveImage(
     } catch {
       // eslint-disable-next-line no-console
       console.error('Invalid URL format:', finalImageUrl)
-      showToast(i18n.t('common.invalidImageURL', { ns: 'common', defaultValue: 'URL ảnh không hợp lệ' }))
+      showToast(i18n.t('common.invalidImageURL', { ns: 'common' }))
       return false
     }
 
-    // Log URL for debugging
-    // eslint-disable-next-line no-console
-    console.log('Downloading image from URL:', finalImageUrl)
-
     // Check permission first
     const hasPermission = await checkMediaLibraryPermission()
-    
+
     if (!hasPermission) {
       const granted = await requestMediaLibraryPermission()
       if (!granted) {
-        showToast(i18n.t('common.noPhotoLibraryPermission', { ns: 'common', defaultValue: 'Không có quyền truy cập thư viện ảnh' }))
+        showToast(i18n.t('common.noPhotoLibraryPermission', { ns: 'common' }))
         return false
       }
     }
 
-    showToast(i18n.t('common.downloadingImage', { ns: 'common', defaultValue: 'Đang tải ảnh...' }))
+    showToast(i18n.t('common.downloadingImage', { ns: 'common' }))
 
     // Generate file name if not provided
     const timestamp = Date.now()
-    const fileExtension = finalImageUrl.split('.').pop()?.split('?')[0]?.split('#')[0] || 'jpg'
+    const fileExtension =
+      finalImageUrl.split('.').pop()?.split('?')[0]?.split('#')[0] || 'jpg'
     const finalFileName = fileName || `image_${timestamp}`
-    
+
     // Use new File API
-    const targetFile = new File(Paths.cache, `${finalFileName}.${fileExtension}`)
+    const targetFile = new File(
+      Paths.cache,
+      `${finalFileName}.${fileExtension}`,
+    )
 
     // Download the image - check if URL is API endpoint that needs auth
-    
+
     // Check if URL is API endpoint (needs authentication)
     const urlObj = new URL(finalImageUrl)
     const isApiEndpoint = urlObj.pathname.includes('/api/')
-    
+
     let arrayBuffer: ArrayBuffer
     try {
       if (isApiEndpoint) {
@@ -139,63 +142,70 @@ export async function downloadAndSaveImage(
         const { useAuthStore } = await import('@/stores')
         const authStore = useAuthStore.getState()
         const token = authStore.token
-        
+
         const headers: Record<string, string> = {
-          'Accept': 'image/*',
+          Accept: 'image/*',
         }
-        
+
         if (token) {
           headers['Authorization'] = `Bearer ${token}`
         }
-        
+
         const fetchResponse = await fetch(finalImageUrl, { headers })
-        
+
         if (!fetchResponse.ok) {
           throw new Error(`Fetch failed with status ${fetchResponse.status}`)
         }
-        
+
         const blob = await fetchResponse.blob()
         arrayBuffer = await blob.arrayBuffer()
       } else {
         // Use direct fetch for public image URLs
         const fetchResponse = await fetch(finalImageUrl, {
           headers: {
-            'Accept': 'image/*',
+            Accept: 'image/*',
           },
         })
-        
+
         if (!fetchResponse.ok) {
           throw new Error(`Fetch failed with status ${fetchResponse.status}`)
         }
-        
+
         const blob = await fetchResponse.blob()
         arrayBuffer = await blob.arrayBuffer()
       }
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Download error:', error)
-      
+
       // Handle errors
       if (error instanceof Error) {
         if (error.message.includes('status 400')) {
           // If 400 error, it might be a different issue (invalid URL format, etc.)
-          showToast(i18n.t('common.errorDownloadImageAuth', { ns: 'common', defaultValue: 'Không thể tải ảnh. URL có thể không hợp lệ hoặc cần xác thực.' }))
-        } else if (error.message.includes('timeout') || error.message.includes('ECONNABORTED')) {
-          showToast(i18n.t('common.errorDownloadImageTimeout', { ns: 'common', defaultValue: 'Hết thời gian chờ khi tải ảnh' }))
+          showToast(i18n.t('common.errorDownloadImageAuth', { ns: 'common' }))
+        } else if (
+          error.message.includes('timeout') ||
+          error.message.includes('ECONNABORTED')
+        ) {
+          showToast(
+            i18n.t('common.errorDownloadImageTimeout', { ns: 'common' }),
+          )
         } else if (error.message.includes('status')) {
-          showToast(`${i18n.t('common.errorDownloadingImage', { ns: 'common', defaultValue: 'Lỗi khi tải ảnh' })}: ${error.message}`)
+          showToast(
+            `${i18n.t('common.errorDownloadingImage', { ns: 'common' })}: ${error.message}`,
+          )
         } else {
-          showToast(i18n.t('common.errorDownloadImage', { ns: 'common', defaultValue: 'Không thể tải ảnh. Vui lòng kiểm tra kết nối mạng.' }))
+          showToast(i18n.t('common.errorDownloadImage', { ns: 'common' }))
         }
       } else {
-        showToast(i18n.t('common.errorDownloadingImage', { ns: 'common', defaultValue: 'Lỗi khi tải ảnh' }))
+        showToast(i18n.t('common.errorDownloadingImage', { ns: 'common' }))
       }
       return false
     }
 
     // Convert arrayBuffer to Uint8Array
     const uint8Array = new Uint8Array(arrayBuffer)
-    
+
     const writer = targetFile.writableStream().getWriter()
     try {
       await writer.write(uint8Array)
@@ -204,26 +214,26 @@ export async function downloadAndSaveImage(
       await writer.abort()
       // eslint-disable-next-line no-console
       console.error('Error writing file:', writeError)
-      showToast(i18n.t('common.errorSavingFile', { ns: 'common', defaultValue: 'Lỗi khi lưu file' }))
+      showToast(i18n.t('common.errorSavingFile', { ns: 'common' }))
       return false
     }
 
     // Save to media library
     // File can be converted to string to get URI
-    showToast(i18n.t('common.savingImage', { ns: 'common', defaultValue: 'Đang lưu ảnh...' }))
+    showToast(i18n.t('common.savingImage', { ns: 'common' }))
     const fileUri = String(targetFile)
     await MediaLibrary.createAssetAsync(fileUri)
-    
+
     // Optionally add to album (you can create a custom album)
     // const asset = await MediaLibrary.createAssetAsync(downloadResult.uri)
     // await MediaLibrary.createAlbumAsync('YourAppName', asset, false)
 
-    showToast(i18n.t('common.imageSavedSuccess', { ns: 'common', defaultValue: 'Đã lưu ảnh thành công' }))
+    showToast(i18n.t('common.imageSavedSuccess', { ns: 'common' }))
     return true
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error downloading and saving image:', error)
-    showToast(i18n.t('common.errorSavingImage', { ns: 'common', defaultValue: 'Lỗi khi lưu ảnh' }))
+    showToast(i18n.t('common.errorSavingImage', { ns: 'common' }))
     return false
   }
 }
@@ -243,11 +253,11 @@ export async function downloadQRCodeImage(
   try {
     // Check permission first
     const hasPermission = await checkMediaLibraryPermission()
-    
+
     if (!hasPermission) {
       const granted = await requestMediaLibraryPermission()
       if (!granted) {
-        showToast(i18n.t('common.noPhotoLibraryPermission', { ns: 'common', defaultValue: 'Không có quyền truy cập thư viện ảnh' }))
+        showToast(i18n.t('common.noPhotoLibraryPermission', { ns: 'common' }))
         return false
       }
     }
@@ -255,12 +265,12 @@ export async function downloadQRCodeImage(
     // For QR code, we need to capture it as an image first
     // This requires using react-native-view-shot or similar library
     // For now, we'll return false and suggest using downloadAndSaveImage with a QR code image URL
-    showToast(i18n.t('common.useScreenshotForQRCode', { ns: 'common', defaultValue: 'Vui lòng sử dụng chức năng chụp màn hình để lưu QR code' }))
+    showToast(i18n.t('common.useScreenshotForQRCode', { ns: 'common' }))
     return false
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error downloading QR code:', error)
-    showToast(i18n.t('common.errorSavingQRCode', { ns: 'common', defaultValue: 'Lỗi khi lưu QR code' }))
+    showToast(i18n.t('common.errorSavingQRCode', { ns: 'common' }))
     return false
   }
 }
@@ -292,4 +302,3 @@ export function useDownloadImage() {
     checkPermission,
   }
 }
-

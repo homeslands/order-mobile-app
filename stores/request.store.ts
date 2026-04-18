@@ -7,5 +7,5 @@ export const useRequestStore = create<IRequestDishStore>((set) => ({
   incrementRequestQueueSize: () =>
     set((state) => ({ requestQueueSize: state.requestQueueSize + 1 })),
   decrementRequestQueueSize: () =>
-    set((state) => ({ requestQueueSize: state.requestQueueSize - 1 }))
+    set((state) => ({ requestQueueSize: state.requestQueueSize - 1 })),
 }))

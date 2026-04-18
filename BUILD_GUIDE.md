@@ -18,17 +18,20 @@ EXPO_PUBLIC_FIREBASE_API_KEY=your_key
 ## 2️⃣ Build Android
 
 ### Option A: Dùng script (Recommended)
+
 ```bash
 bash scripts/build-production.sh android
 ```
 
 **Script sẽ:**
+
 1. ✅ Verify `.env` file tồn tại + có `EXPO_PUBLIC_BASE_API_URL`
 2. ✅ Clean tất cả build caches
 3. ✅ Run typecheck
 4. ✅ EAS build với profile `production`
 
 ### Option B: Manual
+
 ```bash
 # 1. Clean caches
 npm run prebuild:clean
@@ -47,6 +50,7 @@ bash scripts/build-production.sh ios
 ```
 
 Hoặc manual:
+
 ```bash
 npm run prebuild:clean && npm run typecheck && npm run build:ios
 ```
@@ -74,6 +78,7 @@ cd android && ./gradlew generateCodegenArtifactsFromSchema
 ```
 
 Sau đó trong Android Studio:
+
 1. **File → Sync Project with Gradle Files**
 2. **Build → Clean Project**
 3. **Build → Rebuild Project** (hoặc Run)
@@ -94,11 +99,11 @@ Rồi mới Sync → Clean → Rebuild trong Studio.
 
 ### Tại sao cần các bước này?
 
-| Bước | Lý do |
-|------|-------|
-| Xóa Metro cache | Metro cache không tự invalidate khi `.env` thay đổi |
+| Bước                                 | Lý do                                                                                             |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------- |
+| Xóa Metro cache                      | Metro cache không tự invalidate khi `.env` thay đổi                                               |
 | `generateCodegenArtifactsFromSchema` | Sync chạy CMake configure trước khi codegen tạo thư mục JNI — nếu thiếu sẽ lỗi `add_subdirectory` |
-| Build nitro-modules (lần đầu) | `react-native-mmkv` cần `libNitroModules.so` + headers được build trước mới link được |
+| Build nitro-modules (lần đầu)        | `react-native-mmkv` cần `libNitroModules.so` + headers được build trước mới link được             |
 
 ---
 
@@ -109,19 +114,22 @@ Rồi mới Sync → Clean → Rebuild trong Studio.
 **Nguyên nhân:** Cache gradle hoặc Metro chưa được xóa
 
 **Fix:**
+
 ```bash
 npm run prebuild:clean
 npm run build:android
 ```
 
-### ❌ EXPO_PUBLIC_* biến không được inject
+### ❌ EXPO*PUBLIC*\* biến không được inject
 
 **Kiểm tra:**
+
 1. `.env` file tồn tại?
 2. Biến có `EXPO_PUBLIC_` prefix?
 3. Chạy `cat .env` để verify
 
 **Fix:**
+
 ```bash
 # Đảm bảo .env đúng format
 EXPO_PUBLIC_BASE_API_URL=https://api.example.com
@@ -143,12 +151,12 @@ eas build:cache:clear
 
 ## 📋 Environment Variables Reference
 
-| Variable | Purpose | Example |
-|----------|---------|---------|
-| `EXPO_PUBLIC_BASE_API_URL` | API backend | `https://api.trendcoffee.net` |
-| `EXPO_PUBLIC_FILE_URL` | File server | `https://api.trendcoffee.net/files` |
-| `EXPO_PUBLIC_FIREBASE_*` | Firebase config | From Firebase console |
-| `EXPO_PUBLIC_GOOGLE_MAP_API_KEY` | Google Maps | From Google Cloud |
+| Variable                         | Purpose         | Example                             |
+| -------------------------------- | --------------- | ----------------------------------- |
+| `EXPO_PUBLIC_BASE_API_URL`       | API backend     | `https://api.trendcoffee.net`       |
+| `EXPO_PUBLIC_FILE_URL`           | File server     | `https://api.trendcoffee.net/files` |
+| `EXPO_PUBLIC_FIREBASE_*`         | Firebase config | From Firebase console               |
+| `EXPO_PUBLIC_GOOGLE_MAP_API_KEY` | Google Maps     | From Google Cloud                   |
 
 ## 🔐 Security
 

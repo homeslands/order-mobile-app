@@ -75,7 +75,12 @@ export function usePaymentStatusDetector({
   // Cleanup (effect teardown) cancels the pending timeout when showSuccess
   // becomes true — prevents a stale tick firing after success.
   useEffect(() => {
-    if (method !== PaymentMethod.BANK_TRANSFER || submittedAt === null || showSuccess) return
+    if (
+      method !== PaymentMethod.BANK_TRANSFER ||
+      submittedAt === null ||
+      showSuccess
+    )
+      return
 
     let tickIndex = 0
     let timeoutId: ReturnType<typeof setTimeout> | null = null
@@ -105,7 +110,11 @@ export function usePaymentStatusDetector({
   // runOnJS is not needed here — useNotificationStore selector fires on JS thread.
   const prevFcmRef = useRef(false)
   useEffect(() => {
-    if (!prevFcmRef.current && fcmDetected && method === PaymentMethod.BANK_TRANSFER) {
+    if (
+      !prevFcmRef.current &&
+      fcmDetected &&
+      method === PaymentMethod.BANK_TRANSFER
+    ) {
       onPaidRef.current()
     }
     prevFcmRef.current = fcmDetected

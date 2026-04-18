@@ -6,9 +6,21 @@
  * Bộ lọc (trạng thái + ngày) qua GiftCardFilterSheet → server-side.
  * Tap vào thẻ → mở GiftCardDetailSheet.
  */
-import { FlashList, type FlashListRef, type ListRenderItem } from '@shopify/flash-list'
+import {
+  FlashList,
+  type FlashListRef,
+  type ListRenderItem,
+} from '@shopify/flash-list'
 import dayjs from 'dayjs'
-import { Check, Clock, Coins, Copy, Gift, History, SlidersHorizontal } from 'lucide-react-native'
+import {
+  Check,
+  Clock,
+  Coins,
+  Copy,
+  Gift,
+  History,
+  SlidersHorizontal,
+} from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Clipboard,
@@ -52,9 +64,13 @@ const StatsStrip = memo(function StatsStrip({
   isDark: boolean
 }) {
   const { t } = useTranslation('giftCard')
-  const available = items.filter((i) => i.status === GiftCardUsageStatus.AVAILABLE).length
+  const available = items.filter(
+    (i) => i.status === GiftCardUsageStatus.AVAILABLE,
+  ).length
   const used = items.filter((i) => i.status === GiftCardUsageStatus.USED).length
-  const expired = items.filter((i) => i.status === GiftCardUsageStatus.EXPIRED).length
+  const expired = items.filter(
+    (i) => i.status === GiftCardUsageStatus.EXPIRED,
+  ).length
 
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
   const bg = isDark ? colors.gray[800] : colors.gray[50]
@@ -62,8 +78,8 @@ const StatsStrip = memo(function StatsStrip({
 
   const stats = [
     { label: t('status.available'), count: available, color: '#16a34a' },
-    { label: t('status.used'),      count: used,      color: subColor  },
-    { label: t('status.expired'),   count: expired,   color: '#dc2626' },
+    { label: t('status.used'), count: used, color: subColor },
+    { label: t('status.expired'), count: expired, color: '#dc2626' },
   ]
 
   return (
@@ -88,7 +104,12 @@ const StatsStrip = memo(function StatsStrip({
 })
 
 const ss = StyleSheet.create({
-  row: { flexDirection: 'row', borderRadius: 12, borderWidth: 1, marginBottom: 4 },
+  row: {
+    flexDirection: 'row',
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 4,
+  },
   cell: { flex: 1, alignItems: 'center', paddingVertical: 10, gap: 2 },
   count: { fontSize: 18, fontWeight: '800' },
   label: { fontSize: 11, fontWeight: '500' },
@@ -112,12 +133,15 @@ const StatusQuickFilter = memo(function StatusQuickFilter({
   const chipBg = isDark ? colors.gray[800] : colors.white.light
   const inactiveText = isDark ? colors.gray[400] : colors.gray[500]
 
-  const STATUS_OPTIONS_QUICK = useMemo(() => [
-    { label: tCommon('common.all'),    value: null                          },
-    { label: t('status.available'),   value: GiftCardUsageStatus.AVAILABLE },
-    { label: t('status.used'),        value: GiftCardUsageStatus.USED      },
-    { label: t('status.expired'),     value: GiftCardUsageStatus.EXPIRED   },
-  ], [t, tCommon])
+  const STATUS_OPTIONS_QUICK = useMemo(
+    () => [
+      { label: tCommon('common.all'), value: null },
+      { label: t('status.available'), value: GiftCardUsageStatus.AVAILABLE },
+      { label: t('status.used'), value: GiftCardUsageStatus.USED },
+      { label: t('status.expired'), value: GiftCardUsageStatus.EXPIRED },
+    ],
+    [t, tCommon],
+  )
 
   return (
     <View style={sqf.row}>
@@ -127,9 +151,20 @@ const StatusQuickFilter = memo(function StatusQuickFilter({
           <Pressable
             key={String(opt.value)}
             onPress={() => onChange(opt.value)}
-            style={[sqf.chip, { backgroundColor: active ? primaryColor : chipBg }]}
+            style={[
+              sqf.chip,
+              { backgroundColor: active ? primaryColor : chipBg },
+            ]}
           >
-            <Text style={[sqf.chipText, { color: active ? colors.white.light : inactiveText, fontWeight: active ? '700' : '500' }]}>
+            <Text
+              style={[
+                sqf.chipText,
+                {
+                  color: active ? colors.white.light : inactiveText,
+                  fontWeight: active ? '700' : '500',
+                },
+              ]}
+            >
               {opt.label}
             </Text>
           </Pressable>
@@ -156,14 +191,23 @@ function ActiveDateBar({
 }) {
   const { t } = useTranslation('giftCard')
   const parts: string[] = []
-  if (filter.fromDate) parts.push(t('list.dateFrom', { date: dayjs(filter.fromDate).format('DD/MM/YY') }))
-  if (filter.toDate)   parts.push(t('list.dateTo', { date: dayjs(filter.toDate).format('DD/MM/YY') }))
+  if (filter.fromDate)
+    parts.push(
+      t('list.dateFrom', { date: dayjs(filter.fromDate).format('DD/MM/YY') }),
+    )
+  if (filter.toDate)
+    parts.push(
+      t('list.dateTo', { date: dayjs(filter.toDate).format('DD/MM/YY') }),
+    )
   if (parts.length === 0) return null
 
   return (
     <View style={adb.row}>
       {parts.map((p) => (
-        <View key={p} style={[adb.chip, { backgroundColor: `${primaryColor}15` }]}>
+        <View
+          key={p}
+          style={[adb.chip, { backgroundColor: `${primaryColor}15` }]}
+        >
           <Text style={[adb.chipText, { color: primaryColor }]}>{p}</Text>
         </View>
       ))}
@@ -200,7 +244,13 @@ function StatusPill({ status, isDark }: { status: string; isDark: boolean }) {
 }
 
 const pill = StyleSheet.create({
-  wrap: { width: 72, paddingVertical: 4, borderRadius: 999, alignItems: 'center', justifyContent: 'center' },
+  wrap: {
+    width: 72,
+    paddingVertical: 4,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   text: { fontSize: 11, fontWeight: '700' },
 })
 
@@ -226,7 +276,10 @@ const CardListItem = memo(function CardListItem({
   const bg = isDark ? colors.gray[900] : colors.white.light
   const borderColor = isDark ? colors.gray[700] : colors.gray[100]
 
-  const handlePress = useCallback(() => onPress(item.slug), [item.slug, onPress])
+  const handlePress = useCallback(
+    () => onPress(item.slug),
+    [item.slug, onPress],
+  )
 
   const handleCopyCode = useCallback(() => {
     Clipboard.setString(item.code)
@@ -234,10 +287,15 @@ const CardListItem = memo(function CardListItem({
     setTimeout(() => setCodeCopied(false), 1500)
   }, [item.code])
 
-  const { createdDate, expiryDate } = useMemo(() => ({
-    createdDate: dayjs(item.createdAt).format('HH:mm DD/MM/YYYY'),
-    expiryDate: item.expiredAt ? dayjs(item.expiredAt).format('HH:mm DD/MM/YYYY') : null,
-  }), [item.createdAt, item.expiredAt])
+  const { createdDate, expiryDate } = useMemo(
+    () => ({
+      createdDate: dayjs(item.createdAt).format('HH:mm DD/MM/YYYY'),
+      expiryDate: item.expiredAt
+        ? dayjs(item.expiredAt).format('HH:mm DD/MM/YYYY')
+        : null,
+    }),
+    [item.createdAt, item.expiredAt],
+  )
 
   return (
     <Pressable
@@ -264,8 +322,12 @@ const CardListItem = memo(function CardListItem({
 
       {/* Points */}
       <View style={s.itemInfoRow}>
-        <Text style={[s.itemInfoLabel, { color: subColor }]}>{t('list.item.points') + ' '}</Text>
-        <Text style={[s.itemInfoVal, { color: primaryColor, fontWeight: '700' }]}>
+        <Text style={[s.itemInfoLabel, { color: subColor }]}>
+          {t('list.item.points') + ' '}
+        </Text>
+        <Text
+          style={[s.itemInfoVal, { color: primaryColor, fontWeight: '700' }]}
+        >
           {formatPoints(item.cardPoints)}
         </Text>
         <Coins size={13} color={primaryColor} />
@@ -274,18 +336,26 @@ const CardListItem = memo(function CardListItem({
       {/* Expiry */}
       {expiryDate && (
         <View style={s.itemInfoRow}>
-          <Text style={[s.itemInfoLabel, { color: subColor }]}>{t('list.item.expiry') + ' '}</Text>
-          <Text style={[s.itemInfoVal, { color: textColor }]}>{expiryDate}</Text>
+          <Text style={[s.itemInfoLabel, { color: subColor }]}>
+            {t('list.item.expiry') + ' '}
+          </Text>
+          <Text style={[s.itemInfoVal, { color: textColor }]}>
+            {expiryDate}
+          </Text>
         </View>
       )}
 
       {/* Copy code */}
       <View style={s.itemInfoRow}>
-        <Text style={[s.itemInfoLabel, { color: subColor }]}>{t('list.item.copyCode') + ' '}</Text>
+        <Text style={[s.itemInfoLabel, { color: subColor }]}>
+          {t('list.item.copyCode') + ' '}
+        </Text>
         <Pressable onPress={handleCopyCode} hitSlop={8}>
-          {codeCopied
-            ? <Check size={14} color="#16a34a" />
-            : <Copy size={14} color={subColor} />}
+          {codeCopied ? (
+            <Check size={14} color="#16a34a" />
+          ) : (
+            <Copy size={14} color={subColor} />
+          )}
         </Pressable>
       </View>
     </Pressable>
@@ -298,7 +368,11 @@ function SkeletonList() {
   return (
     <View style={{ paddingHorizontal: 16, gap: 10, paddingTop: 10 }}>
       {Array.from({ length: 4 }).map((_, i) => (
-        <Skeleton key={i} className="w-full rounded-2xl" style={{ height: SKELETON_HEIGHT }} />
+        <Skeleton
+          key={i}
+          className="w-full rounded-2xl"
+          style={{ height: SKELETON_HEIGHT }}
+        />
       ))}
     </View>
   )
@@ -337,14 +411,21 @@ export default function GiftCardsScreen() {
     [bottom],
   )
 
-  const queryParams = useMemo(() => ({
-    customerSlug: userSlug ?? '',
-    page: 1,
-    size: 50,
-    status: filter.status ?? undefined,
-    fromDate: filter.fromDate ? dayjs(filter.fromDate).format('YYYY-MM-DD') : undefined,
-    toDate: filter.toDate ? dayjs(filter.toDate).format('YYYY-MM-DD') : undefined,
-  }), [userSlug, filter.status, filter.fromDate, filter.toDate])
+  const queryParams = useMemo(
+    () => ({
+      customerSlug: userSlug ?? '',
+      page: 1,
+      size: 50,
+      status: filter.status ?? undefined,
+      fromDate: filter.fromDate
+        ? dayjs(filter.fromDate).format('YYYY-MM-DD')
+        : undefined,
+      toDate: filter.toDate
+        ? dayjs(filter.toDate).format('YYYY-MM-DD')
+        : undefined,
+    }),
+    [userSlug, filter.status, filter.fromDate, filter.toDate],
+  )
 
   const { data, isLoading, isFetching, refetch } = useUserGiftCards(
     queryParams,
@@ -373,11 +454,15 @@ export default function GiftCardsScreen() {
     void refetch()
   }, [refetch])
 
-  const handleOpenDetail = useCallback((slug: string) => setDetailSlug(slug), [])
+  const handleOpenDetail = useCallback(
+    (slug: string) => setDetailSlug(slug),
+    [],
+  )
   const handleCloseDetail = useCallback(() => setDetailSlug(null), [])
   const handleApplyFilter = useCallback((v: GiftCardFilter) => setFilter(v), [])
   const handleStatusFilter = useCallback(
-    (status: GiftCardUsageStatus | null) => setFilter((prev) => ({ ...prev, status })),
+    (status: GiftCardUsageStatus | null) =>
+      setFilter((prev) => ({ ...prev, status })),
     [],
   )
 
@@ -396,7 +481,9 @@ export default function GiftCardsScreen() {
   const keyExtractor = useCallback((item: IGiftCardDetail) => item.slug, [])
 
   const overrideItemLayout = useCallback(
-    (layout: { span?: number; size?: number }) => { layout.size = GIFT_CARD_ITEM_HEIGHT },
+    (layout: { span?: number; size?: number }) => {
+      layout.size = GIFT_CARD_ITEM_HEIGHT
+    },
     [],
   )
 
@@ -407,7 +494,9 @@ export default function GiftCardsScreen() {
       )}
       <ActiveDateBar filter={filter} primaryColor={primaryColor} />
       {!isLoading && items.length > 0 && (
-        <Text style={[s.totalText, { color: subColor }]}>{t('list.countCards', { count: items.length })}</Text>
+        <Text style={[s.totalText, { color: subColor }]}>
+          {t('list.countCards', { count: items.length })}
+        </Text>
       )}
     </>
   )
@@ -417,11 +506,11 @@ export default function GiftCardsScreen() {
   const ListEmpty = !isLoading ? (
     <View style={s.emptyWrap}>
       <Gift size={40} color={colors.gray[400]} />
-      <Text style={[s.emptyTitle, { color: textColor }]}>{t('list.empty.noCards')}</Text>
+      <Text style={[s.emptyTitle, { color: textColor }]}>
+        {t('list.empty.noCards')}
+      </Text>
       <Text style={[s.emptyHint, { color: subColor }]}>
-        {active
-          ? t('list.empty.noMatches')
-          : t('list.empty.noOwned')}
+        {active ? t('list.empty.noMatches') : t('list.empty.noOwned')}
       </Text>
     </View>
   ) : null
@@ -438,15 +527,24 @@ export default function GiftCardsScreen() {
               hitSlop={8}
               style={s.headerBtn}
             >
-              <SlidersHorizontal size={20} color={active ? primaryColor : subColor} />
-              {active && <View style={[s.filterDot, { backgroundColor: primaryColor }]} />}
+              <SlidersHorizontal
+                size={20}
+                color={active ? primaryColor : subColor}
+              />
+              {active && (
+                <View
+                  style={[s.filterDot, { backgroundColor: primaryColor }]}
+                />
+              )}
             </Pressable>
 
             {/* History button */}
             <Pressable
               onPress={() =>
                 navigateNative.push(
-                  '/profile/gift-card-orders' as Parameters<typeof navigateNative.push>[0],
+                  '/profile/gift-card-orders' as Parameters<
+                    typeof navigateNative.push
+                  >[0],
                 )
               }
               hitSlop={8}
@@ -460,7 +558,16 @@ export default function GiftCardsScreen() {
       />
 
       {/* ── Fixed status filter bar ─────────────────────────────────── */}
-      <View style={[s.statusFilterBar, { paddingTop: STATIC_TOP_INSET + 64, backgroundColor: bg, borderBottomColor: borderColor }]}>
+      <View
+        style={[
+          s.statusFilterBar,
+          {
+            paddingTop: STATIC_TOP_INSET + 64,
+            backgroundColor: bg,
+            borderBottomColor: borderColor,
+          },
+        ]}
+      >
         <StatusQuickFilter
           value={filter.status}
           onChange={handleStatusFilter}
@@ -469,7 +576,7 @@ export default function GiftCardsScreen() {
         />
       </View>
 
-      {(!ready || isLoading) ? (
+      {!ready || isLoading ? (
         <SkeletonList />
       ) : (
         <FlashList
@@ -553,5 +660,10 @@ const s = StyleSheet.create({
   itemInfoVal: { fontSize: 12 },
   emptyWrap: { paddingTop: 60, alignItems: 'center', gap: 10 },
   emptyTitle: { fontSize: 16, fontWeight: '700' },
-  emptyHint: { fontSize: 13, textAlign: 'center', paddingHorizontal: 32, lineHeight: 18 },
+  emptyHint: {
+    fontSize: 13,
+    textAlign: 'center',
+    paddingHorizontal: 32,
+    lineHeight: 18,
+  },
 })

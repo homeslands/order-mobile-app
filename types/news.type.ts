@@ -19,4 +19,3 @@ export interface NewsArticle {
 export interface NewsArticleDetail extends NewsArticle {
   contentBlocks: ContentBlock[]
 }
-

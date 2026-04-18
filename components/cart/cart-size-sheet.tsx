@@ -61,7 +61,13 @@ export const CartSizeSheet = memo(function CartSizeSheet({
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.4} pressBehavior="close" />
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.4}
+        pressBehavior="close"
+      />
     ),
     [],
   )
@@ -110,31 +116,48 @@ export const CartSizeSheet = memo(function CartSizeSheet({
       backgroundStyle={bgStyle}
       onDismiss={onClose}
     >
-          <View style={[sizeSheetStyles.header, { borderBottomColor: isDark ? colors.gray[700] : colors.border.light }]}>
-            <Text style={[sizeSheetStyles.title, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>
-              {t('product.selectSize', 'Chọn size')}
-            </Text>
-          </View>
+      <View
+        style={[
+          sizeSheetStyles.header,
+          {
+            borderBottomColor: isDark ? colors.gray[700] : colors.border.light,
+          },
+        ]}
+      >
+        <Text
+          style={[
+            sizeSheetStyles.title,
+            { color: isDark ? colors.gray[50] : colors.gray[900] },
+          ]}
+        >
+          {t('product.selectSize', 'Chọn size')}
+        </Text>
+      </View>
 
-          {variants.length > 0 ? (
-            <BottomSheetFlatList
-              data={variants}
-              keyExtractor={keyExtractor}
-              renderItem={renderItem}
-              extraData={selectedSlug}
-              initialNumToRender={6}
-              windowSize={3}
-              maxToRenderPerBatch={6}
-              removeClippedSubviews
-              contentContainerStyle={sizeSheetStyles.listContent}
-            />
-          ) : (
-            <View style={sizeSheetStyles.emptyContainer}>
-              <Text style={[sizeSheetStyles.emptyText, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>
-                {t('product.noVariants', 'Không có size khác')}
-              </Text>
-            </View>
-          )}
+      {variants.length > 0 ? (
+        <BottomSheetFlatList
+          data={variants}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+          extraData={selectedSlug}
+          initialNumToRender={6}
+          windowSize={3}
+          maxToRenderPerBatch={6}
+          removeClippedSubviews
+          contentContainerStyle={sizeSheetStyles.listContent}
+        />
+      ) : (
+        <View style={sizeSheetStyles.emptyContainer}>
+          <Text
+            style={[
+              sizeSheetStyles.emptyText,
+              { color: isDark ? colors.gray[400] : colors.gray[500] },
+            ]}
+          >
+            {t('product.noVariants', 'Không có size khác')}
+          </Text>
+        </View>
+      )}
     </BottomSheetModal>
   )
 })
@@ -157,28 +180,62 @@ const SizeOption = memo(function SizeOption({
   const sizeName = variant.size?.name || ''
 
   return (
-    <Pressable onPress={handlePress} style={[
-      sizeSheetStyles.optionRow,
-      {
-        backgroundColor: isSelected
-          ? (isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.03)')
-          : 'transparent',
-        borderColor: isSelected ? primaryColor : (isDark ? colors.gray[800] : colors.gray[200]),
-      },
-    ]}>
+    <Pressable
+      onPress={handlePress}
+      style={[
+        sizeSheetStyles.optionRow,
+        {
+          backgroundColor: isSelected
+            ? isDark
+              ? 'rgba(255,255,255,0.06)'
+              : 'rgba(0,0,0,0.03)'
+            : 'transparent',
+          borderColor: isSelected
+            ? primaryColor
+            : isDark
+              ? colors.gray[800]
+              : colors.gray[200],
+        },
+      ]}
+    >
       <View style={sizeSheetStyles.optionInfo}>
-        <Text style={[sizeSheetStyles.optionName, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>
+        <Text
+          style={[
+            sizeSheetStyles.optionName,
+            { color: isDark ? colors.gray[50] : colors.gray[900] },
+          ]}
+        >
           {capitalizeFirst(sizeName || 'Mặc định')}
         </Text>
-        <Text style={[sizeSheetStyles.optionPrice, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>
+        <Text
+          style={[
+            sizeSheetStyles.optionPrice,
+            { color: isDark ? colors.gray[400] : colors.gray[500] },
+          ]}
+        >
           {formatCurrencyNative(variant.price)}
         </Text>
       </View>
-      <View style={[
-        sizeSheetStyles.radio,
-        { borderColor: isSelected ? primaryColor : (isDark ? colors.gray[600] : colors.gray[300]) },
-      ]}>
-        {isSelected && <View style={[sizeSheetStyles.radioInner, { backgroundColor: primaryColor }]} />}
+      <View
+        style={[
+          sizeSheetStyles.radio,
+          {
+            borderColor: isSelected
+              ? primaryColor
+              : isDark
+                ? colors.gray[600]
+                : colors.gray[300],
+          },
+        ]}
+      >
+        {isSelected && (
+          <View
+            style={[
+              sizeSheetStyles.radioInner,
+              { backgroundColor: primaryColor },
+            ]}
+          />
+        )}
       </View>
     </Pressable>
   )

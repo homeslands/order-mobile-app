@@ -68,12 +68,14 @@ export interface UseDataTableReturn<T> {
   toggleRowSelection: (id: string | number) => void
   selectAll: (rowIds: (string | number)[]) => void
   clearSelection: () => void
-  pagination: (DataTablePaginationState & {
-    setPageIndex: (index: number) => void
-    setPageSize: (size: number) => void
-    nextPage: () => void
-    previousPage: () => void
-  }) | null
+  pagination:
+    | (DataTablePaginationState & {
+        setPageIndex: (index: number) => void
+        setPageSize: (size: number) => void
+        nextPage: () => void
+        previousPage: () => void
+      })
+    | null
   isLoading: boolean
   setIsLoading: (loading: boolean) => void
   reset: () => void

@@ -9,6 +9,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  useColorScheme,
 } from 'react-native'
 
 import {
@@ -19,7 +20,7 @@ import {
 import { ForgotPasswordIdentityForm } from '@/components/form'
 import { Button } from '@/components/ui'
 import { ScreenContainer } from '@/components/layout'
-import { EMAIL_REGEX, ROUTE, VerificationMethod } from '@/constants'
+import { EMAIL_REGEX, ROUTE, VerificationMethod, colors } from '@/constants'
 import {
   useConfirmForgotPassword,
   useInitiateForgotPassword,
@@ -80,6 +81,8 @@ function applyOtpBuffer(expiresAt: string): string {
 }
 
 export default function ForgotPasswordScreen() {
+  const isDark = useColorScheme() === 'dark'
+  const bgColor = isDark ? colors.gray[900] : '#ffffff'
   const { t } = useTranslation('auth')
   const { t: tToast } = useTranslation('toast')
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated())
@@ -97,8 +100,7 @@ export default function ForgotPasswordScreen() {
   const { setEmail, setPhoneNumber, setVerificationMethod } =
     useIdentityActions()
   const { setStep, clearForgotPassword } = useStepActions()
-  const { setToken, setTokenExpireTime, setExpireTime } =
-    useOTPActions()
+  const { setToken, setTokenExpireTime, setExpireTime } = useOTPActions()
 
   // Local state
   const [otpValue, setOtpValue] = useState('')
@@ -152,10 +154,7 @@ export default function ForgotPasswordScreen() {
       return true // prevent default back
     }
 
-    const sub = BackHandler.addEventListener(
-      'hardwareBackPress',
-      onBackPress,
-    )
+    const sub = BackHandler.addEventListener('hardwareBackPress', onBackPress)
     return () => sub.remove()
     // handleBack depends on step — re-subscribe when step changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -212,9 +211,7 @@ export default function ForgotPasswordScreen() {
 
       initiate(payload, {
         onSuccess: (response) => {
-          const buffered = applyOtpBuffer(
-            response?.result?.expiresAt || '',
-          )
+          const buffered = applyOtpBuffer(response?.result?.expiresAt || '')
           // G1: guard empty/invalid expiresAt
           if (!buffered) {
             showErrorToastMessage('toast.requestFailed')
@@ -235,15 +232,12 @@ export default function ForgotPasswordScreen() {
           // Backend error code 119009 = OTP already sent
           const isOTPAlreadySent = errorCode === 119009
           const isOTPStillValid =
-            expireTime &&
-            new Date(expireTime).getTime() > Date.now()
+            expireTime && new Date(expireTime).getTime() > Date.now()
 
           // If OTP already sent (119009) but no local expireTime, set a default timeout
           if (isOTPAlreadySent && !isOTPStillValid) {
             // Set 10-minute default expiry for OTP that was already sent
-            setExpireTime(
-              new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-            )
+            setExpireTime(new Date(Date.now() + 10 * 60 * 1000).toISOString())
             setStep(2)
             // Show user-friendly message
             showToast(tToast('toast.otpAlreadySent'))
@@ -320,11 +314,7 @@ export default function ForgotPasswordScreen() {
 
   // ── Auto-submit OTP when 6 digits entered ───────────────────────
   useEffect(() => {
-    if (
-      otpValue.length === 6 &&
-      !isVerifyingOTP &&
-      !autoSubmitRef.current
-    ) {
+    if (otpValue.length === 6 && !isVerifyingOTP && !autoSubmitRef.current) {
       autoSubmitRef.current = true
       handleVerifyOTP()
     }
@@ -349,17 +339,14 @@ export default function ForgotPasswordScreen() {
 
   // ── Resend OTP ──────────────────────────────────────────────────
   const handleResendOTP = useCallback(() => {
-    const isEmail =
-      verificationMethod === VerificationMethod.EMAIL
+    const isEmail = verificationMethod === VerificationMethod.EMAIL
     const payload = isEmail
       ? { email, verificationMethod }
       : { phonenumber: phoneNumber, verificationMethod }
 
     resendOTP(payload, {
       onSuccess: (response) => {
-        const buffered = applyOtpBuffer(
-          response?.result?.expiresAt || '',
-        )
+        const buffered = applyOtpBuffer(response?.result?.expiresAt || '')
         if (!buffered) {
           showErrorToastMessage('toast.requestFailed')
           return
@@ -376,14 +363,7 @@ export default function ForgotPasswordScreen() {
       },
       onError: handleMutationError,
     })
-  }, [
-    email,
-    phoneNumber,
-    verificationMethod,
-    resendOTP,
-    setExpireTime,
-    tToast,
-  ])
+  }, [email, phoneNumber, verificationMethod, resendOTP, setExpireTime, tToast])
 
   // ── Navigation handlers ─────────────────────────────────────────
   const handleBack = useCallback(() => {
@@ -402,10 +382,7 @@ export default function ForgotPasswordScreen() {
     }
   }, [step, setStep, setExpireTime, setToken, setTokenExpireTime])
 
-  const handleOtpChange = useCallback(
-    (v: string) => setOtpValue(v),
-    [],
-  )
+  const handleOtpChange = useCallback((v: string) => setOtpValue(v), [])
 
   const handleStartOver = useCallback(() => {
     clearForgotPassword()
@@ -424,9 +401,7 @@ export default function ForgotPasswordScreen() {
   const currentIdentity = email || phoneNumber
   const maskedId = useMemo(
     () =>
-      currentIdentity
-        ? maskIdentity(currentIdentity, verificationMethod)
-        : '',
+      currentIdentity ? maskIdentity(currentIdentity, verificationMethod) : '',
     [currentIdentity, verificationMethod],
   )
 
@@ -440,8 +415,7 @@ export default function ForgotPasswordScreen() {
   const description = useMemo(() => {
     if (isSuccess) return ''
     if (step === 2) return t('forgotPassword.otpInputDescription')
-    if (step === 3)
-      return t('forgotPassword.resetPasswordDescription')
+    if (step === 3) return t('forgotPassword.resetPasswordDescription')
     return ''
   }, [step, isSuccess, t])
 
@@ -460,25 +434,29 @@ export default function ForgotPasswordScreen() {
           gestureEnabled,
         }}
       />
-      <ScreenContainer edges={['top']} className="flex-1">
+      <ScreenContainer
+        edges={['top']}
+        className="flex-1"
+        style={{ backgroundColor: bgColor }}
+      >
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
           <ScrollView
-            className="flex-1"
+            style={{ backgroundColor: bgColor }}
             showsVerticalScrollIndicator={false}
             scrollEventThrottle={32}
             keyboardShouldPersistTaps="handled"
           >
             <View className="flex-1 px-6 pt-8">
               {title ? (
-                <Text className="mb-2 text-3xl font-sans-bold text-foreground">
+                <Text className="mb-2 font-sans-bold text-3xl text-gray-900 dark:text-white">
                   {title}
                 </Text>
               ) : null}
               {description ? (
-                <Text className="mb-8 text-base font-sans text-muted-foreground">
+                <Text className="mb-8 font-sans text-base text-gray-500 dark:text-gray-400">
                   {description}
                 </Text>
               ) : null}
@@ -507,11 +485,8 @@ export default function ForgotPasswordScreen() {
                   shakeTranslateX={shakeTranslateX}
                 />
               ) : activeStep === 2 ? (
-                <TouchableOpacity
-                  onPress={handleBack}
-                  className="py-2"
-                >
-                  <Text className="text-center text-sm font-sans-medium text-primary">
+                <TouchableOpacity onPress={handleBack} className="py-2">
+                  <Text className="text-center font-sans-medium text-sm text-amber-500 dark:text-amber-400">
                     {t('forgotPassword.backButton')}
                   </Text>
                 </TouchableOpacity>
@@ -530,7 +505,7 @@ export default function ForgotPasswordScreen() {
                 />
               ) : activeStep === 3 ? (
                 <View className="gap-3">
-                  <Text className="text-center text-sm font-sans text-destructive">
+                  <Text className="text-center font-sans text-sm text-red-500 dark:text-red-400">
                     {t('forgotPassword.sessionExpired')}
                   </Text>
                   <Button
@@ -538,7 +513,7 @@ export default function ForgotPasswordScreen() {
                     className="h-11 rounded-lg"
                     onPress={handleStartOver}
                   >
-                    <Text className="text-sm font-sans-semibold text-primary-foreground">
+                    <Text className="font-sans-semibold text-sm text-white">
                       {t('forgotPassword.sessionExpiredAction')}
                     </Text>
                   </Button>

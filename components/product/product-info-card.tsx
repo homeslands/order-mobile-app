@@ -27,7 +27,10 @@ export function ProductInfoCard({
     <View style={styles.card}>
       {/* Name + badge */}
       <Text
-        style={[styles.name, { color: isDark ? colors.gray[50] : colors.gray[900] }]}
+        style={[
+          styles.name,
+          { color: isDark ? colors.gray[50] : colors.gray[900] },
+        ]}
         numberOfLines={2}
       >
         {name.charAt(0).toUpperCase() + name.slice(1)}

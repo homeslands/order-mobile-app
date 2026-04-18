@@ -30,9 +30,9 @@ Expo Modules sử dụng **expo-modules-autolinking** — module được auto-d
 
 ### So sánh với Codegen
 
-| | Expo Module (này) | Codegen TurboModule |
-|--|-------------------|---------------------|
-| Spec file | Không cần | Cần Native*.ts |
-| Chạy Codegen | Không | Cần `generateCodegenArtifacts` |
-| Đăng ký | expo-module.config.json | package.json codegenConfig + native |
-| New Arch | JSI tự động | JSI qua Codegen |
+|              | Expo Module (này)       | Codegen TurboModule                 |
+| ------------ | ----------------------- | ----------------------------------- |
+| Spec file    | Không cần               | Cần Native\*.ts                     |
+| Chạy Codegen | Không                   | Cần `generateCodegenArtifacts`      |
+| Đăng ký      | expo-module.config.json | package.json codegenConfig + native |
+| New Arch     | JSI tự động             | JSI qua Codegen                     |

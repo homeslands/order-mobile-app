@@ -1,6 +1,12 @@
 import { Eye, EyeOff } from 'lucide-react-native'
 import { memo, useState } from 'react'
-import { Text, TextInput, TouchableOpacity, View, useColorScheme } from 'react-native'
+import {
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  useColorScheme,
+} from 'react-native'
 
 import { colors } from '@/constants'
 import { usePasswordRules, type PasswordRules } from '@/hooks'
@@ -37,12 +43,20 @@ function strengthLabelColor(metCount: number): string {
   return 'text-green-600 dark:text-green-400'
 }
 
-const RuleTag = memo(function RuleTag({ met, label }: { met: boolean; label: string }) {
+const RuleTag = memo(function RuleTag({
+  met,
+  label,
+}: {
+  met: boolean
+  label: string
+}) {
   return (
     <View
       className={cn(
         'rounded-full px-2 py-0.5',
-        met ? 'bg-green-100 dark:bg-green-900/40' : 'bg-gray-100 dark:bg-gray-800',
+        met
+          ? 'bg-green-100 dark:bg-green-900/40'
+          : 'bg-gray-100 dark:bg-gray-800',
       )}
     >
       <Text
@@ -53,7 +67,8 @@ const RuleTag = memo(function RuleTag({ met, label }: { met: boolean; label: str
             : 'text-gray-400 dark:text-gray-500',
         )}
       >
-        {met ? '✓ ' : '✗ '}{label}
+        {met ? '✓ ' : '✗ '}
+        {label}
       </Text>
     </View>
   )
@@ -80,7 +95,9 @@ export function PasswordRulesInput({
   const strength = strengthProp ?? hookResult.strength
   const labels = labelsProp ?? hookResult.labels
 
-  const metCount = [rules.minLength, rules.hasLetter, rules.hasNumber].filter(Boolean).length
+  const metCount = [rules.minLength, rules.hasLetter, rules.hasNumber].filter(
+    Boolean,
+  ).length
 
   return (
     <View className="gap-2">
@@ -88,12 +105,14 @@ export function PasswordRulesInput({
       <View className="relative">
         <TextInput
           className={cn(
-            'bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-4 py-3 pr-12 text-base border',
+            'rounded-lg border bg-white px-4 py-3 pr-12 text-base text-gray-900 dark:bg-gray-800 dark:text-white',
             'border-gray-300 dark:border-gray-700',
             disabled && 'opacity-50',
           )}
           placeholder={placeholder}
-          placeholderTextColor={isDark ? colors.mutedForeground.dark : colors.mutedForeground.light}
+          placeholderTextColor={
+            isDark ? colors.mutedForeground.dark : colors.mutedForeground.light
+          }
           value={value}
           onChangeText={(text) => {
             onChange(text)
@@ -109,14 +128,30 @@ export function PasswordRulesInput({
           style={{ fontFamily: 'BeVietnamPro_400Regular' }}
         />
         <TouchableOpacity
-          className="absolute right-4 top-0 bottom-0 justify-center"
+          className="absolute bottom-0 right-4 top-0 justify-center"
           onPress={() => setShowPassword(!showPassword)}
           disabled={disabled}
           hitSlop={8}
         >
-          {showPassword
-            ? <EyeOff size={20} color={isDark ? colors.mutedForeground.dark : colors.mutedForeground.light} />
-            : <Eye size={20} color={isDark ? colors.mutedForeground.dark : colors.mutedForeground.light} />}
+          {showPassword ? (
+            <EyeOff
+              size={20}
+              color={
+                isDark
+                  ? colors.mutedForeground.dark
+                  : colors.mutedForeground.light
+              }
+            />
+          ) : (
+            <Eye
+              size={20}
+              color={
+                isDark
+                  ? colors.mutedForeground.dark
+                  : colors.mutedForeground.light
+              }
+            />
+          )}
         </TouchableOpacity>
       </View>
 
@@ -129,12 +164,20 @@ export function PasswordRulesInput({
               {[0, 1, 2].map((i) => (
                 <View
                   key={i}
-                  className={cn('h-1 flex-1 rounded-full', segmentColor(i, metCount))}
+                  className={cn(
+                    'h-1 flex-1 rounded-full',
+                    segmentColor(i, metCount),
+                  )}
                 />
               ))}
             </View>
             {strength !== null && (
-              <Text className={cn('text-xs font-semibold', strengthLabelColor(metCount))}>
+              <Text
+                className={cn(
+                  'text-xs font-semibold',
+                  strengthLabelColor(metCount),
+                )}
+              >
                 {strength}
               </Text>
             )}
@@ -151,4 +194,3 @@ export function PasswordRulesInput({
     </View>
   )
 }
-

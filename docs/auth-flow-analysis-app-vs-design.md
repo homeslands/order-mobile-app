@@ -173,6 +173,7 @@ ProtectedElement Component:
 ```
 
 **Alignment:** ⚠️ 60% - Different approach but achieves same goal
+
 - **Why Different:** App supports guest users, so needs public endpoints
 - **Design Assumption:** All users authenticated → ProtectedElement sufficient
 
@@ -286,6 +287,7 @@ Assumption: All users must be authenticated.
 ```
 
 **Alignment:** N/A - App extends design with guest support
+
 - **Design:** Auth-only flow
 - **App:** Auth + Guest dual flow (by requirement)
 
@@ -324,6 +326,7 @@ NO FCM mentioned in authentication flow docs.
 ```
 
 **Alignment:** ✅ 100% - Intentional auth-only design
+
 - **Rationale:** FCM token registration requires authentication
 - **Feature:** Only authenticated users receive notifications (current spec)
 
@@ -363,6 +366,7 @@ Logged-In User (CUSTOMER)
 ```
 
 **Alignment:** ✅ 95% - App extends design with guest support
+
 - **Design:** Auth-only happy path
 - **App:** Dual path (auth + guest)
 
@@ -425,6 +429,7 @@ Special Case (401):
 ```
 
 **Alignment:** ✅ 100% - Matches design with enhancements
+
 - **Design:** Basic error handling
 - **App:** Adds selective suppression for background operations
 
@@ -480,18 +485,18 @@ Special Case (401):
 
 ## 10. Summary - Alignment Score
 
-| Component | Alignment | Notes |
-|-----------|-----------|-------|
-| **Login Flow** | ✅ 95% | Core process matches, redirect logic optimized |
-| **Token Management** | ✅ 100% | Exact implementation |
-| **Route Protection** | ⚠️ 60% | Different approach (endpoint-based vs ProtectedElement) |
-| **User Store** | ✅ 85% | Verification status not persisted |
-| **Guest Support** | N/A | App extends design (by requirement) |
-| **FCM** | ✅ 100% | Auth-only by design (intentional) |
-| **Order Flow** | ✅ 95% | Extended with guest support |
-| **Error Handling** | ✅ 100% | Enhanced with background-op suppression |
-| **Logout Flow** | ✅ 90% | Core logic same, simplified redirect |
-| **Overall** | ✅ 90% | Strong alignment, intentional deviations |
+| Component            | Alignment | Notes                                                   |
+| -------------------- | --------- | ------------------------------------------------------- |
+| **Login Flow**       | ✅ 95%    | Core process matches, redirect logic optimized          |
+| **Token Management** | ✅ 100%   | Exact implementation                                    |
+| **Route Protection** | ⚠️ 60%    | Different approach (endpoint-based vs ProtectedElement) |
+| **User Store**       | ✅ 85%    | Verification status not persisted                       |
+| **Guest Support**    | N/A       | App extends design (by requirement)                     |
+| **FCM**              | ✅ 100%   | Auth-only by design (intentional)                       |
+| **Order Flow**       | ✅ 95%    | Extended with guest support                             |
+| **Error Handling**   | ✅ 100%   | Enhanced with background-op suppression                 |
+| **Logout Flow**      | ✅ 90%    | Core logic same, simplified redirect                    |
+| **Overall**          | ✅ 90%    | Strong alignment, intentional deviations                |
 
 ---
 

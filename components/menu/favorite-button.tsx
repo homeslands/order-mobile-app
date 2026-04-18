@@ -51,7 +51,7 @@ export const FavoriteButton = React.memo(function FavoriteButton({
   }))
 
   const fillColor = isFavorite ? '#ef4444' : 'transparent'
-  const strokeColor = isFavorite ? '#ef4444' : (isDark ? '#9ca3af' : '#6b7280')
+  const strokeColor = isFavorite ? '#ef4444' : isDark ? '#9ca3af' : '#6b7280'
 
   return (
     <Pressable

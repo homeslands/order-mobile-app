@@ -27,12 +27,15 @@ interface RadioGroupProps {
  * RadioGroup - Container for radio items
  * Similar to shadcn UI RadioGroup
  */
-function RadioGroup({ value, onValueChange, children, className }: RadioGroupProps) {
+function RadioGroup({
+  value,
+  onValueChange,
+  children,
+  className,
+}: RadioGroupProps) {
   return (
     <RadioGroupContext.Provider value={{ value, onValueChange }}>
-      <View className={cn('flex-col', className)}>
-        {children}
-      </View>
+      <View className={cn('flex-col', className)}>{children}</View>
     </RadioGroupContext.Provider>
   )
 }
@@ -49,7 +52,12 @@ interface RadioGroupItemProps {
  * RadioGroupItem - Individual radio button
  * Similar to shadcn UI RadioGroupItem
  */
-function RadioGroupItem({ value, disabled = false, className, onPress }: RadioGroupItemProps) {
+function RadioGroupItem({
+  value,
+  disabled = false,
+  className,
+  onPress,
+}: RadioGroupItemProps) {
   const context = useContext(RadioGroupContext)
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
@@ -79,17 +87,17 @@ function RadioGroupItem({ value, disabled = false, className, onPress }: RadioGr
       onPress={handlePress}
       disabled={disabled}
       className={cn(
-        'h-4 w-4 rounded-full border-2 items-center justify-center',
-        isSelected
-          ? 'border-primary'
-          : 'border-gray-300 dark:border-gray-600',
+        'h-4 w-4 items-center justify-center rounded-full border-2',
+        isSelected ? 'border-primary' : 'border-gray-300 dark:border-gray-600',
         disabled && 'opacity-50',
-        className
+        className,
       )}
       style={{
         borderColor: isSelected
           ? '#3b82f6'
-          : (isDark ? colors.gray[600] : colors.gray[300]),
+          : isDark
+            ? colors.gray[600]
+            : colors.gray[300],
       }}
     >
       {isSelected && (
@@ -110,4 +118,3 @@ function RadioGroupItem({ value, disabled = false, className, onPress }: RadioGr
 }
 
 export { RadioGroup, RadioGroupItem }
-

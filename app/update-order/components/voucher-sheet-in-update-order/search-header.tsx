@@ -1,6 +1,7 @@
 import { colors } from '@/constants'
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
 import { Search, Ticket } from 'lucide-react-native'
+import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 type SearchHeaderProps = {
@@ -18,6 +19,7 @@ export function SearchHeader({
   isDark,
   primaryColor,
 }: SearchHeaderProps) {
+  const { t } = useTranslation('voucher')
   return (
     <View style={styles.fixedHeader}>
       <Text
@@ -26,7 +28,7 @@ export function SearchHeader({
           { color: isDark ? colors.gray[50] : colors.gray[900] },
         ]}
       >
-        Mã giảm giá
+        {t('code')}
       </Text>
       <View style={styles.inputRow}>
         <View
@@ -42,7 +44,7 @@ export function SearchHeader({
           <BottomSheetTextInput
             value={code}
             onChangeText={onChangeCode}
-            placeholder="Nhập mã voucher"
+            placeholder={t('enterCode')}
             placeholderTextColor={isDark ? colors.gray[600] : colors.gray[400]}
             autoCapitalize="sentences"
             autoCorrect={false}
@@ -86,7 +88,7 @@ export function SearchHeader({
           { color: isDark ? colors.gray[400] : colors.gray[500] },
         ]}
       >
-        Áp dụng tối đa 1 mã / đơn hàng
+        {t('maxOnePerOrder')}
       </Text>
     </View>
   )

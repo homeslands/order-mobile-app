@@ -29,8 +29,7 @@ async function getStoredTimestamp(): Promise<number> {
     const storage = createSafeStorage()
     const raw = storage.getItem(STORAGE_KEY_TIMESTAMP)
     // createSafeStorage may return string or Promise<string>
-    const value =
-      raw instanceof Promise ? await raw : raw
+    const value = raw instanceof Promise ? await raw : raw
     return value ? Number(value) : 0
   } catch {
     return 0
@@ -58,8 +57,6 @@ async function checkAndRefresh(): Promise<void> {
 
     if (currentToken !== storedToken) {
       // Firebase rotated the token — re-register immediately regardless of age
-      // eslint-disable-next-line no-console
-      console.log('[FCM] 🔄 Token changed on foreground resume, re-registering...')
       const result = await registerTokenWithRetry(currentToken)
       if (result.success) {
         useUserStore.getState().setDeviceToken(currentToken)
@@ -83,9 +80,8 @@ async function checkAndRefresh(): Promise<void> {
     if (result.success) {
       await setStoredTimestamp(Date.now())
     }
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('[FCM] Token refresh failed:', error instanceof Error ? error.message : error)
+  } catch {
+    // Silent fail — refresh will be retried on next interval/foreground
   }
 }
 
@@ -138,13 +134,21 @@ export function stopTokenRefreshScheduler(): void {
   }
 }
 
-/** Unregister token from server + clear store — call on logout */
-export async function cleanupTokenOnLogout(): Promise<void> {
+/**
+ * Unregister token from server + stop scheduler — call on logout.
+ *
+ * Pass `capturedToken` when you need to capture the token BEFORE clearing
+ * the store (e.g. the token is cleared synchronously right after this call).
+ * If omitted, reads from the store (legacy path — may race with removeUserInfo).
+ */
+export async function cleanupTokenOnLogout(
+  capturedToken?: string,
+): Promise<void> {
   stopTokenRefreshScheduler()
 
-  const token = useUserStore.getState().deviceToken
+  const token = capturedToken ?? useUserStore.getState().deviceToken
   if (token) {
     await unregisterToken(token)
   }
-  // clearUserData() in userStore already clears deviceToken
+  // deviceToken cleared by removeUserInfo() / clearUserData() in the caller
 }

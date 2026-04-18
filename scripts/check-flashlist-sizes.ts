@@ -20,20 +20,23 @@ for (const file of files) {
   const lines = content.split('\n')
 
   lines.forEach((line, i) => {
-    if (!line.includes('<FlashList') && !line.includes('<BottomSheetFlashList')) return
+    if (!line.includes('<FlashList') && !line.includes('<BottomSheetFlashList'))
+      return
 
     // Look ahead 15 lines for overrideItemLayout
     const block = lines.slice(i, i + 15).join('\n')
     if (!block.includes('overrideItemLayout')) {
-      console.log(`MISSING: ${path.relative(process.cwd(), file)}:${i + 1}`)
+      console['log'](`MISSING: ${path.relative(process.cwd(), file)}:${i + 1}`)
       found++
     }
   })
 }
 
 if (found === 0) {
-  console.log('✅ All FlashList instances have overrideItemLayout')
+  console['log']('✅ All FlashList instances have overrideItemLayout')
 } else {
-  console.log(`\n❌ Found ${found} FlashList instance(s) missing overrideItemLayout`)
+  console['log'](
+    `\n❌ Found ${found} FlashList instance(s) missing overrideItemLayout`,
+  )
   process.exit(1)
 }

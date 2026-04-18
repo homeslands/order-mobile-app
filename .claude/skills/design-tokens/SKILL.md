@@ -10,6 +10,7 @@ This project uses **NativeWind 4.2** (Tailwind CSS for React Native) with CSS va
 ## Colors
 
 ### Primary
+
 - **Light mode**: `#F7A737` (hsl(35, 93%, 55%))
 - **Dark mode**: `#D68910` (hsl(35, 70%, 53%))
 - **Tailwind class**: `bg-primary`, `text-primary`, `border-primary`
@@ -17,17 +18,20 @@ This project uses **NativeWind 4.2** (Tailwind CSS for React Native) with CSS va
 ### Semantic Colors
 
 #### Destructive (Red)
+
 - **Light**: `#ef4444` (hsl(0, 84.2%, 60.2%))
 - **Dark**: `#dc2626` (hsl(355, 87%, 47%))
 - **Class**: `bg-destructive`, `text-destructive-foreground`
 
 #### Success (Green)
+
 - **Light**: `#22c55e` | **Dark**: `#4ade80`
 - **Backgrounds**: `bg-green-50` (light), `bg-green-900/20` (dark)
 - **Borders**: `border-green-200` (light), `border-green-800` (dark)
 - **Usage**: Status indicators, verification badges
 
 #### Warning (Amber)
+
 - **Light**: `#f59e0b` | **Dark**: `#fbbf24`
 - **Backgrounds**: `bg-amber-50` (light), `bg-amber-900/20` (dark)
 - **Borders**: `border-amber-200` (light), `border-amber-800` (dark)
@@ -35,42 +39,43 @@ This project uses **NativeWind 4.2** (Tailwind CSS for React Native) with CSS va
 
 ### Neutral & Gray Scale
 
-| Level | Hex Value | Class |
-|-------|-----------|-------|
-| 50 | `#f9fafb` | `bg-gray-50` |
-| 100 | `#f3f4f6` | `bg-gray-100` |
-| 200 | `#e5e7eb` | `bg-gray-200` |
-| 300 | `#d1d5db` | `bg-gray-300` |
-| 400 | `#9ca3af` | `bg-gray-400` |
-| 500 | `#6b7280` | `bg-gray-500` (muted foreground) |
-| 600 | `#4b5563` | `bg-gray-600` |
-| 700 | `#374151` | `bg-gray-700` |
-| 800 | `#1f2937` | `bg-gray-800` |
-| 900 | `#111827` | `bg-gray-900` |
+| Level | Hex Value | Class                            |
+| ----- | --------- | -------------------------------- |
+| 50    | `#f9fafb` | `bg-gray-50`                     |
+| 100   | `#f3f4f6` | `bg-gray-100`                    |
+| 200   | `#e5e7eb` | `bg-gray-200`                    |
+| 300   | `#d1d5db` | `bg-gray-300`                    |
+| 400   | `#9ca3af` | `bg-gray-400`                    |
+| 500   | `#6b7280` | `bg-gray-500` (muted foreground) |
+| 600   | `#4b5563` | `bg-gray-600`                    |
+| 700   | `#374151` | `bg-gray-700`                    |
+| 800   | `#1f2937` | `bg-gray-800`                    |
+| 900   | `#111827` | `bg-gray-900`                    |
 
 ### Theme Variables (Light/Dark)
 
 All tokens defined in [app/global.css](app/global.css) as HSL space-separated values for NativeWind.
 Programmatic access (non-Tailwind): use `colors` from `@/constants/colors.constant`.
 
-| Token | Tailwind class | Light | Dark |
-|-------|---------------|-------|------|
-| `--background` | `bg-background` | `hsl(210,16%,96%)` `#F0F2F5` | `hsl(220,12%,7%)` `#0F0F10` |
-| `--foreground` | `text-foreground` | `hsl(20,14.3%,4.1%)` `#0a0a0a` | `hsl(60,9.1%,97.8%)` `#fafafa` |
-| `--card` | `bg-card` | `hsl(0,0%,100%)` `#ffffff` | `hsl(0,0%,12.55%)` `#1c1c1e` |
-| `--primary` | `bg-primary` `text-primary` | `hsl(35,93%,55%)` `#F7A737` | `hsl(35,70%,53%)` `#D68910` |
-| `--secondary` | `bg-secondary` | `hsl(60,4.8%,95.9%)` | `hsl(0,0%,18%)` |
-| `--muted` | `bg-muted` | `hsl(60,4.8%,95.9%)` | `hsl(0,0%,18%)` |
-| `--muted-foreground` | `text-muted-foreground` | `hsl(25,5.3%,44.7%)` `#6b7280` | `hsl(24,5.4%,63.9%)` `#9ca3af` |
-| `--accent` | `bg-accent` | `hsl(60,4.8%,95.9%)` | `hsl(0,0%,18%)` |
-| `--destructive` | `bg-destructive` `text-destructive` | `hsl(0,84.2%,60.2%)` `#ef4444` | `hsl(355,87%,47%)` `#dc2626` |
-| `--border` | `border-border` | `hsl(20,5.9%,90%)` `#e5e7eb` | `hsl(0,0%,18%)` `#2e2e2e` |
-| `--input` | `border-input` | same as `--border` | same as `--border` |
-| `--ring` | `ring` (focus) | `hsl(20,14.3%,4.1%)` | `hsl(24,5.7%,82.9%)` |
+| Token                | Tailwind class                      | Light                          | Dark                           |
+| -------------------- | ----------------------------------- | ------------------------------ | ------------------------------ |
+| `--background`       | `bg-background`                     | `hsl(210,16%,96%)` `#F0F2F5`   | `hsl(220,12%,7%)` `#0F0F10`    |
+| `--foreground`       | `text-foreground`                   | `hsl(20,14.3%,4.1%)` `#0a0a0a` | `hsl(60,9.1%,97.8%)` `#fafafa` |
+| `--card`             | `bg-card`                           | `hsl(0,0%,100%)` `#ffffff`     | `hsl(0,0%,12.55%)` `#1c1c1e`   |
+| `--primary`          | `bg-primary` `text-primary`         | `hsl(35,93%,55%)` `#F7A737`    | `hsl(35,70%,53%)` `#D68910`    |
+| `--secondary`        | `bg-secondary`                      | `hsl(60,4.8%,95.9%)`           | `hsl(0,0%,18%)`                |
+| `--muted`            | `bg-muted`                          | `hsl(60,4.8%,95.9%)`           | `hsl(0,0%,18%)`                |
+| `--muted-foreground` | `text-muted-foreground`             | `hsl(25,5.3%,44.7%)` `#6b7280` | `hsl(24,5.4%,63.9%)` `#9ca3af` |
+| `--accent`           | `bg-accent`                         | `hsl(60,4.8%,95.9%)`           | `hsl(0,0%,18%)`                |
+| `--destructive`      | `bg-destructive` `text-destructive` | `hsl(0,84.2%,60.2%)` `#ef4444` | `hsl(355,87%,47%)` `#dc2626`   |
+| `--border`           | `border-border`                     | `hsl(20,5.9%,90%)` `#e5e7eb`   | `hsl(0,0%,18%)` `#2e2e2e`      |
+| `--input`            | `border-input`                      | same as `--border`             | same as `--border`             |
+| `--ring`             | `ring` (focus)                      | `hsl(20,14.3%,4.1%)`           | `hsl(24,5.7%,82.9%)`           |
 
 ## Typography
 
 ### Font Family
+
 - **Custom font**: BeVietnamPro (4 weights)
   - Regular (400): `font-sans`
   - Medium (500): `font-sans-medium`
@@ -79,15 +84,16 @@ Programmatic access (non-Tailwind): use `colors` from `@/constants/colors.consta
 
 ### Font Sizes & Classes
 
-| Size | Class | Notes |
-|------|-------|-------|
-| xs | `text-xs` | 12px |
-| sm | `text-sm` | 14px |
+| Size | Class       | Notes          |
+| ---- | ----------- | -------------- |
+| xs   | `text-xs`   | 12px           |
+| sm   | `text-sm`   | 14px           |
 | base | `text-base` | 16px (default) |
-| lg | `text-lg` | 18px |
-| xl | `text-xl` | 20px |
+| lg   | `text-lg`   | 18px           |
+| xl   | `text-xl`   | 20px           |
 
 ### Font Weight Classes
+
 - `font-medium` — Medium weight (500)
 - `font-semibold` — SemiBold (600)
 - `font-bold` — Bold (700)
@@ -95,6 +101,7 @@ Programmatic access (non-Tailwind): use `colors` from `@/constants/colors.consta
 ## Spacing & Layout
 
 ### Padding & Margin Scales
+
 ```
 px-2, px-3, px-4, px-5, px-6, px-8  (standard padding)
 py-2, py-3, py-4, py-5, py-6, py-8  (standard padding)
@@ -103,6 +110,7 @@ gap-2, gap-3, gap-4, gap-5, gap-6   (flex/grid gaps)
 ```
 
 ### Common Spacing Values
+
 - **Compact**: `px-3 py-2`
 - **Standard**: `px-4 py-3`
 - **Spacious**: `px-5 py-4`
@@ -110,12 +118,12 @@ gap-2, gap-3, gap-4, gap-5, gap-6   (flex/grid gaps)
 
 ## Border Radius
 
-| Token | Value | Classes |
-|-------|-------|---------|
-| `lg` | `var(--radius)` | `rounded-lg` (0.5rem) |
-| `md` | `calc(var(--radius) - 2px)` | `rounded-md` |
-| `sm` | `calc(var(--radius) - 4px)` | `rounded-sm` |
-| Full | — | `rounded-full` (for circular elements) |
+| Token | Value                       | Classes                                |
+| ----- | --------------------------- | -------------------------------------- |
+| `lg`  | `var(--radius)`             | `rounded-lg` (0.5rem)                  |
+| `md`  | `calc(var(--radius) - 2px)` | `rounded-md`                           |
+| `sm`  | `calc(var(--radius) - 4px)` | `rounded-sm`                           |
+| Full  | —                           | `rounded-full` (for circular elements) |
 
 ## Shadows
 
@@ -135,11 +143,11 @@ gap-2, gap-3, gap-4, gap-5, gap-6   (flex/grid gaps)
 <View className="shadow-lg" /> // invisible on Android
 ```
 
-| Class | iOS effect | Android equivalent |
-|---|---|---|
-| `shadow-sm` | Subtle (cards) | `elevation: 2` |
-| `shadow-md` | Medium (modals) | `elevation: 4` |
-| `shadow-lg` | Prominent | `elevation: 8` |
+| Class       | iOS effect      | Android equivalent |
+| ----------- | --------------- | ------------------ |
+| `shadow-sm` | Subtle (cards)  | `elevation: 2`     |
+| `shadow-md` | Medium (modals) | `elevation: 4`     |
+| `shadow-lg` | Prominent       | `elevation: 8`     |
 
 ## Usage Patterns
 
@@ -187,6 +195,7 @@ gap-2, gap-3, gap-4, gap-5, gap-6   (flex/grid gaps)
 ## Implementation in Code
 
 ### Importing colors for non-Tailwind use
+
 ```tsx
 import { colors } from '@/constants/colors.constant'
 
@@ -196,7 +205,9 @@ import { colors } from '@/constants/colors.constant'
 ```
 
 ### CSS Variable Access
+
 All Tailwind colors map to CSS variables defined in `app/global.css`:
+
 ```css
 --background: 210 16% 96%;
 --primary: 35 93% 55%;

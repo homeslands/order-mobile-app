@@ -8,6 +8,7 @@ import { useRouter } from 'expo-router'
 import { QrCode, ScanLine } from 'lucide-react-native'
 import { scheduleTransitionTask } from '@/lib/navigation'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import {
   StyleSheet,
   Text,
@@ -64,6 +65,7 @@ const OptionCard = memo(function OptionCard({
 // ─── Portal ───────────────────────────────────────────────────────────────────
 
 const QRSelectionSheet = memo(function QRSelectionSheet() {
+  const { t } = useTranslation('profile')
   // Fix 3: per-slice selectors to avoid full-store subscription
   const visible = useQRSelectionSheetStore((s) => s.visible)
   const close = useQRSelectionSheetStore((s) => s.close)
@@ -104,8 +106,8 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
   const handlePaymentQR = useCallback(() => {
     close()
     scheduleTransitionTask(() => router.push('/payment/qr-generate'))
-  // router intentionally omitted — push destination is a string literal
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // router intentionally omitted — push destination is a string literal
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [close])
 
   const contentStyle = useMemo(
@@ -140,16 +142,18 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
         contentContainerStyle={contentStyle}
         showsVerticalScrollIndicator={false}
       >
-        <Text style={[s.title, { color: textColor }]}>Chọn loại QR</Text>
+        <Text style={[s.title, { color: textColor }]}>
+          {t('profile.qr.selectTitle')}
+        </Text>
         <Text style={[s.subtitle, { color: mutedColor }]}>
-          Chọn hình thức QR phù hợp với yêu cầu của bạn
+          {t('profile.qr.selectSubtitle')}
         </Text>
 
         <View style={s.optionsList}>
           <OptionCard
             icon={ScanLine}
-            title="Mã định danh"
-            desc="Nhân viên quét mã tại quầy"
+            title={t('profile.qr.memberId')}
+            desc={t('profile.qr.memberIdDesc')}
             onPress={handleMemberCard}
             primary={primary}
             textColor={textColor}
@@ -158,8 +162,8 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
           />
           <OptionCard
             icon={QrCode}
-            title="Thanh toán Xu"
-            desc="Quét QR để thanh toán bằng xu"
+            title={t('profile.qr.coinPayment')}
+            desc={t('profile.qr.coinPaymentDesc')}
             onPress={handlePaymentQR}
             primary={primary}
             textColor={textColor}

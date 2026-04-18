@@ -51,10 +51,14 @@ const DualColorIcon = React.memo(function DualColorIcon({
 
   return (
     <View style={styles.iconWrap}>
-      <Animated.View style={[StyleSheet.absoluteFill, styles.iconCenter, overStyle]}>
+      <Animated.View
+        style={[StyleSheet.absoluteFill, styles.iconCenter, overStyle]}
+      >
         {render(ICON_COLOR_OVER)}
       </Animated.View>
-      <Animated.View style={[StyleSheet.absoluteFill, styles.iconCenter, solidStyle]}>
+      <Animated.View
+        style={[StyleSheet.absoluteFill, styles.iconCenter, solidStyle]}
+      >
         {render(solidColor)}
       </Animated.View>
     </View>
@@ -99,7 +103,12 @@ function BlurCircle({
 
 // ─── Simple (non-focused) ─────────────────────────────────────────────────────
 
-export function ProductDetailHeaderSimple({ isDark, onBack, onCart, cartCount }: HeaderProps) {
+export function ProductDetailHeaderSimple({
+  isDark,
+  onBack,
+  onCart,
+  cartCount,
+}: HeaderProps) {
   const iconColor = isDark ? colors.gray[50] : colors.gray[900]
 
   return (
@@ -138,11 +147,19 @@ export function ProductDetailHeaderAnimated({
     <View style={styles.overlay} pointerEvents="box-none">
       <View style={styles.row} pointerEvents="auto">
         <BlurCircle isDark={isDark} onPress={onBack}>
-          <DualColorIcon fade={fade} isDark={isDark} render={(c) => <ChevronLeft size={ICON_SIZE} color={c} />} />
+          <DualColorIcon
+            fade={fade}
+            isDark={isDark}
+            render={(c) => <ChevronLeft size={ICON_SIZE} color={c} />}
+          />
         </BlurCircle>
         <View>
           <BlurCircle isDark={isDark} onPress={onCart}>
-            <DualColorIcon fade={fade} isDark={isDark} render={(c) => <ShoppingCart size={ICON_SIZE} color={c} />} />
+            <DualColorIcon
+              fade={fade}
+              isDark={isDark}
+              render={(c) => <ShoppingCart size={ICON_SIZE} color={c} />}
+            />
           </BlurCircle>
           {cartCount > 0 && (
             <View style={styles.badge}>

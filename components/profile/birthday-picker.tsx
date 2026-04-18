@@ -144,7 +144,9 @@ export const BirthdayPicker = forwardRef<BirthdayPickerRef, Props>(
             value={tempDate}
             mode="date"
             display="spinner"
-            onChange={(_, date) => { if (date) setTempDate(date) }}
+            onChange={(_, date) => {
+              if (date) setTempDate(date)
+            }}
             themeVariant={isDark ? 'dark' : 'light'}
             maximumDate={new Date()}
             style={s.picker}
@@ -152,10 +154,14 @@ export const BirthdayPicker = forwardRef<BirthdayPickerRef, Props>(
 
           <View style={[s.btnRow, { borderTopColor: dividerColor }]}>
             <TouchableOpacity style={s.btn} onPress={handleCancel} hitSlop={8}>
-              <Text style={[s.btnText, { color: theme.textMuted }]}>{cancelText}</Text>
+              <Text style={[s.btnText, { color: theme.textMuted }]}>
+                {cancelText}
+              </Text>
             </TouchableOpacity>
             <TouchableOpacity style={s.btn} onPress={handleConfirm} hitSlop={8}>
-              <Text style={[s.btnText, s.btnConfirm, { color: primaryColor }]}>{confirmText}</Text>
+              <Text style={[s.btnText, s.btnConfirm, { color: primaryColor }]}>
+                {confirmText}
+              </Text>
             </TouchableOpacity>
           </View>
         </View>

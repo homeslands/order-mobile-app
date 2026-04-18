@@ -8,11 +8,11 @@ import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import {
   ActivityIndicator,
   Pressable,
-
   StyleSheet,
   Text,
   View,
 } from 'react-native'
+import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '@/constants'
@@ -42,6 +42,7 @@ const VoucherConflictBottomSheet = memo(function VoucherConflictBottomSheet({
 }: VoucherConflictBottomSheetProps) {
   const sheetRef = useRef<BottomSheetModal>(null)
   const { bottom: bottomInset } = useSafeAreaInsets()
+  const { t } = useTranslation('payment')
 
   useEffect(() => {
     if (visible) {
@@ -81,52 +82,80 @@ const VoucherConflictBottomSheet = memo(function VoucherConflictBottomSheet({
       enableDynamicSizing={false}
       backdropComponent={renderBackdrop}
       backgroundStyle={bgStyle}
-      handleIndicatorStyle={{ backgroundColor: isDark ? colors.gray[600] : colors.gray[300] }}
+      handleIndicatorStyle={{
+        backgroundColor: isDark ? colors.gray[600] : colors.gray[300],
+      }}
       onDismiss={onKeepVoucher}
     >
-          <View style={s.sheetInner}>
-            {/* Content */}
-            <View style={s.content}>
-              {/* Icon + Title */}
-              <View style={s.iconRow}>
-                <View style={[s.iconWrap, { backgroundColor: `${colors.warning.light}18` }]}>
-                  <TriangleAlert size={24} color={colors.warning.light} />
-                </View>
-                <Text style={[s.title, { color: textColor }]}>Voucher không tương thích</Text>
-              </View>
-
-              {/* Description */}
-              <Text style={[s.desc, { color: subColor }]}>
-                Voucher{' '}
-                <Text style={[s.bold, { color: textColor }]}>"{voucherCode}"</Text>
-                {' '}không hỗ trợ phương thức{' '}
-                <Text style={[s.bold, { color: textColor }]}>"{paymentMethodLabel}"</Text>.{'\n'}
-                Tiếp tục sẽ xóa voucher khỏi đơn hàng.
-              </Text>
+      <View style={s.sheetInner}>
+        {/* Content */}
+        <View style={s.content}>
+          {/* Icon + Title */}
+          <View style={s.iconRow}>
+            <View
+              style={[
+                s.iconWrap,
+                { backgroundColor: `${colors.warning.light}18` },
+              ]}
+            >
+              <TriangleAlert size={24} color={colors.warning.light} />
             </View>
-
-            {/* Footer — pinned to bottom */}
-            <View style={[s.footer, { borderTopColor: borderColor, paddingBottom: bottomInset + 12 }]}>
-              <Pressable
-                onPress={onKeepVoucher}
-                disabled={isRemoving}
-                style={[s.keepBtn, { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] }]}
-              >
-                <Text style={[s.keepBtnText, { color: textColor }]}>Giữ voucher</Text>
-              </Pressable>
-
-              <Pressable
-                onPress={onRemoveVoucher}
-                disabled={isRemoving}
-                style={[s.removeBtn, { backgroundColor: primaryColor, opacity: isRemoving ? 0.7 : 1 }]}
-              >
-                {isRemoving
-                  ? <ActivityIndicator size="small" color={colors.white.light} />
-                  : <Text style={s.removeBtnText}>Xóa & tiếp tục</Text>
-                }
-              </Pressable>
-            </View>
+            <Text style={[s.title, { color: textColor }]}>
+              {t('voucherConflict.title')}
+            </Text>
           </View>
+
+          {/* Description */}
+          <Text style={[s.desc, { color: subColor }]}>
+            {t('voucherConflict.descPrefix')}{' '}
+            <Text style={[s.bold, { color: textColor }]}>"{voucherCode}"</Text>{' '}
+            {t('voucherConflict.descNotSupport')}{' '}
+            <Text style={[s.bold, { color: textColor }]}>
+              "{paymentMethodLabel}"
+            </Text>
+            .{'\n'}
+            {t('voucherConflict.descSuffix')}
+          </Text>
+        </View>
+
+        {/* Footer — pinned to bottom */}
+        <View
+          style={[
+            s.footer,
+            { borderTopColor: borderColor, paddingBottom: bottomInset + 12 },
+          ]}
+        >
+          <Pressable
+            onPress={onKeepVoucher}
+            disabled={isRemoving}
+            style={[
+              s.keepBtn,
+              { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] },
+            ]}
+          >
+            <Text style={[s.keepBtnText, { color: textColor }]}>
+              {t('voucherConflict.keepVoucher')}
+            </Text>
+          </Pressable>
+
+          <Pressable
+            onPress={onRemoveVoucher}
+            disabled={isRemoving}
+            style={[
+              s.removeBtn,
+              { backgroundColor: primaryColor, opacity: isRemoving ? 0.7 : 1 },
+            ]}
+          >
+            {isRemoving ? (
+              <ActivityIndicator size="small" color={colors.white.light} />
+            ) : (
+              <Text style={s.removeBtnText}>
+                {t('voucherConflict.removeAndContinue')}
+              </Text>
+            )}
+          </Pressable>
+        </View>
+      </View>
     </BottomSheetModal>
   )
 })

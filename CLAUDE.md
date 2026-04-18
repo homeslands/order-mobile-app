@@ -47,6 +47,7 @@ npm run build:ios             # EAS production iOS build
 ### Navigation Engine (`lib/navigation/`)
 
 Custom navigation layer on top of Expo Router with:
+
 - **MasterTransitionProvider** — Syncs native stack animation progress with Reanimated shared values
 - **GhostMountProvider** — Pre-mounts routes (e.g., menu) for instant navigation
 - **Navigation locking** — Prevents concurrent navigations from causing animation conflicts
@@ -101,11 +102,11 @@ Custom navigation layer on top of Expo Router with:
 
 ### Screen types & wrappers
 
-| Screen type | Root wrapper | Header |
-|-------------|-------------|--------|
-| Tab screen (Home, Menu, Cart, Gift Card) | `<TabScreenLayout>` | `<TabHeader>` |
+| Screen type                                    | Root wrapper                       | Header                        |
+| ---------------------------------------------- | ---------------------------------- | ----------------------------- |
+| Tab screen (Home, Menu, Cart, Gift Card)       | `<TabScreenLayout>`                | `<TabHeader>`                 |
 | Stack screen (Payment, Order, Notification...) | plain `<View style={{ flex: 1 }}>` | `<FloatingHeader>` (absolute) |
-| Profile (custom animated header) | plain `<View>` | custom animated header |
+| Profile (custom animated header)               | plain `<View>`                     | custom animated header        |
 
 ### Safe area — top
 
@@ -116,7 +117,7 @@ paddingTop: STATIC_TOP_INSET
 
 // ❌ SAI — KHÔNG dùng useSafeAreaInsets() cho header/layout tĩnh
 const insets = useSafeAreaInsets()
-paddingTop: insets.top  // gây re-render, có thể flicker khi transition
+paddingTop: insets.top // gây re-render, có thể flicker khi transition
 ```
 
 `STATIC_TOP_INSET` được tính 1 lần lúc khởi động app, không hook, không re-render.
@@ -168,38 +169,38 @@ This project has a custom Claude Code setup in `.claude/` with hooks, agents, an
 
 ### Hooks (auto-enforced, no manual action needed)
 
-| Hook | Fires when | Effect |
-|---|---|---|
-| `pre-bash-block-no-verify` | Any `Bash` call | Blocks `--no-verify` — fix the hook issue instead |
-| `pre-bash-commit-quality` | `git commit` via Bash | Blocks commit if staged TS/JS files contain `console.log` |
-| `post-edit-track` | Every `Edit` or `Write` on `.ts`/`.tsx` | Warns on `console.log`; tracks files for typecheck |
-| `stop-typecheck` | End of each Claude response | Runs `npm run typecheck` if any TS files were edited |
+| Hook                       | Fires when                              | Effect                                                    |
+| -------------------------- | --------------------------------------- | --------------------------------------------------------- |
+| `pre-bash-block-no-verify` | Any `Bash` call                         | Blocks `--no-verify` — fix the hook issue instead         |
+| `pre-bash-commit-quality`  | `git commit` via Bash                   | Blocks commit if staged TS/JS files contain `console.log` |
+| `post-edit-track`          | Every `Edit` or `Write` on `.ts`/`.tsx` | Warns on `console.log`; tracks files for typecheck        |
+| `stop-typecheck`           | End of each Claude response             | Runs `npm run typecheck` if any TS files were edited      |
 
 ### Agents (invoke by describing what you want)
 
-| Agent | When to use |
-|---|---|
+| Agent                   | When to use                                                |
+| ----------------------- | ---------------------------------------------------------- |
 | `performance-optimizer` | "Review perf of X", before shipping list/animation feature |
-| `typescript-reviewer` | "Review types before PR", after adding feature to a store |
-| `silent-failure-hunter` | "Audit payment flow", debugging unexplained failures |
-| `code-simplifier` | Store > 20KB or component > 200 lines — get a split plan |
+| `typescript-reviewer`   | "Review types before PR", after adding feature to a store  |
+| `silent-failure-hunter` | "Audit payment flow", debugging unexplained failures       |
+| `code-simplifier`       | Store > 20KB or component > 200 lines — get a split plan   |
 
-**Example:** *"dùng silent-failure-hunter để audit stores/order-flow.store.ts"*
+**Example:** _"dùng silent-failure-hunter để audit stores/order-flow.store.ts"_
 
 ### Skills (auto-loaded based on context)
 
-| Skill | Triggers when |
-|---|---|
-| `coding-convention` | Writing any TS/TSX code |
-| `ui-components` | Building or modifying UI components |
-| `design-tokens` | Adding colors, spacing, typography |
-| `file-structure` | Creating new files or folders |
-| `api-convention` | Writing API services or React Query hooks |
-| `navigation` | Adding routes, screens, deep links |
-| `security-review` | Auth, payment, token handling, form validation |
-| `git-workflow` | Commits, branches, PRs, merge conflicts |
-| `tdd-workflow` | Writing or asking about tests |
-| `animation` | Reanimated, press feedback, shared element, parallax, transitions |
+| Skill               | Triggers when                                                     |
+| ------------------- | ----------------------------------------------------------------- |
+| `coding-convention` | Writing any TS/TSX code                                           |
+| `ui-components`     | Building or modifying UI components                               |
+| `design-tokens`     | Adding colors, spacing, typography                                |
+| `file-structure`    | Creating new files or folders                                     |
+| `api-convention`    | Writing API services or React Query hooks                         |
+| `navigation`        | Adding routes, screens, deep links                                |
+| `security-review`   | Auth, payment, token handling, form validation                    |
+| `git-workflow`      | Commits, branches, PRs, merge conflicts                           |
+| `tdd-workflow`      | Writing or asking about tests                                     |
+| `animation`         | Reanimated, press feedback, shared element, parallax, transitions |
 
 ---
 
@@ -208,18 +209,20 @@ This project has a custom Claude Code setup in `.claude/` with hooks, agents, an
 To maintain a consistent **60fps** and minimize **JS Thread spikes**, all components and features must adhere to the following optimization standards:
 
 ### 1. List Rendering
+
 - **Prioritize `FlashList`:** Always use `@shopify/flash-list` instead of the default `FlatList` for long or complex lists (e.g., Product Menu, Order History, Voucher Lists).
 - **Estimated Item Size:** You **must** provide a precise `estimatedItemSize` prop to ensure efficient view recycling.
 
 ### 2. Rendering & Memoization
+
 - **Strict Memoization:** Wrap all functions passed as props to child components in `useCallback`.
-    - Use `useMemo` for any complex logic, data transformations from Zustand stores, or derived state calculations.
+  - Use `useMemo` for any complex logic, data transformations from Zustand stores, or derived state calculations.
 - **Pure Components:** Use `memo` (imported from `'react'`) for list items and expensive UI sub-trees to prevent unnecessary re-renders when the parent state changes.
 - **Zustand selectors:** Never `useStore()` or spread `{ ...useStore() }` — always select specific slices: `useStore(s => s.field)`.
 
 ### 3. Animation & Thread Management
+
 - **UI Thread Execution:** Always perform animations on the **UI Thread** using `react-native-reanimated`. Never use `Animated` from `react-native`.
 - **Spring configs:** Always import from `SPRING_CONFIGS` / `MOTION` in `constants/motion.ts`. Never hardcode `damping`/`stiffness` values.
 - **Transition task queue:** Wrap heavy Zustand updates, AsyncStorage writes, and analytics calls inside `scheduleTransitionTask(() => { ... })` when they happen after `router.push()`. Running them inline blocks the JS thread during the animation.
 - **`runOnJS` sparingly:** Only when bridging back from a Reanimated worklet to JS is unavoidable — always add a comment explaining why.
-

@@ -65,8 +65,7 @@ function transformPayloadToNotification(
   // Merge: parsed payload takes priority over raw data
   const merged = { ...data, ...parsedPayload }
 
-  const slug =
-    merged.slug || data.slug || payload.messageId || `${Date.now()}`
+  const slug = merged.slug || data.slug || payload.messageId || `${Date.now()}`
   const createdAt =
     merged.createdAt || data.createdAt || new Date().toISOString()
   const message =
@@ -74,7 +73,7 @@ function transformPayloadToNotification(
   const type = merged.type || data.type || 'system'
 
   const metadata: INotificationMetadata = {
-    order: merged.order || '',
+    order: merged.order || merged.cardOrder || '',
     orderType: merged.orderType || '',
     tableName: merged.tableName || '',
     table: merged.table || '',
@@ -109,9 +108,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
         options?.markAsRead ?? false,
       )
       // Dedup by slug, prepend new, cap at MAX
-      const filtered = state.notifications.filter(
-        (n) => n.slug !== item.slug,
-      )
+      const filtered = state.notifications.filter((n) => n.slug !== item.slug)
       return { notifications: [item, ...filtered].slice(0, MAX_NOTIFICATIONS) }
     })
   },
@@ -152,11 +149,22 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
     set((state) => {
       const { markedAllReadAt } = state
 
-      // Build single map seeded with current local state, then overlay incoming
-      // server items. Local isRead always wins (optimistic markings) — see
-      // priority comment below.
+      // If the incoming items belong to a different user than what's in the
+      // store, replace entirely — never merge another user's notifications.
+      const incomingReceiver = items[0]?.receiverId
+      const storedReceiver = state.notifications[0]?.receiverId
+      const isDifferentUser =
+        !!incomingReceiver &&
+        !!storedReceiver &&
+        incomingReceiver !== storedReceiver
+
+      // Build single map: seed with current local state (preserves optimistic
+      // reads), then overlay incoming server items. Skip seeding when the store
+      // belongs to a different account so stale data doesn't leak through.
       const map = new Map<string, INotification>()
-      for (const n of state.notifications) map.set(n.slug, n)
+      if (!isDifferentUser) {
+        for (const n of state.notifications) map.set(n.slug, n)
+      }
       for (const n of items) {
         const local = map.get(n.slug)
 
@@ -164,8 +172,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
         // 1. Local already marked read (optimistic individual/bulk)
         // 2. createdAt ≤ markedAllReadAt → bulk-read timestamp covers it
         // 3. Server value
-        const bulkCovered =
-          !!markedAllReadAt && n.createdAt <= markedAllReadAt
+        const bulkCovered = !!markedAllReadAt && n.createdAt <= markedAllReadAt
         const isRead = local?.isRead === true || bulkCovered || n.isRead
 
         map.set(n.slug, { ...n, isRead })
@@ -176,7 +183,12 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
         )
         .slice(0, MAX_NOTIFICATIONS)
-      return { notifications: merged }
+      return {
+        notifications: merged,
+        // Reset markedAllReadAt when switching accounts — the bulk-read
+        // timestamp from account A must not bleed into account B's data.
+        ...(isDifferentUser ? { markedAllReadAt: null } : {}),
+      }
     })
   },
 }))

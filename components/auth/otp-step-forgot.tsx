@@ -1,6 +1,12 @@
 import React, { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
+import {
+  ActivityIndicator,
+  Text,
+  TouchableOpacity,
+  View,
+  useColorScheme,
+} from 'react-native'
 import Animated, {
   runOnJS,
   type SharedValue,
@@ -43,9 +49,7 @@ const ResendCountdownLabel = React.memo(function ResendCountdownLabel({
     },
   )
 
-  return (
-    <Text className={className}>{`${label} (${displayTime})`}</Text>
-  )
+  return <Text className={className}>{`${label} (${displayTime})`}</Text>
 })
 
 export const OTPStepForgot = React.memo(function OTPStepForgot({
@@ -74,6 +78,7 @@ export const OTPStepForgot = React.memo(function OTPStepForgot({
   shakeTranslateX?: SharedValue<number>
 }) {
   const { t } = useTranslation('auth')
+  const isDark = useColorScheme() === 'dark'
 
   // UI-thread countdown — no JS re-renders during tick
   const otpShared = useAnimatedCountdown({ expiresAt, enabled: true })
@@ -113,15 +118,13 @@ export const OTPStepForgot = React.memo(function OTPStepForgot({
   const isResendDisabled = isResending || isVerifyingOTP || !isExpired
 
   const shakeStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: shakeTranslateX?.value ?? 0 },
-    ],
+    transform: [{ translateX: shakeTranslateX?.value ?? 0 }],
   }))
 
   return (
     <View className="gap-4">
       {maskedIdentity ? (
-        <Text className="text-center text-sm font-sans text-muted-foreground">
+        <Text className="text-center font-sans text-sm text-gray-500 dark:text-gray-400">
           {t('forgotPassword.otpSentTo', { identity: maskedIdentity })}
         </Text>
       ) : null}
@@ -139,10 +142,11 @@ export const OTPStepForgot = React.memo(function OTPStepForgot({
         <AnimatedCountdownText
           countdownShared={otpShared}
           label={t('forgotPassword.otpExpiresIn')}
-          className="text-center text-sm font-sans"
+          className="text-center font-sans text-sm"
+          isDark={isDark}
         />
       ) : (
-        <Text className="text-center text-sm font-sans text-destructive">
+        <Text className="text-center font-sans text-sm text-red-500 dark:text-red-400">
           {t('forgotPassword.otpExpired')}
         </Text>
       )}
@@ -156,7 +160,7 @@ export const OTPStepForgot = React.memo(function OTPStepForgot({
         {isVerifyingOTP ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text className="text-sm font-sans-semibold text-primary-foreground">
+          <Text className="font-sans-semibold text-sm text-white">
             {t('forgotPassword.verify')}
           </Text>
         )}
@@ -170,25 +174,23 @@ export const OTPStepForgot = React.memo(function OTPStepForgot({
           onPress={onResend}
         >
           {isResending ? (
-            <ActivityIndicator
-              color={isExpired ? '#fff' : undefined}
-            />
+            <ActivityIndicator color={isExpired ? '#fff' : undefined} />
           ) : !isExpired ? (
             // Countdown text isolated — only ResendCountdownLabel re-renders per second
             <ResendCountdownLabel
               countdownShared={otpShared}
               label={t('forgotPassword.resend')}
-              className="text-sm font-sans-semibold text-muted-foreground"
+              className="font-sans-semibold text-sm text-gray-500 dark:text-gray-400"
             />
           ) : (
-            <Text className="text-sm font-sans-semibold text-primary-foreground">
+            <Text className="font-sans-semibold text-sm text-white">
               {t('forgotPassword.resend')}
             </Text>
           )}
         </Button>
 
         <TouchableOpacity onPress={onBack} className="py-2">
-          <Text className="text-center text-sm font-sans-medium text-primary">
+          <Text className="text-center font-sans-medium text-sm text-amber-500 dark:text-amber-400">
             {t('forgotPassword.changeIdentity')}
           </Text>
         </TouchableOpacity>

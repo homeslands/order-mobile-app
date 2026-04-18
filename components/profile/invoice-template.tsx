@@ -8,7 +8,12 @@ import QRCode from 'react-native-qrcode-svg'
 import { Images } from '@/assets/images'
 import { colors, PaymentMethod, VOUCHER_TYPE } from '@/constants'
 import { IOrder, OrderTypeEnum } from '@/types'
-import { capitalizeFirstLetter, formatCurrency, formatDateTimeWithSeconds, formatPoints } from '@/utils'
+import {
+  capitalizeFirstLetter,
+  formatCurrency,
+  formatDateTimeWithSeconds,
+  formatPoints,
+} from '@/utils'
 
 interface InvoiceProps {
   order: IOrder | undefined
@@ -47,8 +52,7 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
 
   const loss = order?.loss || 0
 
-  const isPointPayment =
-    order?.payment?.paymentMethod === PaymentMethod.POINT
+  const isPointPayment = order?.payment?.paymentMethod === PaymentMethod.POINT
 
   const isLoyaltyPoint = order && order?.accumulatedPointsToUse > 0
 
@@ -58,23 +62,23 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
 
   return (
     <ScrollView
-      className="px-3 py-5 bg-white dark:bg-gray-800 rounded-md border border-gray-100 dark:border-gray-700"
+      className="rounded-md border border-gray-100 bg-white px-3 py-5 dark:border-gray-700 dark:bg-gray-800"
       showsVerticalScrollIndicator={false}
     >
       {/* Logo */}
       <View className="mb-1">
-        <View className="flex justify-center items-center">
+        <View className="flex items-center justify-center">
           <Image
             source={Images.Brand.Logo}
-            className="w-52 h-20"
+            className="h-20 w-52"
             contentFit="contain"
           />
         </View>
-        <Text className="text-sm text-center text-gray-600 dark:text-gray-400 mt-2">
+        <Text className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
           {order?.invoice?.branchAddress || ''}
         </Text>
         {/* QR Code */}
-        <View className="flex justify-center items-center py-4">
+        <View className="flex items-center justify-center py-4">
           {order?.slug ? (
             <QRCode
               value={order.slug}
@@ -84,8 +88,12 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
             />
           ) : (
             <View
-              className="w-32 h-32 bg-gray-100 dark:bg-gray-700 rounded-md items-center justify-center"
-              style={{ borderWidth: 1, borderColor: '#e5e7eb', borderStyle: 'dashed' }}
+              className="h-32 w-32 items-center justify-center rounded-md bg-gray-100 dark:bg-gray-700"
+              style={{
+                borderWidth: 1,
+                borderColor: '#e5e7eb',
+                borderStyle: 'dashed',
+              }}
             >
               <Text className="text-xs text-gray-400 dark:text-gray-500">
                 QR Code
@@ -93,14 +101,14 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
             </View>
           )}
         </View>
-        <Text className="text-xs text-center text-gray-600 dark:text-gray-400">
+        <Text className="text-center text-xs text-gray-600 dark:text-gray-400">
           <Text>{t('order.slug', 'Mã đơn')}:</Text>{' '}
           <Text>{order?.referenceNumber}</Text>
         </Text>
       </View>
 
       {/* Invoice info */}
-      <View className="flex flex-col gap-2 mt-4">
+      <View className="mt-4 flex flex-col gap-2">
         <Text className="text-xs text-gray-900 dark:text-gray-50">
           <Text className="font-bold">{t('order.orderTime', 'Thời gian')}</Text>{' '}
           {formatDateTimeWithSeconds(order?.createdAt)}
@@ -112,7 +120,9 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
           </Text>
         )}
         <Text className="text-xs text-gray-900 dark:text-gray-50">
-          <Text className="font-bold">{t('order.customer', 'Khách hàng')}:</Text>{' '}
+          <Text className="font-bold">
+            {t('order.customer', 'Khách hàng')}:
+          </Text>{' '}
           {order?.owner?.firstName} {order?.owner?.lastName}
         </Text>
         {order?.owner?.slug !== order?.approvalBy?.slug && (
@@ -123,7 +133,9 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
         )}
         {order?.type === OrderTypeEnum.TAKE_OUT ? (
           <Text className="text-xs text-gray-900 dark:text-gray-50">
-            <Text className="font-bold">{t('order.orderType', 'Loại đơn')}:</Text>{' '}
+            <Text className="font-bold">
+              {t('order.orderType', 'Loại đơn')}:
+            </Text>{' '}
             {t('order.takeAway', 'Mang đi')} -{' '}
             {order?.timeLeftTakeOut === 0
               ? t('menu.immediately', 'Ngay')
@@ -132,7 +144,9 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
         ) : order?.type === OrderTypeEnum.DELIVERY ? (
           <>
             <Text className="text-xs text-gray-900 dark:text-gray-50">
-              <Text className="font-bold">{t('order.orderType', 'Loại đơn')}:</Text>{' '}
+              <Text className="font-bold">
+                {t('order.orderType', 'Loại đơn')}:
+              </Text>{' '}
               {t('menu.delivery', 'Giao hàng')}
             </Text>
             <Text className="text-xs text-gray-900 dark:text-gray-50">
@@ -150,7 +164,9 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
           </>
         ) : (
           <Text className="text-xs text-gray-900 dark:text-gray-50">
-            <Text className="font-bold">{t('order.orderType', 'Loại đơn')}:</Text>{' '}
+            <Text className="font-bold">
+              {t('order.orderType', 'Loại đơn')}:
+            </Text>{' '}
             {t('order.dineIn', 'Tại bàn')}
           </Text>
         )}
@@ -165,7 +181,7 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
       {/* Invoice items */}
       <View className="mt-4">
         {/* Table Header */}
-        <View className="flex-row border-b border-dashed border-gray-300 dark:border-gray-600 pb-2 mb-2">
+        <View className="mb-2 flex-row border-b border-dashed border-gray-300 pb-2 dark:border-gray-600">
           <View className="flex-[0.35]">
             <Text className="text-xs font-semibold text-gray-900 dark:text-gray-50">
               {t('order.item', 'Sản phẩm')}
@@ -196,7 +212,7 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
         {/* Table Body */}
         {order?.orderItems.map((item) => (
           <View key={item.slug}>
-            <View className="flex-row border-b border-dashed border-gray-200 dark:border-gray-700 pb-2 mb-2">
+            <View className="mb-2 flex-row border-b border-dashed border-gray-200 pb-2 dark:border-gray-700">
               <View className="flex-[0.35]">
                 <Text className="text-xs text-gray-900 dark:text-gray-50">
                   {item?.variant?.product?.name}{' '}
@@ -228,8 +244,8 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
             </View>
 
             {item?.note && (
-              <View className="mb-2 pb-2 bg-gray-50 dark:bg-gray-700/50 rounded-md px-2 py-1">
-                <Text className="text-[11px] text-gray-600 dark:text-gray-400 italic">
+              <View className="mb-2 rounded-md bg-gray-50 px-2 py-1 pb-2 dark:bg-gray-700/50">
+                <Text className="text-[11px] italic text-gray-600 dark:text-gray-400">
                   📝 {t('order.note', 'Ghi chú')}: {item.note}
                 </Text>
               </View>
@@ -238,8 +254,8 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
         ))}
 
         {/* Payment Summary */}
-        <View className="mt-4 pt-2 border-t border-gray-200 dark:border-gray-700">
-          <View className="flex-row justify-between items-center py-2">
+        <View className="mt-4 border-t border-gray-200 pt-2 dark:border-gray-700">
+          <View className="flex-row items-center justify-between py-2">
             <Text className="text-xs text-gray-900 dark:text-gray-50">
               {t('order.pttt', 'Phương thức thanh toán')}
             </Text>
@@ -253,7 +269,7 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
                     : t('order.point', 'Điểm')}
             </Text>
           </View>
-          <View className="flex-row justify-between items-center py-2">
+          <View className="flex-row items-center justify-between py-2">
             <Text className="text-xs text-gray-900 dark:text-gray-50">
               {t('order.estimatedTotal', 'Tạm tính')}
             </Text>
@@ -261,7 +277,7 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
               {formatCurrency(originalTotal - discount || 0)}
             </Text>
           </View>
-          <View className="flex-row justify-between items-center py-2">
+          <View className="flex-row items-center justify-between py-2">
             <Text className="text-xs text-gray-900 dark:text-gray-50">
               {t('order.discount', 'Giảm giá')}
             </Text>
@@ -270,7 +286,7 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
             </Text>
           </View>
           {isPointPayment && (
-            <View className="flex-row justify-between items-center py-2">
+            <View className="flex-row items-center justify-between py-2">
               <Text className="text-xs text-gray-900 dark:text-gray-50">
                 {t('order.deductedCoinAmount', 'Số xu đã trừ')}
               </Text>
@@ -283,7 +299,7 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
             </View>
           )}
           {isLoyaltyPoint && (
-            <View className="flex-row justify-between items-center py-2">
+            <View className="flex-row items-center justify-between py-2">
               <Text className="text-xs text-gray-900 dark:text-gray-50">
                 {t('order.loyaltyPoint', 'Điểm tích lũy')}
               </Text>
@@ -293,7 +309,7 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
             </View>
           )}
           {order?.type === OrderTypeEnum.DELIVERY && order?.deliveryFee > 0 && (
-            <View className="flex-row justify-between items-center py-2">
+            <View className="flex-row items-center justify-between py-2">
               <Text className="text-xs text-gray-900 dark:text-gray-50">
                 {t('order.deliveryFee', 'Phí giao hàng')}
               </Text>
@@ -302,7 +318,7 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
               </Text>
             </View>
           )}
-          <View className="flex-row justify-between items-center py-2">
+          <View className="flex-row items-center justify-between py-2">
             <Text className="text-xs text-gray-900 dark:text-gray-50">
               {t(
                 'order.invoiceAutoDiscountUnderThreshold',
@@ -313,14 +329,11 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
               {formatCurrency(loss || 0)}
             </Text>
           </View>
-          <View className="flex-row justify-between items-center py-3 mt-2 border-t-2 border-dashed border-gray-300 dark:border-gray-600">
+          <View className="mt-2 flex-row items-center justify-between border-t-2 border-dashed border-gray-300 py-3 dark:border-gray-600">
             <Text className="text-base font-semibold text-gray-900 dark:text-gray-50">
               {t('order.totalPayment', 'Tổng tiền')}
             </Text>
-            <Text
-              className="text-xl font-bold"
-              style={{ color: primaryColor }}
-            >
+            <Text className="text-xl font-bold" style={{ color: primaryColor }}>
               {isPointPayment
                 ? formatCurrency(0)
                 : formatCurrency(order?.subtotal || 0)}
@@ -330,12 +343,15 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
       </View>
 
       {/* Invoice footer */}
-      <Text className="text-sm italic mt-4" style={{ color: primaryColor }}>
-        {t('order.invoiceNote', 'Lưu ý: Nếu bạn không tải được hóa đơn, vui lòng chụp lại màn hình')}
+      <Text className="mt-4 text-sm italic" style={{ color: primaryColor }}>
+        {t(
+          'order.invoiceNote',
+          'Lưu ý: Nếu bạn không tải được hóa đơn, vui lòng chụp lại màn hình',
+        )}
       </Text>
 
       {/* System wifi info */}
-      <View className="pt-2 mt-2">
+      <View className="mt-2 pt-2">
         <Text className="text-xs text-gray-600 dark:text-gray-400">
           {`${t('order.wifi', 'Wifi')}: ${order?.invoice?.wifiName ?? 'Trendcoffee'} - Mật khẩu: ${order?.invoice?.wifiPassword ?? 'Trendcoffee'}`}
         </Text>

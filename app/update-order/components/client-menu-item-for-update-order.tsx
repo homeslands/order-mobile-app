@@ -48,10 +48,15 @@ const ClientMenuItemForUpdateOrder = memo(
     const cheapestVariant = useMemo(() => {
       const variants = item.product.variants
       if (!variants?.length) return null
-      return variants.reduce((min, v) => (v.price < min.price ? v : min), variants[0])
+      return variants.reduce(
+        (min, v) => (v.price < min.price ? v : min),
+        variants[0],
+      )
     }, [item.product.variants])
     const rawPrice = cheapestVariant?.price ?? 0
-    const discountedPrice = hasPromotion ? rawPrice * (1 - promotionValue / 100) : rawPrice
+    const discountedPrice = hasPromotion
+      ? rawPrice * (1 - promotionValue / 100)
+      : rawPrice
 
     const imagePriority =
       showImage && listIndex < 4 ? ('high' as const) : ('normal' as const)
@@ -81,7 +86,7 @@ const ClientMenuItemForUpdateOrder = memo(
 
       try {
         scheduleStoreUpdate(() => addDraftItem(orderItem))
-        showToast(tToast('toast.addSuccess', 'Đã thêm vào đơn hàng'))
+        showToast(tToast('toast.addSuccess'))
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error('❌ Error adding item to draft:', error)
@@ -111,9 +116,13 @@ const ClientMenuItemForUpdateOrder = memo(
                     {formatCurrencyNative(discountedPrice)}
                   </Text>
                   <View style={mi.pricePromotionBadge}>
-                    <Text style={mi.pricePromotionText}>-{promotionValue}%</Text>
+                    <Text style={mi.pricePromotionText}>
+                      -{promotionValue}%
+                    </Text>
                   </View>
-                  <Text style={mi.priceOriginal}>{formatCurrencyNative(rawPrice)}</Text>
+                  <Text style={mi.priceOriginal}>
+                    {formatCurrencyNative(rawPrice)}
+                  </Text>
                 </View>
               ) : (
                 <Text style={[mi.priceRegular, { color: primaryColor }]}>

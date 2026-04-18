@@ -106,7 +106,9 @@ function CancelOrderDialogComponent({
 
   return (
     <>
-      {renderTrigger ? renderTrigger(handleOpen) : (
+      {renderTrigger ? (
+        renderTrigger(handleOpen)
+      ) : (
         <Pressable
           onPress={handleOpen}
           style={[s.defaultTrigger, { backgroundColor: destructiveColor }]}
@@ -124,55 +126,72 @@ function CancelOrderDialogComponent({
         enableDynamicSizing={false}
         backdropComponent={renderBackdrop}
         backgroundStyle={bgStyle}
-        handleIndicatorStyle={{ backgroundColor: isDark ? colors.gray[600] : colors.gray[300] }}
+        handleIndicatorStyle={{
+          backgroundColor: isDark ? colors.gray[600] : colors.gray[300],
+        }}
         onDismiss={handleClose}
       >
-              <View style={s.sheetInner}>
-                <View style={s.content}>
-                  <View style={s.iconRow}>
-                    <View style={s.iconWrap}>
-                      <TriangleAlert size={24} color={destructiveColor} />
-                    </View>
-                    <Text style={[s.title, { color: textColor }]}>
-                      {t('order.cancelOrder', 'Huỷ đơn hàng')}
-                    </Text>
-                  </View>
-
-                  <Text style={[s.desc, { color: subColor }]}>
-                    {t(
-                      'order.cancelOrderWarning',
-                      'Đơn hàng sẽ bị huỷ và không thể hoàn tác. Bạn có chắc chắn muốn huỷ?',
-                    )}
-                  </Text>
-                </View>
-
-                <View style={[s.footer, { borderTopColor: borderColor, paddingBottom: bottomInset + 12 }]}>
-                  <Pressable
-                    onPress={handleClose}
-                    disabled={isDeleting}
-                    style={[s.cancelBtn, { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] }]}
-                  >
-                    <Text style={[s.cancelBtnText, { color: textColor }]}>
-                      {tCommon('common.cancel', 'Quay lại')}
-                    </Text>
-                  </Pressable>
-
-                  <Pressable
-                    onPress={handleConfirm}
-                    disabled={isDeleting}
-                    style={[s.confirmBtn, { backgroundColor: destructiveColor, opacity: isDeleting ? 0.7 : 1 }]}
-                  >
-                    {isDeleting
-                      ? <ActivityIndicator size="small" color={colors.white.light} />
-                      : (
-                        <Text style={s.confirmBtnText}>
-                          {tCommon('common.confirmCancel', 'Xác nhận huỷ')}
-                        </Text>
-                      )
-                    }
-                  </Pressable>
-                </View>
+        <View style={s.sheetInner}>
+          <View style={s.content}>
+            <View style={s.iconRow}>
+              <View style={s.iconWrap}>
+                <TriangleAlert size={24} color={destructiveColor} />
               </View>
+              <Text style={[s.title, { color: textColor }]}>
+                {t('order.cancelOrder', 'Huỷ đơn hàng')}
+              </Text>
+            </View>
+
+            <Text style={[s.desc, { color: subColor }]}>
+              {t(
+                'order.cancelOrderWarning',
+                'Đơn hàng sẽ bị huỷ và không thể hoàn tác. Bạn có chắc chắn muốn huỷ?',
+              )}
+            </Text>
+          </View>
+
+          <View
+            style={[
+              s.footer,
+              { borderTopColor: borderColor, paddingBottom: bottomInset + 12 },
+            ]}
+          >
+            <Pressable
+              onPress={handleClose}
+              disabled={isDeleting}
+              style={[
+                s.cancelBtn,
+                {
+                  backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
+                },
+              ]}
+            >
+              <Text style={[s.cancelBtnText, { color: textColor }]}>
+                {tCommon('common.cancel', 'Quay lại')}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={handleConfirm}
+              disabled={isDeleting}
+              style={[
+                s.confirmBtn,
+                {
+                  backgroundColor: destructiveColor,
+                  opacity: isDeleting ? 0.7 : 1,
+                },
+              ]}
+            >
+              {isDeleting ? (
+                <ActivityIndicator size="small" color={colors.white.light} />
+              ) : (
+                <Text style={s.confirmBtnText}>
+                  {tCommon('common.confirmCancel', 'Xác nhận huỷ')}
+                </Text>
+              )}
+            </Pressable>
+          </View>
+        </View>
       </BottomSheetModal>
     </>
   )

@@ -58,15 +58,15 @@ export interface IBranchTopProduct {
 }
 
 export interface IProductVariant {
-    price: number
-    costPrice: number
-    product: IProduct
-    size: {
-      name: string
-      description: string
-      slug: string
-    }
+  price: number
+  costPrice: number
+  product: IProduct
+  size: {
+    name: string
+    description: string
     slug: string
+  }
+  slug: string
 }
 
 export interface ICreateProductRequest {

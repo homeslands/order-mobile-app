@@ -64,7 +64,10 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
       {(dismiss) => (
         <View style={[s.card, theme.card]}>
           <Text style={[s.title, theme.title]}>
-            {t('paymentMethod.confirmPointPaymentTitle', 'Xác nhận thanh toán bằng xu')}
+            {t(
+              'paymentMethod.confirmPointPaymentTitle',
+              'Xác nhận thanh toán bằng xu',
+            )}
           </Text>
           <View style={s.body}>
             <View style={s.row}>
@@ -88,7 +91,9 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
               <Text style={[s.label, theme.label, s.bold]}>
                 {t('paymentMethod.balanceAfter', 'Số dư sau thanh toán')}
               </Text>
-              <Text style={[s.value, { color: primaryColor, fontWeight: '700' }]}>
+              <Text
+                style={[s.value, { color: primaryColor, fontWeight: '700' }]}
+              >
                 {formatCurrency(coinBalance - orderSubtotal, '')} xu
               </Text>
             </View>
@@ -118,7 +123,11 @@ const s = StyleSheet.create({
   card: { width: '100%', borderRadius: 16, padding: 24, gap: 20 },
   title: { fontSize: 17, fontWeight: '700', textAlign: 'center' },
   body: { gap: 12 },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   label: { fontSize: 14 },
   value: { fontSize: 14, fontWeight: '600' },
   bold: { fontWeight: '600' },

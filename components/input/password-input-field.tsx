@@ -1,6 +1,12 @@
 import { Eye, EyeOff } from 'lucide-react-native'
 import { useState } from 'react'
-import { Text, TextInput, TouchableOpacity, View, useColorScheme } from 'react-native'
+import {
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  useColorScheme,
+} from 'react-native'
 
 import { colors } from '@/constants'
 import { cn } from '@/lib/utils'
@@ -31,7 +37,7 @@ export function PasswordInputField({
       <View className="relative">
         <TextInput
           className={cn(
-            'h-10 rounded-lg border bg-white dark:bg-gray-800 px-3 py-2 pr-10 text-base',
+            'h-10 rounded-lg border bg-white px-3 py-2 pr-10 text-base dark:bg-gray-800',
             'text-gray-900 dark:text-white',
             error
               ? 'border-destructive dark:border-destructive'
@@ -59,18 +65,28 @@ export function PasswordInputField({
           {showPassword ? (
             <EyeOff
               size={20}
-              color={isDark ? colors.mutedForeground.dark : colors.mutedForeground.light}
+              color={
+                isDark
+                  ? colors.mutedForeground.dark
+                  : colors.mutedForeground.light
+              }
             />
           ) : (
             <Eye
               size={20}
-              color={isDark ? colors.mutedForeground.dark : colors.mutedForeground.light}
+              color={
+                isDark
+                  ? colors.mutedForeground.dark
+                  : colors.mutedForeground.light
+              }
             />
           )}
         </TouchableOpacity>
       </View>
       {!!error && (
-        <Text className="mt-1 text-xs text-destructive">{error}</Text>
+        <Text className="mt-1 text-xs text-red-500 dark:text-red-400">
+          {error}
+        </Text>
       )}
     </View>
   )

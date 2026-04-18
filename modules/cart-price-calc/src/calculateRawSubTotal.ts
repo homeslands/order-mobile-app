@@ -6,9 +6,7 @@ import CartPriceCalc from './CartPriceCalcModule'
 
 type CartItemLike = { originalPrice?: number; quantity?: number }
 
-export function calculateRawSubTotalNative(
-  orderItems: CartItemLike[],
-): number {
+export function calculateRawSubTotalNative(orderItems: CartItemLike[]): number {
   if (!orderItems?.length) return 0
   if (!CartPriceCalc) {
     return orderItems.reduce(

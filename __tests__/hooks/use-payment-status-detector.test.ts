@@ -6,11 +6,11 @@ import { OrderStatus } from '@/types'
 
 // ── Mock ──────────────────────────────────────────────────────────────────────
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mockUseNotificationStore = jest.fn<unknown, [((s: any) => unknown)]>()
+const mockUseNotificationStore = jest.fn<unknown, [(s: any) => unknown]>()
 
 jest.mock('@/stores', () => ({
-   
-  useNotificationStore: (sel: (s: unknown) => unknown) => mockUseNotificationStore(sel),
+  useNotificationStore: (sel: (s: unknown) => unknown) =>
+    mockUseNotificationStore(sel),
 }))
 
 type FakeNotification = {
@@ -21,7 +21,6 @@ type FakeNotification = {
 }
 
 function setNotifications(notifications: FakeNotification[]) {
-   
   mockUseNotificationStore.mockImplementation((sel) => sel({ notifications }))
 }
 
@@ -113,7 +112,9 @@ describe('POINT', () => {
         onPaid,
       }),
     )
-    act(() => { jest.advanceTimersByTime(60_000) })
+    act(() => {
+      jest.advanceTimersByTime(60_000)
+    })
     // Exactly 1 call: silent sync only, no polling ticks
     expect(onPaid).toHaveBeenCalledTimes(1)
   })
@@ -122,11 +123,14 @@ describe('POINT', () => {
 // ── BANK_TRANSFER ─────────────────────────────────────────────────────────────
 describe('BANK_TRANSFER', () => {
   it('showSuccess = true when matching ORDER_PAID notification exists', () => {
-    setNotifications([{
-      slug: 'n1', isRead: false,
-      message: NotificationMessageCode.ORDER_PAID,
-      metadata: { order: 'order-1' },
-    }])
+    setNotifications([
+      {
+        slug: 'n1',
+        isRead: false,
+        message: NotificationMessageCode.ORDER_PAID,
+        metadata: { order: 'order-1' },
+      },
+    ])
     const { result } = renderHook(() =>
       usePaymentStatusDetector({
         ...base,
@@ -139,11 +143,14 @@ describe('BANK_TRANSFER', () => {
 
   it('calls onPaid once when FCM notification matches', () => {
     const onPaid = jest.fn()
-    setNotifications([{
-      slug: 'n1', isRead: false,
-      message: NotificationMessageCode.ORDER_PAID,
-      metadata: { order: 'order-1' },
-    }])
+    setNotifications([
+      {
+        slug: 'n1',
+        isRead: false,
+        message: NotificationMessageCode.ORDER_PAID,
+        metadata: { order: 'order-1' },
+      },
+    ])
     renderHook(() =>
       usePaymentStatusDetector({
         ...base,
@@ -156,11 +163,14 @@ describe('BANK_TRANSFER', () => {
   })
 
   it('showSuccess = false when notification targets a different order', () => {
-    setNotifications([{
-      slug: 'n1', isRead: false,
-      message: NotificationMessageCode.ORDER_PAID,
-      metadata: { order: 'other-order' },
-    }])
+    setNotifications([
+      {
+        slug: 'n1',
+        isRead: false,
+        message: NotificationMessageCode.ORDER_PAID,
+        metadata: { order: 'other-order' },
+      },
+    ])
     const { result } = renderHook(() =>
       usePaymentStatusDetector({
         ...base,
@@ -172,11 +182,14 @@ describe('BANK_TRANSFER', () => {
   })
 
   it('showSuccess = false when notification is already read', () => {
-    setNotifications([{
-      slug: 'n1', isRead: true,
-      message: NotificationMessageCode.ORDER_PAID,
-      metadata: { order: 'order-1' },
-    }])
+    setNotifications([
+      {
+        slug: 'n1',
+        isRead: true,
+        message: NotificationMessageCode.ORDER_PAID,
+        metadata: { order: 'order-1' },
+      },
+    ])
     const { result } = renderHook(() =>
       usePaymentStatusDetector({
         ...base,
@@ -197,7 +210,9 @@ describe('BANK_TRANSFER', () => {
         onPaid,
       }),
     )
-    act(() => { jest.advanceTimersByTime(60_000) })
+    act(() => {
+      jest.advanceTimersByTime(60_000)
+    })
     expect(onPaid).not.toHaveBeenCalled()
   })
 
@@ -212,7 +227,9 @@ describe('BANK_TRANSFER', () => {
       }),
     )
     expect(onPaid).not.toHaveBeenCalled()
-    act(() => { jest.advanceTimersByTime(10_000) })
+    act(() => {
+      jest.advanceTimersByTime(10_000)
+    })
     expect(onPaid).toHaveBeenCalledTimes(1)
   })
 
@@ -226,11 +243,17 @@ describe('BANK_TRANSFER', () => {
         onPaid,
       }),
     )
-    act(() => { jest.advanceTimersByTime(10_000) })
+    act(() => {
+      jest.advanceTimersByTime(10_000)
+    })
     expect(onPaid).toHaveBeenCalledTimes(1)
-    act(() => { jest.advanceTimersByTime(14_999) })
+    act(() => {
+      jest.advanceTimersByTime(14_999)
+    })
     expect(onPaid).toHaveBeenCalledTimes(1) // 15s not reached yet
-    act(() => { jest.advanceTimersByTime(1) })
+    act(() => {
+      jest.advanceTimersByTime(1)
+    })
     expect(onPaid).toHaveBeenCalledTimes(2) // 15s tick fires
   })
 
@@ -244,13 +267,23 @@ describe('BANK_TRANSFER', () => {
         onPaid,
       }),
     )
-    act(() => { jest.advanceTimersByTime(10_000) }) // tick 1 (+10s)
-    act(() => { jest.advanceTimersByTime(15_000) }) // tick 2 (+15s)
-    act(() => { jest.advanceTimersByTime(20_000) }) // tick 3 (+20s)
+    act(() => {
+      jest.advanceTimersByTime(10_000)
+    }) // tick 1 (+10s)
+    act(() => {
+      jest.advanceTimersByTime(15_000)
+    }) // tick 2 (+15s)
+    act(() => {
+      jest.advanceTimersByTime(20_000)
+    }) // tick 3 (+20s)
     expect(onPaid).toHaveBeenCalledTimes(3)
-    act(() => { jest.advanceTimersByTime(30_000) }) // tick 4 (capped at 30s)
+    act(() => {
+      jest.advanceTimersByTime(30_000)
+    }) // tick 4 (capped at 30s)
     expect(onPaid).toHaveBeenCalledTimes(4)
-    act(() => { jest.advanceTimersByTime(30_000) }) // tick 5 (still 30s)
+    act(() => {
+      jest.advanceTimersByTime(30_000)
+    }) // tick 5 (still 30s)
     expect(onPaid).toHaveBeenCalledTimes(5)
   })
 
@@ -265,13 +298,21 @@ describe('BANK_TRANSFER', () => {
           orderStatus,
           onPaid,
         }),
-      { initialProps: { orderStatus: OrderStatus.PENDING as OrderStatus | undefined } },
+      {
+        initialProps: {
+          orderStatus: OrderStatus.PENDING as OrderStatus | undefined,
+        },
+      },
     )
-    act(() => { jest.advanceTimersByTime(10_000) })
+    act(() => {
+      jest.advanceTimersByTime(10_000)
+    })
     expect(onPaid).toHaveBeenCalledTimes(1) // first tick fired
     // Simulate refetch returning PAID
     rerender({ orderStatus: OrderStatus.PAID })
-    act(() => { jest.advanceTimersByTime(60_000) })
+    act(() => {
+      jest.advanceTimersByTime(60_000)
+    })
     // No more polling ticks after success
     expect(onPaid).toHaveBeenCalledTimes(1)
   })

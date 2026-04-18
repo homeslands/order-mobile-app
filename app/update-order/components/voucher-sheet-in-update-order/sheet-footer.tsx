@@ -1,4 +1,5 @@
 import { colors } from '@/constants'
+import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 type SheetFooterProps = {
@@ -18,6 +19,7 @@ export function SheetFooter({
   primaryColor,
   bottomInset,
 }: SheetFooterProps) {
+  const { t } = useTranslation('voucher')
   return (
     <View style={[styles.footer, { paddingBottom: bottomInset + 4 }]}>
       <Pressable
@@ -48,7 +50,11 @@ export function SheetFooter({
             },
           ]}
         >
-          {isCurrentApplied ? 'Gỡ mã' : isNewSelection ? 'Áp dụng' : 'Đóng'}
+          {isCurrentApplied
+            ? t('removeVoucher')
+            : isNewSelection
+              ? t('applyVoucher')
+              : t('close')}
         </Text>
       </Pressable>
     </View>

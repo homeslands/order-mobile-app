@@ -23,10 +23,5 @@ export default function OrderNoteInUpdateOrderInput({
     [setDraftDescription],
   )
 
-  return (
-    <OrderNoteInput
-      value={value}
-      onChange={handleChange}
-    />
-  )
+  return <OrderNoteInput value={value} onChange={handleChange} />
 }

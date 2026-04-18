@@ -20,7 +20,7 @@
 //   try {
 //     // 1. Request permissions
 //     const permission = await PushNotifications.requestPermissions()
-    
+
 //     if (permission.receive !== 'granted') {
 //       console.error(`[getNativeFcmToken] ❌ Push notification permission not granted for ${platform}:`, permission)
 //       return null
@@ -41,33 +41,33 @@
 //         // Store listener references to cleanup properly
 //         const registrationListener = await PushNotifications.addListener('registration', (token) => {
 //           clearTimeout(timeout)
-          
+
 //           const tokenValue = token.value
-          
+
 //           // Cleanup ONLY listeners of this function
 //           registrationListener.remove()
 //           errorListener.remove()
-          
+
 //           resolve(tokenValue)
 //         })
 
 //         const errorListener = await PushNotifications.addListener('registrationError', (error) => {
 //           clearTimeout(timeout)
-          
+
 //           console.error(`[getNativeFcmToken] ❌ Registration error for ${platform}:`, {
 //             error: error,
 //             errorString: String(error),
 //             platform,
 //           })
-          
-    //           // Cleanup listeners
+
+//           // Cleanup listeners
 //           registrationListener.remove()
 //           errorListener.remove()
-          
+
 //           reject(error)
 //         })
 //       }
-      
+
 //       // Start listener setup
 //       setupListeners().catch((err) => {
 //         clearTimeout(timeout)

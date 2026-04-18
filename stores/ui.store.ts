@@ -7,6 +7,6 @@ interface IUIStore {
 
 export const useUIStore = create<IUIStore>((set) => ({
   isBottomBarVisible: true,
-  setIsBottomBarVisible: (visible: boolean) => set({ isBottomBarVisible: visible }),
+  setIsBottomBarVisible: (visible: boolean) =>
+    set({ isBottomBarVisible: visible }),
 }))
-

@@ -33,9 +33,7 @@ function parseNotificationData(
   return { ...data, ...parsed }
 }
 
-function getRouteForMessage(
-  routeData: NotificationRouteData,
-): string | null {
+function getRouteForMessage(routeData: NotificationRouteData): string | null {
   const { message, order } = routeData
 
   switch (message) {

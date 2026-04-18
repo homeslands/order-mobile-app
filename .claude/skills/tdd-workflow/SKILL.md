@@ -7,12 +7,12 @@ description: Trigger when writing tests, adding test files, or when the user ask
 
 ## Testing Stack
 
-| Tool | Purpose |
-|---|---|
-| **Jest** + `jest-expo` | Test runner, configured for Expo |
-| **React Native Testing Library** (`@testing-library/react-native`) | Component rendering + interaction |
-| **MSW** (`msw`) or `jest.mock` | API mocking |
-| **Zod** | Validates test fixture shapes match real types |
+| Tool                                                               | Purpose                                        |
+| ------------------------------------------------------------------ | ---------------------------------------------- |
+| **Jest** + `jest-expo`                                             | Test runner, configured for Expo               |
+| **React Native Testing Library** (`@testing-library/react-native`) | Component rendering + interaction              |
+| **MSW** (`msw`) or `jest.mock`                                     | API mocking                                    |
+| **Zod**                                                            | Validates test fixture shapes match real types |
 
 ---
 
@@ -34,6 +34,7 @@ api/__tests__/order.test.ts
 ```
 
 **Rules:**
+
 - Test files live in `__tests__/` inside the same folder as the file under test
 - Filename: `<source-file>.test.ts` or `<source-file>.test.tsx`
 - Test IDs in components: `testID="cart-item-{id}"` — use in queries
@@ -97,13 +98,16 @@ describe('CartItemRow', () => {
 
   it('does not render when item is undefined', () => {
     // Edge case — guard against undefined data from API
-    const { toJSON } = render(<CartItemRow item={undefined as any} onRemove={jest.fn()} />)
+    const { toJSON } = render(
+      <CartItemRow item={undefined as any} onRemove={jest.fn()} />,
+    )
     expect(toJSON()).toBeNull()
   })
 })
 ```
 
 **Queries to use (in priority order):**
+
 1. `getByTestId` — when testID is set (preferred for RN)
 2. `getByText` — visible text content
 3. `getByRole` — accessibility role
@@ -212,7 +216,10 @@ describe('createOrder', () => {
 
     const result = await createOrder({ items: [], notes: '' })
 
-    expect(mockHttp.post).toHaveBeenCalledWith('/orders', { items: [], notes: '' })
+    expect(mockHttp.post).toHaveBeenCalledWith('/orders', {
+      items: [],
+      notes: '',
+    })
     expect(result.data.id).toBe('order-1')
   })
 
@@ -250,7 +257,8 @@ function createWrapper() {
 describe('useOrder', () => {
   it('returns order data on success', async () => {
     mockGetOrder.mockResolvedValue({
-      success: true, statusCode: 200,
+      success: true,
+      statusCode: 200,
       data: { id: 'order-1', total: 90000 },
     })
 
@@ -280,6 +288,7 @@ describe('useOrder', () => {
 ## What to Test vs What Not to Test
 
 ### ✅ Always test
+
 - Business logic in stores (add, remove, update, price calc)
 - API functions — success response shape and error propagation
 - Custom hooks — state transitions, side effects
@@ -288,6 +297,7 @@ describe('useOrder', () => {
 - Edge cases: empty arrays, null data, network errors
 
 ### ❌ Don't test
+
 - NativeWind class names (implementation detail)
 - Reanimated animation values (UI thread, mock is complex)
 - Component pixel positions or layout metrics
@@ -327,6 +337,7 @@ npx jest --coverage
 ```
 
 **Coverage targets (aim for, not enforced by CI yet):**
+
 - Stores: > 80%
 - API functions: > 90%
 - Critical hooks (auth, cart, order-flow): > 75%

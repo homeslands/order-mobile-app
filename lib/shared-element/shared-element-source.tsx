@@ -12,7 +12,10 @@ import { useCallback } from 'react'
 import { measure, useAnimatedRef } from 'react-native-reanimated'
 import type Animated from 'react-native-reanimated'
 
-import { useSharedElementOptional, type ElementRect } from './shared-element-provider'
+import {
+  useSharedElementOptional,
+  type ElementRect,
+} from './shared-element-provider'
 
 export function useSharedElementSource(imageUri: string) {
   const animatedRef = useAnimatedRef<Animated.View>()

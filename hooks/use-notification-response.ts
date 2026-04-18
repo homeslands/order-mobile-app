@@ -23,9 +23,7 @@ export function useNotificationResponse(enabled = true) {
   useEffect(() => {
     if (!enabled) return
 
-    const handleResponse = (
-      response: Notifications.NotificationResponse,
-    ) => {
+    const handleResponse = (response: Notifications.NotificationResponse) => {
       const id = response.notification.request.identifier
       // Dedup — avoid processing same notification twice
       if (processedRef.current.has(id)) return

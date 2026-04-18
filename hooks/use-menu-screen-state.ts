@@ -35,8 +35,28 @@ export function useMenuFilterState() {
   // Stable reference — chỉ tạo object mới khi giá trị thực sự thay đổi.
   // Tránh menuRequest useMemo recompute mỗi render do object reference mới.
   const menuFilter = useMemo<IMenuFilter>(
-    () => ({ date, branch, catalog, productName, minPrice, maxPrice, menu, isNewProduct, isTopSell }),
-    [date, branch, catalog, productName, minPrice, maxPrice, menu, isNewProduct, isTopSell],
+    () => ({
+      date,
+      branch,
+      catalog,
+      productName,
+      minPrice,
+      maxPrice,
+      menu,
+      isNewProduct,
+      isTopSell,
+    }),
+    [
+      date,
+      branch,
+      catalog,
+      productName,
+      minPrice,
+      maxPrice,
+      menu,
+      isNewProduct,
+      isTopSell,
+    ],
   )
 
   return { menuFilter, setMenuFilter }

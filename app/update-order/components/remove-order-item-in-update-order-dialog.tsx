@@ -41,9 +41,9 @@ export default function RemoveOrderItemInUpdateOrderDialog({
     <>
       <Button variant="ghost" onPress={() => setIsOpen(true)}>
         <Trash2
-            size={20}
-            color={isDark ? colors.destructive.dark : colors.destructive.light}
-          />
+          size={20}
+          color={isDark ? colors.destructive.dark : colors.destructive.light}
+        />
       </Button>
       <ConfirmationDialog
         isOpen={isOpen}

@@ -12,15 +12,17 @@
 
 ### 2 component password
 
-| Component | Mục đích | Screens |
-|---|---|---|
-| `PasswordRulesInput` (cập nhật) | Ô tạo/đổi mật khẩu mới — có strength bar + rule tags | Register (new), Reset Password (new), Change Password (new) |
-| `PasswordInputField` (mới) | Ô nhập mật khẩu thông thường — chỉ show/hide toggle | Login, Register (confirm), Reset Password (confirm), Change Password (old + confirm) |
+| Component                       | Mục đích                                             | Screens                                                                              |
+| ------------------------------- | ---------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `PasswordRulesInput` (cập nhật) | Ô tạo/đổi mật khẩu mới — có strength bar + rule tags | Register (new), Reset Password (new), Change Password (new)                          |
+| `PasswordInputField` (mới)      | Ô nhập mật khẩu thông thường — chỉ show/hide toggle  | Login, Register (confirm), Reset Password (confirm), Change Password (old + confirm) |
 
 ### Files tạo mới
+
 - `components/input/password-input-field.tsx`
 
 ### Files sửa
+
 - `components/input/password-rules-input.tsx` — redesign UI
 - `components/auth/login-form.tsx`
 - `components/auth/register-form.tsx`
@@ -28,6 +30,7 @@
 - `app/profile/change-password.tsx`
 
 ### Files không đổi
+
 - `hooks/use-password-rules.ts` — logic tính strength giữ nguyên
 - `schemas/auth.schema.ts` — validation rules giữ nguyên
 - `components/form/forgot-password-identity-form.tsx` — phone input không đổi
@@ -41,6 +44,7 @@
 File: `components/input/password-input-field.tsx`
 
 Props:
+
 ```tsx
 interface PasswordInputFieldProps {
   value: string
@@ -53,6 +57,7 @@ interface PasswordInputFieldProps {
 ```
 
 Behavior:
+
 - `TextInput` với `secureTextEntry` toggle qua local `useState(false)`
 - Icon `Eye` / `EyeOff` từ `lucide-react-native`, absolute right-12
 - Border đổi màu khi error: `border-red-500` thay vì `border-gray-300`
@@ -91,18 +96,22 @@ Props giữ nguyên interface hiện tại (`value`, `onChange`, `placeholder`, 
 ## Screen Migration
 
 ### Login — `components/auth/login-form.tsx`
+
 - Ô **Mật khẩu**: thay `FormInput` với show/hide thủ công → `PasswordInputField` bọc trong `Controller`
 - Không cần `PasswordRulesInput` (login không validate password format phía client)
 
 ### Register — `components/auth/register-form.tsx`
+
 - Ô **Mật khẩu mới**: giữ `PasswordRulesInput`, UI tự động cập nhật theo redesign
 - Ô **Xác nhận mật khẩu**: thay `FormInput` → `PasswordInputField` bọc trong `Controller`
 
 ### Reset Password — `components/form/reset-password-form.tsx`
+
 - Ô **Mật khẩu mới**: giữ `PasswordRulesInput`, UI tự động cập nhật
 - Ô **Xác nhận mật khẩu**: thay `TextInput` thuần → `PasswordInputField` bọc trong `Controller` (fix inconsistency hiện tại — ô này đang thiếu show/hide)
 
 ### Change Password — `app/profile/change-password.tsx`
+
 - Ô **Mật khẩu cũ**: thay `Input` thuần → `PasswordInputField`
 - Ô **Mật khẩu mới**: thay `Input` thuần → `PasswordRulesInput`
 - Ô **Xác nhận mật khẩu**: thay `Input` thuần → `PasswordInputField`
@@ -113,21 +122,23 @@ Props giữ nguyên interface hiện tại (`value`, `onChange`, `placeholder`, 
 ## Visual States
 
 ### PasswordRulesInput
-| Trạng thái | Bar | Tags | Label |
-|---|---|---|---|
-| Chưa nhập (`!touched`) | 3 segment xám | Ẩn | Ẩn |
-| Yếu (< 2 rules met) | 1 đỏ + 2 xám | Hiện, unmet = xám | "Yếu" đỏ |
-| Trung bình (2 rules met) | 2 vàng + 1 xám | Hiện, met = xanh | "Trung bình" vàng |
-| Mạnh (3 rules met) | 3 xanh | Hiện, tất cả xanh | "Mạnh" xanh |
-| Lỗi validation | Giữ nguyên bar | Giữ nguyên tags | Error text đỏ bên dưới |
+
+| Trạng thái               | Bar            | Tags              | Label                  |
+| ------------------------ | -------------- | ----------------- | ---------------------- |
+| Chưa nhập (`!touched`)   | 3 segment xám  | Ẩn                | Ẩn                     |
+| Yếu (< 2 rules met)      | 1 đỏ + 2 xám   | Hiện, unmet = xám | "Yếu" đỏ               |
+| Trung bình (2 rules met) | 2 vàng + 1 xám | Hiện, met = xanh  | "Trung bình" vàng      |
+| Mạnh (3 rules met)       | 3 xanh         | Hiện, tất cả xanh | "Mạnh" xanh            |
+| Lỗi validation           | Giữ nguyên bar | Giữ nguyên tags   | Error text đỏ bên dưới |
 
 ### PasswordInputField
-| Trạng thái | Border | Eye icon |
-|---|---|---|
-| Default | `border-gray-300` | Eye (ẩn) |
-| Focused | `border-primary` | Eye (ẩn) |
-| Show password | `border-primary` | EyeOff (hiện) |
-| Error | `border-red-500` | Eye |
+
+| Trạng thái    | Border            | Eye icon      |
+| ------------- | ----------------- | ------------- |
+| Default       | `border-gray-300` | Eye (ẩn)      |
+| Focused       | `border-primary`  | Eye (ẩn)      |
+| Show password | `border-primary`  | EyeOff (hiện) |
+| Error         | `border-red-500`  | Eye           |
 
 ---
 
@@ -136,6 +147,7 @@ Props giữ nguyên interface hiện tại (`value`, `onChange`, `placeholder`, 
 Các label strength/rules đã được i18n qua `usePasswordRules` hook hiện tại. Không cần thêm key mới.
 
 Nếu `change-password.tsx` chưa dùng i18n cho password labels, thêm vào namespace `profile` các key:
+
 - `changePassword.oldPassword`
 - `changePassword.newPassword`
 - `changePassword.confirmPassword`

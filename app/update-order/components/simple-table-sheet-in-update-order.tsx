@@ -7,7 +7,13 @@ import {
 import { CheckCircle } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native'
 
 import { colors } from '@/constants'
 import { useTables } from '@/hooks'
@@ -40,11 +46,19 @@ export const SimpleTableSheetInUpdateOrder = memo(
     const branchFromUser = useUserStore((s) => s.userInfo?.branch?.slug)
     const branchSlug = branchFromStore || branchFromUser
 
-    const { data: tablesRes, isLoading } = useTables(visible ? branchSlug : undefined)
-    const allTables = useMemo(() => tablesRes?.result ?? [], [tablesRes?.result])
+    const { data: tablesRes, isLoading } = useTables(
+      visible ? branchSlug : undefined,
+    )
+    const allTables = useMemo(
+      () => tablesRes?.result ?? [],
+      [tablesRes?.result],
+    )
 
     const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
-    const visibleTables = useMemo(() => allTables.slice(0, visibleCount), [allTables, visibleCount])
+    const visibleTables = useMemo(
+      () => allTables.slice(0, visibleCount),
+      [allTables, visibleCount],
+    )
     const hasMore = visibleCount < allTables.length
 
     const handleLoadMore = useCallback(() => {
@@ -60,7 +74,9 @@ export const SimpleTableSheetInUpdateOrder = memo(
     )
 
     const bgStyle = useMemo(
-      () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
+      () => ({
+        backgroundColor: isDark ? colors.gray[900] : colors.white.light,
+      }),
       [isDark],
     )
 
@@ -97,85 +113,106 @@ export const SimpleTableSheetInUpdateOrder = memo(
         backgroundStyle={bgStyle}
         onDismiss={onClose}
       >
-            <BottomSheetScrollView
-              style={s.scrollView}
-              showsVerticalScrollIndicator={false}
-            >
-              <Text style={[s.title, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>
-                {t('table.title', 'Chọn bàn')}
+        <BottomSheetScrollView
+          style={s.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text
+            style={[
+              s.title,
+              { color: isDark ? colors.gray[50] : colors.gray[900] },
+            ]}
+          >
+            {t('table.title', 'Chọn bàn')}
+          </Text>
+
+          {isLoading && (
+            <View style={s.loadingWrap}>
+              <ActivityIndicator
+                size="small"
+                color={isDark ? '#9ca3af' : '#6b7280'}
+              />
+              <Text
+                style={[
+                  s.loadingText,
+                  { color: isDark ? colors.gray[400] : colors.gray[500] },
+                ]}
+              >
+                Đang tải...
               </Text>
+            </View>
+          )}
 
-              {isLoading && (
-                <View style={s.loadingWrap}>
-                  <ActivityIndicator
-                    size="small"
-                    color={isDark ? '#9ca3af' : '#6b7280'}
+          {!isLoading && allTables.length === 0 && (
+            <Text
+              style={[
+                s.emptyText,
+                { color: isDark ? colors.gray[400] : colors.gray[500] },
+              ]}
+            >
+              Không có bàn nào
+            </Text>
+          )}
+
+          <View style={s.grid}>
+            {visibleTables.map((table: ITable) => {
+              const selected = selectedTableSlug === table.slug
+              const isAvailable = table.status === 'available'
+              const statusColor = isAvailable ? '#22c55e' : '#ef4444'
+              return (
+                <Pressable
+                  key={table.slug}
+                  onPress={() => handleSelect(table)}
+                  style={[
+                    s.tableItem,
+                    {
+                      borderColor: selected
+                        ? primaryColor
+                        : isDark
+                          ? colors.gray[700]
+                          : colors.gray[200],
+                      backgroundColor: selected
+                        ? `${primaryColor}10`
+                        : 'transparent',
+                    },
+                  ]}
+                >
+                  <View
+                    style={[s.statusDot, { backgroundColor: statusColor }]}
                   />
-                  <Text style={[s.loadingText, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>
-                    Đang tải...
-                  </Text>
-                </View>
-              )}
-
-              {!isLoading && allTables.length === 0 && (
-                <Text style={[s.emptyText, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>
-                  Không có bàn nào
-                </Text>
-              )}
-
-              <View style={s.grid}>
-                {visibleTables.map((table: ITable) => {
-                  const selected = selectedTableSlug === table.slug
-                  const isAvailable = table.status === 'available'
-                  const statusColor = isAvailable ? '#22c55e' : '#ef4444'
-                  return (
-                    <Pressable
-                      key={table.slug}
-                      onPress={() => handleSelect(table)}
+                  <View style={s.tableNameRow}>
+                    <Text
                       style={[
-                        s.tableItem,
+                        s.tableName,
                         {
-                          borderColor: selected
-                            ? primaryColor
-                            : isDark
-                              ? colors.gray[700]
-                              : colors.gray[200],
-                          backgroundColor: selected ? `${primaryColor}10` : 'transparent',
+                          color: isDark ? colors.gray[50] : colors.gray[900],
+                          fontWeight: selected ? '600' : '400',
                         },
                       ]}
+                      numberOfLines={1}
                     >
-                      <View style={[s.statusDot, { backgroundColor: statusColor }]} />
-                      <View style={s.tableNameRow}>
-                        <Text
-                          style={[
-                            s.tableName,
-                            {
-                              color: isDark ? colors.gray[50] : colors.gray[900],
-                              fontWeight: selected ? '600' : '400',
-                            },
-                          ]}
-                          numberOfLines={1}
-                        >
-                          Bàn {table.name}
-                        </Text>
-                        <Text style={[s.tableStatus, { color: statusColor }]}>
-                          · {isAvailable ? 'Trống' : 'Đã đặt'}
-                        </Text>
-                      </View>
-                      {selected && <CheckCircle size={16} color={primaryColor} />}
-                    </Pressable>
-                  )
-                })}
-              </View>
-
-              {hasMore && (
-                <Pressable onPress={handleLoadMore} style={s.loadMoreBtn}>
-                  <Text style={[s.loadMoreText, { color: primaryColor }]}>Tải thêm</Text>
+                      Bàn {table.name}
+                    </Text>
+                    <Text style={[s.tableStatus, { color: statusColor }]}>
+                      · {isAvailable ? 'Trống' : 'Đã đặt'}
+                    </Text>
+                  </View>
+                  {selected && <CheckCircle size={16} color={primaryColor} />}
                 </Pressable>
-              )}
+              )
+            })}
+          </View>
 
-              <View style={{ height: 20 }} />
-            </BottomSheetScrollView>
+          {hasMore && (
+            <Pressable onPress={handleLoadMore} style={s.loadMoreBtn}>
+              <Text style={[s.loadMoreText, { color: primaryColor }]}>
+                Tải thêm
+              </Text>
+            </Pressable>
+          )}
+
+          <View style={{ height: 20 }} />
+        </BottomSheetScrollView>
       </BottomSheetModal>
     )
   },

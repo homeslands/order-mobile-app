@@ -21,9 +21,12 @@ export function AuthFormLayout({
   const iconColor = isDark ? colors.gray[200] : colors.gray[700]
 
   return (
-    <ScreenContainer edges={['top', 'bottom']} className="flex-1 bg-background">
+    <ScreenContainer
+      edges={['top', 'bottom']}
+      className="flex-1 bg-white dark:bg-gray-900"
+    >
       {onBack && (
-        <View className="px-4 pt-2 pb-1">
+        <View className="px-4 pb-1 pt-2">
           <TouchableOpacity
             onPress={onBack}
             hitSlop={8}
@@ -34,11 +37,11 @@ export function AuthFormLayout({
         </View>
       )}
       <View className={`px-6 ${onBack ? 'pt-2' : 'pt-8'} pb-6`}>
-        <Text className="mb-2 text-3xl font-sans-bold text-foreground">
+        <Text className="mb-2 font-sans-bold text-3xl text-gray-900 dark:text-white">
           {title}
         </Text>
         {description && (
-          <Text className="mb-8 text-base font-sans text-muted-foreground">
+          <Text className="mb-8 font-sans text-base text-gray-500 dark:text-gray-400">
             {description}
           </Text>
         )}

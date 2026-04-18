@@ -6,8 +6,10 @@ type QRSelectionSheetStore = {
   close: () => void
 }
 
-export const useQRSelectionSheetStore = create<QRSelectionSheetStore>((set) => ({
-  visible: false,
-  open: () => set({ visible: true }),
-  close: () => set({ visible: false }),
-}))
+export const useQRSelectionSheetStore = create<QRSelectionSheetStore>(
+  (set) => ({
+    visible: false,
+    open: () => set({ visible: true }),
+    close: () => set({ visible: false }),
+  }),
+)

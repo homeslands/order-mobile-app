@@ -26,7 +26,10 @@ export default function ProductImageCarousel({
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [autoScroll, setAutoScroll] = useState(true)
 
-  const handleImageClick = (image: string | null | undefined, index: number) => {
+  const handleImageClick = (
+    image: string | null | undefined,
+    index: number,
+  ) => {
     setAutoScroll(false) // Disable auto-scroll when manually clicking
     setSelectedIndex(index)
     setCurrent(index)

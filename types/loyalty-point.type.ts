@@ -1,4 +1,7 @@
-import { LoyaltyPointHistoryType, LoyaltyPointTransactionStatus } from '@/constants'
+import {
+  LoyaltyPointHistoryType,
+  LoyaltyPointTransactionStatus,
+} from '@/constants'
 import { IBase } from './base.type'
 
 export interface ILoyaltyPoint extends IBase {

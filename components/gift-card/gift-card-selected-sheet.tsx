@@ -37,223 +37,236 @@ const SNAP_POINTS = ['70%']
 const MIN_QTY = 1
 const MAX_QTY = 10
 
-export const GiftCardSelectedSheet = memo(
-  function GiftCardSelectedSheet({
-    visible,
-    card,
-    primaryColor,
-    onClose,
-    onAdded,
-  }: GiftCardSelectedSheetProps) {
-    const sheetRef = useRef<BottomSheetModal>(null)
-    const { bottom: bottomInset } = useSafeAreaInsets()
-    const [quantity, setQuantity] = useState(1)
-    const [showWarning, setShowWarning] = useState(false)
+export const GiftCardSelectedSheet = memo(function GiftCardSelectedSheet({
+  visible,
+  card,
+  primaryColor,
+  onClose,
+  onAdded,
+}: GiftCardSelectedSheetProps) {
+  const sheetRef = useRef<BottomSheetModal>(null)
+  const { bottom: bottomInset } = useSafeAreaInsets()
+  const [quantity, setQuantity] = useState(1)
+  const [showWarning, setShowWarning] = useState(false)
 
-    const { t } = useTranslation('giftCard')
-    const existingItem = useGiftCardStore((s) => s.giftCardItem)
-    const setGiftCardItem = useGiftCardStore((s) => s.setGiftCardItem)
-    const clearGiftCard = useGiftCardStore((s) => s.clearGiftCard)
+  const { t } = useTranslation('giftCard')
+  const existingItem = useGiftCardStore((s) => s.giftCardItem)
+  const setGiftCardItem = useGiftCardStore((s) => s.setGiftCardItem)
+  const clearGiftCard = useGiftCardStore((s) => s.clearGiftCard)
 
-    // Reset quantity when sheet opens (React "adjust state during render" pattern)
-    const [prevVisible, setPrevVisible] = useState(visible)
-    if (visible !== prevVisible) {
-      setPrevVisible(visible)
-      if (visible) setQuantity(1)
+  // Reset quantity when sheet opens (React "adjust state during render" pattern)
+  const [prevVisible, setPrevVisible] = useState(visible)
+  if (visible !== prevVisible) {
+    setPrevVisible(visible)
+    if (visible) setQuantity(1)
+  }
+
+  useEffect(() => {
+    if (visible) sheetRef.current?.present()
+    else sheetRef.current?.dismiss()
+  }, [visible])
+
+  const renderBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.4}
+        pressBehavior="none"
+        onPress={onClose}
+      />
+    ),
+    [onClose],
+  )
+
+  const handleDecrement = useCallback(() => {
+    setQuantity((q) => Math.max(MIN_QTY, q - 1))
+  }, [])
+
+  const handleIncrement = useCallback(() => {
+    setQuantity((q) => Math.min(MAX_QTY, q + 1))
+  }, [])
+
+  const handleAddToCart = useCallback(() => {
+    if (!card) return
+    // Different gift card already in cart → show warning
+    if (existingItem && existingItem.slug !== card.slug) {
+      setShowWarning(true)
+      return
     }
+    setGiftCardItem({
+      id: card.slug,
+      slug: card.slug,
+      title: card.title,
+      image: card.image,
+      description: card.description,
+      points: card.points,
+      price: card.price,
+      quantity,
+      isActive: card.isActive,
+      version: card.version,
+    })
+    onAdded()
+  }, [card, existingItem, quantity, setGiftCardItem, onAdded])
 
-    useEffect(() => {
-      if (visible) sheetRef.current?.present()
-      else sheetRef.current?.dismiss()
-    }, [visible])
+  const handleReplace = useCallback(() => {
+    if (!card) return
+    clearGiftCard(false)
+    setGiftCardItem({
+      id: card.slug,
+      slug: card.slug,
+      title: card.title,
+      image: card.image,
+      description: card.description,
+      points: card.points,
+      price: card.price,
+      quantity,
+      isActive: card.isActive,
+      version: card.version,
+    })
+    setShowWarning(false)
+    onAdded()
+  }, [card, quantity, clearGiftCard, setGiftCardItem, onAdded])
 
-    const renderBackdrop = useCallback(
-      (props: BottomSheetBackdropProps) => (
-        <BottomSheetBackdrop
-          {...props}
-          disappearsOnIndex={-1}
-          appearsOnIndex={0}
-          opacity={0.4}
-          pressBehavior="none"
-          onPress={onClose}
-        />
-      ),
-      [onClose],
-    )
+  const handleCancelReplace = useCallback(() => {
+    setShowWarning(false)
+  }, [])
 
-    const handleDecrement = useCallback(() => {
-      setQuantity((q) => Math.max(MIN_QTY, q - 1))
-    }, [])
+  const bgStyle = useMemo(() => ({ backgroundColor: colors.white.light }), [])
 
-    const handleIncrement = useCallback(() => {
-      setQuantity((q) => Math.min(MAX_QTY, q + 1))
-    }, [])
+  const totalAmount = card ? card.price * quantity : 0
+  const totalPoints = card ? card.points * quantity : 0
 
-    const handleAddToCart = useCallback(() => {
-      if (!card) return
-      // Different gift card already in cart → show warning
-      if (existingItem && existingItem.slug !== card.slug) {
-        setShowWarning(true)
-        return
-      }
-      setGiftCardItem({
-        id: card.slug,
-        slug: card.slug,
-        title: card.title,
-        image: card.image,
-        description: card.description,
-        points: card.points,
-        price: card.price,
-        quantity,
-        isActive: card.isActive,
-        version: card.version,
-      })
-      onAdded()
-    }, [card, existingItem, quantity, setGiftCardItem, onAdded])
+  if (!card) return null
 
-    const handleReplace = useCallback(() => {
-      if (!card) return
-      clearGiftCard(false)
-      setGiftCardItem({
-        id: card.slug,
-        slug: card.slug,
-        title: card.title,
-        image: card.image,
-        description: card.description,
-        points: card.points,
-        price: card.price,
-        quantity,
-        isActive: card.isActive,
-        version: card.version,
-      })
-      setShowWarning(false)
-      onAdded()
-    }, [card, quantity, clearGiftCard, setGiftCardItem, onAdded])
-
-    const handleCancelReplace = useCallback(() => {
-      setShowWarning(false)
-    }, [])
-
-    const bgStyle = useMemo(
-      () => ({ backgroundColor: colors.white.light }),
-      [],
-    )
-
-    const totalAmount = card ? card.price * quantity : 0
-    const totalPoints = card ? card.points * quantity : 0
-
-    if (!card) return null
-
-    return (
-      <>
-            <BottomSheetModal
-              ref={sheetRef}
-              snapPoints={SNAP_POINTS}
-              enablePanDownToClose
-              enableDynamicSizing={false}
-              backdropComponent={renderBackdrop}
-              backgroundStyle={bgStyle}
-              handleIndicatorStyle={{ backgroundColor: colors.gray[300] }}
-              onDismiss={onClose}
-            >
-              <View style={[s.sheetInner, { paddingBottom: bottomInset + 16 }]}>
-                {/* Card preview */}
-                <View style={s.cardPreview}>
-                  <Image
-                    source={{ uri: card.image }}
-                    style={s.previewImage}
-                    contentFit="cover"
-                    transition={150}
-                  />
-                  <View style={s.previewInfo}>
-                    <Text style={s.previewTitle} numberOfLines={2}>
-                      {card.title}
-                    </Text>
-                    <View style={s.pointsRow}>
-                      <Gift size={14} color={primaryColor} />
-                      <Text style={[s.pointsLabel, { color: primaryColor }]}>
-                        {t('selectedSheet.pointsPerCard', { points: formatPoints(card.points) })}
-                      </Text>
-                    </View>
-                    <Text style={s.previewPrice}>{t('selectedSheet.pricePerCard', { price: formatCurrency(card.price) })}</Text>
-                  </View>
-                </View>
-
-                <View style={s.divider} />
-
-                {/* Quantity selector */}
-                <View style={s.qtySection}>
-                  <Text style={s.qtyLabel}>{t('selectedSheet.quantity')}</Text>
-                  <View style={s.qtyControls}>
-                    <Pressable
-                      onPress={handleDecrement}
-                      disabled={quantity <= MIN_QTY}
-                      style={[s.qtyBtn, quantity <= MIN_QTY && s.qtyBtnDisabled]}
-                    >
-                      <Minus size={18} color={quantity <= MIN_QTY ? colors.gray[400] : colors.gray[700]} />
-                    </Pressable>
-                    <Text style={s.qtyValue}>{quantity}</Text>
-                    <Pressable
-                      onPress={handleIncrement}
-                      disabled={quantity >= MAX_QTY}
-                      style={[s.qtyBtn, quantity >= MAX_QTY && s.qtyBtnDisabled]}
-                    >
-                      <Plus size={18} color={quantity >= MAX_QTY ? colors.gray[400] : colors.gray[700]} />
-                    </Pressable>
-                  </View>
-                </View>
-
-                <View style={s.divider} />
-
-                {/* Total summary */}
-                <View style={s.summary}>
-                  <View style={s.summaryRow}>
-                    <Text style={s.summaryKey}>{t('selectedSheet.totalAmount')}</Text>
-                    <Text style={s.summaryValue}>{formatCurrency(totalAmount)}</Text>
-                  </View>
-                  <View style={s.summaryRow}>
-                    <Text style={s.summaryKey}>{t('selectedSheet.pointsEarned')}</Text>
-                    <Text style={[s.summaryPoints, { color: primaryColor }]}>
-                      +{formatPoints(totalPoints)} điểm
-                    </Text>
-                  </View>
-                </View>
-
-                {/* Add to cart button */}
-                <Pressable
-                  onPress={handleAddToCart}
-                  style={[s.addBtn, { backgroundColor: primaryColor }]}
-                >
-                  <Text style={s.addBtnText}>{t('selectedSheet.addToCart')}</Text>
-                </Pressable>
+  return (
+    <>
+      <BottomSheetModal
+        ref={sheetRef}
+        snapPoints={SNAP_POINTS}
+        enablePanDownToClose
+        enableDynamicSizing={false}
+        backdropComponent={renderBackdrop}
+        backgroundStyle={bgStyle}
+        handleIndicatorStyle={{ backgroundColor: colors.gray[300] }}
+        onDismiss={onClose}
+      >
+        <View style={[s.sheetInner, { paddingBottom: bottomInset + 16 }]}>
+          {/* Card preview */}
+          <View style={s.cardPreview}>
+            <Image
+              source={{ uri: card.image }}
+              style={s.previewImage}
+              contentFit="cover"
+              transition={150}
+            />
+            <View style={s.previewInfo}>
+              <Text style={s.previewTitle} numberOfLines={2}>
+                {card.title}
+              </Text>
+              <View style={s.pointsRow}>
+                <Gift size={14} color={primaryColor} />
+                <Text style={[s.pointsLabel, { color: primaryColor }]}>
+                  {t('selectedSheet.pointsPerCard', {
+                    points: formatPoints(card.points),
+                  })}
+                </Text>
               </View>
-            </BottomSheetModal>
+              <Text style={s.previewPrice}>
+                {t('selectedSheet.pricePerCard', {
+                  price: formatCurrency(card.price),
+                })}
+              </Text>
+            </View>
+          </View>
 
-        {/* Replace warning */}
-        {existingItem && showWarning && (
-          <GiftCardExistsWarningDialog
-            open={showWarning}
-            currentCard={{
-              slug: existingItem.slug,
-              title: existingItem.title,
-              image: existingItem.image,
-              description: existingItem.description ?? '',
-              price: existingItem.price,
-              points: existingItem.points,
-              isActive: existingItem.isActive ?? true,
-              version: existingItem.version ?? 1,
-            }}
-            currentQuantity={existingItem.quantity}
-            newCard={card}
-            newQuantity={quantity}
-            onCancel={handleCancelReplace}
-            onReplace={handleReplace}
-          />
-        )}
-      </>
-    )
-  },
-)
+          <View style={s.divider} />
+
+          {/* Quantity selector */}
+          <View style={s.qtySection}>
+            <Text style={s.qtyLabel}>{t('selectedSheet.quantity')}</Text>
+            <View style={s.qtyControls}>
+              <Pressable
+                onPress={handleDecrement}
+                disabled={quantity <= MIN_QTY}
+                style={[s.qtyBtn, quantity <= MIN_QTY && s.qtyBtnDisabled]}
+              >
+                <Minus
+                  size={18}
+                  color={
+                    quantity <= MIN_QTY ? colors.gray[400] : colors.gray[700]
+                  }
+                />
+              </Pressable>
+              <Text style={s.qtyValue}>{quantity}</Text>
+              <Pressable
+                onPress={handleIncrement}
+                disabled={quantity >= MAX_QTY}
+                style={[s.qtyBtn, quantity >= MAX_QTY && s.qtyBtnDisabled]}
+              >
+                <Plus
+                  size={18}
+                  color={
+                    quantity >= MAX_QTY ? colors.gray[400] : colors.gray[700]
+                  }
+                />
+              </Pressable>
+            </View>
+          </View>
+
+          <View style={s.divider} />
+
+          {/* Total summary */}
+          <View style={s.summary}>
+            <View style={s.summaryRow}>
+              <Text style={s.summaryKey}>{t('selectedSheet.totalAmount')}</Text>
+              <Text style={s.summaryValue}>{formatCurrency(totalAmount)}</Text>
+            </View>
+            <View style={s.summaryRow}>
+              <Text style={s.summaryKey}>
+                {t('selectedSheet.pointsEarned')}
+              </Text>
+              <Text style={[s.summaryPoints, { color: primaryColor }]}>
+                +{formatPoints(totalPoints)} điểm
+              </Text>
+            </View>
+          </View>
+
+          {/* Add to cart button */}
+          <Pressable
+            onPress={handleAddToCart}
+            style={[s.addBtn, { backgroundColor: primaryColor }]}
+          >
+            <Text style={s.addBtnText}>{t('selectedSheet.addToCart')}</Text>
+          </Pressable>
+        </View>
+      </BottomSheetModal>
+
+      {/* Replace warning */}
+      {existingItem && showWarning && (
+        <GiftCardExistsWarningDialog
+          open={showWarning}
+          currentCard={{
+            slug: existingItem.slug,
+            title: existingItem.title,
+            image: existingItem.image,
+            description: existingItem.description ?? '',
+            price: existingItem.price,
+            points: existingItem.points,
+            isActive: existingItem.isActive ?? true,
+            version: existingItem.version ?? 1,
+          }}
+          currentQuantity={existingItem.quantity}
+          newCard={card}
+          newQuantity={quantity}
+          onCancel={handleCancelReplace}
+          onReplace={handleReplace}
+        />
+      )}
+    </>
+  )
+})
 
 const s = StyleSheet.create({
   sheetInner: {

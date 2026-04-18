@@ -25,7 +25,9 @@ export function NoteInput({
         <Textarea
           value={value}
           defaultValue={value}
-          className={className || 'min-h-[60px] text-sm shadow-none dark:border-gray-700'}
+          className={
+            className || 'min-h-[60px] text-sm shadow-none dark:border-gray-700'
+          }
           placeholder={placeholder}
           onChangeText={onChange}
         />
@@ -33,4 +35,3 @@ export function NoteInput({
     </View>
   )
 }
-

@@ -48,7 +48,9 @@ export function createOrderingItemsMethods(set: SetFn, get: GetFn) {
         }
         set({
           currentStep: OrderFlowStep.ORDERING,
-          orderItemTotalQuantity: calcOrderItemTotalQuantity(newOrderingData.orderItems),
+          orderItemTotalQuantity: calcOrderItemTotalQuantity(
+            newOrderingData.orderItems,
+          ),
           minOrderValue: calcMinOrderValue(newOrderingData.orderItems),
           orderingData: newOrderingData,
           paymentData: null,

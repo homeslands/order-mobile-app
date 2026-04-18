@@ -3,11 +3,22 @@ import React, { useMemo } from 'react'
 import { StyleSheet, Text, TextInput, View } from 'react-native'
 
 import { Images } from '@/assets/images'
-import { APPLICABILITY_RULE, colors, publicFileURL, VOUCHER_TYPE } from '@/constants'
+import {
+  APPLICABILITY_RULE,
+  colors,
+  publicFileURL,
+  VOUCHER_TYPE,
+} from '@/constants'
 import type { IOrderItems } from '@/types'
-import { calculateOrderDisplayAndTotals, capitalizeFirstLetter, formatCurrency } from '@/utils'
+import {
+  calculateOrderDisplayAndTotals,
+  capitalizeFirstLetter,
+  formatCurrency,
+} from '@/utils'
 
-export type DisplayItemData = ReturnType<typeof calculateOrderDisplayAndTotals>['displayItems'][number]
+export type DisplayItemData = ReturnType<
+  typeof calculateOrderDisplayAndTotals
+>['displayItems'][number]
 
 export const PaymentProductItem = React.memo(function PaymentProductItem({
   item,
@@ -20,7 +31,11 @@ export const PaymentProductItem = React.memo(function PaymentProductItem({
 }: {
   item: IOrderItems
   displayItem: DisplayItemData | null
-  voucher: { type?: string; applicabilityRule?: string; voucherProducts?: { product?: { slug?: string } }[] } | null
+  voucher: {
+    type?: string
+    applicabilityRule?: string
+    voucherProducts?: { product?: { slug?: string } }[]
+  } | null
   primaryColor: string
   isDark: boolean
   isLast: boolean
@@ -57,7 +72,21 @@ export const PaymentProductItem = React.memo(function PaymentProductItem({
   }, [item.variant, item.quantity, displayItem, voucher])
 
   return (
-    <View style={!isLast ? [pItemStyles.row, pItemStyles.rowBorder, { borderBottomColor: isDark ? colors.border.dark : colors.border.light }] : pItemStyles.row}>
+    <View
+      style={
+        !isLast
+          ? [
+              pItemStyles.row,
+              pItemStyles.rowBorder,
+              {
+                borderBottomColor: isDark
+                  ? colors.border.dark
+                  : colors.border.light,
+              },
+            ]
+          : pItemStyles.row
+      }
+    >
       <View style={pItemStyles.contentRow}>
         <View style={pItemStyles.imageWrap}>
           <ExpoImage
@@ -70,17 +99,38 @@ export const PaymentProductItem = React.memo(function PaymentProductItem({
             contentFit="cover"
             cachePolicy="disk"
           />
-          <View style={[pItemStyles.qtyBadge, { backgroundColor: primaryColor }]}>
+          <View
+            style={[pItemStyles.qtyBadge, { backgroundColor: primaryColor }]}
+          >
             <Text style={pItemStyles.qtyText}>x{item.quantity}</Text>
           </View>
         </View>
 
         <View style={pItemStyles.info}>
-          <Text style={[pItemStyles.name, { color: isDark ? colors.gray[50] : colors.gray[900] }]} numberOfLines={2}>
+          <Text
+            style={[
+              pItemStyles.name,
+              { color: isDark ? colors.gray[50] : colors.gray[900] },
+            ]}
+            numberOfLines={2}
+          >
             {capitalizeFirstLetter(item.variant?.product?.name || '')}
           </Text>
-          <View style={[pItemStyles.sizeBadge, { borderColor: primaryColor, backgroundColor: isDark ? colors.gray[800] : `${primaryColor}18` }]}>
-            <Text style={[pItemStyles.sizeText, { color: primaryColor }]} numberOfLines={1}>
+          <View
+            style={[
+              pItemStyles.sizeBadge,
+              {
+                borderColor: primaryColor,
+                backgroundColor: isDark
+                  ? colors.gray[800]
+                  : `${primaryColor}18`,
+              },
+            ]}
+          >
+            <Text
+              style={[pItemStyles.sizeText, { color: primaryColor }]}
+              numberOfLines={1}
+            >
               {capitalizeFirstLetter(item.variant?.size?.name || '')}
             </Text>
           </View>
@@ -88,19 +138,36 @@ export const PaymentProductItem = React.memo(function PaymentProductItem({
 
         <View style={pItemStyles.priceCol}>
           {shouldShowLineThrough && (
-            <Text style={[pItemStyles.priceStrike, { color: isDark ? colors.gray[500] : colors.gray[400] }]}>{formatCurrency(original * item.quantity)}</Text>
+            <Text
+              style={[
+                pItemStyles.priceStrike,
+                { color: isDark ? colors.gray[500] : colors.gray[400] },
+              ]}
+            >
+              {formatCurrency(original * item.quantity)}
+            </Text>
           )}
-          <Text style={[pItemStyles.priceMain, { color: primaryColor }]}>{formatCurrency(displayPrice)}</Text>
+          <Text style={[pItemStyles.priceMain, { color: primaryColor }]}>
+            {formatCurrency(displayPrice)}
+          </Text>
         </View>
       </View>
 
       {item.note ? (
-        <View style={[pItemStyles.noteWrap, { backgroundColor: isDark ? colors.gray[700] : colors.gray[50] }]}>
+        <View
+          style={[
+            pItemStyles.noteWrap,
+            { backgroundColor: isDark ? colors.gray[700] : colors.gray[50] },
+          ]}
+        >
           <TextInput
             value={item.note}
             editable={false}
             multiline
-            style={[pItemStyles.noteInput, { color: isDark ? colors.gray[400] : colors.gray[600] }]}
+            style={[
+              pItemStyles.noteInput,
+              { color: isDark ? colors.gray[400] : colors.gray[600] },
+            ]}
             placeholder={noNoteLabel}
           />
         </View>
@@ -111,19 +178,47 @@ export const PaymentProductItem = React.memo(function PaymentProductItem({
 
 export const pItemStyles = StyleSheet.create({
   row: {},
-  rowBorder: { marginBottom: 16, paddingBottom: 16, borderBottomWidth: StyleSheet.hairlineWidth },
+  rowBorder: {
+    marginBottom: 16,
+    paddingBottom: 16,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
   contentRow: { flexDirection: 'row', gap: 16, alignItems: 'flex-start' },
   imageWrap: { position: 'relative', width: 64, height: 64 },
   image: { width: 64, height: 64, borderRadius: 8 },
-  qtyBadge: { position: 'absolute', right: -8, bottom: -8, width: 24, height: 24, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  qtyBadge: {
+    position: 'absolute',
+    right: -8,
+    bottom: -8,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   qtyText: { fontSize: 10, fontWeight: '700', color: '#fff' },
   info: { flex: 1, gap: 4 },
   name: { fontSize: 14, fontWeight: '600', marginBottom: 2 },
-  sizeBadge: { alignSelf: 'flex-start', borderWidth: 1, borderRadius: 6, paddingHorizontal: 8, paddingVertical: 2 },
+  sizeBadge: {
+    alignSelf: 'flex-start',
+    borderWidth: 1,
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+  },
   sizeText: { fontSize: 12, fontWeight: '500' },
   priceCol: { alignItems: 'flex-end' },
-  priceStrike: { fontSize: 14, textDecorationLine: 'line-through', marginBottom: 2 },
+  priceStrike: {
+    fontSize: 14,
+    textDecorationLine: 'line-through',
+    marginBottom: 2,
+  },
   priceMain: { fontSize: 14, fontWeight: '600' },
   noteWrap: { marginTop: 8, borderRadius: 8 },
-  noteInput: { width: '100%', fontSize: 12, padding: 8, fontFamily: 'BeVietnamPro_400Regular' },
+  noteInput: {
+    width: '100%',
+    fontSize: 12,
+    padding: 8,
+    fontFamily: 'BeVietnamPro_400Regular',
+  },
 })

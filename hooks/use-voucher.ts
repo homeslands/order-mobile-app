@@ -1,48 +1,48 @@
 import { keepPreviousData, useMutation, useQuery } from '@tanstack/react-query'
 
 import {
-    applyVoucher,
-    createMultipleVoucher,
-    createVoucher,
-    createVoucherForUserGroup,
-    createVoucherGroup,
-    deleteVoucher,
-    deleteVoucherForUserGroup,
-    deleteVoucherPaymentMethod,
-    getPublicVouchersForOrder,
-    getSpecificPublicVoucher,
-    getSpecificVoucher,
-    getVoucherGroups,
-    getVouchers,
-    getVouchersForOrder,
-    removeAppliedVoucher,
-    updateVoucher,
-    updateVoucherGroup,
-    updateVoucherGroupApplyTime,
-    updateVoucherPaymentMethod,
-    validatePublicVoucher,
-    validatePublicVoucherPaymentMethod,
-    validateVoucher,
-    validateVoucherPaymentMethod,
+  applyVoucher,
+  createMultipleVoucher,
+  createVoucher,
+  createVoucherForUserGroup,
+  createVoucherGroup,
+  deleteVoucher,
+  deleteVoucherForUserGroup,
+  deleteVoucherPaymentMethod,
+  getPublicVouchersForOrder,
+  getSpecificPublicVoucher,
+  getSpecificVoucher,
+  getVoucherGroups,
+  getVouchers,
+  getVouchersForOrder,
+  removeAppliedVoucher,
+  updateVoucher,
+  updateVoucherGroup,
+  updateVoucherGroupApplyTime,
+  updateVoucherPaymentMethod,
+  validatePublicVoucher,
+  validatePublicVoucherPaymentMethod,
+  validateVoucher,
+  validateVoucherPaymentMethod,
 } from '@/api'
 import { QUERYKEY } from '@/constants'
 import {
-    IApplyVoucherRequest,
-    ICreateMultipleVoucherRequest,
-    ICreateVoucherForUserGroupRequest,
-    ICreateVoucherGroupRequest,
-    ICreateVoucherRequest,
-    IDeleteVoucherForUserGroupRequest,
-    IGetAllVoucherGroupRequest,
-    IGetAllVoucherRequest,
-    IGetSpecificVoucherRequest,
-    IRemoveAppliedVoucherRequest,
-    IUpdateVoucherGroupApplyTimeRequest,
-    IUpdateVoucherGroupRequest,
-    IUpdateVoucherPaymentMethodParamToRequest,
-    IUpdateVoucherRequest,
-    IValidateVoucherPaymentMethodRequest,
-    IValidateVoucherRequest,
+  IApplyVoucherRequest,
+  ICreateMultipleVoucherRequest,
+  ICreateVoucherForUserGroupRequest,
+  ICreateVoucherGroupRequest,
+  ICreateVoucherRequest,
+  IDeleteVoucherForUserGroupRequest,
+  IGetAllVoucherGroupRequest,
+  IGetAllVoucherRequest,
+  IGetSpecificVoucherRequest,
+  IRemoveAppliedVoucherRequest,
+  IUpdateVoucherGroupApplyTimeRequest,
+  IUpdateVoucherGroupRequest,
+  IUpdateVoucherPaymentMethodParamToRequest,
+  IUpdateVoucherRequest,
+  IValidateVoucherPaymentMethodRequest,
+  IValidateVoucherRequest,
 } from '@/types'
 
 export const useVoucherGroups = (params?: IGetAllVoucherGroupRequest) => {
@@ -112,9 +112,10 @@ export const useSpecificVoucher = (
   data: IGetSpecificVoucherRequest,
   enabled?: boolean,
 ) => {
-  const isEnabled = enabled !== undefined 
-    ? enabled && Boolean(data?.code || data?.slug)
-    : Boolean(data?.code || data?.slug)
+  const isEnabled =
+    enabled !== undefined
+      ? enabled && Boolean(data?.code || data?.slug)
+      : Boolean(data?.code || data?.slug)
   return useQuery({
     queryKey: [QUERYKEY.specificVoucher, data],
     queryFn: () => getSpecificVoucher(data),

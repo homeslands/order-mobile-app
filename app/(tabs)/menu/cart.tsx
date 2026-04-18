@@ -13,7 +13,15 @@ import {
 } from '@gorhom/bottom-sheet'
 import { Stack, useRouter } from 'expo-router'
 import { Trash2 } from 'lucide-react-native'
-import React, { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+  Suspense,
+  lazy,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { TouchableOpacity as GHTouchable } from 'react-native-gesture-handler'
@@ -95,42 +103,69 @@ function ClearCartSheet({
       handleIndicatorStyle={handleIndicator}
       onDismiss={onClose}
     >
-          <View style={[confirmStyles.content, { paddingBottom: insets.bottom + 16 }]}>
-            <View style={confirmStyles.body}>
-              <Trash2 size={32} color={colors.destructive.light} />
-              <Text style={[confirmStyles.title, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>
-                {t('cart.confirmTitle')}
-              </Text>
-              <Text style={[confirmStyles.desc, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>
-                {t('cart.confirmDesc')}
-              </Text>
-            </View>
+      <View
+        style={[confirmStyles.content, { paddingBottom: insets.bottom + 16 }]}
+      >
+        <View style={confirmStyles.body}>
+          <Trash2 size={32} color={colors.destructive.light} />
+          <Text
+            style={[
+              confirmStyles.title,
+              { color: isDark ? colors.gray[50] : colors.gray[900] },
+            ]}
+          >
+            {t('cart.confirmTitle')}
+          </Text>
+          <Text
+            style={[
+              confirmStyles.desc,
+              { color: isDark ? colors.gray[400] : colors.gray[500] },
+            ]}
+          >
+            {t('cart.confirmDesc')}
+          </Text>
+        </View>
 
-            <View style={confirmStyles.btnRow}>
-              <View style={confirmStyles.btnWrap}>
-                <GHTouchable
-                  onPress={dismissSheet}
-                  activeOpacity={0.8}
-                  style={[confirmStyles.btn, { backgroundColor: isDark ? colors.gray[700] : colors.gray[100] }]}
-                >
-                  <Text style={[confirmStyles.btnText, { color: isDark ? colors.gray[50] : colors.gray[700] }]}>
-                    {t('menu.cancel')}
-                  </Text>
-                </GHTouchable>
-              </View>
-              <View style={confirmStyles.btnWrap}>
-                <GHTouchable
-                  onPress={handleConfirmPress}
-                  activeOpacity={0.8}
-                  style={[confirmStyles.btn, { backgroundColor: colors.destructive.light }]}
-                >
-                  <Text style={[confirmStyles.btnText, { color: colors.white.light }]}>
-                    {t('cart.clearAll')}
-                  </Text>
-                </GHTouchable>
-              </View>
-            </View>
+        <View style={confirmStyles.btnRow}>
+          <View style={confirmStyles.btnWrap}>
+            <GHTouchable
+              onPress={dismissSheet}
+              activeOpacity={0.8}
+              style={[
+                confirmStyles.btn,
+                {
+                  backgroundColor: isDark ? colors.gray[700] : colors.gray[100],
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  confirmStyles.btnText,
+                  { color: isDark ? colors.gray[50] : colors.gray[700] },
+                ]}
+              >
+                {t('menu.cancel')}
+              </Text>
+            </GHTouchable>
           </View>
+          <View style={confirmStyles.btnWrap}>
+            <GHTouchable
+              onPress={handleConfirmPress}
+              activeOpacity={0.8}
+              style={[
+                confirmStyles.btn,
+                { backgroundColor: colors.destructive.light },
+              ]}
+            >
+              <Text
+                style={[confirmStyles.btnText, { color: colors.white.light }]}
+              >
+                {t('cart.clearAll')}
+              </Text>
+            </GHTouchable>
+          </View>
+        </View>
+      </View>
     </BottomSheetModal>
   )
 }
@@ -218,14 +253,39 @@ const clearBtnStyles = StyleSheet.create({
 
 // ─── Skeleton Shell ──────────────────────────────────────────────────────────
 
-function CartShell({ onBack, isDark }: { onBack: () => void; isDark: boolean }) {
+function CartShell({
+  onBack,
+  isDark,
+}: {
+  onBack: () => void
+  isDark: boolean
+}) {
   const { t } = useTranslation('menu')
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? colors.background.dark : colors.background.light }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: isDark
+          ? colors.background.dark
+          : colors.background.light,
+      }}
+    >
       <FloatingHeader title={t('cart.title')} onBack={onBack} disableBlur />
       <View style={{ padding: 16, gap: 12, paddingTop: 80 }}>
-        <View style={{ height: 88, borderRadius: 14, backgroundColor: isDark ? colors.gray[800] : colors.gray[100] }} />
-        <View style={{ height: 88, borderRadius: 14, backgroundColor: isDark ? colors.gray[800] : colors.gray[100] }} />
+        <View
+          style={{
+            height: 88,
+            borderRadius: 14,
+            backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
+          }}
+        />
+        <View
+          style={{
+            height: 88,
+            borderRadius: 14,
+            backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
+          }}
+        />
       </View>
     </View>
   )
@@ -252,18 +312,30 @@ export default function MenuCartScreen() {
   }, [router])
 
   const handleOpenClearSheet = useCallback(() => setClearSheetVisible(true), [])
-  const handleCloseClearSheet = useCallback(() => setClearSheetVisible(false), [])
+  const handleCloseClearSheet = useCallback(
+    () => setClearSheetVisible(false),
+    [],
+  )
   const handleConfirmClear = useCallback(() => {
     clearCart()
   }, [clearCart])
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? colors.background.dark : colors.background.light }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: isDark
+          ? colors.background.dark
+          : colors.background.light,
+      }}
+    >
       <Stack.Screen options={{ statusBarStyle: isDark ? 'light' : 'dark' }} />
 
       {contentReady ? (
         <>
-          <Suspense fallback={<View style={{ flex: 1 }} pointerEvents="none" />}>
+          <Suspense
+            fallback={<View style={{ flex: 1 }} pointerEvents="none" />}
+          >
             <CartContent scrollY={scrollY} />
           </Suspense>
           <FloatingHeader

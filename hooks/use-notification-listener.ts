@@ -48,6 +48,7 @@ function expoToPayload(
 ): NotificationPayload {
   const content = notification.request.content
   const data = (content.data ?? {}) as Record<string, string>
+
   return {
     notification: {
       title: content.title ?? undefined,
@@ -61,77 +62,32 @@ function expoToPayload(
 export function useNotificationListener(enabled = true) {
   const listenerRef = useRef<Notifications.EventSubscription | null>(null)
 
-  if (__DEV__) {
-    // eslint-disable-next-line no-console
-    console.log('[FCM] useNotificationListener called, enabled:', enabled)
-  }
-
   useEffect(() => {
-    if (__DEV__) {
-      // eslint-disable-next-line no-console
-      console.log('[FCM] useNotificationListener effect running, enabled:', enabled)
-    }
     if (!enabled) return
 
     // Foreground notification received
-    listenerRef.current =
-      Notifications.addNotificationReceivedListener((notification) => {
+    listenerRef.current = Notifications.addNotificationReceivedListener(
+      (notification) => {
         const payload = expoToPayload(notification)
-
-        if (__DEV__) {
-          // eslint-disable-next-line no-console
-          console.log('[FCM] 📬 Foreground notification received:', {
-            title: payload.notification?.title,
-            body: payload.notification?.body,
-            data: payload.data,
-            messageId: payload.messageId,
-          })
-        }
 
         // Add to store
         useNotificationStore
           .getState()
           .addNotification(payload, { markAsRead: false })
 
-        if (__DEV__) {
-          // eslint-disable-next-line no-console
-          console.log('[FCM] Store unread count:', useNotificationStore.getState().getUnreadCount())
-        }
-
         // Toast
-        const title =
-          payload.notification?.title || 'Thông báo'
+        const title = payload.notification?.title || 'Thông báo'
         const body = payload.notification?.body || ''
         if (body) {
-          if (__DEV__) {
-            // eslint-disable-next-line no-console
-            console.log('[FCM] Showing toast:', { title, body })
-          }
           showToast(body, title)
         }
 
         // Sound
-        if (__DEV__) {
-          // eslint-disable-next-line no-console
-          console.log('[FCM] Playing notification sound...')
-        }
-        playNotificationSound().catch((e: unknown) => {
-          if (__DEV__) {
-            // eslint-disable-next-line no-console
-            console.error('[FCM] Sound playback failed:', e)
-          }
-        })
-      })
+        playNotificationSound().catch(() => {})
+      },
+    )
 
-    if (__DEV__) {
-      // eslint-disable-next-line no-console
-      console.log('[FCM] ✅ Foreground listener registered')
-    }
     return () => {
-      if (__DEV__) {
-        // eslint-disable-next-line no-console
-        console.log('[FCM] Removing foreground listener')
-      }
       listenerRef.current?.remove()
       listenerRef.current = null
     }

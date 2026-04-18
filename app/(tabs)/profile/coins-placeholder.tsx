@@ -13,14 +13,23 @@ export default function CoinsPlaceholder() {
 
   return (
     <ScreenContainer edges={['top']} className="flex-1">
-      <View style={[styles.header, {
-        backgroundColor: isDark ? colors.card.dark : colors.card.light,
-        borderBottomColor: isDark ? colors.border.dark : colors.border.light,
-      }]}>
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: isDark ? colors.card.dark : colors.card.light,
+            borderBottomColor: isDark
+              ? colors.border.dark
+              : colors.border.light,
+          },
+        ]}
+      >
         <Pressable style={styles.backHitSlop} onPress={() => router.back()}>
           <Text style={[styles.backLabel, { color: textColor }]}>{'‹'}</Text>
         </Pressable>
-        <Text style={[styles.headerTitle, { color: textColor }]}>Xu của tôi</Text>
+        <Text style={[styles.headerTitle, { color: textColor }]}>
+          Xu của tôi
+        </Text>
         <View style={styles.headerRightSpacer} />
       </View>
 

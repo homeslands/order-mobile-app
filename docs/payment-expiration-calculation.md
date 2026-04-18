@@ -16,6 +16,7 @@ Formula:
 ```
 
 **Cấu hình:**
+
 - **Duration**: 900 giây (15 phút) - có thể thay đổi via env var
 - **Environment Variable**: `VITE_ORDER_EXPIRATION_TIME_SECONDS=900`
 - **Update Interval**: Cập nhật mỗi 1 giây (countdown)
@@ -32,13 +33,15 @@ Formula:
 ```
 
 **Frontend Configuration** - File: `order-ui/src/constants/env.ts` (Lines 11-13)
+
 ```typescript
 export const orderExpirationTimeInSeconds = Number(
-  import.meta.env.VITE_ORDER_EXPIRATION_TIME_SECONDS || '900'
+  import.meta.env.VITE_ORDER_EXPIRATION_TIME_SECONDS || '900',
 )
 ```
 
 **Environment File** - `.env`
+
 ```
 VITE_ORDER_EXPIRATION_TIME_SECONDS=900
 ```
@@ -46,12 +49,14 @@ VITE_ORDER_EXPIRATION_TIME_SECONDS=900
 ### 2.2 Network Buffer
 
 File: `order-ui/src/components/ui/countdown-timer.tsx` (Line 26)
+
 ```typescript
 // 30 second buffer để xử lý network delays
 const remaining = Math.max(0, remainingTime - 30000)
 ```
 
 **Lý do:**
+
 - Để dự phòng network delay
 - Đảm bảo user có 30 giây để hoàn thành payment trước khi UI cảnh báo hết hạn
 
@@ -80,6 +85,7 @@ async initiate(createPaymentDto: CreatePaymentDto) {
 ```
 
 **Payment Entity** - File: `order-api/src/payment/entity/payment.entity.ts`
+
 ```typescript
 @Entity('payment')
 export class PaymentEntity extends Base {
@@ -107,10 +113,10 @@ createdAt: Date  // ← Timestamp khi payment được tạo
 
 ```typescript
 export enum PaymentStatus {
-  PENDING = 'pending',      // Chờ thanh toán
-  COMPLETED = 'completed',  // Đã thanh toán
-  FAILED = 'failed',        // Thất bại
-  CANCELLED = 'cancelled'   // Đã hủy (timeout)
+  PENDING = 'pending', // Chờ thanh toán
+  COMPLETED = 'completed', // Đã thanh toán
+  FAILED = 'failed', // Thất bại
+  CANCELLED = 'cancelled', // Đã hủy (timeout)
 }
 ```
 
@@ -159,6 +165,7 @@ const OrderCountdown = ({ createdAt }: { createdAt: Date }) => {
 ```
 
 **Công thức tính:**
+
 ```
 Time Passed (seconds) = now.diff(createdAt, 'seconds')
 Remaining Time = 900 - Time Passed
@@ -178,13 +185,13 @@ Khi Remaining <= 0:
 
 ### 4.2 Countdown Components
 
-| Component | File | Timeout | Update | Purpose |
-|-----------|------|---------|--------|---------|
-| **OrderCountdown** | countdown/OrderCountdown.tsx | 900s | 1s | Draggable widget, desktop |
-| **CustomerDisplayCountdown** | countdown/customer-display-countdown.tsx | 900s | 1s | Top banner, responsive |
-| **PaymentCountdown** | countdown/PaymentCountdown.tsx | Variable | N/A | Receives pre-calc time |
-| **GiftCardCountdown** | countdown/GiftCardCountdown.tsx | Env var | 1s | Gift card checkout |
-| **CountdownTimer** | ui/countdown-timer.tsx | Configurable | 1s | Reusable with 30s buffer |
+| Component                    | File                                     | Timeout      | Update | Purpose                   |
+| ---------------------------- | ---------------------------------------- | ------------ | ------ | ------------------------- |
+| **OrderCountdown**           | countdown/OrderCountdown.tsx             | 900s         | 1s     | Draggable widget, desktop |
+| **CustomerDisplayCountdown** | countdown/customer-display-countdown.tsx | 900s         | 1s     | Top banner, responsive    |
+| **PaymentCountdown**         | countdown/PaymentCountdown.tsx           | Variable     | N/A    | Receives pre-calc time    |
+| **GiftCardCountdown**        | countdown/GiftCardCountdown.tsx          | Env var      | 1s     | Gift card checkout        |
+| **CountdownTimer**           | ui/countdown-timer.tsx                   | Configurable | 1s     | Reusable with 30s buffer  |
 
 ### 4.3 CustomerDisplayCountdown Example
 
@@ -245,7 +252,7 @@ const startPolling = () => {
     } catch (error) {
       console.error('Polling error:', error)
     }
-  }, 2000)  // ← Polling mỗi 2 giây
+  }, 2000) // ← Polling mỗi 2 giây
 }
 ```
 
@@ -254,6 +261,7 @@ const startPolling = () => {
 **File**: `order-ui/src/app/client/payment/page.tsx` (Lines 218-262)
 
 Polling **DỪNG** khi:
+
 1. `isExpired === true` (hết hạn countdown)
 2. `OrderStatus === PAID` (đã thanh toán)
 3. Amount matches order subtotal AND không có QR code
@@ -292,7 +300,7 @@ useEffect(() => {
 export const useGiftCardPolling = (
   orderId: string,
   expirationTimeInSeconds: number,
-  onExpired?: () => void
+  onExpired?: () => void,
 ) => {
   const [isPolling, setIsPolling] = useState(false)
 
@@ -307,14 +315,14 @@ export const useGiftCardPolling = (
         // Tính expiry time
         const orderDate = new Date(order.createdAt)
         const expiryDate = new Date(
-          orderDate.getTime() + expirationTimeInSeconds * 1000
+          orderDate.getTime() + expirationTimeInSeconds * 1000,
         )
         const now = new Date()
 
         // Kiểm tra hết hạn
         if (now > expiryDate) {
           setIsPolling(false)
-          onExpired?.()  // Gọi callback khi hết hạn
+          onExpired?.() // Gọi callback khi hết hạn
           return
         }
 
@@ -327,7 +335,7 @@ export const useGiftCardPolling = (
       } catch (error) {
         console.error('Polling error:', error)
       }
-    }, 30000)  // ← Polling mỗi 30 giây
+    }, 30000) // ← Polling mỗi 30 giây
 
     return () => clearInterval(polling)
   }, [isPolling])
@@ -391,6 +399,7 @@ async cancelPayment(paymentId: string) {
 **Option 1: Environment Variable**
 
 File: `.env`
+
 ```
 # Thay đổi từ 900 sang 1200 (20 phút)
 VITE_ORDER_EXPIRATION_TIME_SECONDS=1200
@@ -399,9 +408,10 @@ VITE_ORDER_EXPIRATION_TIME_SECONDS=1200
 **Option 2: Programmatic**
 
 File: `order-ui/src/constants/env.ts`
+
 ```typescript
 // Hardcode timeout
-export const orderExpirationTimeInSeconds = 1200  // 20 minutes
+export const orderExpirationTimeInSeconds = 1200 // 20 minutes
 ```
 
 ### 8.2 Backend System Config (Không dùng cho Payment Timeout)
@@ -411,8 +421,8 @@ export const orderExpirationTimeInSeconds = 1200  // 20 minutes
 ```typescript
 export const SYSTEM_CONFIG_KEY = {
   // ... other configs
-  GRACE_PERIOD_VOUCHER: 'GRACE_PERIOD_VOUCHER',  // Voucher grace period
-  MODE_CANCEL_QR_BANK_TRANSFER: 'MODE_CANCEL_QR_BANK_TRANSFER',  // QR cancellation
+  GRACE_PERIOD_VOUCHER: 'GRACE_PERIOD_VOUCHER', // Voucher grace period
+  MODE_CANCEL_QR_BANK_TRANSFER: 'MODE_CANCEL_QR_BANK_TRANSFER', // QR cancellation
   // Payment timeout hiện không có system config - hardcoded 900s
 }
 ```
@@ -626,31 +636,33 @@ If interval were too short (e.g., 500ms):
 
 ## 12. Summary Table
 
-| Aspect | Value | Notes |
-|--------|-------|-------|
-| **Timeout Duration** | 900 seconds (15 min) | Configurable via env var |
-| **Env Variable** | VITE_ORDER_EXPIRATION_TIME_SECONDS | Default: 900 |
-| **Countdown Update** | Every 1 second | Uses setInterval |
-| **Polling Interval** | 2 seconds | For order status check |
-| **Gift Card Polling** | 30 seconds | Less frequent updates |
-| **Network Buffer** | 30 seconds | Subtracted from countdown |
-| **Start Time** | payment.createdAt | Timestamp from backend |
-| **Expiration Check** | remaining <= 0 | When 15 min passes |
-| **Cancellation** | Automatic on expiry | Calls clearStore() |
-| **QR Code Cancellation** | Optional | Requires system config |
-| **Backend Config** | System config table | GRACE_PERIOD_VOUCHER, etc |
+| Aspect                   | Value                              | Notes                     |
+| ------------------------ | ---------------------------------- | ------------------------- |
+| **Timeout Duration**     | 900 seconds (15 min)               | Configurable via env var  |
+| **Env Variable**         | VITE_ORDER_EXPIRATION_TIME_SECONDS | Default: 900              |
+| **Countdown Update**     | Every 1 second                     | Uses setInterval          |
+| **Polling Interval**     | 2 seconds                          | For order status check    |
+| **Gift Card Polling**    | 30 seconds                         | Less frequent updates     |
+| **Network Buffer**       | 30 seconds                         | Subtracted from countdown |
+| **Start Time**           | payment.createdAt                  | Timestamp from backend    |
+| **Expiration Check**     | remaining <= 0                     | When 15 min passes        |
+| **Cancellation**         | Automatic on expiry                | Calls clearStore()        |
+| **QR Code Cancellation** | Optional                           | Requires system config    |
+| **Backend Config**       | System config table                | GRACE_PERIOD_VOUCHER, etc |
 
 ---
 
 ## 13. Files Reference
 
 **Backend Files:**
+
 - `order-api/src/payment/payment.service.ts` - Payment creation (lines 194-449)
 - `order-api/src/payment/entity/payment.entity.ts` - Payment entity with createdAt
 - `order-api/src/payment/payment.constants.ts` - PaymentStatus enum
 - `order-api/src/payment/payment.utils.ts` - Cancellation logic (lines 40-76)
 
 **Frontend Files:**
+
 - `order-ui/src/constants/env.ts` - Timeout configuration (lines 11-13)
 - `order-ui/src/components/app/countdown/OrderCountdown.tsx` - Main countdown (lines 25-49)
 - `order-ui/src/components/app/countdown/customer-display-countdown.tsx` - Banner countdown (lines 19-43)
@@ -661,6 +673,7 @@ If interval were too short (e.g., 500ms):
 - `order-ui/src/hooks/use-gift-card-polling.ts` - Gift card polling with expiration
 
 **Configuration:**
+
 - `.env` - VITE_ORDER_EXPIRATION_TIME_SECONDS setting
 
 ---

@@ -12,8 +12,7 @@ export const useDetailProductSlug = () =>
 export const useDetailSelectedVariant = () =>
   useProductDetailSelectionStore((s) => s.selectedVariant)
 
-export const useDetailSize = () =>
-  useProductDetailSelectionStore((s) => s.size)
+export const useDetailSize = () => useProductDetailSelectionStore((s) => s.size)
 
 export const useDetailPrice = () =>
   useProductDetailSelectionStore((s) => s.price)
@@ -21,8 +20,7 @@ export const useDetailPrice = () =>
 export const useDetailQuantity = () =>
   useProductDetailSelectionStore((s) => s.quantity)
 
-export const useDetailNote = () =>
-  useProductDetailSelectionStore((s) => s.note)
+export const useDetailNote = () => useProductDetailSelectionStore((s) => s.note)
 
 export const useDetailToppingExtraPrice = () =>
   useProductDetailSelectionStore((s) => s.toppingExtraPrice)

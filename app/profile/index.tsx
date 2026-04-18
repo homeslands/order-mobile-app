@@ -39,8 +39,8 @@ const AnimatedFlashList = Animated.createAnimatedComponent(
 
 const SETTINGS_ITEM_ICONS = {
   'general-info': User,
-  'points': History,
-  'coins': Wallet,
+  points: History,
+  coins: Wallet,
   'orders-history': History,
   'account-settings': Settings,
   'gift-cards': Gift,
@@ -59,14 +59,37 @@ export default function ProfilePlaceholderScreen() {
   const setLogout = useAuthStore((state) => state.setLogout)
   const removeUserInfo = useUserStore((state) => state.removeUserInfo)
 
-  const settingsItems = useMemo<ProfileSettingItem[]>(() => [
-    { key: 'general-info', label: t('generalInfoLabel'), icon: SETTINGS_ITEM_ICONS['general-info'] },
-    { key: 'points', label: t('points.title'), icon: SETTINGS_ITEM_ICONS['points'] },
-    { key: 'coins', label: t('myCoins'), icon: SETTINGS_ITEM_ICONS['coins'] },
-    { key: 'orders-history', label: t('orderHistory.title'), icon: SETTINGS_ITEM_ICONS['orders-history'] },
-    { key: 'gift-cards', label: 'Thẻ quà tặng', icon: SETTINGS_ITEM_ICONS['gift-cards'] },
-    { key: 'account-settings', label: t('accountSettings'), icon: SETTINGS_ITEM_ICONS['account-settings'] },
-  ], [t])
+  const settingsItems = useMemo<ProfileSettingItem[]>(
+    () => [
+      {
+        key: 'general-info',
+        label: t('generalInfoLabel'),
+        icon: SETTINGS_ITEM_ICONS['general-info'],
+      },
+      {
+        key: 'points',
+        label: t('points.title'),
+        icon: SETTINGS_ITEM_ICONS['points'],
+      },
+      { key: 'coins', label: t('myCoins'), icon: SETTINGS_ITEM_ICONS['coins'] },
+      {
+        key: 'orders-history',
+        label: t('orderHistory.title'),
+        icon: SETTINGS_ITEM_ICONS['orders-history'],
+      },
+      {
+        key: 'gift-cards',
+        label: 'Thẻ quà tặng',
+        icon: SETTINGS_ITEM_ICONS['gift-cards'],
+      },
+      {
+        key: 'account-settings',
+        label: t('accountSettings'),
+        icon: SETTINGS_ITEM_ICONS['account-settings'],
+      },
+    ],
+    [t],
+  )
 
   const scrollY = useSharedValue(0)
   const scrollHandler = useAnimatedScrollHandler({
@@ -91,9 +114,7 @@ export default function ProfilePlaceholderScreen() {
     router.push('/profile/info' as never)
   }, [router])
 
-  const handleQRCode = useCallback(() => {
-    // console.log('QR Code pressed')
-  }, [])
+  const handleQRCode = useCallback(() => {}, [])
 
   const handlePress = useCallback(
     (itemKey: string) => {
@@ -130,14 +151,18 @@ export default function ProfilePlaceholderScreen() {
   }, [router, removeUserInfo, setLogout])
 
   const overrideItemLayout = useCallback(
-    (layout: { span?: number; size?: number }) => { layout.size = PROFILE_SETTINGS_ITEM_HEIGHT },
+    (layout: { span?: number; size?: number }) => {
+      layout.size = PROFILE_SETTINGS_ITEM_HEIGHT
+    },
     [],
   )
 
   const renderItem: ListRenderItem<ProfileSettingItem> = useCallback(
     ({ item, index }) => {
       const extraLabel =
-        item.key === 'points' ? ` — ${totalPoints} ${t('points.point')}` : undefined
+        item.key === 'points'
+          ? ` — ${totalPoints} ${t('points.point')}`
+          : undefined
 
       return (
         <ProfileItem

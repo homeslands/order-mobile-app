@@ -70,7 +70,8 @@ export const usePaymentFlowStore = create<IPaymentFlowStore>()(
         const isQrValid =
           paymentData.orderData?.payment?.amount != null &&
           paymentData.orderData.subtotal != null &&
-          paymentData.orderData.payment.amount === paymentData.orderData.subtotal &&
+          paymentData.orderData.payment.amount ===
+            paymentData.orderData.subtotal &&
           qrCode.trim() !== ''
         set({ paymentData: { ...paymentData, qrCode, isQrValid } })
       },

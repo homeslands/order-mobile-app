@@ -2,6 +2,7 @@ import { VoucherCard } from '@/components/cart/voucher-card'
 import type { ProcessedVoucher } from '@/components/sheet/voucher-validation'
 import { colors } from '@/constants'
 import type { IVoucher } from '@/types'
+import { useTranslation } from 'react-i18next'
 import { StyleSheet, Text, View } from 'react-native'
 
 type SearchResultProps = {
@@ -27,15 +28,19 @@ export function SearchResult({
   isDark,
   primaryColor,
 }: SearchResultProps) {
+  const { t } = useTranslation('voucher')
   if (searchCode.length === 0) return null
 
   if (isFetching) {
     return (
       <View style={styles.resultRow}>
         <Text
-          style={{ color: isDark ? colors.gray[400] : colors.gray[500], fontSize: 13 }}
+          style={{
+            color: isDark ? colors.gray[400] : colors.gray[500],
+            fontSize: 13,
+          }}
         >
-          Đang tìm...
+          {t('searching')}
         </Text>
       </View>
     )
@@ -45,7 +50,7 @@ export function SearchResult({
     return (
       <View style={styles.resultRow}>
         <Text style={{ color: colors.destructive.light, fontSize: 13 }}>
-          Không tìm thấy mã &quot;{searchCode}&quot;
+          {t('codeNotFound', { code: searchCode })}
         </Text>
       </View>
     )

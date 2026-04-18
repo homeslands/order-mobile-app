@@ -83,4 +83,3 @@ export interface PrinterFailNotificationItem {
   message: NotificationMessageCode
   metadata: INotificationMetadata
 }
-

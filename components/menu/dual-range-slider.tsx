@@ -1,5 +1,11 @@
 import { useMemo, useRef } from 'react'
-import { Dimensions, PanResponder, Text, useColorScheme, View } from 'react-native'
+import {
+  Dimensions,
+  PanResponder,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native'
 
 import { colors } from '@/constants/colors.constant'
 
@@ -40,8 +46,20 @@ export default function DualRangeSlider({
     return Math.max(min, Math.min(max, steppedValue))
   }
 
-  const latestRef = useRef({ minVal, maxVal, onValueChange, getPercentage, getValueFromPosition })
-  latestRef.current = { minVal, maxVal, onValueChange, getPercentage, getValueFromPosition }
+  const latestRef = useRef({
+    minVal,
+    maxVal,
+    onValueChange,
+    getPercentage,
+    getValueFromPosition,
+  })
+  latestRef.current = {
+    minVal,
+    maxVal,
+    onValueChange,
+    getPercentage,
+    getValueFromPosition,
+  }
 
   const { minPanResponder, maxPanResponder } = useMemo(
     () => ({
@@ -52,7 +70,13 @@ export default function DualRangeSlider({
           // Track initial position
         },
         onPanResponderMove: (_, gestureState) => {
-          const { minVal: currentMin, maxVal: currentMax, onValueChange: onChange, getPercentage: getPct, getValueFromPosition: getVal } = latestRef.current
+          const {
+            minVal: currentMin,
+            maxVal: currentMax,
+            onValueChange: onChange,
+            getPercentage: getPct,
+            getValueFromPosition: getVal,
+          } = latestRef.current
           const currentX = getPct(currentMin) * (sliderWidth / 100)
           const newX = currentX + gestureState.dx
           const newMin = getVal(newX)
@@ -68,7 +92,13 @@ export default function DualRangeSlider({
           // Track initial position
         },
         onPanResponderMove: (_, gestureState) => {
-          const { minVal: currentMin, maxVal: currentMax, onValueChange: onChange, getPercentage: getPct, getValueFromPosition: getVal } = latestRef.current
+          const {
+            minVal: currentMin,
+            maxVal: currentMax,
+            onValueChange: onChange,
+            getPercentage: getPct,
+            getValueFromPosition: getVal,
+          } = latestRef.current
           const currentX = getPct(currentMax) * (sliderWidth / 100)
           const newX = currentX + gestureState.dx
           const newMax = getVal(newX)
@@ -166,10 +196,20 @@ export default function DualRangeSlider({
             marginTop: 8,
           }}
         >
-          <Text style={{ color: isDark ? colors.gray[400] : colors.gray[500], fontSize: 12 }}>
+          <Text
+            style={{
+              color: isDark ? colors.gray[400] : colors.gray[500],
+              fontSize: 12,
+            }}
+          >
             {formatValue(min)}
           </Text>
-          <Text style={{ color: isDark ? colors.gray[400] : colors.gray[500], fontSize: 12 }}>
+          <Text
+            style={{
+              color: isDark ? colors.gray[400] : colors.gray[500],
+              fontSize: 12,
+            }}
+          >
             {formatValue(max)}
           </Text>
         </View>

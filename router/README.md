@@ -32,15 +32,15 @@ import { ROUTE } from '@/constants'
 
 export default function MyComponent() {
   const router = useRouter()
-  
+
   const handleNavigate = () => {
     // Navigate đến route
     router.push('/menu')
-    
+
     // Hoặc dùng ROUTE constant
     router.push(ROUTE.CLIENT_MENU)
   }
-  
+
   return <Button onPress={handleNavigate} />
 }
 ```
@@ -52,7 +52,7 @@ import { useNavigation } from '@/router/navigation'
 
 export default function MyComponent() {
   const { navigate, goBack, goHome } = useNavigation()
-  
+
   return (
     <>
       <Button onPress={() => navigate(ROUTE.CLIENT_MENU)} />
@@ -71,8 +71,8 @@ File `routes.ts` định nghĩa các routes cho sidebar navigation với permiss
 import { sidebarRoutes } from '@/router/routes'
 
 // Lấy routes có permission
-const allowedRoutes = sidebarRoutes.filter(route => 
-  permissions.includes(route.permission)
+const allowedRoutes = sidebarRoutes.filter((route) =>
+  permissions.includes(route.permission),
 )
 ```
 
@@ -86,6 +86,6 @@ const allowedRoutes = sidebarRoutes.filter(route =>
 ## Migration từ Web Router
 
 Các file sau đã được xóa vì không cần thiết với Expo Router:
+
 - ❌ `router/index.tsx` - Không cần `createBrowserRouter`
 - ❌ `router/loadable.tsx` - Expo Router tự động code splitting
-

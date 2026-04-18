@@ -13,7 +13,11 @@ import {
 } from '@/hooks'
 import { useUserStore } from '@/stores'
 import type { IOrder, IVoucher } from '@/types'
-import { calculateOrderDisplayAndTotals, showErrorToastMessage, showToast } from '@/utils'
+import {
+  calculateOrderDisplayAndTotals,
+  showErrorToastMessage,
+  showToast,
+} from '@/utils'
 import {
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
@@ -80,17 +84,23 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
 
   // Use subTotalBeforeDiscount (pre-promotion, pre-voucher) — same as update-order sheet
   const subTotal = useMemo(() => {
-    const { cartTotals } = calculateOrderDisplayAndTotals(orderItems, currentVoucher)
+    const { cartTotals } = calculateOrderDisplayAndTotals(
+      orderItems,
+      currentVoucher,
+    )
     return cartTotals?.subTotalBeforeDiscount ?? order.originalSubtotal ?? 0
   }, [orderItems, currentVoucher, order.originalSubtotal])
 
   // ── Local state ───────────────────────────────────────────────────────────
   const { t: tVoucher } = useTranslation('voucher')
+  const { t: tPayment } = useTranslation('payment')
 
   const [code, setCode] = useState('')
   const [searchCode, setSearchCode] = useState('')
   const [selectedVoucher, setSelectedVoucher] = useState<IVoucher | null>(null)
-  const [conditionVoucher, setConditionVoucher] = useState<IVoucher | null>(null)
+  const [conditionVoucher, setConditionVoucher] = useState<IVoucher | null>(
+    null,
+  )
   const [_validating, setValidating] = useState(false)
 
   // Pre-fill when sheet opens
@@ -112,10 +122,14 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
   // ── Update voucher on order ───────────────────────────────────────────────
   const { mutate: updateVoucherAuth } = useUpdateVoucherInOrder()
   const { mutate: updateVoucherPublic } = useUpdatePublicVoucherInOrder()
-  const updateVoucher = isCustomerOwner ? updateVoucherAuth : updateVoucherPublic
+  const updateVoucher = isCustomerOwner
+    ? updateVoucherAuth
+    : updateVoucherPublic
 
   // ── Fetch by code ─────────────────────────────────────────────────────────
-  const specificFetch = isCustomerOwner ? useSpecificVoucher : useSpecificPublicVoucher
+  const specificFetch = isCustomerOwner
+    ? useSpecificVoucher
+    : useSpecificPublicVoucher
   const { data: specificRes, isFetching } = specificFetch(
     { code: searchCode },
     visible && searchCode.length > 0,
@@ -144,10 +158,19 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
             minOrderValue: subTotal,
             orderItems: listRequestItems,
             ...(isCustomerOwner && userSlug ? { user: userSlug } : {}),
-            ...(currentPaymentMethod ? { paymentMethod: currentPaymentMethod } : {}),
+            ...(currentPaymentMethod
+              ? { paymentMethod: currentPaymentMethod }
+              : {}),
           }
         : undefined,
-    [visible, subTotal, listRequestItems, isCustomerOwner, userSlug, currentPaymentMethod],
+    [
+      visible,
+      subTotal,
+      listRequestItems,
+      isCustomerOwner,
+      userSlug,
+      currentPaymentMethod,
+    ],
   )
 
   const [currentPage, setCurrentPage] = useState(1)
@@ -155,11 +178,15 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
 
   const paginatedParams = useMemo(
     () =>
-      voucherRequestParams ? { ...voucherRequestParams, page: currentPage } : undefined,
+      voucherRequestParams
+        ? { ...voucherRequestParams, page: currentPage }
+        : undefined,
     [voucherRequestParams, currentPage],
   )
 
-  const listFetch = isCustomerOwner ? useVouchersForOrder : usePublicVouchersForOrder
+  const listFetch = isCustomerOwner
+    ? useVouchersForOrder
+    : usePublicVouchersForOrder
   const { data: eligibleRes, isLoading: isLoadingList } = listFetch(
     paginatedParams,
     visible && orderItems.length > 0,
@@ -169,7 +196,10 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
 
   const prevPageRef = useRef(0)
   useEffect(() => {
-    if (!eligibleRes?.result?.items || eligibleRes.result.page === prevPageRef.current)
+    if (
+      !eligibleRes?.result?.items ||
+      eligibleRes.result.page === prevPageRef.current
+    )
       return
     prevPageRef.current = eligibleRes.result.page
     if (currentPage === 1) {
@@ -209,10 +239,7 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
   // ── Process voucher list ───────────────────────────────────────────────────
   // IOrderDetail has no productSlug field — product slug is at variant.product.slug
   const cartProductSlugs = useMemo(
-    () =>
-      orderItems
-        .map((i) => i.variant?.product?.slug ?? '')
-        .filter(Boolean),
+    () => orderItems.map((i) => i.variant?.product?.slug ?? '').filter(Boolean),
     [orderItems],
   )
 
@@ -232,8 +259,20 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
     for (const p of processVoucherList(allVouchers, opts)) {
       ;(p.isValid ? valid : invalid).push(p)
     }
-    return { processedFetched: pFetched, validVouchers: valid, invalidVouchers: invalid }
-  }, [fetchedVoucher, allVouchers, cartProductSlugs, subTotal, userSlug, isCustomerOwner, tVoucher])
+    return {
+      processedFetched: pFetched,
+      validVouchers: valid,
+      invalidVouchers: invalid,
+    }
+  }, [
+    fetchedVoucher,
+    allVouchers,
+    cartProductSlugs,
+    subTotal,
+    userSlug,
+    isCustomerOwner,
+    tVoucher,
+  ])
 
   // ── Selection ─────────────────────────────────────────────────────────────
   const allAvailable = useMemo(() => {
@@ -305,7 +344,10 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
     setConditionVoucher(v)
   }, [])
 
-  const handleCloseConditionModal = useCallback(() => setConditionVoucher(null), [])
+  const handleCloseConditionModal = useCallback(
+    () => setConditionVoucher(null),
+    [],
+  )
 
   const orderItemsParam = useMemo(
     () =>
@@ -325,12 +367,12 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
         { slug: orderSlug, voucher: null, orderItems: orderItemsParam },
         {
           onSuccess: () => {
-            showToast('Đã gỡ mã giảm giá')
+            showToast(tVoucher('voucherRemoved'))
             sheetRef.current?.dismiss()
             onVoucherRemoved()
           },
           onError: () => {
-            showErrorToastMessage('Không thể gỡ voucher')
+            showErrorToastMessage('toast.removeVoucherFailed')
           },
         },
       )
@@ -355,22 +397,26 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
           onSuccess: () => {
             // Persist voucher to server
             updateVoucher(
-              { slug: orderSlug, voucher: selectedVoucher.slug, orderItems: orderItemsParam },
+              {
+                slug: orderSlug,
+                voucher: selectedVoucher.slug,
+                orderItems: orderItemsParam,
+              },
               {
                 onSuccess: () => {
-                  showToast('Áp dụng mã giảm giá thành công')
+                  showToast(tVoucher('applyVoucher'))
                   sheetRef.current?.dismiss()
                   onVoucherApplied()
                 },
                 onError: () => {
-                  showErrorToastMessage('Không thể áp dụng voucher')
+                  showErrorToastMessage('toast.requestFailed')
                 },
                 onSettled: () => setValidating(false),
               },
             )
           },
           onError: () => {
-            showToast('Voucher không hợp lệ')
+            showToast(tVoucher('voucherInvalid'))
             setValidating(false)
           },
         },
@@ -389,6 +435,7 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
     userSlug,
     onVoucherApplied,
     onVoucherRemoved,
+    tVoucher,
   ])
 
   return (
@@ -408,85 +455,124 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
         onDismiss={handleDismiss}
         android_keyboardInputMode="adjustResize"
       >
-          <SearchHeader
-            code={code}
-            onChangeCode={setCode}
-            onSearch={handleSearch}
-            isDark={isDark}
-            primaryColor={primaryColor}
-          />
+        <SearchHeader
+          code={code}
+          onChangeCode={setCode}
+          onSearch={handleSearch}
+          isDark={isDark}
+          primaryColor={primaryColor}
+        />
 
-          {currentPaymentMethod && (
-            <View style={[s.filterBanner, { backgroundColor: `${primaryColor}12`, borderColor: `${primaryColor}30` }]}>
-              <Text style={[s.filterBannerText, { color: isDark ? colors.gray[300] : colors.gray[600] }]}>
-                Hiển thị voucher tương thích với{' '}
-                <Text style={{ fontWeight: '700', color: primaryColor }}>
-                  {PAYMENT_METHOD_LABELS[currentPaymentMethod] ?? currentPaymentMethod}
-                </Text>
+        {currentPaymentMethod && (
+          <View
+            style={[
+              s.filterBanner,
+              {
+                backgroundColor: `${primaryColor}12`,
+                borderColor: `${primaryColor}30`,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                s.filterBannerText,
+                { color: isDark ? colors.gray[300] : colors.gray[600] },
+              ]}
+            >
+              {tPayment('voucherSheet.filterBannerPrefix')}{' '}
+              <Text style={{ fontWeight: '700', color: primaryColor }}>
+                {PAYMENT_METHOD_I18N_KEYS[currentPaymentMethod]
+                  ? tPayment(PAYMENT_METHOD_I18N_KEYS[currentPaymentMethod])
+                  : currentPaymentMethod}
+              </Text>
+            </Text>
+          </View>
+        )}
+
+        <BottomSheetScrollView
+          contentContainerStyle={styles.scrollContent}
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+        >
+          {__DEV__ && (
+            <View
+              style={[
+                s.debugBox,
+                {
+                  borderColor: isDark ? colors.gray[600] : colors.gray[300],
+                  backgroundColor: isDark ? colors.gray[800] : colors.gray[50],
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  s.debugTitle,
+                  { color: isDark ? colors.gray[300] : colors.gray[600] },
+                ]}
+              >
+                [DEV] Voucher request params
+              </Text>
+              <Text
+                style={[
+                  s.debugText,
+                  { color: isDark ? colors.gray[400] : colors.gray[500] },
+                ]}
+              >
+                subTotal: {subTotal}
+                {'\n'}
+                paymentMethod: {currentPaymentMethod ?? 'none'}
+                {'\n'}
+                isCustomerOwner: {String(isCustomerOwner)}
+                {'\n'}
+                orderItems ({orderItems.length}):{'\n'}
+                {orderItems
+                  .map(
+                    (i, idx) =>
+                      `  [${idx}] variant=${i.variant?.slug ?? '-'} product=${i.variant?.product?.slug ?? '!'} qty=${i.quantity}`,
+                  )
+                  .join('\n')}
               </Text>
             </View>
           )}
-
-          <BottomSheetScrollView
-            contentContainerStyle={styles.scrollContent}
-            style={styles.scrollView}
-            showsVerticalScrollIndicator={false}
-          >
-            {__DEV__ && (
-              <View style={[s.debugBox, { borderColor: isDark ? colors.gray[600] : colors.gray[300], backgroundColor: isDark ? colors.gray[800] : colors.gray[50] }]}>
-                <Text style={[s.debugTitle, { color: isDark ? colors.gray[300] : colors.gray[600] }]}>
-                  [DEV] Voucher request params
-                </Text>
-                <Text style={[s.debugText, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>
-                  subTotal: {subTotal}{'\n'}
-                  paymentMethod: {currentPaymentMethod ?? 'none'}{'\n'}
-                  isCustomerOwner: {String(isCustomerOwner)}{'\n'}
-                  orderItems ({orderItems.length}):{'\n'}
-                  {orderItems.map((i, idx) =>
-                    `  [${idx}] variant=${i.variant?.slug ?? '-'} product=${i.variant?.product?.slug ?? '!'} qty=${i.quantity}`
-                  ).join('\n')}
-                </Text>
-              </View>
-            )}
-            <SearchResult
-              isFetching={isFetching}
-              searchCode={searchCode}
-              fetchedVoucher={fetchedVoucher}
-              processedFetched={processedFetched}
-              selectedVoucher={selectedVoucher}
-              onSelect={handleSelectBySlug}
-              onViewCondition={handleViewCondition}
-              isDark={isDark}
-              primaryColor={primaryColor}
-            />
-            <ValidList
-              vouchers={validVouchers}
-              selectedVoucher={selectedVoucher}
-              onSelect={handleSelectBySlug}
-              onViewCondition={handleViewCondition}
-              isLoading={isLoadingList}
-              hasMore={hasMore}
-              onLoadMore={handleLoadMore}
-              isDark={isDark}
-              primaryColor={primaryColor}
-            />
-            <InvalidList
-              vouchers={invalidVouchers}
-              onSelect={handleSelectBySlug}
-              onViewCondition={handleViewCondition}
-              isDark={isDark}
-              primaryColor={primaryColor}
-            />
-          </BottomSheetScrollView>
-
-          <SheetFooter
-            isCurrentApplied={isCurrentApplied}
-            isNewSelection={isNewSelection}
-            onPress={handleFooterPress}
+          <SearchResult
+            isFetching={isFetching}
+            searchCode={searchCode}
+            fetchedVoucher={fetchedVoucher}
+            processedFetched={processedFetched}
+            selectedVoucher={selectedVoucher}
+            onSelect={handleSelectBySlug}
+            onViewCondition={handleViewCondition}
             isDark={isDark}
             primaryColor={primaryColor}
-            bottomInset={insets.bottom}
           />
+          <ValidList
+            vouchers={validVouchers}
+            selectedVoucher={selectedVoucher}
+            onSelect={handleSelectBySlug}
+            onViewCondition={handleViewCondition}
+            isLoading={isLoadingList}
+            hasMore={hasMore}
+            onLoadMore={handleLoadMore}
+            isDark={isDark}
+            primaryColor={primaryColor}
+          />
+          <InvalidList
+            vouchers={invalidVouchers}
+            onSelect={handleSelectBySlug}
+            onViewCondition={handleViewCondition}
+            isDark={isDark}
+            primaryColor={primaryColor}
+          />
+        </BottomSheetScrollView>
+
+        <SheetFooter
+          isCurrentApplied={isCurrentApplied}
+          isNewSelection={isNewSelection}
+          onPress={handleFooterPress}
+          isDark={isDark}
+          primaryColor={primaryColor}
+          bottomInset={insets.bottom}
+        />
       </BottomSheetModal>
 
       <VoucherConditionModal
@@ -502,11 +588,11 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
   )
 })
 
-const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
-  [PaymentMethod.BANK_TRANSFER]: 'Chuyển khoản',
-  [PaymentMethod.CASH]: 'Tiền mặt',
-  [PaymentMethod.POINT]: 'Điểm tích lũy',
-  [PaymentMethod.CREDIT_CARD]: 'Thẻ tín dụng',
+const PAYMENT_METHOD_I18N_KEYS: Record<PaymentMethod, string> = {
+  [PaymentMethod.BANK_TRANSFER]: 'voucherSheet.paymentMethod.bankTransfer',
+  [PaymentMethod.CASH]: 'voucherSheet.paymentMethod.cash',
+  [PaymentMethod.POINT]: 'voucherSheet.paymentMethod.point',
+  [PaymentMethod.CREDIT_CARD]: 'voucherSheet.paymentMethod.creditCard',
 }
 
 const styles = StyleSheet.create({

@@ -20,10 +20,12 @@ export default function PickupTimeDropdown({
   const [isFocus, setIsFocus] = useState(false)
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
-  const { shouldRender, selectedValue, options, handleChange: handleValueChange } = usePickupTime(
-    defaultValue,
-    onPickupTimeSelect
-  )
+  const {
+    shouldRender,
+    selectedValue,
+    options,
+    handleChange: handleValueChange,
+  } = usePickupTime(defaultValue, onPickupTimeSelect)
 
   // Nếu không phải đơn mang đi thì không render
   if (!shouldRender) {
@@ -43,7 +45,9 @@ export default function PickupTimeDropdown({
           className={`absolute left-3 top-2 z-10 px-2 text-xs ${
             isFocus ? 'text-blue-500' : 'text-gray-600 dark:text-gray-400'
           }`}
-          style={{ backgroundColor: isDark ? colors.gray[900] : colors.white.light }}
+          style={{
+            backgroundColor: isDark ? colors.gray[900] : colors.white.light,
+          }}
         >
           {t('menu.pickupTime')}
         </Text>
@@ -58,7 +62,11 @@ export default function PickupTimeDropdown({
       <Dropdown
         style={{
           height: 50,
-          borderColor: isFocus ? '#3b82f6' : isDark ? colors.gray[700] : colors.gray[300],
+          borderColor: isFocus
+            ? '#3b82f6'
+            : isDark
+              ? colors.gray[700]
+              : colors.gray[300],
           borderWidth: 0.5,
           borderRadius: 8,
           paddingHorizontal: 8,
@@ -90,7 +98,13 @@ export default function PickupTimeDropdown({
           <View className="mr-2">
             <ChevronDown
               size={20}
-              color={isFocus ? '#3b82f6' : isDark ? colors.gray[400] : colors.gray[500]}
+              color={
+                isFocus
+                  ? '#3b82f6'
+                  : isDark
+                    ? colors.gray[400]
+                    : colors.gray[500]
+              }
             />
           </View>
         )}

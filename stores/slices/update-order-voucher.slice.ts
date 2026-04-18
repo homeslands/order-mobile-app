@@ -44,7 +44,9 @@ export function createUpdateOrderVoucherMethods(
     addVoucher: (voucher: IVoucher) => {
       const { orderItems } = get()
       if (!orderItems) return
-      set({ orderItems: { ...orderItems, voucher: buildVoucherPayload(voucher) } })
+      set({
+        orderItems: { ...orderItems, voucher: buildVoucherPayload(voucher) },
+      })
     },
 
     removeVoucher: () => {

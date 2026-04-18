@@ -8,7 +8,10 @@ interface OrderNoteInputProps {
 }
 
 // Presentational component only: UI + i18n, không truy cập store
-export default function OrderNoteInput({ value, onChange }: OrderNoteInputProps) {
+export default function OrderNoteInput({
+  value,
+  onChange,
+}: OrderNoteInputProps) {
   const { t } = useTranslation('menu')
 
   return (

@@ -30,7 +30,7 @@
 // /**
 //  * Check và log Firebase Project ID từ tất cả các nguồn
 //  * Dùng để debug khi có conflict project ID
-//  * 
+//  *
 //  * Gọi function này trong browser console để debug:
 //  * import { checkFirebaseProjectId } from '@/utils/getWebFcmToken'
 //  * checkFirebaseProjectId()
@@ -38,12 +38,12 @@
 // export function checkFirebaseProjectId(): void {
 //   const config = getFirebaseConfig()
 //   const existingApps = getApps()
-  
+
 //   console.group('🔍 [Firebase Project ID Check]')
-  
+
 //   // 1. Env Var
 //   const envVar = import.meta.env.VITE_FIREBASE_PROJECT_ID || ''
-  
+
 //   // Check conflicts
 //   const allProjectIds = [
 //     envVar,
@@ -52,11 +52,11 @@
 //     firebaseApp?.options?.projectId,
 //     messagingInstance?.app?.options?.projectId,
 //   ].filter(Boolean) as string[]
-  
+
 //   const uniqueIds = new Set(allProjectIds)
-  
+
 //   console.groupEnd()
-  
+
 //   if (uniqueIds.size > 1) {
 //     console.error('❌ CONFLICT DETECTED! Multiple project IDs found:', Array.from(uniqueIds))
 //   }
@@ -77,7 +77,7 @@
 //     console.error('[getWebFcmToken] Firebase config is missing or invalid')
 //     return null
 //   }
-  
+
 //   // Check appId format for web
 //   if (config.appId && (config.appId.includes(':android:') || config.appId.includes(':ios:'))) {
 //     console.error('[getWebFcmToken] ❌ Invalid appId format for web platform:', {
@@ -92,16 +92,16 @@
 //   const existingApps = getApps()
 //   if (existingApps.length > 0) {
 //     const existingApp = existingApps[0]
-    
+
 //     // ⚠️ Check nếu app không có projectId
 //     if (!existingApp.options?.projectId) {
-      
+
 //       // Reset to force reinitialize
 //       if (messagingInstance) {
 //         console.warn('[getWebFcmToken] Resetting messaging instance due to missing projectId')
 //         messagingInstance = null
 //       }
-      
+
 //       // Cannot use app without projectId
 //       // Firebase không cho phép delete default app, và không thể tạo app mới nếu đã có default app
 //       // Return null to caller to know they need to reset
@@ -122,13 +122,13 @@
 //           solution: 'Kiểm tra env vars (VITE_FIREBASE_PROJECT_ID) hoặc clear browser cache và reload page.',
 //         },
 //       )
-      
+
 //       // Reset messaging instance to force reinitialize with current app
 //       if (messagingInstance) {
 //         console.warn('[getWebFcmToken] Resetting messaging instance due to project ID conflict')
 //         messagingInstance = null
 //       }
-      
+
 //       // Still using current app because Firebase doesn't allow deleting app
 //       // Nhưng cảnh báo rõ ràng rằng token có thể không hoạt động
 //       console.warn(
@@ -145,7 +145,7 @@
 //   try {
 //     // Log config before initialize to debug
 //     firebaseApp = initializeApp(config)
-    
+
 //     if (!firebaseApp.options?.projectId || firebaseApp.options.projectId !== config.projectId) {
 //       console.error('[getWebFcmToken] ❌ Firebase app initialized but projectId mismatch:', {
 //         appProjectId: firebaseApp.options?.projectId,
@@ -155,7 +155,7 @@
 //       firebaseApp = null
 //       return null
 //     }
-    
+
 //     return firebaseApp
 //   } catch (error) {
 //     console.error('[getWebFcmToken] ❌ Error initializing Firebase app:', error)
@@ -169,7 +169,7 @@
 //  */
 // function getMessagingInstance(): Messaging | null {
 //   const config = getFirebaseConfig()
-  
+
 //   if (messagingInstance) {
 //     // Validate bằng firebaseApp (singleton) thay vì messaging.app
 //     // vì messaging.app có thể không có options.projectId
@@ -315,7 +315,7 @@
 //     // 2.5. Send Firebase config to service worker
 //     const config = getFirebaseConfig()
 //     await navigator.serviceWorker.ready
-    
+
 //     const sendConfigToSW = async (target: ServiceWorker | null) => {
 //       if (!target) return
 //       try {
@@ -328,7 +328,7 @@
 //         // Ignore
 //       }
 //     }
-    
+
 //     if (registration.active) {
 //       await sendConfigToSW(registration.active)
 //     } else if (registration.installing) {
@@ -360,7 +360,7 @@
 //       })
 //       return null
 //     }
-    
+
 //     // Validate VAPID key format
 //     if (vapidKey.length < 80) {
 //       console.error('[getWebFcmToken] ❌ VAPID key seems too short:', {
@@ -369,7 +369,7 @@
 //         preview: vapidKey.substring(0, 20) + '...',
 //       })
 //     }
-    
+
 //     // Validate messaging instance project ID
 //     // Dùng firebaseApp (singleton) thay vì messaging.app để validate
 //     // vì messaging.app có thể không có options.projectId
@@ -402,7 +402,7 @@
 //           checkState()
 //         })
 //       }
-      
+
 //       if (!registration?.active) {
 //         console.error('[getWebFcmToken] ❌ Service worker is not active:', {
 //           active: registration?.active?.state,
@@ -411,7 +411,7 @@
 //         })
 //         return null
 //       }
-      
+
 //       // ⚠️ QUAN TRỌNG: Validate token được lấy từ đúng Firebase project
 //       // Token phải được lấy từ cùng project với config
 //       if (firebaseApp?.options?.projectId !== config.projectId) {
@@ -422,12 +422,12 @@
 //         })
 //         return null
 //       }
-      
+
 //       token = await getToken(messaging, {
 //         vapidKey,
 //         serviceWorkerRegistration: registration,
 //       })
-      
+
 //       // ⚠️ Validate token sau khi lấy
 //       if (token && firebaseApp?.options?.projectId !== config.projectId) {
 //         console.error('[getWebFcmToken] ❌ CRITICAL: Token được lấy từ project khác!', {
@@ -438,7 +438,7 @@
 //         })
 //         return null
 //       }
-      
+
 //     } catch (error) {
 //       console.error('[getWebFcmToken] ❌ Error getting FCM token:', error instanceof Error ? error.message : String(error))
 //       return null
@@ -479,7 +479,7 @@
 //         messageId: payload.messageId,
 //         fcmMessageId: (payload as { fcmMessageId?: string }).fcmMessageId,
 //       }
-      
+
 //       onMessageCallback(firebasePayload)
 //     })
 
@@ -489,4 +489,3 @@
 //     return null
 //   }
 // }
-

@@ -1,14 +1,32 @@
 import ToastItem, { ToastData } from '@/components/ui/toast'
-import { ReactNode, createContext, useCallback, useContext, useEffect, useRef, useState } from 'react'
+import {
+  ReactNode,
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import { View } from 'react-native'
 
 // Toast context
 const ToastContext = createContext<{
-  showToast: (title: string, message?: string, type?: 'info' | 'error' | 'success' | 'warning') => void
+  showToast: (
+    title: string,
+    message?: string,
+    type?: 'info' | 'error' | 'success' | 'warning',
+  ) => void
 } | null>(null)
 
 // Global toast function ref
-let globalShowToast: ((title: string, message?: string, type?: 'info' | 'error' | 'success' | 'warning') => void) | null = null
+let globalShowToast:
+  | ((
+      title: string,
+      message?: string,
+      type?: 'info' | 'error' | 'success' | 'warning',
+    ) => void)
+  | null = null
 
 export function useToast() {
   const context = useContext(ToastContext)
@@ -21,24 +39,27 @@ export function useToast() {
 function AppToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastData[]>([])
 
-  const showToast = useCallback((
-    title: string,
-    message?: string,
-    type: 'info' | 'error' | 'success' | 'warning' = 'info'
-  ) => {
-    const id = `${Date.now()}-${Math.random()}`
-    const duration = type === 'error' ? 4 : 2
+  const showToast = useCallback(
+    (
+      title: string,
+      message?: string,
+      type: 'info' | 'error' | 'success' | 'warning' = 'info',
+    ) => {
+      const id = `${Date.now()}-${Math.random()}`
+      const duration = type === 'error' ? 4 : 2
 
-    const newToast: ToastData = {
-      id,
-      title,
-      message,
-      type,
-      duration,
-    }
+      const newToast: ToastData = {
+        id,
+        title,
+        message,
+        type,
+        duration,
+      }
 
-    setToasts((prev) => [...prev, newToast])
-  }, [])
+      setToasts((prev) => [...prev, newToast])
+    },
+    [],
+  )
 
   const hideToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id))
@@ -49,7 +70,11 @@ function AppToastProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     showToastRef.current = showToast
-    globalShowToast = (title: string, message?: string, type?: 'info' | 'error' | 'success' | 'warning') => {
+    globalShowToast = (
+      title: string,
+      message?: string,
+      type?: 'info' | 'error' | 'success' | 'warning',
+    ) => {
       showToastRef.current(title, message, type)
     }
   }, [showToast])
@@ -58,7 +83,15 @@ function AppToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={{ showToast }}>
       {children}
       <View
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, pointerEvents: 'box-none', zIndex: 9999 }}
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          pointerEvents: 'box-none',
+          zIndex: 9999,
+        }}
       >
         {toasts.map((toast) => (
           <ToastItem key={toast.id} toast={toast} onHide={hideToast} />
@@ -74,7 +107,7 @@ AppToastProvider.displayName = 'AppToastProvider'
 export function showToastInternal(
   title: string,
   message?: string,
-  type: 'info' | 'error' | 'success' | 'warning' = 'info'
+  type: 'info' | 'error' | 'success' | 'warning' = 'info',
 ) {
   if (globalShowToast) {
     globalShowToast(title, message, type)

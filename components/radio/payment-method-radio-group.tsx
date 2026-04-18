@@ -88,8 +88,7 @@ export default function PaymentMethodRadioGroup({
   const orderSubtotal = order?.subtotal ?? 0
   const isBalanceInsufficient =
     userInfo?.role?.name === Role.CUSTOMER && balance < orderSubtotal
-  const [selectedPaymentMethod, setSelectedPaymentMethod] =
-    useState<string>('')
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('')
   const [creditCardTransactionId, setCreditCardTransactionId] =
     useState<string>('')
 
@@ -98,10 +97,8 @@ export default function PaymentMethodRadioGroup({
     [order?.voucher?.voucherPaymentMethods],
   )
 
-  const isNonCustomer =
-    userInfo && userInfo.role.name !== Role.CUSTOMER
-  const isCustomer =
-    userInfo && userInfo.role.name === Role.CUSTOMER
+  const isNonCustomer = userInfo && userInfo.role.name !== Role.CUSTOMER
+  const isCustomer = userInfo && userInfo.role.name === Role.CUSTOMER
 
   // Memoize available methods once — reused in both support check and auto-select
   const availableMethods = useMemo(
@@ -130,10 +127,16 @@ export default function PaymentMethodRadioGroup({
       ? available.filter((m) => !isSupportedByVoucher(m, voucherPaymentMethods))
       : []
     const labelMap: Record<PaymentMethod, string> = {
-      [PaymentMethod.BANK_TRANSFER]: t('paymentMethod.bankTransfer', 'Chuyển khoản'),
+      [PaymentMethod.BANK_TRANSFER]: t(
+        'paymentMethod.bankTransfer',
+        'Chuyển khoản',
+      ),
       [PaymentMethod.CASH]: t('paymentMethod.cash', 'Tiền mặt'),
       [PaymentMethod.POINT]: t('paymentMethod.coin', 'Điểm tích lũy'),
-      [PaymentMethod.CREDIT_CARD]: t('paymentMethod.creditCard', 'Thẻ tín dụng'),
+      [PaymentMethod.CREDIT_CARD]: t(
+        'paymentMethod.creditCard',
+        'Thẻ tín dụng',
+      ),
     }
     return {
       bankTransferSupported: isSupported(PaymentMethod.BANK_TRANSFER),
@@ -147,7 +150,13 @@ export default function PaymentMethodRadioGroup({
       hasBlockedMethods: blocked.length > 0,
       blockedMethodLabels: blocked.map((m) => labelMap[m]).join(', '),
     }
-  }, [availableMethods, order?.voucher, voucherPaymentMethods, t, isBalanceInsufficient])
+  }, [
+    availableMethods,
+    order?.voucher,
+    voucherPaymentMethods,
+    t,
+    isBalanceInsufficient,
+  ])
 
   // Auto-select method mặc định khi mount: giao role-methods × voucher-methods, pick first
   const autoSelectedRef = useRef(false)
@@ -169,8 +178,8 @@ export default function PaymentMethodRadioGroup({
       if (onSelect) onSelect(first)
       if (onSubmit) onSubmit(first)
     }
-  // Chỉ chạy một lần khi mount — deps cố tình để trống
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Chỉ chạy một lần khi mount — deps cố tình để trống
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // value prop (controlled từ parent) takes precedence; fallback về internal state hoặc defaultValue
@@ -182,7 +191,12 @@ export default function PaymentMethodRadioGroup({
       setSelectedPaymentMethod(paymentMethod)
 
       if (onSelect) {
-        onSelect(paymentMethod, paymentMethod === PaymentMethod.CREDIT_CARD ? creditCardTransactionId : undefined)
+        onSelect(
+          paymentMethod,
+          paymentMethod === PaymentMethod.CREDIT_CARD
+            ? creditCardTransactionId
+            : undefined,
+        )
       }
       if (onSubmit) {
         if (paymentMethod === PaymentMethod.CREDIT_CARD) {
@@ -215,10 +229,7 @@ export default function PaymentMethodRadioGroup({
 
   const getDisabledReason = useCallback(
     (method: PaymentMethod) => {
-      if (
-        method === PaymentMethod.POINT &&
-        isBalanceInsufficient
-      ) {
+      if (method === PaymentMethod.POINT && isBalanceInsufficient) {
         return t(
           'paymentMethod.insufficientCoinBalance',
           'Không đủ xu (cần {{required}}, có {{available}})',
@@ -228,10 +239,7 @@ export default function PaymentMethodRadioGroup({
           },
         )
       }
-      return (
-        disabledReasons?.[method] ||
-        t('paymentMethod.voucherNotSupport')
-      )
+      return disabledReasons?.[method] || t('paymentMethod.voucherNotSupport')
     },
     [disabledReasons, t, isBalanceInsufficient, orderSubtotal, balance],
   )
@@ -241,7 +249,8 @@ export default function PaymentMethodRadioGroup({
     (method: PaymentMethod): ((m: PaymentMethod) => void) | undefined => {
       if (!onConflict) return undefined
       if (disabledMethods?.includes(method)) return undefined
-      if (!order?.voucher || voucherPaymentMethods.length === 0) return undefined
+      if (!order?.voucher || voucherPaymentMethods.length === 0)
+        return undefined
       return onConflict
     },
     [onConflict, disabledMethods, order?.voucher, voucherPaymentMethods],
@@ -259,9 +268,7 @@ export default function PaymentMethodRadioGroup({
         label={t('paymentMethod.bankTransfer')}
         isSupported={bankTransferSupported}
         isDark={isDark}
-        disabledReason={getDisabledReason(
-          PaymentMethod.BANK_TRANSFER,
-        )}
+        disabledReason={getDisabledReason(PaymentMethod.BANK_TRANSFER)}
         onSelect={handleSelectMethod}
         onSelectDisabled={makeConflictHandler(PaymentMethod.BANK_TRANSFER)}
       />
@@ -272,9 +279,7 @@ export default function PaymentMethodRadioGroup({
           label={t('paymentMethod.creditCard')}
           isSupported={creditCardSupported}
           isDark={isDark}
-          disabledReason={getDisabledReason(
-            PaymentMethod.CREDIT_CARD,
-          )}
+          disabledReason={getDisabledReason(PaymentMethod.CREDIT_CARD)}
           onSelect={handleSelectMethod}
           onSelectDisabled={makeConflictHandler(PaymentMethod.CREDIT_CARD)}
           showTransactionInput={
@@ -313,20 +318,16 @@ export default function PaymentMethodRadioGroup({
         >
           <Text
             className={cn(
-              'flex-row gap-1 items-center text-xs font-medium pl-2',
+              'flex-row items-center gap-1 pl-2 text-xs font-medium',
               pointSupported ? 'text-primary' : 'text-primary/50',
             )}
           >
-            {tProfile('profile.coinBalance')}:{' '}
-            {formatCurrency(balance, '')}
-            <CoinsIcon
-              size={16}
-              color={isDark ? '#60a5fa' : '#3b82f6'}
-            />
+            {tProfile('profile.coinBalance')}: {formatCurrency(balance, '')}
+            <CoinsIcon size={16} color={isDark ? '#60a5fa' : '#3b82f6'} />
           </Text>
           <Text
             className={cn(
-              'text-[10px] pl-2',
+              'pl-2 text-[10px]',
               pointSupported
                 ? 'text-gray-400 dark:text-gray-500'
                 : 'text-gray-300 dark:text-gray-600',
@@ -404,9 +405,8 @@ export default function PaymentMethodRadioGroup({
         <View className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 dark:border-amber-800 dark:bg-amber-900/20">
           <Text className="text-xs text-amber-700 dark:text-amber-300">
             ⚠️ Voucher{' '}
-            <Text className="font-semibold">{order?.voucher?.code}</Text>
-            {' '}không hỗ trợ:{' '}
-            <Text className="font-semibold">{blockedMethodLabels}</Text>
+            <Text className="font-semibold">{order?.voucher?.code}</Text> không
+            hỗ trợ: <Text className="font-semibold">{blockedMethodLabels}</Text>
             . Chọn phương thức này sẽ cần xóa voucher.
           </Text>
         </View>

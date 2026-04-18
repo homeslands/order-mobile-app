@@ -8,7 +8,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from '@/components/ui'
 import { colors } from '@/constants'
 import { cn } from '@/lib/utils'
@@ -26,13 +26,13 @@ interface UserAvatarDropdownProps {
 
 /**
  * UserAvatarDropdown Component
- * 
+ *
  * Displays user avatar with dropdown menu for user actions.
  * Uses DropdownMenu for smooth animations matching branch select.
- * 
+ *
  * @example
  * ```tsx
- * <UserAvatarDropdown 
+ * <UserAvatarDropdown
  *   userInfo={userInfo}
  *   onLogoutPress={handleLogout}
  * />
@@ -43,7 +43,7 @@ export default function UserAvatarDropdown({
   onLogoutPress,
   onLoginPress,
 }: UserAvatarDropdownProps) {
-  const {t} = useTranslation('auth')
+  const { t } = useTranslation('auth')
   const getInitials = () => {
     if (!userInfo) return 'U'
     const first = userInfo.firstName?.charAt(0) || ''
@@ -53,7 +53,9 @@ export default function UserAvatarDropdown({
 
   const getUserFullName = () => {
     if (!userInfo) return 'User'
-    return `${userInfo.firstName || ''} ${userInfo.lastName || ''}`.trim() || 'User'
+    return (
+      `${userInfo.firstName || ''} ${userInfo.lastName || ''}`.trim() || 'User'
+    )
   }
 
   // Nếu chưa đăng nhập, hiển thị nút đăng nhập
@@ -62,15 +64,15 @@ export default function UserAvatarDropdown({
       <TouchableOpacity
         onPress={onLoginPress}
         className={cn(
-          'px-3 py-1.5 rounded-full',
+          'rounded-full px-3 py-1.5',
           'bg-primary/10 dark:bg-primary/20',
           'border border-primary/30 dark:border-primary/40',
           'flex-row items-center gap-1.5',
-          'active:opacity-80'
+          'active:opacity-80',
         )}
       >
         <User size={16} color={colors.primary.light} />
-        <Text className="text-primary text-sm font-medium">
+        <Text className="text-sm font-medium text-primary">
           {t('login.title')}
         </Text>
       </TouchableOpacity>
@@ -82,10 +84,10 @@ export default function UserAvatarDropdown({
       <DropdownMenuTrigger asChild>
         <TouchableOpacity
           className={cn(
-            'w-10 h-10 rounded-full overflow-hidden',
+            'h-10 w-10 overflow-hidden rounded-full',
             'bg-gray-300 dark:bg-gray-600',
             'items-center justify-center',
-            'active:opacity-80'
+            'active:opacity-80',
           )}
         >
           {userInfo.image ? (
@@ -93,10 +95,10 @@ export default function UserAvatarDropdown({
               source={userInfo.image}
               contentFit="cover"
               cachePolicy="memory-disk"
-              className="w-full h-full"
+              className="h-full w-full"
             />
           ) : (
-            <Text className="text-gray-700 dark:text-gray-200 font-semibold text-base">
+            <Text className="text-base font-semibold text-gray-700 dark:text-gray-200">
               {getInitials()}
             </Text>
           )}
@@ -105,16 +107,16 @@ export default function UserAvatarDropdown({
       <DropdownMenuContent className="w-56" align="end" sideOffset={8}>
         <View className="px-3 py-2">
           <View className="flex-row items-center gap-3">
-            <View className="w-10 h-10 rounded-full overflow-hidden bg-gray-300 dark:bg-gray-600 items-center justify-center">
+            <View className="h-10 w-10 items-center justify-center overflow-hidden rounded-full bg-gray-300 dark:bg-gray-600">
               {userInfo.image ? (
                 <Image
                   source={userInfo.image}
                   contentFit="cover"
                   cachePolicy="memory-disk"
-                  className="w-full h-full"
+                  className="h-full w-full"
                 />
               ) : (
-                <Text className="text-gray-700 dark:text-gray-200 font-semibold text-base">
+                <Text className="text-base font-semibold text-gray-700 dark:text-gray-200">
                   {getInitials()}
                 </Text>
               )}
@@ -126,7 +128,7 @@ export default function UserAvatarDropdown({
               >
                 {getUserFullName()}
               </Text>
-              <Text className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+              <Text className="mt-0.5 text-xs text-gray-500 dark:text-gray-400">
                 Tài khoản
               </Text>
             </View>
@@ -136,7 +138,7 @@ export default function UserAvatarDropdown({
         <DropdownMenuItem onSelect={onLogoutPress}>
           <View className="flex-row items-center gap-3">
             <LogOut size={18} color="#ef4444" />
-            <Text className="text-red-600 dark:text-red-400 font-medium text-sm">
+            <Text className="text-sm font-medium text-red-600 dark:text-red-400">
               Đăng xuất
             </Text>
           </View>
@@ -145,4 +147,3 @@ export default function UserAvatarDropdown({
     </DropdownMenu>
   )
 }
-

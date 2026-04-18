@@ -17,5 +17,7 @@ jest.mock('@/constants', () => ({
 import { ProductHeroImage } from '@/components/product/product-hero-image'
 
 it('is wrapped in React.memo', () => {
-  expect((ProductHeroImage as { $$typeof?: symbol }).$$typeof).toBe(Symbol.for('react.memo'))
+  expect((ProductHeroImage as { $$typeof?: symbol }).$$typeof).toBe(
+    Symbol.for('react.memo'),
+  )
 })

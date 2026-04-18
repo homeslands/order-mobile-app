@@ -120,10 +120,7 @@ export async function getOrder(id: string): Promise<IApiResponse<IOrder>> {
 export async function createOrder(
   payload: ICreateOrderRequest,
 ): Promise<IApiResponse<IOrder>> {
-  const response = await http.post<IApiResponse<IOrder>>(
-    '/orders',
-    payload,
-  )
+  const response = await http.post<IApiResponse<IOrder>>('/orders', payload)
   return response.data
 }
 
@@ -183,9 +180,9 @@ export function useOrder(orderId: string) {
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 30 * 1000,       // Data stale after 30s
-      gcTime: 5 * 60 * 1000,      // Cache GC after 5min
-      retry: 1,                    // Retry once on failure
+      staleTime: 30 * 1000, // Data stale after 30s
+      gcTime: 5 * 60 * 1000, // Cache GC after 5min
+      retry: 1, // Retry once on failure
       refetchOnWindowFocus: false, // Don't refetch on app focus
     },
   },
@@ -260,10 +257,10 @@ import axios from 'axios'
 
 export async function login(email: string, password: string) {
   try {
-    const response = await http.post<IApiResponse<IAuthToken>>(
-      '/auth/login',
-      { email, password },
-    )
+    const response = await http.post<IApiResponse<IAuthToken>>('/auth/login', {
+      email,
+      password,
+    })
     return response.data
   } catch (error) {
     // Map API errors to user-friendly messages
@@ -336,6 +333,7 @@ The HTTP client includes an **automatic request interceptor** that:
 4. **Handles 401 responses** — triggers logout on auth failure
 
 **Files involved**:
+
 - `utils/http.ts` — Interceptor logic
 - `lib/http-setup.ts` — Bootstrap (call at app startup)
 - `stores/auth.store.ts` — Token storage
@@ -361,7 +359,7 @@ export async function getOrder(id: string) {
 
 // ❌ Don't manually add Authorization header
 const response = await http.get(`/orders/${id}`, {
-  headers: { Authorization: `Bearer ${token}` }
+  headers: { Authorization: `Bearer ${token}` },
 })
 ```
 
@@ -437,10 +435,7 @@ queryClient.invalidateQueries({
 })
 
 // Set data directly
-queryClient.setQueryData(
-  [QUERYKEY.ORDER, orderId],
-  newOrderData,
-)
+queryClient.setQueryData([QUERYKEY.ORDER, orderId], newOrderData)
 
 // Prefetch (prevents loading state)
 queryClient.prefetchQuery({
@@ -502,13 +497,13 @@ return <MenuList items={data?.data} />
 
 ## ❌ Common Mistakes
 
-| ❌ Don't | ✅ Do |
-|----------|-------|
+| ❌ Don't                           | ✅ Do                           |
+| ---------------------------------- | ------------------------------- |
 | Import `useAuthStore` in API layer | Pass token via interceptor only |
-| Add manual Bearer header | Let interceptor handle it |
-| Call API directly in components | Use React Query hooks |
-| Create new `axios` instances | Use exported `http` client |
-| Ignore error types | Check `axios.isAxiosError()` |
-| Return `response` directly | Return `response.data` |
-| Mix query + mutation patterns | Use appropriate hook |
-| Hard-code API URLs | Use environment variables |
+| Add manual Bearer header           | Let interceptor handle it       |
+| Call API directly in components    | Use React Query hooks           |
+| Create new `axios` instances       | Use exported `http` client      |
+| Ignore error types                 | Check `axios.isAxiosError()`    |
+| Return `response` directly         | Return `response.data`          |
+| Mix query + mutation patterns      | Use appropriate hook            |
+| Hard-code API URLs                 | Use environment variables       |

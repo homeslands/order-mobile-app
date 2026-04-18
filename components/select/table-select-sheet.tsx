@@ -1,4 +1,8 @@
-import BottomSheet, { BottomSheetBackdrop, BottomSheetBackdropProps, BottomSheetFlashList } from '@gorhom/bottom-sheet'
+import BottomSheet, {
+  BottomSheetBackdrop,
+  BottomSheetBackdropProps,
+  BottomSheetFlashList,
+} from '@gorhom/bottom-sheet'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, Text, useColorScheme, View } from 'react-native'
@@ -190,7 +194,7 @@ function TableSelectSheet({
         pressBehavior="close"
       />
     ),
-    []
+    [],
   )
 
   const handleSelectTable = useCallback(
@@ -224,10 +228,7 @@ function TableSelectSheet({
     () => ({ backgroundColor: isDark ? '#111827' : '#ffffff' }),
     [isDark],
   )
-  const containerStyle = useMemo(
-    () => ({ zIndex: 9999, elevation: 9999 }),
-    [],
-  )
+  const containerStyle = useMemo(() => ({ zIndex: 9999, elevation: 9999 }), [])
 
   return (
     <BottomSheet
@@ -241,7 +242,7 @@ function TableSelectSheet({
       backgroundStyle={backgroundStyle}
       containerStyle={containerStyle}
     >
-      <View className="px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+      <View className="border-b border-gray-200 px-4 py-3 dark:border-gray-700">
         <Text className="text-base font-semibold text-gray-900 dark:text-gray-50">
           {t('table.title')}
         </Text>
@@ -249,8 +250,11 @@ function TableSelectSheet({
 
       {isLoading ? (
         <View className="flex-1 items-center justify-center py-12">
-          <ActivityIndicator size="small" color={isDark ? '#9ca3af' : '#6b7280'} />
-          <Text className="text-sm text-gray-500 dark:text-gray-400 mt-3">
+          <ActivityIndicator
+            size="small"
+            color={isDark ? '#9ca3af' : '#6b7280'}
+          />
+          <Text className="mt-3 text-sm text-gray-500 dark:text-gray-400">
             {t('table.loading', 'Đang tải...')}
           </Text>
         </View>
@@ -264,7 +268,7 @@ function TableSelectSheet({
           }}
           ListFooterComponent={renderFooter}
           ListEmptyComponent={
-            <View className="px-4 py-8 items-center">
+            <View className="items-center px-4 py-8">
               <Text className="text-sm text-gray-500 dark:text-gray-400">
                 {t('table.noTables', 'Không có bàn nào')}
               </Text>

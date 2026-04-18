@@ -2,7 +2,13 @@ import { cn } from '@/utils/cn'
 import { colors } from '@/constants'
 import { ChevronLeft, ChevronRight } from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Dimensions, FlatList, ScrollView, TouchableOpacity, View } from 'react-native'
+import {
+  Dimensions,
+  FlatList,
+  ScrollView,
+  TouchableOpacity,
+  View,
+} from 'react-native'
 
 interface CarouselProps {
   children: React.ReactNode
@@ -62,8 +68,14 @@ function Carousel({
   const itemCount = childrenArray.length
 
   // Calculate scroll states using useMemo (no state needed)
-  const canScrollPrev = useMemo(() => loop || currentIndex > 0, [loop, currentIndex])
-  const canScrollNext = useMemo(() => loop || currentIndex < itemCount - 1, [loop, currentIndex, itemCount])
+  const canScrollPrev = useMemo(
+    () => loop || currentIndex > 0,
+    [loop, currentIndex],
+  )
+  const canScrollNext = useMemo(
+    () => loop || currentIndex < itemCount - 1,
+    [loop, currentIndex, itemCount],
+  )
 
   const scrollNext = useCallback(() => {
     if (currentIndex < itemCount - 1) {
@@ -134,7 +146,16 @@ function Carousel({
         canScrollPrev,
       })
     }
-  }, [setApi, scrollNext, scrollPrev, canScrollNext, canScrollPrev, orientation, screenHeight, onIndexChange])
+  }, [
+    setApi,
+    scrollNext,
+    scrollPrev,
+    canScrollNext,
+    canScrollPrev,
+    orientation,
+    screenHeight,
+    onIndexChange,
+  ])
 
   const contextValue: CarouselContextValue = {
     orientation,
@@ -164,7 +185,9 @@ function Carousel({
             pagingEnabled
             showsHorizontalScrollIndicator={false}
             onMomentumScrollEnd={(event) => {
-              const index = Math.round(event.nativeEvent.contentOffset.x / screenWidth)
+              const index = Math.round(
+                event.nativeEvent.contentOffset.x / screenWidth,
+              )
               setCurrentIndex(index)
               onIndexChange?.(index)
             }}
@@ -173,7 +196,9 @@ function Carousel({
               offset: screenWidth * index,
               index,
             })}
-            contentContainerStyle={{ alignItems: align === 'center' ? 'center' : 'flex-start' }}
+            contentContainerStyle={{
+              alignItems: align === 'center' ? 'center' : 'flex-start',
+            }}
           />
         </View>
       </CarouselContext.Provider>
@@ -189,14 +214,21 @@ function Carousel({
           pagingEnabled
           showsVerticalScrollIndicator={false}
           onMomentumScrollEnd={(event) => {
-            const index = Math.round(event.nativeEvent.contentOffset.y / screenHeight)
+            const index = Math.round(
+              event.nativeEvent.contentOffset.y / screenHeight,
+            )
             setCurrentIndex(index)
             onIndexChange?.(index)
           }}
-          contentContainerStyle={{ alignItems: align === 'center' ? 'center' : 'flex-start' }}
+          contentContainerStyle={{
+            alignItems: align === 'center' ? 'center' : 'flex-start',
+          }}
         >
           {childrenArray.map((child, index) => (
-            <View key={`carousel-item-${index}`} style={{ height: screenHeight, width: '100%' }}>
+            <View
+              key={`carousel-item-${index}`}
+              style={{ height: screenHeight, width: '100%' }}
+            >
               {child}
             </View>
           ))}
@@ -215,18 +247,10 @@ function CarouselContent({ children, className }: CarouselContentProps) {
   const { orientation } = useCarousel()
 
   if (orientation === 'horizontal') {
-    return (
-      <View className={cn('flex-row', className)}>
-        {children}
-      </View>
-    )
+    return <View className={cn('flex-row', className)}>{children}</View>
   }
 
-  return (
-    <View className={cn('flex-col', className)}>
-      {children}
-    </View>
-  )
+  return <View className={cn('flex-col', className)}>{children}</View>
 }
 
 interface CarouselItemProps {
@@ -259,7 +283,11 @@ interface CarouselPreviousProps {
   size?: 'default' | 'icon'
 }
 
-function CarouselPrevious({ className, variant: _variant = 'outline', size = 'default' }: CarouselPreviousProps) {
+function CarouselPrevious({
+  className,
+  variant: _variant = 'outline',
+  size = 'default',
+}: CarouselPreviousProps) {
   const { scrollPrev, canScrollPrev, orientation } = useCarousel()
 
   return (
@@ -267,11 +295,13 @@ function CarouselPrevious({ className, variant: _variant = 'outline', size = 'de
       onPress={scrollPrev}
       disabled={!canScrollPrev}
       className={cn(
-        'absolute z-10 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800',
-        orientation === 'horizontal' ? 'left-2 top-1/2 -translate-y-1/2' : 'top-2 left-1/2 -translate-x-1/2 rotate-90',
+        'absolute z-10 items-center justify-center rounded-full border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800',
+        orientation === 'horizontal'
+          ? 'left-2 top-1/2 -translate-y-1/2'
+          : 'left-1/2 top-2 -translate-x-1/2 rotate-90',
         size === 'default' ? 'h-8 w-8' : 'h-9 w-9',
         !canScrollPrev && 'opacity-50',
-        className
+        className,
       )}
     >
       <ChevronLeft size={16} color={colors.gray[700]} />
@@ -285,7 +315,11 @@ interface CarouselNextProps {
   size?: 'default' | 'icon'
 }
 
-function CarouselNext({ className, variant: _variant = 'outline', size = 'default' }: CarouselNextProps) {
+function CarouselNext({
+  className,
+  variant: _variant = 'outline',
+  size = 'default',
+}: CarouselNextProps) {
   const { scrollNext, canScrollNext, orientation } = useCarousel()
 
   return (
@@ -293,11 +327,13 @@ function CarouselNext({ className, variant: _variant = 'outline', size = 'defaul
       onPress={scrollNext}
       disabled={!canScrollNext}
       className={cn(
-        'absolute z-10 items-center justify-center rounded-full border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800',
-        orientation === 'horizontal' ? 'right-2 top-1/2 -translate-y-1/2' : 'bottom-2 left-1/2 -translate-x-1/2 rotate-90',
+        'absolute z-10 items-center justify-center rounded-full border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800',
+        orientation === 'horizontal'
+          ? 'right-2 top-1/2 -translate-y-1/2'
+          : 'bottom-2 left-1/2 -translate-x-1/2 rotate-90',
         size === 'default' ? 'h-8 w-8' : 'h-9 w-9',
         !canScrollNext && 'opacity-50',
-        className
+        className,
       )}
     >
       <ChevronRight size={16} color={colors.gray[700]} />
@@ -311,5 +347,11 @@ Carousel.Item = CarouselItem
 Carousel.Previous = CarouselPrevious
 Carousel.Next = CarouselNext
 
-export { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious, useCarousel }
-
+export {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+  useCarousel,
+}

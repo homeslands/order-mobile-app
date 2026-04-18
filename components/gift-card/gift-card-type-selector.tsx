@@ -14,7 +14,9 @@ interface TypeOptionProps {
   description: string
   icon: React.ReactNode
   disabled?: boolean
-  onSelect: (value: GiftCardType.SELF | GiftCardType.GIFT | GiftCardType.BUY) => void
+  onSelect: (
+    value: GiftCardType.SELF | GiftCardType.GIFT | GiftCardType.BUY,
+  ) => void
 }
 
 const TypeOption = memo(function TypeOption({
@@ -28,12 +30,13 @@ const TypeOption = memo(function TypeOption({
   onSelect,
 }: TypeOptionProps) {
   const isDark = useColorScheme() === 'dark'
-  const handlePress = useCallback(
-    () => onSelect(value),
-    [value, onSelect],
-  )
+  const handlePress = useCallback(() => onSelect(value), [value, onSelect])
 
-  const borderColor = selected ? primaryColor : isDark ? colors.gray[700] : colors.gray[200]
+  const borderColor = selected
+    ? primaryColor
+    : isDark
+      ? colors.gray[700]
+      : colors.gray[200]
   const bgColor = selected
     ? `${primaryColor}12`
     : isDark
@@ -45,7 +48,11 @@ const TypeOption = memo(function TypeOption({
   return (
     <Pressable
       onPress={disabled ? undefined : handlePress}
-      style={[s.option, { borderColor, backgroundColor: bgColor }, disabled && s.optionDisabled]}
+      style={[
+        s.option,
+        { borderColor, backgroundColor: bgColor },
+        disabled && s.optionDisabled,
+      ]}
     >
       <View
         style={[
@@ -68,8 +75,15 @@ const TypeOption = memo(function TypeOption({
       {disabled ? (
         <Lock size={16} color={isDark ? colors.gray[600] : colors.gray[400]} />
       ) : (
-        <View style={[s.radio, { borderColor: selected ? primaryColor : colors.gray[300] }]}>
-          {selected && <View style={[s.radioDot, { backgroundColor: primaryColor }]} />}
+        <View
+          style={[
+            s.radio,
+            { borderColor: selected ? primaryColor : colors.gray[300] },
+          ]}
+        >
+          {selected && (
+            <View style={[s.radioDot, { backgroundColor: primaryColor }]} />
+          )}
         </View>
       )}
     </Pressable>
@@ -80,7 +94,9 @@ interface GiftCardTypeSelectorProps {
   value: GiftCardType | null
   primaryColor: string
   availableTypes: (GiftCardType.SELF | GiftCardType.GIFT | GiftCardType.BUY)[]
-  onChange: (value: GiftCardType.SELF | GiftCardType.GIFT | GiftCardType.BUY) => void
+  onChange: (
+    value: GiftCardType.SELF | GiftCardType.GIFT | GiftCardType.BUY,
+  ) => void
 }
 
 export const GiftCardTypeSelector = memo(function GiftCardTypeSelector({
@@ -95,7 +111,9 @@ export const GiftCardTypeSelector = memo(function GiftCardTypeSelector({
 
   return (
     <View style={s.container}>
-      <Text style={[s.sectionLabel, { color: textColor }]}>{t('typeSelector.title')}</Text>
+      <Text style={[s.sectionLabel, { color: textColor }]}>
+        {t('typeSelector.title')}
+      </Text>
 
       {availableTypes.includes(GiftCardType.SELF) && (
         <TypeOption
@@ -107,7 +125,9 @@ export const GiftCardTypeSelector = memo(function GiftCardTypeSelector({
           icon={
             <UserRound
               size={20}
-              color={value === GiftCardType.SELF ? primaryColor : colors.gray[500]}
+              color={
+                value === GiftCardType.SELF ? primaryColor : colors.gray[500]
+              }
             />
           }
           onSelect={onChange}
@@ -124,7 +144,9 @@ export const GiftCardTypeSelector = memo(function GiftCardTypeSelector({
           icon={
             <Users
               size={20}
-              color={value === GiftCardType.GIFT ? primaryColor : colors.gray[500]}
+              color={
+                value === GiftCardType.GIFT ? primaryColor : colors.gray[500]
+              }
             />
           }
           onSelect={onChange}
@@ -141,7 +163,9 @@ export const GiftCardTypeSelector = memo(function GiftCardTypeSelector({
           icon={
             <ShoppingBag
               size={20}
-              color={value === GiftCardType.BUY ? primaryColor : colors.gray[500]}
+              color={
+                value === GiftCardType.BUY ? primaryColor : colors.gray[500]
+              }
             />
           }
           onSelect={onChange}

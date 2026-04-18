@@ -34,7 +34,10 @@ export default function ProductDetailPage() {
   const headerStyle = useAnimatedStyle(() => {
     const y = Math.max(-140, scrollY.value)
     return {
-      transform: [{ translateY: y * 0.45 }, { scale: scrollY.value < 0 ? 1.1 : 1 }],
+      transform: [
+        { translateY: y * 0.45 },
+        { scale: scrollY.value < 0 ? 1.1 : 1 },
+      ],
     }
   })
 
@@ -49,10 +52,14 @@ export default function ProductDetailPage() {
     <View className="flex-1 bg-white dark:bg-black">
       <View className="absolute left-0 right-0 top-0 z-10 flex-row items-center justify-between px-4 pb-3 pt-12">
         <TouchableOpacity onPress={() => router.back()}>
-          <Text className="font-semibold text-blue-600 dark:text-blue-400">Back</Text>
+          <Text className="font-semibold text-blue-600 dark:text-blue-400">
+            Back
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => router.push('/cart')}>
-          <Text className="font-semibold text-blue-600 dark:text-blue-400">Cart</Text>
+          <Text className="font-semibold text-blue-600 dark:text-blue-400">
+            Cart
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -71,8 +78,12 @@ export default function ProductDetailPage() {
         </Animated.View>
 
         <View className="p-4">
-          <Text className="text-2xl font-bold text-gray-900 dark:text-white">{product.name}</Text>
-          <Text className="mt-2 text-sm text-gray-500 dark:text-gray-400">Product ID: {product.id}</Text>
+          <Text className="text-2xl font-bold text-gray-900 dark:text-white">
+            {product.name}
+          </Text>
+          <Text className="mt-2 text-sm text-gray-500 dark:text-gray-400">
+            Product ID: {product.id}
+          </Text>
           <Text className="mt-3 text-sm text-gray-500 dark:text-gray-400">
             Product detail page is intentionally empty for transition benchmark.
           </Text>

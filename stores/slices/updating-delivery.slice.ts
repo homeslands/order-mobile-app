@@ -11,17 +11,17 @@ export function createUpdatingDeliveryMethods(set: SetFn, get: GetFn) {
       set({
         updatingData: {
           ...updatingData,
-          updateDraft: { ...updatingData.updateDraft, deliveryAddress: address },
+          updateDraft: {
+            ...updatingData.updateDraft,
+            deliveryAddress: address,
+          },
           hasChanges: true,
         },
         lastModified: dayjs().valueOf(),
       })
     },
 
-    setDraftDeliveryDistanceDuration: (
-      distance: number,
-      duration: number,
-    ) => {
+    setDraftDeliveryDistanceDuration: (distance: number, duration: number) => {
       const { updatingData } = get()
       if (!updatingData) return
 

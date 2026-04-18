@@ -12,21 +12,22 @@
 
 ## File Structure
 
-| File | Thay đổi |
-|---|---|
-| `components/input/password-input-field.tsx` | TẠO MỚI — PasswordInputField component |
-| `components/input/index.tsx` | Thêm export PasswordInputField |
-| `components/input/password-rules-input.tsx` | Redesign UI — strength bar + tags |
-| `components/auth/login-form.tsx` | Thay manual show/hide → PasswordInputField |
-| `components/auth/register-form.tsx` | Password → PasswordRulesInput (đã có), confirmPassword → PasswordInputField |
-| `components/form/reset-password-form.tsx` | confirmPassword TextInput thuần → PasswordInputField |
-| `app/profile/change-password.tsx` | oldPassword + confirmPassword → PasswordInputField, newPassword → PasswordRulesInput |
+| File                                        | Thay đổi                                                                             |
+| ------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `components/input/password-input-field.tsx` | TẠO MỚI — PasswordInputField component                                               |
+| `components/input/index.tsx`                | Thêm export PasswordInputField                                                       |
+| `components/input/password-rules-input.tsx` | Redesign UI — strength bar + tags                                                    |
+| `components/auth/login-form.tsx`            | Thay manual show/hide → PasswordInputField                                           |
+| `components/auth/register-form.tsx`         | Password → PasswordRulesInput (đã có), confirmPassword → PasswordInputField          |
+| `components/form/reset-password-form.tsx`   | confirmPassword TextInput thuần → PasswordInputField                                 |
+| `app/profile/change-password.tsx`           | oldPassword + confirmPassword → PasswordInputField, newPassword → PasswordRulesInput |
 
 ---
 
 ## Task 1: Tạo PasswordInputField component
 
 **Files:**
+
 - Create: `components/input/password-input-field.tsx`
 
 - [ ] **Step 1: Tạo file với toàn bộ implementation**
@@ -35,7 +36,13 @@
 // components/input/password-input-field.tsx
 import { Eye, EyeOff } from 'lucide-react-native'
 import { useState } from 'react'
-import { Text, TextInput, TouchableOpacity, View, useColorScheme } from 'react-native'
+import {
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+  useColorScheme,
+} from 'react-native'
 
 import { colors } from '@/constants'
 import { cn } from '@/lib/utils'
@@ -66,7 +73,7 @@ export function PasswordInputField({
       <View className="relative">
         <TextInput
           className={cn(
-            'h-10 rounded-lg border bg-white dark:bg-gray-800 px-3 py-2 pr-10 text-base',
+            'h-10 rounded-lg border bg-white px-3 py-2 pr-10 text-base dark:bg-gray-800',
             'text-gray-900 dark:text-white',
             error
               ? 'border-red-500 dark:border-red-500'
@@ -97,9 +104,7 @@ export function PasswordInputField({
           )}
         </TouchableOpacity>
       </View>
-      {!!error && (
-        <Text className="mt-1 text-xs text-red-500">{error}</Text>
-      )}
+      {!!error && <Text className="mt-1 text-xs text-red-500">{error}</Text>}
     </View>
   )
 }
@@ -110,11 +115,11 @@ export function PasswordInputField({
 Sửa `components/input/index.tsx` thành:
 
 ```tsx
-export { default as CartNoteInput } from './cart-note-input';
-export { NoteInput } from './note-input';
-export { default as OrderNoteInput } from './order-note-input';
-export { PasswordInputField } from './password-input-field';
-export { PasswordRulesInput } from './password-rules-input';
+export { default as CartNoteInput } from './cart-note-input'
+export { NoteInput } from './note-input'
+export { default as OrderNoteInput } from './order-note-input'
+export { PasswordInputField } from './password-input-field'
+export { PasswordRulesInput } from './password-rules-input'
 ```
 
 - [ ] **Step 3: Typecheck**
@@ -137,11 +142,13 @@ git commit -m "feat(auth): add PasswordInputField component with show/hide toggl
 ## Task 2: Redesign PasswordRulesInput — strength bar + rule tags
 
 **Files:**
+
 - Modify: `components/input/password-rules-input.tsx`
 
 **Context:** Thay bullet-list text bằng: (1) strength bar 3 segment màu, (2) rule tags hàng ngang với ✓/✗ prefix. Logic `touched` và `showRules` giữ nguyên — chỉ thay phần render bên dưới input.
 
 Strength bar mapping dựa trên số rules met (`metCount`):
+
 - 0 rules met: tất cả xám (trạng thái chưa nhập — không hiện vì `!touched`)
 - 1 met: segment[0] đỏ, còn lại xám
 - 2 met: segment[0-1] amber, segment[2] xám
@@ -192,7 +199,9 @@ function RuleTag({ met, label }: { met: boolean; label: string }) {
     <View
       className={cn(
         'rounded-full px-2 py-0.5',
-        met ? 'bg-green-100 dark:bg-green-900/40' : 'bg-gray-100 dark:bg-gray-800',
+        met
+          ? 'bg-green-100 dark:bg-green-900/40'
+          : 'bg-gray-100 dark:bg-gray-800',
       )}
     >
       <Text
@@ -203,7 +212,8 @@ function RuleTag({ met, label }: { met: boolean; label: string }) {
             : 'text-gray-400 dark:text-gray-500',
         )}
       >
-        {met ? '✓ ' : '✗ '}{label}
+        {met ? '✓ ' : '✗ '}
+        {label}
       </Text>
     </View>
   )
@@ -227,7 +237,9 @@ export function PasswordRulesInput({
   const strength = strengthProp ?? hookResult.strength
   const labels = labelsProp ?? hookResult.labels
 
-  const metCount = [rules.minLength, rules.hasLetter, rules.hasNumber].filter(Boolean).length
+  const metCount = [rules.minLength, rules.hasLetter, rules.hasNumber].filter(
+    Boolean,
+  ).length
 
   return (
     <View className="gap-2">
@@ -235,7 +247,7 @@ export function PasswordRulesInput({
       <View className="relative">
         <TextInput
           className={cn(
-            'bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-4 py-3 pr-12 text-base border',
+            'rounded-lg border bg-white px-4 py-3 pr-12 text-base text-gray-900 dark:bg-gray-800 dark:text-white',
             'border-gray-300 dark:border-gray-700',
             disabled && 'opacity-50',
           )}
@@ -253,11 +265,15 @@ export function PasswordRulesInput({
           style={{ fontFamily: 'BeVietnamPro_400Regular' }}
         />
         <TouchableOpacity
-          className="absolute right-4 top-0 bottom-0 justify-center"
+          className="absolute bottom-0 right-4 top-0 justify-center"
           onPress={() => setShowPassword(!showPassword)}
           disabled={disabled}
         >
-          {showPassword ? <EyeOff size={20} color="#999" /> : <Eye size={20} color="#999" />}
+          {showPassword ? (
+            <EyeOff size={20} color="#999" />
+          ) : (
+            <Eye size={20} color="#999" />
+          )}
         </TouchableOpacity>
       </View>
 
@@ -269,7 +285,10 @@ export function PasswordRulesInput({
             {[0, 1, 2].map((i) => (
               <View
                 key={i}
-                className={cn('h-1 flex-1 rounded-full', segmentColor(i, metCount))}
+                className={cn(
+                  'h-1 flex-1 rounded-full',
+                  segmentColor(i, metCount),
+                )}
               />
             ))}
           </View>
@@ -282,7 +301,12 @@ export function PasswordRulesInput({
               <RuleTag met={rules.hasNumber} label={labels.hasNumber} />
             </View>
             {strength !== null && (
-              <Text className={cn('ml-2 text-xs font-semibold', strengthLabelColor(metCount))}>
+              <Text
+                className={cn(
+                  'ml-2 text-xs font-semibold',
+                  strengthLabelColor(metCount),
+                )}
+              >
                 {strength}
               </Text>
             )}
@@ -314,6 +338,7 @@ git commit -m "feat(auth): redesign PasswordRulesInput with strength bar and rul
 ## Task 3: Update login-form — thay manual show/hide bằng PasswordInputField
 
 **Files:**
+
 - Modify: `components/auth/login-form.tsx`
 
 **Context:** Hiện tại `login-form.tsx` dùng `FormInput` cho password + state `showPassword` + `TouchableOpacity` với Eye/EyeOff đặt absolute. Thay bằng `PasswordInputField` bọc trong `Controller`.
@@ -326,12 +351,7 @@ Thay phần import và password field. File đầy đủ sau khi sửa:
 // components/auth/login-form.tsx
 import { useTranslation } from 'react-i18next'
 import { Controller } from 'react-hook-form'
-import {
-  ActivityIndicator,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native'
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 
 import { FormInput } from '@/components/form/form-input'
 import { PasswordInputField } from '@/components/input'
@@ -349,10 +369,13 @@ interface LoginFormProps {
 export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
   const { t } = useTranslation('auth')
 
-  const { control, handleSubmit, formState: { isSubmitting, errors } } =
-    useZodForm(loginSchema, {
-      defaultValues: { phonenumber: '', password: '' },
-    })
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting, errors },
+  } = useZodForm(loginSchema, {
+    defaultValues: { phonenumber: '', password: '' },
+  })
 
   const { mutate: loginMutation, isPending } = useLogin()
   const { handleAuthSuccess } = usePostAuthActions()
@@ -365,7 +388,8 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
           try {
             await handleAuthSuccess(response.result, onLoginSuccess)
           } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error'
+            const message =
+              error instanceof Error ? error.message : 'Unknown error'
             showErrorToastMessage(message)
           }
         },
@@ -378,10 +402,10 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
 
   return (
     <View className="flex-1 px-6 pt-12">
-      <Text className="mb-2 text-3xl font-sans-bold text-foreground">
+      <Text className="mb-2 font-sans-bold text-3xl text-foreground">
         {t('login.title')}
       </Text>
-      <Text className="mb-8 text-base font-sans text-muted-foreground">
+      <Text className="mb-8 font-sans text-base text-muted-foreground">
         {t('login.description')}
       </Text>
 
@@ -410,7 +434,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
             disabled={isLoading}
             hitSlop={8}
           >
-            <Text className="text-sm font-sans-semibold text-primary">
+            <Text className="font-sans-semibold text-sm text-primary">
               {t('login.forgotPassword')}
             </Text>
           </TouchableOpacity>
@@ -440,7 +464,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         {isLoading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text className="text-base font-sans-semibold text-primary-foreground">
+          <Text className="font-sans-semibold text-base text-primary-foreground">
             {t('login.login')}
           </Text>
         )}
@@ -452,7 +476,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         onPress={() => navigateNative.replace('/auth/register')}
         disabled={isLoading}
       >
-        <Text className="text-sm font-sans text-muted-foreground">
+        <Text className="font-sans text-sm text-muted-foreground">
           {t('login.noAccount')}{' '}
           <Text className="font-sans-semibold text-primary">
             {t('login.register')}
@@ -466,7 +490,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         onPress={() => navigateNative.replace('/(tabs)/home')}
         disabled={isLoading}
       >
-        <Text className="text-sm font-sans text-muted-foreground">
+        <Text className="font-sans text-sm text-muted-foreground">
           {t('login.goBackToHome')}
         </Text>
       </TouchableOpacity>
@@ -495,6 +519,7 @@ git commit -m "feat(auth): replace manual password show/hide in login with Passw
 ## Task 4: Update register-form — confirmPassword → PasswordInputField
 
 **Files:**
+
 - Modify: `components/auth/register-form.tsx`
 
 **Context:** Ô `password` đã dùng `FormInput` + show/hide thủ công — thay bằng `PasswordRulesInput` bọc trong `Controller` (đồng nhất với reset-password). Ô `confirmPassword` thay `FormInput` + show/hide thủ công → `PasswordInputField`.
@@ -509,12 +534,7 @@ import dayjs from 'dayjs'
 import { useCallback } from 'react'
 import { Controller, useController } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import {
-  ActivityIndicator,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native'
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 
 import { FormInput } from '@/components/form/form-input'
 import { PasswordInputField } from '@/components/input'
@@ -593,10 +613,10 @@ export default function RegisterForm() {
 
   return (
     <View className="flex-1 px-6 pt-8">
-      <Text className="mb-2 text-3xl font-sans-bold text-foreground">
+      <Text className="mb-2 font-sans-bold text-3xl text-foreground">
         {t('register.title')}
       </Text>
-      <Text className="mb-8 text-base font-sans text-muted-foreground">
+      <Text className="mb-8 font-sans text-base text-muted-foreground">
         {t('register.subtitle')}
       </Text>
 
@@ -633,7 +653,9 @@ export default function RegisterForm() {
           placeholder={t('register.selectDob')}
         />
         {dobError && (
-          <Text className="mt-1 text-xs text-destructive">{dobError.message}</Text>
+          <Text className="mt-1 text-xs text-destructive">
+            {dobError.message}
+          </Text>
         )}
       </View>
 
@@ -668,7 +690,9 @@ export default function RegisterForm() {
           )}
         />
         {errors.password && (
-          <Text className="mt-1 text-xs text-destructive">{errors.password.message}</Text>
+          <Text className="mt-1 text-xs text-destructive">
+            {errors.password.message}
+          </Text>
         )}
       </View>
 
@@ -702,7 +726,7 @@ export default function RegisterForm() {
         {isLoading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text className="text-base font-sans-semibold text-primary-foreground">
+          <Text className="font-sans-semibold text-base text-primary-foreground">
             {t('register.register')}
           </Text>
         )}
@@ -714,9 +738,11 @@ export default function RegisterForm() {
         onPress={() => navigateNative.replace('/auth/login')}
         disabled={isLoading}
       >
-        <Text className="text-sm font-sans text-muted-foreground">
+        <Text className="font-sans text-sm text-muted-foreground">
           {t('register.haveAccount')}{' '}
-          <Text className="font-sans-semibold text-primary">{t('register.login')}</Text>
+          <Text className="font-sans-semibold text-primary">
+            {t('register.login')}
+          </Text>
         </Text>
       </TouchableOpacity>
 
@@ -726,7 +752,7 @@ export default function RegisterForm() {
         onPress={() => navigateNative.replace('/(tabs)/home')}
         disabled={isLoading}
       >
-        <Text className="text-sm font-sans text-muted-foreground">
+        <Text className="font-sans text-sm text-muted-foreground">
           {t('register.goBackToHome')}
         </Text>
       </TouchableOpacity>
@@ -755,6 +781,7 @@ git commit -m "feat(auth): use PasswordRulesInput and PasswordInputField in regi
 ## Task 5: Update reset-password-form — confirmPassword → PasswordInputField
 
 **Files:**
+
 - Modify: `components/form/reset-password-form.tsx`
 
 **Context:** Ô `confirmPassword` hiện dùng `TextInput` thuần bọc trong `View` + `TouchableOpacity` Eye/EyeOff tự quản lý. Thay bằng `PasswordInputField`. Bỏ `useState(showConfirmPassword)` và import `Eye`, `EyeOff`, `TextInput`.
@@ -782,7 +809,11 @@ interface ResetPasswordFormProps {
   token: string
 }
 
-export function ResetPasswordForm({ onSubmit, isLoading = false, token }: ResetPasswordFormProps) {
+export function ResetPasswordForm({
+  onSubmit,
+  isLoading = false,
+  token,
+}: ResetPasswordFormProps) {
   const { t } = useTranslation('auth')
 
   const schema = useResetPasswordSchema()
@@ -798,15 +829,18 @@ export function ResetPasswordForm({ onSubmit, isLoading = false, token }: ResetP
     },
   })
 
-  const onFormSubmit = useCallback((values: TResetPasswordSchema) => {
-    onSubmit(values)
-  }, [onSubmit])
+  const onFormSubmit = useCallback(
+    (values: TResetPasswordSchema) => {
+      onSubmit(values)
+    },
+    [onSubmit],
+  )
 
   return (
     <View className="gap-4">
       {/* Mật khẩu mới */}
       <View>
-        <Text className="mb-2 text-sm font-sans-medium text-foreground">
+        <Text className="mb-2 font-sans-medium text-sm text-foreground">
           {t('forgotPassword.newPassword')}
         </Text>
         <Controller
@@ -822,13 +856,15 @@ export function ResetPasswordForm({ onSubmit, isLoading = false, token }: ResetP
           )}
         />
         {errors.newPassword && (
-          <Text className="mt-1 text-sm text-destructive">{errors.newPassword.message}</Text>
+          <Text className="mt-1 text-sm text-destructive">
+            {errors.newPassword.message}
+          </Text>
         )}
       </View>
 
       {/* Xác nhận mật khẩu — PasswordInputField thay TextInput thuần */}
       <View>
-        <Text className="mb-2 text-sm font-sans-medium text-foreground">
+        <Text className="mb-2 font-sans-medium text-sm text-foreground">
           {t('forgotPassword.confirmNewPassword')}
         </Text>
         <Controller
@@ -847,18 +883,28 @@ export function ResetPasswordForm({ onSubmit, isLoading = false, token }: ResetP
         />
       </View>
 
-      <Button variant="primary" className="mt-2 h-11 rounded-lg" disabled={isLoading} onPress={handleSubmit(onFormSubmit)}>
+      <Button
+        variant="primary"
+        className="mt-2 h-11 rounded-lg"
+        disabled={isLoading}
+        onPress={handleSubmit(onFormSubmit)}
+      >
         {isLoading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text className="text-sm font-sans-semibold text-primary-foreground">
+          <Text className="font-sans-semibold text-sm text-primary-foreground">
             {t('forgotPassword.reset')}
           </Text>
         )}
       </Button>
 
-      <Button variant="ghost" className="mt-2" disabled={isLoading} onPress={() => navigateNative.replace(ROUTE.LOGIN)}>
-        <Text className="text-center text-sm font-sans-medium text-primary">
+      <Button
+        variant="ghost"
+        className="mt-2"
+        disabled={isLoading}
+        onPress={() => navigateNative.replace(ROUTE.LOGIN)}
+      >
+        <Text className="text-center font-sans-medium text-sm text-primary">
           Quay lại đăng nhập
         </Text>
       </Button>
@@ -887,9 +933,11 @@ git commit -m "feat(auth): replace raw TextInput with PasswordInputField in rese
 ## Task 6: Update change-password screen — thêm show/hide cho tất cả ô
 
 **Files:**
+
 - Modify: `app/profile/change-password.tsx`
 
 **Context:** Màn này dùng `Input` thuần với `secureTextEntry` cố định — không có show/hide. Không dùng React Hook Form (state thủ công `useState`). Thay 3 ô:
+
 - `oldPassword` → `PasswordInputField`
 - `newPassword` → `PasswordRulesInput`
 - `confirmPassword` → `PasswordInputField`
@@ -943,19 +991,31 @@ function ChangePasswordScreen() {
       .catch(() => {
         showToast(t('changePassword.error'))
       })
-      .finally(() => { setIsSubmitting(false) })
+      .finally(() => {
+        setIsSubmitting(false)
+      })
   }
 
   return (
-    <ScreenContainer edges={['top', 'bottom']} className="flex-1 bg-gray-50 dark:bg-gray-900">
+    <ScreenContainer
+      edges={['top', 'bottom']}
+      className="flex-1 bg-gray-50 dark:bg-gray-900"
+    >
       {/* Header */}
-      <View className="bg-white dark:bg-gray-800 px-4 py-3 flex-row items-center border-b border-gray-200 dark:border-gray-700">
+      <View className="flex-row items-center border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
         <Button
           variant="ghost"
-          className="mr-2 px-0 min-h-0 h-10 w-10 rounded-full justify-center items-center"
+          className="mr-2 h-10 min-h-0 w-10 items-center justify-center rounded-full px-0"
           onPress={() => navigateNative.back()}
         >
-          <ArrowLeft size={22} color={isDark ? colors.mutedForeground.dark : colors.mutedForeground.light} />
+          <ArrowLeft
+            size={22}
+            color={
+              isDark
+                ? colors.mutedForeground.dark
+                : colors.mutedForeground.light
+            }
+          />
         </Button>
         <Text className="text-lg font-semibold text-gray-900 dark:text-gray-50">
           {t('changePassword.title')}
@@ -963,8 +1023,7 @@ function ChangePasswordScreen() {
       </View>
 
       <View className="flex-1 px-4 py-6">
-        <View className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
-
+        <View className="rounded-xl border border-gray-100 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
           {/* Mật khẩu cũ */}
           <View className="mb-4">
             <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
@@ -1011,13 +1070,15 @@ function ChangePasswordScreen() {
 
         <View className="mt-6">
           <Button
-            className="w-full h-11 rounded-lg"
+            className="h-11 w-full rounded-lg"
             style={{ backgroundColor: primaryColor }}
             disabled={isSubmitting}
             onPress={handleSubmit}
           >
             <Text className="text-sm font-semibold text-white">
-              {isSubmitting ? t('changePassword.updating') : t('changePassword.save')}
+              {isSubmitting
+                ? t('changePassword.updating')
+                : t('changePassword.save')}
             </Text>
           </Button>
         </View>

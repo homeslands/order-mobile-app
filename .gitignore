@@ -3,6 +3,9 @@
 # git worktrees
 .worktrees/
 
+# Claude Code superpowers plugin cache
+.superpowers/
+
 # dependencies
 node_modules/
 

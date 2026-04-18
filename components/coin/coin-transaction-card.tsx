@@ -1,9 +1,20 @@
-import { Clock, Gift, ShoppingBag, ShoppingCart, TrendingDown, TrendingUp } from 'lucide-react-native'
+import {
+  Clock,
+  Gift,
+  ShoppingBag,
+  ShoppingCart,
+  TrendingDown,
+  TrendingUp,
+} from 'lucide-react-native'
 import { memo, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
-import { colors, PointTransactionObjectType, PointTransactionType } from '@/constants'
+import {
+  colors,
+  PointTransactionObjectType,
+  PointTransactionType,
+} from '@/constants'
 import type { IPointTransaction } from '@/types'
 import { formatPoints } from '@/utils'
 
@@ -95,17 +106,19 @@ export const CoinTransactionCard = memo(function CoinTransactionCard({
   const pillText = isDark ? cfg.pillTextDark : cfg.pillTextLight
   const pointsColor = isDark ? cfg.pointsColorDark : cfg.pointsColorLight
 
-  const formattedDate = useMemo(() => (
-    item.createdAt
-      ? new Date(item.createdAt).toLocaleDateString('vi-VN', {
-          hour: '2-digit',
-          minute: '2-digit',
-          day: '2-digit',
-          month: '2-digit',
-          year: 'numeric',
-        })
-      : '—'
-  ), [item.createdAt])
+  const formattedDate = useMemo(
+    () =>
+      item.createdAt
+        ? new Date(item.createdAt).toLocaleDateString('vi-VN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+          })
+        : '—',
+    [item.createdAt],
+  )
 
   const typeLabel = useMemo(() => {
     const keyMap: Record<string, string> = {
@@ -147,12 +160,12 @@ export const CoinTransactionCard = memo(function CoinTransactionCard({
 
       {/* Points */}
       <Text style={[s.pointsText, { color: pointsColor }]}>
-        {cfg.prefix}{formatPoints(item.points)} {t('profile.coin.unit')}
+        {cfg.prefix}
+        {formatPoints(item.points)} {t('profile.coin.unit')}
       </Text>
     </Pressable>
   )
-},
-areEqual)
+}, areEqual)
 
 const s = StyleSheet.create({
   item: {

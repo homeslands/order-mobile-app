@@ -1,9 +1,10 @@
-import { keepPreviousData, useInfiniteQuery, useQuery } from '@tanstack/react-query'
-
 import {
-  getPointTransactionAnalysis,
-  getPointTransactions,
-} from '@/api'
+  keepPreviousData,
+  useInfiniteQuery,
+  useQuery,
+} from '@tanstack/react-query'
+
+import { getPointTransactionAnalysis, getPointTransactions } from '@/api'
 import { QUERYKEY } from '@/constants'
 import type { IPointTransactionQuery } from '@/types'
 

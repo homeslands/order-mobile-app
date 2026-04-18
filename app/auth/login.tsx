@@ -1,7 +1,13 @@
 import { Redirect } from 'expo-router'
 import React, { useCallback } from 'react'
-import { KeyboardAvoidingView, Platform, ScrollView } from 'react-native'
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  useColorScheme,
+} from 'react-native'
 import { ScreenContainer } from '@/components/layout'
+import { colors } from '@/constants'
 
 import { useQueryClient } from '@tanstack/react-query'
 import { LoginForm } from '@/components/auth'
@@ -11,6 +17,8 @@ import { useMasterTransitionOptional } from '@/lib/navigation/master-transition-
 import { useAuthStore } from '@/stores'
 
 export default function LoginScreen() {
+  const isDark = useColorScheme() === 'dark'
+  const bgColor = isDark ? colors.gray[900] : '#ffffff'
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated())
   const masterTransition = useMasterTransitionOptional()
   const queryClient = useQueryClient()
@@ -29,13 +37,17 @@ export default function LoginScreen() {
   }
 
   return (
-    <ScreenContainer edges={['top']} className="flex-1">
+    <ScreenContainer
+      edges={['top']}
+      className="flex-1"
+      style={{ backgroundColor: bgColor }}
+    >
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView
-          className="flex-1"
+          style={{ backgroundColor: bgColor }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
@@ -45,5 +57,3 @@ export default function LoginScreen() {
     </ScreenContainer>
   )
 }
-
-

@@ -20,7 +20,9 @@ export interface PasswordRulesResult {
   }
 }
 
-export function usePasswordRules(value: string | undefined): PasswordRulesResult {
+export function usePasswordRules(
+  value: string | undefined,
+): PasswordRulesResult {
   const { t } = useTranslation('auth')
 
   const hasInput = value && value.length > 0
@@ -59,7 +61,7 @@ export function usePasswordRules(value: string | undefined): PasswordRulesResult
       hasNumber: t('rule.hasNumber'),
       strength: t('rule.strength'),
     }),
-    [t]
+    [t],
   )
 
   return {
@@ -68,4 +70,3 @@ export function usePasswordRules(value: string | undefined): PasswordRulesResult
     labels,
   }
 }
-

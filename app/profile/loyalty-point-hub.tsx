@@ -7,7 +7,11 @@
  *   [Filter bar — cố định, type chips + filter button + active date]
  *   [Danh sách — flex:1, scroll độc lập, infinite load 20/trang]
  */
-import { FlashList, type FlashListRef, type ListRenderItem } from '@shopify/flash-list'
+import {
+  FlashList,
+  type FlashListRef,
+  type ListRenderItem,
+} from '@shopify/flash-list'
 import dayjs from 'dayjs'
 import {
   ChevronRight,
@@ -44,7 +48,10 @@ import { Skeleton } from '@/components/ui'
 import { colors, LoyaltyPointHistoryType } from '@/constants'
 import { LOYALTY_HUB_ITEM_HEIGHT } from '@/constants/list-item-sizes'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
-import { useLoyaltyPointHistoryInfinite, useLoyaltyPoints } from '@/hooks/use-loyalty-point'
+import {
+  useLoyaltyPointHistoryInfinite,
+  useLoyaltyPoints,
+} from '@/hooks/use-loyalty-point'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { useRunAfterTransition } from '@/hooks/use-run-after-transition'
 import { navigateNative } from '@/lib/navigation'
@@ -80,31 +87,52 @@ const TypeFilterBar = memo(function TypeFilterBar({
   const { t } = useTranslation('profile')
   const { t: tCommon } = useTranslation('common')
 
-  const OPTS = useMemo(() => [
-    { label: tCommon('common.all'),              value: null },
-    { label: t('profile.points.add'),     value: LoyaltyPointHistoryType.ADD },
-    { label: t('profile.points.use'),     value: LoyaltyPointHistoryType.USE },
-    { label: t('profile.points.reserve'), value: LoyaltyPointHistoryType.RESERVE },
-    { label: t('profile.points.refund'),  value: LoyaltyPointHistoryType.REFUND },
-  ], [t, tCommon])
+  const OPTS = useMemo(
+    () => [
+      { label: tCommon('common.all'), value: null },
+      { label: t('profile.points.add'), value: LoyaltyPointHistoryType.ADD },
+      { label: t('profile.points.use'), value: LoyaltyPointHistoryType.USE },
+      {
+        label: t('profile.points.reserve'),
+        value: LoyaltyPointHistoryType.RESERVE,
+      },
+      {
+        label: t('profile.points.refund'),
+        value: LoyaltyPointHistoryType.REFUND,
+      },
+    ],
+    [t, tCommon],
+  )
 
-  const chipBg   = isDark ? colors.gray[800] : colors.white.light
+  const chipBg = isDark ? colors.gray[800] : colors.white.light
   const inactive = isDark ? colors.gray[400] : colors.gray[500]
 
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tf.scroll}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={tf.scroll}
+    >
       {OPTS.map((opt) => {
         const active = selected === opt.value
         return (
           <Pressable
             key={String(opt.value)}
             onPress={() => onSelect(opt.value)}
-            style={[tf.chip, { backgroundColor: active ? primaryColor : chipBg }]}
+            style={[
+              tf.chip,
+              { backgroundColor: active ? primaryColor : chipBg },
+            ]}
           >
-            <Text style={[tf.chipText, {
-              color: active ? colors.white.light : inactive,
-              fontWeight: active ? '700' : '500',
-            }]}>
+            <Text
+              style={[
+                tf.chipText,
+                {
+                  color: active ? colors.white.light : inactive,
+                  fontWeight: active ? '700' : '500',
+                },
+              ]}
+            >
               {opt.label}
             </Text>
           </Pressable>
@@ -115,8 +143,8 @@ const TypeFilterBar = memo(function TypeFilterBar({
 })
 
 const tf = StyleSheet.create({
-  scroll:   { gap: 6 },
-  chip:     { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999 },
+  scroll: { gap: 6 },
+  chip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999 },
   chipText: { fontSize: 12 },
 })
 
@@ -126,7 +154,11 @@ function SkeletonList() {
   return (
     <View style={{ paddingHorizontal: 16, paddingTop: 10, gap: 10 }}>
       {Array.from({ length: 6 }).map((_, i) => (
-        <Skeleton key={i} className="w-full rounded-2xl" style={{ height: 100 }} />
+        <Skeleton
+          key={i}
+          className="w-full rounded-2xl"
+          style={{ height: 100 }}
+        />
       ))}
     </View>
   )
@@ -145,11 +177,16 @@ export default function LoyaltyPointHubScreen() {
 
   const [ready, setReady] = useState(false)
   const [balanceVisible, setBalanceVisible] = useState(true)
-  const [filter, setFilter] = useState<LoyaltyPointFilter>(DEFAULT_LOYALTY_FILTER)
-  const [quickType, setQuickType] = useState<LoyaltyPointHistoryType | null>(null)
+  const [filter, setFilter] = useState<LoyaltyPointFilter>(
+    DEFAULT_LOYALTY_FILTER,
+  )
+  const [quickType, setQuickType] = useState<LoyaltyPointHistoryType | null>(
+    null,
+  )
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
-  const [selectedHistory, setSelectedHistory] = useState<ILoyaltyPointHistory | null>(null)
+  const [selectedHistory, setSelectedHistory] =
+    useState<ILoyaltyPointHistory | null>(null)
 
   const flashListRef = useRef<FlashListRef<ILoyaltyPointHistory>>(null)
 
@@ -157,10 +194,10 @@ export default function LoyaltyPointHubScreen() {
 
   const isFilterActive = isLoyaltyFilterActive(filter)
 
-  const bg          = isDark ? colors.background.dark : colors.background.light
-  const textColor   = isDark ? colors.gray[50]        : colors.gray[900]
-  const subColor    = isDark ? colors.gray[400]       : colors.gray[500]
-  const borderColor = isDark ? colors.gray[700]       : colors.gray[200]
+  const bg = isDark ? colors.background.dark : colors.background.light
+  const textColor = isDark ? colors.gray[50] : colors.gray[900]
+  const subColor = isDark ? colors.gray[400] : colors.gray[500]
+  const borderColor = isDark ? colors.gray[700] : colors.gray[200]
 
   const listContentStyle = useMemo(
     () => ({
@@ -194,11 +231,15 @@ export default function LoyaltyPointHubScreen() {
     fetchNextPage,
     refetch: refetchHistory,
   } = useLoyaltyPointHistoryInfinite({
-    slug:     ready ? (userSlug ?? '') : '',
-    size:     PAGE_SIZE,
-    types:    effectiveTypes,
-    fromDate: filter.fromDate ? dayjs(filter.fromDate).format('YYYY-MM-DD') : undefined,
-    toDate:   filter.toDate   ? dayjs(filter.toDate).format('YYYY-MM-DD')   : undefined,
+    slug: ready ? (userSlug ?? '') : '',
+    size: PAGE_SIZE,
+    types: effectiveTypes,
+    fromDate: filter.fromDate
+      ? dayjs(filter.fromDate).format('YYYY-MM-DD')
+      : undefined,
+    toDate: filter.toDate
+      ? dayjs(filter.toDate).format('YYYY-MM-DD')
+      : undefined,
   })
 
   const historyList = useMemo(
@@ -262,10 +303,15 @@ export default function LoyaltyPointHubScreen() {
     [primaryColor, isDark, handleRowPress],
   )
 
-  const keyExtractor = useCallback((item: ILoyaltyPointHistory) => item.slug ?? item.id, [])
+  const keyExtractor = useCallback(
+    (item: ILoyaltyPointHistory) => item.slug ?? item.id,
+    [],
+  )
 
   const overrideItemLayout = useCallback(
-    (layout: { span?: number; size?: number }) => { layout.size = LOYALTY_HUB_ITEM_HEIGHT },
+    (layout: { span?: number; size?: number }) => {
+      layout.size = LOYALTY_HUB_ITEM_HEIGHT
+    },
     [],
   )
 
@@ -276,9 +322,13 @@ export default function LoyaltyPointHubScreen() {
   const ListEmpty = !isLoading ? (
     <View style={s.emptyWrap}>
       <Trophy size={40} color={colors.gray[400]} />
-      <Text style={[s.emptyTitle, { color: textColor }]}>{t('profile.points.emptyTitle')}</Text>
+      <Text style={[s.emptyTitle, { color: textColor }]}>
+        {t('profile.points.emptyTitle')}
+      </Text>
       <Text style={[s.emptyHint, { color: subColor }]}>
-        {isFilterActive ? t('profile.points.emptyFiltered') : t('profile.points.emptyHint')}
+        {isFilterActive
+          ? t('profile.points.emptyFiltered')
+          : t('profile.points.emptyHint')}
       </Text>
     </View>
   ) : null
@@ -286,15 +336,23 @@ export default function LoyaltyPointHubScreen() {
   // ── Active date chips ─────────────────────────────────────────────────────────
 
   const dateParts: string[] = []
-  if (filter.fromDate) dateParts.push(t('profile.points.from', { date: dayjs(filter.fromDate).format('DD/MM/YY') }))
-  if (filter.toDate)   dateParts.push(t('profile.points.to',   { date: dayjs(filter.toDate).format('DD/MM/YY') }))
+  if (filter.fromDate)
+    dateParts.push(
+      t('profile.points.from', {
+        date: dayjs(filter.fromDate).format('DD/MM/YY'),
+      }),
+    )
+  if (filter.toDate)
+    dateParts.push(
+      t('profile.points.to', { date: dayjs(filter.toDate).format('DD/MM/YY') }),
+    )
 
   return (
     <View style={[s.container, { backgroundColor: bg }]}>
-
       {/* ── Hero — cố định ───────────────────────────────────────────────── */}
-      <View style={[s.hero, { height: HERO_HEIGHT, backgroundColor: primaryColor }]}>
-
+      <View
+        style={[s.hero, { height: HERO_HEIGHT, backgroundColor: primaryColor }]}
+      >
         <Pressable
           onPress={navigateNative.back}
           hitSlop={12}
@@ -308,7 +366,9 @@ export default function LoyaltyPointHubScreen() {
         </Pressable>
 
         <View style={[s.heroContent, { paddingTop: STATIC_TOP_INSET + 44 }]}>
-          <Text style={s.balanceLabel}>{t('profile.loyaltyPoint.hub.balance')}</Text>
+          <Text style={s.balanceLabel}>
+            {t('profile.loyaltyPoint.hub.balance')}
+          </Text>
           <View style={s.balanceRow}>
             <Coins size={20} color="rgba(255,255,255,0.8)" />
             {loadingTotal ? (
@@ -318,17 +378,27 @@ export default function LoyaltyPointHubScreen() {
                 {balanceVisible ? formatPoints(totalPoints) : '••••••'}
               </Text>
             )}
-            <Pressable onPress={() => setBalanceVisible((v) => !v)} hitSlop={12}>
-              {balanceVisible
-                ? <EyeOff size={18} color="rgba(255,255,255,0.7)" />
-                : <Eye    size={18} color="rgba(255,255,255,0.7)" />}
+            <Pressable
+              onPress={() => setBalanceVisible((v) => !v)}
+              hitSlop={12}
+            >
+              {balanceVisible ? (
+                <EyeOff size={18} color="rgba(255,255,255,0.7)" />
+              ) : (
+                <Eye size={18} color="rgba(255,255,255,0.7)" />
+              )}
             </Pressable>
           </View>
         </View>
       </View>
 
       {/* ── Filter bar — cố định ─────────────────────────────────────────── */}
-      <View style={[s.filterBar, { backgroundColor: bg, borderBottomColor: borderColor }]}>
+      <View
+        style={[
+          s.filterBar,
+          { backgroundColor: bg, borderBottomColor: borderColor },
+        ]}
+      >
         <View style={s.filterRow}>
           <View style={s.filterChipsWrap}>
             <TypeFilterBar
@@ -341,11 +411,16 @@ export default function LoyaltyPointHubScreen() {
           <Pressable
             onPress={() => setFilterSheetOpen(true)}
             hitSlop={8}
-            style={[s.filterIconBtn, { backgroundColor: primaryColor, borderColor: primaryColor }]}
+            style={[
+              s.filterIconBtn,
+              { backgroundColor: primaryColor, borderColor: primaryColor },
+            ]}
           >
             <SlidersHorizontal size={16} color={colors.white.light} />
             {isFilterActive && (
-              <View style={[s.filterDot, { backgroundColor: colors.white.light }]} />
+              <View
+                style={[s.filterDot, { backgroundColor: colors.white.light }]}
+              />
             )}
           </Pressable>
         </View>
@@ -353,8 +428,13 @@ export default function LoyaltyPointHubScreen() {
         {dateParts.length > 0 && (
           <View style={s.dateParts}>
             {dateParts.map((p) => (
-              <View key={p} style={[s.dateBadge, { backgroundColor: `${primaryColor}15` }]}>
-                <Text style={[s.dateBadgeText, { color: primaryColor }]}>{p}</Text>
+              <View
+                key={p}
+                style={[s.dateBadge, { backgroundColor: `${primaryColor}15` }]}
+              >
+                <Text style={[s.dateBadgeText, { color: primaryColor }]}>
+                  {p}
+                </Text>
               </View>
             ))}
           </View>
@@ -507,7 +587,12 @@ const s = StyleSheet.create({
   listArea: { flex: 1 },
 
   // ── Empty
-  emptyWrap:  { paddingTop: 48, alignItems: 'center', gap: 10 },
+  emptyWrap: { paddingTop: 48, alignItems: 'center', gap: 10 },
   emptyTitle: { fontSize: 16, fontWeight: '700' },
-  emptyHint:  { fontSize: 13, textAlign: 'center', paddingHorizontal: 24, lineHeight: 18 },
+  emptyHint: {
+    fontSize: 13,
+    textAlign: 'center',
+    paddingHorizontal: 24,
+    lineHeight: 18,
+  },
 })

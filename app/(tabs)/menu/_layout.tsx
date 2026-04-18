@@ -9,7 +9,9 @@ import {
 import { Stack } from 'expo-router'
 
 function isTransitionFPSMonitorEnabled(): boolean {
-  const g = globalThis as { __ENABLE_TRANSITION_FPS_MONITOR?: boolean } | undefined
+  const g = globalThis as
+    | { __ENABLE_TRANSITION_FPS_MONITOR?: boolean }
+    | undefined
   return !!g?.__ENABLE_TRANSITION_FPS_MONITOR
 }
 

@@ -54,7 +54,6 @@ const executeNav = (
   href?: HrefLike,
   duration = STACK_TRANSITION_DURATION_MS,
 ) => {
-
   const r = getRouter()
   if (r) {
     // Tab navigate: skip lock entirely. Tab switch là internal state update
@@ -98,7 +97,8 @@ const executeNav = (
       try {
         acquireTransitionLock(duration)
         if (type === 'push' && href) router.push(href as LockHrefLike)
-        else if (type === 'replace' && href) router.replace(href as LockHrefLike)
+        else if (type === 'replace' && href)
+          router.replace(href as LockHrefLike)
         else if (type === 'back') router.back()
       } catch (err) {
         unlockNavigation()
@@ -112,7 +112,11 @@ const executeNav = (
     if (frame >= MAX_RETRY_FRAMES) {
       if (__DEV__) {
         // eslint-disable-next-line no-console
-        console.warn('[NavigationEngine] routerRef null after', MAX_RETRY_FRAMES, 'retries')
+        console.warn(
+          '[NavigationEngine] routerRef null after',
+          MAX_RETRY_FRAMES,
+          'retries',
+        )
       }
       unlockNavigation()
       return

@@ -22,9 +22,9 @@ export function initStoreSync(handlers: ClearCallbacks): void {
  * VD: cart gọi requestClearStoresExcept('cart') → clear payment + update-order.
  */
 export function requestClearStoresExcept(exclude: StoreName): void {
-  const toClear = (['cart', 'payment', 'update-order', 'order-flow'] as const).filter(
-    (name) => name !== exclude,
-  )
+  const toClear = (
+    ['cart', 'payment', 'update-order', 'order-flow'] as const
+  ).filter((name) => name !== exclude)
   for (const name of toClear) {
     callbacks[name]?.()
   }

@@ -25,7 +25,10 @@ const generateOrderItemId = () => {
   return `orderItem_${Date.now()}_${shortId}`
 }
 
-function buildNewOrder(item: ICartItem, orderStatus: OrderStatus): IOrderToUpdate {
+function buildNewOrder(
+  item: ICartItem,
+  orderStatus: OrderStatus,
+): IOrderToUpdate {
   return {
     id: generateOrderId(),
     slug: generateOrderId(),
@@ -50,7 +53,10 @@ function buildNewOrder(item: ICartItem, orderStatus: OrderStatus): IOrderToUpdat
   }
 }
 
-export function createUpdateOrderItemsMethods(set: DraftSetFn, get: DraftGetFn) {
+export function createUpdateOrderItemsMethods(
+  set: DraftSetFn,
+  get: DraftGetFn,
+) {
   return {
     addOrderItem: (item: ICartItem) => {
       const { orderItems } = get()
@@ -158,7 +164,10 @@ export function createUpdateOrderItemsMethods(set: DraftSetFn, get: DraftGetFn) 
   }
 }
 
-export function createOriginalOrderItemsMethods(set: OrigSetFn, get: OrigGetFn) {
+export function createOriginalOrderItemsMethods(
+  set: OrigSetFn,
+  get: OrigGetFn,
+) {
   return {
     addOriginalOrderItem: (item: ICartItem) => {
       const { originalOrderItems } = get()

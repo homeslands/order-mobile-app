@@ -12,11 +12,11 @@ develop  →  staging  →  main
 (lowest)                (production)
 ```
 
-| Branch | Environment | Purpose |
-|--------|-------------|---------|
-| `main` | Production — App Store / Play Store | Stable releases only, always tagged |
-| `staging` | Pre-prod — TestFlight / Internal Track | QA sign-off before production |
-| `develop` | Development — internal builds | Integration branch, base for all features |
+| Branch    | Environment                            | Purpose                                   |
+| --------- | -------------------------------------- | ----------------------------------------- |
+| `main`    | Production — App Store / Play Store    | Stable releases only, always tagged       |
+| `staging` | Pre-prod — TestFlight / Internal Track | QA sign-off before production             |
+| `develop` | Development — internal builds          | Integration branch, base for all features |
 
 ---
 
@@ -30,6 +30,7 @@ release/<version>            release/2.2.0
 ```
 
 **Rules:**
+
 - Lowercase, hyphens only — no underscores, no slashes in the description part
 - Max 50 characters total
 - Feature and bugfix branches → always off `develop`
@@ -156,19 +157,20 @@ Follows **Conventional Commits**:
 
 ### Types
 
-| Type | When |
-|---|---|
-| `feat` | New functionality visible to users |
-| `fix` | Bug fix |
-| `perf` | Performance improvement (60fps, bundle size) |
-| `refactor` | Restructure without behavior change |
-| `style` | Formatting, NativeWind class reorder (no logic) |
-| `chore` | Dependencies, build config, tooling |
-| `test` | Add or fix tests |
-| `docs` | CLAUDE.md, README, comments only |
-| `revert` | Revert a previous commit |
+| Type       | When                                            |
+| ---------- | ----------------------------------------------- |
+| `feat`     | New functionality visible to users              |
+| `fix`      | Bug fix                                         |
+| `perf`     | Performance improvement (60fps, bundle size)    |
+| `refactor` | Restructure without behavior change             |
+| `style`    | Formatting, NativeWind class reorder (no logic) |
+| `chore`    | Dependencies, build config, tooling             |
+| `test`     | Add or fix tests                                |
+| `docs`     | CLAUDE.md, README, comments only                |
+| `revert`   | Revert a previous commit                        |
 
 Breaking change — add `!` after scope:
+
 ```
 feat(auth)!: replace JWT with session tokens
 ```
@@ -178,6 +180,7 @@ feat(auth)!: replace JWT with session tokens
 Common scopes: `cart`, `menu`, `order-flow`, `payment`, `auth`, `profile`, `navigation`, `home`, `gift-card`, `notification`, `i18n`, `deps`, `ci`
 
 ### Summary line rules
+
 - Imperative mood: "add", "fix", "remove" — not "added", "fixes", "removing"
 - Max 72 characters
 - No period at end
@@ -219,6 +222,7 @@ npm run format         # Prettier — auto-fixes class order
 ```
 
 **Never commit with:**
+
 - `console.log` in TS/TSX files (hook will block it)
 - `--no-verify` flag (hook will block it)
 - TypeScript errors (`npm run typecheck` must exit 0)
@@ -230,21 +234,26 @@ npm run format         # Prettier — auto-fixes class order
 ## PR Conventions
 
 ### Title
+
 Same format as commit: `feat(cart): add voucher bottom sheet`
 
 ### PR body template
 
 ```markdown
 ## What
+
 Brief description of the change.
 
 ## Why
+
 Motivation — bug report, performance issue, feature request.
 
 ## How
+
 Key implementation decisions (especially non-obvious ones).
 
 ## Test plan
+
 - [ ] Tested on iOS simulator
 - [ ] Tested on Android emulator
 - [ ] Tested dark mode
@@ -252,12 +261,14 @@ Key implementation decisions (especially non-obvious ones).
 - [ ] No lint errors (`npm run lint`)
 
 ## Screenshots (if UI change)
-| Before | After |
-|---|---|
+
+| Before     | After      |
+| ---------- | ---------- |
 | screenshot | screenshot |
 ```
 
 ### PR rules
+
 - **One concern per PR** — mix of feat + refactor = split into two PRs
 - Keep PRs under 400 lines changed when possible
 - Self-review before requesting review: read your own diff
@@ -306,12 +317,12 @@ git rebase --abort
 
 ## Common Mistakes
 
-| ❌ Don't | ✅ Do |
-|---|---|
-| `git commit -m "fix stuff"` | Use conventional commit format |
-| Branch feature from `main` or `staging` | Always branch from `develop` |
-| Commit directly to `main` | Always use a feature branch |
-| `git push --force` on shared branches | Use `--force-with-lease` only if needed |
-| Commit `node_modules/`, `.env.local` | Verify `.gitignore` covers them |
-| Mix formatting + logic in one commit | Split into separate commits |
-| Leave `console.log` in committed code | Remove before committing |
+| ❌ Don't                                | ✅ Do                                   |
+| --------------------------------------- | --------------------------------------- |
+| `git commit -m "fix stuff"`             | Use conventional commit format          |
+| Branch feature from `main` or `staging` | Always branch from `develop`            |
+| Commit directly to `main`               | Always use a feature branch             |
+| `git push --force` on shared branches   | Use `--force-with-lease` only if needed |
+| Commit `node_modules/`, `.env.local`    | Verify `.gitignore` covers them         |
+| Mix formatting + logic in one commit    | Split into separate commits             |
+| Leave `console.log` in committed code   | Remove before committing                |

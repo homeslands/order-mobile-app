@@ -18,12 +18,14 @@ export const usePagination = ({
   const pageSize = isSearchParams
     ? parseInt((searchParams.size as string) || defaultPageSize.toString(), 10)
     : defaultPageSize
-  
+
   // Only use state when not syncing with URL params
-  const [internalPagination, setInternalPagination] = useState<PaginationState>({
-    pageIndex: 1,
-    pageSize: defaultPageSize,
-  })
+  const [internalPagination, setInternalPagination] = useState<PaginationState>(
+    {
+      pageIndex: 1,
+      pageSize: defaultPageSize,
+    },
+  )
 
   // Compute pagination from URL params when isSearchParams is true, otherwise use state
   const pagination: PaginationState = isSearchParams
@@ -41,22 +43,31 @@ export const usePagination = ({
 
   const handlePageSizeChange = (newPageSize: number) => {
     if (isSearchParams) {
-      const newParams = { ...searchParams, size: newPageSize.toString(), page: '1' }
+      const newParams = {
+        ...searchParams,
+        size: newPageSize.toString(),
+        page: '1',
+      }
       router.setParams(newParams)
     } else {
       setInternalPagination({ pageSize: newPageSize, pageIndex: 1 })
     }
   }
 
-  const setPagination = (newPagination: PaginationState | ((prev: PaginationState) => PaginationState)) => {
+  const setPagination = (
+    newPagination:
+      | PaginationState
+      | ((prev: PaginationState) => PaginationState),
+  ) => {
     if (isSearchParams) {
-      const value = typeof newPagination === 'function' 
-        ? newPagination(pagination) 
-        : newPagination
-      const newParams = { 
-        ...searchParams, 
+      const value =
+        typeof newPagination === 'function'
+          ? newPagination(pagination)
+          : newPagination
+      const newParams = {
+        ...searchParams,
         page: value.pageIndex.toString(),
-        size: value.pageSize.toString()
+        size: value.pageSize.toString(),
       }
       router.setParams(newParams)
     } else {

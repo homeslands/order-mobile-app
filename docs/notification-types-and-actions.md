@@ -4,15 +4,15 @@
 
 ## 1. Tổng hợp nhanh
 
-| # | Message Code | Action trigger | Người nhận | Tiêu đề (VI) |
-|---|-------------|----------------|------------|---------------|
-| 1 | `order-needs-processed` | Đơn hàng được thanh toán | Tất cả **Chef** trong branch | Đơn hàng cần xử lý |
-| 2 | `order-needs-delivered` | Chef xử lý xong món | Tất cả **Staff** trong branch | Đơn hàng cần giao |
-| 3 | `order-needs-ready-to-get` | Staff gọi khách lấy đơn | **Khách hàng** (owner đơn hàng) | Đơn hàng sẵn sàng |
-| 4 | `order-bill-failed-printing` | In hóa đơn thất bại (sau 3 lần retry) | Tất cả **Staff + Chef + Manager** trong branch | In hóa đơn lỗi |
-| 5 | `order-chef-order-failed-printing` | In chef order thất bại (sau 3 lần retry) | Tất cả **Staff + Chef + Manager** trong branch | In đơn hàng nhà bếp lỗi |
-| 6 | `order-label-ticket-failed-printing` | In nhãn dán thất bại (sau 3 lần retry) | Tất cả **Staff + Chef + Manager** trong branch | In nhãn dán lỗi |
-| 7 | `order-needs-cancelled` | _(Đã khai báo nhưng chưa được sử dụng)_ | — | — |
+| #   | Message Code                         | Action trigger                           | Người nhận                                     | Tiêu đề (VI)            |
+| --- | ------------------------------------ | ---------------------------------------- | ---------------------------------------------- | ----------------------- |
+| 1   | `order-needs-processed`              | Đơn hàng được thanh toán                 | Tất cả **Chef** trong branch                   | Đơn hàng cần xử lý      |
+| 2   | `order-needs-delivered`              | Chef xử lý xong món                      | Tất cả **Staff** trong branch                  | Đơn hàng cần giao       |
+| 3   | `order-needs-ready-to-get`           | Staff gọi khách lấy đơn                  | **Khách hàng** (owner đơn hàng)                | Đơn hàng sẵn sàng       |
+| 4   | `order-bill-failed-printing`         | In hóa đơn thất bại (sau 3 lần retry)    | Tất cả **Staff + Chef + Manager** trong branch | In hóa đơn lỗi          |
+| 5   | `order-chef-order-failed-printing`   | In chef order thất bại (sau 3 lần retry) | Tất cả **Staff + Chef + Manager** trong branch | In đơn hàng nhà bếp lỗi |
+| 6   | `order-label-ticket-failed-printing` | In nhãn dán thất bại (sau 3 lần retry)   | Tất cả **Staff + Chef + Manager** trong branch | In nhãn dán lỗi         |
+| 7   | `order-needs-cancelled`              | _(Đã khai báo nhưng chưa được sử dụng)_  | —                                              | —                       |
 
 ---
 
@@ -20,15 +20,15 @@
 
 ### 2.1. `ORDER_NEEDS_PROCESSED` — Đơn hàng cần xử lý
 
-| Thuộc tính | Chi tiết |
-|------------|----------|
-| **Khi nào** | Đơn hàng được thanh toán thành công (status: `PENDING` → `PAID`) |
-| **Người nhận** | Tất cả user có role `Chef` trong cùng branch |
-| **Tiêu đề (VI)** | "Đơn hàng cần xử lý" |
-| **Nội dung (VI)** | "Đơn hàng #{{referenceNumber}} cần xử lý. Vui lòng xử lý sớm!" |
-| **Tiêu đề (EN)** | "Order needs processed" |
-| **Nội dung (EN)** | "Order #{{referenceNumber}} needs to be processed. Please process it quickly!" |
-| **Link điều hướng** | Trang chef order |
+| Thuộc tính          | Chi tiết                                                                       |
+| ------------------- | ------------------------------------------------------------------------------ |
+| **Khi nào**         | Đơn hàng được thanh toán thành công (status: `PENDING` → `PAID`)               |
+| **Người nhận**      | Tất cả user có role `Chef` trong cùng branch                                   |
+| **Tiêu đề (VI)**    | "Đơn hàng cần xử lý"                                                           |
+| **Nội dung (VI)**   | "Đơn hàng #{{referenceNumber}} cần xử lý. Vui lòng xử lý sớm!"                 |
+| **Tiêu đề (EN)**    | "Order needs processed"                                                        |
+| **Nội dung (EN)**   | "Order #{{referenceNumber}} needs to be processed. Please process it quickly!" |
+| **Link điều hướng** | Trang chef order                                                               |
 
 **Flow trigger:**
 
@@ -59,15 +59,15 @@
 
 ### 2.2. `ORDER_NEEDS_DELIVERED` — Đơn hàng cần giao
 
-| Thuộc tính | Chi tiết |
-|------------|----------|
-| **Khi nào** | Chef cập nhật trạng thái chef order item (đã xử lý xong món) |
-| **Người nhận** | Tất cả user có role `Staff` trong cùng branch |
-| **Tiêu đề (VI)** | "Đơn hàng cần giao" |
-| **Nội dung (VI)** | "Đơn hàng #{{referenceNumber}} cần giao. Vui lòng giao hàng sớm!" |
-| **Tiêu đề (EN)** | "Order needs delivered" |
-| **Nội dung (EN)** | "Order #{{referenceNumber}} needs to be delivered. Please deliver it quickly!" |
-| **Link điều hướng** | Trang order management |
+| Thuộc tính          | Chi tiết                                                                       |
+| ------------------- | ------------------------------------------------------------------------------ |
+| **Khi nào**         | Chef cập nhật trạng thái chef order item (đã xử lý xong món)                   |
+| **Người nhận**      | Tất cả user có role `Staff` trong cùng branch                                  |
+| **Tiêu đề (VI)**    | "Đơn hàng cần giao"                                                            |
+| **Nội dung (VI)**   | "Đơn hàng #{{referenceNumber}} cần giao. Vui lòng giao hàng sớm!"              |
+| **Tiêu đề (EN)**    | "Order needs delivered"                                                        |
+| **Nội dung (EN)**   | "Order #{{referenceNumber}} needs to be delivered. Please deliver it quickly!" |
+| **Link điều hướng** | Trang order management                                                         |
 
 **Flow trigger:**
 
@@ -88,15 +88,15 @@
 
 ### 2.3. `ORDER_NEEDS_READY_TO_GET` — Đơn hàng sẵn sàng lấy
 
-| Thuộc tính | Chi tiết |
-|------------|----------|
-| **Khi nào** | Staff bấm nút gọi khách lấy đơn (`callCustomerToGetOrder`) |
-| **Người nhận** | **Khách hàng** (owner của đơn hàng) — phải là customer hợp lệ |
-| **Tiêu đề (VI)** | "Đơn hàng sẵn sàng" |
-| **Nội dung (VI)** | "Đơn hàng #{{referenceNumber}} đã sẵn sàng. Vui lòng tới quầy để nhận!" |
-| **Tiêu đề (EN)** | "Order needs ready to get" |
-| **Nội dung (EN)** | "Order #{{referenceNumber}} is ready to get. Please get it quickly!" |
-| **Link điều hướng** | `/history?order={order.slug}` |
+| Thuộc tính          | Chi tiết                                                                |
+| ------------------- | ----------------------------------------------------------------------- |
+| **Khi nào**         | Staff bấm nút gọi khách lấy đơn (`callCustomerToGetOrder`)              |
+| **Người nhận**      | **Khách hàng** (owner của đơn hàng) — phải là customer hợp lệ           |
+| **Tiêu đề (VI)**    | "Đơn hàng sẵn sàng"                                                     |
+| **Nội dung (VI)**   | "Đơn hàng #{{referenceNumber}} đã sẵn sàng. Vui lòng tới quầy để nhận!" |
+| **Tiêu đề (EN)**    | "Order needs ready to get"                                              |
+| **Nội dung (EN)**   | "Order #{{referenceNumber}} is ready to get. Please get it quickly!"    |
+| **Link điều hướng** | `/history?order={order.slug}`                                           |
 
 **Flow trigger:**
 
@@ -117,6 +117,7 @@
 ```
 
 **Đặc biệt:**
+
 - Có thông tin `senderId` (staff gọi khách)
 - Nội dung theo ngôn ngữ của khách hàng
 - Chỉ gửi nếu customer là user thực (không phải `default-customer`)
@@ -125,15 +126,15 @@
 
 ### 2.4. `ORDER_BILL_FAILED_PRINTING` — In hóa đơn thất bại
 
-| Thuộc tính | Chi tiết |
-|------------|----------|
-| **Khi nào** | In hóa đơn (INVOICE) thất bại **sau 3 lần retry** hoặc lock hết hạn |
-| **Người nhận** | Tất cả user có role `Staff`, `Chef`, hoặc `Manager` trong cùng branch |
-| **Tiêu đề (VI)** | "In hóa đơn lỗi" |
-| **Nội dung (VI)** | "Hóa đơn #{{referenceNumber}} in lỗi. Vui lòng in lại thủ công!" |
-| **Tiêu đề (EN)** | "Order bill failed printing" |
-| **Nội dung (EN)** | "Order #{{referenceNumber}} bill failed to print. Please print manually!" |
-| **Link điều hướng** | `/system/order-management?order={order.slug}` |
+| Thuộc tính          | Chi tiết                                                                  |
+| ------------------- | ------------------------------------------------------------------------- |
+| **Khi nào**         | In hóa đơn (INVOICE) thất bại **sau 3 lần retry** hoặc lock hết hạn       |
+| **Người nhận**      | Tất cả user có role `Staff`, `Chef`, hoặc `Manager` trong cùng branch     |
+| **Tiêu đề (VI)**    | "In hóa đơn lỗi"                                                          |
+| **Nội dung (VI)**   | "Hóa đơn #{{referenceNumber}} in lỗi. Vui lòng in lại thủ công!"          |
+| **Tiêu đề (EN)**    | "Order bill failed printing"                                              |
+| **Nội dung (EN)**   | "Order #{{referenceNumber}} bill failed to print. Please print manually!" |
+| **Link điều hướng** | `/system/order-management?order={order.slug}`                             |
 
 **Flow trigger:**
 
@@ -166,15 +167,15 @@
 
 ### 2.5. `ORDER_CHEF_ORDER_FAILED_PRINTING` — In chef order thất bại
 
-| Thuộc tính | Chi tiết |
-|------------|----------|
-| **Khi nào** | In chef order thất bại **sau 3 lần retry** hoặc lock hết hạn |
-| **Người nhận** | Tất cả user có role `Staff`, `Chef`, hoặc `Manager` trong cùng branch |
-| **Tiêu đề (VI)** | "In đơn hàng nhà bếp lỗi" |
-| **Nội dung (VI)** | "Đơn hàng #{{referenceNumber}} in lỗi. Vui lòng in lại thủ công!" |
-| **Tiêu đề (EN)** | "Order chef order failed printing" |
-| **Nội dung (EN)** | "Order #{{referenceNumber}} chef order failed to print. Please print manually!" |
-| **Link điều hướng** | `/system/chef-order` |
+| Thuộc tính          | Chi tiết                                                                        |
+| ------------------- | ------------------------------------------------------------------------------- |
+| **Khi nào**         | In chef order thất bại **sau 3 lần retry** hoặc lock hết hạn                    |
+| **Người nhận**      | Tất cả user có role `Staff`, `Chef`, hoặc `Manager` trong cùng branch           |
+| **Tiêu đề (VI)**    | "In đơn hàng nhà bếp lỗi"                                                       |
+| **Nội dung (VI)**   | "Đơn hàng #{{referenceNumber}} in lỗi. Vui lòng in lại thủ công!"               |
+| **Tiêu đề (EN)**    | "Order chef order failed printing"                                              |
+| **Nội dung (EN)**   | "Order #{{referenceNumber}} chef order failed to print. Please print manually!" |
+| **Link điều hướng** | `/system/chef-order`                                                            |
 
 **Flow trigger:**
 
@@ -198,15 +199,15 @@
 
 ### 2.6. `ORDER_LABEL_TICKET_FAILED_PRINTING` — In nhãn dán thất bại
 
-| Thuộc tính | Chi tiết |
-|------------|----------|
-| **Khi nào** | In label ticket thất bại **sau 3 lần retry** hoặc lock hết hạn |
-| **Người nhận** | Tất cả user có role `Staff`, `Chef`, hoặc `Manager` trong cùng branch |
-| **Tiêu đề (VI)** | "In nhãn dán lỗi" |
-| **Nội dung (VI)** | "Nhãn dán cho đơn hàng #{{referenceNumber}} in lỗi. Vui lòng in lại thủ công!" |
-| **Tiêu đề (EN)** | "Order label ticket failed printing" |
-| **Nội dung (EN)** | "Order #{{referenceNumber}} label ticket failed to print. Please print manually!" |
-| **Link điều hướng** | `/system/chef-order` |
+| Thuộc tính          | Chi tiết                                                                          |
+| ------------------- | --------------------------------------------------------------------------------- |
+| **Khi nào**         | In label ticket thất bại **sau 3 lần retry** hoặc lock hết hạn                    |
+| **Người nhận**      | Tất cả user có role `Staff`, `Chef`, hoặc `Manager` trong cùng branch             |
+| **Tiêu đề (VI)**    | "In nhãn dán lỗi"                                                                 |
+| **Nội dung (VI)**   | "Nhãn dán cho đơn hàng #{{referenceNumber}} in lỗi. Vui lòng in lại thủ công!"    |
+| **Tiêu đề (EN)**    | "Order label ticket failed printing"                                              |
+| **Nội dung (EN)**   | "Order #{{referenceNumber}} label ticket failed to print. Please print manually!" |
+| **Link điều hướng** | `/system/chef-order`                                                              |
 
 **Flow trigger:**
 
@@ -230,11 +231,11 @@
 
 ### 2.7. `ORDER_NEEDS_CANCELLED` — Đơn hàng bị hủy
 
-| Thuộc tính | Chi tiết |
-|------------|----------|
-| **Trạng thái** | **Đã khai báo trong constants nhưng CHƯA ĐƯỢC SỬ DỤNG** |
-| **Nơi khai báo** | `notification.constants.ts` (cả backend và frontend) |
-| **Trigger** | Không có code nào gọi gửi thông báo với message code này |
+| Thuộc tính       | Chi tiết                                                 |
+| ---------------- | -------------------------------------------------------- |
+| **Trạng thái**   | **Đã khai báo trong constants nhưng CHƯA ĐƯỢC SỬ DỤNG**  |
+| **Nơi khai báo** | `notification.constants.ts` (cả backend và frontend)     |
+| **Trigger**      | Không có code nào gọi gửi thông báo với message code này |
 
 ---
 
@@ -242,46 +243,47 @@
 
 ### Chef nhận
 
-| Message Code | Từ action |
-|-------------|-----------|
-| `order-needs-processed` | Đơn hàng thanh toán thành công |
-| `order-bill-failed-printing` | In hóa đơn thất bại |
-| `order-chef-order-failed-printing` | In chef order thất bại |
-| `order-label-ticket-failed-printing` | In nhãn dán thất bại |
+| Message Code                         | Từ action                      |
+| ------------------------------------ | ------------------------------ |
+| `order-needs-processed`              | Đơn hàng thanh toán thành công |
+| `order-bill-failed-printing`         | In hóa đơn thất bại            |
+| `order-chef-order-failed-printing`   | In chef order thất bại         |
+| `order-label-ticket-failed-printing` | In nhãn dán thất bại           |
 
 ### Staff nhận
 
-| Message Code | Từ action |
-|-------------|-----------|
-| `order-needs-delivered` | Chef xử lý xong món |
-| `order-bill-failed-printing` | In hóa đơn thất bại |
-| `order-chef-order-failed-printing` | In chef order thất bại |
-| `order-label-ticket-failed-printing` | In nhãn dán thất bại |
+| Message Code                         | Từ action              |
+| ------------------------------------ | ---------------------- |
+| `order-needs-delivered`              | Chef xử lý xong món    |
+| `order-bill-failed-printing`         | In hóa đơn thất bại    |
+| `order-chef-order-failed-printing`   | In chef order thất bại |
+| `order-label-ticket-failed-printing` | In nhãn dán thất bại   |
 
 ### Manager nhận
 
-| Message Code | Từ action |
-|-------------|-----------|
-| `order-bill-failed-printing` | In hóa đơn thất bại |
-| `order-chef-order-failed-printing` | In chef order thất bại |
-| `order-label-ticket-failed-printing` | In nhãn dán thất bại |
+| Message Code                         | Từ action              |
+| ------------------------------------ | ---------------------- |
+| `order-bill-failed-printing`         | In hóa đơn thất bại    |
+| `order-chef-order-failed-printing`   | In chef order thất bại |
+| `order-label-ticket-failed-printing` | In nhãn dán thất bại   |
 
 ### Customer (Khách hàng) nhận
 
-| Message Code | Từ action |
-|-------------|-----------|
+| Message Code               | Từ action               |
+| -------------------------- | ----------------------- |
 | `order-needs-ready-to-get` | Staff gọi khách lấy đơn |
 
 ---
 
 ## 4. Phân loại theo hệ thống xử lý
 
-| Hệ thống | Message Codes | Entity lưu trữ |
-|-----------|--------------|-----------------|
-| **Notification** (đơn hàng) | `order-needs-processed`, `order-needs-delivered`, `order-needs-ready-to-get`, `order-needs-cancelled` | `Notification` entity |
-| **PrinterEvent** (lỗi in) | `order-bill-failed-printing`, `order-chef-order-failed-printing`, `order-label-ticket-failed-printing` | `PrinterEvent` entity |
+| Hệ thống                    | Message Codes                                                                                          | Entity lưu trữ        |
+| --------------------------- | ------------------------------------------------------------------------------------------------------ | --------------------- |
+| **Notification** (đơn hàng) | `order-needs-processed`, `order-needs-delivered`, `order-needs-ready-to-get`, `order-needs-cancelled`  | `Notification` entity |
+| **PrinterEvent** (lỗi in)   | `order-bill-failed-printing`, `order-chef-order-failed-printing`, `order-label-ticket-failed-printing` | `PrinterEvent` entity |
 
 **Khác biệt:**
+
 - **Notification**: Dùng BullMQ queue (Producer → Consumer), lưu vào bảng `notification`
 - **PrinterEvent**: Gọi trực tiếp từ PrinterWorker, lưu vào bảng `printer_event`, có track retry count (SUCCESS/FAILED)
 
@@ -352,10 +354,10 @@ Mỗi thông báo (cả Notification và PrinterEvent) đều chứa metadata:
 
 ## 7. Xử lý đặc biệt trên Frontend
 
-| Message Code | Xử lý đặc biệt |
-|-------------|-----------------|
-| `order-needs-processed` | **Không phát âm thanh** (tránh spam khi nhiều đơn cùng lúc) |
-| `order-bill-failed-printing` | Phát sound volume **0.8** (cao hơn bình thường), refetch printer events, hiện dialog lỗi in |
-| `order-chef-order-failed-printing` | Phát sound volume **0.8**, refetch printer events, hiện dialog lỗi in |
-| `order-label-ticket-failed-printing` | Phát sound volume **0.8**, refetch printer events, hiện dialog lỗi in |
-| Các loại khác | Phát sound volume **0.5**, hiện toast notification 6 giây |
+| Message Code                         | Xử lý đặc biệt                                                                              |
+| ------------------------------------ | ------------------------------------------------------------------------------------------- |
+| `order-needs-processed`              | **Không phát âm thanh** (tránh spam khi nhiều đơn cùng lúc)                                 |
+| `order-bill-failed-printing`         | Phát sound volume **0.8** (cao hơn bình thường), refetch printer events, hiện dialog lỗi in |
+| `order-chef-order-failed-printing`   | Phát sound volume **0.8**, refetch printer events, hiện dialog lỗi in                       |
+| `order-label-ticket-failed-printing` | Phát sound volume **0.8**, refetch printer events, hiện dialog lỗi in                       |
+| Các loại khác                        | Phát sound volume **0.5**, hiện toast notification 6 giây                                   |

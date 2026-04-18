@@ -1,5 +1,6 @@
 {
   "selected": "Đã chọn",
+  "unavailable": "Không khả dụng",
   "status": {
     "available": "Khả dụng",
     "used": "Đã dùng",
@@ -228,6 +229,33 @@
     "vnpay": "VNPay",
     "momo": "Ví MoMo",
     "banking": "Ngân hàng"
+  },
+  "payment": {
+    "title": "Thanh toán",
+    "notFound": "Không tìm thấy đơn hàng",
+    "qrExpired": "QR đã hết hạn",
+    "amountLabel": "Số tiền thanh toán",
+    "expiresIn": "Hết hạn sau {{time}}",
+    "qrInstructions": "Quét mã QR bằng ứng dụng ngân hàng để hoàn tất thanh toán",
+    "successTitle": "Thanh toán thành công!",
+    "successSubtitleCard": "Đơn thẻ quà \"{{cardTitle}}\" đã được thanh toán.",
+    "successSubtitleOrder": "Đơn hàng #{{slug}} đã được thanh toán.",
+    "viewDetail": "Xem chi tiết đơn",
+    "buyMore": "Mua thêm thẻ",
+    "orderInfo": "Chi tiết đơn hàng",
+    "cardLabel": "Thẻ quà tặng",
+    "pointsPerCard": "Điểm / thẻ",
+    "pointsValue": "+{{points}} điểm",
+    "quantityCards": "{{count}} thẻ",
+    "totalAmount": "Tổng tiền",
+    "paymentMethodSection": "Phương thức thanh toán",
+    "bankTransfer": "Chuyển khoản ngân hàng",
+    "bankTransferDesc": "Quét mã QR để thanh toán",
+    "orderCancelled": "Đơn hàng đã bị huỷ hoặc hết hạn thanh toán",
+    "checkStatus": "Kiểm tra trạng thái",
+    "reorder": "Đặt hàng lại",
+    "generateQR": "Tạo mã QR thanh toán",
+    "initiateError": "Không thể khởi tạo thanh toán. Vui lòng thử lại."
   },
   "recipientForm": {
     "recipientTitle": "Người nhận {{index}}",

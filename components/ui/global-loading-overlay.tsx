@@ -30,7 +30,9 @@ export function GlobalLoadingOverlay({ visible }: GlobalLoadingOverlayProps) {
       style={[
         styles.overlay,
         {
-          backgroundColor: isDark ? colors.background.dark : colors.background.light,
+          backgroundColor: isDark
+            ? colors.background.dark
+            : colors.background.light,
           bottom: 0, // Full-screen overlay, không còn hở phần xám bên dưới
         },
       ]}

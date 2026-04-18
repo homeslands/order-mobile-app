@@ -55,11 +55,11 @@ function RedeemSuccess({
   onContinue: () => void
 }) {
   const { t } = useTranslation('giftCard')
-  const textColor  = isDark ? colors.gray[50]  : colors.gray[900]
-  const subColor   = isDark ? colors.gray[400] : colors.gray[500]
-  const cardBg     = isDark ? colors.gray[900] : colors.white.light
+  const textColor = isDark ? colors.gray[50] : colors.gray[900]
+  const subColor = isDark ? colors.gray[400] : colors.gray[500]
+  const cardBg = isDark ? colors.gray[900] : colors.white.light
   const borderColor = isDark ? colors.gray[800] : colors.gray[100]
-  const rowBg      = isDark ? colors.gray[800] : colors.gray[50]
+  const rowBg = isDark ? colors.gray[800] : colors.gray[50]
 
   return (
     <View style={sc.container}>
@@ -68,29 +68,56 @@ function RedeemSuccess({
         <View style={sc.iconCircle}>
           <CheckCircle2 size={44} color="#16a34a" />
         </View>
-        <Text style={[sc.title, { color: textColor }]}>{t('redeem.success.title')}</Text>
-        <Text style={[sc.subtitle, { color: subColor }]}>{t('redeem.success.subtitle')}</Text>
+        <Text style={[sc.title, { color: textColor }]}>
+          {t('redeem.success.title')}
+        </Text>
+        <Text style={[sc.subtitle, { color: subColor }]}>
+          {t('redeem.success.subtitle')}
+        </Text>
       </View>
 
       {/* Points highlight */}
-      <View style={[sc.pointsBanner, { backgroundColor: `${primaryColor}12`, borderColor: `${primaryColor}25` }]}>
-        <Text style={[sc.pointsLabel, { color: subColor }]}>{t('redeem.success.pointsLabel')}</Text>
-        <Text style={[sc.pointsValue, { color: primaryColor }]}>{t('redeem.success.pointsValue', { points: formatPoints(result.cardPoints) })}</Text>
+      <View
+        style={[
+          sc.pointsBanner,
+          {
+            backgroundColor: `${primaryColor}12`,
+            borderColor: `${primaryColor}25`,
+          },
+        ]}
+      >
+        <Text style={[sc.pointsLabel, { color: subColor }]}>
+          {t('redeem.success.pointsLabel')}
+        </Text>
+        <Text style={[sc.pointsValue, { color: primaryColor }]}>
+          {t('redeem.success.pointsValue', {
+            points: formatPoints(result.cardPoints),
+          })}
+        </Text>
       </View>
 
       {/* Meta card */}
       <View style={[sc.metaCard, { backgroundColor: cardBg, borderColor }]}>
         {[
           { label: t('redeem.success.cardName'), value: result.cardName },
-          { label: t('redeem.success.serial'),   value: result.serial },
-          { label: t('redeem.success.usedAt'),   value: new Date(result.usedAt).toLocaleString('vi-VN') },
+          { label: t('redeem.success.serial'), value: result.serial },
+          {
+            label: t('redeem.success.usedAt'),
+            value: new Date(result.usedAt).toLocaleString('vi-VN'),
+          },
         ].map((row, i, arr) => (
           <View key={row.label}>
             <View style={[sc.metaRow, { backgroundColor: rowBg }]}>
               <Text style={[sc.metaKey, { color: subColor }]}>{row.label}</Text>
-              <Text style={[sc.metaVal, { color: textColor }]}>{row.value}</Text>
+              <Text style={[sc.metaVal, { color: textColor }]}>
+                {row.value}
+              </Text>
             </View>
-            {i < arr.length - 1 && <View style={[sc.metaDivider, { backgroundColor: borderColor }]} />}
+            {i < arr.length - 1 && (
+              <View
+                style={[sc.metaDivider, { backgroundColor: borderColor }]}
+              />
+            )}
           </View>
         ))}
       </View>
@@ -148,7 +175,11 @@ const sc = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  continueBtnText: { fontSize: 16, fontWeight: '700', color: colors.white.light },
+  continueBtnText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: colors.white.light,
+  },
 })
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
@@ -162,9 +193,14 @@ export default function RedeemGiftCardScreen() {
   const params = useLocalSearchParams<{ serial?: string; code?: string }>()
   const userSlug = useUserStore((s) => s.userInfo?.slug ?? '')
 
-  const [successResult, setSuccessResult] = useState<IUseGiftCardResponse | null>(null)
+  const [successResult, setSuccessResult] =
+    useState<IUseGiftCardResponse | null>(null)
 
-  const { control, handleSubmit, formState: { errors } } = useZodForm(redeemSchema, {
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useZodForm(redeemSchema, {
     defaultValues: {
       serial: params.serial ?? '',
       code: params.code ?? '',
@@ -180,7 +216,9 @@ export default function RedeemGiftCardScreen() {
         {
           onSuccess: (res) => setSuccessResult(res.result),
           onError: (error: Error) => {
-            const code = (error as Error & { response?: { data?: { statusCode?: number } } })?.response?.data?.statusCode
+            const code = (
+              error as Error & { response?: { data?: { statusCode?: number } } }
+            )?.response?.data?.statusCode
             showErrorToast(code ?? 0)
           },
         },
@@ -193,21 +231,25 @@ export default function RedeemGiftCardScreen() {
     router.replace('/(tabs)/home' as never)
   }, [router])
 
-  const bg        = isDark ? colors.background.dark : colors.background.light
-  const cardBg    = isDark ? colors.gray[900]       : colors.white.light
-  const textColor = isDark ? colors.gray[50]        : colors.gray[900]
-  const subColor  = isDark ? colors.gray[400]       : colors.gray[500]
-  const borderColor = isDark ? colors.gray[800]     : colors.gray[100]
+  const bg = isDark ? colors.background.dark : colors.background.light
+  const cardBg = isDark ? colors.gray[900] : colors.white.light
+  const textColor = isDark ? colors.gray[50] : colors.gray[900]
+  const subColor = isDark ? colors.gray[400] : colors.gray[500]
+  const borderColor = isDark ? colors.gray[800] : colors.gray[100]
 
   return (
     <View style={[s.container, { backgroundColor: bg }]}>
-      <FloatingHeader title={t('redeem.title')} 
-          disableBlur
-        />
+      <FloatingHeader title={t('redeem.title')} disableBlur />
 
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         <ScrollView
-          contentContainerStyle={[s.scroll, { paddingTop: STATIC_TOP_INSET + 72, paddingBottom: bottom + 32 }]}
+          contentContainerStyle={[
+            s.scroll,
+            { paddingTop: STATIC_TOP_INSET + 72, paddingBottom: bottom + 32 },
+          ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
         >
@@ -222,23 +264,30 @@ export default function RedeemGiftCardScreen() {
             <>
               {/* Hero */}
               <View style={s.hero}>
-                <View style={[s.heroIcon, { backgroundColor: `${primaryColor}15` }]}>
+                <View
+                  style={[s.heroIcon, { backgroundColor: `${primaryColor}15` }]}
+                >
                   <Gift size={36} color={primaryColor} />
                 </View>
-                <Text style={[s.heroTitle, { color: textColor }]}>{t('redeem.heroTitle')}</Text>
+                <Text style={[s.heroTitle, { color: textColor }]}>
+                  {t('redeem.heroTitle')}
+                </Text>
                 <Text style={[s.heroHint, { color: subColor }]}>
                   {t('redeem.heroHint')}
                 </Text>
               </View>
 
               {/* Form card */}
-              <View style={[s.formCard, { backgroundColor: cardBg, borderColor }]}>
+              <View
+                style={[s.formCard, { backgroundColor: cardBg, borderColor }]}
+              >
                 {/* Serial */}
                 <View style={s.field}>
                   <View style={s.fieldLabelRow}>
                     <Hash size={13} color={subColor} />
                     <Text style={[s.fieldLabel, { color: subColor }]}>
-                      {t('redeem.serialLabel')} <Text style={{ color: colors.destructive.light }}>*</Text>
+                      {t('redeem.serialLabel')}{' '}
+                      <Text style={{ color: colors.destructive.light }}>*</Text>
                     </Text>
                   </View>
                   <Controller
@@ -260,14 +309,17 @@ export default function RedeemGiftCardScreen() {
                   )}
                 </View>
 
-                <View style={[s.fieldDivider, { backgroundColor: borderColor }]} />
+                <View
+                  style={[s.fieldDivider, { backgroundColor: borderColor }]}
+                />
 
                 {/* Code */}
                 <View style={s.field}>
                   <View style={s.fieldLabelRow}>
                     <KeyRound size={13} color={subColor} />
                     <Text style={[s.fieldLabel, { color: subColor }]}>
-                      {t('redeem.codeLabel')} <Text style={{ color: colors.destructive.light }}>*</Text>
+                      {t('redeem.codeLabel')}{' '}
+                      <Text style={{ color: colors.destructive.light }}>*</Text>
                     </Text>
                   </View>
                   <Controller
@@ -294,11 +346,21 @@ export default function RedeemGiftCardScreen() {
               <Pressable
                 onPress={handleSubmit(onSubmit)}
                 disabled={isPending}
-                style={[s.submitBtn, { backgroundColor: primaryColor, opacity: isPending ? 0.7 : 1 }]}
+                style={[
+                  s.submitBtn,
+                  {
+                    backgroundColor: primaryColor,
+                    opacity: isPending ? 0.7 : 1,
+                  },
+                ]}
               >
-                {isPending
-                  ? <ActivityIndicator color={colors.white.light} />
-                  : <Text style={s.submitBtnText}>{t('redeem.submitButton')}</Text>}
+                {isPending ? (
+                  <ActivityIndicator color={colors.white.light} />
+                ) : (
+                  <Text style={s.submitBtnText}>
+                    {t('redeem.submitButton')}
+                  </Text>
+                )}
               </Pressable>
             </>
           )}
@@ -323,7 +385,12 @@ const s = StyleSheet.create({
     marginBottom: 6,
   },
   heroTitle: { fontSize: 20, fontWeight: '800' },
-  heroHint: { fontSize: 13, textAlign: 'center', lineHeight: 19, paddingHorizontal: 16 },
+  heroHint: {
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 19,
+    paddingHorizontal: 16,
+  },
 
   // Form card
   formCard: {

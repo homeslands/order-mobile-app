@@ -11,15 +11,26 @@
  */
 import React, { useMemo } from 'react'
 import { ScrollView, useWindowDimensions, View } from 'react-native'
-import Animated, { interpolate, useAnimatedStyle } from 'react-native-reanimated'
+import Animated, {
+  interpolate,
+  useAnimatedStyle,
+} from 'react-native-reanimated'
 
 import { MENU_ITEM_DETAIL_LAYOUT } from '@/constants/menu-item-detail-layout'
 import { ScreenContainer } from '@/components/layout/screen-container'
 import { Skeleton } from '@/components/ui'
 import { useParallaxDriverOptional } from '@/lib/transitions'
 
-const { PADDING_X, PADDING_TOP_IMAGES, PADDING_Y_INFO, PADDING_BOTTOM, GAP_3, GAP_4, GAP_2, GAP_6 } =
-  MENU_ITEM_DETAIL_LAYOUT
+const {
+  PADDING_X,
+  PADDING_TOP_IMAGES,
+  PADDING_Y_INFO,
+  PADDING_BOTTOM,
+  GAP_3,
+  GAP_4,
+  GAP_2,
+  GAP_6,
+} = MENU_ITEM_DETAIL_LAYOUT
 
 export function MenuItemSkeletonShell() {
   const driver = useParallaxDriverOptional()
@@ -60,7 +71,12 @@ export function MenuItemSkeletonShell() {
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Product Images — padding 16, image container size */}
-        <View style={{ paddingHorizontal: PADDING_X, paddingTop: PADDING_TOP_IMAGES }}>
+        <View
+          style={{
+            paddingHorizontal: PADDING_X,
+            paddingTop: PADDING_TOP_IMAGES,
+          }}
+        >
           <View
             className="overflow-hidden rounded-lg"
             style={[
@@ -82,27 +98,88 @@ export function MenuItemSkeletonShell() {
           <View style={{ flexDirection: 'column', gap: GAP_4 } as object}>
             {/* Name + Description */}
             <View style={{ flexDirection: 'column', gap: 4 } as object}>
-              <Skeleton style={{ width: '75%', height: 32 }} className="rounded-md" />
-              <Skeleton style={{ width: '50%', height: 16 }} className="rounded-md" />
+              <Skeleton
+                style={{ width: '75%', height: 32 }}
+                className="rounded-md"
+              />
+              <Skeleton
+                style={{ width: '50%', height: 16 }}
+                className="rounded-md"
+              />
             </View>
             {/* Price */}
             <View style={{ flexDirection: 'column', gap: GAP_2 } as object}>
-              <Skeleton style={{ width: 80, height: 24 }} className="rounded-md" />
+              <Skeleton
+                style={{ width: 80, height: 24 }}
+                className="rounded-md"
+              />
             </View>
             {/* Size Selector — gap 24 */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: GAP_6 } as object}>
-              <Skeleton style={{ width: 72, height: 16 }} className="rounded-md" />
-              <View style={{ flex: 1, flexDirection: 'row', flexWrap: 'wrap', gap: GAP_2 } as object}>
-                <Skeleton style={{ width: 48, height: 32 }} className="rounded-full" />
-                <Skeleton style={{ width: 48, height: 32 }} className="rounded-full" />
-                <Skeleton style={{ width: 48, height: 32 }} className="rounded-full" />
+            <View
+              style={
+                {
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: GAP_6,
+                } as object
+              }
+            >
+              <Skeleton
+                style={{ width: 72, height: 16 }}
+                className="rounded-md"
+              />
+              <View
+                style={
+                  {
+                    flex: 1,
+                    flexDirection: 'row',
+                    flexWrap: 'wrap',
+                    gap: GAP_2,
+                  } as object
+                }
+              >
+                <Skeleton
+                  style={{ width: 48, height: 32 }}
+                  className="rounded-full"
+                />
+                <Skeleton
+                  style={{ width: 48, height: 32 }}
+                  className="rounded-full"
+                />
+                <Skeleton
+                  style={{ width: 48, height: 32 }}
+                  className="rounded-full"
+                />
               </View>
             </View>
             {/* Quantity Selector */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: GAP_6 } as object}>
-              <Skeleton style={{ width: 72, height: 16 }} className="rounded-md" />
-              <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: GAP_2 } as object}>
-                <Skeleton style={{ width: 120, height: 44 }} className="rounded-full" />
+            <View
+              style={
+                {
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: GAP_6,
+                } as object
+              }
+            >
+              <Skeleton
+                style={{ width: 72, height: 16 }}
+                className="rounded-md"
+              />
+              <View
+                style={
+                  {
+                    flex: 1,
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: GAP_2,
+                  } as object
+                }
+              >
+                <Skeleton
+                  style={{ width: 120, height: 44 }}
+                  className="rounded-full"
+                />
               </View>
             </View>
           </View>
@@ -161,9 +238,14 @@ export function MenuItemSkeletonShell() {
   )
 
   return (
-    <ScreenContainer edges={['top']} className="flex-1 bg-white dark:bg-gray-900">
+    <ScreenContainer
+      edges={['top']}
+      className="flex-1 bg-white dark:bg-gray-900"
+    >
       {driver ? (
-        <Animated.View style={[{ flex: 1 }, animatedStyle]}>{content}</Animated.View>
+        <Animated.View style={[{ flex: 1 }, animatedStyle]}>
+          {content}
+        </Animated.View>
       ) : (
         content
       )}

@@ -6,7 +6,11 @@
  * Bộ lọc (loại giao dịch + ngày) qua LoyaltyPointFilterSheet → server-side.
  * Tap vào giao dịch → mở LoyaltyPointDetailSheet (chi tiết + đơn hàng liên quan).
  */
-import { FlashList, type FlashListRef, type ListRenderItem } from '@shopify/flash-list'
+import {
+  FlashList,
+  type FlashListRef,
+  type ListRenderItem,
+} from '@shopify/flash-list'
 import dayjs from 'dayjs'
 import { Coins, SlidersHorizontal, Trophy } from 'lucide-react-native'
 import { useFocusEffect } from '@react-navigation/native'
@@ -36,7 +40,10 @@ import { FloatingHeader } from '@/components/navigation/floating-header'
 import { Skeleton } from '@/components/ui'
 import { colors, LoyaltyPointHistoryType } from '@/constants'
 import { LOYALTY_POINT_ITEM_HEIGHT } from '@/constants/list-item-sizes'
-import { useLoyaltyPointHistory, useLoyaltyPoints } from '@/hooks/use-loyalty-point'
+import {
+  useLoyaltyPointHistory,
+  useLoyaltyPoints,
+} from '@/hooks/use-loyalty-point'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { useRunAfterTransition } from '@/hooks/use-run-after-transition'
 import { useUserStore } from '@/stores'
@@ -138,13 +145,22 @@ const TypeFilterBar = memo(function TypeFilterBar({
   const { t } = useTranslation('profile')
   const { t: tCommon } = useTranslation('common')
 
-  const OPTS = useMemo(() => [
-    { label: tCommon('common.all'), value: null },
-    { label: t('profile.points.add'), value: LoyaltyPointHistoryType.ADD },
-    { label: t('profile.points.use'), value: LoyaltyPointHistoryType.USE },
-    { label: t('profile.points.reserve'), value: LoyaltyPointHistoryType.RESERVE },
-    { label: t('profile.points.refund'), value: LoyaltyPointHistoryType.REFUND },
-  ], [t, tCommon])
+  const OPTS = useMemo(
+    () => [
+      { label: tCommon('common.all'), value: null },
+      { label: t('profile.points.add'), value: LoyaltyPointHistoryType.ADD },
+      { label: t('profile.points.use'), value: LoyaltyPointHistoryType.USE },
+      {
+        label: t('profile.points.reserve'),
+        value: LoyaltyPointHistoryType.RESERVE,
+      },
+      {
+        label: t('profile.points.refund'),
+        value: LoyaltyPointHistoryType.REFUND,
+      },
+    ],
+    [t, tCommon],
+  )
 
   const chipBg = isDark ? colors.gray[800] : colors.white.light
   const inactiveText = isDark ? colors.gray[400] : colors.gray[500]
@@ -202,15 +218,24 @@ function ActiveDateBar({
   const { t } = useTranslation('profile')
   const parts: string[] = []
   if (filter.fromDate)
-    parts.push(t('profile.points.from', { date: dayjs(filter.fromDate).format('DD/MM/YY') }))
+    parts.push(
+      t('profile.points.from', {
+        date: dayjs(filter.fromDate).format('DD/MM/YY'),
+      }),
+    )
   if (filter.toDate)
-    parts.push(t('profile.points.to', { date: dayjs(filter.toDate).format('DD/MM/YY') }))
+    parts.push(
+      t('profile.points.to', { date: dayjs(filter.toDate).format('DD/MM/YY') }),
+    )
   if (parts.length === 0) return null
 
   return (
     <View style={adb.row}>
       {parts.map((p) => (
-        <View key={p} style={[adb.chip, { backgroundColor: `${primaryColor}15` }]}>
+        <View
+          key={p}
+          style={[adb.chip, { backgroundColor: `${primaryColor}15` }]}
+        >
           <Text style={[adb.chipText, { color: primaryColor }]}>{p}</Text>
         </View>
       ))}
@@ -232,7 +257,11 @@ function SkeletonList() {
   return (
     <View style={{ gap: 10, paddingTop: 8 }}>
       {Array.from({ length: 5 }).map((_, i) => (
-        <Skeleton key={i} className="w-full rounded-2xl" style={{ height: SKELETON_HEIGHT }} />
+        <Skeleton
+          key={i}
+          className="w-full rounded-2xl"
+          style={{ height: SKELETON_HEIGHT }}
+        />
       ))}
     </View>
   )
@@ -252,11 +281,16 @@ export default function LoyaltyPointScreen() {
   const userSlug = useUserStore((s) => s.userInfo?.slug)
 
   const [ready, setReady] = useState(false)
-  const [filter, setFilter] = useState<LoyaltyPointFilter>(DEFAULT_LOYALTY_FILTER)
-  const [quickType, setQuickType] = useState<LoyaltyPointHistoryType | null>(null)
+  const [filter, setFilter] = useState<LoyaltyPointFilter>(
+    DEFAULT_LOYALTY_FILTER,
+  )
+  const [quickType, setQuickType] = useState<LoyaltyPointHistoryType | null>(
+    null,
+  )
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
-  const [selectedHistory, setSelectedHistory] = useState<ILoyaltyPointHistory | null>(null)
+  const [selectedHistory, setSelectedHistory] =
+    useState<ILoyaltyPointHistory | null>(null)
 
   const flashListRef = useRef<FlashListRef<ILoyaltyPointHistory>>(null)
   const shouldScrollToTop = useRef(false)
@@ -302,15 +336,21 @@ export default function LoyaltyPointScreen() {
     page: 1,
     size: 100,
     types: effectiveTypes,
-    fromDate: filter.fromDate ? dayjs(filter.fromDate).format('YYYY-MM-DD') : undefined,
-    toDate: filter.toDate ? dayjs(filter.toDate).format('YYYY-MM-DD') : undefined,
+    fromDate: filter.fromDate
+      ? dayjs(filter.fromDate).format('YYYY-MM-DD')
+      : undefined,
+    toDate: filter.toDate
+      ? dayjs(filter.toDate).format('YYYY-MM-DD')
+      : undefined,
   })
 
   const historyList = historyData?.items ?? []
   const isLoading = !ready || loadingTotal || loadingHistory
 
   // Scroll to top khi filter thay đổi
-  useEffect(() => { shouldScrollToTop.current = true }, [filter, quickType])
+  useEffect(() => {
+    shouldScrollToTop.current = true
+  }, [filter, quickType])
   useEffect(() => {
     if (!shouldScrollToTop.current || !historyData) return
     shouldScrollToTop.current = false
@@ -365,7 +405,9 @@ export default function LoyaltyPointScreen() {
   )
 
   const overrideItemLayout = useCallback(
-    (layout: { span?: number; size?: number }) => { layout.size = LOYALTY_POINT_ITEM_HEIGHT },
+    (layout: { span?: number; size?: number }) => {
+      layout.size = LOYALTY_POINT_ITEM_HEIGHT
+    },
     [],
   )
 
@@ -382,7 +424,9 @@ export default function LoyaltyPointScreen() {
 
       {/* Balance badge */}
       {!loadingTotal && (
-        <View style={[sc.balanceBadge, { backgroundColor: `${primaryColor}15` }]}>
+        <View
+          style={[sc.balanceBadge, { backgroundColor: `${primaryColor}15` }]}
+        >
           <Coins size={14} color={primaryColor} />
           <Text style={[sc.balanceText, { color: primaryColor }]}>
             {t('profile.points.currentBalance')}:{' '}
@@ -450,7 +494,9 @@ export default function LoyaltyPointScreen() {
       />
 
       {isLoading ? (
-        <View style={{ paddingTop: STATIC_TOP_INSET + 64, paddingHorizontal: 16 }}>
+        <View
+          style={{ paddingTop: STATIC_TOP_INSET + 64, paddingHorizontal: 16 }}
+        >
           <SkeletonList />
         </View>
       ) : (

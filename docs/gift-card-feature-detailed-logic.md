@@ -20,6 +20,7 @@ Gift Card Order:
 ```
 
 **Key Differences:**
+
 - Gift card = **Product to purchase** (not discount)
 - Granting **points/coins** to account (not payment method)
 - **Separate order** from regular food orders
@@ -36,10 +37,10 @@ Gift Card Order:
 
 ```typescript
 enum GiftCardType {
-  SELF = 'self',      // Khách mua cho mình (top-up coins)
-  GIFT = 'gift',      // Khách tặng cho người khác
-  BUY = 'buy',        // Mua như sản phẩm thường
-  NONE = 'none'       // Mặc định/chưa set
+  SELF = 'self', // Khách mua cho mình (top-up coins)
+  GIFT = 'gift', // Khách tặng cho người khác
+  BUY = 'buy', // Mua như sản phẩm thường
+  NONE = 'none', // Mặc định/chưa set
 }
 ```
 
@@ -57,19 +58,20 @@ enum GiftCardType {
 
 ```typescript
 enum GiftCardStatus {
-  ACTIVE = 'active',          // Available for purchase
-  INACTIVE = 'inactive'       // Disabled/unavailable
+  ACTIVE = 'active', // Available for purchase
+  INACTIVE = 'inactive', // Disabled/unavailable
 }
 
 enum GiftCardUsageStatus {
-  AVAILABLE = 'available',    // Not yet used
-  USED = 'used',              // Already redeemed
-  EXPIRED = 'expired',        // Expiration date passed
-  ALL = 'all'                 // Filter: show all
+  AVAILABLE = 'available', // Not yet used
+  USED = 'used', // Already redeemed
+  EXPIRED = 'expired', // Expiration date passed
+  ALL = 'all', // Filter: show all
 }
 ```
 
 **Status Flow:**
+
 ```
 ┌──────────────────────────────────────┐
 │ Gift Card Lifecycle                  │
@@ -102,29 +104,30 @@ enum GiftCardUsageStatus {
 
 ```typescript
 interface IGiftCard {
-  slug: string              // Unique ID
-  title: string             // "Top Up 100K Coins"
-  description: string       // Long description
-  image: string             // Image URL
-  price: number             // 100,000 VND (what customer pays)
-  points: number            // 100,000 points (what customer receives)
-  isActive: boolean         // Available for purchase?
-  version: number           // For optimistic updates
+  slug: string // Unique ID
+  title: string // "Top Up 100K Coins"
+  description: string // Long description
+  image: string // Image URL
+  price: number // 100,000 VND (what customer pays)
+  points: number // 100,000 points (what customer receives)
+  isActive: boolean // Available for purchase?
+  version: number // For optimistic updates
 }
 
 interface IGiftCardCartItem extends IGiftCard {
-  id: string                // Cart item ID
-  quantity: number          // How many units
-  receipients?: Array<{     // For GIFT type
+  id: string // Cart item ID
+  quantity: number // How many units
+  receipients?: Array<{
+    // For GIFT type
     id: string
     phone: string
     email?: string
     name?: string
-    quantity: number        // How many for this person
-    message?: string        // Personalized message
+    quantity: number // How many for this person
+    message?: string // Personalized message
   }>
-  type?: GiftCardType       // SELF, GIFT, BUY, NONE
-  customerInfo?: IUserInfo  // Who's purchasing
+  type?: GiftCardType // SELF, GIFT, BUY, NONE
+  customerInfo?: IUserInfo // Who's purchasing
 }
 ```
 
@@ -146,7 +149,9 @@ export async function getGiftCards(params: {
 }): Promise<IPaginatedResponse<IGiftCard>>
 
 // Get single gift card
-export async function getGiftCardBySlug(slug: string): Promise<IApiResponse<IGiftCard>>
+export async function getGiftCardBySlug(
+  slug: string,
+): Promise<IApiResponse<IGiftCard>>
 
 // Create gift card (Admin)
 export async function createGiftCard(data: {
@@ -161,7 +166,7 @@ export async function createGiftCard(data: {
 // Update gift card
 export async function updateGiftCard(
   slug: string,
-  data: Partial<IGiftCard>
+  data: Partial<IGiftCard>,
 ): Promise<IApiResponse<IGiftCard>>
 
 // Delete gift card
@@ -176,7 +181,7 @@ export async function deleteGiftCard(slug: string): Promise<IApiResponse<void>>
 // Get user's received/owned gift cards
 export async function getUserGiftCards(params: {
   userSlug: string
-  status?: GiftCardUsageStatus  // 'available', 'used', 'expired', 'all'
+  status?: GiftCardUsageStatus // 'available', 'used', 'expired', 'all'
   fromDate?: Date
   toDate?: Date
   page?: number
@@ -186,22 +191,25 @@ export async function getUserGiftCards(params: {
 // Get details of specific user gift card
 export async function getUserGiftCardBySlug(
   userSlug: string,
-  giftCardSlug: string
+  giftCardSlug: string,
 ): Promise<IApiResponse<IUserGiftCard>>
 
 // Redeem/Use gift card
 export async function useGiftCard(data: {
-  serial: string                // Gift card serial number
-  code: string                  // Gift card code
+  serial: string // Gift card serial number
+  code: string // Gift card code
   userSlug: string
-}): Promise<IApiResponse<{
-  pointsAdded: number
-  newBalance: number
-  message: string
-}>>
+}): Promise<
+  IApiResponse<{
+    pointsAdded: number
+    newBalance: number
+    message: string
+  }>
+>
 ```
 
 **Redeem Endpoint Details:**
+
 ```
 Endpoint: POST /gift-card/use
 
@@ -238,40 +246,41 @@ Error Response (if gift card invalid):
 ```typescript
 // Create gift card order
 export async function createCardOrder(data: {
-  customerSlug: string          // Who's buying
-  cardSlug: string              // Which gift card
-  quantity: number              // How many units
-  totalAmount: number           // price × quantity
-  receipients?: Array<{         // For GIFT type
+  customerSlug: string // Who's buying
+  cardSlug: string // Which gift card
+  quantity: number // How many units
+  totalAmount: number // price × quantity
+  receipients?: Array<{
+    // For GIFT type
     phone: string
     quantity: number
     message?: string
     name?: string
   }>
-  cardOrderType: GiftCardType   // SELF, GIFT, BUY, NONE
-  cardVersion: number           // For optimistic updates
+  cardOrderType: GiftCardType // SELF, GIFT, BUY, NONE
+  cardVersion: number // For optimistic updates
 }): Promise<IApiResponse<ICardOrder>>
 
 // Get card order details
 export async function getCardOrderBySlug(
-  slug: string
+  slug: string,
 ): Promise<IApiResponse<ICardOrder>>
 
 // Cancel card order (before payment)
-export async function cancelCardOrder(
-  slug: string
-): Promise<IApiResponse<void>>
+export async function cancelCardOrder(slug: string): Promise<IApiResponse<void>>
 
 // Initiate payment for gift card order
 export async function initiateCardOrderPayment(data: {
   cardorderSlug: string
-  paymentMethod: PaymentMethod  // BANK_TRANSFER, CASH
-  cashierSlug?: string          // For staff payment
-}): Promise<IApiResponse<{
-  qrCode?: string               // For BANK_TRANSFER
-  transactionId: string
-  createdAt: Date
-}>>
+  paymentMethod: PaymentMethod // BANK_TRANSFER, CASH
+  cashierSlug?: string // For staff payment
+}): Promise<
+  IApiResponse<{
+    qrCode?: string // For BANK_TRANSFER
+    transactionId: string
+    createdAt: Date
+  }>
+>
 
 // Admin payment initiation
 export async function initiateCardOrderPaymentAdmin(data: {
@@ -282,6 +291,7 @@ export async function initiateCardOrderPaymentAdmin(data: {
 ```
 
 **Card Order Response Structure:**
+
 ```typescript
 interface ICardOrder {
   slug: string
@@ -290,7 +300,7 @@ interface ICardOrder {
   quantity: number
   totalAmount: number
   cardOrderType: GiftCardType
-  paymentStatus: OrderStatus         // PENDING, PAID, CANCELLED
+  paymentStatus: OrderStatus // PENDING, PAID, CANCELLED
   paymentMethod?: PaymentMethod
   receipients?: Array<{
     id: string
@@ -363,6 +373,7 @@ Gift Cards:
 ```
 
 **Scenario: Customer wants both?**
+
 ```
 Option 1: Separate transactions
 ├─ Buy gift card first → checkout → pay
@@ -481,7 +492,7 @@ giftCardStore.setGiftCardItem({
   price: 100000,
   points: 100000,
   quantity: 2,
-  type: 'SELF'
+  type: 'SELF',
   // ... other properties
 })
 
@@ -489,7 +500,7 @@ giftCardStore.setGiftCardItem({
 giftCardStore.updateGiftCardQuantity(5)
 
 // Remove
-giftCardStore.clearGiftCard(true)  // show toast notification
+giftCardStore.clearGiftCard(true) // show toast notification
 ```
 
 **Persistence Logic:**
@@ -506,10 +517,10 @@ const giftCardStore = create<IGiftCardStore>(
       storage: localStorage,
       partialize: (state) => ({
         giftCardItem: state.giftCardItem,
-        lastModified: state.lastModified
-      })
-    }
-  )
+        lastModified: state.lastModified,
+      }),
+    },
+  ),
 )
 
 // Auto-load from localStorage on app start
@@ -524,6 +535,7 @@ useEffect(() => {
 ```
 
 **Storage Structure (localStorage):**
+
 ```json
 {
   "gift-card-store": {
@@ -559,10 +571,7 @@ export const createGiftCardSchema = z.object({
     .min(1, 'Title is required')
     .max(500, 'Title must not exceed 500 characters'),
 
-  description: z
-    .string()
-    .max(1000, 'Description too long')
-    .optional(),
+  description: z.string().max(1000, 'Description too long').optional(),
 
   points: z
     .number()
@@ -574,70 +583,51 @@ export const createGiftCardSchema = z.object({
     .min(1000, 'Minimum price 1,000 VND')
     .max(10000000, 'Maximum price 10,000,000 VND'),
 
-  isActive: z
-    .boolean()
-    .default(true),
+  isActive: z.boolean().default(true),
 
   file: z
     .instanceof(File)
     .optional()
     .refine(
       (file) => !file || file.type.startsWith('image/'),
-      'File must be an image'
-    )
+      'File must be an image',
+    ),
 })
 
 // For checkout (user selecting gift card)
-export const giftCardCheckoutSchema = z.object({
-  giftType: z
-    .enum(['SELF', 'GIFT', 'BUY', 'NONE'])
-    .default('NONE'),
+export const giftCardCheckoutSchema = z
+  .object({
+    giftType: z.enum(['SELF', 'GIFT', 'BUY', 'NONE']).default('NONE'),
 
-  quantity: z
-    .number()
-    .min(1, 'Minimum 1 unit')
-    .max(10, 'Maximum 10 units'),
+    quantity: z.number().min(1, 'Minimum 1 unit').max(10, 'Maximum 10 units'),
 
-  receivers: z
-    .array(
-      z.object({
-        phone: z
-          .string()
-          .regex(/^[0-9]{10,11}$/, 'Invalid phone number'),
+    receivers: z
+      .array(
+        z.object({
+          phone: z.string().regex(/^[0-9]{10,11}$/, 'Invalid phone number'),
 
-        name: z
-          .string()
-          .min(1, 'Name required')
-          .optional(),
+          name: z.string().min(1, 'Name required').optional(),
 
-        quantity: z
-          .number()
-          .min(1, 'Minimum 1')
-          .positive(),
+          quantity: z.number().min(1, 'Minimum 1').positive(),
 
-        message: z
-          .string()
-          .max(500, 'Message too long')
-          .optional()
-      })
-    )
-    .refine(
-      (receivers) => {
+          message: z.string().max(500, 'Message too long').optional(),
+        }),
+      )
+      .refine((receivers) => {
         const totalQty = receivers.reduce((sum, r) => sum + r.quantity, 0)
         return totalQty <= selectedGiftCardQuantity
-      },
-      'Total receiver quantities exceed available gift cards'
-    )
-}).refine(
-  (data) => {
-    // If GIFT type, receivers must not be empty
-    if (data.giftType === 'GIFT') {
-      return data.receivers.length > 0
-    }
-    return true
-  },
-  { message: 'Receivers required when gifting to others' }
-)
+      }, 'Total receiver quantities exceed available gift cards'),
+  })
+  .refine(
+    (data) => {
+      // If GIFT type, receivers must not be empty
+      if (data.giftType === 'GIFT') {
+        return data.receivers.length > 0
+      }
+      return true
+    },
+    { message: 'Receivers required when gifting to others' },
+  )
 ```
 
 ### 6.2 Runtime Validations
@@ -656,7 +646,7 @@ const validateBeforeAddingToCart = (giftCard: IGiftCard) => {
   const currentGiftCard = giftCardStore.getGiftCardItem()
   if (currentGiftCard && currentGiftCard.slug !== giftCard.slug) {
     // Show replacement dialog instead of error
-    return false  // Dialog handles it
+    return false // Dialog handles it
   }
 
   // Check 3: Valid price and points?
@@ -692,12 +682,12 @@ const validateCheckoutData = (data: GiftCardCheckoutInput) => {
     // Check receiver quantities don't exceed total
     const totalReceiverQty = data.receivers.reduce(
       (sum, r) => sum + r.quantity,
-      0
+      0,
     )
     if (totalReceiverQty > data.quantity) {
       return {
         valid: false,
-        error: 'Total receiver quantity exceeds gift card quantity'
+        error: 'Total receiver quantity exceeds gift card quantity',
       }
     }
   }
@@ -740,16 +730,16 @@ const validateRedeemInput = (serial: string, code: string) => {
 ```typescript
 const handleRedeemError = (errorCode: number, message: string) => {
   switch (errorCode) {
-    case 158001:  // Invalid gift card
+    case 158001: // Invalid gift card
       return 'Gift card not found or invalid'
 
-    case 158002:  // Already used
+    case 158002: // Already used
       return 'This gift card has already been used'
 
-    case 158003:  // Expired
+    case 158003: // Expired
       return 'This gift card has expired'
 
-    case 158004:  // Not active
+    case 158004: // Not active
       return 'This gift card is not available'
 
     default:
@@ -849,12 +839,12 @@ const calculateGiftCardTotal = (
 // When gifting to multiple people
 const calculateRecipientTotals = (
   giftCard: IGiftCard,
-  recipients: Array<{ quantity: number }>
+  recipients: Array<{ quantity: number }>,
 ) => {
-  const recipientTotals = recipients.map(recipient => ({
+  const recipientTotals = recipients.map((recipient) => ({
     quantity: recipient.quantity,
     amount: giftCard.price * recipient.quantity,
-    points: giftCard.points * recipient.quantity
+    points: giftCard.points * recipient.quantity,
   }))
 
   const totalAmount = recipientTotals.reduce((sum, r) => sum + r.amount, 0)
@@ -863,7 +853,7 @@ const calculateRecipientTotals = (
   return {
     recipientTotals,
     totalAmount,
-    totalPoints
+    totalPoints,
   }
 }
 
@@ -889,10 +879,10 @@ enum GiftCardErrorCode {
   ALREADY_USED = 158002,
   EXPIRED = 158003,
   NOT_ACTIVE = 158004,
-  INSUFFICIENT_BALANCE = 158005,  // N/A for purchases
+  INSUFFICIENT_BALANCE = 158005, // N/A for purchases
   FEATURE_LOCKED = 158006,
   INVALID_RECEIVER = 158007,
-  MAX_RECEIVERS_EXCEEDED = 158008
+  MAX_RECEIVERS_EXCEEDED = 158008,
 }
 
 // Error message mapping
@@ -904,7 +894,7 @@ const giftCardErrorMessages: Record<number, string> = {
   158005: 'Insufficient gift card balance',
   158006: 'Gift card feature is temporarily locked',
   158007: 'Invalid receiver information',
-  158008: 'Too many receivers for this gift card'
+  158008: 'Too many receivers for this gift card',
 }
 ```
 
@@ -931,7 +921,7 @@ const { mutate: useGiftCard } = useMutation({
     } else {
       toast.error('Failed to redeem gift card')
     }
-  }
+  },
 })
 ```
 
@@ -1637,8 +1627,10 @@ const generateSerialNumber = (): string => {
   // Example: GC-2024-001234
 
   const currentYear = new Date().getFullYear()
-  const randomSuffix = String(Math.floor(Math.random() * 1000000))
-    .padStart(6, '0')
+  const randomSuffix = String(Math.floor(Math.random() * 1000000)).padStart(
+    6,
+    '0',
+  )
 
   return `GC-${currentYear}-${randomSuffix}`
 }
@@ -1646,10 +1638,10 @@ const generateSerialNumber = (): string => {
 // Uniqueness check
 const isSerialUnique = async (serial: string): Promise<boolean> => {
   const existing = await giftCardRepository.findOne({
-    where: { serialNumber: serial }
+    where: { serialNumber: serial },
   })
 
-  return !existing  // True if unique, false if exists
+  return !existing // True if unique, false if exists
 }
 
 // Generate unique serial
@@ -1657,7 +1649,7 @@ const generateUniqueSerial = async (): Promise<string> => {
   let serial = generateSerialNumber()
 
   // Keep generating until unique
-  while (!await isSerialUnique(serial)) {
+  while (!(await isSerialUnique(serial))) {
     serial = generateSerialNumber()
   }
 
@@ -1666,6 +1658,7 @@ const generateUniqueSerial = async (): Promise<string> => {
 ```
 
 **Serial Properties:**
+
 - Format: `GC-YYYY-XXXXXX` (15 characters)
 - Unique per gift card recipient
 - Printed on physical card (if exists)
@@ -1673,6 +1666,7 @@ const generateUniqueSerial = async (): Promise<string> => {
 - Public-facing identifier (customer sees this)
 
 **Example Serials:**
+
 ```
 GC-2024-001234
 GC-2024-567890
@@ -1694,19 +1688,22 @@ const generateGiftCardCode = (): string => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
   const nums = '0123456789'
 
-  const part1 = Array(3).fill(0).map(() =>
-    chars[Math.floor(Math.random() * chars.length)]
-  ).join('')
+  const part1 = Array(3)
+    .fill(0)
+    .map(() => chars[Math.floor(Math.random() * chars.length)])
+    .join('')
 
-  const part2 = Array(3).fill(0).map(() =>
-    nums[Math.floor(Math.random() * nums.length)]
-  ).join('')
+  const part2 = Array(3)
+    .fill(0)
+    .map(() => nums[Math.floor(Math.random() * nums.length)])
+    .join('')
 
-  const part3 = Array(3).fill(0).map(() =>
-    chars[Math.floor(Math.random() * chars.length)]
-  ).join('')
+  const part3 = Array(3)
+    .fill(0)
+    .map(() => chars[Math.floor(Math.random() * chars.length)])
+    .join('')
 
-  return `${part1}${part2}${part3}`  // 9 characters: ABC123XYZ
+  return `${part1}${part2}${part3}` // 9 characters: ABC123XYZ
 }
 
 // With checksum (for validation)
@@ -1717,7 +1714,7 @@ const generateGiftCardCodeWithChecksum = (serial: string): string => {
   const checksum = calculateChecksum(serial + baseCode)
   baseCode += checksum
 
-  return baseCode  // 10 characters total
+  return baseCode // 10 characters total
 }
 
 // Validate code format
@@ -1729,6 +1726,7 @@ const isValidCodeFormat = (code: string): boolean => {
 ```
 
 **Code Properties:**
+
 - Format: `ABC123XYZ` (9 characters) or `ABC123XYZ7` (10 with checksum)
 - Unique per gift card recipient
 - Contains mix of letters and numbers
@@ -1737,6 +1735,7 @@ const isValidCodeFormat = (code: string): boolean => {
 - Example: `ABC123XYZ789`
 
 **Security:**
+
 ```
 Serial: PUBLIC (on front of card, visible)
 Code: PRIVATE (on back of card, hidden)
@@ -1758,7 +1757,7 @@ export async function createCardOrder(data: {
   customerSlug: string
   cardSlug: string
   quantity: number
-  receipients: Array<{ phone, quantity, name, message }>
+  receipients: Array<{ phone; quantity; name; message }>
   cardOrderType: 'GIFT' | 'SELF' | 'BUY'
 }) {
   // Create card order (no serials/codes yet)
@@ -1767,10 +1766,10 @@ export async function createCardOrder(data: {
     customerSlug: data.customerSlug,
     cardSlug: data.cardSlug,
     quantity: data.quantity,
-    receipients: data.receipients,  // Store receiver info
+    receipients: data.receipients, // Store receiver info
     cardOrderType: data.cardOrderType,
     paymentStatus: 'PENDING',
-    createdAt: new Date()
+    createdAt: new Date(),
     // ← NO serials/codes at this stage
   })
 
@@ -1780,7 +1779,7 @@ export async function createCardOrder(data: {
 // Step 2: Payment Initiation (NO serials yet)
 export async function initiateCardOrderPayment(
   cardOrderSlug: string,
-  paymentMethod: 'BANK_TRANSFER' | 'CASH'
+  paymentMethod: 'BANK_TRANSFER' | 'CASH',
 ) {
   // Generate QR code for bank transfer
   // Update payment status to 'PENDING'
@@ -1788,9 +1787,7 @@ export async function initiateCardOrderPayment(
 }
 
 // Step 3: Payment Completion
-export async function completeCardOrderPayment(
-  cardOrderSlug: string
-) {
+export async function completeCardOrderPayment(cardOrderSlug: string) {
   const cardOrder = await cardOrderRepository.findOne(cardOrderSlug)
 
   // MARK: Serials & codes generated HERE (on payment success)
@@ -1807,19 +1804,19 @@ export async function completeCardOrderPayment(
         cardOrderSlug: cardOrder.slug,
         recipientPhone: recipient.phone,
         recipientName: recipient.name,
-        serialNumber: serial,           // ← Generated
-        code: code,                      // ← Generated
+        serialNumber: serial, // ← Generated
+        code: code, // ← Generated
         quantity: recipient.quantity,
         message: recipient.message,
-        notificationStatus: 'PENDING',   // Will send SMS
-        createdAt: new Date()
+        notificationStatus: 'PENDING', // Will send SMS
+        createdAt: new Date(),
       })
     }
 
     // Update order status
     await cardOrderRepository.update(cardOrderSlug, {
       paymentStatus: 'PAID',
-      updatedAt: new Date()
+      updatedAt: new Date(),
     })
   } else if (cardOrder.cardOrderType === 'SELF') {
     // For SELF type, generate single serial/code
@@ -1833,7 +1830,7 @@ export async function completeCardOrderPayment(
       serialNumber: serial,
       code: code,
       quantity: cardOrder.quantity,
-      notificationStatus: 'COMPLETED'  // No SMS for SELF
+      notificationStatus: 'COMPLETED', // No SMS for SELF
     })
   }
 }
@@ -1887,40 +1884,40 @@ export class GiftCardRecipient {
   id: string
 
   @Column()
-  cardOrderSlug: string             // FK to card_order
+  cardOrderSlug: string // FK to card_order
 
   @Column()
-  recipientPhone: string            // Receiver's phone
+  recipientPhone: string // Receiver's phone
 
   @Column({ nullable: true })
-  recipientName?: string            // Receiver's name
+  recipientName?: string // Receiver's name
 
   @Column({ length: 50 })
-  serialNumber: string              // GC-2024-001234
+  serialNumber: string // GC-2024-001234
 
   @Column({ length: 50 })
-  code: string                       // ABC123XYZ
+  code: string // ABC123XYZ
 
   @Column()
-  quantity: number                  // Gift card units for this person
+  quantity: number // Gift card units for this person
 
   @Column({ type: 'text', nullable: true })
-  message?: string                  // Personal message
+  message?: string // Personal message
 
   @Column({ default: 'PENDING' })
-  notificationStatus: string        // PENDING, SENT, FAILED, COMPLETED
+  notificationStatus: string // PENDING, SENT, FAILED, COMPLETED
 
   @Column({ nullable: true })
-  notificationSentAt?: Date         // When SMS sent
+  notificationSentAt?: Date // When SMS sent
 
   @Column({ nullable: true })
   notificationErrorMessage?: string // If SMS failed
 
   @Column({ default: false })
-  hasRedeemed: boolean              // Was code used?
+  hasRedeemed: boolean // Was code used?
 
   @Column({ nullable: true })
-  redeemedAt?: Date                 // When customer redeemed
+  redeemedAt?: Date // When customer redeemed
 
   @CreateDateColumn()
   createdAt: Date
@@ -1956,6 +1953,7 @@ INSERT INTO gift_card_recipient (
 ```
 
 **Key Fields:**
+
 - `recipientPhone`: For SMS delivery
 - `recipientName`: For personalization
 - `serialNumber`: Public identifier
@@ -1975,7 +1973,7 @@ INSERT INTO gift_card_recipient (
 @Injectable()
 export class SMSService {
   constructor(
-    private readonly smsProvider: SmsProviderService  // Twilio, AWS SNS, etc
+    private readonly smsProvider: SmsProviderService, // Twilio, AWS SNS, etc
   ) {}
 
   // Send SMS to gift card recipient
@@ -1993,28 +1991,31 @@ export class SMSService {
 
       // Step 2: Send via SMS provider
       const result = await this.smsProvider.send({
-        to: formatPhoneNumber(recipient.recipientPhone),  // +84912345678
+        to: formatPhoneNumber(recipient.recipientPhone), // +84912345678
         message: message,
-        contentType: 'SMS'
+        contentType: 'SMS',
       })
 
       // Step 3: Update recipient record
       await giftCardRecipientRepository.update(recipient.id, {
         notificationStatus: 'SENT',
-        notificationSentAt: new Date()
+        notificationSentAt: new Date(),
       })
 
       // Step 4: Log success
-      logger.log(`SMS sent to ${recipient.recipientPhone} for order ${recipient.cardOrderSlug}`)
-
+      logger.log(
+        `SMS sent to ${recipient.recipientPhone} for order ${recipient.cardOrderSlug}`,
+      )
     } catch (error) {
       // Handle failure
       await giftCardRecipientRepository.update(recipient.id, {
         notificationStatus: 'FAILED',
-        notificationErrorMessage: error.message
+        notificationErrorMessage: error.message,
       })
 
-      logger.error(`SMS failed for ${recipient.recipientPhone}: ${error.message}`)
+      logger.error(
+        `SMS failed for ${recipient.recipientPhone}: ${error.message}`,
+      )
 
       // Trigger retry
       await this.queueSMSRetry(recipient.id)
@@ -2040,30 +2041,30 @@ Thank you for using our service!`
 @Injectable()
 export class SMSQueueService {
   constructor(
-    private readonly queue: QueueService,  // Bull, RabbitMQ, etc
-    private readonly smsService: SMSService
+    private readonly queue: QueueService, // Bull, RabbitMQ, etc
+    private readonly smsService: SMSService,
   ) {}
 
   // On payment success, queue SMS for all recipients
   async queueSMSForRecipients(
     cardOrderSlug: string,
-    recipients: GiftCardRecipient[]
+    recipients: GiftCardRecipient[],
   ): Promise<void> {
     for (const recipient of recipients) {
       await this.queue.add(
         'send-gift-card-sms',
         {
           recipientId: recipient.id,
-          cardOrderSlug: cardOrderSlug
+          cardOrderSlug: cardOrderSlug,
         },
         {
-          delay: 2000,           // 2 second delay
-          attempts: 3,           // Retry 3 times
+          delay: 2000, // 2 second delay
+          attempts: 3, // Retry 3 times
           backoff: {
             type: 'exponential',
-            delay: 2000          // 2s, 4s, 8s
-          }
-        }
+            delay: 2000, // 2s, 4s, 8s
+          },
+        },
       )
     }
   }
@@ -2121,8 +2122,8 @@ User Receives SMS
 // Scenario 1: Invalid phone number
 if (!isValidPhoneNumber(recipient.phone)) {
   throw new ValidationException(
-    158007,  // Invalid receiver
-    'Phone number format invalid'
+    158007, // Invalid receiver
+    'Phone number format invalid',
   )
 }
 
@@ -2148,7 +2149,7 @@ try {
 // Scenario 4: Database error updating status
 try {
   await giftCardRecipientRepository.update(id, {
-    notificationStatus: 'SENT'
+    notificationStatus: 'SENT',
   })
 } catch (error) {
   logger.error('DB update failed:', error)
@@ -2168,11 +2169,11 @@ await this.queue.add(
     attempts: 3,
     backoff: {
       type: 'exponential',
-      delay: 2000  // 2s, 4s, 8s
+      delay: 2000, // 2s, 4s, 8s
     },
     removeOnComplete: true,
-    removeOnFail: false  // Keep failed jobs for manual review
-  }
+    removeOnFail: false, // Keep failed jobs for manual review
+  },
 )
 ```
 
@@ -2394,6 +2395,7 @@ export const GiftCardRecipientsForm = () => {
 ```
 
 **UI Features:**
+
 - Add/remove recipients dynamically
 - Phone number validation (10-11 digits)
 - Quantity per recipient
@@ -2410,14 +2412,14 @@ export const GiftCardRecipientsForm = () => {
 
 ```typescript
 export const GIFT_CARD_CONFIG = {
-  MAX_RECEIVERS_PER_ORDER: 10,      // Max recipients in single order
-  MAX_QUANTITY_PER_RECIPIENT: 999,  // Max units per person
-  MAX_MESSAGE_LENGTH: 500,          // Max characters in message
-  SMS_RETRY_ATTEMPTS: 3,            // Auto-retry failed SMS
-  RESEND_LIMIT: 3,                  // Manual resend limit per recipient
-  SMS_SEND_DELAY: 2000,             // 2 seconds between SMS sends
-  CODE_LENGTH: 9,                   // ABC123XYZ format
-  SERIAL_FORMAT: 'GC-YYYY-XXXXXX'   // Pattern
+  MAX_RECEIVERS_PER_ORDER: 10, // Max recipients in single order
+  MAX_QUANTITY_PER_RECIPIENT: 999, // Max units per person
+  MAX_MESSAGE_LENGTH: 500, // Max characters in message
+  SMS_RETRY_ATTEMPTS: 3, // Auto-retry failed SMS
+  RESEND_LIMIT: 3, // Manual resend limit per recipient
+  SMS_SEND_DELAY: 2000, // 2 seconds between SMS sends
+  CODE_LENGTH: 9, // ABC123XYZ format
+  SERIAL_FORMAT: 'GC-YYYY-XXXXXX', // Pattern
 }
 ```
 
@@ -2425,42 +2427,42 @@ export const GIFT_CARD_CONFIG = {
 
 ```typescript
 // Zod schema validation
-export const giftCardCheckoutSchema = z.object({
-  receivers: z
-    .array(
-      z.object({
-        phone: z
-          .string()
-          .regex(/^[0-9]{10,11}$/, 'Invalid phone number'),
-        name: z.string().optional(),
-        quantity: z
-          .number()
-          .min(1, 'Minimum 1 unit')
-          .max(GIFT_CARD_CONFIG.MAX_QUANTITY_PER_RECIPIENT),
-        message: z
-          .string()
-          .max(GIFT_CARD_CONFIG.MAX_MESSAGE_LENGTH)
-          .optional()
-      })
-    )
-    .min(1, 'At least one recipient required')
-    .max(GIFT_CARD_CONFIG.MAX_RECEIVERS_PER_ORDER, 'Too many recipients'),
+export const giftCardCheckoutSchema = z
+  .object({
+    receivers: z
+      .array(
+        z.object({
+          phone: z.string().regex(/^[0-9]{10,11}$/, 'Invalid phone number'),
+          name: z.string().optional(),
+          quantity: z
+            .number()
+            .min(1, 'Minimum 1 unit')
+            .max(GIFT_CARD_CONFIG.MAX_QUANTITY_PER_RECIPIENT),
+          message: z
+            .string()
+            .max(GIFT_CARD_CONFIG.MAX_MESSAGE_LENGTH)
+            .optional(),
+        }),
+      )
+      .min(1, 'At least one recipient required')
+      .max(GIFT_CARD_CONFIG.MAX_RECEIVERS_PER_ORDER, 'Too many recipients'),
 
-  // Validate total quantity
-}).refine(
-  (data) => {
-    const total = data.receivers.reduce((sum, r) => sum + r.quantity, 0)
-    return total <= selectedGiftCardQuantity
-  },
-  { message: 'Total recipient quantity exceeds available gift cards' }
-)
+    // Validate total quantity
+  })
+  .refine(
+    (data) => {
+      const total = data.receivers.reduce((sum, r) => sum + r.quantity, 0)
+      return total <= selectedGiftCardQuantity
+    },
+    { message: 'Total recipient quantity exceeds available gift cards' },
+  )
 
 // Runtime validation
 const validateReceiversList = (receivers: Array<any>): ValidationResult => {
   if (receivers.length > GIFT_CARD_CONFIG.MAX_RECEIVERS_PER_ORDER) {
     return {
       valid: false,
-      error: `Maximum ${GIFT_CARD_CONFIG.MAX_RECEIVERS_PER_ORDER} recipients allowed`
+      error: `Maximum ${GIFT_CARD_CONFIG.MAX_RECEIVERS_PER_ORDER} recipients allowed`,
     }
   }
 
@@ -2468,14 +2470,14 @@ const validateReceiversList = (receivers: Array<any>): ValidationResult => {
     if (!isValidPhoneNumber(receiver.phone)) {
       return {
         valid: false,
-        error: `Invalid phone for recipient: ${receiver.phone}`
+        error: `Invalid phone for recipient: ${receiver.phone}`,
       }
     }
 
     if (receiver.quantity > GIFT_CARD_CONFIG.MAX_QUANTITY_PER_RECIPIENT) {
       return {
         valid: false,
-        error: `Quantity cannot exceed ${GIFT_CARD_CONFIG.MAX_QUANTITY_PER_RECIPIENT}`
+        error: `Quantity cannot exceed ${GIFT_CARD_CONFIG.MAX_QUANTITY_PER_RECIPIENT}`,
       }
     }
   }
@@ -2487,7 +2489,7 @@ const validateReceiversList = (receivers: Array<any>): ValidationResult => {
 **Error Code: 158008**
 
 ```typescript
-MAX_RECEIVERS_EXCEEDED: 158008  // Too many recipients in order
+MAX_RECEIVERS_EXCEEDED: 158008 // Too many recipients in order
 ```
 
 ### 10.5.10 Gift Card History & Redemption Tracking
@@ -2961,6 +2963,7 @@ case CardOrderType.GIFT:
 #### Step 5: SMS Sent to Recipients
 
 **SMS to 0987654321:**
+
 ```
 🎁 Quà tặng từ Người Tặng:
 serial: GC-2024-ABC1234567
@@ -2972,6 +2975,7 @@ https://app.example.com/redeem
 ```
 
 **SMS to 0987654322:**
+
 ```
 🎁 Quà tặng từ Người Tặng:
 serial: GC-2024-DEF8901234
@@ -3243,6 +3247,7 @@ Response 200:
 Click "Copy" button on card with serial "GC-2024-AAA1111111" and code "AAA111BBB1"
 
 Clipboard text:
+
 ```
 serial: GC-2024-AAA1111111
 code: AAA111BBB1
@@ -3431,16 +3436,16 @@ Response 400 (Max resend reached):
 
 ### 10.6.6 Summary Table: Request/Response Patterns
 
-| Use Case | Endpoint | Method | Key Difference |
-|----------|----------|--------|---|
-| **SELF** | POST /card-order | POST | `receipients: []`, auto-redeem after payment |
-| **GIFT** | POST /card-order | POST | `receipients: [...]`, SMS sent after payment |
-| **BUY** | POST /card-order | POST | `receipients: []`, codes copied by buyer |
-| **Redeem** | POST /gift-card/use | POST | Any code can be redeemed by anyone |
-| **Profile** | GET /gift-card/user | GET | Shows all user's gift cards (SELF, GIFT, BUY) |
-| **Order Details** | GET /card-order/{slug} | GET | Shows order + all generated codes |
-| **Resend SMS** | POST /card-order/{slug}/resend-sms/{id} | POST | GIFT only, max 3 retries |
-| **Payment Poll** | POST /payment/poll | POST | Check if payment completed |
+| Use Case          | Endpoint                                | Method | Key Difference                                |
+| ----------------- | --------------------------------------- | ------ | --------------------------------------------- |
+| **SELF**          | POST /card-order                        | POST   | `receipients: []`, auto-redeem after payment  |
+| **GIFT**          | POST /card-order                        | POST   | `receipients: [...]`, SMS sent after payment  |
+| **BUY**           | POST /card-order                        | POST   | `receipients: []`, codes copied by buyer      |
+| **Redeem**        | POST /gift-card/use                     | POST   | Any code can be redeemed by anyone            |
+| **Profile**       | GET /gift-card/user                     | GET    | Shows all user's gift cards (SELF, GIFT, BUY) |
+| **Order Details** | GET /card-order/{slug}                  | GET    | Shows order + all generated codes             |
+| **Resend SMS**    | POST /card-order/{slug}/resend-sms/{id} | POST   | GIFT only, max 3 retries                      |
+| **Payment Poll**  | POST /payment/poll                      | POST   | Check if payment completed                    |
 
 ---
 
@@ -3451,6 +3456,7 @@ Response 400 (Max resend reached):
 **Page**: `/profile/gift-card`
 
 #### Flow:
+
 ```
 Profile → Gift Cards Tab
 ├─ Load all user's gift cards
@@ -3570,6 +3576,7 @@ Response 200:
 ```
 
 **UI Features:**
+
 - Display card image, points, serial, code
 - Show copy buttons for serial & code (separate + combined)
 - Display source (SELF/GIFT/BUY) and metadata
@@ -3639,6 +3646,7 @@ Response 400 (Expired):
 ```
 
 **Success Screen:**
+
 - ✓ Checkmark icon with success message
 - Show points added: "+100,000 xu"
 - Display new balance
@@ -3733,6 +3741,7 @@ Response 200:
 ```
 
 **UI:**
+
 - Filter by type (SELF, GIFT, BUY, ALL)
 - Filter by status (PENDING, COMPLETED, CANCELLED)
 - List orders with summary: type emoji, card name, date, amount, status
@@ -3792,6 +3801,7 @@ Response 400 (Already Paid):
 ```
 
 **UI:**
+
 - Show cancel button only if status = PENDING
 - Warning: "You can cancel this order before payment"
 - Confirmation modal: "Are you sure?"
@@ -3853,18 +3863,18 @@ Response 200:
 
 ### 10.7.8 Client Features Summary Table
 
-| Feature | Endpoint | Method | UI Location |
-|---------|----------|--------|---|
-| **View All Cards** | GET /gift-card/user | GET | Profile → Gift Cards |
-| **Filter/Search** | GET /gift-card/user | GET | With status & date filters |
-| **View Details** | GET /gift-card/{slug} | GET | Modal dialog |
-| **Copy Code** | - | Client-side | Detail dialog, Card list |
-| **Share Code** | - | Client-side | WhatsApp, Email, Print |
-| **Redeem** | POST /gift-card/use | POST | /redeem page |
-| **View Orders** | GET /card-order | GET | Profile → Orders |
-| **Cancel Order** | POST /card-order/{slug}/cancel | POST | Order details (if PENDING) |
-| **View History** | GET /transaction | GET | Profile → History |
-| **Resend SMS** | POST /card-order/{slug}/resend-sms/{id} | POST | Order details (if failed) |
+| Feature            | Endpoint                                | Method      | UI Location                |
+| ------------------ | --------------------------------------- | ----------- | -------------------------- |
+| **View All Cards** | GET /gift-card/user                     | GET         | Profile → Gift Cards       |
+| **Filter/Search**  | GET /gift-card/user                     | GET         | With status & date filters |
+| **View Details**   | GET /gift-card/{slug}                   | GET         | Modal dialog               |
+| **Copy Code**      | -                                       | Client-side | Detail dialog, Card list   |
+| **Share Code**     | -                                       | Client-side | WhatsApp, Email, Print     |
+| **Redeem**         | POST /gift-card/use                     | POST        | /redeem page               |
+| **View Orders**    | GET /card-order                         | GET         | Profile → Orders           |
+| **Cancel Order**   | POST /card-order/{slug}/cancel          | POST        | Order details (if PENDING) |
+| **View History**   | GET /transaction                        | GET         | Profile → History          |
+| **Resend SMS**     | POST /card-order/{slug}/resend-sms/{id} | POST        | Order details (if failed)  |
 
 ---
 
@@ -4575,7 +4585,6 @@ Response 200:
 
 ---
 
-
 - **Types**: `src/types/gift-card.type.ts`
   - IGiftCard, IGiftCardCartItem, ICardOrder
 - **Constants**: `src/constants/gift-card.ts`
@@ -4584,6 +4593,7 @@ Response 200:
   - Zod validation schemas
 
 ### APIs & Hooks
+
 - **API Functions**: `src/api/gift-card.ts`, `src/api/card-order.ts`
   - All endpoint wrappers
 - **React Query Hooks**: `src/hooks/use-gift-card.ts`
@@ -4592,10 +4602,12 @@ Response 200:
   - useGiftCardPolling for payment status
 
 ### State Management
+
 - **Store**: `src/stores/gift-card.store.ts`
   - Zustand store with localStorage persistence
 
 ### UI Components
+
 - **List & Selection**:
   - `gift-card-item.tsx`
   - `gift-card-selected-drawer.tsx`
@@ -4617,6 +4629,7 @@ Response 200:
   - `UseGiftCardDialog` (in sidebar/menu)
 
 ### Pages
+
 - **Customer Pages**:
   - `/client/gift-card` - Browse & select
   - `/client/gift-card/checkout` - Configure & confirm
@@ -4629,24 +4642,24 @@ Response 200:
 
 ## 12. Summary Table
 
-| Aspect | Details |
-|--------|---------|
-| **Gift Card Type** | IS a product, NOT a discount |
-| **Pricing** | Price (what customer pays) × Quantity |
-| **Points** | Fixed amount, granted when redeemed |
-| **Types** | SELF (self), GIFT (others), BUY (product), NONE (default) |
-| **Status** | ACTIVE/INACTIVE (availability), AVAILABLE/USED/EXPIRED (redemption) |
-| **Combination** | Cannot combine multiple gift cards in same cart |
-| **Separate Order** | Yes, independent from food orders |
-| **Payment Methods** | BANK_TRANSFER (QR), CASH (counter) |
-| **Polling** | Every 15 seconds for bank transfer payment |
-| **Error Codes** | 158001-158008 (gift card range) |
-| **Validation** | Schema (Zod) + runtime checks + API validation |
-| **State** | Zustand store with localStorage persistence |
-| **Redeem** | Enter serial + code → points added to account |
-| **Feature Flags** | Can lock GIFT type separately |
-| **Recipients** | GIFT type requires receiver details |
-| **Quantity** | 1-10 units per cart |
+| Aspect              | Details                                                             |
+| ------------------- | ------------------------------------------------------------------- |
+| **Gift Card Type**  | IS a product, NOT a discount                                        |
+| **Pricing**         | Price (what customer pays) × Quantity                               |
+| **Points**          | Fixed amount, granted when redeemed                                 |
+| **Types**           | SELF (self), GIFT (others), BUY (product), NONE (default)           |
+| **Status**          | ACTIVE/INACTIVE (availability), AVAILABLE/USED/EXPIRED (redemption) |
+| **Combination**     | Cannot combine multiple gift cards in same cart                     |
+| **Separate Order**  | Yes, independent from food orders                                   |
+| **Payment Methods** | BANK_TRANSFER (QR), CASH (counter)                                  |
+| **Polling**         | Every 15 seconds for bank transfer payment                          |
+| **Error Codes**     | 158001-158008 (gift card range)                                     |
+| **Validation**      | Schema (Zod) + runtime checks + API validation                      |
+| **State**           | Zustand store with localStorage persistence                         |
+| **Redeem**          | Enter serial + code → points added to account                       |
+| **Feature Flags**   | Can lock GIFT type separately                                       |
+| **Recipients**      | GIFT type requires receiver details                                 |
+| **Quantity**        | 1-10 units per cart                                                 |
 
 ---
 

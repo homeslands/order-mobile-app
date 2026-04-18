@@ -1,9 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 
-import {
-  getSystemFeatureFlagsByGroup,
-  getFeatureFlagsByGroup,
-} from '@/api'
+import { getSystemFeatureFlagsByGroup, getFeatureFlagsByGroup } from '@/api'
 import { QUERYKEY } from '@/constants'
 
 export interface UseGetSystemFeatureFlagsByGroupOptions {

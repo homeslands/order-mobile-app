@@ -19,16 +19,16 @@ This project follows **TypeScript strict mode**, **React 19**, and **NativeWind*
 
 ### Files & Folders
 
-| Type | File name | Export name | Example |
-|------|-----------|-------------|---------|
-| Component | kebab-case | PascalCase | `button.tsx` → `export const Button` |
-| Component (compound) | kebab-case | PascalCase | `cart-item-row.tsx` → `export const CartItemRow` |
-| Hook | kebab-case | camelCase | `use-auth.ts` → `export function useAuth` |
-| Service/API | kebab-case | camelCase | `order.ts` → `export async function createOrder` |
-| Util | kebab-case | camelCase | `cn.ts` → `export function cn` |
-| Type/Interface file | kebab-case | PascalCase | `types/order.ts` → `export interface IOrder` |
-| Constant file | kebab-case | camelCase | `colors.constant.ts` → `export const colors` |
-| Store | kebab-case | camelCase | `user.store.ts` → `export const useUserStore` |
+| Type                 | File name  | Export name | Example                                          |
+| -------------------- | ---------- | ----------- | ------------------------------------------------ |
+| Component            | kebab-case | PascalCase  | `button.tsx` → `export const Button`             |
+| Component (compound) | kebab-case | PascalCase  | `cart-item-row.tsx` → `export const CartItemRow` |
+| Hook                 | kebab-case | camelCase   | `use-auth.ts` → `export function useAuth`        |
+| Service/API          | kebab-case | camelCase   | `order.ts` → `export async function createOrder` |
+| Util                 | kebab-case | camelCase   | `cn.ts` → `export function cn`                   |
+| Type/Interface file  | kebab-case | PascalCase  | `types/order.ts` → `export interface IOrder`     |
+| Constant file        | kebab-case | camelCase   | `colors.constant.ts` → `export const colors`     |
+| Store                | kebab-case | camelCase   | `user.store.ts` → `export const useUserStore`    |
 
 ### Components
 
@@ -45,16 +45,18 @@ export interface ButtonProps extends PressableProps {
   className?: string
 }
 
-export const Button = forwardRef<React.ElementRef<typeof Pressable>, ButtonProps>(
-  ({ className, variant = 'default', size = 'md', ...props }, ref) => {
-    // Component logic
-  },
-)
+export const Button = forwardRef<
+  React.ElementRef<typeof Pressable>,
+  ButtonProps
+>(({ className, variant = 'default', size = 'md', ...props }, ref) => {
+  // Component logic
+})
 
 Button.displayName = 'Button'
 ```
 
 **Key points**:
+
 - Use `React.forwardRef` for UI components
 - Set `displayName` for debugging
 - Use `className` + `cn()` utility for Tailwind merging
@@ -71,26 +73,30 @@ import { useAuthStore } from '@/stores/auth.store'
 export function useAuth() {
   // ✅ Select only the fields needed — never spread the whole store
   // Spreading triggers re-render on ANY store change
-  const setToken = useAuthStore(s => s.setToken)
-  const isAuthenticated = useAuthStore(s => s.isAuthenticated)
+  const setToken = useAuthStore((s) => s.setToken)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const [isLoading, setIsLoading] = useState(false)
 
-  const login = useCallback(async (email: string, password: string) => {
-    setIsLoading(true)
-    try {
-      const result = await authService.login(email, password)
-      setToken(result.token)
-      return result
-    } finally {
-      setIsLoading(false)
-    }
-  }, [setToken])
+  const login = useCallback(
+    async (email: string, password: string) => {
+      setIsLoading(true)
+      try {
+        const result = await authService.login(email, password)
+        setToken(result.token)
+        return result
+      } finally {
+        setIsLoading(false)
+      }
+    },
+    [setToken],
+  )
 
   return { isAuthenticated, login, isLoading }
 }
 ```
 
 **Key points**:
+
 - Custom hooks start with `use` prefix
 - **Never** `return { ...useStore() }` — subscribe only to specific slices via selectors
 - Wrap callbacks with `useCallback` when passed to children
@@ -107,24 +113,18 @@ import { http } from '@/utils'
 export async function createOrder(
   payload: ICreateOrderRequest,
 ): Promise<IApiResponse<IOrder>> {
-  const response = await http.post<IApiResponse<IOrder>>(
-    '/orders',
-    payload,
-  )
+  const response = await http.post<IApiResponse<IOrder>>('/orders', payload)
   return response.data
 }
 
-export async function getOrder(
-  orderId: string,
-): Promise<IApiResponse<IOrder>> {
-  const response = await http.get<IApiResponse<IOrder>>(
-    `/orders/${orderId}`,
-  )
+export async function getOrder(orderId: string): Promise<IApiResponse<IOrder>> {
+  const response = await http.get<IApiResponse<IOrder>>(`/orders/${orderId}`)
   return response.data
 }
 ```
 
 **Key points**:
+
 - Always type API responses with `IApiResponse<T>`
 - One function per endpoint
 - Function names match HTTP verbs: `get*`, `create*`, `update*`, `delete*`
@@ -160,6 +160,7 @@ export function formatDate(date: Date): string {
 ```
 
 **Key points**:
+
 - Pure functions (no side effects)
 - Short, focused utilities
 - Export as named exports
@@ -201,6 +202,7 @@ export interface IApiResponse<T> {
 ```
 
 **Key points**:
+
 - Prefix interfaces with `I` (e.g., `IOrder`)
 - Group related types in same file
 - Use `Omit<>`, `Pick<>`, `Partial<>` for type composition
@@ -231,6 +233,7 @@ export const useUserStore = create<UserState>((set) => ({
 ```
 
 **Key points**:
+
 - Define state interface separately
 - Actions are methods in the store
 - Use `set()` to update state
@@ -273,33 +276,31 @@ interface OrderDetailProps {
   orderId: string
 }
 
-export const OrderDetail = memo<OrderDetailProps>(
-  ({ orderId }) => {
-    // Hooks
-    const { isAuthenticated } = useAuth()
-    const { data, isLoading } = useQuery({
-      queryKey: ['order', orderId],
-      queryFn: () => getOrder(orderId),
-      enabled: isAuthenticated,
-    })
+export const OrderDetail = memo<OrderDetailProps>(({ orderId }) => {
+  // Hooks
+  const { isAuthenticated } = useAuth()
+  const { data, isLoading } = useQuery({
+    queryKey: ['order', orderId],
+    queryFn: () => getOrder(orderId),
+    enabled: isAuthenticated,
+  })
 
-    // Memoized callbacks
-    const handleCancel = useCallback(async () => {
-      // Logic
-    }, [])
+  // Memoized callbacks
+  const handleCancel = useCallback(async () => {
+    // Logic
+  }, [])
 
-    // Render logic
-    if (isLoading) return <SkeletonLoader />
-    if (!data) return <EmptyState />
+  // Render logic
+  if (isLoading) return <SkeletonLoader />
+  if (!data) return <EmptyState />
 
-    return (
-      <View className="flex-1 bg-white dark:bg-gray-900">
-        <Text className="text-lg font-semibold">{data.id}</Text>
-        <Button onPress={handleCancel}>Cancel Order</Button>
-      </View>
-    )
-  },
-)
+  return (
+    <View className="flex-1 bg-white dark:bg-gray-900">
+      <Text className="text-lg font-semibold">{data.id}</Text>
+      <Button onPress={handleCancel}>Cancel Order</Button>
+    </View>
+  )
+})
 
 OrderDetail.displayName = 'OrderDetail'
 ```
@@ -370,8 +371,8 @@ const { data, error, isLoading } = useQuery({
 
 // ❌ Avoid promise chains
 getOrder(orderId)
-  .then(data => setOrder(data))
-  .catch(error => console.error(error))
+  .then((data) => setOrder(data))
+  .catch((error) => console.error(error))
 ```
 
 ## Error Handling
@@ -404,16 +405,16 @@ export async function getOrder(id: string) {
 
 ## Anti-Patterns to Avoid
 
-| ❌ Don't | ✅ Do Instead |
-|----------|------------------|
-| Inline objects in props | Extract to `useMemo` or variable |
-| Create callbacks in render | Wrap with `useCallback` |
-| Abbreviate variable names | Use clear, descriptive names |
-| Comments explaining "what" | Comment only the "why" |
-| Nested ternaries | Use early returns or switch |
-| Prop drilling deep | Use context or Zustand |
-| Large monolithic components | Split into smaller components |
-| Hard-coded values | Use constants or env variables |
+| ❌ Don't                    | ✅ Do Instead                    |
+| --------------------------- | -------------------------------- |
+| Inline objects in props     | Extract to `useMemo` or variable |
+| Create callbacks in render  | Wrap with `useCallback`          |
+| Abbreviate variable names   | Use clear, descriptive names     |
+| Comments explaining "what"  | Comment only the "why"           |
+| Nested ternaries            | Use early returns or switch      |
+| Prop drilling deep          | Use context or Zustand           |
+| Large monolithic components | Split into smaller components    |
+| Hard-coded values           | Use constants or env variables   |
 
 ## Comments & Documentation
 
@@ -446,6 +447,7 @@ npm run typecheck
 ```
 
 Common strict mode requirements:
+
 - No `any` types (use `unknown` and narrow)
 - All function return types explicit
 - No null/undefined without explicit handling

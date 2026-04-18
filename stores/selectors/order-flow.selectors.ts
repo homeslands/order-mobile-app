@@ -97,7 +97,9 @@ export const useOrderFlowDeleteCartItem = () =>
 /** Cart item count — subscribe primitive orderItemTotalQuantity, không reduce trong component */
 export const useOrderFlowCartItemCount = (): number =>
   useOrderFlowStore((s) =>
-    s.currentStep === OrderFlowStep.ORDERING ? (s.orderItemTotalQuantity ?? 0) : 0,
+    s.currentStep === OrderFlowStep.ORDERING
+      ? (s.orderItemTotalQuantity ?? 0)
+      : 0,
   )
 
 /** Min order value — VoucherListDrawer subscribe, chỉ re-render khi giá trị đổi */
@@ -125,7 +127,7 @@ export const useOrderFlowMenuItemDetailState = () =>
       isHydrated: s.isHydrated,
       currentStep: s.currentStep,
       hasOrderingData: !!s.orderingData,
-      hasOrderingOwner: !!(s.orderingData?.owner?.trim()),
+      hasOrderingOwner: !!s.orderingData?.owner?.trim(),
     })),
   )
 
