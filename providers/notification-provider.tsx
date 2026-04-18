@@ -26,45 +26,34 @@ export function NotificationProvider() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated())
   const schedulerStartedRef = useRef(false)
 
-  if (__DEV__) {
-    // eslint-disable-next-line no-console
-    console.log('[FCM] NotificationProvider mounted - isAuthenticated:', isAuthenticated)
-  }
-
   // T2+T3: Get FCM token + register with server (only when authenticated)
   const { permissionDenied } = useRegisterDeviceToken(isAuthenticated)
 
-  // T5: Foreground listener — always active
-  useNotificationListener(true)
+  // T5: Foreground listener — only when authenticated so foreground FCM
+  // notifications are never added to the store while no user is logged in.
+  useNotificationListener(isAuthenticated)
 
-  // T7+T8: Background tap + cold start — always active
-  useNotificationResponse(true)
+  // T7+T8: Background tap + cold start — gated on auth so cold-start taps
+  // from a previous user's session are not processed under the new user.
+  // The effect re-runs when isAuthenticated becomes true, so
+  // getLastNotificationResponseAsync() is still called after login.
+  useNotificationResponse(isAuthenticated)
 
   // T4: Token refresh scheduler
   useEffect(() => {
-    if (__DEV__) {
-      // eslint-disable-next-line no-console
-      console.log('[FCM] Token refresh scheduler effect:', { isAuthenticated, schedulerStarted: schedulerStartedRef.current })
-    }
     if (isAuthenticated && !schedulerStartedRef.current) {
-      if (__DEV__) {
-        // eslint-disable-next-line no-console
-        console.log('[FCM] 🚀 Starting token refresh scheduler')
-      }
       startTokenRefreshScheduler()
       schedulerStartedRef.current = true
     } else if (!isAuthenticated && schedulerStartedRef.current) {
-      if (__DEV__) {
-        // eslint-disable-next-line no-console
-        console.log('[FCM] ⏹️  Stopping token refresh scheduler')
-      }
       stopTokenRefreshScheduler()
       schedulerStartedRef.current = false
     }
   }, [isAuthenticated])
 
   useEffect(() => {
-    return () => { stopTokenRefreshScheduler() }
+    return () => {
+      stopTokenRefreshScheduler()
+    }
   }, [])
 
   // T12: Permission dialog — show once per session when denied

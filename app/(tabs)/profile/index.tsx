@@ -3,8 +3,13 @@ import { LanguageSheet, ThemeSheet } from '@/components/profile'
 import { Skeleton } from '@/components/ui'
 import { colors, publicFileURL } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
-import { useLoyaltyPoints, useRunAfterTransition, useUploadAvatar } from '@/hooks'
+import {
+  useLoyaltyPoints,
+  useRunAfterTransition,
+  useUploadAvatar,
+} from '@/hooks'
 import { useAuthStore, useUserStore } from '@/stores'
+import { useNotificationStore } from '@/stores/notification.store'
 import { useLogoutSheetStore } from '@/stores/logout-sheet.store'
 import { useQRSelectionSheetStore } from '@/stores/qr-selection-sheet.store'
 import { showToast } from '@/utils'
@@ -41,11 +46,13 @@ import {
   View,
   useColorScheme,
 } from 'react-native'
-import { GestureDetector, ScrollView as GestureScrollView } from 'react-native-gesture-handler'
+import {
+  GestureDetector,
+  ScrollView as GestureScrollView,
+} from 'react-native-gesture-handler'
 import Animated from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useProfileAnimation } from './use-profile-animation'
-
 
 const AVATAR_SIZE = 100
 const AVATAR_TOP = 60
@@ -109,8 +116,8 @@ const MenuItem = React.memo(function MenuItem({
   primaryColor,
 }: MenuItemProps) {
   const isPrimary = variant === 'primary'
-  const titleColor = isPrimary ? primaryColor ?? textColor : textColor
-  const iconColorFinal = isPrimary ? primaryColor ?? iconColor : iconColor
+  const titleColor = isPrimary ? (primaryColor ?? textColor) : textColor
+  const iconColorFinal = isPrimary ? (primaryColor ?? iconColor) : iconColor
 
   return (
     <TouchableOpacity
@@ -128,11 +135,7 @@ const MenuItem = React.memo(function MenuItem({
         </View>
       )}
       <Text
-        style={[
-          styles.menuTitle,
-          styles.menuTitleThin,
-          { color: titleColor },
-        ]}
+        style={[styles.menuTitle, styles.menuTitleThin, { color: titleColor }]}
       >
         {title}
       </Text>
@@ -170,7 +173,13 @@ const AvatarPickerSheet = React.memo(function AvatarPickerSheet({
   const snapPoints = useMemo(() => [220 + bottom], [bottom])
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.4} pressBehavior="close" />
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.4}
+        pressBehavior="close"
+      />
     ),
     [],
   )
@@ -195,21 +204,49 @@ const AvatarPickerSheet = React.memo(function AvatarPickerSheet({
       onDismiss={onClose}
     >
       <View style={[apStyles.container, { paddingBottom: bottom + 16 }]}>
-        <Text style={[apStyles.title, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>
+        <Text
+          style={[
+            apStyles.title,
+            { color: isDark ? colors.gray[400] : colors.gray[500] },
+          ]}
+        >
           {t('profile.avatarPickerTitle')}
         </Text>
         <View style={apStyles.optionsCol}>
-          <TouchableOpacity style={apStyles.option} onPress={onCamera} activeOpacity={0.7}>
-            <View style={[apStyles.iconWrap, { backgroundColor: `${primaryColor}18` }]}>
+          <TouchableOpacity
+            style={apStyles.option}
+            onPress={onCamera}
+            activeOpacity={0.7}
+          >
+            <View
+              style={[
+                apStyles.iconWrap,
+                { backgroundColor: `${primaryColor}18` },
+              ]}
+            >
               <Camera size={24} color={primaryColor} />
             </View>
             <Text style={[apStyles.optionLabel, { color: textColor }]}>
               {t('profile.avatarPickerCamera')}
             </Text>
           </TouchableOpacity>
-          <View style={[apStyles.divider, { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] }]} />
-          <TouchableOpacity style={apStyles.option} onPress={onLibrary} activeOpacity={0.7}>
-            <View style={[apStyles.iconWrap, { backgroundColor: `${primaryColor}18` }]}>
+          <View
+            style={[
+              apStyles.divider,
+              { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] },
+            ]}
+          />
+          <TouchableOpacity
+            style={apStyles.option}
+            onPress={onLibrary}
+            activeOpacity={0.7}
+          >
+            <View
+              style={[
+                apStyles.iconWrap,
+                { backgroundColor: `${primaryColor}18` },
+              ]}
+            >
               <ImageIcon size={24} color={primaryColor} />
             </View>
             <Text style={[apStyles.optionLabel, { color: textColor }]}>
@@ -273,7 +310,14 @@ const ProfileHeader = React.memo(function ProfileHeader({
   const { t } = useTranslation('profile')
   const pageBg = isDark ? colors.background.dark : colors.background.light
   const gradientColors = useMemo(
-    () => [pageBg, `${pageBg}E6`, `${pageBg}B0`, `${pageBg}50`, `${pageBg}00`] as const,
+    () =>
+      [
+        pageBg,
+        `${pageBg}E6`,
+        `${pageBg}B0`,
+        `${pageBg}50`,
+        `${pageBg}00`,
+      ] as const,
     [pageBg],
   )
   return (
@@ -285,7 +329,10 @@ const ProfileHeader = React.memo(function ProfileHeader({
           style={StyleSheet.absoluteFill}
         />
       </View>
-      <View style={[phStyles.row, { paddingTop: STATIC_TOP_INSET + 10 }]} pointerEvents="auto">
+      <View
+        style={[phStyles.row, { paddingTop: STATIC_TOP_INSET + 10 }]}
+        pointerEvents="auto"
+      >
         <Pressable
           onPress={onScan}
           hitSlop={8}
@@ -295,7 +342,10 @@ const ProfileHeader = React.memo(function ProfileHeader({
             phStyles.shadow,
           ]}
         >
-          <ScanLine size={20} color={isDark ? colors.gray[50] : colors.gray[900]} />
+          <ScanLine
+            size={20}
+            color={isDark ? colors.gray[50] : colors.gray[900]}
+          />
         </Pressable>
         <Pressable
           onPress={onEdit}
@@ -306,7 +356,12 @@ const ProfileHeader = React.memo(function ProfileHeader({
             phStyles.shadow,
           ]}
         >
-          <Text style={[phStyles.editText, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>
+          <Text
+            style={[
+              phStyles.editText,
+              { color: isDark ? colors.gray[50] : colors.gray[900] },
+            ]}
+          >
             {t('profile.generalInfo.edit', 'Sửa')}
           </Text>
         </Pressable>
@@ -395,7 +450,9 @@ const ProfileTest = () => {
     const sub = AppState.addEventListener('memoryWarning', () => {
       queueMicrotask(() => Image.clearMemoryCache())
     })
-    return () => { sub.remove() }
+    return () => {
+      sub.remove()
+    }
   }, [])
 
   const initials = useMemo(() => {
@@ -404,8 +461,10 @@ const ProfileTest = () => {
     return `${first}${last}`.toUpperCase()
   }, [userInfo?.firstName, userInfo?.lastName])
 
-  const { isLoading: loyaltyLoading } =
-    useLoyaltyPoints(userInfo?.slug, allowFetch)
+  const { isLoading: loyaltyLoading } = useLoyaltyPoints(
+    userInfo?.slug,
+    allowFetch,
+  )
 
   const [isLangSheetOpen, setIsLangSheetOpen] = useState(false)
   const openLangSheet = useCallback(() => setIsLangSheetOpen(true), [])
@@ -425,27 +484,30 @@ const ProfileTest = () => {
   const openAvatarSheet = useCallback(() => setIsAvatarSheetOpen(true), [])
   const closeAvatarSheet = useCallback(() => setIsAvatarSheetOpen(false), [])
 
-  const uploadAvatarAsset = useCallback((asset: ImagePicker.ImagePickerAsset) => {
-    if (asset.fileSize && asset.fileSize > 5 * 1024 * 1024) {
-      showToast(t('profile.avatarTooLarge'))
-      return
-    }
-    const formData = new FormData()
-    formData.append('file', {
-      uri: asset.uri,
-      type: asset.mimeType ?? 'image/jpeg',
-      name: asset.fileName ?? `avatar-${Date.now()}.jpg`,
-    } as never)
-    uploadAvatar(formData, {
-      onSuccess: (data) => {
-        if (data.result) setUserInfo(data.result)
-        showToast(t('profile.avatarUpdated'))
-      },
-      onError: () => {
-        showToast(t('profile.avatarUpdateFailed'))
-      },
-    })
-  }, [uploadAvatar, setUserInfo, t])
+  const uploadAvatarAsset = useCallback(
+    (asset: ImagePicker.ImagePickerAsset) => {
+      if (asset.fileSize && asset.fileSize > 5 * 1024 * 1024) {
+        showToast(t('profile.avatarTooLarge'))
+        return
+      }
+      const formData = new FormData()
+      formData.append('file', {
+        uri: asset.uri,
+        type: asset.mimeType ?? 'image/jpeg',
+        name: asset.fileName ?? `avatar-${Date.now()}.jpg`,
+      } as never)
+      uploadAvatar(formData, {
+        onSuccess: (data) => {
+          if (data.result) setUserInfo(data.result)
+          showToast(t('profile.avatarUpdated'))
+        },
+        onError: () => {
+          showToast(t('profile.avatarUpdateFailed'))
+        },
+      })
+    },
+    [uploadAvatar, setUserInfo, t],
+  )
 
   const handleAvatarCamera = useCallback(() => {
     setIsAvatarSheetOpen(false)
@@ -505,8 +567,14 @@ const ProfileTest = () => {
   const { t: tToast } = useTranslation('toast')
 
   const handleLogoutConfirm = useCallback(() => {
-    // Unregister FCM token + stop refresh scheduler (fire-and-forget)
-    import('@/lib/fcm-token-manager').then((m) => m.cleanupTokenOnLogout())
+    // Capture token BEFORE removeUserInfo() clears it — avoids race condition
+    // where cleanupTokenOnLogout() reads null and skips server unregister
+    const capturedToken = useUserStore.getState().deviceToken
+    import('@/lib/fcm-token-manager').then((m) => {
+      m.cleanupTokenOnLogout(capturedToken ?? undefined).catch(() => {})
+    })
+    // Clear notification store so next login starts with a clean slate
+    useNotificationStore.getState().clearAll()
     setLogout()
     removeUserInfo()
     router.replace('/(tabs)/home' as never)
@@ -518,14 +586,27 @@ const ProfileTest = () => {
   }, [openLogoutSheet, handleLogoutConfirm])
 
   if (needsUserInfo || !userInfo) {
-    return <LoginForm />
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: isDark ? colors.gray[900] : '#ffffff',
+        }}
+      >
+        <LoginForm />
+      </View>
+    )
   }
 
   return (
     <View style={[styles.container, { backgroundColor: theme.bg }]}>
       <GestureDetector gesture={panGesture}>
         <Animated.View
-          style={[styles.profileCard, { backgroundColor: theme.bg }, animatedStyle]}
+          style={[
+            styles.profileCard,
+            { backgroundColor: theme.bg },
+            animatedStyle,
+          ]}
           renderToHardwareTextureAndroid
         >
           <GestureScrollView
@@ -534,8 +615,18 @@ const ProfileTest = () => {
             contentContainerStyle={styles.scrollContent}
           >
             {/* Avatar + tên + sđt — scroll cùng nội dung */}
-            <View style={[styles.profileHero, { paddingTop: STATIC_TOP_INSET + AVATAR_TOP }]}>
-              <View style={[styles.avatarWrap, { width: AVATAR_SIZE, height: AVATAR_SIZE }]}>
+            <View
+              style={[
+                styles.profileHero,
+                { paddingTop: STATIC_TOP_INSET + AVATAR_TOP },
+              ]}
+            >
+              <View
+                style={[
+                  styles.avatarWrap,
+                  { width: AVATAR_SIZE, height: AVATAR_SIZE },
+                ]}
+              >
                 {userInfo?.image ? (
                   <Image
                     source={{
@@ -550,19 +641,38 @@ const ProfileTest = () => {
                     cachePolicy="disk"
                   />
                 ) : (
-                  <View style={[styles.avatarFallback, { backgroundColor: theme.avatarFallback }]}>
-                    <Text style={[styles.avatarFallbackText, { color: theme.textMuted }]}>
+                  <View
+                    style={[
+                      styles.avatarFallback,
+                      { backgroundColor: theme.avatarFallback },
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.avatarFallbackText,
+                        { color: theme.textMuted },
+                      ]}
+                    >
                       {initials || 'U'}
                     </Text>
                   </View>
                 )}
               </View>
-              <Text style={[styles.nameText, { color: theme.text }]} numberOfLines={1}>
+              <Text
+                style={[styles.nameText, { color: theme.text }]}
+                numberOfLines={1}
+              >
                 {userInfo?.firstName} {userInfo?.lastName}
               </Text>
-              <Text style={[styles.phoneText, { color: theme.textMuted }]} numberOfLines={1}>
+              <Text
+                style={[styles.phoneText, { color: theme.textMuted }]}
+                numberOfLines={1}
+              >
                 {userInfo?.phonenumber ||
-                  t('profile.contactInfo.noPhone', 'Chưa cập nhật số điện thoại')}
+                  t(
+                    'profile.contactInfo.noPhone',
+                    'Chưa cập nhật số điện thoại',
+                  )}
               </Text>
             </View>
             {/* Group 1: Profile customization */}
@@ -575,7 +685,9 @@ const ProfileTest = () => {
                 textColor={theme.text}
                 textMuted={theme.textMuted}
                 variant="primary"
-                primaryColor={isDark ? colors.primary.dark : colors.primary.light}
+                primaryColor={
+                  isDark ? colors.primary.dark : colors.primary.light
+                }
               />
             </View>
 
@@ -601,7 +713,12 @@ const ProfileTest = () => {
                 textColor={theme.text}
                 textMuted={theme.textMuted}
               />
-              <View style={[styles.menuItemDivider, { backgroundColor: theme.divider }]} />
+              <View
+                style={[
+                  styles.menuItemDivider,
+                  { backgroundColor: theme.divider },
+                ]}
+              />
               <MenuItem
                 icon={Gift}
                 iconColor={ICON_COLORS.orange}
@@ -612,18 +729,32 @@ const ProfileTest = () => {
               />
               {loyaltyLoading ? (
                 <>
-                  <View style={[styles.menuItemDivider, { backgroundColor: theme.divider }]} />
+                  <View
+                    style={[
+                      styles.menuItemDivider,
+                      { backgroundColor: theme.divider },
+                    ]}
+                  />
                   <View style={styles.menuItem}>
-                    <Skeleton style={[styles.menuIconWrap, { marginRight: 14 }]} />
+                    <Skeleton
+                      style={[styles.menuIconWrap, { marginRight: 14 }]}
+                    />
                     <View style={{ flex: 1 }}>
-                      <Skeleton style={{ height: 16, width: 120, borderRadius: 4 }} />
+                      <Skeleton
+                        style={{ height: 16, width: 120, borderRadius: 4 }}
+                      />
                     </View>
                     <ChevronRight size={20} color={theme.textMuted} />
                   </View>
                 </>
               ) : (
                 <>
-                  <View style={[styles.menuItemDivider, { backgroundColor: theme.divider }]} />
+                  <View
+                    style={[
+                      styles.menuItemDivider,
+                      { backgroundColor: theme.divider },
+                    ]}
+                  />
                   <MenuItem
                     icon={Trophy}
                     iconColor={ICON_COLORS.green}
@@ -646,7 +777,12 @@ const ProfileTest = () => {
                 textColor={theme.text}
                 textMuted={theme.textMuted}
               />
-              <View style={[styles.menuItemDivider, { backgroundColor: theme.divider }]} />
+              <View
+                style={[
+                  styles.menuItemDivider,
+                  { backgroundColor: theme.divider },
+                ]}
+              />
               <MenuItem
                 icon={SunMoon}
                 iconColor={ICON_COLORS.indigo}
@@ -660,7 +796,10 @@ const ProfileTest = () => {
             <TouchableOpacity
               style={[
                 styles.logoutButton,
-                { backgroundColor: colors.destructive[isDark ? 'dark' : 'light'] },
+                {
+                  backgroundColor:
+                    colors.destructive[isDark ? 'dark' : 'light'],
+                },
               ]}
               onPress={handleLogoutPress}
             >
@@ -671,7 +810,11 @@ const ProfileTest = () => {
           </GestureScrollView>
 
           {/* ProfileHeader — 100% CartHeader structure, LayoutGrid + Pencil buttons */}
-          <ProfileHeader onEdit={openEdit} onScan={openQRSelection} isDark={isDark} />
+          <ProfileHeader
+            onEdit={openEdit}
+            onScan={openQRSelection}
+            isDark={isDark}
+          />
         </Animated.View>
       </GestureDetector>
 
@@ -694,7 +837,6 @@ const ProfileTest = () => {
         isDark={isDark}
         primaryColor={isDark ? colors.primary.dark : colors.primary.light}
       />
-
     </View>
   )
 }

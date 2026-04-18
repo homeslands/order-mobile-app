@@ -4,10 +4,18 @@
  */
 import { ShoppingBag } from 'lucide-react-native'
 import React from 'react'
-import { Platform, Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native'
+import {
+  Platform,
+  Pressable,
+  StyleSheet,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '@/constants'
+import { FOOTER_BOTTOM_EXTRA } from '@/constants/status-bar'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import {
   useDetailComputedTotalPrice,
@@ -48,7 +56,10 @@ export const ProductPriceFooter = React.memo(function ProductPriceFooter({
       pointerEvents="box-none"
       style={[
         styles.wrapper,
-        { paddingBottom: insets.bottom + 12, backgroundColor: bgColor },
+        {
+          paddingBottom: insets.bottom + FOOTER_BOTTOM_EXTRA,
+          backgroundColor: bgColor,
+        },
         isDark ? styles.borderDark : styles.borderLight,
         Platform.select({
           ios: {

@@ -5,9 +5,15 @@ import { useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { LinearGradient } from 'expo-linear-gradient'
 import { Tabs, usePathname } from 'expo-router'
-import React, { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from 'react'
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+} from 'react'
 import { useTranslation } from 'react-i18next'
-import { Platform, View, useColorScheme } from 'react-native'
+import { View, useColorScheme } from 'react-native'
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -199,11 +205,7 @@ export default function TabsLayout() {
         }
       }
       if (href?.includes('/profile') && userSlug) {
-        const loyaltyKey = [
-          QUERYKEY.loyaltyPoints,
-          'total',
-          { slug: userSlug },
-        ]
+        const loyaltyKey = [QUERYKEY.loyaltyPoints, 'total', { slug: userSlug }]
         if (!queryClient.getQueryData(loyaltyKey)) {
           queryClient
             .prefetchQuery({
@@ -234,11 +236,9 @@ export default function TabsLayout() {
   // match tab nào (vd: /update-order/, /payment/) → indicator giữ position cũ.
   const resolvedTabState = useMemo(() => {
     const p = pathname ?? ''
-    const isHomeActive =
-      p === '/' || p === '/home' || p.startsWith('/home/')
+    const isHomeActive = p === '/' || p === '/home' || p.startsWith('/home/')
     const isMenuActive = p === '/menu' || p.startsWith('/menu/')
-    const isGiftCardActive =
-      p === '/gift-card' || p.startsWith('/gift-card/')
+    const isGiftCardActive = p === '/gift-card' || p.startsWith('/gift-card/')
     const isProfileActive = p === '/profile' || p.startsWith('/profile/')
     return {
       isHomeActive,
@@ -259,12 +259,16 @@ export default function TabsLayout() {
   )
 
   const { totalBottomHeight, bottomGap } = useMemo(() => {
-    // iOS safe area (~34px) có thể trừ 8px vẫn đủ khoảng cách.
-    // Android gesture nav (~16–24px) không trừ để tránh sát mép.
+    // STATIC_BOTTOM_INSET = chiều cao của vùng system UI ở đáy màn (home indicator / gesture nav).
+    // Cộng thêm VISUAL_GAP để pill nổi rõ cách vùng đó, không bị dính sát.
+    //
     // Dùng STATIC_BOTTOM_INSET (tính 1 lần lúc khởi động) thay vì useSafeAreaInsets()
     // để tránh re-render tab bar trong lúc transition đang chạy.
-    const offset = Platform.OS === 'android' ? 0 : 8
-    const gap = Math.max(0, STATIC_BOTTOM_INSET - offset)
+    //
+    // targetSdk=35 → Android 15 enforce edge-to-edge → inset đã bao gồm gesture bar.
+    // VISUAL_GAP = 10 đảm bảo khoảng thở rõ ràng giữa pill và cạnh màn trên mọi device.
+    const VISUAL_GAP = 10
+    const gap = STATIC_BOTTOM_INSET + VISUAL_GAP
     const bgHeight = BAR_HEIGHT + BAR_PADDING + gap
     return {
       bottomGap: gap,
@@ -338,9 +342,7 @@ export default function TabsLayout() {
             onPressInTabSwitch={onPressInTabSwitch}
             onBeforeTabSwitch={undefined}
           />
-          <FloatingCartButton
-            primaryColor={colors.primary}
-          />
+          <FloatingCartButton primaryColor={colors.primary} />
         </View>
       </Animated.View>
 

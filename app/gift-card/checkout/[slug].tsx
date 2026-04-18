@@ -10,11 +10,7 @@
 import { Image as ExpoImage } from 'expo-image'
 import { useLocalSearchParams } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import {
-  CircleX,
-  Smartphone,
-  Timer,
-} from 'lucide-react-native'
+import { CircleX, Smartphone, Timer } from 'lucide-react-native'
 import React, {
   memo,
   useCallback,
@@ -52,7 +48,7 @@ import {
   NotificationMessageCode,
   TAB_ROUTES,
 } from '@/constants'
-import { STATIC_TOP_INSET } from '@/constants/status-bar'
+import { FOOTER_BOTTOM_EXTRA, STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useInitiateCardOrderPayment } from '@/hooks/use-card-order'
 import { useGiftCardOrderPayment } from '@/hooks/use-gift-card-order-payment'
 import { useAnimatedCountdown } from '@/hooks/use-animated-countdown'
@@ -67,7 +63,9 @@ const QR_EXPIRY_SECONDS = 900
 
 function calcExpiryFromCreatedAt(createdAt?: string): string | undefined {
   if (!createdAt) return undefined
-  return new Date(new Date(createdAt).getTime() + QR_EXPIRY_SECONDS * 1000).toISOString()
+  return new Date(
+    new Date(createdAt).getTime() + QR_EXPIRY_SECONDS * 1000,
+  ).toISOString()
 }
 
 function formatCountdownUI(sec: number): string {
@@ -88,13 +86,17 @@ const PaymentCountdownBadge = memo(function PaymentCountdownBadge({
 }) {
   const isDark = useColorScheme() === 'dark'
   const onExpireRef = useRef(onExpire)
-  useEffect(() => { onExpireRef.current = onExpire })
+  useEffect(() => {
+    onExpireRef.current = onExpire
+  })
 
-  const fireExpire = useCallback(() => { onExpireRef.current?.() }, [])
+  const fireExpire = useCallback(() => {
+    onExpireRef.current?.()
+  }, [])
 
   // Initialize text directly from secondsShared to avoid 0-value flash
   const [displayText, setDisplayText] = useState(() =>
-    secondsShared.value > 0 ? formatCountdownUI(secondsShared.value) : ''
+    secondsShared.value > 0 ? formatCountdownUI(secondsShared.value) : '',
   )
   const updateText = useCallback((sec: number) => {
     setDisplayText(sec > 0 ? formatCountdownUI(sec) : '')
@@ -112,12 +114,18 @@ const PaymentCountdownBadge = memo(function PaymentCountdownBadge({
   )
 
   // Background color + visibility reactive on UI thread
-  const pillStyle = useAnimatedStyle(() => ({
-    backgroundColor: secondsShared.value <= 60
-      ? isDark ? colors.destructive.dark : colors.destructive.light
-      : colors.warning.light,
-    opacity: secondsShared.value > 0 ? 1 : 0,
-  }), [isDark])
+  const pillStyle = useAnimatedStyle(
+    () => ({
+      backgroundColor:
+        secondsShared.value <= 60
+          ? isDark
+            ? colors.destructive.dark
+            : colors.destructive.light
+          : colors.warning.light,
+      opacity: secondsShared.value > 0 ? 1 : 0,
+    }),
+    [isDark],
+  )
 
   return (
     <Animated.View style={[bds.pill, bds.shadow, pillStyle]}>
@@ -200,7 +208,7 @@ const QRSection = memo(function QRSection({
   secondsShared: SharedValue<number>
   isExpired: boolean
 }) {
-  const { t } = useTranslation('gift-card')
+  const { t } = useTranslation('giftCard')
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
 
   // Countdown row hides on UI thread when expired or at 0
@@ -210,23 +218,39 @@ const QRSection = memo(function QRSection({
 
   // Text updated via runOnJS — animatedProps on TextInput.value unreliable in Reanimated 4.x
   const [countdownText, setCountdownText] = useState(() =>
-    secondsShared.value > 0 ? t('payment.expiresIn', { time: formatCountdownUI(secondsShared.value) }) : ''
+    secondsShared.value > 0
+      ? t('payment.expiresIn', { time: formatCountdownUI(secondsShared.value) })
+      : '',
   )
-  const updateCountdownText = useCallback((sec: number) => {
-    setCountdownText(sec > 0 ? t('payment.expiresIn', { time: formatCountdownUI(sec) }) : '')
-  }, [t])
+  const updateCountdownText = useCallback(
+    (sec: number) => {
+      setCountdownText(
+        sec > 0 ? t('payment.expiresIn', { time: formatCountdownUI(sec) }) : '',
+      )
+    },
+    [t],
+  )
   useAnimatedReaction(
     () => secondsShared.value,
-    (current) => { runOnJS(updateCountdownText)(current) },
+    (current) => {
+      runOnJS(updateCountdownText)(current)
+    },
   )
 
   return (
-    <View style={[qs.container, { borderColor: isDark ? colors.gray[700] : colors.gray[200] }]}>
+    <View
+      style={[
+        qs.container,
+        { borderColor: isDark ? colors.gray[700] : colors.gray[200] },
+      ]}
+    >
       <View style={qs.qrWrap}>
         {isExpired ? (
           <View style={qs.expiredOverlay}>
             <Timer size={32} color={colors.gray[400]} />
-            <Text style={[qs.expiredText, { color: subColor }]}>{t('payment.qrExpired')}</Text>
+            <Text style={[qs.expiredText, { color: subColor }]}>
+              {t('payment.qrExpired')}
+            </Text>
           </View>
         ) : (
           <ExpoImage
@@ -239,19 +263,31 @@ const QRSection = memo(function QRSection({
       </View>
 
       <View style={qs.infoRow}>
-        <Text style={[qs.totalLabel, { color: subColor }]}>{t('payment.amountLabel')}</Text>
+        <Text style={[qs.totalLabel, { color: subColor }]}>
+          {t('payment.amountLabel')}
+        </Text>
         <Text style={[qs.totalAmount, { color: primaryColor }]}>
           {formatCurrency(totalAmount)}
         </Text>
       </View>
 
-      <Animated.View style={[qs.countdownRow, { backgroundColor: `${primaryColor}15` }, countdownRowStyle]}>
+      <Animated.View
+        style={[
+          qs.countdownRow,
+          { backgroundColor: `${primaryColor}15` },
+          countdownRowStyle,
+        ]}
+      >
         <Timer size={14} color={primaryColor} />
-        <Text style={[qs.countdownText, { color: primaryColor }]}>{countdownText}</Text>
+        <Text style={[qs.countdownText, { color: primaryColor }]}>
+          {countdownText}
+        </Text>
       </Animated.View>
 
       <View style={qs.noteRow}>
-        <Text style={[qs.note, { color: subColor }]}>{t('payment.qrInstructions')}</Text>
+        <Text style={[qs.note, { color: subColor }]}>
+          {t('payment.qrInstructions')}
+        </Text>
       </View>
     </View>
   )
@@ -303,82 +339,128 @@ const qs = StyleSheet.create({
 
 // ─── Payment Success Screen ───────────────────────────────────────────────────
 
-const GiftCardPaymentSuccessScreen = memo(function GiftCardPaymentSuccessScreen({
-  orderSlug,
-  cardTitle,
-  primaryColor,
-  isDark,
-  onViewDetail,
-}: {
-  orderSlug: string
-  cardTitle?: string
-  primaryColor: string
-  isDark: boolean
-  onViewDetail: () => void
-}) {
-  const { t } = useTranslation('gift-card')
-  const { bottom } = useSafeAreaInsets()
-  const screenBg = isDark ? colors.background.dark : colors.background.light
+const GiftCardPaymentSuccessScreen = memo(
+  function GiftCardPaymentSuccessScreen({
+    orderSlug,
+    cardTitle,
+    primaryColor,
+    isDark,
+    onViewDetail,
+  }: {
+    orderSlug: string
+    cardTitle?: string
+    primaryColor: string
+    isDark: boolean
+    onViewDetail: () => void
+  }) {
+    const { t } = useTranslation('giftCard')
+    const { bottom } = useSafeAreaInsets()
+    const screenBg = isDark ? colors.background.dark : colors.background.light
 
-  const handleGoGiftCard = useCallback(() => {
-    navigateNative.replace(TAB_ROUTES.GIFT_CARD)
-  }, [])
+    const handleGoGiftCard = useCallback(() => {
+      navigateNative.replace(TAB_ROUTES.GIFT_CARD)
+    }, [])
 
-  return (
-    <ScreenContainer edges={['top']} style={{ flex: 1, backgroundColor: screenBg }}>
-      <View style={[suc.container, { paddingBottom: bottom + 24 }]}>
-        <ExpoImage
-          // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
-          source={require('@/assets/images/food/order-success.png')}
-          style={suc.image}
-          contentFit="contain"
-        />
-        <Text style={[suc.title, { color: primaryColor }]}>
-          {t('payment.successTitle')}
-        </Text>
-        <Text style={[suc.subtitle, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>
-          {cardTitle
-            ? t('payment.successSubtitleCard', { cardTitle })
-            : t('payment.successSubtitleOrder', { slug: orderSlug })}
-        </Text>
-
-        <View style={suc.actions}>
-          <Pressable
-            onPress={onViewDetail}
-            style={[suc.btnSecondary, { backgroundColor: isDark ? colors.gray[700] : colors.gray[100], borderColor: isDark ? colors.gray[500] : colors.gray[300], flex: 1 }]}
+    return (
+      <ScreenContainer
+        edges={['top']}
+        style={{ flex: 1, backgroundColor: screenBg }}
+      >
+        <View style={[suc.container, { paddingBottom: bottom + 24 }]}>
+          <ExpoImage
+            // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+            source={require('@/assets/images/food/order-success.png')}
+            style={suc.image}
+            contentFit="contain"
+          />
+          <Text style={[suc.title, { color: primaryColor }]}>
+            {t('payment.successTitle')}
+          </Text>
+          <Text
+            style={[
+              suc.subtitle,
+              { color: isDark ? colors.gray[400] : colors.gray[500] },
+            ]}
           >
-            <Text style={[suc.btnSecondaryText, { color: isDark ? colors.gray[200] : colors.gray[700] }]}>
-              {t('payment.viewDetail')}
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={handleGoGiftCard}
-            style={[suc.btnPrimary, { backgroundColor: primaryColor, flex: 1 }]}
-          >
-            <Text style={suc.btnPrimaryText}>{t('payment.buyMore')}</Text>
-          </Pressable>
+            {cardTitle
+              ? t('payment.successSubtitleCard', { cardTitle })
+              : t('payment.successSubtitleOrder', { slug: orderSlug })}
+          </Text>
+
+          <View style={suc.actions}>
+            <Pressable
+              onPress={onViewDetail}
+              style={[
+                suc.btnSecondary,
+                {
+                  backgroundColor: isDark ? colors.gray[700] : colors.gray[100],
+                  borderColor: isDark ? colors.gray[500] : colors.gray[300],
+                  flex: 1,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  suc.btnSecondaryText,
+                  { color: isDark ? colors.gray[200] : colors.gray[700] },
+                ]}
+              >
+                {t('payment.viewDetail')}
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={handleGoGiftCard}
+              style={[
+                suc.btnPrimary,
+                { backgroundColor: primaryColor, flex: 1 },
+              ]}
+            >
+              <Text style={suc.btnPrimaryText}>{t('payment.buyMore')}</Text>
+            </Pressable>
+          </View>
         </View>
-      </View>
-    </ScreenContainer>
-  )
-})
+      </ScreenContainer>
+    )
+  },
+)
 
 const suc = StyleSheet.create({
-  container: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 12 },
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    gap: 12,
+  },
   image: { width: 200, height: 200, marginBottom: 8 },
   title: { fontSize: 22, fontWeight: '800', textAlign: 'center' },
   subtitle: { fontSize: 14, textAlign: 'center', lineHeight: 20 },
   actions: { width: '100%', flexDirection: 'row', gap: 12, marginTop: 16 },
-  btnPrimary: { height: 50, borderRadius: 9999, alignItems: 'center', justifyContent: 'center' },
-  btnPrimaryText: { fontSize: 15, fontWeight: '700', color: colors.white.light },
-  btnSecondary: { height: 50, borderRadius: 9999, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5 },
+  btnPrimary: {
+    height: 50,
+    borderRadius: 9999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnPrimaryText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.white.light,
+  },
+  btnSecondary: {
+    height: 50,
+    borderRadius: 9999,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1.5,
+  },
   btnSecondaryText: { fontSize: 15, fontWeight: '600' },
 })
 
 // ─── Main Screen ──────────────────────────────────────────────────────────────
 
 export default function GiftCardPaymentScreen() {
-  const { t } = useTranslation('gift-card')
+  const { t } = useTranslation('giftCard')
   const { slug } = useLocalSearchParams<{ slug: string }>()
   const isDark = useColorScheme() === 'dark'
   const primaryColor = usePrimaryColor()
@@ -386,7 +468,8 @@ export default function GiftCardPaymentScreen() {
 
   const clearGiftCard = useGiftCardStore((s) => s.clearGiftCard)
   const { order, isPending, refetch } = useGiftCardOrderPayment(slug)
-  const { mutate: initiatePayment, isPending: isInitiating } = useInitiateCardOrderPayment()
+  const { mutate: initiatePayment, isPending: isInitiating } =
+    useInitiateCardOrderPayment()
   const { mutate: cancelOrder } = useCancelCardOrder()
 
   const [qrCode, setQrCode] = useState<string | null>(null)
@@ -420,7 +503,10 @@ export default function GiftCardPaymentScreen() {
   // before the refetched order data arrives)
   const [showSuccess, setShowSuccess] = useState(false)
   useEffect(() => {
-    if (!showSuccess && (fcmPaid || order?.paymentStatus === CardOrderStatus.COMPLETED)) {
+    if (
+      !showSuccess &&
+      (fcmPaid || order?.paymentStatus === CardOrderStatus.COMPLETED)
+    ) {
       setShowSuccess(true)
     }
   }, [fcmPaid, order?.paymentStatus, showSuccess])
@@ -454,7 +540,7 @@ export default function GiftCardPaymentScreen() {
     if (showSuccess && slug) {
       scheduleTransitionTask(() => clearGiftCard(false))
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showSuccess])
 
   // Clear QR image memory on blur
@@ -469,7 +555,9 @@ export default function GiftCardPaymentScreen() {
   const handleViewDetail = useCallback(() => {
     if (slug) {
       navigateNative.replace(
-        `/gift-card/order-success/${slug}` as Parameters<typeof navigateNative.replace>[0],
+        `/gift-card/order-success/${slug}` as Parameters<
+          typeof navigateNative.replace
+        >[0],
       )
     }
   }, [slug])
@@ -487,7 +575,7 @@ export default function GiftCardPaymentScreen() {
         onExpire={handleExpire}
       />
     )
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order, isExpired, isCancelled, showSuccess])
 
   const handleInitiatePayment = useCallback(() => {
@@ -537,7 +625,9 @@ export default function GiftCardPaymentScreen() {
       ) : !order ? (
         <View style={[s.empty, { marginTop: STATIC_TOP_INSET + 56 }]}>
           <CircleX size={48} color={colors.gray[400]} />
-          <Text style={[s.emptyText, { color: subColor }]}>{t('payment.notFound')}</Text>
+          <Text style={[s.emptyText, { color: subColor }]}>
+            {t('payment.notFound')}
+          </Text>
         </View>
       ) : showSuccess ? (
         <GiftCardPaymentSuccessScreen
@@ -552,7 +642,10 @@ export default function GiftCardPaymentScreen() {
           <ScrollView
             contentContainerStyle={[
               s.scrollContent,
-              { paddingTop: STATIC_TOP_INSET + 64, paddingBottom: bottom + 120 },
+              {
+                paddingTop: STATIC_TOP_INSET + 64,
+                paddingBottom: bottom + 120,
+              },
             ]}
             showsVerticalScrollIndicator={false}
             refreshControl={
@@ -565,28 +658,52 @@ export default function GiftCardPaymentScreen() {
           >
             {/* Order info */}
             <View style={[s.card, { backgroundColor: cardBg, borderColor }]}>
-              <Text style={[s.cardTitle, { color: textColor }]}>{t('payment.orderInfo')}</Text>
+              <Text style={[s.cardTitle, { color: textColor }]}>
+                {t('payment.orderInfo')}
+              </Text>
               <View style={s.infoRows}>
                 <View style={s.infoRow}>
-                  <Text style={[s.infoKey, { color: subColor }]}>{t('payment.cardLabel')}</Text>
-                  <Text style={[s.infoVal, { color: textColor }]} numberOfLines={1}>
+                  <Text style={[s.infoKey, { color: subColor }]}>
+                    {t('payment.cardLabel')}
+                  </Text>
+                  <Text
+                    style={[s.infoVal, { color: textColor }]}
+                    numberOfLines={1}
+                  >
                     {order.cardTitle}
                   </Text>
                 </View>
                 <View style={s.infoRow}>
-                  <Text style={[s.infoKey, { color: subColor }]}>{t('payment.pointsPerCard')}</Text>
+                  <Text style={[s.infoKey, { color: subColor }]}>
+                    {t('payment.pointsPerCard')}
+                  </Text>
                   <Text style={[s.infoVal, { color: primaryColor }]}>
-                    {t('payment.pointsValue', { points: formatPoints(order.cardPoint ?? 0) })}
+                    {t('payment.pointsValue', {
+                      points: formatPoints(order.cardPoint ?? 0),
+                    })}
                   </Text>
                 </View>
                 <View style={s.infoRow}>
-                  <Text style={[s.infoKey, { color: subColor }]}>{t('orderDetail.quantity')}</Text>
-                  <Text style={[s.infoVal, { color: textColor }]}>{t('payment.quantityCards', { count: order.quantity })}</Text>
+                  <Text style={[s.infoKey, { color: subColor }]}>
+                    {t('orderDetail.quantity')}
+                  </Text>
+                  <Text style={[s.infoVal, { color: textColor }]}>
+                    {t('payment.quantityCards', { count: order.quantity })}
+                  </Text>
                 </View>
                 <View style={[s.divider, { backgroundColor: borderColor }]} />
                 <View style={s.infoRow}>
-                  <Text style={[s.infoKey, { color: subColor, fontWeight: '600' }]}>{t('payment.totalAmount')}</Text>
-                  <Text style={[s.infoVal, { color: textColor, fontWeight: '800', fontSize: 16 }]}>
+                  <Text
+                    style={[s.infoKey, { color: subColor, fontWeight: '600' }]}
+                  >
+                    {t('payment.totalAmount')}
+                  </Text>
+                  <Text
+                    style={[
+                      s.infoVal,
+                      { color: textColor, fontWeight: '800', fontSize: 16 },
+                    ]}
+                  >
                     {formatCurrency(totalAmount || order.totalAmount)}
                   </Text>
                 </View>
@@ -596,17 +713,33 @@ export default function GiftCardPaymentScreen() {
             {/* Payment method */}
             {!isCancelled && !alreadyHasQR && !qrCode && (
               <View style={[s.card, { backgroundColor: cardBg, borderColor }]}>
-                <Text style={[s.cardTitle, { color: textColor }]}>{t('payment.paymentMethodSection')}</Text>
+                <Text style={[s.cardTitle, { color: textColor }]}>
+                  {t('payment.paymentMethodSection')}
+                </Text>
                 <View style={[s.methodRow, { borderColor }]}>
-                  <View style={[s.methodIcon, { backgroundColor: `${primaryColor}18` }]}>
+                  <View
+                    style={[
+                      s.methodIcon,
+                      { backgroundColor: `${primaryColor}18` },
+                    ]}
+                  >
                     <Smartphone size={20} color={primaryColor} />
                   </View>
                   <View style={s.methodInfo}>
-                    <Text style={[s.methodLabel, { color: textColor }]}>{t('payment.bankTransfer')}</Text>
-                    <Text style={[s.methodDesc, { color: subColor }]}>{t('payment.bankTransferDesc')}</Text>
+                    <Text style={[s.methodLabel, { color: textColor }]}>
+                      {t('payment.bankTransfer')}
+                    </Text>
+                    <Text style={[s.methodDesc, { color: subColor }]}>
+                      {t('payment.bankTransferDesc')}
+                    </Text>
                   </View>
                   <View style={[s.methodRadio, { borderColor: primaryColor }]}>
-                    <View style={[s.methodRadioDot, { backgroundColor: primaryColor }]} />
+                    <View
+                      style={[
+                        s.methodRadioDot,
+                        { backgroundColor: primaryColor },
+                      ]}
+                    />
                   </View>
                 </View>
               </View>
@@ -614,9 +747,20 @@ export default function GiftCardPaymentScreen() {
 
             {/* Cancelled state */}
             {isCancelled && (
-              <View style={[s.card, s.cancelledCard, { backgroundColor: cardBg, borderColor: colors.destructive.light }]}>
+              <View
+                style={[
+                  s.card,
+                  s.cancelledCard,
+                  {
+                    backgroundColor: cardBg,
+                    borderColor: colors.destructive.light,
+                  },
+                ]}
+              >
                 <CircleX size={24} color={colors.destructive.light} />
-                <Text style={[s.cancelledText, { color: colors.destructive.light }]}>
+                <Text
+                  style={[s.cancelledText, { color: colors.destructive.light }]}
+                >
                   {t('payment.orderCancelled')}
                 </Text>
               </View>
@@ -641,7 +785,7 @@ export default function GiftCardPaymentScreen() {
               style={[
                 s.footer,
                 {
-                  paddingBottom: bottom + 16,
+                  paddingBottom: bottom + FOOTER_BOTTOM_EXTRA,
                   backgroundColor: bg,
                   borderTopColor: borderColor,
                 },
@@ -651,7 +795,14 @@ export default function GiftCardPaymentScreen() {
                 // Already showing QR — refetch button
                 <Pressable
                   onPress={() => void refetch()}
-                  style={[s.footerBtn, { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] }]}
+                  style={[
+                    s.footerBtn,
+                    {
+                      backgroundColor: isDark
+                        ? colors.gray[800]
+                        : colors.gray[100],
+                    },
+                  ]}
                 >
                   <Text style={[s.footerBtnText, { color: textColor }]}>
                     {t('payment.checkStatus')}
@@ -663,7 +814,9 @@ export default function GiftCardPaymentScreen() {
                   onPress={() => navigateNative.back()}
                   style={[s.footerBtn, { backgroundColor: primaryColor }]}
                 >
-                  <Text style={[s.footerBtnText, { color: colors.white.light }]}>
+                  <Text
+                    style={[s.footerBtnText, { color: colors.white.light }]}
+                  >
                     {t('payment.reorder')}
                   </Text>
                 </Pressable>
@@ -672,12 +825,20 @@ export default function GiftCardPaymentScreen() {
                 <Pressable
                   onPress={handleInitiatePayment}
                   disabled={isInitiating}
-                  style={[s.footerBtn, { backgroundColor: primaryColor, opacity: isInitiating ? 0.7 : 1 }]}
+                  style={[
+                    s.footerBtn,
+                    {
+                      backgroundColor: primaryColor,
+                      opacity: isInitiating ? 0.7 : 1,
+                    },
+                  ]}
                 >
                   {isInitiating ? (
                     <ActivityIndicator color={colors.white.light} />
                   ) : (
-                    <Text style={[s.footerBtnText, { color: colors.white.light }]}>
+                    <Text
+                      style={[s.footerBtnText, { color: colors.white.light }]}
+                    >
                       {t('payment.generateQR')}
                     </Text>
                   )}
@@ -712,7 +873,12 @@ const s = StyleSheet.create({
     alignItems: 'center',
   },
   infoKey: { fontSize: 14 },
-  infoVal: { fontSize: 14, fontWeight: '500', maxWidth: '55%', textAlign: 'right' },
+  infoVal: {
+    fontSize: 14,
+    fontWeight: '500',
+    maxWidth: '55%',
+    textAlign: 'right',
+  },
   divider: { height: StyleSheet.hairlineWidth, marginVertical: 2 },
 
   methodRow: {

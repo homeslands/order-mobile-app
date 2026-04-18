@@ -24,47 +24,24 @@ export function useRegisterDeviceToken(enabled = true) {
   const setDeviceToken = useUserStore((s) => s.setDeviceToken)
 
   useEffect(() => {
-    // eslint-disable-next-line no-console
-    console.log('[FCM] useRegisterDeviceToken:', { enabled, hasToken: !!token, isRegistering: isRegistering.current, storedToken: storedToken?.slice(0, 20) })
-    if (!enabled || !token || isRegistering.current) {
-      // eslint-disable-next-line no-console
-      console.log('[FCM] Skipping register - early exit')
-      return
-    }
+    if (!enabled || !token || isRegistering.current) return
     // Token unchanged and already confirmed registered → skip
-    if (token === storedToken) {
-      // eslint-disable-next-line no-console
-      console.log('[FCM] Token unchanged, skipping registration')
-      return
-    }
+    if (token === storedToken) return
 
-    // eslint-disable-next-line no-console
-    console.log('[FCM] 🚀 Starting token registration...')
     isRegistering.current = true
 
     const run = async () => {
       try {
         // Unregister old token if different (best-effort)
         if (storedToken && storedToken !== token) {
-          // eslint-disable-next-line no-console
-          console.log('[FCM] Unregistering old token...')
           await unregisterToken(storedToken)
         }
 
-        // eslint-disable-next-line no-console
-        console.log('[FCM] Calling registerTokenWithRetry...')
         const result = await registerTokenWithRetry(token)
-        // eslint-disable-next-line no-console
-        console.log('[FCM] Register result:', result)
 
         if (result.success) {
-          // eslint-disable-next-line no-console
-          console.log('[FCM] ✅ Successfully registered, saving to store')
           // Only save to store AFTER server confirms — this is the gate
           setDeviceToken(token)
-        } else {
-          // eslint-disable-next-line no-console
-          console.error('[FCM] ❌ Registration failed (all retries exhausted):', result.error)
         }
       } finally {
         isRegistering.current = false

@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { colors } from '@/constants'
+import { FOOTER_BOTTOM_EXTRA } from '@/constants/status-bar'
 import { useTables } from '@/hooks'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import { OrderStatus, OrderTypeEnum } from '@/types'
@@ -58,7 +59,10 @@ export default memo(function UpdateOrderFooter({
   const { data: tablesData } = useTables(branchSlug ?? undefined)
   const tableName = useMemo(() => {
     if (!selectedTableSlug || !tablesData?.result) return null
-    return tablesData.result.find((tb) => tb.slug === selectedTableSlug)?.name ?? null
+    return (
+      tablesData.result.find((tb) => tb.slug === selectedTableSlug)?.name ??
+      null
+    )
   }, [selectedTableSlug, tablesData])
 
   // Totals
@@ -74,9 +78,13 @@ export default memo(function UpdateOrderFooter({
       ),
     [orderItems, voucher],
   )
-  const subtotal = (cartTotals?.subTotalBeforeDiscount ?? 0) + deliveryFee - accumulatedPointsToUse
+  const subtotal =
+    (cartTotals?.subTotalBeforeDiscount ?? 0) +
+    deliveryFee -
+    accumulatedPointsToUse
   const voucherDiscount = cartTotals?.voucherDiscount ?? 0
-  const finalTotal = (cartTotals?.finalTotal ?? 0) + deliveryFee - accumulatedPointsToUse
+  const finalTotal =
+    (cartTotals?.finalTotal ?? 0) + deliveryFee - accumulatedPointsToUse
 
   // Auto-remove voucher if maxItems exceeded
   const voucherSlug = voucher?.slug
@@ -96,7 +104,9 @@ export default memo(function UpdateOrderFooter({
       : orderType === OrderTypeEnum.DELIVERY
         ? t('menu.delivery')
         : t('menu.dineIn')
-  const tableLabel = tableName ? `Bàn ${tableName}` : t('menu.selectTable', 'Chọn bàn')
+  const tableLabel = tableName
+    ? t('menu.tableLabel', { name: tableName })
+    : t('menu.selectTable')
   const showTableSelect = orderType === OrderTypeEnum.AT_TABLE
   const confirmDisabled =
     (orderType === OrderTypeEnum.AT_TABLE && !selectedTableSlug) ||
@@ -104,8 +114,14 @@ export default memo(function UpdateOrderFooter({
   const isPending = originalOrder?.status === OrderStatus.PENDING
 
   // Handlers
-  const openOrderTypeSheet = useCallback(() => setOrderTypeSheetVisible(true), [])
-  const closeOrderTypeSheet = useCallback(() => setOrderTypeSheetVisible(false), [])
+  const openOrderTypeSheet = useCallback(
+    () => setOrderTypeSheetVisible(true),
+    [],
+  )
+  const closeOrderTypeSheet = useCallback(
+    () => setOrderTypeSheetVisible(false),
+    [],
+  )
   const openTableSheet = useCallback(() => setTableSheetVisible(true), [])
   const closeTableSheet = useCallback(() => setTableSheetVisible(false), [])
   const openVoucherSheet = useCallback(() => setVoucherSheetOpen(true), [])
@@ -114,10 +130,18 @@ export default memo(function UpdateOrderFooter({
   // Memoised theme-dependent styles
   const ft = useMemo(
     () => ({
-      containerBg: { backgroundColor: isDark ? colors.gray[900] : colors.white.light },
-      selectBtnBorder: { borderColor: isDark ? colors.gray[700] : colors.gray[200] },
-      selectBtnTextColor: { color: isDark ? colors.gray[50] : colors.gray[900] },
-      iconColor: isDark ? colors.mutedForeground.dark : colors.mutedForeground.light,
+      containerBg: {
+        backgroundColor: isDark ? colors.gray[900] : colors.white.light,
+      },
+      selectBtnBorder: {
+        borderColor: isDark ? colors.gray[700] : colors.gray[200],
+      },
+      selectBtnTextColor: {
+        color: isDark ? colors.gray[50] : colors.gray[900],
+      },
+      iconColor: isDark
+        ? colors.mutedForeground.dark
+        : colors.mutedForeground.light,
       mutedColor: { color: isDark ? colors.gray[400] : colors.gray[500] },
       mutedColorAlt: { color: isDark ? colors.gray[500] : colors.gray[400] },
       chevronColor: isDark ? colors.gray[500] : colors.gray[400],
@@ -170,20 +194,32 @@ export default memo(function UpdateOrderFooter({
         style={[
           f.container,
           ft.containerBg,
-          { paddingBottom: Math.max(insetBottom, 20) },
+          { paddingBottom: insetBottom + FOOTER_BOTTOM_EXTRA },
         ]}
       >
         {/* Order Type + Table row */}
         <View style={f.selectRow}>
-          <Pressable onPress={openOrderTypeSheet} style={[f.selectBtn, ft.selectBtnBorder]}>
+          <Pressable
+            onPress={openOrderTypeSheet}
+            style={[f.selectBtn, ft.selectBtnBorder]}
+          >
             <ShoppingBag size={14} color={ft.iconColor} />
-            <Text style={[f.selectBtnText, ft.selectBtnTextColor]} numberOfLines={1}>
+            <Text
+              style={[f.selectBtnText, ft.selectBtnTextColor]}
+              numberOfLines={1}
+            >
               {orderTypeLabel}
             </Text>
           </Pressable>
           {showTableSelect && (
-            <Pressable onPress={openTableSheet} style={[f.selectBtn, tableBtnBorder]}>
-              <Text style={[f.selectBtnText, tableBtnTextColor]} numberOfLines={1}>
+            <Pressable
+              onPress={openTableSheet}
+              style={[f.selectBtn, tableBtnBorder]}
+            >
+              <Text
+                style={[f.selectBtnText, tableBtnTextColor]}
+                numberOfLines={1}
+              >
                 {tableLabel}
               </Text>
               <ChevronRight size={14} color={ft.iconColor} />
@@ -192,13 +228,19 @@ export default memo(function UpdateOrderFooter({
         </View>
 
         {/* Pickup Time Chips — tự ẩn khi không phải TAKE_OUT */}
-        <PickupTimeChipsInUpdateOrder isDark={isDark} primaryColor={primaryColor} />
+        <PickupTimeChipsInUpdateOrder
+          isDark={isDark}
+          primaryColor={primaryColor}
+        />
 
         {/* Voucher trigger */}
-        <Pressable onPress={openVoucherSheet} style={[f.voucherTrigger, voucherBorderStyle]}>
+        <Pressable
+          onPress={openVoucherSheet}
+          style={[f.voucherTrigger, voucherBorderStyle]}
+        >
           <Ticket size={14} color={ft.chevronColor} />
           <Text style={[f.voucherLabel, f.voucherLabelFlex, ft.mutedColor]}>
-            Mã giảm giá
+            {t('menu.voucher')}
           </Text>
           {voucher && (
             <View style={f.voucherRight}>
@@ -209,7 +251,10 @@ export default memo(function UpdateOrderFooter({
                   </Text>
                 </View>
               )}
-              <Text style={[f.voucherName, ft.primaryColorStyle]} numberOfLines={1}>
+              <Text
+                style={[f.voucherName, ft.primaryColorStyle]}
+                numberOfLines={1}
+              >
                 {voucher.title}
               </Text>
             </View>
@@ -221,7 +266,7 @@ export default memo(function UpdateOrderFooter({
         <View style={f.bottomRow}>
           <View style={f.totalCol}>
             <Text style={[f.totalLabel, ft.mutedColor]}>
-              Tổng cộng ({cartItemQuantity})
+              {t('order.total')}: {cartItemQuantity}
             </Text>
             <View style={f.totalRow}>
               {voucherDiscount > 0 && (

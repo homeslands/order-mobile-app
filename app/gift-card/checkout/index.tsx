@@ -20,7 +20,7 @@ import {
   BottomSheetScrollView,
 } from '@gorhom/bottom-sheet'
 import { Redirect } from 'expo-router'
-import { Lock, Plus, ShoppingBag, Unlock, UserRound, Users } from 'lucide-react-native'
+import { Plus } from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useFieldArray, useWatch } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
@@ -43,7 +43,7 @@ import { GiftCardTypeSelector } from '@/components/gift-card/gift-card-type-sele
 import { RecipientFormItem } from '@/components/gift-card/recipient-form-item'
 import { FloatingHeader } from '@/components/navigation/floating-header'
 import { colors, GiftCardType } from '@/constants'
-import { STATIC_TOP_INSET } from '@/constants/status-bar'
+import { FOOTER_BOTTOM_EXTRA, STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useCreateCardOrder } from '@/hooks/use-card-order'
 import { useGiftCardTypeOptions } from '@/hooks/use-gift-card-type-options'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
@@ -51,7 +51,13 @@ import { useRunAfterTransition } from '@/hooks/use-run-after-transition'
 import { useZodForm } from '@/hooks/use-zod-form'
 import { navigateNative, scheduleTransitionTask } from '@/lib/navigation'
 import { useGiftCardStore, useUserStore } from '@/stores'
-import { capitalizeFirst, formatCurrency, formatPoints, showErrorToastMessage } from '@/utils'
+import {
+  capitalizeFirst,
+  formatCurrency,
+  formatPoints,
+  showErrorToast,
+  showErrorToastMessage,
+} from '@/utils'
 
 // ─── Schema ──────────────────────────────────────────────────────────────────
 
@@ -60,16 +66,21 @@ const recipientSchema = z.object({
   recipientSlug: z.string().min(10, 'Vui lòng chọn người nhận từ gợi ý'),
   phone: z
     .string()
-    .regex(/^0[0-9]{9,10}$/, 'Số điện thoại không hợp lệ (10-11 số, bắt đầu bằng 0)'),
+    .regex(
+      /^0[0-9]{9,10}$/,
+      'Số điện thoại không hợp lệ (10-11 số, bắt đầu bằng 0)',
+    ),
   name: z.string().optional(),
-  quantity: z
-    .number({ message: 'Nhập số lượng hợp lệ' })
-    .min(1, 'Tối thiểu 1'),
+  quantity: z.number({ message: 'Nhập số lượng hợp lệ' }).min(1, 'Tối thiểu 1'),
   message: z.string().max(200, 'Tối đa 200 ký tự').optional(),
 })
 
 const checkoutSchema = z.object({
-  cardOrderType: z.enum([GiftCardType.SELF, GiftCardType.GIFT, GiftCardType.BUY]),
+  cardOrderType: z.enum([
+    GiftCardType.SELF,
+    GiftCardType.GIFT,
+    GiftCardType.BUY,
+  ]),
   recipients: z.array(recipientSchema),
 })
 
@@ -94,7 +105,9 @@ function SummaryRow({
   return (
     <View style={su.row}>
       <Text style={[su.label, { color: subColor }]}>{label}</Text>
-      <Text style={[su.value, { color: valueColor ?? textColor }, bold && su.bold]}>
+      <Text
+        style={[su.value, { color: valueColor ?? textColor }, bold && su.bold]}
+      >
         {value}
       </Text>
     </View>
@@ -102,7 +115,11 @@ function SummaryRow({
 }
 
 const su = StyleSheet.create({
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   label: { fontSize: 14 },
   value: { fontSize: 14 },
   bold: { fontWeight: '700', fontSize: 15 },
@@ -129,13 +146,18 @@ export default function GiftCardCheckoutScreen() {
 
   const { mutate: createOrder, isPending } = useCreateCardOrder()
 
-  const { control, handleSubmit, watch, setValue, formState: { errors } } =
-    useZodForm(checkoutSchema, {
-      defaultValues: {
-        cardOrderType: GiftCardType.SELF,
-        recipients: [],
-      },
-    })
+  const {
+    control,
+    handleSubmit,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useZodForm(checkoutSchema, {
+    defaultValues: {
+      cardOrderType: GiftCardType.SELF,
+      recipients: [],
+    },
+  })
 
   const { fields, append, remove, replace } = useFieldArray({
     control,
@@ -145,7 +167,11 @@ export default function GiftCardCheckoutScreen() {
   const cardOrderType = watch('cardOrderType')
   const recipients = useWatch({ control, name: 'recipients' })
 
-  const { availableTypes, defaultType, lockMap, isLoaded: flagsLoaded, refetch: refetchFlags } = useGiftCardTypeOptions()
+  const {
+    availableTypes,
+    defaultType,
+    refetch: refetchFlags,
+  } = useGiftCardTypeOptions()
 
   // Auto-switch sang type đầu tiên available khi flags load xong,
   // chỉ switch nếu type hiện tại bị lock — không override lựa chọn của user
@@ -194,7 +220,10 @@ export default function GiftCardCheckoutScreen() {
 
   const onConfirm = useCallback(
     (data: CheckoutFormValues) => {
-      if (data.cardOrderType === GiftCardType.GIFT && data.recipients.length === 0) {
+      if (
+        data.cardOrderType === GiftCardType.GIFT &&
+        data.recipients.length === 0
+      ) {
         showErrorToastMessage(t('checkout.error.addRecipient'))
         return
       }
@@ -226,16 +255,30 @@ export default function GiftCardCheckoutScreen() {
             const slug = res.result?.slug
             if (slug) {
               navigateNative.push(
-                `/gift-card/checkout/${slug}` as Parameters<typeof navigateNative.push>[0],
+                `/gift-card/checkout/${slug}` as Parameters<
+                  typeof navigateNative.push
+                >[0],
               )
               scheduleTransitionTask(() => clearGiftCard(false))
             }
           },
           onError: (error: Error) => {
-            const code = (error as Error & { response?: { data?: { code?: number } } })?.response?.data?.code
+            const code =
+              (
+                error as Error & {
+                  response?: { data?: { statusCode?: number; code?: number } }
+                }
+              )?.response?.data?.statusCode ??
+              (
+                error as Error & {
+                  response?: { data?: { statusCode?: number; code?: number } }
+                }
+              )?.response?.data?.code
             if (code === 158806) {
               showErrorToastMessage(t('checkout.error.typeLocked'))
               refetchFlags()
+            } else if (code) {
+              showErrorToast(code)
             } else {
               showErrorToastMessage(t('checkout.error.orderFailed'))
             }
@@ -244,7 +287,15 @@ export default function GiftCardCheckoutScreen() {
       )
       setShowConfirm(false)
     },
-    [createOrder, giftCardItem, userInfo, selfQty, refetchFlags, t, clearGiftCard],
+    [
+      createOrder,
+      giftCardItem,
+      userInfo,
+      selfQty,
+      refetchFlags,
+      t,
+      clearGiftCard,
+    ],
   )
 
   const handlePressConfirm = useCallback(() => setShowConfirm(true), [])
@@ -265,33 +316,73 @@ export default function GiftCardCheckoutScreen() {
     [],
   )
 
-  const closeConfirmSheet = useCallback(() => confirmSheetRef.current?.dismiss(), [])
+  const closeConfirmSheet = useCallback(
+    () => confirmSheetRef.current?.dismiss(),
+    [],
+  )
 
   const renderConfirmFooter = useCallback(
     (props: BottomSheetFooterProps) => (
       <BottomSheetFooter {...props} bottomInset={bottom}>
-        <View style={[cs.footer, { backgroundColor: isDark ? colors.gray[900] : colors.white.light, borderTopColor: isDark ? colors.gray[700] : colors.gray[200] }]}>
+        <View
+          style={[
+            cs.footer,
+            {
+              backgroundColor: isDark ? colors.gray[900] : colors.white.light,
+              borderTopColor: isDark ? colors.gray[700] : colors.gray[200],
+            },
+          ]}
+        >
           <Pressable
             onPress={closeConfirmSheet}
             disabled={isPending}
-            style={[cs.cancelBtn, { backgroundColor: isDark ? colors.gray[700] : colors.gray[100], opacity: isPending ? 0.5 : 1 }]}
+            style={[
+              cs.cancelBtn,
+              {
+                backgroundColor: isDark ? colors.gray[700] : colors.gray[100],
+                opacity: isPending ? 0.5 : 1,
+              },
+            ]}
           >
-            <Text style={[cs.cancelText, { color: isDark ? colors.gray[50] : colors.gray[700] }]}>{tCommon('cancel')}</Text>
+            <Text
+              style={[
+                cs.cancelText,
+                { color: isDark ? colors.gray[50] : colors.gray[700] },
+              ]}
+            >
+              {tCommon('common.cancel')}
+            </Text>
           </Pressable>
           <Pressable
             onPress={handleSubmit(onConfirm)}
             disabled={isPending}
-            style={[cs.submitBtn, { backgroundColor: primaryColor, opacity: isPending ? 0.7 : 1 }]}
+            style={[
+              cs.submitBtn,
+              { backgroundColor: primaryColor, opacity: isPending ? 0.7 : 1 },
+            ]}
           >
-            {isPending
-              ? <ActivityIndicator size="small" color={colors.white.light} />
-              : <Text style={cs.submitText}>{t('checkout.confirm.placeOrder')}</Text>
-            }
+            {isPending ? (
+              <ActivityIndicator size="small" color={colors.white.light} />
+            ) : (
+              <Text style={cs.submitText}>
+                {t('checkout.confirm.placeOrder')}
+              </Text>
+            )}
           </Pressable>
         </View>
       </BottomSheetFooter>
     ),
-    [isDark, primaryColor, isPending, closeConfirmSheet, handleSubmit, onConfirm, bottom, t, tCommon],
+    [
+      isDark,
+      primaryColor,
+      isPending,
+      closeConfirmSheet,
+      handleSubmit,
+      onConfirm,
+      bottom,
+      t,
+      tCommon,
+    ],
   )
 
   // ── Colors ────────────────────────────────────────────────────────────────
@@ -311,9 +402,7 @@ export default function GiftCardCheckoutScreen() {
 
   return (
     <View style={[s.container, { backgroundColor: bg }]}>
-      <FloatingHeader title={t('checkout.title')} 
-          disableBlur
-        />
+      <FloatingHeader title={t('checkout.title')} disableBlur />
 
       <KeyboardAvoidingView
         style={{ flex: 1 }}
@@ -338,55 +427,21 @@ export default function GiftCardCheckoutScreen() {
                 item={giftCardItem}
                 primaryColor={primaryColor}
                 isDark={isDark}
-                overrideQty={cardOrderType === GiftCardType.GIFT ? giftQty : undefined}
+                overrideQty={
+                  cardOrderType === GiftCardType.GIFT ? giftQty : undefined
+                }
               />
-
-              {/* Lock status strip */}
-              {flagsLoaded && (
-                <View style={[s.lockRow, { backgroundColor: cardBg }]}>
-                  {([
-                    { type: 'SELF', label: t('checkout.lockType.self'), Icon: UserRound },
-                    { type: 'GIFT', label: t('checkout.lockType.gift'), Icon: Users },
-                    { type: 'BUY',  label: t('checkout.lockType.buy'), Icon: ShoppingBag },
-                  ] as const).map(({ type, label, Icon }) => {
-                    const isLocked = lockMap[type] === true
-                    return (
-                      <View
-                        key={type}
-                        style={[
-                          s.lockChip,
-                          {
-                            backgroundColor: isLocked
-                              ? isDark ? colors.gray[800] : colors.gray[100]
-                              : `${primaryColor}15`,
-                            borderColor: isLocked
-                              ? isDark ? colors.gray[700] : colors.gray[200]
-                              : `${primaryColor}50`,
-                          },
-                        ]}
-                      >
-                        <Icon
-                          size={12}
-                          color={isLocked ? (isDark ? colors.gray[500] : colors.gray[400]) : primaryColor}
-                        />
-                        <Text style={[s.lockChipText, { color: isLocked ? (isDark ? colors.gray[500] : colors.gray[400]) : primaryColor }]}>
-                          {label}
-                        </Text>
-                        {isLocked
-                          ? <Lock size={10} color={isDark ? colors.gray[600] : colors.gray[400]} />
-                          : <Unlock size={10} color={primaryColor} />
-                        }
-                      </View>
-                    )
-                  })}
-                </View>
-              )}
 
               {/* Type selector */}
               <View style={[s.section, { backgroundColor: cardBg }]}>
                 {availableTypes.length === 0 ? (
                   <View style={s.allLockedWrap}>
-                    <Text style={[s.allLockedText, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>
+                    <Text
+                      style={[
+                        s.allLockedText,
+                        { color: isDark ? colors.gray[400] : colors.gray[500] },
+                      ]}
+                    >
                       {t('checkout.allLocked')}
                     </Text>
                   </View>
@@ -444,11 +499,24 @@ export default function GiftCardCheckoutScreen() {
               {/* Order summary */}
               {totalQty > 0 && (
                 <View style={[s.section, { backgroundColor: cardBg }]}>
-                  <Text style={[s.sectionLabel, { color: textColor }]}>{t('checkout.summary')}</Text>
+                  <Text style={[s.sectionLabel, { color: textColor }]}>
+                    {t('checkout.summary')}
+                  </Text>
                   <View style={s.summaryRows}>
-                    <SummaryRow label={t('checkout.cardPrice')} value={formatCurrency(giftCardItem.price)} />
-                    <SummaryRow label={t('checkout.quantity')} value={`× ${totalQty}`} />
-                    <View style={[s.summaryDivider, { backgroundColor: borderColor }]} />
+                    <SummaryRow
+                      label={t('checkout.cardPrice')}
+                      value={formatCurrency(giftCardItem.price)}
+                    />
+                    <SummaryRow
+                      label={t('checkout.quantity')}
+                      value={`× ${totalQty}`}
+                    />
+                    <View
+                      style={[
+                        s.summaryDivider,
+                        { backgroundColor: borderColor },
+                      ]}
+                    />
                     <SummaryRow
                       label={t('checkout.totalAmount')}
                       value={formatCurrency(totalAmount)}
@@ -475,7 +543,11 @@ export default function GiftCardCheckoutScreen() {
       <View
         style={[
           s.footer,
-          { paddingBottom: bottom + 16, backgroundColor: bg, borderTopColor: borderColor },
+          {
+            paddingBottom: bottom + FOOTER_BOTTOM_EXTRA,
+            backgroundColor: bg,
+            borderTopColor: borderColor,
+          },
         ]}
       >
         <Pressable
@@ -483,107 +555,209 @@ export default function GiftCardCheckoutScreen() {
           disabled={isPending || !ready || totalQty === 0}
           style={[
             s.confirmBtn,
-            { backgroundColor: primaryColor, opacity: (isPending || totalQty === 0) ? 0.5 : 1 },
+            {
+              backgroundColor: primaryColor,
+              opacity: isPending || totalQty === 0 ? 0.5 : 1,
+            },
           ]}
         >
           {isPending ? (
             <ActivityIndicator color={colors.white.light} />
           ) : (
             <Text style={s.confirmBtnText}>
-              {totalQty > 0 ? t('checkout.confirmButton', { amount: formatCurrency(totalAmount) }) : t('checkout.addRecipient')}
+              {totalQty > 0
+                ? t('checkout.confirmButton', {
+                    amount: formatCurrency(totalAmount),
+                  })
+                : t('checkout.addRecipient')}
             </Text>
           )}
         </Pressable>
       </View>
 
       {/* Confirm bottom sheet — only mount after transition + when user opens */}
-      {ready && showConfirm && <BottomSheetModal
-              ref={(node) => {
-                (confirmSheetRef as React.RefObject<BottomSheetModal | null>).current = node
-                node?.present()
-              }}
-              snapPoints={['65%']}
-              enablePanDownToClose
-              enableContentPanningGesture={false}
-              enableHandlePanningGesture
-              enableDynamicSizing={false}
-              backdropComponent={renderConfirmBackdrop}
-              backgroundStyle={{ backgroundColor: isDark ? colors.gray[900] : colors.white.light }}
-              handleIndicatorStyle={{ backgroundColor: isDark ? colors.gray[600] : colors.gray[300] }}
-              onDismiss={handleDismissConfirm}
-              footerComponent={renderConfirmFooter}
-            >
-              {/* Header */}
-              <View style={[cs.header, { borderBottomColor: isDark ? colors.gray[700] : colors.gray[200] }]}>
-                <Text style={[cs.title, { color: textColor }]}>{t('checkout.confirm.title')}</Text>
+      {ready && showConfirm && (
+        <BottomSheetModal
+          ref={(node) => {
+            ;(
+              confirmSheetRef as React.RefObject<BottomSheetModal | null>
+            ).current = node
+            node?.present()
+          }}
+          snapPoints={['65%']}
+          enablePanDownToClose
+          enableContentPanningGesture={false}
+          enableHandlePanningGesture
+          enableDynamicSizing={false}
+          backdropComponent={renderConfirmBackdrop}
+          backgroundStyle={{
+            backgroundColor: isDark ? colors.gray[900] : colors.white.light,
+          }}
+          handleIndicatorStyle={{
+            backgroundColor: isDark ? colors.gray[600] : colors.gray[300],
+          }}
+          onDismiss={handleDismissConfirm}
+          footerComponent={renderConfirmFooter}
+        >
+          {/* Header */}
+          <View
+            style={[
+              cs.header,
+              {
+                borderBottomColor: isDark ? colors.gray[700] : colors.gray[200],
+              },
+            ]}
+          >
+            <Text style={[cs.title, { color: textColor }]}>
+              {t('checkout.confirm.title')}
+            </Text>
+          </View>
+
+          {/* Scrollable content */}
+          <BottomSheetScrollView
+            contentContainerStyle={cs.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Info rows */}
+            <View style={cs.infoSection}>
+              <View
+                style={[
+                  cs.infoRow,
+                  {
+                    backgroundColor: isDark
+                      ? colors.gray[800]
+                      : colors.gray[100],
+                  },
+                ]}
+              >
+                <Text style={[cs.infoLabel, { color: subColor }]}>
+                  {t('checkout.confirm.typeLabel')}
+                </Text>
+                <Text style={[cs.infoValue, { color: textColor }]}>
+                  {cardOrderType === GiftCardType.SELF
+                    ? t('checkout.confirm.typeSelf')
+                    : cardOrderType === GiftCardType.GIFT
+                      ? t('checkout.confirm.typeGift')
+                      : t('checkout.confirm.typeBuy')}
+                </Text>
               </View>
+              <View
+                style={[
+                  cs.infoRow,
+                  {
+                    backgroundColor: isDark
+                      ? colors.gray[800]
+                      : colors.gray[100],
+                  },
+                ]}
+              >
+                <Text style={[cs.infoLabel, { color: subColor }]}>
+                  {t('checkout.quantity')}
+                </Text>
+                <Text style={[cs.infoValue, { color: textColor }]}>
+                  {cardOrderType === GiftCardType.GIFT
+                    ? t('checkout.confirm.quantityWithRecipients', {
+                        qty: totalQty,
+                        count: fields.length,
+                      })
+                    : cardOrderType === GiftCardType.BUY
+                      ? t('checkout.confirm.quantityWithCode', {
+                          qty: totalQty,
+                        })
+                      : t('checkout.confirm.quantity', { qty: totalQty })}
+                </Text>
+              </View>
+            </View>
 
-              {/* Scrollable content */}
-              <BottomSheetScrollView contentContainerStyle={cs.scrollContent} showsVerticalScrollIndicator={false}>
-                {/* Info rows */}
-                <View style={cs.infoSection}>
-                  <View style={[cs.infoRow, { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] }]}>
-                    <Text style={[cs.infoLabel, { color: subColor }]}>{t('checkout.confirm.typeLabel')}</Text>
-                    <Text style={[cs.infoValue, { color: textColor }]}>
-                      {cardOrderType === GiftCardType.SELF
-                      ? t('checkout.confirm.typeSelf')
-                      : cardOrderType === GiftCardType.GIFT
-                        ? t('checkout.confirm.typeGift')
-                        : t('checkout.confirm.typeBuy')
-                    }
-                    </Text>
-                  </View>
-                  <View style={[cs.infoRow, { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] }]}>
-                    <Text style={[cs.infoLabel, { color: subColor }]}>{t('checkout.quantity')}</Text>
-                    <Text style={[cs.infoValue, { color: textColor }]}>
-                      {cardOrderType === GiftCardType.GIFT
-                        ? t('checkout.confirm.quantityWithRecipients', { qty: totalQty, count: fields.length })
-                        : cardOrderType === GiftCardType.BUY
-                          ? t('checkout.confirm.quantityWithCode', { qty: totalQty })
-                          : t('checkout.confirm.quantity', { qty: totalQty })}
-                    </Text>
-                  </View>
+            {/* Item row */}
+            <View
+              style={[
+                cs.itemsSection,
+                {
+                  borderTopColor: isDark
+                    ? colors.gray[700]
+                    : colors.border.light,
+                },
+              ]}
+            >
+              <View style={cs.itemRow}>
+                <View style={{ flex: 1 }}>
+                  <Text
+                    style={[cs.itemName, { color: textColor }]}
+                    numberOfLines={1}
+                  >
+                    {capitalizeFirst(giftCardItem.title)} × {totalQty}
+                  </Text>
                 </View>
+                <Text style={[cs.itemPrice, { color: primaryColor }]}>
+                  {formatCurrency(totalAmount)}
+                </Text>
+              </View>
+            </View>
 
-                {/* Item row */}
-                <View style={[cs.itemsSection, { borderTopColor: isDark ? colors.gray[700] : colors.border.light }]}>
-                  <View style={cs.itemRow}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[cs.itemName, { color: textColor }]} numberOfLines={1}>
-                        {capitalizeFirst(giftCardItem.title)} × {totalQty}
-                      </Text>
-                    </View>
-                    <Text style={[cs.itemPrice, { color: primaryColor }]}>
-                      {formatCurrency(totalAmount)}
-                    </Text>
-                  </View>
+            {/* Totals */}
+            <View
+              style={[
+                cs.totalsSection,
+                {
+                  borderTopColor: isDark
+                    ? colors.gray[700]
+                    : colors.border.light,
+                },
+              ]}
+            >
+              <View style={cs.totalRow}>
+                <Text style={[{ fontSize: 13, color: subColor }]}>
+                  {t('checkout.cardPrice')}
+                </Text>
+                <Text style={[{ fontSize: 13, color: subColor }]}>
+                  {formatCurrency(giftCardItem.price)}
+                </Text>
+              </View>
+              <View style={cs.totalRow}>
+                <Text style={[{ fontSize: 13, color: subColor }]}>
+                  {t('checkout.quantity')}
+                </Text>
+                <Text style={[{ fontSize: 13, color: subColor }]}>
+                  × {totalQty}
+                </Text>
+              </View>
+              <View
+                style={[
+                  cs.totalRow,
+                  cs.finalRow,
+                  {
+                    borderTopColor: isDark
+                      ? colors.gray[700]
+                      : colors.border.light,
+                  },
+                ]}
+              >
+                <Text style={[cs.finalLabel, { color: textColor }]}>
+                  {t('checkout.confirm.totalPayment')}
+                </Text>
+                <Text style={[cs.finalValue, { color: primaryColor }]}>
+                  {formatCurrency(totalAmount)}
+                </Text>
+              </View>
+              {cardOrderType !== GiftCardType.BUY && (
+                <View style={cs.totalRow}>
+                  <Text style={[{ fontSize: 13, color: subColor }]}>
+                    {t('checkout.confirm.pointsEarned')}
+                  </Text>
+                  <Text
+                    style={[
+                      { fontSize: 13, fontWeight: '600', color: primaryColor },
+                    ]}
+                  >
+                    +{formatPoints(totalPoints)}
+                  </Text>
                 </View>
-
-                {/* Totals */}
-                <View style={[cs.totalsSection, { borderTopColor: isDark ? colors.gray[700] : colors.border.light }]}>
-                  <View style={cs.totalRow}>
-                    <Text style={[{ fontSize: 13, color: subColor }]}>{t('checkout.cardPrice')}</Text>
-                    <Text style={[{ fontSize: 13, color: subColor }]}>{formatCurrency(giftCardItem.price)}</Text>
-                  </View>
-                  <View style={cs.totalRow}>
-                    <Text style={[{ fontSize: 13, color: subColor }]}>{t('checkout.quantity')}</Text>
-                    <Text style={[{ fontSize: 13, color: subColor }]}>× {totalQty}</Text>
-                  </View>
-                  <View style={[cs.totalRow, cs.finalRow, { borderTopColor: isDark ? colors.gray[700] : colors.border.light }]}>
-                    <Text style={[cs.finalLabel, { color: textColor }]}>{t('checkout.confirm.totalPayment')}</Text>
-                    <Text style={[cs.finalValue, { color: primaryColor }]}>{formatCurrency(totalAmount)}</Text>
-                  </View>
-                  {cardOrderType !== GiftCardType.BUY && (
-                    <View style={cs.totalRow}>
-                      <Text style={[{ fontSize: 13, color: subColor }]}>{t('checkout.confirm.pointsEarned')}</Text>
-                      <Text style={[{ fontSize: 13, fontWeight: '600', color: primaryColor }]}>
-                        +{formatPoints(totalPoints)}
-                      </Text>
-                    </View>
-                  )}
-                </View>
-              </BottomSheetScrollView>
-            </BottomSheetModal>}
+              )}
+            </View>
+          </BottomSheetScrollView>
+        </BottomSheetModal>
+      )}
     </View>
   )
 }
@@ -594,23 +768,6 @@ const s = StyleSheet.create({
   loadingWrap: { flex: 1, alignItems: 'center', paddingTop: 40 },
   allLockedWrap: { paddingVertical: 12, alignItems: 'center' },
   allLockedText: { fontSize: 14, textAlign: 'center', lineHeight: 20 },
-  lockRow: {
-    flexDirection: 'row',
-    gap: 6,
-    padding: 12,
-    borderRadius: 12,
-  },
-  lockChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  lockChipText: { fontSize: 11, fontWeight: '600' },
-
   section: {
     borderRadius: 16,
     padding: 16,
@@ -684,7 +841,11 @@ const cs = StyleSheet.create({
     borderTopWidth: StyleSheet.hairlineWidth,
     borderStyle: 'dashed',
   },
-  itemRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  itemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   itemName: { fontSize: 14, fontWeight: '600' },
   itemPrice: { fontSize: 14, fontWeight: '700' },
   totalsSection: {
@@ -704,8 +865,20 @@ const cs = StyleSheet.create({
     paddingBottom: 20,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
-  cancelBtn: { flex: 1, height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  cancelBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   cancelText: { fontSize: 15, fontWeight: '600' },
-  submitBtn: { flex: 1, height: 48, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  submitBtn: {
+    flex: 1,
+    height: 48,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   submitText: { fontSize: 15, fontWeight: '700', color: colors.white.light },
 })

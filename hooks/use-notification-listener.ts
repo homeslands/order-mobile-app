@@ -48,6 +48,27 @@ function expoToPayload(
 ): NotificationPayload {
   const content = notification.request.content
   const data = (content.data ?? {}) as Record<string, string>
+
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log(
+      '[FCM] 🔍 Raw notification object:',
+      JSON.stringify(
+        {
+          identifier: notification.request.identifier,
+          trigger: notification.request.trigger,
+          content: {
+            title: content.title,
+            body: content.body,
+            data: content.data,
+          },
+        },
+        null,
+        2,
+      ),
+    )
+  }
+
   return {
     notification: {
       title: content.title ?? undefined,
@@ -69,13 +90,16 @@ export function useNotificationListener(enabled = true) {
   useEffect(() => {
     if (__DEV__) {
       // eslint-disable-next-line no-console
-      console.log('[FCM] useNotificationListener effect running, enabled:', enabled)
+      console.log(
+        '[FCM] useNotificationListener effect running, enabled:',
+        enabled,
+      )
     }
     if (!enabled) return
 
     // Foreground notification received
-    listenerRef.current =
-      Notifications.addNotificationReceivedListener((notification) => {
+    listenerRef.current = Notifications.addNotificationReceivedListener(
+      (notification) => {
         const payload = expoToPayload(notification)
 
         if (__DEV__) {
@@ -95,12 +119,14 @@ export function useNotificationListener(enabled = true) {
 
         if (__DEV__) {
           // eslint-disable-next-line no-console
-          console.log('[FCM] Store unread count:', useNotificationStore.getState().getUnreadCount())
+          console.log(
+            '[FCM] Store unread count:',
+            useNotificationStore.getState().getUnreadCount(),
+          )
         }
 
         // Toast
-        const title =
-          payload.notification?.title || 'Thông báo'
+        const title = payload.notification?.title || 'Thông báo'
         const body = payload.notification?.body || ''
         if (body) {
           if (__DEV__) {
@@ -121,7 +147,8 @@ export function useNotificationListener(enabled = true) {
             console.error('[FCM] Sound playback failed:', e)
           }
         })
-      })
+      },
+    )
 
     if (__DEV__) {
       // eslint-disable-next-line no-console

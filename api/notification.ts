@@ -1,5 +1,8 @@
 import { IApiResponse, IPaginationResponse } from '@/types'
-import type { IAllNotificationRequest, INotification } from '@/types/notification.type'
+import type {
+  IAllNotificationRequest,
+  INotification,
+} from '@/types/notification.type'
 import { http } from '@/utils'
 
 export interface IRegisterDeviceTokenRequest {
@@ -15,10 +18,21 @@ export interface IUnregisterDeviceTokenRequest {
 export async function registerDeviceToken(
   params: IRegisterDeviceTokenRequest,
 ): Promise<IApiResponse<unknown>> {
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log(
+      '[FCM] POST /notification/firebase/register-device-token',
+      JSON.stringify(params),
+    )
+  }
   const response = await http.post<IApiResponse<unknown>>(
     '/notification/firebase/register-device-token',
     params,
   )
+  if (__DEV__) {
+    // eslint-disable-next-line no-console
+    console.log('[FCM] Register response:', JSON.stringify(response.data))
+  }
   return response.data
 }
 
@@ -35,10 +49,9 @@ export async function unregisterDeviceToken(
 export async function getNotifications(
   params: IAllNotificationRequest,
 ): Promise<IApiResponse<IPaginationResponse<INotification>>> {
-  const response = await http.get<IApiResponse<IPaginationResponse<INotification>>>(
-    '/notification',
-    { params },
-  )
+  const response = await http.get<
+    IApiResponse<IPaginationResponse<INotification>>
+  >('/notification', { params })
   return response.data
 }
 
