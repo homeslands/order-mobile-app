@@ -2,7 +2,7 @@
   "expo": {
     "name": "TREND Coffee",
     "slug": "order-mobile-app",
-    "version": "2.1.4",
+    "version": "2.1.7",
     "orientation": "portrait",
     "icon": "./assets/images/trend/logo-icon-padded.png",
     "scheme": "trend",
@@ -62,9 +62,7 @@
         {
           "icon": "./assets/images/trend/logo-icon-padded.png",
           "color": "#F7A737",
-          "sounds": [
-            "./assets/sound/notification.mp3"
-          ],
+          "sounds": ["./assets/sound/notification.mp3"],
           "defaultChannel": "default"
         }
       ],

@@ -1,5 +1,4 @@
 export enum TableStatus {
-    AVAILABLE = 'available',
-    RESERVED = 'reserved',
-  }
-  
+  AVAILABLE = 'available',
+  RESERVED = 'reserved',
+}

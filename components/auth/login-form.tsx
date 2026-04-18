@@ -1,14 +1,9 @@
-import { Eye, EyeOff } from 'lucide-react-native'
-import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  ActivityIndicator,
-  Text,
-  TouchableOpacity,
-  View
-} from 'react-native'
+import { Controller } from 'react-hook-form'
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 
 import { FormInput } from '@/components/form/form-input'
+import { PasswordInputField } from '@/components/input'
 import { ROUTE } from '@/constants'
 import { useLogin, usePostAuthActions, useZodForm } from '@/hooks'
 import { navigateNative } from '@/lib/navigation'
@@ -22,13 +17,14 @@ interface LoginFormProps {
 
 export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
   const { t } = useTranslation('auth')
-  // const passwordRef = useRef<TextInput>(null)
-  const [showPassword, setShowPassword] = useState(false)
 
-  const { control, handleSubmit, formState: { isSubmitting } } =
-    useZodForm(loginSchema, {
-      defaultValues: { phonenumber: '', password: '' },
-    })
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting, errors },
+  } = useZodForm(loginSchema, {
+    defaultValues: { phonenumber: '', password: '' },
+  })
 
   const { mutate: loginMutation, isPending } = useLogin()
   const { handleAuthSuccess } = usePostAuthActions()
@@ -41,7 +37,8 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
           try {
             await handleAuthSuccess(response.result, onLoginSuccess)
           } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error'
+            const message =
+              error instanceof Error ? error.message : 'Unknown error'
             showErrorToastMessage(message)
           }
         },
@@ -62,10 +59,10 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
 
   return (
     <View className="flex-1 px-6 pt-12">
-      <Text className="mb-2 text-3xl font-sans-bold text-foreground">
+      <Text className="mb-2 font-sans-bold text-3xl text-gray-900 dark:text-white">
         {t('login.title')}
       </Text>
-      <Text className="mb-8 text-base font-sans text-muted-foreground">
+      <Text className="mb-8 font-sans text-base text-gray-500 dark:text-gray-400">
         {t('login.description')}
       </Text>
 
@@ -80,13 +77,13 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         disabled={isLoading}
         useTextInput
         transformOnChange={(v) => v.replace(/\D/g, '')}
-        labelClassName="text-md font-sans-medium text-muted-foreground"
+        labelClassName="text-md font-sans-medium text-gray-500 dark:text-gray-400"
       />
 
       {/* Password */}
       <View className="mb-6">
         <View className="mb-1 flex-row items-center justify-between">
-          <Text className="text-md font-sans-medium text-muted-foreground">
+          <Text className="text-md font-sans-medium text-gray-500 dark:text-gray-400">
             {t('login.password')}
           </Text>
           <TouchableOpacity
@@ -94,34 +91,25 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
             disabled={isLoading}
             hitSlop={8}
           >
-            <Text className="text-sm font-sans-semibold text-primary">
+            <Text className="font-sans-semibold text-sm text-amber-500 dark:text-amber-400">
               {t('login.forgotPassword')}
             </Text>
           </TouchableOpacity>
         </View>
-        <FormInput
+        <Controller
           control={control}
           name="password"
-          placeholder={t('login.enterPassword')}
-          secureTextEntry={!showPassword}
-          autoCapitalize="none"
-          disabled={isLoading}
-          useTextInput
-          containerClassName="mb-0"
-          className="pr-12"
-        />
-        <TouchableOpacity
-          className="absolute bottom-3 right-4 p-1"
-          onPress={() => setShowPassword((v) => !v)}
-          disabled={isLoading}
-          hitSlop={8}
-        >
-          {showPassword ? (
-            <EyeOff size={20} color="#9ca3af" />
-          ) : (
-            <Eye size={20} color="#9ca3af" />
+          render={({ field: { onChange, onBlur, value } }) => (
+            <PasswordInputField
+              value={value}
+              onChange={onChange}
+              onBlur={onBlur}
+              placeholder={t('login.enterPassword')}
+              disabled={isLoading}
+              error={errors.password?.message}
+            />
           )}
-        </TouchableOpacity>
+        />
       </View>
 
       {/* Quick login — dev helper, hardcoded acc */}
@@ -130,7 +118,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         onPress={handleQuickLogin}
         disabled={isLoading}
       >
-        <Text className="text-sm font-sans text-muted-foreground">
+        <Text className="text-sm font-sans text-gray-500 dark:text-gray-400">
           Đăng nhập nhanh (0324567894)
         </Text>
       </TouchableOpacity> */}
@@ -144,7 +132,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         {isLoading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text className="text-base font-sans-semibold text-primary-foreground">
+          <Text className="font-sans-semibold text-base text-white">
             {t('login.login')}
           </Text>
         )}
@@ -156,9 +144,9 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         onPress={() => navigateNative.replace('/auth/register')}
         disabled={isLoading}
       >
-        <Text className="text-sm font-sans text-muted-foreground">
+        <Text className="font-sans text-sm text-gray-500 dark:text-gray-400">
           {t('login.noAccount')}{' '}
-          <Text className="font-sans-semibold text-primary">
+          <Text className="font-sans-semibold text-amber-500 dark:text-amber-400">
             {t('login.register')}
           </Text>
         </Text>
@@ -170,7 +158,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         onPress={() => navigateNative.replace('/(tabs)/home')}
         disabled={isLoading}
       >
-        <Text className="text-sm font-sans text-muted-foreground">
+        <Text className="font-sans text-sm text-gray-500 dark:text-gray-400">
           {t('login.goBackToHome')}
         </Text>
       </TouchableOpacity>

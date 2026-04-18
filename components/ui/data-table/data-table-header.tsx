@@ -37,8 +37,12 @@ export function DataTableHeader() {
           {canSort && (
             <View className="opacity-60">
               {dir === 'asc' && <ArrowUp size={14} color={colors.gray[500]} />}
-              {dir === 'desc' && <ArrowDown size={14} color={colors.gray[500]} />}
-              {dir === 'none' && <ChevronsUpDown size={14} color={colors.gray[500]} />}
+              {dir === 'desc' && (
+                <ArrowDown size={14} color={colors.gray[500]} />
+              )}
+              {dir === 'none' && (
+                <ChevronsUpDown size={14} color={colors.gray[500]} />
+              )}
             </View>
           )}
         </Pressable>

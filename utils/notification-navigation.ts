@@ -12,12 +12,12 @@
 //   if (!url) {
 //     return { path: '/', fullUrl: '/' }
 //   }
-  
+
 //   try {
 //     // Parse URL để extract path + query + hash
 //     const urlObj = new URL(url)
 //     const path = urlObj.pathname + urlObj.search + urlObj.hash
-    
+
 //     return { path, fullUrl: url }
 //   } catch {
 //     // Fallback: relative path
@@ -29,7 +29,7 @@
 // /**
 //  * Navigate to notification URL - OPTIMIZED
 //  * Dùng Deep Link Handler để xử lý thống nhất
-//  * 
+//  *
 //  * @param url - URL from notification data (support both full URL and relative path)
 //  * @param navigate - React Router navigate function
 //  */

@@ -25,7 +25,7 @@ export interface ICardOrderGetRequest {
   toDate?: string
   status?: string
   customerSlug?: string
-  k?: string | null,
+  k?: string | null
   paymentMethod?: string | null
 }
 
@@ -37,8 +37,8 @@ export interface IRecipient {
   phone?: string
 }
 export interface ICardOrderResponse {
-  sequence: number;
-  code: string;
+  sequence: number
+  code: string
   slug: string
   type: string
   status: string

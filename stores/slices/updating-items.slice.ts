@@ -20,7 +20,10 @@ export function createUpdatingItemsMethods(set: SetFn, get: GetFn) {
       set({
         updatingData: {
           ...updatingData,
-          updateDraft: { ...updatingData.updateDraft, orderItems: updatedItems },
+          updateDraft: {
+            ...updatingData.updateDraft,
+            orderItems: updatedItems,
+          },
           hasChanges: true,
         },
         lastModified: dayjs().valueOf(),
@@ -38,7 +41,10 @@ export function createUpdatingItemsMethods(set: SetFn, get: GetFn) {
       set({
         updatingData: {
           ...updatingData,
-          updateDraft: { ...updatingData.updateDraft, orderItems: updatedItems },
+          updateDraft: {
+            ...updatingData.updateDraft,
+            orderItems: updatedItems,
+          },
           hasChanges: true,
         },
         lastModified: dayjs().valueOf(),
@@ -76,7 +82,10 @@ export function createUpdatingItemsMethods(set: SetFn, get: GetFn) {
       set({
         updatingData: {
           ...updatingData,
-          updateDraft: { ...updatingData.updateDraft, orderItems: updatedItems },
+          updateDraft: {
+            ...updatingData.updateDraft,
+            orderItems: updatedItems,
+          },
           hasChanges: true,
         },
         lastModified: dayjs().valueOf(),
@@ -123,7 +132,10 @@ export function createUpdatingItemsMethods(set: SetFn, get: GetFn) {
       set({
         updatingData: {
           ...updatingData,
-          updateDraft: { ...updatingData.updateDraft, orderItems: updatedItems },
+          updateDraft: {
+            ...updatingData.updateDraft,
+            orderItems: updatedItems,
+          },
           hasChanges: true,
         },
         lastModified: dayjs().valueOf(),

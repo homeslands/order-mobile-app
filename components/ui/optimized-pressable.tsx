@@ -27,7 +27,9 @@ export const OptimizedPressable = React.forwardRef<
       ref={ref}
       {...props}
       hitSlop={hitSlop ?? (small ? HIT_SLOP_SMALL : undefined)}
-      {...({ unstable_pressDelay: 0 } as Partial<ComponentProps<typeof Pressable>>)}
+      {...({ unstable_pressDelay: 0 } as Partial<
+        ComponentProps<typeof Pressable>
+      >)}
     />
   )
 })

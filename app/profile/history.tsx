@@ -16,10 +16,7 @@ import {
 } from 'react-native'
 
 import { getOrderBySlug } from '@/api'
-import {
-  colors,
-  NotificationMessageCode,
-} from '@/constants'
+import { colors, NotificationMessageCode } from '@/constants'
 import { ORDER_HISTORY_ITEM_HEIGHT } from '@/constants/list-item-sizes'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useOrders, useRunAfterTransition } from '@/hooks'
@@ -52,13 +49,19 @@ const FilterBar = React.memo(function FilterBar({
   labels: { all: string; pending: string; completed: string }
 }) {
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={pageStyles.filterScroll}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={pageStyles.filterScroll}
+    >
       {STATUS_FILTER_OPTIONS.map((opt) => {
         const sel = status === opt.value
         const label =
-          opt.labelKey === 'all' ? labels.all
-          : opt.labelKey === 'pending' ? labels.pending
-          : labels.completed
+          opt.labelKey === 'all'
+            ? labels.all
+            : opt.labelKey === 'pending'
+              ? labels.pending
+              : labels.completed
         return (
           <Pressable
             key={opt.value}
@@ -67,11 +70,27 @@ const FilterBar = React.memo(function FilterBar({
               pageStyles.filterChip,
               sel
                 ? { borderColor: primaryColor, backgroundColor: primaryColor }
-                : { borderColor: isDark ? colors.gray[700] : colors.gray[200], backgroundColor: isDark ? colors.gray[800] : colors.white.light },
+                : {
+                    borderColor: isDark ? colors.gray[700] : colors.gray[200],
+                    backgroundColor: isDark
+                      ? colors.gray[800]
+                      : colors.white.light,
+                  },
               isPending && !sel && { opacity: 0.5 },
             ]}
           >
-            <Text style={[pageStyles.filterChipText, { color: sel ? colors.white.light : (isDark ? colors.gray[300] : colors.gray[700]) }]}>
+            <Text
+              style={[
+                pageStyles.filterChipText,
+                {
+                  color: sel
+                    ? colors.white.light
+                    : isDark
+                      ? colors.gray[300]
+                      : colors.gray[700],
+                },
+              ]}
+            >
               {label}
             </Text>
           </Pressable>
@@ -97,7 +116,12 @@ function OrderHistoryPage() {
   const [allowFetch, setAllowFetch] = useState(false)
   useRunAfterTransition(() => setAllowFetch(true), [])
 
-  const { data: orderResponse, isPending, refetch, isRefetching } = useOrders(
+  const {
+    data: orderResponse,
+    isPending,
+    refetch,
+    isRefetching,
+  } = useOrders(
     {
       page,
       size: pageSize,
@@ -121,7 +145,10 @@ function OrderHistoryPage() {
     }
   }, [latestNotification, refetch])
 
-  const orders = useMemo(() => orderResponse?.items || [], [orderResponse?.items])
+  const orders = useMemo(
+    () => orderResponse?.items || [],
+    [orderResponse?.items],
+  )
 
   // Pre-compute display data once when orders change — O(1) lookup in renderItem
   const orderDisplayMap = useMemo(() => {
@@ -129,7 +156,10 @@ function OrderHistoryPage() {
     for (const order of orders) {
       const items = order.orderItems || []
       const voucher = order.voucher || null
-      const { displayItems, cartTotals } = calculateOrderDisplayAndTotals(items, voucher)
+      const { displayItems, cartTotals } = calculateOrderDisplayAndTotals(
+        items,
+        voucher,
+      )
       const diMap = new Map<string, (typeof displayItems)[number]>()
       for (const di of displayItems) diMap.set(di.slug, di)
       map.set(order.slug, { displayItemMap: diMap, cartTotals })
@@ -141,7 +171,6 @@ function OrderHistoryPage() {
   const hasPrevious = orderResponse?.hasPrevious || false
   const currentPage = orderResponse?.page || 1
   const totalPages = orderResponse?.totalPages || 0
-
 
   const handleOrderPress = useCallback(
     (orderSlug: string) => {
@@ -170,21 +199,27 @@ function OrderHistoryPage() {
     [t],
   )
 
-  const orderCardLabels = useMemo(() => ({
-    subtotal: t('order.subtotal', 'Tổng tiền hàng'),
-    promotionDiscount: t('order.promotionDiscount', 'Giảm giá khuyến mãi'),
-    voucher: t('order.voucher', 'Mã giảm giá'),
-    loyaltyPoint: t('order.loyaltyPoint', 'Điểm tích lũy'),
-    deliveryFee: t('order.deliveryFee', 'Phí giao hàng'),
-    totalPayment: t('order.totalPayment', 'Tổng thanh toán'),
-    moreItems: t('order.moreItems', 'sản phẩm khác'),
-  }), [t])
+  const orderCardLabels = useMemo(
+    () => ({
+      subtotal: t('order.subtotal', 'Tổng tiền hàng'),
+      promotionDiscount: t('order.promotionDiscount', 'Giảm giá khuyến mãi'),
+      voucher: t('order.voucher', 'Mã giảm giá'),
+      loyaltyPoint: t('order.loyaltyPoint', 'Điểm tích lũy'),
+      deliveryFee: t('order.deliveryFee', 'Phí giao hàng'),
+      totalPayment: t('order.totalPayment', 'Tổng thanh toán'),
+      moreItems: t('order.moreItems', 'sản phẩm khác'),
+    }),
+    [t],
+  )
 
-  const filterBarLabels = useMemo(() => ({
-    all: tProfile('profile.all', 'Tất cả'),
-    pending: t('order.unpaid', 'Chưa thanh toán'),
-    completed: t('order.paid', 'Đã thanh toán'),
-  }), [t, tProfile])
+  const filterBarLabels = useMemo(
+    () => ({
+      all: tProfile('profile.all', 'Tất cả'),
+      pending: t('order.unpaid', 'Chưa thanh toán'),
+      completed: t('order.paid', 'Đã thanh toán'),
+    }),
+    [t, tProfile],
+  )
 
   const handleFilterSelect = useCallback((s: OrderStatus) => {
     setStatus(s)
@@ -192,10 +227,11 @@ function OrderHistoryPage() {
   }, [])
 
   const overrideItemLayout = useCallback(
-    (layout: { span?: number; size?: number }) => { layout.size = ORDER_HISTORY_ITEM_HEIGHT },
+    (layout: { span?: number; size?: number }) => {
+      layout.size = ORDER_HISTORY_ITEM_HEIGHT
+    },
     [],
   )
-
 
   const renderOrderItem = useCallback(
     ({ item: orderItem }: { item: IOrder }) => (
@@ -209,7 +245,14 @@ function OrderHistoryPage() {
         labels={orderCardLabels}
       />
     ),
-    [orderDisplayMap, primaryColor, isDark, getStatusLabel, handleOrderPress, orderCardLabels],
+    [
+      orderDisplayMap,
+      primaryColor,
+      isDark,
+      getStatusLabel,
+      handleOrderPress,
+      orderCardLabels,
+    ],
   )
 
   const keyExtractor = useCallback((item: IOrder) => item.slug ?? '', [])
@@ -221,21 +264,62 @@ function OrderHistoryPage() {
         <Pressable
           onPress={() => setPage(page - 1)}
           disabled={!hasPrevious}
-          style={[pageStyles.pageBtn, { backgroundColor: isDark ? colors.gray[800] : colors.white.light, borderColor: isDark ? colors.gray[700] : colors.gray[200] }, !hasPrevious && { opacity: 0.5 }]}
+          style={[
+            pageStyles.pageBtn,
+            {
+              backgroundColor: isDark ? colors.gray[800] : colors.white.light,
+              borderColor: isDark ? colors.gray[700] : colors.gray[200],
+            },
+            !hasPrevious && { opacity: 0.5 },
+          ]}
         >
-          <Text style={[pageStyles.pageBtnText, { color: hasPrevious ? (isDark ? colors.gray[50] : colors.gray[900]) : colors.gray[400] }]}>
+          <Text
+            style={[
+              pageStyles.pageBtnText,
+              {
+                color: hasPrevious
+                  ? isDark
+                    ? colors.gray[50]
+                    : colors.gray[900]
+                  : colors.gray[400],
+              },
+            ]}
+          >
             {t('order.previous', 'Trước')}
           </Text>
         </Pressable>
-        <Text style={[pageStyles.pageInfo, { color: isDark ? colors.gray[400] : colors.gray[600] }]}>
+        <Text
+          style={[
+            pageStyles.pageInfo,
+            { color: isDark ? colors.gray[400] : colors.gray[600] },
+          ]}
+        >
           {currentPage} / {totalPages}
         </Text>
         <Pressable
           onPress={() => setPage(page + 1)}
           disabled={!hasNext}
-          style={[pageStyles.pageBtn, { backgroundColor: isDark ? colors.gray[800] : colors.white.light, borderColor: isDark ? colors.gray[700] : colors.gray[200] }, !hasNext && { opacity: 0.5 }]}
+          style={[
+            pageStyles.pageBtn,
+            {
+              backgroundColor: isDark ? colors.gray[800] : colors.white.light,
+              borderColor: isDark ? colors.gray[700] : colors.gray[200],
+            },
+            !hasNext && { opacity: 0.5 },
+          ]}
         >
-          <Text style={[pageStyles.pageBtnText, { color: hasNext ? (isDark ? colors.gray[50] : colors.gray[900]) : colors.gray[400] }]}>
+          <Text
+            style={[
+              pageStyles.pageBtnText,
+              {
+                color: hasNext
+                  ? isDark
+                    ? colors.gray[50]
+                    : colors.gray[900]
+                  : colors.gray[400],
+              },
+            ]}
+          >
             {t('order.next', 'Sau')}
           </Text>
         </Pressable>
@@ -246,11 +330,24 @@ function OrderHistoryPage() {
   const ListEmptyComponent = useMemo(
     () => (
       <View style={pageStyles.emptyWrap}>
-        <Package size={64} color={isDark ? colors.gray[400] : colors.gray[500]} />
-        <Text style={[pageStyles.emptyTitle, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>
+        <Package
+          size={64}
+          color={isDark ? colors.gray[400] : colors.gray[500]}
+        />
+        <Text
+          style={[
+            pageStyles.emptyTitle,
+            { color: isDark ? colors.gray[50] : colors.gray[900] },
+          ]}
+        >
           {t('order.noOrders', 'Chưa có đơn hàng')}
         </Text>
-        <Text style={[pageStyles.emptyDesc, { color: isDark ? colors.gray[400] : colors.gray[600] }]}>
+        <Text
+          style={[
+            pageStyles.emptyDesc,
+            { color: isDark ? colors.gray[400] : colors.gray[600] },
+          ]}
+        >
           {t('order.noOrdersDescription', 'Bạn chưa có đơn hàng nào')}
         </Text>
       </View>
@@ -262,7 +359,14 @@ function OrderHistoryPage() {
   const headerBg = isDark ? colors.gray[800] : colors.white.light
   const headerBorder = isDark ? colors.gray[700] : colors.gray[200]
   const gradientColors = useMemo(
-    () => [screenBg, `${screenBg}E6`, `${screenBg}B0`, `${screenBg}50`, `${screenBg}00`] as const,
+    () =>
+      [
+        screenBg,
+        `${screenBg}E6`,
+        `${screenBg}B0`,
+        `${screenBg}50`,
+        `${screenBg}00`,
+      ] as const,
     [screenBg],
   )
 
@@ -290,14 +394,19 @@ function OrderHistoryPage() {
           ListEmptyComponent={ListEmptyComponent}
           contentContainerStyle={pageStyles.listPadding}
           refreshControl={
-            <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={primaryColor} colors={[primaryColor]} />
+            <RefreshControl
+              refreshing={isRefetching}
+              onRefresh={refetch}
+              tintColor={primaryColor}
+              colors={[primaryColor]}
+            />
           }
         />
 
         {/* Floating header — blur + gradient overlay */}
         <View style={pageStyles.floatingHeader} pointerEvents="box-none">
           <View style={StyleSheet.absoluteFill} pointerEvents="none">
-<LinearGradient
+            <LinearGradient
               colors={gradientColors}
               locations={[0, 0.3, 0.62, 0.85, 1]}
               style={StyleSheet.absoluteFill}
@@ -305,16 +414,38 @@ function OrderHistoryPage() {
           </View>
 
           {/* Row: back + title + spacer */}
-          <View style={[pageStyles.headerRow, { paddingTop: STATIC_TOP_INSET + 10 }]} pointerEvents="auto">
+          <View
+            style={[
+              pageStyles.headerRow,
+              { paddingTop: STATIC_TOP_INSET + 10 },
+            ]}
+            pointerEvents="auto"
+          >
             <Pressable
               onPress={navigateNative.back}
               hitSlop={8}
-              style={[pageStyles.circleBtn, { backgroundColor: isDark ? colors.gray[800] : colors.white.light }, pageStyles.shadow]}
+              style={[
+                pageStyles.circleBtn,
+                {
+                  backgroundColor: isDark
+                    ? colors.gray[800]
+                    : colors.white.light,
+                },
+                pageStyles.shadow,
+              ]}
             >
-              <ChevronLeft size={20} color={isDark ? colors.gray[50] : colors.gray[900]} />
+              <ChevronLeft
+                size={20}
+                color={isDark ? colors.gray[50] : colors.gray[900]}
+              />
             </Pressable>
 
-            <Text style={[pageStyles.headerTitle, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>
+            <Text
+              style={[
+                pageStyles.headerTitle,
+                { color: isDark ? colors.gray[50] : colors.gray[900] },
+              ]}
+            >
               {t('order.history', 'Lịch sử đơn hàng')}
             </Text>
 
@@ -351,21 +482,67 @@ const STATUS_FILTER_OPTIONS = [
 
 const pageStyles = StyleSheet.create({
   flex: { flex: 1 },
-  floatingHeader: { position: 'absolute', top: 0, left: 0, right: 0, zIndex: 20, paddingBottom: 24 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16 },
-  circleBtn: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
-  shadow: { shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.03, shadowRadius: 24, elevation: 2 },
+  floatingHeader: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 20,
+    paddingBottom: 24,
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+  },
+  circleBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 24,
+    elevation: 2,
+  },
   headerTitle: { fontSize: 17, fontWeight: '700' },
   filterRow: { paddingTop: 10, paddingBottom: 4 },
   filterScroll: { flexDirection: 'row', gap: 8, paddingHorizontal: 16 },
-  filterChip: { borderWidth: 1, borderRadius: 999, paddingHorizontal: 16, paddingVertical: 8 },
+  filterChip: {
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
   filterChipText: { fontSize: 14, fontWeight: '500' },
   listPadding: { paddingHorizontal: 16, paddingTop: 130, paddingBottom: 24 },
-  paginationRow: { marginTop: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 16 },
-  pageBtn: { borderWidth: 1, borderRadius: 8, paddingHorizontal: 16, paddingVertical: 8 },
+  paginationRow: {
+    marginTop: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  pageBtn: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
   pageBtnText: { fontSize: 14, fontWeight: '500' },
   pageInfo: { fontSize: 14 },
-  emptyWrap: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, paddingVertical: 64 },
+  emptyWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 64,
+  },
   emptyTitle: { marginTop: 16, fontSize: 18, fontWeight: '600' },
   emptyDesc: { marginTop: 8, fontSize: 14, textAlign: 'center' },
 })

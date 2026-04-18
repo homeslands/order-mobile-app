@@ -6,7 +6,14 @@ import { useLocalSearchParams } from 'expo-router'
 import { ShoppingCartIcon } from 'lucide-react-native'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, ScrollView, StyleSheet, Text, useColorScheme, View } from 'react-native'
+import {
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors, TAB_ROUTES } from '@/constants'
@@ -39,9 +46,11 @@ export default function UpdateOrderScreen() {
   // Guard: prevent concurrent poll requests if network is slow
   const isFetchingRef = React.useRef(false)
 
-  const { data: orderResponse, isPending, refetch: refetchOrder } = useOrderBySlug(
-    allowFetch ? slug : null,
-  )
+  const {
+    data: orderResponse,
+    isPending,
+    refetch: refetchOrder,
+  } = useOrderBySlug(allowFetch ? slug : null)
   const order = orderResponse?.result
   const initializeUpdating = useOrderFlowStore((s) => s.initializeUpdating)
   const clearUpdatingData = useOrderFlowStore((s) => s.clearUpdatingData)
@@ -69,7 +78,8 @@ export default function UpdateOrderScreen() {
   // Init updating data when order is valid
   useEffect(() => {
     if (!order || !slug || !allowFetch) return
-    const isValidOrder = order.slug && order.orderItems && order.orderItems.length > 0
+    const isValidOrder =
+      order.slug && order.orderItems && order.orderItems.length > 0
     if (isValidOrder && !isDataLoaded) {
       const run = () => {
         try {
@@ -116,7 +126,9 @@ export default function UpdateOrderScreen() {
         if (updated && updated.status !== OrderStatus.PENDING) {
           setShouldReinitialize(true)
         }
-      } catch { /* ignore */ } finally {
+      } catch {
+        /* ignore */
+      } finally {
         isFetchingRef.current = false
       }
     }, 5000)
@@ -148,31 +160,69 @@ export default function UpdateOrderScreen() {
   // ── Expired ─────────────────────────────────────────────────────────────────
   if (isExpired) {
     return (
-      <ScreenContainer edges={['top']} style={[s.screen, { backgroundColor: screenBg }]}>
-        <View style={[s.expiredHeader, { borderBottomColor: isDark ? colors.gray[700] : colors.gray[200], backgroundColor: isDark ? colors.gray[800] : colors.white.light }]}>
+      <ScreenContainer
+        edges={['top']}
+        style={[s.screen, { backgroundColor: screenBg }]}
+      >
+        <View
+          style={[
+            s.expiredHeader,
+            {
+              borderBottomColor: isDark ? colors.gray[700] : colors.gray[200],
+              backgroundColor: isDark ? colors.gray[800] : colors.white.light,
+            },
+          ]}
+        >
           <Pressable onPress={handleBack} hitSlop={8} style={s.backBtn}>
-            <Text style={[s.backText, { color: isDark ? colors.gray[300] : colors.gray[600] }]}>‹</Text>
+            <Text
+              style={[
+                s.backText,
+                { color: isDark ? colors.gray[300] : colors.gray[600] },
+              ]}
+            >
+              ‹
+            </Text>
           </Pressable>
-          <Text style={[s.headerTitle, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>
+          <Text
+            style={[
+              s.headerTitle,
+              { color: isDark ? colors.gray[50] : colors.gray[900] },
+            ]}
+          >
             {t('order.updateOrder', 'Cập nhật đơn hàng')}
           </Text>
           <View style={s.backBtn} />
         </View>
         <View style={s.expiredBody}>
           <View style={s.expiredIconWrap}>
-            <ShoppingCartIcon size={64} color={isDark ? colors.primary.light : colors.primary.dark} />
+            <ShoppingCartIcon
+              size={64}
+              color={isDark ? colors.primary.light : colors.primary.dark}
+            />
           </View>
-          <Text style={[s.expiredTitle, { color: isDark ? colors.gray[200] : colors.gray[800] }]}>
+          <Text
+            style={[
+              s.expiredTitle,
+              { color: isDark ? colors.gray[200] : colors.gray[800] },
+            ]}
+          >
             {t('order.orderExpired', 'Đơn hàng đã hết hạn cập nhật')}
           </Text>
-          <Text style={[s.expiredSub, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>
+          <Text
+            style={[
+              s.expiredSub,
+              { color: isDark ? colors.gray[400] : colors.gray[500] },
+            ]}
+          >
             {t('order.backToMenuNote', 'Vui lòng tạo đơn hàng mới từ thực đơn')}
           </Text>
           <Pressable
             onPress={handleBackToMenu}
             style={[s.expiredBtn, { backgroundColor: primaryColor }]}
           >
-            <Text style={s.expiredBtnText}>{t('order.backToMenu', 'Về thực đơn')}</Text>
+            <Text style={s.expiredBtnText}>
+              {t('order.backToMenu', 'Về thực đơn')}
+            </Text>
           </Pressable>
         </View>
       </ScreenContainer>
@@ -183,7 +233,6 @@ export default function UpdateOrderScreen() {
   return (
     <View style={[s.screen, { backgroundColor: screenBg }]}>
       <ScreenContainer edges={['top']} style={{ flex: 1 }}>
-
         {/* Fixed area cleared for FloatingHeader: countdown + tab bar */}
         <View style={{ paddingTop: STATIC_TOP_INSET + 36 }}>
           {order?.createdAt && (
@@ -192,23 +241,64 @@ export default function UpdateOrderScreen() {
               setIsExpired={handleExpire}
             />
           )}
-          <View style={[s.tabBar, {
-            backgroundColor: isDark ? colors.gray[800] : colors.white.light,
-            borderBottomColor: isDark ? colors.gray[700] : colors.gray[200],
-          }]}>
+          <View
+            style={[
+              s.tabBar,
+              {
+                backgroundColor: isDark ? colors.gray[800] : colors.white.light,
+                borderBottomColor: isDark ? colors.gray[700] : colors.gray[200],
+              },
+            ]}
+          >
             <Pressable
               onPress={handleTabOrder}
-              style={[s.tab, activeTab === 'order' && { borderBottomColor: primaryColor, borderBottomWidth: 2 }]}
+              style={[
+                s.tab,
+                activeTab === 'order' && {
+                  borderBottomColor: primaryColor,
+                  borderBottomWidth: 2,
+                },
+              ]}
             >
-              <Text style={[s.tabText, { color: activeTab === 'order' ? primaryColor : (isDark ? colors.gray[400] : colors.gray[500]) }]}>
+              <Text
+                style={[
+                  s.tabText,
+                  {
+                    color:
+                      activeTab === 'order'
+                        ? primaryColor
+                        : isDark
+                          ? colors.gray[400]
+                          : colors.gray[500],
+                  },
+                ]}
+              >
                 {t('order.order', 'Đơn hàng')}
               </Text>
             </Pressable>
             <Pressable
               onPress={handleTabMenu}
-              style={[s.tab, activeTab === 'menu' && { borderBottomColor: primaryColor, borderBottomWidth: 2 }]}
+              style={[
+                s.tab,
+                activeTab === 'menu' && {
+                  borderBottomColor: primaryColor,
+                  borderBottomWidth: 2,
+                },
+              ]}
             >
-              <Text style={[s.tabText, { color: activeTab === 'menu' ? primaryColor : (isDark ? colors.gray[400] : colors.gray[500]) }]}>
+              <Text
+                style={[
+                  s.tabText,
+                  {
+                    color:
+                      activeTab === 'menu'
+                        ? primaryColor
+                        : isDark
+                          ? colors.gray[400]
+                          : colors.gray[500],
+                  },
+                ]}
+              >
                 {t('menu.addMenuItem', 'Thêm món')}
               </Text>
             </Pressable>
@@ -227,7 +317,10 @@ export default function UpdateOrderScreen() {
             contentContainerStyle={{ paddingBottom: 24 }}
             showsVerticalScrollIndicator={false}
           >
-            <UpdateOrderMenus branchSlug={branchSlug} primaryColor={primaryColor} />
+            <UpdateOrderMenus
+              branchSlug={branchSlug}
+              primaryColor={primaryColor}
+            />
           </ScrollView>
         )}
 
@@ -245,7 +338,6 @@ export default function UpdateOrderScreen() {
         <FloatingHeader
           title={t('order.updateOrder', 'Cập nhật đơn hàng')}
           onBack={handleBack}
-        
           disableBlur
         />
       </ScreenContainer>
@@ -265,13 +357,41 @@ const s = StyleSheet.create({
   },
   backBtn: { width: 36, alignItems: 'center' },
   backText: { fontSize: 28, lineHeight: 32 },
-  headerTitle: { flex: 1, textAlign: 'center', fontSize: 17, fontWeight: '700' },
-  expiredBody: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 12 },
-  expiredIconWrap: { width: 120, height: 120, borderRadius: 60, backgroundColor: 'rgba(247,167,55,0.15)', alignItems: 'center', justifyContent: 'center', marginBottom: 8 },
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  expiredBody: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 32,
+    gap: 12,
+  },
+  expiredIconWrap: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    backgroundColor: 'rgba(247,167,55,0.15)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
   expiredTitle: { fontSize: 17, fontWeight: '700', textAlign: 'center' },
   expiredSub: { fontSize: 14, textAlign: 'center', lineHeight: 20 },
-  expiredBtn: { marginTop: 8, paddingHorizontal: 28, paddingVertical: 12, borderRadius: 9999 },
-  expiredBtnText: { fontSize: 15, fontWeight: '700', color: colors.white.light },
+  expiredBtn: {
+    marginTop: 8,
+    paddingHorizontal: 28,
+    paddingVertical: 12,
+    borderRadius: 9999,
+  },
+  expiredBtnText: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: colors.white.light,
+  },
   // ── Tab bar ────────────────────────────────────────────────────────────────
   tabBar: {
     flexDirection: 'row',

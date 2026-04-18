@@ -45,11 +45,11 @@ export default function TableSelect({
     <TouchableOpacity
       onPress={handlePress}
       className={cn(
-        'flex-row items-center gap-2 h-11 px-3 py-2 rounded-md w-full',
+        'h-11 w-full flex-row items-center gap-2 rounded-md px-3 py-2',
         'bg-white dark:bg-gray-800',
         'border border-gray-200 dark:border-gray-700',
         !selectedTableId && 'border-red-300 dark:border-red-700',
-        'active:bg-gray-100/50 dark:active:bg-gray-700/50'
+        'active:bg-gray-100/50 dark:active:bg-gray-700/50',
       )}
     >
       <Text
@@ -58,7 +58,7 @@ export default function TableSelect({
           'flex-1 text-sm',
           selectedTableId
             ? 'font-medium text-gray-900 dark:text-gray-50'
-            : 'text-gray-500 dark:text-gray-400'
+            : 'text-gray-500 dark:text-gray-400',
         )}
       >
         {displayText}

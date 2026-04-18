@@ -320,7 +320,7 @@ const errorCodes: { [key: number]: string } = {
  * Show toast/alert message
  * In React Native, we use Alert.alert as a simple toast alternative
  * For production, consider using a toast library like react-native-toast-message
- * 
+ *
  * @param message - The message key or text to display
  * @param title - Optional title (default: 'Thông báo')
  */

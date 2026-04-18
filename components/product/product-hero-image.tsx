@@ -1,9 +1,17 @@
 import { Image } from 'expo-image'
 import React, { memo } from 'react'
 import type { StyleProp, ViewStyle } from 'react-native'
-import { StyleSheet, Text, View, useColorScheme, useWindowDimensions } from 'react-native'
+import {
+  StyleSheet,
+  Text,
+  View,
+  useColorScheme,
+  useWindowDimensions,
+} from 'react-native'
 import Animated from 'react-native-reanimated'
-import Carousel, { type CarouselRenderItem } from 'react-native-reanimated-carousel'
+import Carousel, {
+  type CarouselRenderItem,
+} from 'react-native-reanimated-carousel'
 
 import { colors } from '@/constants'
 
@@ -115,19 +123,27 @@ function ProductHeroImageInner({
   )
 
   if (sources.length === 0) {
-    return <Animated.View style={[styles.fallback, { backgroundColor: placeholderBg }, style]} />
+    return (
+      <Animated.View
+        style={[styles.fallback, { backgroundColor: placeholderBg }, style]}
+      />
+    )
   }
 
   if (sources.length === 1) {
     return (
-      <Animated.View style={[styles.container, { backgroundColor: placeholderBg }, style]}>
+      <Animated.View
+        style={[styles.container, { backgroundColor: placeholderBg }, style]}
+      >
         <HeroSlideImage url={sources[0]} bgColor={placeholderBg} />
       </Animated.View>
     )
   }
 
   return (
-    <Animated.View style={[styles.container, { backgroundColor: placeholderBg }, style]}>
+    <Animated.View
+      style={[styles.container, { backgroundColor: placeholderBg }, style]}
+    >
       <Carousel
         width={screenWidth}
         height={HERO_HEIGHT}

@@ -15,18 +15,26 @@ describe('useDebouncedInput', () => {
     const { result } = renderHook(() => useDebouncedInput({ delay: 300 }))
     act(() => result.current.setInputValue('hello'))
     expect(result.current.isLoading).toBe(true)
-    act(() => { jest.advanceTimersByTime(300) })
+    act(() => {
+      jest.advanceTimersByTime(300)
+    })
     expect(result.current.isLoading).toBe(false)
   })
 
   it('does not throw when unmounted before delay expires', () => {
-    const { result, unmount } = renderHook(() => useDebouncedInput({ delay: 500 }))
+    const { result, unmount } = renderHook(() =>
+      useDebouncedInput({ delay: 500 }),
+    )
     act(() => result.current.setInputValue('abc'))
     expect(result.current.isLoading).toBe(true)
     // Unmount before delay — should NOT fire setState
     unmount()
     // Advance past delay — must not throw "Can't perform state update on unmounted"
-    expect(() => act(() => { jest.advanceTimersByTime(600) })).not.toThrow()
+    expect(() =>
+      act(() => {
+        jest.advanceTimersByTime(600)
+      }),
+    ).not.toThrow()
   })
 
   it('clears previous timeout when input changes rapidly', () => {
@@ -42,7 +50,9 @@ describe('useDebouncedInput', () => {
   it('returns correct debouncedInputValue after delay', () => {
     const { result } = renderHook(() => useDebouncedInput({ delay: 300 }))
     act(() => result.current.setInputValue('search'))
-    act(() => { jest.advanceTimersByTime(300) })
+    act(() => {
+      jest.advanceTimersByTime(300)
+    })
     expect(result.current.debouncedInputValue).toBe('search')
   })
 })

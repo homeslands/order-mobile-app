@@ -1,3 +1,3 @@
 export class CoinPolicyConstants {
-    static MAX_BALANCE = 'MAX_BALANCE'
-  }
+  static MAX_BALANCE = 'MAX_BALANCE'
+}

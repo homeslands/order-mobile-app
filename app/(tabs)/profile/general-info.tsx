@@ -67,7 +67,7 @@ const ICON_COLORS = {
 
 // ─── Header — cart style ──────────────────────────────────────────────────────
 
-function GIHeader({
+const GIHeader = React.memo(function GIHeader({
   onBack,
   onEdit,
   isDark,
@@ -80,7 +80,14 @@ function GIHeader({
 }) {
   const { t } = useTranslation('profile')
   const gradientColors = useMemo(
-    () => [pageBg, `${pageBg}E6`, `${pageBg}B0`, `${pageBg}50`, `${pageBg}00`] as const,
+    () =>
+      [
+        pageBg,
+        `${pageBg}E6`,
+        `${pageBg}B0`,
+        `${pageBg}50`,
+        `${pageBg}00`,
+      ] as const,
     [pageBg],
   )
   return (
@@ -112,7 +119,10 @@ function GIHeader({
             hStyles.shadow,
           ]}
         >
-          <ChevronLeft size={20} color={isDark ? colors.gray[50] : colors.gray[900]} />
+          <ChevronLeft
+            size={20}
+            color={isDark ? colors.gray[50] : colors.gray[900]}
+          />
         </Pressable>
         <View style={hStyles.circleBtn} />
         <Pressable
@@ -124,14 +134,19 @@ function GIHeader({
             hStyles.shadow,
           ]}
         >
-          <Text style={[hStyles.editText, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>
+          <Text
+            style={[
+              hStyles.editText,
+              { color: isDark ? colors.gray[50] : colors.gray[900] },
+            ]}
+          >
             {t('profile.edit', 'Sửa')}
           </Text>
         </Pressable>
       </View>
     </View>
   )
-}
+})
 
 const hStyles = StyleSheet.create({
   container: {
@@ -238,8 +253,17 @@ const VerifiableInfoRow = React.memo(function VerifiableInfoRow({
         <Icon size={18} color="#ffffff" />
       </View>
       <View style={styles.infoContent}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginBottom: 2 }}>
-          <Text style={[styles.infoLabel, { color: theme.textMuted }]}>{label}</Text>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 4,
+            marginBottom: 2,
+          }}
+        >
+          <Text style={[styles.infoLabel, { color: theme.textMuted }]}>
+            {label}
+          </Text>
           {isVerified && (
             <Text style={[styles.infoLabel, { color: successColor }]}>
               {t('profile.contactInfo.verified')}
@@ -251,7 +275,10 @@ const VerifiableInfoRow = React.memo(function VerifiableInfoRow({
             </Text>
           )}
         </View>
-        <Text style={[styles.infoValue, { color: theme.text }]} numberOfLines={1}>
+        <Text
+          style={[styles.infoValue, { color: theme.text }]}
+          numberOfLines={1}
+        >
           {value}
         </Text>
       </View>
@@ -399,7 +426,10 @@ export default function GeneralInfo() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingTop: HEADER_HEIGHT + STATIC_TOP_INSET + 12, paddingBottom: bottom + 40 },
+          {
+            paddingTop: HEADER_HEIGHT + STATIC_TOP_INSET + 12,
+            paddingBottom: bottom + 40,
+          },
         ]}
       >
         <View style={[styles.card, { backgroundColor: theme.card }]}>
@@ -429,7 +459,9 @@ export default function GeneralInfo() {
             }
             theme={theme}
             isVerified={!!userInfo.isVerifiedPhonenumber}
-            onVerify={() => navigateNative.push(ROUTE.CLIENT_PROFILE_VERIFY_PHONE_NUMBER)}
+            onVerify={() =>
+              navigateNative.push(ROUTE.CLIENT_PROFILE_VERIFY_PHONE_NUMBER)
+            }
             verifyLabel={t('profile.contactInfo.verify', 'Xác thực')}
             successColor={successColor}
           />
@@ -445,7 +477,9 @@ export default function GeneralInfo() {
             }
             theme={theme}
             isVerified={!!userInfo.isVerifiedEmail}
-            onVerify={() => navigateNative.push(ROUTE.CLIENT_PROFILE_VERIFY_EMAIL)}
+            onVerify={() =>
+              navigateNative.push(ROUTE.CLIENT_PROFILE_VERIFY_EMAIL)
+            }
             verifyLabel={t('profile.contactInfo.verify', 'Xác thực')}
             successColor={successColor}
           />

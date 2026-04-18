@@ -59,7 +59,7 @@ onError: (error, query) => {
   if (isAxiosError(error)) {
     const axiosError = error as AxiosError<IApiResponse<void>>
     if (axiosError.response?.data.code) {
-      showErrorToast(axiosError.response.data.code)  // ← Tự động show toast
+      showErrorToast(axiosError.response.data.code) // ← Tự động show toast
     }
   }
 }
@@ -69,7 +69,7 @@ onError: (error, _, __, mutation) => {
   if (isAxiosError(error)) {
     const axiosError = error as AxiosError<IApiErrorResponse>
     if (axiosError.response?.data.statusCode) {
-      showErrorToast(axiosError.response?.data.statusCode)  // ← Tự động show toast
+      showErrorToast(axiosError.response?.data.statusCode) // ← Tự động show toast
     }
   }
 }
@@ -114,12 +114,12 @@ showErrorToastMessage(message: string)
 
 ## 4. HTTP Status Codes (Standard)
 
-| Code | Message Key | Mô tả |
-|------|-------------|--------|
-| `401` | `toast.unauthorized` | Không xác thực / token hết hạn |
-| `403` | `toast.forbidden` | Không có quyền truy cập |
-| `409` | `toast.conflict` | Data bị conflict (duplicate, etc) |
-| `429` | `toast.tooManyRequests` | Request quá nhanh, bị rate limit |
+| Code  | Message Key             | Mô tả                             |
+| ----- | ----------------------- | --------------------------------- |
+| `401` | `toast.unauthorized`    | Không xác thực / token hết hạn    |
+| `403` | `toast.forbidden`       | Không có quyền truy cập           |
+| `409` | `toast.conflict`        | Data bị conflict (duplicate, etc) |
+| `429` | `toast.tooManyRequests` | Request quá nhanh, bị rate limit  |
 
 ---
 
@@ -193,15 +193,15 @@ showErrorToastMessage(message: string)
 
 ## 6. Order Item Error Codes (131000+)
 
-| Code | Message Key | Mô tả |
-|------|-------------|--------|
-| `131000` | `toast.orderItemNotBelongToAnyOrder` | Item không thuộc đơn nào |
-| `131001` | `toast.requestOrderItemGreaterOrderItemQuantity` | Số lượng yêu cầu > hiện tại |
-| `131002` | `toast.allOrderItemMustBelongToAOrder` | Tất cả items phải belong một order |
-| `131004` | `toast.createOrderItemError` | Lỗi tạo item |
-| `131005` | `toast.deleteOrderItemError` | Lỗi xóa item |
-| `131006` | `toast.updateOrderItemError` | Lỗi cập nhật item |
-| `131007` | `toast.orderItemNotFound` | Item không tồn tại |
+| Code     | Message Key                                      | Mô tả                              |
+| -------- | ------------------------------------------------ | ---------------------------------- |
+| `131000` | `toast.orderItemNotBelongToAnyOrder`             | Item không thuộc đơn nào           |
+| `131001` | `toast.requestOrderItemGreaterOrderItemQuantity` | Số lượng yêu cầu > hiện tại        |
+| `131002` | `toast.allOrderItemMustBelongToAOrder`           | Tất cả items phải belong một order |
+| `131004` | `toast.createOrderItemError`                     | Lỗi tạo item                       |
+| `131005` | `toast.deleteOrderItemError`                     | Lỗi xóa item                       |
+| `131006` | `toast.updateOrderItemError`                     | Lỗi cập nhật item                  |
+| `131007` | `toast.orderItemNotFound`                        | Item không tồn tại                 |
 
 ---
 
@@ -306,29 +306,29 @@ showErrorToastMessage(message: string)
 
 ## 8. Gift Card Error Codes (158000+)
 
-| Code | Message Key | Mô tả |
-|------|-------------|--------|
-| `1005` | `toast.giftCardValidationError` | Lỗi validate gift card |
-| `1006` | `toast.giftCardUpdated` | Gift card được cập nhật |
-| `158205` | `toast.insufficientBalance` | Không đủ số dư gift card |
-| `158402` | `toast.giftCardNotFound` | Gift card không tồn tại |
-| `158404` | `toast.errorWhenRemoveGiftCard` | Lỗi khi gỡ gift card |
-| `158406` | `toast.errorWhenUseGiftCard` | Lỗi khi sử dụng gift card |
-| `158408` | `toast.giftCardExpired` | Gift card đã hết hạn |
-| `158409` | `toast.giftCardAlreadyUsed` | Gift card đã được sử dụng |
+| Code     | Message Key                     | Mô tả                     |
+| -------- | ------------------------------- | ------------------------- |
+| `1005`   | `toast.giftCardValidationError` | Lỗi validate gift card    |
+| `1006`   | `toast.giftCardUpdated`         | Gift card được cập nhật   |
+| `158205` | `toast.insufficientBalance`     | Không đủ số dư gift card  |
+| `158402` | `toast.giftCardNotFound`        | Gift card không tồn tại   |
+| `158404` | `toast.errorWhenRemoveGiftCard` | Lỗi khi gỡ gift card      |
+| `158406` | `toast.errorWhenUseGiftCard`    | Lỗi khi sử dụng gift card |
+| `158408` | `toast.giftCardExpired`         | Gift card đã hết hạn      |
+| `158409` | `toast.giftCardAlreadyUsed`     | Gift card đã được sử dụng |
 
 ---
 
 ## 9. Accumulated Points Error Codes (159000+)
 
-| Code | Message Key | Mô tả |
-|------|-------------|--------|
-| `159016` | `toast.loyaltyPointAlreadyReserved` | Điểm tích lũy đã được reserve |
-| `159017` | `toast.userGroupMemberNotFound` | User group member không tìm thấy |
-| `159305` | `toast.branchConfigNotFound` | Cấu hình branch không tìm thấy |
-| `159706` | `toast.exceedMaxBalance` | Vượt quá max balance |
-| `159707` | `toast.userBalanceExceedMaximum` | User balance vượt quá max |
-| `159704` | `toast.policyValueMustBeInteger` | Policy value phải là integer |
+| Code     | Message Key                         | Mô tả                            |
+| -------- | ----------------------------------- | -------------------------------- |
+| `159016` | `toast.loyaltyPointAlreadyReserved` | Điểm tích lũy đã được reserve    |
+| `159017` | `toast.userGroupMemberNotFound`     | User group member không tìm thấy |
+| `159305` | `toast.branchConfigNotFound`        | Cấu hình branch không tìm thấy   |
+| `159706` | `toast.exceedMaxBalance`            | Vượt quá max balance             |
+| `159707` | `toast.userBalanceExceedMaximum`    | User balance vượt quá max        |
+| `159704` | `toast.policyValueMustBeInteger`    | Policy value phải là integer     |
 
 ---
 
@@ -418,61 +418,61 @@ showErrorToastMessage(message: string)
 
 ## 11. Payment Error Codes (123000+)
 
-| Code | Message Key | Mô tả |
-|------|-------------|--------|
-| `123000` | `toast.paymentQueryInvalid` | Query payment không hợp lệ |
-| `123001` | `toast.paymentMethodInvalid` | Payment method không hợp lệ |
-| `123002` | `toast.paymentNotFound` | Payment không tìm thấy |
-| `123003` | `toast.transactionNotFound` | Transaction không tìm thấy |
-| `123004` | `toast.onlyBankTransferCanExport` | Chỉ bank transfer mới export được |
-| `123005` | `toast.initiatePublicPaymentDenied` | Không thể initiate public payment |
-| `123008` | `toast.orderAlreadyHasPayment` | Đơn đã có payment rồi |
+| Code     | Message Key                             | Mô tả                               |
+| -------- | --------------------------------------- | ----------------------------------- |
+| `123000` | `toast.paymentQueryInvalid`             | Query payment không hợp lệ          |
+| `123001` | `toast.paymentMethodInvalid`            | Payment method không hợp lệ         |
+| `123002` | `toast.paymentNotFound`                 | Payment không tìm thấy              |
+| `123003` | `toast.transactionNotFound`             | Transaction không tìm thấy          |
+| `123004` | `toast.onlyBankTransferCanExport`       | Chỉ bank transfer mới export được   |
+| `123005` | `toast.initiatePublicPaymentDenied`     | Không thể initiate public payment   |
+| `123008` | `toast.orderAlreadyHasPayment`          | Đơn đã có payment rồi               |
 | `123010` | `toast.creditCardTransactionIdRequired` | Credit card transaction ID required |
 
 ---
 
 ## 12. File Upload Error Codes (121000+)
 
-| Code | Message Key | Mô tả |
-|------|-------------|--------|
-| `121000` | `toast.fileNotFound` | File không tìm thấy |
-| `121001` | `toast.fileSizeExceedsLimitAllowed` | Dung lượng file vượt quá giới hạn |
-| `121002` | `toast.numberOfFilesExceedLimitAllowed` | Số file vượt quá giới hạn |
-| `121003` | `toast.limitUnexpectedFile` | File loại unexpected |
-| `121004` | `toast.limitPartCount` | Part count vượt giới hạn |
-| `121005` | `toast.limitFieldKey` | Field key vượt giới hạn |
-| `121006` | `toast.limitFieldCount` | Field count vượt giới hạn |
-| `121007` | `toast.limitFieldValue` | Field value vượt giới hạn |
-| `121008` | `toast.multerError` | Multer error |
-| `121009` | `toast.errorWhenUploadFile` | Lỗi upload file |
-| `121010` | `toast.mustExcelFile` | Phải là file Excel |
-| `121011` | `toast.excelFileWrongHeader` | Header file Excel sai |
+| Code     | Message Key                             | Mô tả                             |
+| -------- | --------------------------------------- | --------------------------------- |
+| `121000` | `toast.fileNotFound`                    | File không tìm thấy               |
+| `121001` | `toast.fileSizeExceedsLimitAllowed`     | Dung lượng file vượt quá giới hạn |
+| `121002` | `toast.numberOfFilesExceedLimitAllowed` | Số file vượt quá giới hạn         |
+| `121003` | `toast.limitUnexpectedFile`             | File loại unexpected              |
+| `121004` | `toast.limitPartCount`                  | Part count vượt giới hạn          |
+| `121005` | `toast.limitFieldKey`                   | Field key vượt giới hạn           |
+| `121006` | `toast.limitFieldCount`                 | Field count vượt giới hạn         |
+| `121007` | `toast.limitFieldValue`                 | Field value vượt giới hạn         |
+| `121008` | `toast.multerError`                     | Multer error                      |
+| `121009` | `toast.errorWhenUploadFile`             | Lỗi upload file                   |
+| `121010` | `toast.mustExcelFile`                   | Phải là file Excel                |
+| `121011` | `toast.excelFileWrongHeader`            | Header file Excel sai             |
 
 ---
 
 ## 13. Client-Only Error Codes (1000-1999)
 
-| Code | Message Key | Mô tả |
-|------|-------------|--------|
-| `1` | `toast.invalidQuery` | Query không hợp lệ |
-| `1000` | `toast.voucherNotFound` | Voucher không tìm thấy |
-| `1001` | `toast.minOrderNotMet` | Giá đơn < min order value |
-| `1002` | `toast.voucherExpired` | Voucher hết hạn |
-| `1003` | `toast.voucherNotValid` | Voucher không hợp lệ |
-| `1004` | `toast.minOrderValueNotMet` | Min order value không đạt |
-| `1005` | `toast.giftCardValidationError` | Gift card validation lỗi |
-| `1006` | `toast.giftCardUpdated` | Gift card được cập nhật |
-| `1041` | `toast.createTrackingFailed` | Tạo tracking thất bại |
-| `1042` | `toast.unloggedIn` | Chưa đăng nhập |
-| `1010010` | `toast.invalidOrderOwner` | Order owner không hợp lệ |
-| `1010011` | `toast.invalidOrderApproval` | Order approval không hợp lệ |
-| `1010012` | `toast.invalidOrderItems` | Order items không hợp lệ |
-| `1010013` | `toast.updateOrderError` | Lỗi update order |
-| `1010014` | `toast.invalidOrderSlug` | Order slug không hợp lệ |
-| `1010015` | `toast.requestQuantityMustOtherInfinity` | Quantity phải other infinity |
-| `1010016` | `toast.errorWhenCreateChefOrdersFromOrder` | Lỗi tạo chef orders |
-| `1010019` | `toast.invalidTableSlug` | Table slug không hợp lệ |
-| `1010020` | `toast.invalidVoucherSlug` | Voucher slug không hợp lệ |
+| Code      | Message Key                                | Mô tả                        |
+| --------- | ------------------------------------------ | ---------------------------- |
+| `1`       | `toast.invalidQuery`                       | Query không hợp lệ           |
+| `1000`    | `toast.voucherNotFound`                    | Voucher không tìm thấy       |
+| `1001`    | `toast.minOrderNotMet`                     | Giá đơn < min order value    |
+| `1002`    | `toast.voucherExpired`                     | Voucher hết hạn              |
+| `1003`    | `toast.voucherNotValid`                    | Voucher không hợp lệ         |
+| `1004`    | `toast.minOrderValueNotMet`                | Min order value không đạt    |
+| `1005`    | `toast.giftCardValidationError`            | Gift card validation lỗi     |
+| `1006`    | `toast.giftCardUpdated`                    | Gift card được cập nhật      |
+| `1041`    | `toast.createTrackingFailed`               | Tạo tracking thất bại        |
+| `1042`    | `toast.unloggedIn`                         | Chưa đăng nhập               |
+| `1010010` | `toast.invalidOrderOwner`                  | Order owner không hợp lệ     |
+| `1010011` | `toast.invalidOrderApproval`               | Order approval không hợp lệ  |
+| `1010012` | `toast.invalidOrderItems`                  | Order items không hợp lệ     |
+| `1010013` | `toast.updateOrderError`                   | Lỗi update order             |
+| `1010014` | `toast.invalidOrderSlug`                   | Order slug không hợp lệ      |
+| `1010015` | `toast.requestQuantityMustOtherInfinity`   | Quantity phải other infinity |
+| `1010016` | `toast.errorWhenCreateChefOrdersFromOrder` | Lỗi tạo chef orders          |
+| `1010019` | `toast.invalidTableSlug`                   | Table slug không hợp lệ      |
+| `1010020` | `toast.invalidVoucherSlug`                 | Voucher slug không hợp lệ    |
 
 ---
 
@@ -492,6 +492,7 @@ const messageKey = errorCodes[code] || 'toast.requestFailed'
 ## 15. Usage Examples Trong Components
 
 ### Example 1: Form Forgot Password
+
 ```typescript
 const { mutate } = useForgotPasswordMutation()
 
@@ -500,17 +501,18 @@ const handleForgotPassword = async (phone: string) => {
     { phone },
     {
       onSuccess: (response) => {
-        showToast('toast.sendVerifyPhoneNumberSuccess')  // Show success manually
+        showToast('toast.sendVerifyPhoneNumberSuccess') // Show success manually
         setStep(2)
-      }
+      },
       // onError: Tự động xử lý bởi global error handler
       // → showErrorToast(statusCode) được gọi tự động
-    }
+    },
   )
 }
 ```
 
 ### Example 2: Order Update
+
 ```typescript
 const handleUpdateOrder = async (orderSlug: string, draft: IOrderToUpdate) => {
   // API call via useUpdateOrderMutation hook
@@ -520,14 +522,15 @@ const handleUpdateOrder = async (orderSlug: string, draft: IOrderToUpdate) => {
       onSuccess: (data) => {
         showToast('toast.updateOrderSuccess')
         navigateToPayment()
-      }
+      },
       // Error handling tự động từ global handler
-    }
+    },
   )
 }
 ```
 
 ### Example 3: Manual Error Handling (khi cần custom)
+
 ```typescript
 const handleApplyVoucher = async (voucher: IVoucher) => {
   try {
@@ -567,6 +570,7 @@ Display translated message (English, Vietnamese, etc.)
 ```
 
 **File translations**:
+
 - `app/order-ui/locales/en/toast.json` (English messages)
 - `app/order-ui/locales/vi/toast.json` (Vietnamese messages)
 
@@ -577,14 +581,14 @@ Display translated message (English, Vietnamese, etc.)
 ```typescript
 // react-hot-toast configuration
 toast.success(message, {
-  duration: 4000,        // Auto-dismiss sau 4 giây
+  duration: 4000, // Auto-dismiss sau 4 giây
   position: 'top-right', // Vị trí hiển thị
   // ... other options
 })
 
 toast.error(message, {
-  duration: 5000,        // Lâu hơn success (user cần đọc error)
-  position: 'top-right'
+  duration: 5000, // Lâu hơn success (user cần đọc error)
+  position: 'top-right',
 })
 ```
 
@@ -627,6 +631,7 @@ toast.error(message, {
 Tất cả ~320 status codes được map tại file [toast.ts](../app/order-ui/src/utils/toast.ts)
 
 **Danh mục chính:**
+
 - **HTTP Status**: 401, 403, 409, 429
 - **Order Domain**: 101000-101999 (20 codes)
 - **Order Item**: 131000-131999 (7 codes)

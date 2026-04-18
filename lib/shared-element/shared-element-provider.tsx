@@ -62,7 +62,9 @@ export type SharedElementContextValue = {
   jsSourceImageUri: string
 }
 
-const SharedElementContext = createContext<SharedElementContextValue | null>(null)
+const SharedElementContext = createContext<SharedElementContextValue | null>(
+  null,
+)
 
 /**
  * Hook tạo SharedValues + API mutations trong cùng scope.
@@ -99,21 +101,34 @@ function useSharedElementApi(setDisplayUri: (uri: string) => void) {
     setJsIsActive(false)
   }, [overlayVisible])
 
-  const triggerTransition = useCallback((source: ElementRect, imageUri: string) => {
-    sourceRect.value = source
-    sourceImageUri.value = imageUri
-    setJsSourceImageUri(imageUri)
-    setDisplayUri(imageUri)
-    animationProgress.value = 0
-    isActive.value = true
-    setJsIsActive(true)
-    overlayVisible.value = true
-  }, [sourceRect, sourceImageUri, animationProgress, isActive, overlayVisible, setDisplayUri])
+  const triggerTransition = useCallback(
+    (source: ElementRect, imageUri: string) => {
+      sourceRect.value = source
+      sourceImageUri.value = imageUri
+      setJsSourceImageUri(imageUri)
+      setDisplayUri(imageUri)
+      animationProgress.value = 0
+      isActive.value = true
+      setJsIsActive(true)
+      overlayVisible.value = true
+    },
+    [
+      sourceRect,
+      sourceImageUri,
+      animationProgress,
+      isActive,
+      overlayVisible,
+      setDisplayUri,
+    ],
+  )
 
-  const setDest = useCallback((dest: ElementRect) => {
-    destRect.value = dest
-    animationProgress.value = withSpring(1, SHARED_SPRING)
-  }, [destRect, animationProgress])
+  const setDest = useCallback(
+    (dest: ElementRect) => {
+      destRect.value = dest
+      animationProgress.value = withSpring(1, SHARED_SPRING)
+    },
+    [destRect, animationProgress],
+  )
 
   const completeTransition = useCallback(() => {
     animationProgress.value = withSpring(1, SHARED_SPRING, (finished) => {
@@ -189,7 +204,11 @@ function useSharedElementApi(setDisplayUri: (uri: string) => void) {
   return { api, overlayStyle }
 }
 
-export function SharedElementProvider({ children }: { children: React.ReactNode }) {
+export function SharedElementProvider({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   const [displayUri, setDisplayUri] = React.useState('')
   const { api, overlayStyle } = useSharedElementApi(setDisplayUri)
 
@@ -216,7 +235,9 @@ export function SharedElementProvider({ children }: { children: React.ReactNode 
 export function useSharedElement(): SharedElementContextValue {
   const ctx = useContext(SharedElementContext)
   if (!ctx) {
-    throw new Error('useSharedElement must be used within SharedElementProvider')
+    throw new Error(
+      'useSharedElement must be used within SharedElementProvider',
+    )
   }
   return ctx
 }

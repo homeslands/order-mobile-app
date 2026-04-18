@@ -34,12 +34,17 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
   const branchSlug = useBranchStore((s) => s.branch?.slug)
 
   // Fetch only when visible
-  const { data: tablesRes, isLoading } = useTables(visible ? branchSlug : undefined)
+  const { data: tablesRes, isLoading } = useTables(
+    visible ? branchSlug : undefined,
+  )
   const allTables = useMemo(() => tablesRes?.result ?? [], [tablesRes?.result])
 
   // Pagination
   const [visibleCount, setVisibleCount] = useState(TABLE_PAGE_SIZE)
-  const visibleTables = useMemo(() => allTables.slice(0, visibleCount), [allTables, visibleCount])
+  const visibleTables = useMemo(
+    () => allTables.slice(0, visibleCount),
+    [allTables, visibleCount],
+  )
   const hasMore = visibleCount < allTables.length
 
   // Reset handled by key prop in parent — remounts when visible changes
@@ -59,7 +64,13 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
   )
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.4} pressBehavior="close" />
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.4}
+        pressBehavior="close"
+      />
     ),
     [],
   )
@@ -80,73 +91,124 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
       backgroundStyle={bgStyle}
       onDismiss={onClose}
     >
-          <BottomSheetScrollView style={{ paddingHorizontal: 20, paddingTop: 8 }} showsVerticalScrollIndicator={false}>
-            <Text style={[tableSheetStyles.title, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>
-              {t('table.title', 'Chọn bàn')}
+      <BottomSheetScrollView
+        style={{ paddingHorizontal: 20, paddingTop: 8 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <Text
+          style={[
+            tableSheetStyles.title,
+            { color: isDark ? colors.gray[50] : colors.gray[900] },
+          ]}
+        >
+          {t('table.title', 'Chọn bàn')}
+        </Text>
+
+        {isLoading && (
+          <View style={tableSheetStyles.loadingWrap}>
+            <ActivityIndicator
+              size="small"
+              color={isDark ? '#9ca3af' : '#6b7280'}
+            />
+            <Text
+              style={{
+                fontSize: 13,
+                color: isDark ? colors.gray[400] : colors.gray[500],
+                marginTop: 8,
+              }}
+            >
+              Đang tải...
             </Text>
+          </View>
+        )}
 
-            {isLoading && (
-              <View style={tableSheetStyles.loadingWrap}>
-                <ActivityIndicator size="small" color={isDark ? '#9ca3af' : '#6b7280'} />
-                <Text style={{ fontSize: 13, color: isDark ? colors.gray[400] : colors.gray[500], marginTop: 8 }}>
-                  Đang tải...
-                </Text>
-              </View>
-            )}
+        {!isLoading && allTables.length === 0 && (
+          <Text
+            style={{
+              fontSize: 14,
+              color: isDark ? colors.gray[400] : colors.gray[500],
+              textAlign: 'center',
+              paddingVertical: 24,
+            }}
+          >
+            Không có bàn nào
+          </Text>
+        )}
 
-            {!isLoading && allTables.length === 0 && (
-              <Text style={{ fontSize: 14, color: isDark ? colors.gray[400] : colors.gray[500], textAlign: 'center', paddingVertical: 24 }}>
-                Không có bàn nào
-              </Text>
-            )}
-
-            <View style={tableSheetStyles.grid}>
-              {visibleTables.map((table: ITable) => {
-                const selected = selectedTable === table.slug
-                const isAvailable = table.status === 'available'
-                const statusColor = isAvailable ? '#22c55e' : '#ef4444'
-                return (
-                  <TouchableOpacity activeOpacity={0.7}
-                    key={table.slug}
-                    onPress={() => handleSelect(table)}
+        <View style={tableSheetStyles.grid}>
+          {visibleTables.map((table: ITable) => {
+            const selected = selectedTable === table.slug
+            const isAvailable = table.status === 'available'
+            const statusColor = isAvailable ? '#22c55e' : '#ef4444'
+            return (
+              <TouchableOpacity
+                activeOpacity={0.7}
+                key={table.slug}
+                onPress={() => handleSelect(table)}
+                style={[
+                  tableSheetStyles.tableItem,
+                  {
+                    borderColor: selected
+                      ? primaryColor
+                      : isDark
+                        ? colors.gray[700]
+                        : colors.gray[200],
+                    backgroundColor: selected
+                      ? `${primaryColor}10`
+                      : 'transparent',
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    tableSheetStyles.statusDot,
+                    { backgroundColor: statusColor },
+                  ]}
+                />
+                <View style={tableSheetStyles.tableNameRow}>
+                  <Text
                     style={[
-                      tableSheetStyles.tableItem,
+                      tableSheetStyles.tableName,
                       {
-                        borderColor: selected ? primaryColor : isDark ? colors.gray[700] : colors.gray[200],
-                        backgroundColor: selected ? `${primaryColor}10` : 'transparent',
+                        color: isDark ? colors.gray[50] : colors.gray[900],
+                        fontWeight: selected ? '600' : '400',
                       },
                     ]}
+                    numberOfLines={1}
                   >
-                    <View style={[tableSheetStyles.statusDot, { backgroundColor: statusColor }]} />
-                    <View style={tableSheetStyles.tableNameRow}>
-                      <Text
-                        style={[tableSheetStyles.tableName, { color: isDark ? colors.gray[50] : colors.gray[900], fontWeight: selected ? '600' : '400' }]}
-                        numberOfLines={1}
-                      >
-                        Bàn {table.name}
-                      </Text>
-                      <Text style={[tableSheetStyles.tableStatus, { color: statusColor }]}>
-                        · {isAvailable ? 'Trống' : 'Đã đặt'}
-                      </Text>
-                    </View>
-                    {selected && (
-                      <CheckCircle size={16} color={primaryColor} />
-                    )}
-                  </TouchableOpacity>
-                )
-              })}
-            </View>
-
-            {hasMore && (
-              <TouchableOpacity activeOpacity={0.7} onPress={handleLoadMore} style={tableSheetStyles.loadMoreBtn}>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: primaryColor }}>
-                  Tải thêm
-                </Text>
+                    Bàn {table.name}
+                  </Text>
+                  <Text
+                    style={[
+                      tableSheetStyles.tableStatus,
+                      { color: statusColor },
+                    ]}
+                  >
+                    · {isAvailable ? 'Trống' : 'Đã đặt'}
+                  </Text>
+                </View>
+                {selected && <CheckCircle size={16} color={primaryColor} />}
               </TouchableOpacity>
-            )}
+            )
+          })}
+        </View>
 
-            <View style={{ height: 20 }} />
-          </BottomSheetScrollView>
+        {hasMore && (
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={handleLoadMore}
+            style={tableSheetStyles.loadMoreBtn}
+          >
+            <Text
+              style={{ fontSize: 13, fontWeight: '600', color: primaryColor }}
+            >
+              Tải thêm
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        <View style={{ height: 20 }} />
+      </BottomSheetScrollView>
     </BottomSheetModal>
   )
 })

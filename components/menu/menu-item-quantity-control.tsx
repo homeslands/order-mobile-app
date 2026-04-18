@@ -53,7 +53,9 @@ const MenuItemQuantityControlWithCallback = React.memo(
     hasStock,
     isMobile,
     onAddToCart,
-  }: MenuItemQuantityControlProps & { onAddToCart: (item: IMenuItem) => void }) {
+  }: MenuItemQuantityControlProps & {
+    onAddToCart: (item: IMenuItem) => void
+  }) {
     const { t } = useTranslation('menu')
 
     const handleAddToCart = React.useCallback(() => {

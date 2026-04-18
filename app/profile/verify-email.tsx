@@ -25,7 +25,7 @@ import { AnimatedCountdownText, OTPInput } from '@/components/auth'
 import { FormInput } from '@/components/form'
 import { Button, Skeleton } from '@/components/ui'
 import { QUERYKEY, colors } from '@/constants'
-import { STATIC_TOP_INSET } from '@/constants/status-bar'
+import { FOOTER_BOTTOM_EXTRA, STATIC_TOP_INSET } from '@/constants/status-bar'
 import { navigateNative } from '@/lib/navigation'
 import {
   useAnimatedCountdown,
@@ -71,17 +71,25 @@ const VerifyEmailHeader = React.memo(function VerifyEmailHeader({
     [pageBg],
   )
   const titleAnimStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(scrollY.value, [0, HEADER_FADE_DISTANCE], [0.6, 1], 'clamp'),
+    opacity: interpolate(
+      scrollY.value,
+      [0, HEADER_FADE_DISTANCE],
+      [0.6, 1],
+      'clamp',
+    ),
   }))
 
   return (
     <View style={headerStyles.container} pointerEvents="box-none">
-<LinearGradient
+      <LinearGradient
         colors={gradientColors}
         locations={[0, 0.5, 1]}
         style={StyleSheet.absoluteFill}
       />
-      <View style={[headerStyles.row, { paddingTop: STATIC_TOP_INSET + 10 }]} pointerEvents="auto">
+      <View
+        style={[headerStyles.row, { paddingTop: STATIC_TOP_INSET + 10 }]}
+        pointerEvents="auto"
+      >
         <Pressable
           onPress={onBack}
           hitSlop={8}
@@ -91,10 +99,17 @@ const VerifyEmailHeader = React.memo(function VerifyEmailHeader({
             headerStyles.shadow,
           ]}
         >
-          <ChevronLeft size={20} color={isDark ? colors.gray[50] : colors.gray[900]} />
+          <ChevronLeft
+            size={20}
+            color={isDark ? colors.gray[50] : colors.gray[900]}
+          />
         </Pressable>
         <Animated.Text
-          style={[headerStyles.title, { color: isDark ? colors.gray[50] : colors.gray[900] }, titleAnimStyle]}
+          style={[
+            headerStyles.title,
+            { color: isDark ? colors.gray[50] : colors.gray[900] },
+            titleAnimStyle,
+          ]}
           numberOfLines={1}
         >
           {title}
@@ -178,9 +193,19 @@ const OTPStepEmail = React.memo(function OTPStepEmail({
 
   return (
     <>
-      <OTPInput value={otp} onChange={onOtpChange} characterSet="alphanumeric" disabled={otpExpired} />
+      <OTPInput
+        value={otp}
+        onChange={onOtpChange}
+        characterSet="alphanumeric"
+        disabled={otpExpired}
+      />
       {!otpExpired && (
-        <Text style={{ fontSize: 12, color: isDark ? colors.gray[400] : colors.gray[500] }}>
+        <Text
+          style={{
+            fontSize: 12,
+            color: isDark ? colors.gray[400] : colors.gray[500],
+          }}
+        >
           {t('profile.verifyEmailScreen.otpHint')}
         </Text>
       )}
@@ -188,10 +213,11 @@ const OTPStepEmail = React.memo(function OTPStepEmail({
         <AnimatedCountdownText
           countdownShared={otpShared}
           label={t('profile.otpExpiredIn')}
-          className="text-center text-sm font-sans"
+          className="text-center font-sans text-sm"
+          isDark={isDark}
         />
       ) : (
-        <Text className="text-center text-sm font-sans text-destructive">
+        <Text className="text-center font-sans text-sm text-destructive">
           {t('profile.verifyPhone.otpExpired')}
         </Text>
       )}
@@ -204,13 +230,15 @@ const OTPStepEmail = React.memo(function OTPStepEmail({
         {isResending ? (
           <ActivityIndicator color={otpExpired ? '#fff' : undefined} />
         ) : (
-          <Text className={`text-sm font-sans-semibold ${
-            !canResend
-              ? 'text-muted-foreground'
-              : otpExpired
-                ? 'text-primary-foreground'
-                : 'text-foreground'
-          }`}>
+          <Text
+            className={`font-sans-semibold text-sm ${
+              !canResend
+                ? 'text-muted-foreground'
+                : otpExpired
+                  ? 'text-primary-foreground'
+                  : 'text-foreground'
+            }`}
+          >
             {otpSeconds > 0
               ? `${t('profile.verifyEmailScreen.button.resend')} (${otpTimeDisplay})`
               : t('profile.verifyEmailScreen.button.resend')}
@@ -218,7 +246,7 @@ const OTPStepEmail = React.memo(function OTPStepEmail({
         )}
       </Button>
       <TouchableOpacity onPress={onBack} className="py-2">
-        <Text className="text-center text-sm font-sans-medium text-primary">
+        <Text className="text-center font-sans-medium text-sm text-primary">
           {t('profile.verifyEmailScreen.backToEdit')}
         </Text>
       </TouchableOpacity>
@@ -232,7 +260,14 @@ const VerifyEmailSkeleton = React.memo(function VerifyEmailSkeleton() {
   const { t } = useTranslation('profile')
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? colors.background.dark : colors.background.light }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: isDark
+          ? colors.background.dark
+          : colors.background.light,
+      }}
+    >
       <VerifyEmailHeader
         title={t('profile.verifyEmailScreen.title')}
         onBack={() => navigateNative.back()}
@@ -251,6 +286,7 @@ const VerifyEmailSkeleton = React.memo(function VerifyEmailSkeleton() {
 
 function VerifyEmailContent() {
   const { t } = useTranslation('profile')
+  const { t: tCommon } = useTranslation('common')
   const isDark = useColorScheme() === 'dark'
   const insets = useSafeAreaInsets()
   const queryClient = useQueryClient()
@@ -259,7 +295,9 @@ function VerifyEmailContent() {
   const token = useAuthStore((s) => s.token)
   const userInfo = useUserStore((s) => s.userInfo)
   const emailVerificationStatus = useUserStore((s) => s.emailVerificationStatus)
-  const setEmailVerificationStatus = useUserStore((s) => s.setEmailVerificationStatus)
+  const setEmailVerificationStatus = useUserStore(
+    (s) => s.setEmailVerificationStatus,
+  )
   const setUserInfo = useUserStore((s) => s.setUserInfo)
 
   const [otp, setOtp] = useState('')
@@ -299,8 +337,10 @@ function VerifyEmailContent() {
 
   const { refetch: refetchProfile } = useProfile()
   const { mutate: verifyEmail, isPending: isSending } = useVerifyEmail()
-  const { mutate: confirmOtp, isPending: isConfirming } = useConfirmEmailVerification()
-  const { mutate: resendOtp, isPending: isResending } = useResendEmailVerification()
+  const { mutate: confirmOtp, isPending: isConfirming } =
+    useConfirmEmailVerification()
+  const { mutate: resendOtp, isPending: isResending } =
+    useResendEmailVerification()
 
   const handleScroll = useCallback(
     (e: { nativeEvent: { contentOffset: { y: number } } }) => {
@@ -332,68 +372,105 @@ function VerifyEmailContent() {
       },
       onError: (err: unknown) => {
         const code =
-          (err as { response?: { data?: { code?: number; statusCode?: number } } })
-            ?.response?.data?.code ??
-          (err as { response?: { data?: { code?: number; statusCode?: number } } })
-            ?.response?.data?.statusCode
+          (
+            err as {
+              response?: { data?: { code?: number; statusCode?: number } }
+            }
+          )?.response?.data?.code ??
+          (
+            err as {
+              response?: { data?: { code?: number; statusCode?: number } }
+            }
+          )?.response?.data?.statusCode
         if (typeof code === 'number') showErrorToast(code)
-        else showToast(t('profile.verifyEmailFailed'), 'Lỗi')
+        else showToast(t('profile.verifyEmailFailed'), tCommon('common.error'))
       },
     })
-  }, [resendOtp, setEmailVerificationStatus, t])
+  }, [resendOtp, setEmailVerificationStatus, t, tCommon])
 
-  const handleSendEmail = useCallback(({ email }: TVerifyEmailFormSchema) => {
-    if (!token) {
-      navigateNative.back()
-      return
-    }
-    verifyEmail(
-      { email, accessToken: token },
-      {
-        onSuccess: (res) => {
-          queryClient.invalidateQueries({ queryKey: [QUERYKEY.profile] })
-          setEmailVerificationStatus({
-            expiresAt: applyOtpBuffer(res.result.expiresAt),
-            slug: res.result.slug,
-          })
-          showToast(t('profile.verifyEmailScreen.toast.sent'))
-        },
-        onError: (err: unknown) => {
-          const code =
-            (err as { response?: { data?: { code?: number; statusCode?: number } } })
-              ?.response?.data?.code ??
-            (err as { response?: { data?: { code?: number; statusCode?: number } } })
-              ?.response?.data?.statusCode
-          if (code === 119017) {
-            // Token already exists — resend to get a fresh expiresAt and show OTP step
-            resendOtp(undefined, {
-              onSuccess: (res) => {
-                setEmailVerificationStatus({
-                  expiresAt: applyOtpBuffer(res.result.expiresAt),
-                  slug: res.result.slug,
-                })
-                setOtp('')
-                showToast(t('profile.verifyEmailScreen.toast.resendSuccess'))
-              },
-              onError: (resendErr: unknown) => {
-                const resendCode =
-                  (resendErr as { response?: { data?: { code?: number; statusCode?: number } } })
-                    ?.response?.data?.code ??
-                  (resendErr as { response?: { data?: { code?: number; statusCode?: number } } })
-                    ?.response?.data?.statusCode
-                if (typeof resendCode === 'number') showErrorToast(resendCode)
-                else showToast(t('profile.verifyEmailFailed'), 'Lỗi')
-              },
+  const handleSendEmail = useCallback(
+    ({ email }: TVerifyEmailFormSchema) => {
+      if (!token) {
+        navigateNative.back()
+        return
+      }
+      verifyEmail(
+        { email, accessToken: token },
+        {
+          onSuccess: (res) => {
+            queryClient.invalidateQueries({ queryKey: [QUERYKEY.profile] })
+            setEmailVerificationStatus({
+              expiresAt: applyOtpBuffer(res.result.expiresAt),
+              slug: res.result.slug,
             })
-          } else if (typeof code === 'number') {
-            showErrorToast(code)
-          } else {
-            showToast(t('profile.verifyEmailFailed'), 'Lỗi')
-          }
+            showToast(t('profile.verifyEmailScreen.toast.sent'))
+          },
+          onError: (err: unknown) => {
+            const code =
+              (
+                err as {
+                  response?: { data?: { code?: number; statusCode?: number } }
+                }
+              )?.response?.data?.code ??
+              (
+                err as {
+                  response?: { data?: { code?: number; statusCode?: number } }
+                }
+              )?.response?.data?.statusCode
+            if (code === 119017) {
+              // Token already exists — resend to get a fresh expiresAt and show OTP step
+              resendOtp(undefined, {
+                onSuccess: (res) => {
+                  setEmailVerificationStatus({
+                    expiresAt: applyOtpBuffer(res.result.expiresAt),
+                    slug: res.result.slug,
+                  })
+                  setOtp('')
+                  showToast(t('profile.verifyEmailScreen.toast.resendSuccess'))
+                },
+                onError: (resendErr: unknown) => {
+                  const resendCode =
+                    (
+                      resendErr as {
+                        response?: {
+                          data?: { code?: number; statusCode?: number }
+                        }
+                      }
+                    )?.response?.data?.code ??
+                    (
+                      resendErr as {
+                        response?: {
+                          data?: { code?: number; statusCode?: number }
+                        }
+                      }
+                    )?.response?.data?.statusCode
+                  if (typeof resendCode === 'number') showErrorToast(resendCode)
+                  else
+                    showToast(
+                      t('profile.verifyEmailFailed'),
+                      tCommon('common.error'),
+                    )
+                },
+              })
+            } else if (typeof code === 'number') {
+              showErrorToast(code)
+            } else {
+              showToast(t('profile.verifyEmailFailed'), tCommon('common.error'))
+            }
+          },
         },
-      },
-    )
-  }, [token, verifyEmail, resendOtp, queryClient, setEmailVerificationStatus, t])
+      )
+    },
+    [
+      token,
+      verifyEmail,
+      resendOtp,
+      queryClient,
+      setEmailVerificationStatus,
+      t,
+      tCommon,
+    ],
+  )
 
   const handleVerifyOtp = useCallback(() => {
     const normalizedOtp = otp.toUpperCase()
@@ -415,23 +492,39 @@ function VerifyEmailContent() {
         setOtp('')
       },
     })
-  }, [otp, confirmOtp, setEmailVerificationStatus, refetchProfile, setUserInfo, queryClient, t])
+  }, [
+    otp,
+    confirmOtp,
+    setEmailVerificationStatus,
+    refetchProfile,
+    setUserInfo,
+    queryClient,
+    t,
+  ])
 
   const handleOtpChange = useCallback((v: string) => setOtp(v), [])
 
   const handleExpired = useCallback(() => setOtpExpired(true), [])
 
   const headerTitle = useMemo(
-    () => showOtpStep
-      ? t('profile.verifyEmailScreen.otpInputTitle')
-      : t('profile.verifyEmailScreen.title'),
+    () =>
+      showOtpStep
+        ? t('profile.verifyEmailScreen.otpInputTitle')
+        : t('profile.verifyEmailScreen.title'),
     [showOtpStep, t],
   )
 
   if (!userInfo) return null
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? colors.background.dark : colors.background.light }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: isDark
+          ? colors.background.dark
+          : colors.background.light,
+      }}
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={32}
@@ -443,7 +536,13 @@ function VerifyEmailContent() {
           gap: 16,
         }}
       >
-        <Text style={{ fontSize: 15, color: isDark ? colors.gray[400] : colors.gray[500], marginBottom: 8 }}>
+        <Text
+          style={{
+            fontSize: 15,
+            color: isDark ? colors.gray[400] : colors.gray[500],
+            marginBottom: 8,
+          }}
+        >
           {showOtpStep
             ? t('profile.verifyEmailScreen.description.otp')
             : t('profile.verifyEmailScreen.description.email')}
@@ -472,24 +571,32 @@ function VerifyEmailContent() {
       </ScrollView>
 
       {/* Footer — confirm button */}
-      <View style={{
-        paddingHorizontal: 24,
-        paddingBottom: insets.bottom + 16,
-        paddingTop: 12,
-        backgroundColor: isDark ? colors.background.dark : colors.background.light,
-      }}>
+      <View
+        style={{
+          paddingHorizontal: 24,
+          paddingBottom: insets.bottom + FOOTER_BOTTOM_EXTRA,
+          paddingTop: 12,
+          backgroundColor: isDark
+            ? colors.background.dark
+            : colors.background.light,
+        }}
+      >
         <Button
           variant="primary"
           className="h-11 rounded-lg"
-          disabled={showOtpStep
-            ? (isConfirming || otp.length !== 6 || otpExpired)
-            : (isSending || isResending)}
-          onPress={showOtpStep ? handleVerifyOtp : handleSubmit(handleSendEmail)}
+          disabled={
+            showOtpStep
+              ? isConfirming || otp.length !== 6 || otpExpired
+              : isSending || isResending
+          }
+          onPress={
+            showOtpStep ? handleVerifyOtp : handleSubmit(handleSendEmail)
+          }
         >
-          {(isConfirming || isSending || isResending) ? (
+          {isConfirming || isSending || isResending ? (
             <ActivityIndicator color="#fff" />
           ) : (
-            <Text className="text-sm font-sans-semibold text-primary-foreground">
+            <Text className="font-sans-semibold text-sm text-primary-foreground">
               {showOtpStep
                 ? t('profile.verifyEmailScreen.button.verify')
                 : t('profile.verifyEmailScreen.button.send')}

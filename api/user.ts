@@ -77,7 +77,9 @@ export async function updateUser(
 export async function getBalance(
   userSlug: string,
 ): Promise<IApiResponse<IBalanceResponse>> {
-  const response = await http.get<IApiResponse<IBalanceResponse>>('/balance', { params: { userSlug } })
+  const response = await http.get<IApiResponse<IBalanceResponse>>('/balance', {
+    params: { userSlug },
+  })
   return response.data
 }
 
@@ -91,7 +93,6 @@ export async function updateLanguage(
   )
   return response.data
 }
-
 
 export async function lockUser(slug: string): Promise<IApiResponse<null>> {
   const response = await http.patch<IApiResponse<null>>(

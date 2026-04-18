@@ -68,7 +68,10 @@ export function useScreenTransition(options: UseScreenTransitionOptions = {}) {
  * useRunAfterScreenTransition(() => setAllowFetch(true), [])
  * useQuery({ ..., enabled: allowFetch })
  */
-export function useRunAfterScreenTransition(callback: () => void, deps: DependencyList = []) {
+export function useRunAfterScreenTransition(
+  callback: () => void,
+  deps: DependencyList = [],
+) {
   const cancelled = useRef(false)
 
   useEffect(() => {

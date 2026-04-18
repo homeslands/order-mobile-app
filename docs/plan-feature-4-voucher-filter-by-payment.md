@@ -1,6 +1,7 @@
 # Feature 4: Voucher List Filter by Payment Method
 
 ## Mô tả
+
 Khi mở voucher sheet trong màn payment, tự động truyền `paymentMethod` hiện tại vào query để chỉ hiển thị voucher compatible với phương thức đang chọn.
 
 ---
@@ -10,11 +11,13 @@ Khi mở voucher sheet trong màn payment, tự động truyền `paymentMethod`
 ### `app/payment/voucher-sheet-in-payment.tsx`
 
 Fork từ `VoucherSheetInUpdateOrder` nhưng:
+
 - Nhận `currentPaymentMethod` prop → truyền vào voucher query
 - Thay store-based calls bằng direct props từ `order`
 - Apply/remove voucher qua `useUpdateVoucherInOrder` / `useUpdatePublicVoucherInOrder`
 
 Props interface:
+
 ```typescript
 interface VoucherSheetInPaymentProps {
   visible: boolean
@@ -24,8 +27,8 @@ interface VoucherSheetInPaymentProps {
   order: IOrder
   currentPaymentMethod: PaymentMethod | null
   isLoggedIn: boolean
-  onVoucherApplied: () => void   // → refetchOrder()
-  onVoucherRemoved: () => void   // → refetchOrder() + resetLoyaltyPoints (Feature 3)
+  onVoucherApplied: () => void // → refetchOrder()
+  onVoucherRemoved: () => void // → refetchOrder() + resetLoyaltyPoints (Feature 3)
 }
 ```
 
@@ -36,29 +39,40 @@ interface VoucherSheetInPaymentProps {
 ### `app/payment/[order].tsx`
 
 State mới:
+
 ```typescript
 const [showVoucherSheet, setShowVoucherSheet] = useState(false)
 ```
 
 Button trigger (trong Payment Summary card hoặc riêng, chỉ show khi `order.status === PENDING`):
+
 ```tsx
-{order.status === OrderStatus.PENDING && (
-  <Pressable
-    onPress={() => setShowVoucherSheet(true)}
-    style={[ps.voucherBtn, { borderColor: isDark ? colors.gray[700] : colors.gray[200] }]}
-  >
-    <TicketPercent size={16} color={primaryColor} />
-    <Text style={[ps.voucherBtnText, { color: primaryColor }]}>
-      {order.voucher
-        ? `${order.voucher.code} · ${formatCurrency(cartTotals?.voucherDiscount ?? 0)} giảm`
-        : 'Thêm mã giảm giá'}
-    </Text>
-    <ChevronRight size={16} color={isDark ? colors.gray[400] : colors.gray[500]} />
-  </Pressable>
-)}
+{
+  order.status === OrderStatus.PENDING && (
+    <Pressable
+      onPress={() => setShowVoucherSheet(true)}
+      style={[
+        ps.voucherBtn,
+        { borderColor: isDark ? colors.gray[700] : colors.gray[200] },
+      ]}
+    >
+      <TicketPercent size={16} color={primaryColor} />
+      <Text style={[ps.voucherBtnText, { color: primaryColor }]}>
+        {order.voucher
+          ? `${order.voucher.code} · ${formatCurrency(cartTotals?.voucherDiscount ?? 0)} giảm`
+          : 'Thêm mã giảm giá'}
+      </Text>
+      <ChevronRight
+        size={16}
+        color={isDark ? colors.gray[400] : colors.gray[500]}
+      />
+    </Pressable>
+  )
+}
 ```
 
 Mount sheet:
+
 ```tsx
 <VoucherSheetInPayment
   visible={showVoucherSheet}
@@ -71,7 +85,7 @@ Mount sheet:
   onVoucherApplied={refetchOrder}
   onVoucherRemoved={() => {
     refetchOrder()
-    resetLoyaltyPointsInput()  // Feature 3
+    resetLoyaltyPointsInput() // Feature 3
   }}
 />
 ```
@@ -85,14 +99,15 @@ Mount sheet:
 ```typescript
 // Derived data từ order
 const orderItems = order.orderItems
-const subTotal = order.originalSubtotal ?? order.subtotal  // dùng original cho minOrderValue
+const subTotal = order.originalSubtotal ?? order.subtotal // dùng original cho minOrderValue
 
 const listRequestItems = useMemo(
   () =>
     orderItems.map((item) => ({
       quantity: item.quantity,
       variant: item.variant?.slug ?? '',
-      promotion: (item.promotionValue ?? 0) > 0 ? (item.promotion?.slug ?? '') : '',
+      promotion:
+        (item.promotionValue ?? 0) > 0 ? (item.promotion?.slug ?? '') : '',
       order: order.slug,
     })),
   [orderItems, order.slug],
@@ -108,15 +123,26 @@ const voucherParams = useMemo<IGetAllVoucherRequest | undefined>(
           minOrderValue: subTotal,
           orderItems: listRequestItems,
           // KEY: filter theo payment method hiện tại
-          ...(currentPaymentMethod ? { paymentMethod: currentPaymentMethod } : {}),
+          ...(currentPaymentMethod
+            ? { paymentMethod: currentPaymentMethod }
+            : {}),
           ...(isLoggedIn && userSlug ? { user: userSlug } : {}),
         }
       : undefined,
-  [visible, currentPage, subTotal, listRequestItems, currentPaymentMethod, isLoggedIn, userSlug],
+  [
+    visible,
+    currentPage,
+    subTotal,
+    listRequestItems,
+    currentPaymentMethod,
+    isLoggedIn,
+    userSlug,
+  ],
 )
 ```
 
 Khi `currentPaymentMethod` thay đổi (ít xảy ra nhưng có thể):
+
 - `voucherParams` tự cập nhật → query refetch với filter mới
 - Reset `currentPage = 1` và `allVouchers = []`
 
@@ -160,14 +186,23 @@ const handleApplyVoucher = useCallback(() => {
               onClose()
             },
             onError: () => showToast('Không thể áp dụng voucher'),
-          }
+          },
         )
       },
       onError: () => showToast('Voucher không hợp lệ'),
       onSettled: () => setIsValidating(false),
-    }
+    },
   )
-}, [selectedVoucher, order, userSlug, listRequestItems, updateVoucher, validateVoucher, onVoucherApplied, onClose])
+}, [
+  selectedVoucher,
+  order,
+  userSlug,
+  listRequestItems,
+  updateVoucher,
+  validateVoucher,
+  onVoucherApplied,
+  onClose,
+])
 ```
 
 ### Remove voucher
@@ -183,7 +218,7 @@ const handleRemoveVoucher = useCallback(() => {
         onClose()
       },
       onError: () => showToast('Không thể xóa voucher'),
-    }
+    },
   )
 }, [order.slug, listRequestItems, updateVoucher, onVoucherRemoved, onClose])
 ```
@@ -223,7 +258,7 @@ useEffect(() => {
 
 // Toggle select: click cùng voucher → deselect
 const handleVoucherClick = (voucher: IVoucher) => {
-  setSelectedVoucher((prev) => prev?.slug === voucher.slug ? null : voucher)
+  setSelectedVoucher((prev) => (prev?.slug === voucher.slug ? null : voucher))
 }
 ```
 
@@ -231,30 +266,34 @@ const handleVoucherClick = (voucher: IVoucher) => {
 
 ## Edge Cases
 
-| Case | Xử lý |
-|------|--------|
-| `currentPaymentMethod` null | Không truyền `paymentMethod` → show tất cả voucher |
-| Method thay đổi khi sheet đang mở | `voucherParams` update → query refetch, reset page + list |
-| Backend không support filter | Returns all → show tất cả, không có lỗi |
-| Voucher hiện tại không trong filtered list | Pre-fill selected vẫn hiển thị (highlight), cảnh báo không compatible |
-| Chọn cùng voucher đang active | Chỉ đóng sheet, không gọi API |
-| Pagination khi đổi filter | Reset `currentPage = 1`, `allVouchers = []` khi `currentPaymentMethod` thay đổi |
-| `updateVoucherInOrder` vs `updatePublicVoucherInOrder` | Chọn theo `isLoggedIn` |
-| Apply thất bại (conflict phía backend) | Toast error, không đóng sheet |
-| `originalSubtotal` không có | Fallback về `order.subtotal` |
+| Case                                                   | Xử lý                                                                           |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| `currentPaymentMethod` null                            | Không truyền `paymentMethod` → show tất cả voucher                              |
+| Method thay đổi khi sheet đang mở                      | `voucherParams` update → query refetch, reset page + list                       |
+| Backend không support filter                           | Returns all → show tất cả, không có lỗi                                         |
+| Voucher hiện tại không trong filtered list             | Pre-fill selected vẫn hiển thị (highlight), cảnh báo không compatible           |
+| Chọn cùng voucher đang active                          | Chỉ đóng sheet, không gọi API                                                   |
+| Pagination khi đổi filter                              | Reset `currentPage = 1`, `allVouchers = []` khi `currentPaymentMethod` thay đổi |
+| `updateVoucherInOrder` vs `updatePublicVoucherInOrder` | Chọn theo `isLoggedIn`                                                          |
+| Apply thất bại (conflict phía backend)                 | Toast error, không đóng sheet                                                   |
+| `originalSubtotal` không có                            | Fallback về `order.subtotal`                                                    |
 
 ---
 
 ## Cần verify trước khi implement
 
 **Câu hỏi quan trọng**: API `GET /vouchers/for-order` có nhận param `paymentMethod` không?
+
 - Type `IGetAllVoucherRequest` trong `types/voucher.type.ts` có field `paymentMethod?: string` → **assume backend support**
 - Nếu backend chưa support → thêm client-side filter sau khi nhận danh sách:
   ```typescript
   const filteredVouchers = currentPaymentMethod
-    ? allVouchers.filter(v =>
-        !v.voucherPaymentMethods?.length ||
-        v.voucherPaymentMethods.some(vpm => vpm.paymentMethod === currentPaymentMethod)
+    ? allVouchers.filter(
+        (v) =>
+          !v.voucherPaymentMethods?.length ||
+          v.voucherPaymentMethods.some(
+            (vpm) => vpm.paymentMethod === currentPaymentMethod,
+          ),
       )
     : allVouchers
   ```

@@ -33,10 +33,15 @@ export function DataTablePagination() {
   const rowsLabel = t('dataTable.rows')
 
   return (
-    <View className="flex-row flex-wrap items-center justify-between gap-2 border-t border-gray-200 px-3 py-2 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30">
+    <View className="flex-row flex-wrap items-center justify-between gap-2 border-t border-gray-200 bg-gray-50/50 px-3 py-2 dark:border-gray-700 dark:bg-gray-800/30">
       <View className="flex-row items-center gap-2">
-        <Text className="text-xs text-gray-600 dark:text-gray-400">{rowsPerPageLabel}</Text>
-        <Select value={String(pageSize)} onValueChange={(v) => setPageSize(Number(v))}>
+        <Text className="text-xs text-gray-600 dark:text-gray-400">
+          {rowsPerPageLabel}
+        </Text>
+        <Select
+          value={String(pageSize)}
+          onValueChange={(v) => setPageSize(Number(v))}
+        >
           <Select.Trigger className="h-8 w-16">
             <Select.Value placeholder={String(pageSize)} />
           </Select.Trigger>
@@ -50,20 +55,27 @@ export function DataTablePagination() {
         </Select>
       </View>
       <Text className="text-xs text-gray-600 dark:text-gray-400">
-        {pageLabel} {pageIndex + 1} {ofLabel} {totalPages} ({totalRows} {rowsLabel})
+        {pageLabel} {pageIndex + 1} {ofLabel} {totalPages} ({totalRows}{' '}
+        {rowsLabel})
       </Text>
       <View className="flex-row items-center gap-1">
         <Pressable
           onPress={previousPage}
           disabled={!canPreviousPage}
-          className={cn('h-8 w-8 items-center justify-center rounded', canPreviousPage ? 'active:opacity-70' : 'opacity-40')}
+          className={cn(
+            'h-8 w-8 items-center justify-center rounded',
+            canPreviousPage ? 'active:opacity-70' : 'opacity-40',
+          )}
         >
           <ChevronLeft size={18} color={colors.gray[700]} />
         </Pressable>
         <Pressable
           onPress={nextPage}
           disabled={!canNextPage}
-          className={cn('h-8 w-8 items-center justify-center rounded', canNextPage ? 'active:opacity-70' : 'opacity-40')}
+          className={cn(
+            'h-8 w-8 items-center justify-center rounded',
+            canNextPage ? 'active:opacity-70' : 'opacity-40',
+          )}
         >
           <ChevronRight size={18} color={colors.gray[700]} />
         </Pressable>

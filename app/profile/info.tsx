@@ -46,7 +46,6 @@ function InfoHeader({
 
   return (
     <View style={phStyles.container} pointerEvents="box-none">
-
       <LinearGradient
         colors={gradientColors}
         locations={[0, 0.5, 1]}
@@ -160,7 +159,14 @@ function ProfileInfoScreen() {
   const successColor = isDark ? colors.success.dark : colors.success.light
 
   return (
-    <View style={{ flex: 1, backgroundColor: isDark ? colors.background.dark : colors.background.light }}>
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: isDark
+          ? colors.background.dark
+          : colors.background.light,
+      }}
+    >
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
@@ -206,7 +212,10 @@ function ProfileInfoScreen() {
             className="h-10 min-h-0 w-10 items-center justify-center rounded-full px-0"
             onPress={() => navigateNative.push(ROUTE.CLIENT_PROFILE_EDIT)}
           >
-            <SquarePen size={18} color={isDark ? colors.gray[400] : colors.gray[500]} />
+            <SquarePen
+              size={18}
+              color={isDark ? colors.gray[400] : colors.gray[500]}
+            />
           </Button>
         </View>
 
@@ -219,7 +228,10 @@ function ProfileInfoScreen() {
           <View className="gap-6">
             <View className="flex-row items-center gap-3">
               <View className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700">
-                <UserIcon size={18} color={isDark ? colors.gray[200] : colors.gray[600]} />
+                <UserIcon
+                  size={18}
+                  color={isDark ? colors.gray[200] : colors.gray[600]}
+                />
               </View>
               <View className="flex-1">
                 <Text className="text-xs text-gray-500 dark:text-gray-400">
@@ -233,7 +245,10 @@ function ProfileInfoScreen() {
 
             <View className="flex-row items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900/40">
               <View className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700">
-                <Phone size={18} color={isDark ? colors.gray[200] : colors.gray[600]} />
+                <Phone
+                  size={18}
+                  color={isDark ? colors.gray[200] : colors.gray[600]}
+                />
               </View>
               <View className="flex-1">
                 <View className="flex-row items-center gap-1.5">
@@ -267,7 +282,7 @@ function ProfileInfoScreen() {
                     )
                   }
                 >
-                  <Text className="text-xs font-sans-semibold text-primary">
+                  <Text className="font-sans-semibold text-xs text-primary">
                     {t('profile.contactInfo.verify')}
                   </Text>
                 </Button>
@@ -276,7 +291,10 @@ function ProfileInfoScreen() {
 
             <View className="flex-row items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900/40">
               <View className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700">
-                <Mail size={18} color={isDark ? colors.gray[200] : colors.gray[600]} />
+                <Mail
+                  size={18}
+                  color={isDark ? colors.gray[200] : colors.gray[600]}
+                />
               </View>
 
               <View className="flex-1">
@@ -285,7 +303,11 @@ function ProfileInfoScreen() {
                     {t('profile.contactInfo.email')}
                   </Text>
                   {userInfo.isVerifiedEmail && (
-                    <Shield size={12} color={successColor} fill={successColor} />
+                    <Shield
+                      size={12}
+                      color={successColor}
+                      fill={successColor}
+                    />
                   )}
                   {!userInfo.isVerifiedEmail && (
                     <Text className="text-xs text-yellow-600 dark:text-yellow-400">
@@ -307,7 +329,7 @@ function ProfileInfoScreen() {
                     navigateNative.push(ROUTE.CLIENT_PROFILE_VERIFY_EMAIL)
                   }
                 >
-                  <Text className="text-xs font-sans-semibold text-primary">
+                  <Text className="font-sans-semibold text-xs text-primary">
                     {t('profile.contactInfo.verify')}
                   </Text>
                 </Button>
@@ -316,7 +338,10 @@ function ProfileInfoScreen() {
 
             <View className="flex-row items-center gap-3">
               <View className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700">
-                <MapPin size={18} color={isDark ? colors.gray[200] : colors.gray[600]} />
+                <MapPin
+                  size={18}
+                  color={isDark ? colors.gray[200] : colors.gray[600]}
+                />
               </View>
               <View className="flex-1">
                 <Text className="text-xs text-gray-500 dark:text-gray-400">

@@ -18,7 +18,9 @@ export interface OrderTypeOptionForUpdate {
 export function useOrderTypeOptionsForUpdateOrder() {
   const { t } = useTranslation('menu')
   const setDraftType = useOrderFlowStore((s) => s.setDraftType)
-  const currentType = useOrderFlowStore((s) => s.updatingData?.updateDraft?.type)
+  const currentType = useOrderFlowStore(
+    (s) => s.updatingData?.updateDraft?.type,
+  )
   const { data: featuresResponse } = useGetSystemFeatureFlagsByGroup(
     SystemLockFeatureGroup.ORDER,
   )
@@ -53,7 +55,10 @@ export function useOrderTypeOptionsForUpdateOrder() {
       (child) => child.name === SystemLockFeatureChild.DELIVERY,
     )
     if (hasDeliveryInFeature) {
-      allTypes.push({ value: OrderTypeEnum.DELIVERY, label: t('menu.delivery') })
+      allTypes.push({
+        value: OrderTypeEnum.DELIVERY,
+        label: t('menu.delivery'),
+      })
     }
 
     const orderTypeToFeatureMap: Record<string, string> = {

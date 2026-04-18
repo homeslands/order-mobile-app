@@ -1,4 +1,7 @@
-import { CustomStack, profileNativeStackScreenOptions } from '@/layouts/custom-stack'
+import {
+  CustomStack,
+  profileNativeStackScreenOptions,
+} from '@/layouts/custom-stack'
 
 /**
  * Home stack: tin tức /home/news/[slug], ...

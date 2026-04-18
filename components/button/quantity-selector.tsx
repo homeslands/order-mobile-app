@@ -28,23 +28,25 @@ export default function QuantitySelector({
   }
 
   return (
-    <View className="flex items-center gap-1.5 w-full">
-      <View className="flex-row items-center gap-1.5 w-full">
+    <View className="flex w-full items-center gap-1.5">
+      <View className="w-full flex-row items-center gap-1.5">
         <Button
           variant="outline"
           size="sm"
           onPress={handleDecrement}
-          className="p-1.5 rounded-full border border-gray-300 dark:border-gray-700 h-fit w-fit"
+          className="h-fit w-fit rounded-full border border-gray-300 p-1.5 dark:border-gray-700"
           disabled={disabled || value <= min}
         >
           <Minus size={12} color="#6b7280" />
         </Button>
-        <Text className="w-4 text-sm text-center text-gray-900 dark:text-white">{value}</Text>
+        <Text className="w-4 text-center text-sm text-gray-900 dark:text-white">
+          {value}
+        </Text>
         <Button
           variant="outline"
           size="sm"
           onPress={handleIncrement}
-          className="p-1.5 rounded-full border border-gray-300 dark:border-gray-700 h-fit w-fit"
+          className="h-fit w-fit rounded-full border border-gray-300 p-1.5 dark:border-gray-700"
           disabled={disabled}
         >
           <Plus size={12} color="#6b7280" />

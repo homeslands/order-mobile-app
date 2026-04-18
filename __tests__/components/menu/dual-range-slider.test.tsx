@@ -33,29 +33,45 @@ jest.mock('@/constants/colors.constant', () => ({
 }))
 
 import React from 'react'
+import { PanResponder } from 'react-native'
 import { render } from '@testing-library/react-native'
 import DualRangeSlider from '@/components/menu/dual-range-slider'
 
 describe('DualRangeSlider', () => {
   it('renders without crashing', () => {
     const { toJSON } = render(
-      <DualRangeSlider min={0} max={100} value={[20, 80]} onValueChange={jest.fn()} />,
+      <DualRangeSlider
+        min={0}
+        max={100}
+        value={[20, 80]}
+        onValueChange={jest.fn()}
+      />,
     )
     expect(toJSON()).not.toBeNull()
   })
 
   it('does not recreate pan responders on re-render', () => {
-    const createSpy = jest.spyOn(require('react-native').PanResponder, 'create')
+    const createSpy = jest.spyOn(PanResponder, 'create')
     createSpy.mockClear()
 
     const onValueChange = jest.fn()
     const { rerender } = render(
-      <DualRangeSlider min={0} max={100} value={[20, 80]} onValueChange={onValueChange} />,
+      <DualRangeSlider
+        min={0}
+        max={100}
+        value={[20, 80]}
+        onValueChange={onValueChange}
+      />,
     )
     const callsAfterMount = createSpy.mock.calls.length
 
     rerender(
-      <DualRangeSlider min={0} max={100} value={[30, 70]} onValueChange={onValueChange} />,
+      <DualRangeSlider
+        min={0}
+        max={100}
+        value={[30, 70]}
+        onValueChange={onValueChange}
+      />,
     )
     expect(createSpy.mock.calls.length).toBe(callsAfterMount)
     createSpy.mockRestore()

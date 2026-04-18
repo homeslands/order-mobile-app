@@ -48,12 +48,12 @@ app/
 
 ### Route Naming Convention
 
-| Screen Type | Pattern | Example |
-|------------|---------|---------|
-| Tab screen | `/(tabs)/[name]` | `/(tabs)/home` |
+| Screen Type  | Pattern                | Example                     |
+| ------------ | ---------------------- | --------------------------- |
+| Tab screen   | `/(tabs)/[name]`       | `/(tabs)/home`              |
 | Nested route | `/(tabs)/[tab]/[name]` | `/(tabs)/menu/product/[id]` |
-| Standalone | `/[name]` | `/payment/[order]` |
-| Dynamic | `/[name]/[param]` | `/product/[id]` |
+| Standalone   | `/[name]`              | `/payment/[order]`          |
+| Dynamic      | `/[name]/[param]`      | `/product/[id]`             |
 
 ## Navigation Object
 
@@ -138,7 +138,12 @@ import { useLocalSearchParams } from 'expo-router'
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
 
-  if (!id) return <View><Text>No product ID</Text></View>
+  if (!id)
+    return (
+      <View>
+        <Text>No product ID</Text>
+      </View>
+    )
 
   return <ProductDetail productId={id} />
 }
@@ -258,10 +263,7 @@ export const tabsScreenOptions: BottomTabNavigationOptions = {
 export const screenOptions: NativeStackNavigationOptions = {
   headerShown: true,
   header: ({ navigation, route }) => (
-    <CustomHeader
-      title={route.name}
-      canGoBack={navigation.canGoBack()}
-    />
+    <CustomHeader title={route.name} canGoBack={navigation.canGoBack()} />
   ),
   animationEnabled: true,
   animationTypeForReplace: 'pop',
@@ -352,9 +354,12 @@ https://app.example.com/(tabs)/menu/product/123
 {
   "scheme": "trendcoffee",
   "plugins": [
-    ["expo-router", {
-      "origin": "https://app.example.com"
-    }]
+    [
+      "expo-router",
+      {
+        "origin": "https://app.example.com"
+      }
+    ]
   ]
 }
 ```
@@ -397,11 +402,9 @@ export default function ProfileScreen() {
 
   if (!isAuthenticated()) {
     return (
-      <View className="flex-1 justify-center items-center">
+      <View className="flex-1 items-center justify-center">
         <Text>Please log in</Text>
-        <Button onPress={() => router.push('/auth/login')}>
-          Go to Login
-        </Button>
+        <Button onPress={() => router.push('/auth/login')}>Go to Login</Button>
       </View>
     )
   }
@@ -430,7 +433,7 @@ import { parallaxConfig } from '@/lib/transitions'
 import { SharedElement } from '@/lib/shared-element'
 
 // Example: Product image animates from list to detail
-<SharedElement id={`product-${product.id}`}>
+;<SharedElement id={`product-${product.id}`}>
   <Image source={{ uri: product.image }} />
 </SharedElement>
 ```
@@ -454,12 +457,8 @@ export function OrderTypeSheet({ visible, onClose }) {
   }, [visible])
 
   return (
-    <BottomSheetModal
-      ref={sheetRef}
-      snapPoints={[300]}
-      onDismiss={onClose}
-    >
-      <View className="p-4 gap-3">
+    <BottomSheetModal ref={sheetRef} snapPoints={[300]} onDismiss={onClose}>
+      <View className="gap-3 p-4">
         <Pressable onPress={() => selectType('dine-in')}>
           <Text>Dine In</Text>
         </Pressable>
@@ -517,7 +516,7 @@ router.push({
   pathname: '/(tabs)/menu',
   params: {
     date: '2024-03-30',
-    branch: 'downtown'
+    branch: 'downtown',
   },
 })
 ```
@@ -573,7 +572,7 @@ const handleCheckOrder = (orderId: string) => {
 ```tsx
 import { StatusBar } from 'expo-status-bar'
 
-<StatusBar barStyle="light-content" backgroundColor="#F7A737" />
+;<StatusBar barStyle="light-content" backgroundColor="#F7A737" />
 ```
 
 ### Android Navigation Bar Color

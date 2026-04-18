@@ -35,7 +35,9 @@ export const PaymentOrderInfoCard = memo(function PaymentOrderInfoCard({
         backgroundColor: isDark ? colors.gray[800] : colors.white.light,
         borderColor: isDark ? colors.gray[700] : colors.gray[100],
       },
-      divider: { backgroundColor: isDark ? colors.gray[700] : colors.gray[100] },
+      divider: {
+        backgroundColor: isDark ? colors.gray[700] : colors.gray[100],
+      },
       title: { color: isDark ? colors.gray[50] : colors.gray[900] },
       subtle: { color: isDark ? colors.gray[400] : colors.gray[500] },
       value: { color: isDark ? colors.gray[50] : colors.gray[900] },
@@ -78,7 +80,7 @@ export const PaymentOrderInfoCard = memo(function PaymentOrderInfoCard({
 
   const orderTypeLabel =
     order.type === OrderTypeEnum.AT_TABLE
-      ? `${t('order.dineIn', 'Tại bàn')} - Bàn số ${order.table?.name || '-'}`
+      ? `${t('order.dineIn', 'Tại bàn')} - ${t('order.tableNumber', 'Bàn số')} ${order.table?.name || '-'}`
       : order.type === OrderTypeEnum.DELIVERY
         ? t('menu.delivery', 'Giao hàng')
         : t('order.takeAway', 'Mang đi')
@@ -96,7 +98,9 @@ export const PaymentOrderInfoCard = memo(function PaymentOrderInfoCard({
             </Text>
           </View>
         </View>
-        <Text style={[s.time, theme.subtle]}>{formatDateTime(order.createdAt)}</Text>
+        <Text style={[s.time, theme.subtle]}>
+          {formatDateTime(order.createdAt)}
+        </Text>
       </View>
       <View style={[s.divider, theme.divider]} />
       <View style={s.body}>
@@ -109,9 +113,11 @@ export const PaymentOrderInfoCard = memo(function PaymentOrderInfoCard({
         {order.owner?.phonenumber && (
           <View style={s.row}>
             <Text style={[s.label, theme.subtle]}>
-              {t('order.phone', 'Điện thoại')}
+              {t('order.phoneNumber', 'Điện thoại')}
             </Text>
-            <Text style={[s.value, theme.value]}>{order.owner.phonenumber}</Text>
+            <Text style={[s.value, theme.value]}>
+              {order.owner.phonenumber}
+            </Text>
           </View>
         )}
         <View style={s.row}>
@@ -151,7 +157,12 @@ export const PaymentOrderInfoCard = memo(function PaymentOrderInfoCard({
 })
 
 const s = StyleSheet.create({
-  card: { marginBottom: 16, borderRadius: 12, borderWidth: 1, overflow: 'hidden' },
+  card: {
+    marginBottom: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
   header: { padding: 16, gap: 4 },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   title: { fontSize: 16, fontWeight: '700' },

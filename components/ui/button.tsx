@@ -73,18 +73,29 @@ export const Button = React.forwardRef<
   React.ElementRef<typeof PressableWithFeedback>,
   ButtonProps
 >((props, ref) => {
-  const { className, variant, size, loading, disabled, children, onPress, ...rest } =
-    props
+  const {
+    className,
+    variant,
+    size,
+    loading,
+    disabled,
+    children,
+    onPress,
+    ...rest
+  } = props
 
   const isDisabled = disabled || loading
 
   const content = loading ? (
     <ActivityIndicator
       color={
-        variant === 'secondary' ? colors.mutedForeground.light :
-        variant === 'ghost' ? colors.gray[900] :
-        variant === 'primary' ? colors.white.light :
-        colors.white.light
+        variant === 'secondary'
+          ? colors.mutedForeground.light
+          : variant === 'ghost'
+            ? colors.gray[900]
+            : variant === 'primary'
+              ? colors.white.light
+              : colors.white.light
       }
     />
   ) : typeof children === 'function' ? (
@@ -110,9 +121,7 @@ export const Button = React.forwardRef<
   ) : React.isValidElement(children) ? (
     children
   ) : (
-    <Text className={cn(textVariants({ variant, size }))}>
-      {children}
-    </Text>
+    <Text className={cn(textVariants({ variant, size }))}>{children}</Text>
   )
 
   return (

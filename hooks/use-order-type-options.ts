@@ -1,7 +1,11 @@
 import { useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { SystemLockFeatureChild, SystemLockFeatureGroup, SystemLockFeatureType } from '@/constants'
+import {
+  SystemLockFeatureChild,
+  SystemLockFeatureGroup,
+  SystemLockFeatureType,
+} from '@/constants'
 import { useGetSystemFeatureFlagsByGroup } from '@/hooks'
 import { useOrderFlowStore, useUserStore } from '@/stores'
 import { OrderTypeEnum } from '@/types'
@@ -29,9 +33,7 @@ export function useOrderTypeOptions(options?: UseOrderTypeOptionsOptions) {
 
   const cartItems = getCartItems()
   // Check if user is logged in
-  const userInfo = useUserStore(
-    useShallow((s) => s.userInfo)
-  )
+  const userInfo = useUserStore(useShallow((s) => s.userInfo))
   const isUserLoggedIn = useMemo(() => {
     return !!userInfo
   }, [userInfo])
@@ -39,17 +41,21 @@ export function useOrderTypeOptions(options?: UseOrderTypeOptionsOptions) {
   // Wrap featureFlags in useMemo to avoid changing dependencies
   const featureFlags = useMemo(
     () => featuresSystemFlagsResponse?.result || [],
-    [featuresSystemFlagsResponse?.result]
+    [featuresSystemFlagsResponse?.result],
   )
 
   // Lấy parent feature phù hợp với trạng thái logged in
   const relevantParentFeature = useMemo(() => {
     if (isUserLoggedIn) {
       // User đã đăng nhập → lấy CREATE_PRIVATE
-      return featureFlags.find((parent) => parent.name === SystemLockFeatureType.CREATE_PRIVATE)
+      return featureFlags.find(
+        (parent) => parent.name === SystemLockFeatureType.CREATE_PRIVATE,
+      )
     } else {
       // User chưa đăng nhập → lấy CREATE_PUBLIC
-      return featureFlags.find((parent) => parent.name === SystemLockFeatureType.CREATE_PUBLIC)
+      return featureFlags.find(
+        (parent) => parent.name === SystemLockFeatureType.CREATE_PUBLIC,
+      )
     }
   }, [featureFlags, isUserLoggedIn])
 
@@ -95,7 +101,9 @@ export function useOrderTypeOptions(options?: UseOrderTypeOptionsOptions) {
 
   const selectedType = useMemo(() => {
     if (cartItems?.type) {
-      const currentType = orderTypes.find((type) => type.value === cartItems.type)
+      const currentType = orderTypes.find(
+        (type) => type.value === cartItems.type,
+      )
       // Nếu type hiện tại không còn available (đã bị filter), chọn type đầu tiên
       if (!currentType) {
         return orderTypes[0]
@@ -108,7 +116,9 @@ export function useOrderTypeOptions(options?: UseOrderTypeOptionsOptions) {
 
   // Auto switch to available order type if current type is locked or not available
   useEffect(() => {
-    const currentType = orderTypes.find((type) => type.value === cartItems?.type)
+    const currentType = orderTypes.find(
+      (type) => type.value === cartItems?.type,
+    )
 
     // Nếu type hiện tại không tồn tại trong danh sách available types
     if (!currentType && orderTypes.length > 0) {
@@ -126,4 +136,3 @@ export function useOrderTypeOptions(options?: UseOrderTypeOptionsOptions) {
     handleChange,
   }
 }
-

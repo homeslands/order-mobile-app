@@ -11,11 +11,7 @@ export default function ProductNameSearch() {
   const setMenuFilter = useSetMenuFilter()
   const { t } = useTranslation('menu')
 
-  const {
-    inputValue,
-    setInputValue,
-    debouncedInputValue,
-  } = useDebouncedInput({
+  const { inputValue, setInputValue, debouncedInputValue } = useDebouncedInput({
     defaultValue: productName || '',
     delay: 500,
   })
@@ -47,7 +43,7 @@ export default function ProductNameSearch() {
       <TextInput
         placeholder={t('menu.searchProduct', 'Tìm kiếm sản phẩm')}
         placeholderTextColor="#9ca3af"
-        className="w-full h-[50px] bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-900 dark:text-white"
+        className="h-[50px] w-full rounded-xl border border-gray-200 bg-white text-gray-900 dark:border-gray-700 dark:bg-gray-800 dark:text-white"
         value={inputValue}
         onChangeText={setInputValue}
         style={{

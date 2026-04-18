@@ -1,9 +1,31 @@
 import dayjs from 'dayjs'
 import { Timer } from 'lucide-react-native'
-import { memo, useEffect, useMemo, useRef, useState } from 'react'
-import { StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
+import { StyleSheet, TextInput, useColorScheme } from 'react-native'
+import Animated, {
+  runOnJS,
+  useAnimatedProps,
+  useAnimatedReaction,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated'
 
 import { colors } from '@/constants'
+import { useAnimatedCountdown } from '@/hooks/use-animated-countdown'
+
+// Animated TextInput — text updates on UI thread, zero re-renders
+const AnimatedTextInput = Animated.createAnimatedComponent(TextInput)
+
+const ORDER_TIMEOUT_SECONDS = 900 // 15 minutes
+
+function formatCountdown(sec: number, prefix: string): string {
+  'worklet'
+  if (sec <= 0) return '0:00'
+  const m = Math.floor(sec / 60)
+  const s = sec % 60
+  return `${prefix}${m}:${s < 10 ? '0' : ''}${s}`
+}
 
 interface OrderCountdownNativeProps {
   createdAt: string | undefined
@@ -18,58 +40,74 @@ const OrderCountdownNative = memo(function OrderCountdownNative({
   setIsExpired,
 }: OrderCountdownNativeProps) {
   const isDark = useColorScheme() === 'dark'
-  const [timeRemainingInSec, setTimeRemainingInSec] = useState(0)
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
-
-  const { bgColor, timeStr } = useMemo(() => {
-    const m = Math.floor(timeRemainingInSec / 60)
-    const s = timeRemainingInSec % 60
-    const str = `${m}:${s < 10 ? `0${s}` : s}`
-    const primary = isDark ? colors.primary.dark : colors.primary.light
-    let color = primary
-    if (timeRemainingInSec <= CRITICAL_THRESHOLD_SEC && timeRemainingInSec > 0)
-      color = isDark ? colors.destructive.dark : colors.destructive.light
-    else if (timeRemainingInSec <= WARNING_THRESHOLD_SEC)
-      color = isDark ? colors.warning.light : colors.warning.dark
-    return { bgColor: color, timeStr: str }
-  }, [timeRemainingInSec, isDark])
-
+  const { t } = useTranslation('payment')
+  const countdownPrefixShared = useSharedValue(t('countdown.remaining'))
+  const onExpiredRef = useRef(setIsExpired)
   useEffect(() => {
-    if (!createdAt || typeof createdAt !== 'string') return
+    onExpiredRef.current = setIsExpired
+  })
 
-    const tick = () => {
-      try {
-        const createTime = dayjs(createdAt)
-        if (!createTime.isValid()) return
-        const remaining = 900 - dayjs().diff(createTime, 'seconds')
-        if (remaining <= 0) {
-          if (intervalRef.current) {
-            clearInterval(intervalRef.current)
-            intervalRef.current = null
-          }
-          setTimeRemainingInSec(0)
-          setIsExpired(true)
-        } else {
-          setTimeRemainingInSec(remaining)
-        }
-      } catch { /* ignore */ }
-    }
+  // Convert createdAt → expiresAt for the hook
+  const expiresAt = useMemo(() => {
+    if (!createdAt) return undefined
+    const d = dayjs(createdAt)
+    if (!d.isValid()) return undefined
+    return d.add(ORDER_TIMEOUT_SECONDS, 'second').toISOString()
+  }, [createdAt])
 
-    tick()
-    intervalRef.current = setInterval(tick, 1000)
-    return () => {
-      if (intervalRef.current) {
-        clearInterval(intervalRef.current)
-        intervalRef.current = null
+  // SharedValue — updates on UI thread, zero re-renders
+  const secondsShared = useAnimatedCountdown({
+    expiresAt,
+    enabled: !!expiresAt,
+  })
+
+  // Handle already-expired on mount
+  useEffect(() => {
+    if (!expiresAt) return
+    const remaining = dayjs(expiresAt).diff(dayjs(), 'second')
+    if (remaining <= 0) onExpiredRef.current(true)
+  }, [expiresAt])
+
+  // Bridge expiry from UI thread → JS
+  const fireExpired = useCallback(() => {
+    onExpiredRef.current(true)
+  }, [])
+  useAnimatedReaction(
+    () => secondsShared.value,
+    (current, previous) => {
+      if (current === 0 && previous !== null && previous > 0) {
+        runOnJS(fireExpired)()
       }
-    }
-  }, [createdAt, setIsExpired])
+    },
+  )
+
+  // Background color — reactive on UI thread
+  const barStyle = useAnimatedStyle(() => {
+    const sec = secondsShared.value
+    const primary = isDark ? colors.primary.dark : colors.primary.light
+    let bg = primary
+    if (sec <= CRITICAL_THRESHOLD_SEC && sec > 0)
+      bg = isDark ? colors.destructive.dark : colors.destructive.light
+    else if (sec <= WARNING_THRESHOLD_SEC && sec > 0)
+      bg = isDark ? colors.warning.light : colors.warning.dark
+    return { backgroundColor: bg }
+  }, [isDark])
+
+  // Text — formatted on UI thread
+  const textProps = useAnimatedProps(() => ({
+    value: formatCountdown(secondsShared.value, countdownPrefixShared.value),
+  }))
 
   return (
-    <View style={[cs.bar, { backgroundColor: bgColor }]}>
+    <Animated.View style={[cs.bar, barStyle]}>
       <Timer size={13} color={colors.white.light} />
-      <Text style={cs.text}>Còn {timeStr}</Text>
-    </View>
+      <AnimatedTextInput
+        animatedProps={textProps}
+        editable={false}
+        pointerEvents="none"
+        style={cs.text}
+      />
+    </Animated.View>
   )
 })
 
@@ -83,5 +121,11 @@ const cs = StyleSheet.create({
     gap: 6,
     height: 34,
   },
-  text: { fontSize: 13, fontWeight: '600', color: colors.white.light },
+  text: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: colors.white.light,
+    padding: 0,
+    textAlign: 'center',
+  },
 })

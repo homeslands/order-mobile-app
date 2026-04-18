@@ -54,11 +54,7 @@ const TableItem = memo(function TableItem({
                 : colors.mutedForeground.light
           }
           fill={
-            isReserved
-              ? '#ef4444'
-              : isAvailable
-                ? '#22c55e'
-                : 'transparent'
+            isReserved ? '#ef4444' : isAvailable ? '#22c55e' : 'transparent'
           }
         />
       </View>

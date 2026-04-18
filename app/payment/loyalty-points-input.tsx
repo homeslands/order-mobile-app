@@ -8,9 +8,13 @@ import {
   TextInput,
   View,
 } from 'react-native'
+import { useTranslation } from 'react-i18next'
 
 import { colors } from '@/constants'
-import { useApplyLoyaltyPoint, useCancelReservationForOrder } from '@/hooks/use-loyalty-point'
+import {
+  useApplyLoyaltyPoint,
+  useCancelReservationForOrder,
+} from '@/hooks/use-loyalty-point'
 import { formatCurrency, showErrorToastMessage } from '@/utils'
 
 interface LoyaltyPointsInputProps {
@@ -74,6 +78,7 @@ const LoyaltyPointsInput = memo(function LoyaltyPointsInput({
   onCancelled,
   onResetRef,
 }: LoyaltyPointsInputProps) {
+  const { t } = useTranslation('payment')
   const cardBg = isDark ? colors.gray[800] : colors.white.light
   const borderColor = isDark ? colors.gray[700] : colors.gray[200]
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
@@ -138,41 +143,68 @@ const LoyaltyPointsInput = memo(function LoyaltyPointsInput({
     applyPoints(
       { orderSlug, pointsToUse: points },
       {
-        onSuccess: () => { setIsApplying(false); onApplied() },
-        onError: () => { setIsApplying(false); showErrorToastMessage('Không thể áp dụng điểm') },
+        onSuccess: () => {
+          setIsApplying(false)
+          onApplied()
+        },
+        onError: () => {
+          setIsApplying(false)
+          showErrorToastMessage(t('loyaltyPoints.cannotApply'))
+        },
       },
     )
-  }, [parsedPoints, maxUsablePoints, isApplying, orderSlug, applyPoints, onApplied])
+  }, [
+    parsedPoints,
+    maxUsablePoints,
+    isApplying,
+    orderSlug,
+    applyPoints,
+    onApplied,
+    t,
+  ])
 
   const handleCancel = useCallback(() => {
     if (isCancelling) return
     setIsCancelling(true)
     cancelReservation(orderSlug, {
-      onSuccess: () => { setIsCancelling(false); setInputValue(''); onCancelled() },
-      onError: () => { setIsCancelling(false); showErrorToastMessage('Không thể hủy điểm') },
+      onSuccess: () => {
+        setIsCancelling(false)
+        setInputValue('')
+        onCancelled()
+      },
+      onError: () => {
+        setIsCancelling(false)
+        showErrorToastMessage(t('loyaltyPoints.cannotCancel'))
+      },
     })
-  }, [isCancelling, orderSlug, cancelReservation, onCancelled])
+  }, [isCancelling, orderSlug, cancelReservation, onCancelled, t])
 
   const handlePreset = useCallback((value: number) => {
     setInputValue(String(value))
     inputRef.current?.blur()
   }, [])
 
-  const handleUseMax = useCallback((_?: number) => {
-    setInputValue(String(maxUsablePoints))
-    inputRef.current?.blur()
-  }, [maxUsablePoints])
+  const handleUseMax = useCallback(
+    (_?: number) => {
+      setInputValue(String(maxUsablePoints))
+      inputRef.current?.blur()
+    },
+    [maxUsablePoints],
+  )
 
   // ── Render ────────────────────────────────────────────────────────────────────
   return (
     <View style={[s.card, { backgroundColor: cardBg }]}>
-
       {/* Header */}
       <View style={s.header}>
-        <Text style={[s.title, { color: textColor }]}>Điểm tích lũy</Text>
+        <Text style={[s.title, { color: textColor }]}>
+          {t('loyaltyPoints.title')}
+        </Text>
         <View style={[s.badge, { backgroundColor: `${primaryColor}20` }]}>
           <Text style={[s.badgeText, { color: primaryColor }]}>
-            {userTotalPoints.toLocaleString('vi-VN')} điểm
+            {t('loyaltyPoints.points', {
+              value: userTotalPoints.toLocaleString('vi-VN'),
+            })}
           </Text>
         </View>
       </View>
@@ -181,8 +213,13 @@ const LoyaltyPointsInput = memo(function LoyaltyPointsInput({
 
       <View style={s.body}>
         {!hasPoints ? (
-          <Text style={[s.hint, { color: subColor, textAlign: 'center', paddingVertical: 4 }]}>
-            Bạn chưa có điểm tích lũy
+          <Text
+            style={[
+              s.hint,
+              { color: subColor, textAlign: 'center', paddingVertical: 4 },
+            ]}
+          >
+            {t('loyaltyPoints.noPoints')}
           </Text>
         ) : (
           <>
@@ -211,7 +248,7 @@ const LoyaltyPointsInput = memo(function LoyaltyPointsInput({
               {maxUsablePoints > 0 && (
                 <PresetChip
                   value={maxUsablePoints}
-                  label="Tối đa"
+                  label={t('loyaltyPoints.max')}
                   isActive={clampedPoints === maxUsablePoints}
                   primaryColor={primaryColor}
                   chipBg={chipBg}
@@ -226,11 +263,14 @@ const LoyaltyPointsInput = memo(function LoyaltyPointsInput({
             <View style={s.inputRow}>
               <TextInput
                 ref={inputRef}
-                style={[s.input, { backgroundColor: inputBg, color: textColor, borderColor }]}
+                style={[
+                  s.input,
+                  { backgroundColor: inputBg, color: textColor, borderColor },
+                ]}
                 value={inputValue}
                 onChangeText={handleInputChange}
                 onBlur={handleInputBlur}
-                placeholder="Nhập số điểm"
+                placeholder={t('loyaltyPoints.enterPoints')}
                 placeholderTextColor={subColor}
                 keyboardType="number-pad"
                 returnKeyType="done"
@@ -238,12 +278,22 @@ const LoyaltyPointsInput = memo(function LoyaltyPointsInput({
               <Pressable
                 onPress={handleApply}
                 disabled={!canApply || isApplying}
-                style={[s.applyBtn, { backgroundColor: canApply ? primaryColor : (isDark ? colors.gray[600] : colors.gray[300]) }]}
+                style={[
+                  s.applyBtn,
+                  {
+                    backgroundColor: canApply
+                      ? primaryColor
+                      : isDark
+                        ? colors.gray[600]
+                        : colors.gray[300],
+                  },
+                ]}
               >
-                {isApplying
-                  ? <ActivityIndicator size="small" color={colors.white.light} />
-                  : <Text style={s.applyBtnText}>Áp dụng</Text>
-                }
+                {isApplying ? (
+                  <ActivityIndicator size="small" color={colors.white.light} />
+                ) : (
+                  <Text style={s.applyBtnText}>{t('loyaltyPoints.apply')}</Text>
+                )}
               </Pressable>
             </View>
 
@@ -252,34 +302,45 @@ const LoyaltyPointsInput = memo(function LoyaltyPointsInput({
               <Pressable
                 onPress={handleCancel}
                 disabled={isCancelling}
-                style={[s.cancelRow, { borderColor: isDark ? colors.gray[700] : colors.gray[200] }]}
+                style={[
+                  s.cancelRow,
+                  { borderColor: isDark ? colors.gray[700] : colors.gray[200] },
+                ]}
               >
-                {isCancelling
-                  ? <ActivityIndicator size="small" color={subColor} />
-                  : (
-                    <>
-                      <Text style={[s.cancelRowText, { color: subColor }]}>
-                        Đang dùng{' '}
-                        <Text style={{ fontWeight: '700', color: textColor }}>
-                          {currentPointsUsed.toLocaleString('vi-VN')} điểm
-                        </Text>
+                {isCancelling ? (
+                  <ActivityIndicator size="small" color={subColor} />
+                ) : (
+                  <>
+                    <Text style={[s.cancelRowText, { color: subColor }]}>
+                      {t('loyaltyPoints.using')}{' '}
+                      <Text style={{ fontWeight: '700', color: textColor }}>
+                        {t('loyaltyPoints.points', {
+                          value: currentPointsUsed.toLocaleString('vi-VN'),
+                        })}
                       </Text>
-                      <Text style={[s.cancelRowAction, { color: isDark ? colors.destructive.dark : colors.destructive.light }]}>
-                        Hủy
-                      </Text>
-                    </>
-                  )
-                }
+                    </Text>
+                    <Text
+                      style={[
+                        s.cancelRowAction,
+                        {
+                          color: isDark
+                            ? colors.destructive.dark
+                            : colors.destructive.light,
+                        },
+                      ]}
+                    >
+                      {t('loyaltyPoints.cancel')}
+                    </Text>
+                  </>
+                )}
               </Pressable>
             )}
 
             {/* Hint */}
             <Text style={[s.hint, { color: subColor }]}>
-              Tối đa{' '}
-              <Text style={{ fontWeight: '600' }}>
-                {formatCurrency(maxUsablePoints)}
-              </Text>
-              {' '}(giới hạn bởi tổng đơn hàng)
+              {t('loyaltyPoints.maxHint', {
+                amount: formatCurrency(maxUsablePoints),
+              })}
             </Text>
           </>
         )}

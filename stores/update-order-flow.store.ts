@@ -123,8 +123,7 @@ export const useUpdateOrderFlowStore = create<IUpdateOrderFlowStore>()(
           status: updatingData.originalOrder.status || OrderStatus.PENDING,
           owner: updatingData.originalOrder.owner?.slug || '',
           ownerFullName: updatingData.originalOrder.owner?.firstName || '',
-          ownerPhoneNumber:
-            updatingData.originalOrder.owner?.phonenumber || '',
+          ownerPhoneNumber: updatingData.originalOrder.owner?.phonenumber || '',
           paymentMethod:
             updatingData.originalOrder.payment?.paymentMethod || '',
           type: updatingData.originalOrder.type,
@@ -139,7 +138,11 @@ export const useUpdateOrderFlowStore = create<IUpdateOrderFlowStore>()(
         }
 
         set({
-          updatingData: { ...updatingData, updateDraft: resetDraft, hasChanges: false },
+          updatingData: {
+            ...updatingData,
+            updateDraft: resetDraft,
+            hasChanges: false,
+          },
           lastModified: dayjs().valueOf(),
         })
       },

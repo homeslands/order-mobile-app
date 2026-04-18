@@ -42,7 +42,9 @@ export const PaymentSummaryCard = memo(function PaymentSummaryCard({
         backgroundColor: isDark ? colors.gray[800] : colors.white.light,
         borderColor: isDark ? colors.gray[700] : colors.gray[100],
       },
-      divider: { backgroundColor: isDark ? colors.gray[700] : colors.gray[100] },
+      divider: {
+        backgroundColor: isDark ? colors.gray[700] : colors.gray[100],
+      },
       dividerStrong: {
         backgroundColor: isDark ? colors.gray[700] : colors.gray[200],
       },
@@ -177,10 +179,7 @@ export const PaymentSummaryCard = memo(function PaymentSummaryCard({
         {order.loss > 0 && (
           <View style={s.row}>
             <Text style={[s.label, { color: colors.success.light }]}>
-              {t(
-                'order.invoiceAutoDiscountUnderThreshold',
-                'Giảm giá tự động',
-              )}
+              {t('order.invoiceAutoDiscountUnderThreshold', 'Giảm giá tự động')}
             </Text>
             <Text style={[s.value, { color: colors.success.light }]}>
               -{formatCurrency(order.loss)}
@@ -188,7 +187,9 @@ export const PaymentSummaryCard = memo(function PaymentSummaryCard({
           </View>
         )}
 
-        <View style={[s.divider, theme.dividerStrong, { marginHorizontal: 0 }]} />
+        <View
+          style={[s.divider, theme.dividerStrong, { marginHorizontal: 0 }]}
+        />
 
         {/* Total */}
         <View style={s.row}>
@@ -210,13 +211,13 @@ export const PaymentSummaryCard = memo(function PaymentSummaryCard({
                 backgroundColor: isDark
                   ? `${primaryColor}18`
                   : `${primaryColor}08`,
-                borderColor: isDark
-                  ? `${primaryColor}40`
-                  : `${primaryColor}20`,
+                borderColor: isDark ? `${primaryColor}40` : `${primaryColor}20`,
               },
             ]}
           >
-            <Text style={[s.xsText, { color: primaryColor, fontWeight: '500' }]}>
+            <Text
+              style={[s.xsText, { color: primaryColor, fontWeight: '500' }]}
+            >
               {t('paymentMethod.paidWithCoin', 'Đã thanh toán {{amount}} xu', {
                 amount: formatCurrency(order.subtotal || 0, ''),
               })}
@@ -235,7 +236,12 @@ export const PaymentSummaryCard = memo(function PaymentSummaryCard({
 })
 
 const s = StyleSheet.create({
-  card: { marginBottom: 16, borderRadius: 12, borderWidth: 1, overflow: 'hidden' },
+  card: {
+    marginBottom: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
   header: { padding: 16, gap: 4 },
   title: { fontSize: 16, fontWeight: '700' },
   totalLabel: { fontSize: 16, fontWeight: '600' },

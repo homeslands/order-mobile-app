@@ -1,6 +1,7 @@
 # Forgot Password Flow - Timer Optimization Analysis
 
 ## Overview
+
 Analyzed and optimized the countdown timer logic in the forgot password flow based on the complete documentation. This document details the issues found and improvements implemented.
 
 ---
@@ -10,18 +11,23 @@ Analyzed and optimized the countdown timer logic in the forgot password flow bas
 ### 1.1 Duplicated Logic
 
 **Problem:** The `calculateTimeLeft()` function was defined **twice** with identical implementation:
+
 ```typescript
 // ❌ In OTP countdown (useEffect #1)
 const calculateTimeLeft = () => {
   if (!expireTime || step !== 2) return 0
-  const timeLeft = Math.floor((new Date(expireTime).getTime() - Date.now()) / 1000)
+  const timeLeft = Math.floor(
+    (new Date(expireTime).getTime() - Date.now()) / 1000,
+  )
   return Math.max(0, timeLeft)
 }
 
 // ❌ In JWT countdown (useEffect #2) - DUPLICATE
 const calculateTimeLeft = () => {
   if (!tokenExpireTime || step !== 3) return 0
-  const timeLeft = Math.floor((new Date(tokenExpireTime).getTime() - Date.now()) / 1000)
+  const timeLeft = Math.floor(
+    (new Date(tokenExpireTime).getTime() - Date.now()) / 1000,
+  )
   return Math.max(0, timeLeft)
 }
 ```
@@ -33,16 +39,19 @@ const calculateTimeLeft = () => {
 ### 1.2 Unnecessary setTimeout at Effect Startup
 
 **Problem:**
+
 ```typescript
 const timeoutId = setTimeout(() => setCountdown(calculateTimeLeft()), 0)
 ```
 
 **Why it's wasteful:**
+
 - Creates a timeout with 0ms delay, which still queues to the event loop
 - Doesn't provide any benefit over calling synchronously
 - Wastes resources and complicates cleanup
 
 **Better approach:** Call directly on mount
+
 ```typescript
 setCountdown(calculateTimeLeft())
 ```
@@ -52,11 +61,13 @@ setCountdown(calculateTimeLeft())
 ### 1.3 Separate Interval Timers
 
 **Problem:** Each countdown (OTP and JWT) runs its own `setInterval`, leading to:
+
 - Multiple timers in memory per component
 - Separate cleanup logic
 - Potential for timer leaks if dependencies aren't perfect
 
 **Original code structure:**
+
 ```typescript
 useEffect(() => {
   // OTP timer setup
@@ -76,6 +87,7 @@ useEffect(() => {
 ### 1.4 No Memoization of formatTime
 
 **Problem:**
+
 ```typescript
 const formatTime = (seconds: number) => {
   const m = Math.floor(seconds / 60)
@@ -84,11 +96,16 @@ const formatTime = (seconds: number) => {
 }
 
 // Called on every render:
-{formatTime(countdown)}
-{formatTime(tokenCountdown)}
+{
+  formatTime(countdown)
+}
+{
+  formatTime(tokenCountdown)
+}
 ```
 
 **Impact:**
+
 - Function recreated on every render
 - String formatting happens unnecessarily
 - No memoization despite being pure function
@@ -98,6 +115,7 @@ const formatTime = (seconds: number) => {
 ### 1.5 Incomplete Cleanup Logic
 
 **Problem:**
+
 ```typescript
 const timeoutId = setTimeout(() => setCountdown(calculateTimeLeft()), 0)
 if (!expireTime || step !== 2) return () => clearTimeout(timeoutId)
@@ -113,15 +131,17 @@ const timer = setInterval(() => { ... }, 1000)
 ### 1.6 State Updates During Intervals
 
 **Problem:**
+
 ```typescript
 setInterval(() => {
   const timeLeft = calculateTimeLeft()
-  setCountdown(timeLeft)  // ← Triggers re-render every second
+  setCountdown(timeLeft) // ← Triggers re-render every second
   if (timeLeft <= 0) clearInterval(timer)
 }, 1000)
 ```
 
 **Impact:**
+
 - Component re-renders every second regardless of whether value changed
 - No optimization for when countdown completes (still updates from 1 to 0, then 0 to 0)
 
@@ -132,6 +152,7 @@ setInterval(() => {
 Based on the forgot-password-flow.md documentation:
 
 ### OTP Countdown (Step 2)
+
 ```
 Duration: 10 minutes
 Source: expiresAt (ISO string from API response)
@@ -143,6 +164,7 @@ Behavior:
 ```
 
 ### JWT Token Countdown (Step 3)
+
 ```
 Duration: 5 minutes
 Source: Frontend calculated (now + 5 minutes)
@@ -162,14 +184,19 @@ Behavior:
 **File:** `hooks/use-countdown.ts`
 
 ```typescript
-export function useCountdown({ expiresAt, enabled = true }: UseCountdownOptions) {
+export function useCountdown({
+  expiresAt,
+  enabled = true,
+}: UseCountdownOptions) {
   const [seconds, setSeconds] = useState(0)
   const timerRef = useRef<NodeJS.Timeout | null>(null)
 
   // Calculate time remaining in seconds
   const calculateTimeLeft = useCallback(() => {
     if (!expiresAt) return 0
-    const timeLeft = Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000)
+    const timeLeft = Math.floor(
+      (new Date(expiresAt).getTime() - Date.now()) / 1000,
+    )
     return Math.max(0, timeLeft)
   }, [expiresAt])
 
@@ -213,6 +240,7 @@ export function useCountdown({ expiresAt, enabled = true }: UseCountdownOptions)
 ```
 
 **Benefits:**
+
 - ✅ Eliminates code duplication
 - ✅ Encapsulates timer logic
 - ✅ Uses `useRef` for timer reference (safer than `useState`)
@@ -238,6 +266,7 @@ export function useFormatTime(seconds: number): string {
 ```
 
 **Benefits:**
+
 - ✅ Memoized formatting (only recalculates when seconds change)
 - ✅ Pure function, safe to use in JSX
 - ✅ Consistent formatting across app
@@ -248,49 +277,79 @@ export function useFormatTime(seconds: number): string {
 ### 3.3 Simplified Screen Components
 
 **Before (email.tsx):**
+
 ```typescript
 const [countdown, setCountdown] = useState(0)
 const [tokenCountdown, setTokenCountdown] = useState(0)
 
 useEffect(() => {
-  const calculateTimeLeft = () => { /* ... */ }
+  const calculateTimeLeft = () => {
+    /* ... */
+  }
   const timeoutId = setTimeout(() => setCountdown(calculateTimeLeft()), 0)
   if (!expireTime || step !== 2) return () => clearTimeout(timeoutId)
-  const timer = setInterval(() => { /* ... */ }, 1000)
-  return () => { clearTimeout(timeoutId); clearInterval(timer) }
+  const timer = setInterval(() => {
+    /* ... */
+  }, 1000)
+  return () => {
+    clearTimeout(timeoutId)
+    clearInterval(timer)
+  }
 }, [expireTime, step])
 
 useEffect(() => {
-  const calculateTimeLeft = () => { /* ... */ }  // DUPLICATE
+  const calculateTimeLeft = () => {
+    /* ... */
+  } // DUPLICATE
   const timeoutId = setTimeout(() => setTokenCountdown(calculateTimeLeft()), 0)
   if (!tokenExpireTime || step !== 3) return () => clearTimeout(timeoutId)
-  const timer = setInterval(() => { /* ... */ }, 1000)
-  return () => { clearTimeout(timeoutId); clearInterval(timer) }
+  const timer = setInterval(() => {
+    /* ... */
+  }, 1000)
+  return () => {
+    clearTimeout(timeoutId)
+    clearInterval(timer)
+  }
 }, [tokenExpireTime, step])
 
-const formatTime = (seconds: number) => { /* ... */ }
+const formatTime = (seconds: number) => {
+  /* ... */
+}
 
 // Usage
-{formatTime(countdown)}
-{formatTime(tokenCountdown)}
+{
+  formatTime(countdown)
+}
+{
+  formatTime(tokenCountdown)
+}
 ```
 
 **After (email.tsx):**
+
 ```typescript
 // Use custom hooks for countdown
 const countdown = useCountdown({ expiresAt: expireTime, enabled: step === 2 })
-const tokenCountdown = useCountdown({ expiresAt: tokenExpireTime, enabled: step === 3 })
+const tokenCountdown = useCountdown({
+  expiresAt: tokenExpireTime,
+  enabled: step === 3,
+})
 
 // Format time for display with memoization
 const formattedCountdown = useFormatTime(countdown)
 const formattedTokenCountdown = useFormatTime(tokenCountdown)
 
 // Usage
-{formattedCountdown}
-{formattedTokenCountdown}
+{
+  formattedCountdown
+}
+{
+  formattedTokenCountdown
+}
 ```
 
 **Lines of code reduced:**
+
 - From ~60 lines to ~6 lines (90% reduction)
 - Same for phone.tsx
 
@@ -300,14 +359,14 @@ const formattedTokenCountdown = useFormatTime(tokenCountdown)
 
 ### 4.1 Render Optimization
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| useEffect hooks per component | 2 | 0 (moved to custom hook) | ✅ -2 |
-| setTimeout calls per screen | 2 | 0 | ✅ -2 |
-| setInterval calls per screen | 2 | 2 (in hooks, same total) | ✅ Centralized |
-| Duplicate functions | 2 | 0 | ✅ -2 |
-| Memoized time formats | 0 | 2 | ✅ +2 |
-| Lines of code per screen | ~60 | ~6 | ✅ 90% reduction |
+| Metric                        | Before | After                    | Improvement      |
+| ----------------------------- | ------ | ------------------------ | ---------------- |
+| useEffect hooks per component | 2      | 0 (moved to custom hook) | ✅ -2            |
+| setTimeout calls per screen   | 2      | 0                        | ✅ -2            |
+| setInterval calls per screen  | 2      | 2 (in hooks, same total) | ✅ Centralized   |
+| Duplicate functions           | 2      | 0                        | ✅ -2            |
+| Memoized time formats         | 0      | 2                        | ✅ +2            |
+| Lines of code per screen      | ~60    | ~6                       | ✅ 90% reduction |
 
 ### 4.2 Memory Usage
 
@@ -317,11 +376,13 @@ const formattedTokenCountdown = useFormatTime(tokenCountdown)
 ### 4.3 Re-render Cycles
 
 **Before:** Direct state updates in interval
+
 ```typescript
-setCountdown(timeLeft)  // ← Re-renders component every second
+setCountdown(timeLeft) // ← Re-renders component every second
 ```
 
 **After:** Same interval updates, but logic is isolated
+
 - Component only cares about returned value
 - Cleanup is centralized
 - No duplication of effect logic
@@ -331,17 +392,20 @@ setCountdown(timeLeft)  // ← Re-renders component every second
 ## 5. Code Quality Improvements
 
 ### 5.1 Maintainability
+
 - ✅ Single source of truth for countdown logic
 - ✅ Easy to update timer behavior (change one place)
 - ✅ Clear interface: `useCountdown({ expiresAt, enabled })`
 - ✅ Reusable in other parts of app
 
 ### 5.2 Testability
+
 - ✅ Custom hooks are easier to unit test
 - ✅ Clear inputs (expiresAt, enabled) and outputs (seconds)
 - ✅ No hidden dependencies
 
 ### 5.3 Readability
+
 - ✅ Component code is cleaner
 - ✅ Intent is clear: `const countdown = useCountdown({...})`
 - ✅ Less boilerplate in component
@@ -350,32 +414,36 @@ setCountdown(timeLeft)  // ← Re-renders component every second
 
 ## 6. Summary Table
 
-| Aspect | Change | Benefit |
-|--------|--------|---------|
-| **Code Duplication** | Eliminated 2 identical `calculateTimeLeft()` functions | Single implementation |
-| **setTimeout Usage** | Removed unnecessary startup setTimeout calls | Cleaner, faster initialization |
-| **Timer Management** | Centralized in custom hook with `useRef` | Better cleanup, no leaks |
-| **Time Formatting** | Added memoization via `useMemo` | Prevents unnecessary formatting |
-| **Component Code** | ~60 lines → ~6 lines | 90% reduction in timer boilerplate |
-| **Reusability** | Created `useCountdown` hook | Can use in other features |
-| **Documentation** | Aligned with doc requirements | Clear OTP (10min) and JWT (5min) expectations |
+| Aspect               | Change                                                 | Benefit                                       |
+| -------------------- | ------------------------------------------------------ | --------------------------------------------- |
+| **Code Duplication** | Eliminated 2 identical `calculateTimeLeft()` functions | Single implementation                         |
+| **setTimeout Usage** | Removed unnecessary startup setTimeout calls           | Cleaner, faster initialization                |
+| **Timer Management** | Centralized in custom hook with `useRef`               | Better cleanup, no leaks                      |
+| **Time Formatting**  | Added memoization via `useMemo`                        | Prevents unnecessary formatting               |
+| **Component Code**   | ~60 lines → ~6 lines                                   | 90% reduction in timer boilerplate            |
+| **Reusability**      | Created `useCountdown` hook                            | Can use in other features                     |
+| **Documentation**    | Aligned with doc requirements                          | Clear OTP (10min) and JWT (5min) expectations |
 
 ---
 
 ## 7. Technical Details
 
 ### Clock Synchronization
+
 Both OTP and JWT use the same synchronization approach:
+
 ```typescript
 Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000)
 ```
 
 This ensures:
+
 - Consistent time calculation across renders
 - Handles client clock drift gracefully
 - Stops naturally at 0 (no negative values)
 
 ### API Contract Compliance
+
 - **OTP:** Uses `expiresAt` from `/auth/forgot-password/initiate` response
 - **JWT:** Frontend calculates `now + 5 minutes` after OTP verification
 - Both respect their documented durations: OTP=10min, JWT=5min
@@ -385,6 +453,7 @@ This ensures:
 ## 8. Migration Notes
 
 Both `email.tsx` and `phone.tsx` were updated identically with:
+
 1. Removed local state: `countdown`, `tokenCountdown`
 2. Removed two `useEffect` hooks (for OTP and JWT timers)
 3. Removed local `formatTime()` function
@@ -408,6 +477,7 @@ No behavior changes, only implementation improvements.
 ## Conclusion
 
 The optimizations implement the documented flow exactly while significantly improving:
+
 - Code maintainability (90% less boilerplate)
 - Developer experience (reusable hooks)
 - Performance (no unnecessary updates)

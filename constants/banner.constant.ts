@@ -1,6 +1,6 @@
 export enum BannerPage {
-    HOME = 'home',
-    BOOKING = 'booking',
-    ABOUT = 'about',
-    MENU = 'menu',
-  }
+  HOME = 'home',
+  BOOKING = 'booking',
+  ABOUT = 'about',
+  MENU = 'menu',
+}

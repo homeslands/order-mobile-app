@@ -7,13 +7,7 @@ import {
 import { X } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-  useColorScheme,
-} from 'react-native'
+import { Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native'
 import QRCode from 'react-native-qrcode-svg'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
@@ -51,7 +45,9 @@ const QrContent = memo(function QrContent({
     <View style={s.content}>
       {/* Header */}
       <View style={s.header}>
-        <Text style={[s.title, { color: textColor }]}>{t('profile.qr.title')}</Text>
+        <Text style={[s.title, { color: textColor }]}>
+          {t('profile.qr.title')}
+        </Text>
         <Pressable onPress={onClose} hitSlop={10} style={s.closeBtn}>
           <X size={20} color={mutedColor} />
         </Pressable>
@@ -147,7 +143,10 @@ const ScanSheetPortal = memo(function ScanSheetPortal() {
         contentContainerStyle={[s.scroll, { paddingBottom: bottomInset + 16 }]}
         showsVerticalScrollIndicator={false}
       >
-        <QrContent isDark={isDark} onClose={() => sheetRef.current?.dismiss()} />
+        <QrContent
+          isDark={isDark}
+          onClose={() => sheetRef.current?.dismiss()}
+        />
       </BottomSheetScrollView>
     </BottomSheetModal>
   )

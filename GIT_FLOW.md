@@ -7,11 +7,11 @@ develop  →  staging  →  main
 (lowest)                (production)
 ```
 
-| Branch | Environment | Purpose |
-|--------|-------------|---------|
-| `main` | Production — App Store / Play Store | Stable releases only, always tagged |
-| `staging` | Pre-prod — TestFlight / Internal Track | QA sign-off before production |
-| `develop` | Development — internal builds | Integration branch, base for all features |
+| Branch    | Environment                            | Purpose                                   |
+| --------- | -------------------------------------- | ----------------------------------------- |
+| `main`    | Production — App Store / Play Store    | Stable releases only, always tagged       |
+| `staging` | Pre-prod — TestFlight / Internal Track | QA sign-off before production             |
+| `develop` | Development — internal builds          | Integration branch, base for all features |
 
 ---
 
@@ -145,6 +145,7 @@ style(scope):     Formatting only
 ```
 
 Breaking change — add `!` after scope:
+
 ```
 feat(auth)!: replace JWT with session tokens
 ```

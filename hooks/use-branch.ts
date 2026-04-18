@@ -37,4 +37,3 @@ export const useGetBranchInfoForDelivery = (
     staleTime: BRANCH_DELIVERY_STALE_MS,
   })
 }
-

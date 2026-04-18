@@ -26,7 +26,9 @@ function OrderHistorySkeletonComponent({
           { backgroundColor: headerBg, borderBottomColor: headerBorder },
         ]}
       >
-        <Skeleton style={{ width: 24, height: 24, borderRadius: 12, marginRight: 12 }} />
+        <Skeleton
+          style={{ width: 24, height: 24, borderRadius: 12, marginRight: 12 }}
+        />
         <Skeleton style={{ width: 160, height: 20, borderRadius: 6 }} />
       </View>
       <ScrollView contentContainerStyle={styles.listPadding}>
@@ -50,7 +52,9 @@ function OrderHistorySkeletonComponent({
                 <Skeleton style={{ width: 112, height: 16, borderRadius: 6 }} />
               </View>
             </View>
-            <View style={[styles.skeletonSummary, { borderTopColor: headerBorder }]}>
+            <View
+              style={[styles.skeletonSummary, { borderTopColor: headerBorder }]}
+            >
               <View style={styles.skeletonSummaryRow}>
                 <Skeleton style={{ width: 96, height: 12, borderRadius: 6 }} />
                 <Skeleton style={{ width: 80, height: 12, borderRadius: 6 }} />

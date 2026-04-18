@@ -1,11 +1,5 @@
 import { Image } from 'expo-image'
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Dimensions,
   FlatList,
@@ -22,7 +16,12 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { Images } from '@/assets/images'
-import { ROUTE, SPRING_CONFIGS, TIMING_CONFIGS, publicFileURL } from '@/constants'
+import {
+  ROUTE,
+  SPRING_CONFIGS,
+  TIMING_CONFIGS,
+  publicFileURL,
+} from '@/constants'
 import { navigateNative } from '@/lib/navigation'
 import type { IBanner } from '@/types'
 import type { ImageSourcePropType } from 'react-native'
@@ -45,7 +44,10 @@ const BannerDot = React.memo(function BannerDot({
   isActive: boolean
 }) {
   const width = useDerivedValue(() =>
-    withSpring(isActive ? DOT_ACTIVE_WIDTH : DOT_SIZE, SPRING_CONFIGS.dotExpand),
+    withSpring(
+      isActive ? DOT_ACTIVE_WIDTH : DOT_SIZE,
+      SPRING_CONFIGS.dotExpand,
+    ),
   )
   const opacity = useDerivedValue(() =>
     withTiming(isActive ? 1 : 0.45, TIMING_CONFIGS.dotFade),

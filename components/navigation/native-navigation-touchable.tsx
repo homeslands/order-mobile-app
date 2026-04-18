@@ -52,7 +52,10 @@ export type NativeNavigationTouchableProps = {
 
 function serializeHref(href: HrefLike): string {
   if (typeof href === 'string') return href
-  const { pathname, params } = href as { pathname?: string; params?: Record<string, string> }
+  const { pathname, params } = href as {
+    pathname?: string
+    params?: Record<string, string>
+  }
   if (!pathname) return ''
   if (!params || Object.keys(params).length === 0) return pathname
   let result = pathname
@@ -93,11 +96,9 @@ export function NativeNavigationTouchable({
     if (disabled || !navigation) return
     if (isLockedShared.value === 1) return
 
-    const href = navigation.type === 'back' ? undefined : serializeHref(navigation.href)
-    executeNavFromGesture(
-      navigation.type,
-      href,
-    )
+    const href =
+      navigation.type === 'back' ? undefined : serializeHref(navigation.href)
+    executeNavFromGesture(navigation.type, href)
     if (onPressDeferred) setImmediate(onPressDeferred)
   }, [disabled, navigation, onPressDeferred])
 

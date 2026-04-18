@@ -398,7 +398,9 @@
     "settings": "Settings",
     "language": {
       "title": "Language",
-      "subtitle": "Select display language"
+      "subtitle": "Select display language",
+      "switched": "Switched to English",
+      "switchFailed": "Failed to change language"
     },
     "giftCardAndCoin": {
       "title": "Gift Cards & Coins"
@@ -408,6 +410,23 @@
       "light": "Light",
       "dark": "Dark",
       "system": "System"
+    },
+    "dobPicker": {
+      "confirm": "Confirm",
+      "months": [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December"
+      ]
     },
     "cancel": "Cancel",
     "changeAvatar": "Change Avatar",
@@ -422,7 +441,13 @@
     "qr": {
       "title": "My QR Code",
       "subtitle": "Show this code to staff to verify your account",
-      "notLoggedIn": "Not logged in"
+      "notLoggedIn": "Not logged in",
+      "selectTitle": "Select QR Type",
+      "selectSubtitle": "Choose the right QR for your needs",
+      "memberId": "Member ID",
+      "memberIdDesc": "Staff scans code at the counter",
+      "coinPayment": "Coin Payment",
+      "coinPaymentDesc": "Scan QR to pay with coins"
     },
     "orderStatus": {
       "completed": "Completed",

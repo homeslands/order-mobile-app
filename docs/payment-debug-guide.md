@@ -18,6 +18,7 @@ npm run expo run:android
 ```
 
 **Nơi xem logs:**
+
 - **Metro bundler output** - Tất cả logs sẽ hiển thị ở terminal đó
 - Search: `[HTTP Request]` hoặc `[HTTP Response]` hoặc `[HTTP Error]`
 
@@ -118,6 +119,7 @@ npm run expo start --web
 ```
 
 **Nếu `url: '/orders/ABC123'` mà `hasToken: false` → BUG!**
+
 - Phải dùng `/orders/ABC123/public` khi guest
 
 ### 3.2 Kiểm Tra Token
@@ -161,11 +163,13 @@ npm run expo start --web
 ```
 
 **Nếu thấy:**
+
 ```
 [HTTP Request] { url: '/orders/ABC123', hasToken: false }
        ↓
 [HTTP Error] { httpStatus: 403, ... }
 ```
+
 → **PROBLEM:** Dùng sai endpoint!
 
 **Fix:** Kiểm tra `useOrderBySlug` hook có check `isLoggedIn` không?
@@ -189,6 +193,7 @@ npm run expo start --web
 ```
 
 **Nếu thấy:**
+
 ```
 [HTTP Request] { hasToken: true }
        ↓
@@ -198,6 +203,7 @@ npm run expo start --web
        ↓
 [HTTP Error] { httpStatus: 403, ... }
 ```
+
 → **PROBLEM:** Token hết hạn, refresh fail
 
 **Fix:** Check auth token trong store, có thể cần re-login
@@ -298,7 +304,7 @@ Phổ biến:
 // ❌ SAI
 const useOrderBySlug = (slug: string) => {
   return useQuery({
-    queryFn: () => getOrderBySlug(slug)  // ← Always authenticated
+    queryFn: () => getOrderBySlug(slug), // ← Always authenticated
   })
 }
 
@@ -307,9 +313,7 @@ const useOrderBySlug = (slug: string) => {
   const isLoggedIn = !!useUserStore((s) => s.userInfo)
   return useQuery({
     queryFn: () =>
-      isLoggedIn
-        ? getOrderBySlug(slug)
-        : getPublicOrderBySlug(slug)  // ← Use public for guest
+      isLoggedIn ? getOrderBySlug(slug) : getPublicOrderBySlug(slug), // ← Use public for guest
   })
 }
 ```
@@ -321,6 +325,7 @@ const useOrderBySlug = (slug: string) => {
 **Problem:** Token invalid, refresh token cũng hết hạn
 
 **Solution:**
+
 1. Force re-login: `logout()` → redirect `/auth/login`
 2. Check token expiry: stored token vs current time
 3. Clear cached tokens: check auth store
@@ -332,6 +337,7 @@ const useOrderBySlug = (slug: string) => {
 **Problem:** User không có quyền truy cập order này
 
 **Solution:**
+
 1. Check order ownership: API should verify user owns this order
 2. Check user role: có đủ quyền để xem payment không?
 3. Contact backend: có thể là API issue
@@ -385,11 +391,13 @@ if (__DEV__ || error) { console.log(...) }
 ## 9. Performance Impact
 
 ⚠️ **Logging có thể ảnh hưởng performance:**
+
 - Mỗi request/response log vào console
 - Console output chậm trên device thực
 - Bật logging khi debug, tắt trước release
 
 **Best Practice:**
+
 ```typescript
 // Chỉ log critical errors
 if (__DEV__ && httpStatus >= 400) {

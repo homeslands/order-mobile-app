@@ -79,7 +79,8 @@ export const useProfileAnimation = (onBack?: () => void) => {
           // Guard: chỉ update khi gesture bắt đầu từ edge area (32px từ cạnh trái)
           // HOẶC translateX đã > 0 (đang trong gesture). Ngăn touch leak từ tab bar
           // (pointerEvents: box-none) ở giữa/dưới màn drift translateX trong rapid tap.
-          if (translateX.value === 0 && event.absoluteX > EDGE_ACTIVATION_AREA) return
+          if (translateX.value === 0 && event.absoluteX > EDGE_ACTIVATION_AREA)
+            return
           const nextX = translateX.value + event.translationX
           const resistedX = applyResistance(nextX, SCREEN_WIDTH)
           translateX.value = Math.min(SCREEN_WIDTH, Math.max(0, resistedX))

@@ -127,6 +127,7 @@ it('overrideItemLayout sets correct size per item type', () => {
   )
   const lists = UNSAFE_getAllByType(FlashList)
   expect(lists.length).toBe(1)
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
   const list = lists[0]
   // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
   expect(typeof list.props.overrideItemLayout).toBe('function')

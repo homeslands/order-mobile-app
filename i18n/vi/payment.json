@@ -1,4 +1,13 @@
 {
+  "countdown": {
+    "expired": "Hết hạn",
+    "remaining": "Còn "
+  },
+  "order": {
+    "expiredButton": "Hết hạn thanh toán",
+    "expiredTitle": "Đơn hàng đã hết hạn thanh toán",
+    "expiredDesc": "Thời gian thanh toán 15 phút đã hết. Vui lòng tạo đơn mới."
+  },
   "qrGenerate": {
     "title": "Thanh toán bằng Xu",
     "generating": "Đang tạo QR...",
@@ -7,5 +16,35 @@
     "step1": "Đưa màn hình QR cho nhân viên tại quầy",
     "step2": "Nhân viên quét mã QR trên máy POS",
     "step3": "Nhận thông báo xác nhận thanh toán thành công"
+  },
+  "loyaltyPoints": {
+    "title": "Điểm tích lũy",
+    "points": "{{value}} điểm",
+    "noPoints": "Bạn chưa có điểm tích lũy",
+    "max": "Tối đa",
+    "enterPoints": "Nhập số điểm",
+    "apply": "Áp dụng",
+    "using": "Đang dùng",
+    "cancel": "Hủy",
+    "maxHint": "Tối đa {{amount}} (giới hạn bởi tổng đơn hàng)",
+    "cannotApply": "Không thể áp dụng điểm",
+    "cannotCancel": "Không thể hủy điểm"
+  },
+  "voucherConflict": {
+    "title": "Voucher không tương thích",
+    "descPrefix": "Voucher",
+    "descNotSupport": "không hỗ trợ phương thức",
+    "descSuffix": "Tiếp tục sẽ xóa voucher khỏi đơn hàng.",
+    "keepVoucher": "Giữ voucher",
+    "removeAndContinue": "Xóa & tiếp tục"
+  },
+  "voucherSheet": {
+    "filterBannerPrefix": "Hiển thị voucher tương thích với",
+    "paymentMethod": {
+      "bankTransfer": "Chuyển khoản",
+      "cash": "Tiền mặt",
+      "point": "Điểm tích lũy",
+      "creditCard": "Thẻ tín dụng"
+    }
   }
 }

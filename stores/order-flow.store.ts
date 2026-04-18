@@ -35,7 +35,11 @@ import { useUserStore } from './user.store'
 // Re-export for backward compatibility
 export type { IPaymentData } from './payment-flow.store'
 export type { IUpdatingData } from './update-order-flow.store'
-export { OrderFlowStep, type IOrderFlowStore, type IOrderingData } from './order-flow.types'
+export {
+  OrderFlowStep,
+  type IOrderFlowStore,
+  type IOrderingData,
+} from './order-flow.types'
 
 import type { IPaymentData } from './payment-flow.store'
 
@@ -320,7 +324,9 @@ export const useOrderFlowStore = create<IOrderFlowStore>()(
       // PAYMENT PHASE (delegated to usePaymentFlowStore)
       // ===================
       initializePayment: (orderSlug: string, paymentMethod?: PaymentMethod) => {
-        usePaymentFlowStore.getState().initializePayment(orderSlug, paymentMethod)
+        usePaymentFlowStore
+          .getState()
+          .initializePayment(orderSlug, paymentMethod)
         set({
           currentStep: OrderFlowStep.PAYMENT,
           paymentData: usePaymentFlowStore.getState().paymentData,
@@ -335,7 +341,9 @@ export const useOrderFlowStore = create<IOrderFlowStore>()(
       },
 
       updatePaymentMethod: (method: PaymentMethod, transactionId?: string) => {
-        usePaymentFlowStore.getState().updatePaymentMethod(method, transactionId)
+        usePaymentFlowStore
+          .getState()
+          .updatePaymentMethod(method, transactionId)
         syncPaymentData(set)
       },
 
@@ -386,7 +394,9 @@ export const useOrderFlowStore = create<IOrderFlowStore>()(
       },
 
       updateDraftItemQuantity: (itemId: string, quantity: number) => {
-        useUpdateOrderFlowStore.getState().updateDraftItemQuantity(itemId, quantity)
+        useUpdateOrderFlowStore
+          .getState()
+          .updateDraftItemQuantity(itemId, quantity)
         syncUpdatingData(set)
       },
 
@@ -479,12 +489,16 @@ export const useOrderFlowStore = create<IOrderFlowStore>()(
         distance: number,
         duration: number,
       ) => {
-        useUpdateOrderFlowStore.getState().setDraftDeliveryDistanceDuration(distance, duration)
+        useUpdateOrderFlowStore
+          .getState()
+          .setDraftDeliveryDistanceDuration(distance, duration)
         syncUpdatingData(set)
       },
 
       setDraftDeliveryCoords: (lat: number, lng: number, placeId?: string) => {
-        useUpdateOrderFlowStore.getState().setDraftDeliveryCoords(lat, lng, placeId)
+        useUpdateOrderFlowStore
+          .getState()
+          .setDraftDeliveryCoords(lat, lng, placeId)
         syncUpdatingData(set)
       },
 
@@ -516,7 +530,9 @@ export const useOrderFlowStore = create<IOrderFlowStore>()(
       // ===================
       transitionToPayment: (orderSlug: string) => {
         // Mobile: giữ orderingData (cart) để user quay lại nếu cần
-        usePaymentFlowStore.getState().initializePayment(orderSlug, PaymentMethod.BANK_TRANSFER)
+        usePaymentFlowStore
+          .getState()
+          .initializePayment(orderSlug, PaymentMethod.BANK_TRANSFER)
         set({
           currentStep: OrderFlowStep.PAYMENT,
           paymentData: usePaymentFlowStore.getState().paymentData,
@@ -699,7 +715,9 @@ export const useOrderFlowStore = create<IOrderFlowStore>()(
             lastModified: dayjs().valueOf(),
           })
         } else if (currentStep === OrderFlowStep.PAYMENT) {
-          usePaymentFlowStore.getState().updatePaymentMethod(method as PaymentMethod, transactionId)
+          usePaymentFlowStore
+            .getState()
+            .updatePaymentMethod(method as PaymentMethod, transactionId)
           syncPaymentData(set)
         }
       },
@@ -759,7 +777,9 @@ export const useOrderFlowStore = create<IOrderFlowStore>()(
               paymentData,
               updatingData,
             })
-            useCartDisplayStore.getState().setRawSubTotal(calcRawSubTotal(items ?? []))
+            useCartDisplayStore
+              .getState()
+              .setRawSubTotal(calcRawSubTotal(items ?? []))
           }, 0)
         }
       },

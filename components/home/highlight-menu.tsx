@@ -4,7 +4,13 @@ import { useRouter } from 'expo-router'
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ImageSourcePropType } from 'react-native'
-import { FlatList, Pressable, Text, View, useWindowDimensions } from 'react-native'
+import {
+  FlatList,
+  Pressable,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native'
 import Animated, {
   interpolate,
   useAnimatedScrollHandler,
@@ -109,9 +115,24 @@ const HighlightCard = React.memo(function HighlightCard({
   const animStyle = useAnimatedStyle(() => {
     'worklet'
     const inputRange = [centeredAt - step, centeredAt, centeredAt + step]
-    const scale = interpolate(scrollX.value, inputRange, [0.86, 1, 0.86], 'clamp')
-    const opacity = interpolate(scrollX.value, inputRange, [0.55, 1, 0.55], 'clamp')
-    const translateY = interpolate(scrollX.value, inputRange, [12, 0, 12], 'clamp')
+    const scale = interpolate(
+      scrollX.value,
+      inputRange,
+      [0.86, 1, 0.86],
+      'clamp',
+    )
+    const opacity = interpolate(
+      scrollX.value,
+      inputRange,
+      [0.55, 1, 0.55],
+      'clamp',
+    )
+    const translateY = interpolate(
+      scrollX.value,
+      inputRange,
+      [12, 0, 12],
+      'clamp',
+    )
     return { transform: [{ scale }, { translateY }], opacity }
   })
 
@@ -159,7 +180,12 @@ const HighlightCard = React.memo(function HighlightCard({
           }}
         >
           <Text
-            style={{ color: '#fff', fontSize: 22, fontWeight: '800', letterSpacing: -0.3 }}
+            style={{
+              color: '#fff',
+              fontSize: 22,
+              fontWeight: '800',
+              letterSpacing: -0.3,
+            }}
             numberOfLines={1}
           >
             {t(item.nameKey)}
@@ -221,11 +247,7 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
    */
   const extendedMenus = useMemo(() => {
     if (count <= 1) return highlightMenus
-    return [
-      highlightMenus[count - 1],
-      ...highlightMenus,
-      highlightMenus[0],
-    ]
+    return [highlightMenus[count - 1], ...highlightMenus, highlightMenus[0]]
   }, [highlightMenus, count])
 
   // Ref for imperative scrollToOffset during teleport.
@@ -247,8 +269,8 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
     requestAnimationFrame(() => {
       listRef.current?.scrollToOffset({ offset: step, animated: false })
     })
-  // run once; step is stable for a given screen width
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // run once; step is stable for a given screen width
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [count])
 
   // Teleport on scroll boundaries (called after momentum ends)
@@ -278,7 +300,10 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
       const matched = catalogs.find((c) =>
         c.name.toLowerCase().includes(catalogSearch.toLowerCase()),
       )
-      setMenuFilter((prev) => ({ ...prev, catalog: matched?.slug ?? undefined }))
+      setMenuFilter((prev) => ({
+        ...prev,
+        catalog: matched?.slug ?? undefined,
+      }))
       router.push('/(tabs)/menu' as never)
     },
     [catalogResponse, setMenuFilter, router],

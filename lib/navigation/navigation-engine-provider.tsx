@@ -6,7 +6,11 @@ import { useRouter } from 'expo-router'
 import { useLayoutEffect } from 'react'
 import { setNavigationRouter } from './navigation-engine'
 
-export function NavigationEngineProvider({ children }: { children: React.ReactNode }) {
+export function NavigationEngineProvider({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   const router = useRouter()
 
   useLayoutEffect(() => {

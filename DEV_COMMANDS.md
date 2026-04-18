@@ -132,10 +132,10 @@ adb logcat
 
 ## Thông tin project
 
-| Mục | Giá trị |
-|-----|---------|
-| Node | v18.17.0 (nvm) |
-| Android SDK | `~/Library/Android/sdk` |
-| iOS workspace | `ios/mobilemovieapp.xcworkspace` |
-| Bundle ID iOS | xem `app.config.ts` |
-| Package Android | xem `android/app/build.gradle` |
+| Mục             | Giá trị                          |
+| --------------- | -------------------------------- |
+| Node            | v18.17.0 (nvm)                   |
+| Android SDK     | `~/Library/Android/sdk`          |
+| iOS workspace   | `ios/mobilemovieapp.xcworkspace` |
+| Bundle ID iOS   | xem `app.config.ts`              |
+| Package Android | xem `android/app/build.gradle`   |

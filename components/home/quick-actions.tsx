@@ -71,7 +71,7 @@ export const QuickActions = React.memo(function QuickActions() {
           style={{ backgroundColor: iconBg }}
         >
           <View
-            className="w-10 h-10 rounded-full items-center justify-center"
+            className="h-10 w-10 items-center justify-center rounded-full"
             style={{ backgroundColor: primaryColor + '22' }}
           >
             {action.icon}

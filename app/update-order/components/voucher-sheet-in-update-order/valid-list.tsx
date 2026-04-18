@@ -2,6 +2,7 @@ import { VoucherCard } from '@/components/cart/voucher-card'
 import type { ProcessedVoucher } from '@/components/sheet/voucher-validation'
 import { colors } from '@/constants'
 import type { IVoucher } from '@/types'
+import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 type ValidListProps = {
@@ -27,6 +28,7 @@ export function ValidList({
   isDark,
   primaryColor,
 }: ValidListProps) {
+  const { t } = useTranslation('voucher')
   if (vouchers.length === 0 && !isLoading) return null
 
   return (
@@ -40,7 +42,7 @@ export function ValidList({
               color: isDark ? colors.gray[50] : colors.gray[900],
             }}
           >
-            Voucher khả dụng
+            {t('availableVouchers')}
           </Text>
           <Text
             style={{
@@ -48,7 +50,7 @@ export function ValidList({
               color: isDark ? colors.gray[400] : colors.gray[500],
             }}
           >
-            Tối đa: 1
+            {t('maxOne')}
           </Text>
         </View>
       )}
@@ -76,13 +78,15 @@ export function ValidList({
             color: isDark ? colors.gray[400] : colors.gray[500],
           }}
         >
-          Đang tải voucher...
+          {t('loadingVouchers')}
         </Text>
       )}
       {hasMore && !isLoading && (
         <Pressable onPress={onLoadMore} style={styles.loadMoreBtn}>
-          <Text style={{ fontSize: 13, fontWeight: '600', color: primaryColor }}>
-            Tải thêm
+          <Text
+            style={{ fontSize: 13, fontWeight: '600', color: primaryColor }}
+          >
+            {t('loadMore')}
           </Text>
         </Pressable>
       )}

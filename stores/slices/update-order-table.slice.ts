@@ -13,7 +13,10 @@ type DraftGetFn = () => IUpdateOrderStore
 type OrigSetFn = (partial: Partial<IOriginalOrderStore>) => void
 type OrigGetFn = () => IOriginalOrderStore
 
-export function createUpdateOrderTableMethods(set: DraftSetFn, get: DraftGetFn) {
+export function createUpdateOrderTableMethods(
+  set: DraftSetFn,
+  get: DraftGetFn,
+) {
   return {
     addTable: (table: ITable) => {
       const { orderItems } = get()
@@ -65,7 +68,10 @@ export function createUpdateOrderTableMethods(set: DraftSetFn, get: DraftGetFn) 
   }
 }
 
-export function createOriginalOrderTableMethods(set: OrigSetFn, get: OrigGetFn) {
+export function createOriginalOrderTableMethods(
+  set: OrigSetFn,
+  get: OrigGetFn,
+) {
   return {
     addOriginalTable: (table: ITable) => {
       const { originalOrderItems } = get()

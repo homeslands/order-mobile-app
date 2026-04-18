@@ -7,7 +7,14 @@ import { capitalizeFirst } from '@/utils'
 import { formatCurrencyNative } from 'cart-price-calc'
 import { Image } from 'expo-image'
 import { NotebookText } from 'lucide-react-native'
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 
@@ -27,7 +34,10 @@ const THEME_LIGHT = {
   qtyBtnBorder: { borderColor: colors.gray[300] },
   qtyBtnTextColor: { color: colors.gray[700] },
   qtyTextColor: { color: colors.gray[900] },
-  noteRowTheme: { borderColor: colors.gray[200], backgroundColor: colors.gray[50] },
+  noteRowTheme: {
+    borderColor: colors.gray[200],
+    backgroundColor: colors.gray[50],
+  },
   noteInputColor: { color: colors.gray[700] },
   noteIconColor: colors.gray[400],
   notePlaceholderColor: colors.gray[400],
@@ -43,7 +53,10 @@ const THEME_DARK = {
   qtyBtnBorder: { borderColor: colors.gray[700] },
   qtyBtnTextColor: { color: colors.gray[300] },
   qtyTextColor: { color: colors.gray[50] },
-  noteRowTheme: { borderColor: colors.gray[700], backgroundColor: colors.gray[900] },
+  noteRowTheme: {
+    borderColor: colors.gray[700],
+    backgroundColor: colors.gray[900],
+  },
   noteInputColor: { color: colors.gray[200] },
   noteIconColor: colors.gray[500],
   notePlaceholderColor: colors.gray[600],
@@ -103,20 +116,24 @@ export const CartItemRow = memo(
     const hasPromotion = item.promotionValue > 0
     const hasVoucherDiscount = voucherDiscountPerUnit > 0
     const priceAfterVoucher = item.price - voucherDiscountPerUnit
-    const lineTotal = (hasVoucherDiscount ? priceAfterVoucher : item.price) * displayQty
+    const lineTotal =
+      (hasVoucherDiscount ? priceAfterVoucher : item.price) * displayQty
     const lineTotalBeforeVoucher = item.price * displayQty
 
     const [localNote, setLocalNote] = useState(item.note)
     const noteDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-    const handleNoteChange = useCallback((text: string) => {
-      setLocalNote(text)
-      if (noteDebounceRef.current) clearTimeout(noteDebounceRef.current)
-      noteDebounceRef.current = setTimeout(() => {
-        cartActions.addNote(item.cartKey, text)
-        noteDebounceRef.current = null
-      }, 400)
-    }, [item.cartKey])
+    const handleNoteChange = useCallback(
+      (text: string) => {
+        setLocalNote(text)
+        if (noteDebounceRef.current) clearTimeout(noteDebounceRef.current)
+        noteDebounceRef.current = setTimeout(() => {
+          cartActions.addNote(item.cartKey, text)
+          noteDebounceRef.current = null
+        }, 400)
+      },
+      [item.cartKey],
+    )
 
     // Cleanup pending timers on unmount — both qty debounce and note debounce
     // could fire after the row is unmounted (FlashList recycling or delete).
@@ -180,12 +197,20 @@ export const CartItemRow = memo(
                     style={[rowStyles.sizeChip, themeStyles.chipBorder]}
                   >
                     <Text
-                      style={[rowStyles.sizeChipText, themeStyles.chipTextColor]}
+                      style={[
+                        rowStyles.sizeChipText,
+                        themeStyles.chipTextColor,
+                      ]}
                       numberOfLines={1}
                     >
                       {capitalizeFirst(item.sizeName)}
                     </Text>
-                    <Text style={[rowStyles.sizeChipArrow, themeStyles.chipArrowColor]}>
+                    <Text
+                      style={[
+                        rowStyles.sizeChipArrow,
+                        themeStyles.chipArrowColor,
+                      ]}
+                    >
                       ▾
                     </Text>
                   </Pressable>
@@ -198,8 +223,17 @@ export const CartItemRow = memo(
                     {formatCurrencyNative(lineTotal)}
                   </Text>
                   {(hasPromotion || hasVoucherDiscount) && (
-                    <Text style={[rowStyles.originalPrice, themeStyles.origPriceColor]}>
-                      {formatCurrencyNative(hasVoucherDiscount ? lineTotalBeforeVoucher : item.originalPrice * displayQty)}
+                    <Text
+                      style={[
+                        rowStyles.originalPrice,
+                        themeStyles.origPriceColor,
+                      ]}
+                    >
+                      {formatCurrencyNative(
+                        hasVoucherDiscount
+                          ? lineTotalBeforeVoucher
+                          : item.originalPrice * displayQty,
+                      )}
                     </Text>
                   )}
                 </View>
@@ -214,7 +248,12 @@ export const CartItemRow = memo(
                       displayQty <= 1 && rowStyles.qtyBtnDisabled,
                     ]}
                   >
-                    <Text style={[rowStyles.qtyBtnText, themeStyles.qtyBtnTextColor]}>
+                    <Text
+                      style={[
+                        rowStyles.qtyBtnText,
+                        themeStyles.qtyBtnTextColor,
+                      ]}
+                    >
                       −
                     </Text>
                   </Pressable>
@@ -225,7 +264,12 @@ export const CartItemRow = memo(
                     onPress={handleIncrease}
                     style={[rowStyles.qtyBtn, themeStyles.qtyBtnBorder]}
                   >
-                    <Text style={[rowStyles.qtyBtnText, themeStyles.qtyBtnTextColor]}>
+                    <Text
+                      style={[
+                        rowStyles.qtyBtnText,
+                        themeStyles.qtyBtnTextColor,
+                      ]}
+                    >
                       +
                     </Text>
                   </Pressable>

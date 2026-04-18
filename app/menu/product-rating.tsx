@@ -11,9 +11,7 @@ export default function Rating({ rating }: RatingProps) {
   return (
     <View className="flex items-center gap-1">
       {Array.from({ length: maxStars }, (_, index) => (
-        <View
-          key={index}
-        >
+        <View key={index}>
           <Star size={20} color={index < (rating || 0) ? 'primary' : 'gray'} />
         </View>
       ))}

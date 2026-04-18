@@ -4,6 +4,7 @@
  */
 import { Coins, ChevronRight, LogIn } from 'lucide-react-native'
 import React from 'react'
+import { useTranslation } from 'react-i18next'
 import { Pressable, Text, View, useColorScheme } from 'react-native'
 import { useRouter } from 'expo-router'
 
@@ -17,6 +18,7 @@ function formatPoints(n: number): string {
 }
 
 export const LoyaltyCard = React.memo(function LoyaltyCard() {
+  const { t } = useTranslation('home')
   const isDark = useColorScheme() === 'dark'
   const router = useRouter()
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated())
@@ -37,13 +39,13 @@ export const LoyaltyCard = React.memo(function LoyaltyCard() {
   return (
     <Pressable
       onPress={handlePress}
-      className="mx-4 rounded-2xl overflow-hidden"
+      className="mx-4 overflow-hidden rounded-2xl"
       style={{ backgroundColor: primaryBg, borderWidth: 1, borderColor }}
     >
-      <View className="flex-row items-center px-4 py-3 gap-3">
+      <View className="flex-row items-center gap-3 px-4 py-3">
         {/* Icon */}
         <View
-          className="w-10 h-10 rounded-full items-center justify-center"
+          className="h-10 w-10 items-center justify-center rounded-full"
           style={{ backgroundColor: primaryColor + '22' }}
         >
           <Coins size={20} color={primaryColor} />
@@ -54,26 +56,26 @@ export const LoyaltyCard = React.memo(function LoyaltyCard() {
           {isAuthenticated ? (
             <>
               <Text className="text-xs text-muted-foreground">
-                Điểm tích luỹ của bạn
+                {t('loyaltyCard.balanceLabel')}
               </Text>
               {isLoading ? (
-                <Skeleton className="h-5 w-24 mt-0.5 rounded-md" />
+                <Skeleton className="mt-0.5 h-5 w-24 rounded-md" />
               ) : (
                 <Text
                   className="text-base font-bold"
                   style={{ color: primaryColor }}
                 >
-                  {formatPoints(balance)} xu
+                  {formatPoints(balance)} {t('loyaltyCard.coinUnit')}
                 </Text>
               )}
             </>
           ) : (
             <>
               <Text className="text-sm font-semibold text-foreground">
-                Đăng nhập để tích điểm
+                {t('loyaltyCard.loginCta')}
               </Text>
-              <Text className="text-xs text-muted-foreground mt-0.5">
-                Nhận ưu đãi và quà tặng hấp dẫn
+              <Text className="mt-0.5 text-xs text-muted-foreground">
+                {t('loyaltyCard.loginSubtitle')}
               </Text>
             </>
           )}
@@ -88,7 +90,9 @@ export const LoyaltyCard = React.memo(function LoyaltyCard() {
             style={{ backgroundColor: primaryColor }}
           >
             <LogIn size={14} color="#fff" />
-            <Text className="text-xs font-semibold text-white">Đăng nhập</Text>
+            <Text className="text-xs font-semibold text-white">
+              {t('loyaltyCard.loginButton')}
+            </Text>
           </View>
         )}
       </View>

@@ -56,7 +56,10 @@ export interface DataTableComponentProps<T> {
 function isPaginationChild(child: React.ReactNode): boolean {
   if (!child || typeof child !== 'object' || !('type' in child)) return false
   const type = (child as React.ReactElement).type
-  return type === DataTablePagination || (type as { displayName?: string })?.displayName === 'DataTablePagination'
+  return (
+    type === DataTablePagination ||
+    (type as { displayName?: string })?.displayName === 'DataTablePagination'
+  )
 }
 
 function DataTableInner<T>({

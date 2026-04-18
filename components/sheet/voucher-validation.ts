@@ -38,7 +38,13 @@ export function processVoucherList(
     t: TFn
   },
 ): ProcessedVoucher[] {
-  const { cartProductSlugs, subTotalAfterPromotion, userSlug, isCustomerOwner, t } = opts
+  const {
+    cartProductSlugs,
+    subTotalAfterPromotion,
+    userSlug,
+    isCustomerOwner,
+    t,
+  } = opts
   const now = dayjs()
   const sevenAmToday = now.hour(7).minute(0).second(0).millisecond(0)
   const isUserLoggedIn = !!userSlug
@@ -68,19 +74,44 @@ export function processVoucherList(
         v.applicabilityRule,
       )
     const isValid =
-      isActive && !isExpired && hasUsage && isValidAmount &&
-      isValidDate && isIdentityValid && hasValidProducts
+      isActive &&
+      !isExpired &&
+      hasUsage &&
+      isValidAmount &&
+      isValidDate &&
+      isIdentityValid &&
+      hasValidProducts
 
     // errorMessage
     const allInVoucher = cartProductSlugs.every((s) => vpSet.has(s))
     const anyInVoucher = cartProductSlugs.some((s) => vpSet.has(s))
     const errorChecks = [
-      { cond: requiresLogin && !isCustomerOwner, msg: t('voucher.needVerifyIdentity') },
+      {
+        cond: requiresLogin && !isCustomerOwner,
+        msg: t('voucher.needVerifyIdentity'),
+      },
       { cond: isExpired, msg: t('voucher.expired') },
       { cond: v.remainingUsage === 0, msg: t('voucher.outOfStock') },
-      { cond: v.type !== VOUCHER_TYPE.SAME_PRICE_PRODUCT && v.minOrderValue > subTotalAfterPromotion, msg: t('voucher.minOrderNotMet') },
-      { cond: vpSet.size > 0 && v.applicabilityRule === APPLICABILITY_RULE.ALL_REQUIRED && !allInVoucher, msg: t('voucher.requireOnlyApplicableProducts') },
-      { cond: vpSet.size > 0 && v.applicabilityRule === APPLICABILITY_RULE.AT_LEAST_ONE_REQUIRED && !anyInVoucher, msg: t('voucher.requireSomeApplicableProducts') },
+      {
+        cond:
+          v.type !== VOUCHER_TYPE.SAME_PRICE_PRODUCT &&
+          v.minOrderValue > subTotalAfterPromotion,
+        msg: t('voucher.minOrderNotMet'),
+      },
+      {
+        cond:
+          vpSet.size > 0 &&
+          v.applicabilityRule === APPLICABILITY_RULE.ALL_REQUIRED &&
+          !allInVoucher,
+        msg: t('voucher.requireOnlyApplicableProducts'),
+      },
+      {
+        cond:
+          vpSet.size > 0 &&
+          v.applicabilityRule === APPLICABILITY_RULE.AT_LEAST_ONE_REQUIRED &&
+          !anyInVoucher,
+        msg: t('voucher.requireSomeApplicableProducts'),
+      },
     ]
     const errorMessage = errorChecks.find((e) => e.cond)?.msg || ''
 
@@ -97,13 +128,31 @@ export function processVoucherList(
       endDiff <= 0
         ? t('voucher.expiresInHoursMinutes', { hours: 0, minutes: 0 })
         : endDiff < 86400
-          ? t('voucher.expiresInHoursMinutes', { hours: Math.floor(endDiff / 3600), minutes: Math.floor((endDiff % 3600) / 60) })
-          : t('voucher.expiresInDaysHoursMinutes', { days: Math.floor(endDiff / 86400), hours: Math.floor((endDiff % 86400) / 3600), minutes: Math.floor((endDiff % 3600) / 60) })
+          ? t('voucher.expiresInHoursMinutes', {
+              hours: Math.floor(endDiff / 3600),
+              minutes: Math.floor((endDiff % 3600) / 60),
+            })
+          : t('voucher.expiresInDaysHoursMinutes', {
+              days: Math.floor(endDiff / 86400),
+              hours: Math.floor((endDiff % 86400) / 3600),
+              minutes: Math.floor((endDiff % 3600) / 60),
+            })
 
     const minOrderText = formatCurrency(v.minOrderValue)
-    const usagePercent = Math.min(100, (v.remainingUsage / Math.max(v.maxUsage, 1)) * 100)
+    const usagePercent = Math.min(
+      100,
+      (v.remainingUsage / Math.max(v.maxUsage, 1)) * 100,
+    )
 
-    return { voucher: v, isValid, errorMessage, discountLabel, expiryText, minOrderText, usagePercent }
+    return {
+      voucher: v,
+      isValid,
+      errorMessage,
+      discountLabel,
+      expiryText,
+      minOrderText,
+      usagePercent,
+    }
   })
 }
 
@@ -113,12 +162,21 @@ export function shouldAutoRemoveVoucher(
   voucher: IVoucher | null,
   voucherProductSet: Set<string>,
   cartProductSlugs: string[],
-  nonGiftOrderItems: Array<{ originalPrice?: number; promotionDiscount?: number; quantity: number; isGift?: boolean }>,
+  nonGiftOrderItems: Array<{
+    originalPrice?: number
+    promotionDiscount?: number
+    quantity: number
+    isGift?: boolean
+  }>,
 ): boolean {
   if (!voucher) return false
 
   const subtotalBeforeVoucher = nonGiftOrderItems.reduce((acc, item) => {
-    return acc + ((item.originalPrice ?? 0) - (item.promotionDiscount ?? 0)) * item.quantity
+    return (
+      acc +
+      ((item.originalPrice ?? 0) - (item.promotionDiscount ?? 0)) *
+        item.quantity
+    )
   }, 0)
 
   const cartItemQuantity = nonGiftOrderItems.reduce((total, item) => {
@@ -127,10 +185,12 @@ export function shouldAutoRemoveVoucher(
 
   switch (voucher.applicabilityRule) {
     case APPLICABILITY_RULE.ALL_REQUIRED:
-      if (cartProductSlugs.some((slug) => !voucherProductSet.has(slug))) return true
+      if (cartProductSlugs.some((slug) => !voucherProductSet.has(slug)))
+        return true
       break
     case APPLICABILITY_RULE.AT_LEAST_ONE_REQUIRED:
-      if (!cartProductSlugs.some((slug) => voucherProductSet.has(slug))) return true
+      if (!cartProductSlugs.some((slug) => voucherProductSet.has(slug)))
+        return true
       break
   }
 
@@ -153,13 +213,19 @@ export function buildVoucherConditions(voucher: IVoucher, t: TFn): string[] {
     voucher.type === VOUCHER_TYPE.PERCENT_ORDER
       ? t('voucher.percentDiscount', { value: voucher.value })
       : voucher.type === VOUCHER_TYPE.SAME_PRICE_PRODUCT
-        ? t('voucher.samePriceProduct', { value: formatCurrency(voucher.value) })
+        ? t('voucher.samePriceProduct', {
+            value: formatCurrency(voucher.value),
+          })
         : t('voucher.fixedDiscount', { value: formatCurrency(voucher.value) })
 
   conditions.push(`${t('voucher.value')}: ${discountLabel}`)
-  conditions.push(`${t('voucher.minOrderValue')}: ${formatCurrency(voucher.minOrderValue)}`)
   conditions.push(
-    voucher.isVerificationIdentity ? t('voucher.requiresAccount') : t('voucher.noAccountRequired'),
+    `${t('voucher.minOrderValue')}: ${formatCurrency(voucher.minOrderValue)}`,
+  )
+  conditions.push(
+    voucher.isVerificationIdentity
+      ? t('voucher.requiresAccount')
+      : t('voucher.noAccountRequired'),
   )
   conditions.push(
     voucher.numberOfUsagePerUser > 0
@@ -167,7 +233,9 @@ export function buildVoucherConditions(voucher: IVoucher, t: TFn): string[] {
       : `${t('voucher.numberOfUsagePerUser')}: ${t('voucher.unlimited')}`,
   )
   if (voucher.voucherProducts?.length > 0) {
-    const names = voucher.voucherProducts.map((vp) => vp.product?.name || vp.slug).filter(Boolean)
+    const names = voucher.voucherProducts
+      .map((vp) => vp.product?.name || vp.slug)
+      .filter(Boolean)
     conditions.push(`${t('voucher.products')}: ${names.join(', ')}`)
   } else {
     conditions.push(`${t('voucher.products')}: ${t('voucher.allProducts')}`)

@@ -1,4 +1,13 @@
 {
+  "countdown": {
+    "expired": "Expired",
+    "remaining": "Left "
+  },
+  "order": {
+    "expiredButton": "Payment expired",
+    "expiredTitle": "Order payment has expired",
+    "expiredDesc": "The 15-minute payment window has passed. Please create a new order."
+  },
   "qrGenerate": {
     "title": "Pay with Points",
     "generating": "Generating QR...",
@@ -7,5 +16,35 @@
     "step1": "Show the QR screen to the cashier",
     "step2": "The cashier scans the QR code on the POS terminal",
     "step3": "Receive a confirmation notification for successful payment"
+  },
+  "loyaltyPoints": {
+    "title": "Loyalty points",
+    "points": "{{value}} points",
+    "noPoints": "You have no loyalty points",
+    "max": "Maximum",
+    "enterPoints": "Enter points",
+    "apply": "Apply",
+    "using": "Using",
+    "cancel": "Cancel",
+    "maxHint": "Maximum {{amount}} (limited by order total)",
+    "cannotApply": "Cannot apply points",
+    "cannotCancel": "Cannot cancel points"
+  },
+  "voucherConflict": {
+    "title": "Incompatible voucher",
+    "descPrefix": "Voucher",
+    "descNotSupport": "does not support payment method",
+    "descSuffix": "Continuing will remove the voucher from your order.",
+    "keepVoucher": "Keep voucher",
+    "removeAndContinue": "Remove & continue"
+  },
+  "voucherSheet": {
+    "filterBannerPrefix": "Showing vouchers compatible with",
+    "paymentMethod": {
+      "bankTransfer": "Bank transfer",
+      "cash": "Cash",
+      "point": "Loyalty points",
+      "creditCard": "Credit card"
+    }
   }
 }

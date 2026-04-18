@@ -35,8 +35,8 @@ const BAR_W = (W - 28 * 2 - BAR_GAP * (SLIDE_COUNT - 1)) / SLIDE_COUNT
 // Heights of each CTA zone (used to animate text bottom position)
 const BTN_H = 54
 const BTN_GAP = 12
-const GUEST_H = 28      // paddingVertical 6 * 2 + fontSize 16
-const TERMS_H = 32      // 2 lines of 12px text
+const GUEST_H = 28 // paddingVertical 6 * 2 + fontSize 16
+const TERMS_H = 32 // 2 lines of 12px text
 const NEXT_ZONE_H = BTN_H
 const LAST_ZONE_H =
   BTN_H + BTN_GAP + BTN_H + BTN_GAP + GUEST_H + BTN_GAP + TERMS_H
@@ -74,12 +74,19 @@ const ProgressBar = memo(function ProgressBar({
   activeColor: string
 }) {
   const fillStyle = useAnimatedStyle(() => {
-    const fill = interpolate(scrollX.value / W, [index - 1, index], [0, 1], 'clamp')
+    const fill = interpolate(
+      scrollX.value / W,
+      [index - 1, index],
+      [0, 1],
+      'clamp',
+    )
     return { width: `${fill * 100}%` as `${number}%` }
   })
   return (
     <View style={[s.barTrack, { width: BAR_W }]}>
-      <Animated.View style={[s.barFill, { backgroundColor: activeColor }, fillStyle]} />
+      <Animated.View
+        style={[s.barFill, { backgroundColor: activeColor }, fillStyle]}
+      />
     </View>
   )
 })
@@ -122,13 +129,21 @@ const SlideText = memo(function SlideText({
       opacity: interpolate(Math.abs(progress), [0, 0.35], [1, 0], 'clamp'),
       transform: [
         {
-          translateY: interpolate(progress, [-0.5, 0, 0.5], [10, 0, -10], 'clamp'),
+          translateY: interpolate(
+            progress,
+            [-0.5, 0, 0.5],
+            [10, 0, -10],
+            'clamp',
+          ),
         },
       ],
     }
   })
   return (
-    <Animated.View style={[StyleSheet.absoluteFill, animStyle]} pointerEvents="none">
+    <Animated.View
+      style={[StyleSheet.absoluteFill, animStyle]}
+      pointerEvents="none"
+    >
       <Text style={s.title}>{title}</Text>
       <Text style={s.desc}>{desc}</Text>
     </Animated.View>
@@ -166,7 +181,10 @@ export default function OnboardingScreen() {
   )
 
   const handleNext = useCallback(() => {
-    flatListRef.current?.scrollToIndex({ index: currentIndex + 1, animated: true })
+    flatListRef.current?.scrollToIndex({
+      index: currentIndex + 1,
+      animated: true,
+    })
   }, [currentIndex])
 
   const handleRegister = useCallback(async () => {
@@ -228,7 +246,12 @@ export default function OnboardingScreen() {
 
       {/* 2. Full gradient overlay */}
       <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.45)', 'rgba(0,0,0,0.90)', 'rgba(0,0,0,0.96)']}
+        colors={[
+          'transparent',
+          'rgba(0,0,0,0.45)',
+          'rgba(0,0,0,0.90)',
+          'rgba(0,0,0,0.96)',
+        ]}
         locations={[0, 0.3, 0.65, 1]}
         style={StyleSheet.absoluteFill}
         pointerEvents="none"
@@ -237,15 +260,17 @@ export default function OnboardingScreen() {
       {/* 3. Header: progress bars */}
       <View style={[s.header, { paddingTop: STATIC_TOP_INSET + 12 }]}>
         {SLIDES.map((_, i) => (
-          <ProgressBar key={i} index={i} scrollX={scrollX} activeColor={primary} />
+          <ProgressBar
+            key={i}
+            index={i}
+            scrollX={scrollX}
+            activeColor={primary}
+          />
         ))}
       </View>
 
       {/* 4. Text — absolute, bottom animates up/down per slide */}
-      <Animated.View
-        style={[s.textBox, textBoxStyle]}
-        pointerEvents="none"
-      >
+      <Animated.View style={[s.textBox, textBoxStyle]} pointerEvents="none">
         {SLIDES.map((slide, i) => (
           <SlideText
             key={slide.key}
@@ -298,14 +323,18 @@ export default function OnboardingScreen() {
             onPress={() => Linking.openURL('https://trendcoffee.net/policy')}
             hitSlop={4}
           >
-            <Text style={[s.termsLink, { color: primary }]}>{t('termsPolicy')}</Text>
+            <Text style={[s.termsLink, { color: primary }]}>
+              {t('termsPolicy')}
+            </Text>
           </Pressable>
           <Text style={s.termsText}>{t('termsAnd')}</Text>
           <Pressable
             onPress={() => Linking.openURL('https://trendcoffee.net/security')}
             hitSlop={4}
           >
-            <Text style={[s.termsLink, { color: primary }]}>{t('termsPrivacy')}</Text>
+            <Text style={[s.termsLink, { color: primary }]}>
+              {t('termsPrivacy')}
+            </Text>
           </Pressable>
         </View>
       </Animated.View>

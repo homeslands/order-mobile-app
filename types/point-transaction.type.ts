@@ -15,9 +15,9 @@ export interface IPointTransaction {
 }
 
 export interface IAnalyzePointTransaction {
-  totalEarned: number;
-  totalSpent: number;
-  netDifference: number;
+  totalEarned: number
+  totalSpent: number
+  netDifference: number
 }
 
 export interface IPointTransactionQuery {

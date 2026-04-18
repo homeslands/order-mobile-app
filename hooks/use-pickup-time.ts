@@ -18,10 +18,15 @@ export interface UsePickupTimeResult {
   handleChange: (value: string) => void
 }
 
-export function usePickupTime(defaultValue?: number, onPickupTimeSelect?: (minutes: number) => void): UsePickupTimeResult {
+export function usePickupTime(
+  defaultValue?: number,
+  onPickupTimeSelect?: (minutes: number) => void,
+): UsePickupTimeResult {
   const { t } = useTranslation('menu')
   const orderType = useOrderFlowStore((s) => s.orderingData?.type)
-  const storedTimeLeftTakeOut = useOrderFlowStore((s) => s.orderingData?.timeLeftTakeOut)
+  const storedTimeLeftTakeOut = useOrderFlowStore(
+    (s) => s.orderingData?.timeLeftTakeOut,
+  )
   const addPickupTime = useOrderFlowStore((s) => s.addPickupTime)
   const [userSelectedTime, setUserSelectedTime] = useState<string | undefined>()
 
@@ -47,7 +52,13 @@ export function usePickupTime(defaultValue?: number, onPickupTimeSelect?: (minut
     ) {
       addPickupTime(0)
     }
-  }, [defaultValue, storedTimeLeftTakeOut, orderType, userSelectedTime, addPickupTime])
+  }, [
+    defaultValue,
+    storedTimeLeftTakeOut,
+    orderType,
+    userSelectedTime,
+    addPickupTime,
+  ])
 
   const options = useMemo<PickupTimeOption[]>(() => {
     return PICKUP_TIME_OPTIONS.map((minutes) => ({
@@ -76,5 +87,3 @@ export function usePickupTime(defaultValue?: number, onPickupTimeSelect?: (minut
     handleChange,
   }
 }
-
-

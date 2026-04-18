@@ -48,7 +48,7 @@ const ProgressBar = memo(function ProgressBar({
     cancelAnimation(progress)
     progress.value = 1
     progress.value = withTiming(0, { duration: ttlMs })
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [qrCode, ttlMs])
 
   const barStyle = useAnimatedStyle(() => ({
@@ -57,8 +57,8 @@ const ProgressBar = memo(function ProgressBar({
 
   const handleLayout = useCallback((e: LayoutChangeEvent) => {
     containerWidth.value = e.nativeEvent.layout.width
-  // containerWidth is a Reanimated shared value (ref-like) — stable, no dep needed
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // containerWidth is a Reanimated shared value (ref-like) — stable, no dep needed
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const trackBg = isDark ? colors.gray[700] : colors.gray[200]
@@ -68,7 +68,9 @@ const ProgressBar = memo(function ProgressBar({
       style={[s.progressTrack, { backgroundColor: trackBg }]}
       onLayout={handleLayout}
     >
-      <Animated.View style={[s.progressBar, { backgroundColor: primary }, barStyle]} />
+      <Animated.View
+        style={[s.progressBar, { backgroundColor: primary }, barStyle]}
+      />
     </View>
   )
 })
@@ -109,15 +111,12 @@ const ActiveQR = memo(function ActiveQR({
     } else {
       qrOpacity.value = withTiming(1, { duration: QR_FADE_IN_MS })
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isRefreshing])
 
   const qrAnimStyle = useAnimatedStyle(() => ({ opacity: qrOpacity.value }))
 
-  const qrWrapStyle = useMemo(
-    () => [s.qrImageWrap, qrAnimStyle],
-    [qrAnimStyle],
-  )
+  const qrWrapStyle = useMemo(() => [s.qrImageWrap, qrAnimStyle], [qrAnimStyle])
 
   return (
     <View style={[s.qrCard, { backgroundColor: cardBg }]}>
@@ -164,17 +163,14 @@ const QRCard = memo(function QRCard({
   primary: string
 }) {
   const { t } = useTranslation('payment')
-  const { mutedColor, cardBg, skeletonWrapStyle } = useMemo(
-    () => {
-      const skBg = isDark ? colors.gray[700] : colors.gray[100]
-      return {
-        mutedColor: isDark ? colors.gray[400] : colors.gray[500],
-        cardBg: isDark ? colors.gray[800] : colors.white.light,
-        skeletonWrapStyle: [s.qrImageWrap, { backgroundColor: skBg }],
-      }
-    },
-    [isDark],
-  )
+  const { mutedColor, cardBg, skeletonWrapStyle } = useMemo(() => {
+    const skBg = isDark ? colors.gray[700] : colors.gray[100]
+    return {
+      mutedColor: isDark ? colors.gray[400] : colors.gray[500],
+      cardBg: isDark ? colors.gray[800] : colors.white.light,
+      skeletonWrapStyle: [s.qrImageWrap, { backgroundColor: skBg }],
+    }
+  }, [isDark])
 
   if (isLoading) {
     return (
@@ -196,8 +192,13 @@ const QRCard = memo(function QRCard({
           <Text style={s.errorIcon}>⚠️</Text>
         </View>
         <Text style={[s.errorText, { color: mutedColor }]}>{error}</Text>
-        <Pressable style={[s.retryBtn, { borderColor: primary }]} onPress={onRetry}>
-          <Text style={[s.retryText, { color: primary }]}>{t('qrGenerate.retry')}</Text>
+        <Pressable
+          style={[s.retryBtn, { borderColor: primary }]}
+          onPress={onRetry}
+        >
+          <Text style={[s.retryText, { color: primary }]}>
+            {t('qrGenerate.retry')}
+          </Text>
         </Pressable>
       </View>
     )
@@ -216,14 +217,14 @@ const QRCard = memo(function QRCard({
 
 // ─── Instructions ─────────────────────────────────────────────────────────────
 
-const Instructions = memo(function Instructions({ isDark }: { isDark: boolean }) {
+const Instructions = memo(function Instructions({
+  isDark,
+}: {
+  isDark: boolean
+}) {
   const { t } = useTranslation('payment')
   const steps = useMemo(
-    () => [
-      t('qrGenerate.step1'),
-      t('qrGenerate.step2'),
-      t('qrGenerate.step3'),
-    ],
+    () => [t('qrGenerate.step1'), t('qrGenerate.step2'), t('qrGenerate.step3')],
     [t],
   )
   const { textColor, mutedColor, cardBg } = useMemo(
@@ -256,11 +257,11 @@ export default function QRGenerateScreen() {
   const isDark = useColorScheme() === 'dark'
 
   const primary = useMemo(
-    () => isDark ? colors.primary.dark : colors.primary.light,
+    () => (isDark ? colors.primary.dark : colors.primary.light),
     [isDark],
   )
   const bg = useMemo(
-    () => isDark ? colors.background.dark : colors.background.light,
+    () => (isDark ? colors.background.dark : colors.background.light),
     [isDark],
   )
 

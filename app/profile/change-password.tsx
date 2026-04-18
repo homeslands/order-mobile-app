@@ -1,6 +1,7 @@
 import { changePassword } from '@/api/profile'
-import { Button, Input } from '@/components/ui'
+import { Button } from '@/components/ui'
 import { ScreenContainer } from '@/components/layout'
+import { PasswordInputField, PasswordRulesInput } from '@/components/input'
 import { colors } from '@/constants'
 import { navigateNative } from '@/lib/navigation'
 import { showToast } from '@/utils'
@@ -40,19 +41,31 @@ function ChangePasswordScreen() {
       .catch(() => {
         showToast(t('changePassword.error'))
       })
-      .finally(() => { setIsSubmitting(false) })
+      .finally(() => {
+        setIsSubmitting(false)
+      })
   }
 
   return (
-    <ScreenContainer edges={['top', 'bottom']} className="flex-1 bg-gray-50 dark:bg-gray-900">
+    <ScreenContainer
+      edges={['top', 'bottom']}
+      className="flex-1 bg-gray-50 dark:bg-gray-900"
+    >
       {/* Header */}
-      <View className="bg-white dark:bg-gray-800 px-4 py-3 flex-row items-center border-b border-gray-200 dark:border-gray-700">
+      <View className="flex-row items-center border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
         <Button
           variant="ghost"
-          className="mr-2 px-0 min-h-0 h-10 w-10 rounded-full justify-center items-center"
+          className="mr-2 h-10 min-h-0 w-10 items-center justify-center rounded-full px-0"
           onPress={() => navigateNative.back()}
         >
-          <ArrowLeft size={22} color={isDark ? colors.mutedForeground.dark : colors.mutedForeground.light} />
+          <ArrowLeft
+            size={22}
+            color={
+              isDark
+                ? colors.mutedForeground.dark
+                : colors.mutedForeground.light
+            }
+          />
         </Button>
         <Text className="text-lg font-semibold text-gray-900 dark:text-gray-50">
           {t('changePassword.title')}
@@ -60,36 +73,43 @@ function ChangePasswordScreen() {
       </View>
 
       <View className="flex-1 px-4 py-6">
-        <View className="bg-white dark:bg-gray-800 rounded-xl p-4 border border-gray-100 dark:border-gray-700">
+        <View className="rounded-xl border border-gray-100 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+          {/* Mật khẩu cũ */}
           <View className="mb-4">
-            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">{t('oldPassword')}</Text>
-            <Input
+            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
+              {t('oldPassword')}
+            </Text>
+            <PasswordInputField
               value={oldPassword}
-              onChangeText={setOldPassword}
+              onChange={setOldPassword}
               placeholder={t('enterOldPassword')}
-              secureTextEntry
+              disabled={isSubmitting}
             />
           </View>
 
+          {/* Mật khẩu mới — có strength bar + rules */}
           <View className="mb-4">
-            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">{t('newPassword')}</Text>
-            <Input
+            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
+              {t('newPassword')}
+            </Text>
+            <PasswordRulesInput
               value={newPassword}
-              onChangeText={setNewPassword}
+              onChange={setNewPassword}
               placeholder={t('enterNewPassword')}
-              secureTextEntry
+              disabled={isSubmitting}
             />
           </View>
 
+          {/* Xác nhận mật khẩu */}
           <View className="mb-2">
             <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
               {t('confirmPassword')}
             </Text>
-            <Input
+            <PasswordInputField
               value={confirmPassword}
-              onChangeText={setConfirmPassword}
+              onChange={setConfirmPassword}
               placeholder={t('enterConfirmPassword')}
-              secureTextEntry
+              disabled={isSubmitting}
             />
           </View>
 
@@ -100,13 +120,15 @@ function ChangePasswordScreen() {
 
         <View className="mt-6">
           <Button
-            className="w-full h-11 rounded-lg"
+            className="h-11 w-full rounded-lg"
             style={{ backgroundColor: primaryColor }}
             disabled={isSubmitting}
             onPress={handleSubmit}
           >
             <Text className="text-sm font-semibold text-white">
-              {isSubmitting ? t('changePassword.updating') : t('changePassword.save')}
+              {isSubmitting
+                ? t('changePassword.updating')
+                : t('changePassword.save')}
             </Text>
           </Button>
         </View>
@@ -117,5 +139,3 @@ function ChangePasswordScreen() {
 
 ChangePasswordScreen.displayName = 'ChangePasswordScreen'
 export default React.memo(ChangePasswordScreen)
-
-

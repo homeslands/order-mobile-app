@@ -23,7 +23,8 @@ export default function DeleteCartItemDialog({
   const { t: tCommon } = useTranslation('common')
   const isDark = useColorScheme() === 'dark'
   const [isOpen, setIsOpen] = useState(false)
-  const { removeOrderingItem, getCartItems, removeVoucher } = useOrderFlowDeleteCartItem()
+  const { removeOrderingItem, getCartItems, removeVoucher } =
+    useOrderFlowDeleteCartItem()
 
   const handleDelete = (cartItemId: string) => {
     const cartItems = getCartItems()
@@ -53,9 +54,13 @@ export default function DeleteCartItemDialog({
       }, 0)
 
       // Nếu không phải SAME_PRICE_PRODUCT thì mới cần check
-      const shouldCheckMinOrderValue = voucher?.type !== VOUCHER_TYPE.SAME_PRICE_PRODUCT
+      const shouldCheckMinOrderValue =
+        voucher?.type !== VOUCHER_TYPE.SAME_PRICE_PRODUCT
 
-      if (shouldCheckMinOrderValue && subtotalBeforeVoucher < (voucher?.minOrderValue || 0)) {
+      if (
+        shouldCheckMinOrderValue &&
+        subtotalBeforeVoucher < (voucher?.minOrderValue || 0)
+      ) {
         scheduleStoreUpdate(removeVoucher)
         showErrorToast(1004)
         setTimeout(() => {
@@ -90,7 +95,7 @@ export default function DeleteCartItemDialog({
         }
         content={
           <View className="flex items-center gap-4">
-            <Label className="leading-5 text-left">
+            <Label className="text-left leading-5">
               {t('order.deleteContent')}{' '}
               <Text className="font-bold">{cartItem.name}</Text>
               {t('order.deleteContent2')}

@@ -42,18 +42,22 @@ export function ConfirmationDialog({
     onOpenChange(false)
   }
 
-  const defaultTitleClassName = variant === 'destructive' 
-    ? 'text-destructive flex items-center gap-2' 
-    : 'flex items-center gap-2'
+  const defaultTitleClassName =
+    variant === 'destructive'
+      ? 'text-destructive flex items-center gap-2'
+      : 'flex items-center gap-2'
 
-  const defaultDescriptionClassName = variant === 'destructive'
-    ? 'p-2 bg-red-100 rounded-md dark:bg-red-900/30 text-destructive'
-    : 'mt-2 text-muted-foreground'
+  const defaultDescriptionClassName =
+    variant === 'destructive'
+      ? 'p-2 bg-red-100 rounded-md dark:bg-red-900/30 text-destructive'
+      : 'mt-2 text-muted-foreground'
 
-  const buttonAlignment = 
-    alignButtons === 'center' ? 'justify-center' : 
-    alignButtons === 'start' ? 'justify-start' : 
-    'justify-end'
+  const buttonAlignment =
+    alignButtons === 'center'
+      ? 'justify-center'
+      : alignButtons === 'start'
+        ? 'justify-start'
+        : 'justify-end'
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -64,23 +68,24 @@ export function ConfirmationDialog({
             {title}
           </Dialog.Title>
           {description && (
-            <Dialog.Description className={descriptionClassName || defaultDescriptionClassName}>
+            <Dialog.Description
+              className={descriptionClassName || defaultDescriptionClassName}
+            >
               {description}
             </Dialog.Description>
           )}
         </Dialog.Header>
 
-        {content && (
-          <View className="mt-4">
-            {content}
-          </View>
-        )}
+        {content && <View className="mt-4">{content}</View>}
 
         <Dialog.Footer className={`flex flex-row gap-2 ${buttonAlignment}`}>
           <Button variant="outline" onPress={handleCancel}>
             {cancelLabel}
           </Button>
-          <Button variant={variant === 'destructive' ? 'destructive' : 'default'} onPress={handleConfirm}>
+          <Button
+            variant={variant === 'destructive' ? 'destructive' : 'default'}
+            onPress={handleConfirm}
+          >
             {confirmLabel}
           </Button>
         </Dialog.Footer>
@@ -88,4 +93,3 @@ export function ConfirmationDialog({
     </Dialog>
   )
 }
-

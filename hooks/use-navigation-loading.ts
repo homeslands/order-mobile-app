@@ -9,10 +9,12 @@ interface NavigationLoadingStore {
   setLoading: (loading: boolean) => void
 }
 
-export const useNavigationLoadingStore = create<NavigationLoadingStore>((set) => ({
-  isLoading: false,
-  setLoading: (isLoading: boolean) => set({ isLoading }),
-}))
+export const useNavigationLoadingStore = create<NavigationLoadingStore>(
+  (set) => ({
+    isLoading: false,
+    setLoading: (isLoading: boolean) => set({ isLoading }),
+  }),
+)
 
 /**
  * Hook to get loading state

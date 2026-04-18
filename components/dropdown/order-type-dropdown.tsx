@@ -38,7 +38,7 @@ export default function OrderTypeDropdown() {
   }
 
   return (
-    <View className="bg-white dark:bg-gray-800 p-4">
+    <View className="bg-white p-4 dark:bg-gray-800">
       {renderLabel()}
       <Dropdown
         style={{

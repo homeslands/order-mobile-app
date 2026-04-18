@@ -90,4 +90,12 @@ export const convertOrderDetailToOrderItem = (
 })
 
 // Re-export types used by slices for convenience
-export type { IOrderItem, IOrderToUpdate, ITable, IUserInfo, IVoucher, OrderTypeEnum, OrderStatus }
+export type {
+  IOrderItem,
+  IOrderToUpdate,
+  ITable,
+  IUserInfo,
+  IVoucher,
+  OrderTypeEnum,
+  OrderStatus,
+}

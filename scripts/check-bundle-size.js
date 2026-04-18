@@ -10,9 +10,17 @@
 const fs = require('fs')
 const path = require('path')
 
-const BUNDLE_DIR = path.join(__dirname, '..', 'dist', '_expo', 'static', 'js', 'web')
+const BUNDLE_DIR = path.join(
+  __dirname,
+  '..',
+  'dist',
+  '_expo',
+  'static',
+  'js',
+  'web',
+)
 const BASELINE_FILE = path.join(__dirname, '..', '.bundle-baseline.json')
-const WARN_THRESHOLD_BYTES = 200 * 1024  // 200KB
+const WARN_THRESHOLD_BYTES = 200 * 1024 // 200KB
 
 const isUpdate = process.argv.includes('--update')
 
@@ -23,7 +31,8 @@ function formatSize(bytes) {
 
 function formatDelta(bytes) {
   const sign = bytes >= 0 ? '+' : ''
-  if (Math.abs(bytes) >= 1024 * 1024) return `${sign}${(bytes / 1024 / 1024).toFixed(2)}MB`
+  if (Math.abs(bytes) >= 1024 * 1024)
+    return `${sign}${(bytes / 1024 / 1024).toFixed(2)}MB`
   return `${sign}${(bytes / 1024).toFixed(1)}KB`
 }
 
@@ -52,7 +61,10 @@ function loadBaseline() {
 }
 
 function saveBaseline(sizes) {
-  fs.writeFileSync(BASELINE_FILE, JSON.stringify({ sizes, updatedAt: new Date().toISOString() }, null, 2))
+  fs.writeFileSync(
+    BASELINE_FILE,
+    JSON.stringify({ sizes, updatedAt: new Date().toISOString() }, null, 2),
+  )
 }
 
 const current = getCurrentSizes()
@@ -60,16 +72,16 @@ const baseline = loadBaseline()
 
 if (isUpdate || !baseline) {
   saveBaseline(current)
-  console.log('✅  Bundle baseline updated:')
+  console['log']('✅  Bundle baseline updated:')
   for (const [file, size] of Object.entries(current)) {
-    console.log(`   ${file}: ${formatSize(size)}`)
+    console['log'](`   ${file}: ${formatSize(size)}`)
   }
-  console.log(`\n   Saved to: .bundle-baseline.json`)
+  console['log'](`\n   Saved to: .bundle-baseline.json`)
   process.exit(0)
 }
 
 // Compare mode
-console.log('\n📦  Bundle Size Check\n')
+console['log']('\n📦  Bundle Size Check\n')
 
 let hasWarning = false
 let hasError = false
@@ -77,7 +89,7 @@ let hasError = false
 for (const [file, size] of Object.entries(current)) {
   const prev = baseline.sizes?.[file]
   if (!prev) {
-    console.log(`   🆕  ${file}: ${formatSize(size)} (new file)`)
+    console['log'](`   🆕  ${file}: ${formatSize(size)} (new file)`)
     continue
   }
 
@@ -86,34 +98,36 @@ for (const [file, size] of Object.entries(current)) {
   const sizeStr = formatSize(size)
 
   if (delta > WARN_THRESHOLD_BYTES) {
-    console.log(`   🔴  ${file}: ${sizeStr} (${deltaStr}) ← EXCEEDED threshold`)
+    console['log'](`   🔴  ${file}: ${sizeStr} (${deltaStr}) ← EXCEEDED threshold`)
     hasError = true
   } else if (delta > 0) {
-    console.log(`   🟡  ${file}: ${sizeStr} (${deltaStr})`)
+    console['log'](`   🟡  ${file}: ${sizeStr} (${deltaStr})`)
     hasWarning = true
   } else if (delta < 0) {
-    console.log(`   🟢  ${file}: ${sizeStr} (${deltaStr}) ← reduced`)
+    console['log'](`   🟢  ${file}: ${sizeStr} (${deltaStr}) ← reduced`)
   } else {
-    console.log(`   ✅  ${file}: ${sizeStr} (no change)`)
+    console['log'](`   ✅  ${file}: ${sizeStr} (no change)`)
   }
 }
 
 // Report files removed from baseline
 for (const file of Object.keys(baseline.sizes ?? {})) {
   if (!current[file]) {
-    console.log(`   🗑️   ${file}: removed`)
+    console['log'](`   🗑️   ${file}: removed`)
   }
 }
 
-console.log(`\n   Baseline from: ${baseline.updatedAt ?? 'unknown'}`)
-console.log(`   Warn threshold: ${formatSize(WARN_THRESHOLD_BYTES)}\n`)
+console['log'](`\n   Baseline from: ${baseline.updatedAt ?? 'unknown'}`)
+console['log'](`   Warn threshold: ${formatSize(WARN_THRESHOLD_BYTES)}\n`)
 
 if (hasError) {
-  console.error('❌  Bundle size exceeded threshold. Run: npm run analyze:web to investigate.')
+  console.error(
+    '❌  Bundle size exceeded threshold. Run: npm run analyze:web to investigate.',
+  )
   console.error('   To update baseline: npm run update-bundle-baseline\n')
   process.exit(1)
 } else if (hasWarning) {
-  console.log('⚠️   Bundle size increased but within threshold.\n')
+  console['log']('⚠️   Bundle size increased but within threshold.\n')
 } else {
-  console.log('✅  Bundle size OK.\n')
+  console['log']('✅  Bundle size OK.\n')
 }

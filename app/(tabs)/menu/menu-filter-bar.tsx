@@ -59,7 +59,9 @@ const CatalogChips = memo(function CatalogChips({
     >
       {/* Tất cả */}
       <Pressable
-        onPress={() => { onCatalogSelect(undefined) }}
+        onPress={() => {
+          onCatalogSelect(undefined)
+        }}
         style={[
           filterStyles.chip,
           { backgroundColor: allActive ? primaryColor : chipBg },
@@ -168,8 +170,7 @@ export const MenuFilterBar = memo(function MenuFilterBar({
 }) {
   const chipBg = isDark ? colors.gray[800] : colors.gray[100]
   const chipColor = isDark ? colors.gray[300] : colors.gray[600]
-  const hasPriceFilter =
-    currentMinPrice > 0 || currentMaxPrice < 300_000
+  const hasPriceFilter = currentMinPrice > 0 || currentMaxPrice < 300_000
 
   return (
     <View style={filterStyles.container}>
@@ -177,7 +178,10 @@ export const MenuFilterBar = memo(function MenuFilterBar({
       <View style={filterStyles.searchRow}>
         <View style={filterStyles.searchWrap}>
           <View style={filterStyles.searchIconWrap}>
-            <Search size={15} color={isDark ? colors.gray[400] : colors.gray[500]} />
+            <Search
+              size={15}
+              color={isDark ? colors.gray[400] : colors.gray[500]}
+            />
           </View>
           <TextInput
             value={searchText}
@@ -202,7 +206,10 @@ export const MenuFilterBar = memo(function MenuFilterBar({
               style={filterStyles.clearBtn}
               hitSlop={8}
             >
-              <X size={15} color={isDark ? colors.gray[400] : colors.gray[500]} />
+              <X
+                size={15}
+                color={isDark ? colors.gray[400] : colors.gray[500]}
+              />
             </Pressable>
           )}
         </View>
@@ -218,10 +225,21 @@ export const MenuFilterBar = memo(function MenuFilterBar({
         >
           <SlidersHorizontal
             size={16}
-            color={hasPriceFilter ? primaryColor : isDark ? colors.gray[400] : colors.gray[500]}
+            color={
+              hasPriceFilter
+                ? primaryColor
+                : isDark
+                  ? colors.gray[400]
+                  : colors.gray[500]
+            }
           />
           {hasPriceFilter && (
-            <View style={[filterStyles.activeDot, { backgroundColor: primaryColor }]} />
+            <View
+              style={[
+                filterStyles.activeDot,
+                { backgroundColor: primaryColor },
+              ]}
+            />
           )}
         </Pressable>
       </View>

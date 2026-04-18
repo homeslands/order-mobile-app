@@ -1,10 +1,13 @@
 /**
  * Ví dụ sử dụng Navigation Bar trên Android
- * 
+ *
  * File này minh họa các cách sử dụng react-native-navigation-bar-color
  */
 
-import { setNavigationBarColor, useNavigationBar } from '@/hooks/use-navigation-bar'
+import {
+  setNavigationBarColor,
+  useNavigationBar,
+} from '@/hooks/use-navigation-bar'
 import { StyleSheet, Text, View } from 'react-native'
 
 // ============================================
@@ -30,7 +33,9 @@ export function DarkNavigationBarExample() {
 
   return (
     <View style={[styles.container, styles.darkContainer]}>
-      <Text style={styles.lightText}>Navigation bar màu đen với icon trắng</Text>
+      <Text style={styles.lightText}>
+        Navigation bar màu đen với icon trắng
+      </Text>
     </View>
   )
 }
@@ -45,7 +50,7 @@ export function AdaptiveNavigationBarExample() {
   useNavigationBar(
     isDarkMode ? '#000000' : '#FFFFFF',
     !isDarkMode, // light = true khi nền sáng
-    true
+    true,
   )
 
   return (
@@ -90,9 +95,7 @@ export function ScreenSpecificNavigationBar() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.text}>
-        Screen này có navigation bar màu xanh lá
-      </Text>
+      <Text style={styles.text}>Screen này có navigation bar màu xanh lá</Text>
     </View>
   )
 }
@@ -119,4 +122,3 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 })
-

@@ -15,14 +15,23 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: jest.fn(() => ({ params: {} })),
 }))
 jest.mock('react-native-safe-area-context', () => ({
-  useSafeAreaInsets: jest.fn(() => ({ top: 44, bottom: 34, left: 0, right: 0 })),
+  useSafeAreaInsets: jest.fn(() => ({
+    top: 44,
+    bottom: 34,
+    left: 0,
+    right: 0,
+  })),
   SafeAreaProvider: ({ children }: { children: React.ReactNode }) => children,
 }))
 jest.mock('@gorhom/bottom-sheet', () => ({
   BottomSheetModal: () => null,
-  BottomSheetModalProvider: ({ children }: { children: React.ReactNode }) => children,
+  BottomSheetModalProvider: ({ children }: { children: React.ReactNode }) =>
+    children,
   BottomSheetFlashList: () => null,
-  useBottomSheetModal: jest.fn(() => ({ present: jest.fn(), dismiss: jest.fn() })),
+  useBottomSheetModal: jest.fn(() => ({
+    present: jest.fn(),
+    dismiss: jest.fn(),
+  })),
 }))
 jest.mock('lucide-react-native', () => new Proxy({}, { get: () => () => null }))
 jest.mock('dayjs', () => {
@@ -47,7 +56,11 @@ jest.mock('dayjs', () => {
 jest.mock('@/stores', () => ({
   useNotificationStore: jest.fn((sel) =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-    sel({ notifications: [], getUnreadCount: () => 0, markAllAsRead: jest.fn() }),
+    sel({
+      notifications: [],
+      getUnreadCount: () => 0,
+      markAllAsRead: jest.fn(),
+    }),
   ),
   useUserStore: jest.fn((sel) =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
@@ -69,7 +82,11 @@ jest.mock('@/stores', () => ({
 jest.mock('@/stores/notification.store', () => ({
   useNotificationStore: jest.fn((sel) =>
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return, @typescript-eslint/no-unsafe-call
-    sel({ notifications: [], getUnreadCount: () => 0, markAllAsRead: jest.fn() }),
+    sel({
+      notifications: [],
+      getUnreadCount: () => 0,
+      markAllAsRead: jest.fn(),
+    }),
   ),
 }))
 jest.mock('@tanstack/react-query', () => ({
@@ -181,9 +198,11 @@ function assertFlashListsHaveOverrideLayout(component: React.ReactElement) {
   try {
     const { UNSAFE_getAllByType } = renderResult
     const lists = UNSAFE_getAllByType(FlashList)
-    lists.forEach((list, i) => {
-      expect(typeof list.props.overrideItemLayout).toBe('function') // FlashList[i] must have overrideItemLayout
+    lists.forEach((list, _i) => {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+      expect(typeof list.props.overrideItemLayout).toBe('function') // FlashList[_i] must have overrideItemLayout
       const layout: { size?: number } = {}
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       list.props.overrideItemLayout(layout)
       expect(layout.size).toBeGreaterThan(0) // overrideItemLayout must set layout.size > 0
     })

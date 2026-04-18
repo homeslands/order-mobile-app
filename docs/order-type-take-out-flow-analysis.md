@@ -12,19 +12,19 @@ Khi khách hàng tạo đơn hàng, họ có thể chọn loại đơn hàng là
 
 ### Backend — `OrderType` (`order.constants.ts`)
 
-| Giá trị | Ý nghĩa |
-|---|---|
-| `take-out` | Mang đi |
-| `at-table` | Tại bàn |
+| Giá trị    | Ý nghĩa   |
+| ---------- | --------- |
+| `take-out` | Mang đi   |
+| `at-table` | Tại bàn   |
 | `delivery` | Giao hàng |
 
 ### Frontend — `OrderTypeEnum` (`types/dish.type.ts`)
 
 ```typescript
 export enum OrderTypeEnum {
-  AT_TABLE  = 'at-table',
-  TAKE_OUT  = 'take-out',
-  DELIVERY  = 'delivery',
+  AT_TABLE = 'at-table',
+  TAKE_OUT = 'take-out',
+  DELIVERY = 'delivery',
 }
 ```
 
@@ -45,23 +45,23 @@ Cả frontend và backend đều dùng cùng tập giá trị cố định (đơ
 
 ### Order Entity — trường liên quan
 
-| Trường | Kiểu | Mô tả |
-|---|---|---|
-| `type` | string | Loại đơn hàng (`take-out`, `at-table`, `delivery`) |
+| Trường            | Kiểu   | Mô tả                                                                        |
+| ----------------- | ------ | ---------------------------------------------------------------------------- |
+| `type`            | string | Loại đơn hàng (`take-out`, `at-table`, `delivery`)                           |
 | `timeLeftTakeOut` | number | Thời gian lấy hàng (phút), default = 0. Chỉ có ý nghĩa khi `type = take-out` |
 
 ### `CreateOrderRequestDto`
 
-| Field | Validate | Ghi chú |
-|---|---|---|
-| `type` | `@IsEnum(OrderType)`, bắt buộc | Phải là giá trị hợp lệ trong enum |
+| Field             | Validate                                    | Ghi chú                               |
+| ----------------- | ------------------------------------------- | ------------------------------------- |
+| `type`            | `@IsEnum(OrderType)`, bắt buộc              | Phải là giá trị hợp lệ trong enum     |
 | `timeLeftTakeOut` | `@IsIn([0,5,10,15,30,45,60])`, **tùy chọn** | Nếu không truyền thì backend không ép |
 
 ### `UpdateOrderRequestDto`
 
-| Field | Validate | Ghi chú |
-|---|---|---|
-| `type` | `@IsEnum(OrderType)`, bắt buộc | |
+| Field             | Validate                                    | Ghi chú                     |
+| ----------------- | ------------------------------------------- | --------------------------- |
+| `type`            | `@IsEnum(OrderType)`, bắt buộc              |                             |
 | `timeLeftTakeOut` | `@IsIn([0,5,10,15,30,45,60])`, **bắt buộc** | Khi update bắt buộc phải có |
 
 ---
@@ -73,12 +73,14 @@ Cả frontend và backend đều dùng cùng tập giá trị cố định (đơ
 Component: [order-type-select.tsx](../app/order-ui/src/components/app/select/order-type-select.tsx)
 
 **Logic hiển thị options:**
+
 - Luôn hiển thị: `Tại bàn (AT_TABLE)`, `Mang đi (TAKE_OUT)`
 - Chỉ hiển thị `Giao hàng (DELIVERY)` nếu:
   - Người dùng đã đăng nhập (`role = Customer` và không phải `default-customer`)
   - Feature `DELIVERY` tồn tại trong `CREATE_PRIVATE` flag
 
 **Feature flag:**
+
 - Người dùng đã đăng nhập → dùng `CREATE_PRIVATE`
 - Khách vãng lai → dùng `CREATE_PUBLIC` (không có DELIVERY)
 - Nếu một loại bị khóa (`isLocked = true`) → bị lọc khỏi danh sách
@@ -107,6 +109,7 @@ Component: [pickup-time-select.tsx](../app/order-ui/src/components/app/select/pi
 **Điều kiện render:** Chỉ render khi `cartItems.type === 'take-out'`. Nếu loại khác → `return null`.
 
 **Khởi tạo giá trị mặc định:**
+
 1. Nếu có `defaultValue` prop → dùng giá trị đó
 2. Nếu cart đã có `timeLeftTakeOut` → dùng giá trị đó
 3. Nếu không có gì → set mặc định = `0` ("Ngay lập tức") và gọi `addPickupTime(0)`
@@ -133,6 +136,7 @@ orderingData.timeLeftTakeOut = 15
 **API:** `POST /orders` hoặc `POST /orders/public`
 
 **Payload ví dụ:**
+
 ```json
 {
   "type": "take-out",
@@ -184,11 +188,13 @@ Lưu database
 [order-type-in-update-order-select.tsx](../app/order-ui/src/components/app/select/order-type-in-update-order-select.tsx)
 
 **Logic giống với create**, bao gồm:
+
 - Feature flag filter (`CREATE_PRIVATE` / `CREATE_PUBLIC`)
 - Chỉ hiện DELIVERY nếu user đã đăng nhập
 - Loại bị khóa không hiển thị
 
 **Khác biệt:**
+
 - Lấy `isUserLoggedIn` từ `userInfo` (store) HOẶC từ `updatingData.updateDraft.ownerRole`
 - Giá trị hiện tại: `updatingData?.updateDraft?.type || typeOrder`
 - Gọi `setDraftType(value)` thay vì `setOrderingType(value)`
@@ -225,19 +231,21 @@ setDraftType: (type: OrderTypeEnum) => {
 
 **Props:**
 
-| Prop | Kiểu | Mô tả |
-|---|---|---|
-| `pickupTime` | `number?` | Giá trị ban đầu từ đơn gốc |
-| `orderType` | `OrderTypeEnum` | Loại đơn hiện tại trong draft |
-| `onPickupTimeSelect` | callback | Tùy chọn |
+| Prop                 | Kiểu            | Mô tả                         |
+| -------------------- | --------------- | ----------------------------- |
+| `pickupTime`         | `number?`       | Giá trị ban đầu từ đơn gốc    |
+| `orderType`          | `OrderTypeEnum` | Loại đơn hiện tại trong draft |
+| `onPickupTimeSelect` | callback        | Tùy chọn                      |
 
 **Khác biệt so với create:**
+
 - Nhận `orderType` qua **prop** (create đọc từ `cartItems.type`)
 - Điều kiện render: `orderType !== TAKE_OUT → return null` (create dùng `cartItems?.type !== TAKE_OUT`)
 - Có flag `isUpdatingFromProps` để tránh trigger `addDraftPickupTime` khi đang sync từ prop (ngăn vòng lặp)
 - Gọi `addDraftPickupTime(minutes)` thay vì `addPickupTime(minutes)`
 
 **Khởi tạo giá trị:**
+
 1. `pickupTime` prop có giá trị → dùng prop
 2. `cartItems.timeLeftTakeOut` có giá trị → dùng cart
 3. Không có gì → set `"0"`, gọi `addDraftPickupTime(0)`
@@ -246,11 +254,11 @@ setDraftType: (type: OrderTypeEnum) => {
 
 ### 5.4. Store actions (update flow)
 
-| Action | Mô tả |
-|---|---|
-| `setDraftType(type)` | Đặt type trong draft; xóa table nếu TAKE_OUT, xóa `timeLeftTakeOut` nếu AT_TABLE |
-| `addDraftPickupTime(time)` | Ghi `timeLeftTakeOut` vào `updatingData.updateDraft` |
-| `removeDraftPickupTime()` | Xóa `timeLeftTakeOut` khỏi `updatingData.updateDraft` |
+| Action                     | Mô tả                                                                            |
+| -------------------------- | -------------------------------------------------------------------------------- |
+| `setDraftType(type)`       | Đặt type trong draft; xóa table nếu TAKE_OUT, xóa `timeLeftTakeOut` nếu AT_TABLE |
+| `addDraftPickupTime(time)` | Ghi `timeLeftTakeOut` vào `updatingData.updateDraft`                             |
+| `removeDraftPickupTime()`  | Xóa `timeLeftTakeOut` khỏi `updatingData.updateDraft`                            |
 
 Tất cả đều set `hasChanges = true` (trừ `addDraftPickupTime` / `removeDraftPickupTime`).
 
@@ -268,6 +276,7 @@ Tất cả đều set `hasChanges = true` (trừ `addDraftPickupTime` / `removeD
 ```
 
 **Backend validate `UpdateOrderRequestDto`:**
+
 - `timeLeftTakeOut` là **bắt buộc** (khác với create là optional)
 - Đơn hàng phải ở trạng thái `PENDING` mới được cập nhật
 
@@ -275,14 +284,14 @@ Tất cả đều set `hasChanges = true` (trừ `addDraftPickupTime` / `removeD
 
 ## 6. So Sánh Xử Lý Theo Loại Đơn Hàng
 
-| | `TAKE_OUT` | `AT_TABLE` | `DELIVERY` |
-|---|---|---|---|
-| `table` | `null` | Bắt buộc có | `null` |
-| `timeLeftTakeOut` | Theo lựa chọn (0–60) | Luôn = `0` | Không dùng |
-| `deliveryTo` | `null` | `null` | Bắt buộc có |
-| `deliveryPhone` | `null` | `null` | Bắt buộc có |
-| `deliveryFee` | `0` | `0` | Tính theo khoảng cách |
-| Hiển thị pickup time UI | Có | Không | Không |
+|                         | `TAKE_OUT`           | `AT_TABLE`  | `DELIVERY`            |
+| ----------------------- | -------------------- | ----------- | --------------------- |
+| `table`                 | `null`               | Bắt buộc có | `null`                |
+| `timeLeftTakeOut`       | Theo lựa chọn (0–60) | Luôn = `0`  | Không dùng            |
+| `deliveryTo`            | `null`               | `null`      | Bắt buộc có           |
+| `deliveryPhone`         | `null`               | `null`      | Bắt buộc có           |
+| `deliveryFee`           | `0`                  | `0`         | Tính theo khoảng cách |
+| Hiển thị pickup time UI | Có                   | Không       | Không                 |
 
 ---
 
@@ -302,13 +311,13 @@ IOrderingData {
 
 **Actions liên quan:**
 
-| Action | Mô tả |
-|---|---|
-| `setOrderingType(type)` | Đặt loại đơn, tự clear `table`/`tableName` nếu là TAKE_OUT |
-| `addPickupTime(time)` | Đặt `timeLeftTakeOut` trong `orderingData` |
-| `removePickupTime()` | Xóa `timeLeftTakeOut` khỏi `orderingData` |
-| `addDraftPickupTime(time)` | Tương tự nhưng cho update flow (draft) |
-| `removeDraftPickupTime()` | Tương tự nhưng cho update flow (draft) |
+| Action                     | Mô tả                                                      |
+| -------------------------- | ---------------------------------------------------------- |
+| `setOrderingType(type)`    | Đặt loại đơn, tự clear `table`/`tableName` nếu là TAKE_OUT |
+| `addPickupTime(time)`      | Đặt `timeLeftTakeOut` trong `orderingData`                 |
+| `removePickupTime()`       | Xóa `timeLeftTakeOut` khỏi `orderingData`                  |
+| `addDraftPickupTime(time)` | Tương tự nhưng cho update flow (draft)                     |
+| `removeDraftPickupTime()`  | Tương tự nhưng cho update flow (draft)                     |
 
 ---
 
@@ -360,28 +369,28 @@ Trang giỏ hàng (cart page)
 
 ## 9. So Sánh Create vs Update
 
-| | Create Order | Update Order |
-|---|---|---|
-| `timeLeftTakeOut` (BE) | Optional | **Bắt buộc** |
-| Store action chọn type | `setOrderingType` | `setDraftType` |
-| Store action pickup time | `addPickupTime` | `addDraftPickupTime` |
-| Xóa `timeLeftTakeOut` khi chọn AT_TABLE | **Không** | **Có** |
-| Đọc `orderType` để render pickup time | Từ `cartItems.type` | Từ **prop** `orderType` |
-| Chống vòng lặp sync props | Không | Có (`isUpdatingFromProps` flag) |
-| State lưu | `orderingData` | `updatingData.updateDraft` |
-| `hasChanges` tracking | Không | Có |
+|                                         | Create Order        | Update Order                    |
+| --------------------------------------- | ------------------- | ------------------------------- |
+| `timeLeftTakeOut` (BE)                  | Optional            | **Bắt buộc**                    |
+| Store action chọn type                  | `setOrderingType`   | `setDraftType`                  |
+| Store action pickup time                | `addPickupTime`     | `addDraftPickupTime`            |
+| Xóa `timeLeftTakeOut` khi chọn AT_TABLE | **Không**           | **Có**                          |
+| Đọc `orderType` để render pickup time   | Từ `cartItems.type` | Từ **prop** `orderType`         |
+| Chống vòng lặp sync props               | Không               | Có (`isUpdatingFromProps` flag) |
+| State lưu                               | `orderingData`      | `updatingData.updateDraft`      |
+| `hasChanges` tracking                   | Không               | Có                              |
 
 ---
 
 ## 10. Validation Tổng Hợp
 
-| Ràng buộc | Phía | Mô tả |
-|---|---|---|
-| `type` bắt buộc | BE | `@IsEnum(OrderType)` |
-| `timeLeftTakeOut` phải là giá trị cố định | BE | `@IsIn([0,5,10,15,30,45,60])` |
-| `timeLeftTakeOut` optional khi tạo | BE | `@IsOptional()` trong `CreateOrderRequestDto` |
-| `timeLeftTakeOut` bắt buộc khi update | BE | Không có `@IsOptional()` trong `UpdateOrderRequestDto` |
-| Đơn phải ở trạng thái `PENDING` | BE | Kiểm tra trước khi update |
-| Feature flag TAKE_OUT | BE + FE | Nếu bị khóa thì không cho chọn |
-| Khách vãng lai không được dùng DELIVERY | BE | Kiểm tra `default-customer` |
-| Pickup time chỉ hiển thị cho TAKE_OUT | FE | Component `return null` nếu không phải TAKE_OUT |
+| Ràng buộc                                 | Phía    | Mô tả                                                  |
+| ----------------------------------------- | ------- | ------------------------------------------------------ |
+| `type` bắt buộc                           | BE      | `@IsEnum(OrderType)`                                   |
+| `timeLeftTakeOut` phải là giá trị cố định | BE      | `@IsIn([0,5,10,15,30,45,60])`                          |
+| `timeLeftTakeOut` optional khi tạo        | BE      | `@IsOptional()` trong `CreateOrderRequestDto`          |
+| `timeLeftTakeOut` bắt buộc khi update     | BE      | Không có `@IsOptional()` trong `UpdateOrderRequestDto` |
+| Đơn phải ở trạng thái `PENDING`           | BE      | Kiểm tra trước khi update                              |
+| Feature flag TAKE_OUT                     | BE + FE | Nếu bị khóa thì không cho chọn                         |
+| Khách vãng lai không được dùng DELIVERY   | BE      | Kiểm tra `default-customer`                            |
+| Pickup time chỉ hiển thị cho TAKE_OUT     | FE      | Component `return null` nếu không phải TAKE_OUT        |

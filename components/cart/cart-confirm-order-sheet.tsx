@@ -5,11 +5,22 @@ import {
   useCreateOrder,
   useCreateOrderWithoutLogin,
 } from '@/hooks'
-import { navigateNative } from '@/lib/navigation/navigation-engine'
 import { scheduleTransitionTask } from '@/lib/navigation'
-import { useBranchStore, useOrderFlowStore, useUpdateOrderStore, useUserStore } from '@/stores'
+import { navigateNative } from '@/lib/navigation/navigation-engine'
+import {
+  useBranchStore,
+  useOrderFlowStore,
+  useUpdateOrderStore,
+  useUserStore,
+} from '@/stores'
 import type { ICreateOrderRequest } from '@/types'
-import { calculateCartDisplayAndTotals, formatCurrency, parseKm, showErrorToast, showToast } from '@/utils'
+import {
+  calculateCartDisplayAndTotals,
+  formatCurrency,
+  parseKm,
+  showErrorToast,
+  showToast,
+} from '@/utils'
 import {
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
@@ -21,7 +32,13 @@ import {
 import { useQueryClient } from '@tanstack/react-query'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native'
+import {
+  ActivityIndicator,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useShallow } from 'zustand/react/shallow'
 
@@ -41,6 +58,7 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
   const sheetRef = useRef<BottomSheetModal>(null)
   const { bottom: bottomInset } = useSafeAreaInsets()
   const { t } = useTranslation('menu')
+  const { t: tCommon } = useTranslation('common')
   const { t: tToast } = useTranslation('toast')
   const queryClient = useQueryClient()
 
@@ -58,7 +76,10 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
   )
   const getUserInfo = useUserStore((s) => s.getUserInfo)
   const branchSlugFromBranch = useBranchStore((s) => s.branch?.slug)
-  const branchSlug = !hasUser || roleName === Role.CUSTOMER ? branchSlugFromBranch : userBranchSlug
+  const branchSlug =
+    !hasUser || roleName === Role.CUSTOMER
+      ? branchSlugFromBranch
+      : userBranchSlug
 
   const order = useOrderFlowStore((s) => s.orderingData)
   const transitionToPayment = useOrderFlowStore((s) => s.transitionToPayment)
@@ -66,8 +87,15 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
   const { displayItems, cartTotals } = useMemo(() => {
     if (!visible || !order) {
       return {
-        displayItems: [] as ReturnType<typeof calculateCartDisplayAndTotals>['displayItems'],
-        cartTotals: { subTotalBeforeDiscount: 0, promotionDiscount: 0, voucherDiscount: 0, finalTotal: 0 },
+        displayItems: [] as ReturnType<
+          typeof calculateCartDisplayAndTotals
+        >['displayItems'],
+        cartTotals: {
+          subTotalBeforeDiscount: 0,
+          promotionDiscount: 0,
+          voucherDiscount: 0,
+          finalTotal: 0,
+        },
       }
     }
     return calculateCartDisplayAndTotals(order, order.voucher || null)
@@ -87,7 +115,8 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
       return
     }
     if (order.type === 'delivery') {
-      const phoneOk = !!order.deliveryPhone && PHONE_NUMBER_REGEX.test(order.deliveryPhone)
+      const phoneOk =
+        !!order.deliveryPhone && PHONE_NUMBER_REGEX.test(order.deliveryPhone)
       if (!order.deliveryAddress || !phoneOk) {
         showErrorToast(119000)
         return
@@ -114,13 +143,17 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
 
     const onSuccess = (data: { result: { slug: string } }) => {
       const orderSlug = data.result.slug
-      const paymentRoute = roleName === Role.CUSTOMER ? ROUTE.CLIENT_PAYMENT : ROUTE.SYSTEM_PAYMENT
+      const paymentRoute =
+        roleName === Role.CUSTOMER ? ROUTE.CLIENT_PAYMENT : ROUTE.SYSTEM_PAYMENT
 
       queryClient.prefetchQuery({
         queryKey: ['order', orderSlug],
         queryFn: () => getOrderBySlug(orderSlug),
       })
-      navigateNative.push({ pathname: hasUser ? paymentRoute : ROUTE.CLIENT_PAYMENT, params: { order: orderSlug } })
+      navigateNative.push({
+        pathname: hasUser ? paymentRoute : ROUTE.CLIENT_PAYMENT,
+        params: { order: orderSlug },
+      })
       scheduleTransitionTask(() => {
         transitionToPayment(orderSlug)
         useOrderFlowStore.getState().clearOrderingData()
@@ -132,13 +165,15 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
 
     const onError = (error: unknown) => {
       onClose()
-      const err = error as { response?: { data?: { statusCode?: number; code?: number } } }
+      const err = error as {
+        response?: { data?: { statusCode?: number; code?: number } }
+      }
       const code = err?.response?.data?.statusCode ?? err?.response?.data?.code
       setTimeout(() => {
         if (code) {
           showErrorToast(code)
         } else {
-          showToast(tToast('toast.createOrderFailed', 'Tạo đơn thất bại'))
+          showToast(tToast('toast.createOrderFailed'))
         }
       }, 300)
     }
@@ -148,7 +183,20 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
     } else {
       createOrderWithoutLogin(req, { onSuccess, onError })
     }
-  }, [order, branchSlug, hasUser, roleName, getUserInfo, transitionToPayment, clearUpdateOrderStore, createOrder, createOrderWithoutLogin, queryClient, onClose, tToast])
+  }, [
+    order,
+    branchSlug,
+    hasUser,
+    roleName,
+    getUserInfo,
+    transitionToPayment,
+    clearUpdateOrderStore,
+    createOrder,
+    createOrderWithoutLogin,
+    queryClient,
+    onClose,
+    tToast,
+  ])
 
   const bgStyle = useMemo(
     () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
@@ -156,7 +204,13 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
   )
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.4} pressBehavior="close" />
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.4}
+        pressBehavior="close"
+      />
     ),
     [],
   )
@@ -168,34 +222,64 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
   const renderFooter = useCallback(
     (props: BottomSheetFooterProps) => (
       <BottomSheetFooter {...props} bottomInset={bottomInset}>
-        <View style={[confirmOrderStyles.footer, { backgroundColor: isDark ? colors.gray[900] : colors.white.light, borderTopColor: isDark ? colors.gray[700] : colors.border.light }]}>
+        <View
+          style={[
+            confirmOrderStyles.footer,
+            {
+              backgroundColor: isDark ? colors.gray[900] : colors.white.light,
+              borderTopColor: isDark ? colors.gray[700] : colors.border.light,
+            },
+          ]}
+        >
           <Pressable
             onPress={() => sheetRef.current?.dismiss()}
             disabled={isSubmitting}
-            style={[confirmOrderStyles.cancelBtn, { backgroundColor: isDark ? colors.gray[700] : colors.gray[100], opacity: isSubmitting ? 0.5 : 1 }]}
+            style={[
+              confirmOrderStyles.cancelBtn,
+              {
+                backgroundColor: isDark ? colors.gray[700] : colors.gray[100],
+                opacity: isSubmitting ? 0.5 : 1,
+              },
+            ]}
           >
-            <Text style={[confirmOrderStyles.cancelText, { color: isDark ? colors.gray[50] : colors.gray[700] }]}>{t('common.cancel', 'Huỷ')}</Text>
+            <Text
+              style={[
+                confirmOrderStyles.cancelText,
+                { color: isDark ? colors.gray[50] : colors.gray[700] },
+              ]}
+            >
+              {tCommon('common.cancel')}
+            </Text>
           </Pressable>
           <Pressable
             onPress={handleSubmit}
             disabled={isSubmitting}
-            style={[confirmOrderStyles.submitBtn, { backgroundColor: primaryColor, opacity: isSubmitting ? 0.7 : 1 }]}
+            style={[
+              confirmOrderStyles.submitBtn,
+              {
+                backgroundColor: primaryColor,
+                opacity: isSubmitting ? 0.7 : 1,
+              },
+            ]}
           >
             {isSubmitting ? (
               <ActivityIndicator size="small" color="#fff" />
             ) : (
-              <Text style={confirmOrderStyles.submitText}>{t('order.create', 'Đặt món')}</Text>
+              <Text style={confirmOrderStyles.submitText}>
+                {t('order.create')}
+              </Text>
             )}
           </Pressable>
         </View>
       </BottomSheetFooter>
     ),
-    [isDark, primaryColor, handleSubmit, isSubmitting, t, bottomInset],
+    [isDark, primaryColor, handleSubmit, isSubmitting, t, tCommon, bottomInset],
   )
 
   if (!visible || !order) return null
 
-  const totalWithDelivery = cartTotals.finalTotal + (deliveryFee?.deliveryFee || 0)
+  const totalWithDelivery =
+    cartTotals.finalTotal + (deliveryFee?.deliveryFee || 0)
 
   return (
     <BottomSheetModal
@@ -210,90 +294,250 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
       onDismiss={onClose}
       footerComponent={renderFooter}
     >
-          {/* Header */}
-          <View style={[confirmOrderStyles.header, { borderBottomColor: isDark ? colors.gray[700] : colors.border.light }]}>
-            <Text style={[confirmOrderStyles.title, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>
-              {t('order.confirmOrder', 'Xác nhận đơn hàng')}
+      {/* Header */}
+      <View
+        style={[
+          confirmOrderStyles.header,
+          {
+            borderBottomColor: isDark ? colors.gray[700] : colors.border.light,
+          },
+        ]}
+      >
+        <Text
+          style={[
+            confirmOrderStyles.title,
+            { color: isDark ? colors.gray[50] : colors.gray[900] },
+          ]}
+        >
+          {t('cart.confirmOrder')}
+        </Text>
+      </View>
+
+      {/* Scrollable content */}
+      <BottomSheetScrollView
+        contentContainerStyle={confirmOrderStyles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Order info rows */}
+        <View style={confirmOrderStyles.infoSection}>
+          <View
+            style={[
+              confirmOrderStyles.infoRow,
+              { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] },
+            ]}
+          >
+            <Text
+              style={[
+                confirmOrderStyles.infoLabel,
+                { color: isDark ? colors.gray[400] : colors.gray[500] },
+              ]}
+            >
+              {t('menu.orderType')}
+            </Text>
+            <Text
+              style={[
+                confirmOrderStyles.infoValue,
+                { color: isDark ? colors.gray[50] : colors.gray[900] },
+              ]}
+            >
+              {order.type === 'at-table'
+                ? t('menu.dineIn')
+                : order.type === 'delivery'
+                  ? t('menu.delivery')
+                  : t('menu.takeAway')}
             </Text>
           </View>
+          {order.tableName ? (
+            <View
+              style={[
+                confirmOrderStyles.infoRow,
+                {
+                  backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  confirmOrderStyles.infoLabel,
+                  { color: isDark ? colors.gray[400] : colors.gray[500] },
+                ]}
+              >
+                {t('menu.tableName')}
+              </Text>
+              <Text
+                style={[
+                  confirmOrderStyles.infoValue,
+                  { color: isDark ? colors.gray[50] : colors.gray[900] },
+                ]}
+              >
+                {order.tableName}
+              </Text>
+            </View>
+          ) : null}
+          {order.type === 'take-out' && (
+            <View
+              style={[
+                confirmOrderStyles.infoRow,
+                {
+                  backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  confirmOrderStyles.infoLabel,
+                  { color: isDark ? colors.gray[400] : colors.gray[500] },
+                ]}
+              >
+                {t('menu.pickupTime')}
+              </Text>
+              <Text
+                style={[
+                  confirmOrderStyles.infoValue,
+                  { color: isDark ? colors.gray[50] : colors.gray[900] },
+                ]}
+              >
+                {!order.timeLeftTakeOut || order.timeLeftTakeOut === 0
+                  ? t('menu.immediately')
+                  : `${order.timeLeftTakeOut} ${t('menu.minutes')}`}
+              </Text>
+            </View>
+          )}
+        </View>
 
-          {/* Scrollable content */}
-          <BottomSheetScrollView contentContainerStyle={confirmOrderStyles.scrollContent} showsVerticalScrollIndicator={false}>
-            {/* Order info rows */}
-            <View style={confirmOrderStyles.infoSection}>
-              <View style={[confirmOrderStyles.infoRow, { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] }]}>
-                <Text style={[confirmOrderStyles.infoLabel, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>{t('menu.orderType', 'Loại đơn')}</Text>
-                <Text style={[confirmOrderStyles.infoValue, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>
-                  {order.type === 'at-table' ? t('menu.dineIn') : order.type === 'delivery' ? t('menu.delivery') : t('menu.takeAway')}
+        {/* Items */}
+        <View
+          style={[
+            confirmOrderStyles.itemsSection,
+            { borderTopColor: isDark ? colors.gray[700] : colors.border.light },
+          ]}
+        >
+          {displayItems.map((item, idx) => (
+            <View key={idx} style={confirmOrderStyles.itemRow}>
+              <View style={{ flex: 1 }}>
+                <Text
+                  style={[
+                    confirmOrderStyles.itemName,
+                    { color: isDark ? colors.gray[50] : colors.gray[900] },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {(item as { name?: string }).name || ''} × {item.quantity}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: isDark ? colors.gray[400] : colors.gray[500],
+                  }}
+                >
+                  {t('order.size')}
+                  {((item as { size?: string }).size || '').toUpperCase()}
                 </Text>
               </View>
-              {order.tableName ? (
-                <View style={[confirmOrderStyles.infoRow, { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] }]}>
-                  <Text style={[confirmOrderStyles.infoLabel, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>{t('menu.tableName', 'Bàn')}</Text>
-                  <Text style={[confirmOrderStyles.infoValue, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>{order.tableName}</Text>
-                </View>
-              ) : null}
-              {order.type === 'take-out' && (
-                <View style={[confirmOrderStyles.infoRow, { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] }]}>
-                  <Text style={[confirmOrderStyles.infoLabel, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>{t('menu.pickupTime')}</Text>
-                  <Text style={[confirmOrderStyles.infoValue, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>
-                    {!order.timeLeftTakeOut || order.timeLeftTakeOut === 0
-                      ? t('menu.immediately')
-                      : `${order.timeLeftTakeOut} ${t('menu.minutes')}`}
-                  </Text>
-                </View>
-              )}
+              <Text
+                style={[confirmOrderStyles.itemPrice, { color: primaryColor }]}
+              >
+                {formatCurrency(
+                  (item as { finalPrice?: number }).finalPrice
+                    ? (item as { finalPrice: number }).finalPrice *
+                        item.quantity
+                    : 0,
+                )}
+              </Text>
             </View>
+          ))}
+        </View>
 
-            {/* Items */}
-            <View style={[confirmOrderStyles.itemsSection, { borderTopColor: isDark ? colors.gray[700] : colors.border.light }]}>
-              {displayItems.map((item, idx) => (
-                <View key={idx} style={confirmOrderStyles.itemRow}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[confirmOrderStyles.itemName, { color: isDark ? colors.gray[50] : colors.gray[900] }]} numberOfLines={1}>
-                      {(item as { name?: string }).name || ''} × {item.quantity}
-                    </Text>
-                    <Text style={{ fontSize: 12, color: isDark ? colors.gray[400] : colors.gray[500] }}>
-                      Size {((item as { size?: string }).size || '').toUpperCase()}
-                    </Text>
-                  </View>
-                  <Text style={[confirmOrderStyles.itemPrice, { color: primaryColor }]}>
-                    {formatCurrency((item as { finalPrice?: number }).finalPrice ? (item as { finalPrice: number }).finalPrice * item.quantity : 0)}
-                  </Text>
-                </View>
-              ))}
+        {/* Totals */}
+        <View
+          style={[
+            confirmOrderStyles.totalsSection,
+            { borderTopColor: isDark ? colors.gray[700] : colors.border.light },
+          ]}
+        >
+          <View style={confirmOrderStyles.totalRow}>
+            <Text
+              style={{
+                fontSize: 13,
+                color: isDark ? colors.gray[400] : colors.gray[500],
+              }}
+            >
+              {t('order.subtotal')}
+            </Text>
+            <Text
+              style={{
+                fontSize: 13,
+                color: isDark ? colors.gray[400] : colors.gray[500],
+              }}
+            >
+              {formatCurrency(cartTotals.subTotalBeforeDiscount)}
+            </Text>
+          </View>
+          {cartTotals.promotionDiscount > 0 && (
+            <View style={confirmOrderStyles.totalRow}>
+              <Text style={{ fontSize: 13, color: '#eab308' }}>
+                {t('order.promotionDiscount')}
+              </Text>
+              <Text style={{ fontSize: 13, color: '#eab308' }}>
+                -{formatCurrency(cartTotals.promotionDiscount)}
+              </Text>
             </View>
-
-            {/* Totals */}
-            <View style={[confirmOrderStyles.totalsSection, { borderTopColor: isDark ? colors.gray[700] : colors.border.light }]}>
-              <View style={confirmOrderStyles.totalRow}>
-                <Text style={{ fontSize: 13, color: isDark ? colors.gray[400] : colors.gray[500] }}>{t('order.subtotal', 'Tạm tính')}</Text>
-                <Text style={{ fontSize: 13, color: isDark ? colors.gray[400] : colors.gray[500] }}>{formatCurrency(cartTotals.subTotalBeforeDiscount)}</Text>
-              </View>
-              {cartTotals.promotionDiscount > 0 && (
-                <View style={confirmOrderStyles.totalRow}>
-                  <Text style={{ fontSize: 13, color: '#eab308' }}>{t('order.promotionDiscount', 'Khuyến mãi')}</Text>
-                  <Text style={{ fontSize: 13, color: '#eab308' }}>-{formatCurrency(cartTotals.promotionDiscount)}</Text>
-                </View>
-              )}
-              {cartTotals.voucherDiscount > 0 && (
-                <View style={confirmOrderStyles.totalRow}>
-                  <Text style={{ fontSize: 13, color: '#22c55e' }}>{t('order.voucher', 'Voucher')}</Text>
-                  <Text style={{ fontSize: 13, color: '#22c55e' }}>-{formatCurrency(cartTotals.voucherDiscount)}</Text>
-                </View>
-              )}
-              {order.type === 'delivery' && (
-                <View style={confirmOrderStyles.totalRow}>
-                  <Text style={{ fontSize: 13, color: isDark ? colors.gray[400] : colors.gray[500] }}>{t('order.deliveryFee', 'Phí giao hàng')}</Text>
-                  <Text style={{ fontSize: 13, color: isDark ? colors.gray[400] : colors.gray[500] }}>{formatCurrency(deliveryFee?.deliveryFee || 0)}</Text>
-                </View>
-              )}
-              <View style={[confirmOrderStyles.totalRow, confirmOrderStyles.finalRow, { borderTopColor: isDark ? colors.gray[700] : colors.border.light }]}>
-                <Text style={[confirmOrderStyles.finalLabel, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>{t('order.totalPayment', 'Tổng thanh toán')}</Text>
-                <Text style={[confirmOrderStyles.finalValue, { color: primaryColor }]}>{formatCurrency(totalWithDelivery)}</Text>
-              </View>
+          )}
+          {cartTotals.voucherDiscount > 0 && (
+            <View style={confirmOrderStyles.totalRow}>
+              <Text style={{ fontSize: 13, color: '#22c55e' }}>
+                {t('order.voucher')}
+              </Text>
+              <Text style={{ fontSize: 13, color: '#22c55e' }}>
+                -{formatCurrency(cartTotals.voucherDiscount)}
+              </Text>
             </View>
-          </BottomSheetScrollView>
+          )}
+          {order.type === 'delivery' && (
+            <View style={confirmOrderStyles.totalRow}>
+              <Text
+                style={{
+                  fontSize: 13,
+                  color: isDark ? colors.gray[400] : colors.gray[500],
+                }}
+              >
+                {t('order.deliveryFee')}
+              </Text>
+              <Text
+                style={{
+                  fontSize: 13,
+                  color: isDark ? colors.gray[400] : colors.gray[500],
+                }}
+              >
+                {formatCurrency(deliveryFee?.deliveryFee || 0)}
+              </Text>
+            </View>
+          )}
+          <View
+            style={[
+              confirmOrderStyles.totalRow,
+              confirmOrderStyles.finalRow,
+              {
+                borderTopColor: isDark ? colors.gray[700] : colors.border.light,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                confirmOrderStyles.finalLabel,
+                { color: isDark ? colors.gray[50] : colors.gray[900] },
+              ]}
+            >
+              {t('order.totalPayment')}
+            </Text>
+            <Text
+              style={[confirmOrderStyles.finalValue, { color: primaryColor }]}
+            >
+              {formatCurrency(totalWithDelivery)}
+            </Text>
+          </View>
+        </View>
+      </BottomSheetScrollView>
     </BottomSheetModal>
   )
 })

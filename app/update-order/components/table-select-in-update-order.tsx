@@ -26,7 +26,8 @@ export default function TableSelectInUpdateOrder({
   const updatingData = useOrderFlowStore((s) => s.updatingData)
 
   const branchSlug = branch?.slug || userInfo?.branch?.slug || ''
-  const selectedTableId = updatingData?.updateDraft?.table ?? tableOrder?.slug ?? null
+  const selectedTableId =
+    updatingData?.updateDraft?.table ?? tableOrder?.slug ?? null
 
   const { data: tables } = useTables(branchSlug)
   const selectedTable = useMemo(() => {
@@ -36,7 +37,9 @@ export default function TableSelectInUpdateOrder({
 
   const displayText = useMemo(() => {
     if (!selectedTable) return t('table.title')
-    const statusLabel = selectedTable.status ? t(`table.${selectedTable.status}`) : ''
+    const statusLabel = selectedTable.status
+      ? t(`table.${selectedTable.status}`)
+      : ''
     return `${selectedTable.name} - ${statusLabel}`
   }, [selectedTable, t])
 
@@ -47,7 +50,7 @@ export default function TableSelectInUpdateOrder({
       <TouchableOpacity
         onPress={() => TableSelectSheetInUpdateOrder.open()}
         className={cn(
-          'flex-1 min-w-0 flex-row items-center gap-2 h-11 rounded-md px-3 py-2',
+          'h-11 min-w-0 flex-1 flex-row items-center gap-2 rounded-md px-3 py-2',
           'bg-white dark:bg-gray-800',
           'border border-gray-200 dark:border-gray-700',
           !selectedTableId && 'border-red-300 dark:border-red-700',

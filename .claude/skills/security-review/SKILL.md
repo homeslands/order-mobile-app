@@ -10,6 +10,7 @@ This project handles **financial transactions** (payments, orders) and **user PI
 ## 1. Token & Credential Storage
 
 ### Rules
+
 ```ts
 // ✅ Store tokens in SecureStore (encrypted, hardware-backed)
 import * as SecureStore from 'expo-secure-store'
@@ -24,6 +25,7 @@ await AsyncStorage.setItem('access_token', token)
 ```
 
 ### What to check
+
 - `access_token`, `refresh_token` stored only in SecureStore
 - No credentials hardcoded in source (`.env.local` is correct, never commit it)
 - `EXPO_PUBLIC_*` vars are safe for client — backend secrets must NEVER use `EXPO_PUBLIC_` prefix
@@ -34,6 +36,7 @@ await AsyncStorage.setItem('access_token', token)
 ## 2. API Security
 
 ### Request headers
+
 ```ts
 // ✅ Token injected by interceptor only — never manually in component
 // File: utils/http.ts handles this
@@ -45,6 +48,7 @@ const response = await fetch(url, {
 ```
 
 ### Sensitive data in URLs
+
 ```ts
 // ❌ Sensitive data as query params (logged by servers, cached in history)
 http.get(`/orders?userId=${userId}&cardLast4=${cardLast4}`)
@@ -54,6 +58,7 @@ http.post('/orders/search', { userId, cardLast4 })
 ```
 
 ### What to check
+
 - No `console.log` of API responses containing user data or tokens
 - All payment-related endpoints use `POST`/`PUT`, not `GET` with sensitive params
 - `publicRoutes` in `utils/http.ts` only includes truly public endpoints
@@ -64,6 +69,7 @@ http.post('/orders/search', { userId, cardLast4 })
 ## 3. Input Validation
 
 ### Zod schemas at boundaries
+
 ```ts
 // ✅ All form inputs validated with Zod before sending to API
 const loginSchema = z.object({
@@ -76,6 +82,7 @@ await login({ email: formEmail, password: formPassword }) // no validation
 ```
 
 ### Phone / Email verification
+
 ```ts
 // ✅ Sanitize before display (XSS doesn't apply to RN Text, but good habit)
 // ✅ Validate format server-side AND client-side
@@ -83,6 +90,7 @@ await login({ email: formEmail, password: formPassword }) // no validation
 ```
 
 ### What to check
+
 - Every form that accepts user input has a Zod schema (`use-zod-form.ts`)
 - OTP inputs validate digit-only and exact length
 - Address / name fields have max length constraints
@@ -109,6 +117,7 @@ await fetchOrder(orderId)
 ```
 
 ### What to check
+
 - All `useLocalSearchParams()` values validated before API calls
 - Dynamic routes (`[order].tsx`, `[id].tsx`) sanitize params
 - Deep link scheme `trendcoffee://` not exploitable to trigger payment flows without auth
@@ -132,6 +141,7 @@ console.log('Payment result:', paymentData) // may contain card info
 ```
 
 ### What to check
+
 - `app/payment/[order].tsx` — order ID validated, belongs to current user
 - Payment callback navigates only after server confirmation
 - No card data stored in Zustand or AsyncStorage
@@ -158,6 +168,7 @@ export function logout() {
 ```
 
 ### What to check
+
 - Logout clears SecureStore + all Zustand stores with user data
 - Failed login doesn't leak whether email exists (use generic error message)
 - Password reset flow validates token expiry server-side
@@ -181,6 +192,7 @@ STRIPE_SECRET_KEY=sk_live_...  # server env var, not in app
 ```
 
 ### What to check
+
 - `.env.local` not committed (in `.gitignore`)
 - No `EXPO_PUBLIC_*` vars contain API secrets, private keys, or passwords
 - Firebase config is public-safe (projectId, apiKey are fine — they're restricted by rules)
@@ -189,13 +201,13 @@ STRIPE_SECRET_KEY=sk_live_...  # server env var, not in app
 
 ## Anti-Patterns Summary
 
-| ❌ Don't | ✅ Do Instead |
-|---|---|
-| Store token in AsyncStorage | Use `expo-secure-store` |
-| Log tokens or payment data | Remove all sensitive `console.log` |
-| Trust deep link params directly | Validate with regex + auth check |
-| Show raw API error to user | Map to friendly message |
-| Hardcode secrets in source | Use `.env.local` (non-`EXPO_PUBLIC_`) |
-| Trust client payment callback | Confirm via server webhook |
-| Partial logout | Clear SecureStore + all stores |
-| Sensitive data in GET params | Use POST body |
+| ❌ Don't                        | ✅ Do Instead                         |
+| ------------------------------- | ------------------------------------- |
+| Store token in AsyncStorage     | Use `expo-secure-store`               |
+| Log tokens or payment data      | Remove all sensitive `console.log`    |
+| Trust deep link params directly | Validate with regex + auth check      |
+| Show raw API error to user      | Map to friendly message               |
+| Hardcode secrets in source      | Use `.env.local` (non-`EXPO_PUBLIC_`) |
+| Trust client payment callback   | Confirm via server webhook            |
+| Partial logout                  | Clear SecureStore + all stores        |
+| Sensitive data in GET params    | Use POST body                         |

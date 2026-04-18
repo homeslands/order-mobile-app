@@ -18,4 +18,3 @@ export const useCatalog = (options?: UseCatalogOptions) => {
     enabled,
   })
 }
-

@@ -1,4 +1,10 @@
-import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 
 import {
   cancelCardOrder,
@@ -70,6 +76,8 @@ export const useCreateCardOrder = () => {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (data: ICardOrderRequest) => createCardOrder(data),
+    // skipGlobalError: per-call onError in checkout/index.tsx handles toast display
+    meta: { skipGlobalError: true },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: [QUERYKEY.cardOrder] })
     },
@@ -81,15 +89,22 @@ export const useCancelCardOrder = () => {
   return useMutation({
     mutationFn: (slug: string) => cancelCardOrder(slug),
     onSuccess: (_data, slug) => {
-      void queryClient.invalidateQueries({ queryKey: [QUERYKEY.cardOrder, slug] })
+      void queryClient.invalidateQueries({
+        queryKey: [QUERYKEY.cardOrder, slug],
+      })
     },
   })
 }
 
 export const useResendGiftCardSms = () => {
   return useMutation({
-    mutationFn: ({ orderSlug, recipientId }: { orderSlug: string; recipientId: string }) =>
-      resendGiftCardSms(orderSlug, recipientId),
+    mutationFn: ({
+      orderSlug,
+      recipientId,
+    }: {
+      orderSlug: string
+      recipientId: string
+    }) => resendGiftCardSms(orderSlug, recipientId),
   })
 }
 

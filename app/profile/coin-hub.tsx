@@ -7,7 +7,11 @@
  *   [Filter bar — cố định, type chips + filter button + active date]
  *   [Danh sách — flex:1, scroll độc lập, infinite load 20/trang]
  */
-import { FlashList, type FlashListRef, type ListRenderItem } from '@shopify/flash-list'
+import {
+  FlashList,
+  type FlashListRef,
+  type ListRenderItem,
+} from '@shopify/flash-list'
 import dayjs from 'dayjs'
 import {
   ChevronRight,
@@ -43,7 +47,10 @@ import { Skeleton } from '@/components/ui'
 import { colors, PointTransactionType } from '@/constants'
 import { COIN_TRANSACTION_ITEM_HEIGHT } from '@/constants/list-item-sizes'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
-import { usePointTransactionAnalysis, usePointTransactionsInfinite } from '@/hooks/use-point-transaction'
+import {
+  usePointTransactionAnalysis,
+  usePointTransactionsInfinite,
+} from '@/hooks/use-point-transaction'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { useRunAfterTransition } from '@/hooks/use-run-after-transition'
 import { navigateNative } from '@/lib/navigation'
@@ -72,29 +79,44 @@ const TypeFilterBar = memo(function TypeFilterBar({
   const { t } = useTranslation('profile')
   const { t: tCommon } = useTranslation('common')
 
-  const OPTS = useMemo(() => [
-    { label: tCommon('common.all'),          value: null },
-    { label: t('profile.coin.typeIn'),  value: PointTransactionType.IN },
-    { label: t('profile.coin.typeOut'), value: PointTransactionType.OUT },
-  ], [t, tCommon])
+  const OPTS = useMemo(
+    () => [
+      { label: tCommon('common.all'), value: null },
+      { label: t('profile.coin.typeIn'), value: PointTransactionType.IN },
+      { label: t('profile.coin.typeOut'), value: PointTransactionType.OUT },
+    ],
+    [t, tCommon],
+  )
 
-  const chipBg   = isDark ? colors.gray[800] : colors.white.light
+  const chipBg = isDark ? colors.gray[800] : colors.white.light
   const inactive = isDark ? colors.gray[400] : colors.gray[500]
 
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={tf.scroll}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={tf.scroll}
+    >
       {OPTS.map((opt) => {
         const active = selected === opt.value
         return (
           <Pressable
             key={String(opt.value)}
             onPress={() => onSelect(opt.value)}
-            style={[tf.chip, { backgroundColor: active ? primaryColor : chipBg }]}
+            style={[
+              tf.chip,
+              { backgroundColor: active ? primaryColor : chipBg },
+            ]}
           >
-            <Text style={[tf.chipText, {
-              color: active ? colors.white.light : inactive,
-              fontWeight: active ? '700' : '500',
-            }]}>
+            <Text
+              style={[
+                tf.chipText,
+                {
+                  color: active ? colors.white.light : inactive,
+                  fontWeight: active ? '700' : '500',
+                },
+              ]}
+            >
               {opt.label}
             </Text>
           </Pressable>
@@ -105,8 +127,8 @@ const TypeFilterBar = memo(function TypeFilterBar({
 })
 
 const tf = StyleSheet.create({
-  scroll:   { gap: 6 },
-  chip:     { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999 },
+  scroll: { gap: 6 },
+  chip: { paddingHorizontal: 14, paddingVertical: 7, borderRadius: 999 },
   chipText: { fontSize: 12 },
 })
 
@@ -116,7 +138,11 @@ function SkeletonList() {
   return (
     <View style={{ paddingHorizontal: 16, paddingTop: 10, gap: 10 }}>
       {Array.from({ length: 6 }).map((_, i) => (
-        <Skeleton key={i} className="w-full rounded-2xl" style={{ height: 100 }} />
+        <Skeleton
+          key={i}
+          className="w-full rounded-2xl"
+          style={{ height: 100 }}
+        />
       ))}
     </View>
   )
@@ -139,7 +165,8 @@ export default function CoinHubScreen() {
   const [quickType, setQuickType] = useState<PointTransactionType | null>(null)
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
   const [isDetailOpen, setIsDetailOpen] = useState(false)
-  const [selectedTransaction, setSelectedTransaction] = useState<IPointTransaction | null>(null)
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<IPointTransaction | null>(null)
 
   const flashListRef = useRef<FlashListRef<IPointTransaction>>(null)
 
@@ -147,10 +174,10 @@ export default function CoinHubScreen() {
 
   const isFilterActive = isCoinFilterActive(filter)
 
-  const bg          = isDark ? colors.background.dark : colors.background.light
-  const textColor   = isDark ? colors.gray[50]        : colors.gray[900]
-  const subColor    = isDark ? colors.gray[400]       : colors.gray[500]
-  const borderColor = isDark ? colors.gray[700]       : colors.gray[200]
+  const bg = isDark ? colors.background.dark : colors.background.light
+  const textColor = isDark ? colors.gray[50] : colors.gray[900]
+  const subColor = isDark ? colors.gray[400] : colors.gray[500]
+  const borderColor = isDark ? colors.gray[700] : colors.gray[200]
 
   const listContentStyle = useMemo(
     () => ({
@@ -185,10 +212,14 @@ export default function CoinHubScreen() {
     refetch: refetchTx,
   } = usePointTransactionsInfinite({
     userSlug: ready ? (userSlug ?? '') : '',
-    size:     PAGE_SIZE,
-    type:     effectiveType,
-    fromDate: filter.fromDate ? dayjs(filter.fromDate).format('YYYY-MM-DD') : undefined,
-    toDate:   filter.toDate   ? dayjs(filter.toDate).format('YYYY-MM-DD')   : undefined,
+    size: PAGE_SIZE,
+    type: effectiveType,
+    fromDate: filter.fromDate
+      ? dayjs(filter.fromDate).format('YYYY-MM-DD')
+      : undefined,
+    toDate: filter.toDate
+      ? dayjs(filter.toDate).format('YYYY-MM-DD')
+      : undefined,
   })
 
   const txList = useMemo(
@@ -245,7 +276,9 @@ export default function CoinHubScreen() {
   const keyExtractor = useCallback((item: IPointTransaction) => item.slug, [])
 
   const overrideItemLayout = useCallback(
-    (layout: { span?: number; size?: number }) => { layout.size = COIN_TRANSACTION_ITEM_HEIGHT },
+    (layout: { span?: number; size?: number }) => {
+      layout.size = COIN_TRANSACTION_ITEM_HEIGHT
+    },
     [],
   )
 
@@ -256,9 +289,13 @@ export default function CoinHubScreen() {
   const ListEmpty = !isLoading ? (
     <View style={s.emptyWrap}>
       <Wallet size={40} color={colors.gray[400]} />
-      <Text style={[s.emptyTitle, { color: textColor }]}>{t('profile.coin.emptyTitle')}</Text>
+      <Text style={[s.emptyTitle, { color: textColor }]}>
+        {t('profile.coin.emptyTitle')}
+      </Text>
       <Text style={[s.emptyHint, { color: subColor }]}>
-        {isFilterActive ? t('profile.coin.emptyFiltered') : t('profile.coin.emptyHint')}
+        {isFilterActive
+          ? t('profile.coin.emptyFiltered')
+          : t('profile.coin.emptyHint')}
       </Text>
     </View>
   ) : null
@@ -273,15 +310,28 @@ export default function CoinHubScreen() {
           {t('profile.coin.historyTitle')}
         </Text>
         {analysis && (
-          <View style={[s.statsCard, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+          <View
+            style={[
+              s.statsCard,
+              { backgroundColor: cardBg, borderColor: cardBorder },
+            ]}
+          >
             <View style={s.statItem}>
-              <Text style={[s.statLabel, { color: subColor }]}>{t('profile.coin.totalEarned')}</Text>
-              <Text style={[s.statValue, { color: '#16a34a' }]}>+{formatPoints(analysis.totalEarned)} xu</Text>
+              <Text style={[s.statLabel, { color: subColor }]}>
+                {t('profile.coin.totalEarned')}
+              </Text>
+              <Text style={[s.statValue, { color: '#16a34a' }]}>
+                +{formatPoints(analysis.totalEarned)} xu
+              </Text>
             </View>
             <View style={[s.statDivider, { backgroundColor: cardBorder }]} />
             <View style={s.statItem}>
-              <Text style={[s.statLabel, { color: subColor }]}>{t('profile.coin.totalSpent')}</Text>
-              <Text style={[s.statValue, { color: colors.destructive.dark }]}>-{formatPoints(analysis.totalSpent)} xu</Text>
+              <Text style={[s.statLabel, { color: subColor }]}>
+                {t('profile.coin.totalSpent')}
+              </Text>
+              <Text style={[s.statValue, { color: colors.destructive.dark }]}>
+                -{formatPoints(analysis.totalSpent)} xu
+              </Text>
             </View>
           </View>
         )}
@@ -293,15 +343,23 @@ export default function CoinHubScreen() {
   // ── Active date chips ─────────────────────────────────────────────────────────
 
   const dateParts: string[] = []
-  if (filter.fromDate) dateParts.push(t('profile.coin.from', { date: dayjs(filter.fromDate).format('DD/MM/YY') }))
-  if (filter.toDate)   dateParts.push(t('profile.coin.to',   { date: dayjs(filter.toDate).format('DD/MM/YY') }))
+  if (filter.fromDate)
+    dateParts.push(
+      t('profile.coin.from', {
+        date: dayjs(filter.fromDate).format('DD/MM/YY'),
+      }),
+    )
+  if (filter.toDate)
+    dateParts.push(
+      t('profile.coin.to', { date: dayjs(filter.toDate).format('DD/MM/YY') }),
+    )
 
   return (
     <View style={[s.container, { backgroundColor: bg }]}>
-
       {/* ── Hero — cố định ───────────────────────────────────────────────── */}
-      <View style={[s.hero, { height: HERO_HEIGHT, backgroundColor: primaryColor }]}>
-
+      <View
+        style={[s.hero, { height: HERO_HEIGHT, backgroundColor: primaryColor }]}
+      >
         <Pressable
           onPress={navigateNative.back}
           hitSlop={12}
@@ -325,10 +383,15 @@ export default function CoinHubScreen() {
                 {balanceVisible ? formatPoints(currentBalance) : '••••••'}
               </Text>
             )}
-            <Pressable onPress={() => setBalanceVisible((v) => !v)} hitSlop={12}>
-              {balanceVisible
-                ? <EyeOff size={18} color="rgba(255,255,255,0.7)" />
-                : <Eye    size={18} color="rgba(255,255,255,0.7)" />}
+            <Pressable
+              onPress={() => setBalanceVisible((v) => !v)}
+              hitSlop={12}
+            >
+              {balanceVisible ? (
+                <EyeOff size={18} color="rgba(255,255,255,0.7)" />
+              ) : (
+                <Eye size={18} color="rgba(255,255,255,0.7)" />
+              )}
             </Pressable>
           </View>
           <Text style={s.balanceUnit}>{t('profile.coin.unit')}</Text>
@@ -336,7 +399,12 @@ export default function CoinHubScreen() {
       </View>
 
       {/* ── Filter bar — cố định ─────────────────────────────────────────── */}
-      <View style={[s.filterBar, { backgroundColor: bg, borderBottomColor: borderColor }]}>
+      <View
+        style={[
+          s.filterBar,
+          { backgroundColor: bg, borderBottomColor: borderColor },
+        ]}
+      >
         <View style={s.filterRow}>
           <View style={s.filterChipsWrap}>
             <TypeFilterBar
@@ -349,11 +417,16 @@ export default function CoinHubScreen() {
           <Pressable
             onPress={() => setFilterSheetOpen(true)}
             hitSlop={8}
-            style={[s.filterIconBtn, { backgroundColor: primaryColor, borderColor: primaryColor }]}
+            style={[
+              s.filterIconBtn,
+              { backgroundColor: primaryColor, borderColor: primaryColor },
+            ]}
           >
             <SlidersHorizontal size={16} color={colors.white.light} />
             {isFilterActive && (
-              <View style={[s.filterDot, { backgroundColor: colors.white.light }]} />
+              <View
+                style={[s.filterDot, { backgroundColor: colors.white.light }]}
+              />
             )}
           </Pressable>
         </View>
@@ -361,8 +434,13 @@ export default function CoinHubScreen() {
         {dateParts.length > 0 && (
           <View style={s.dateParts}>
             {dateParts.map((p) => (
-              <View key={p} style={[s.dateBadge, { backgroundColor: `${primaryColor}15` }]}>
-                <Text style={[s.dateBadgeText, { color: primaryColor }]}>{p}</Text>
+              <View
+                key={p}
+                style={[s.dateBadge, { backgroundColor: `${primaryColor}15` }]}
+              >
+                <Text style={[s.dateBadgeText, { color: primaryColor }]}>
+                  {p}
+                </Text>
               </View>
             ))}
           </View>
@@ -523,16 +601,26 @@ const s = StyleSheet.create({
   listArea: { flex: 1 },
 
   // ── List header
-  listHeader:   { gap: 10, marginBottom: 12 },
-  sectionTitle: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
-  statsCard:    { borderRadius: 12, borderWidth: 1, flexDirection: 'row' },
-  statItem:     { flex: 1, paddingVertical: 12, paddingHorizontal: 14, gap: 4 },
-  statLabel:    { fontSize: 11, fontWeight: '500' },
-  statValue:    { fontSize: 15, fontWeight: '700' },
-  statDivider:  { width: StyleSheet.hairlineWidth },
+  listHeader: { gap: 10, marginBottom: 12 },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+  },
+  statsCard: { borderRadius: 12, borderWidth: 1, flexDirection: 'row' },
+  statItem: { flex: 1, paddingVertical: 12, paddingHorizontal: 14, gap: 4 },
+  statLabel: { fontSize: 11, fontWeight: '500' },
+  statValue: { fontSize: 15, fontWeight: '700' },
+  statDivider: { width: StyleSheet.hairlineWidth },
 
   // ── Empty
-  emptyWrap:  { paddingTop: 48, alignItems: 'center', gap: 10 },
+  emptyWrap: { paddingTop: 48, alignItems: 'center', gap: 10 },
   emptyTitle: { fontSize: 16, fontWeight: '700' },
-  emptyHint:  { fontSize: 13, textAlign: 'center', paddingHorizontal: 24, lineHeight: 18 },
+  emptyHint: {
+    fontSize: 13,
+    textAlign: 'center',
+    paddingHorizontal: 24,
+    lineHeight: 18,
+  },
 })

@@ -40,12 +40,12 @@
 //     <script>
 //       let printExecuted = false;
 //       let closeAttempted = false;
-      
+
 //       window.onload = () => {
 //         window.print();
 //         printExecuted = true;
 //       };
-      
+
 //       // Method 1: Standard onafterprint event
 //       window.onafterprint = () => {
 //         if (!closeAttempted) {
@@ -53,7 +53,7 @@
 //           setTimeout(() => window.close(), 300);
 //         }
 //       };
-      
+
 //       // Method 2: Media query detection (modern browsers)
 //       if (window.matchMedia) {
 //         const mediaQueryList = window.matchMedia('print');
@@ -64,20 +64,20 @@
 //           }
 //         });
 //       }
-      
+
 //       // Method 3: Focus-based detection
 //       let focusLost = false;
 //       window.onblur = () => {
 //         if (printExecuted) focusLost = true;
 //       };
-      
+
 //       window.onfocus = () => {
 //         if (focusLost && printExecuted && !closeAttempted) {
 //           closeAttempted = true;
 //           setTimeout(() => window.close(), 300);
 //         }
 //       };
-      
+
 //       // Method 4: Fallback timeout
 //       setTimeout(() => {
 //         if (!closeAttempted) {

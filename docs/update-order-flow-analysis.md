@@ -2,17 +2,17 @@
 
 **Các file chính:**
 
-| Nhóm | File |
-|------|------|
-| **Store** | `order-ui/src/stores/order-flow.store.ts` |
-| **Trang Staff** | `order-ui/src/app/system/update-order/page.tsx` |
-| **Trang Client** | `order-ui/src/app/client/update-order/page.tsx` |
-| **UI Staff** | `order-ui/src/app/system/update-order/components/update-order-content.tsx` |
-| **UI Client** | `order-ui/src/app/client/update-order/components/client-update-order-content.tsx` |
-| **Dialog Staff** | `order-ui/src/components/app/dialog/staff-confirm-update-order-dialog.tsx` |
-| **Dialog Client** | `order-ui/src/components/app/dialog/client-confirm-update-order-dialog.tsx` |
-| **Utility so sánh** | `order-ui/src/utils/order-comparison.ts` |
-| **API hooks** | `order-ui/src/hooks/use-order.ts` |
+| Nhóm                | File                                                                              |
+| ------------------- | --------------------------------------------------------------------------------- |
+| **Store**           | `order-ui/src/stores/order-flow.store.ts`                                         |
+| **Trang Staff**     | `order-ui/src/app/system/update-order/page.tsx`                                   |
+| **Trang Client**    | `order-ui/src/app/client/update-order/page.tsx`                                   |
+| **UI Staff**        | `order-ui/src/app/system/update-order/components/update-order-content.tsx`        |
+| **UI Client**       | `order-ui/src/app/client/update-order/components/client-update-order-content.tsx` |
+| **Dialog Staff**    | `order-ui/src/components/app/dialog/staff-confirm-update-order-dialog.tsx`        |
+| **Dialog Client**   | `order-ui/src/components/app/dialog/client-confirm-update-order-dialog.tsx`       |
+| **Utility so sánh** | `order-ui/src/utils/order-comparison.ts`                                          |
+| **API hooks**       | `order-ui/src/hooks/use-order.ts`                                                 |
 
 ---
 
@@ -39,26 +39,26 @@ Mọi thay đổi của user đều chỉ tác động vào `updateDraft`. Khi c
 
 ### `IUpdatingData`
 
-| Field | Type | Mô tả |
-|-------|------|--------|
-| `originalOrder` | `IOrder` | Bản sao gốc từ server, bất biến |
-| `updateDraft` | `IOrderToUpdate` | Bản làm việc, thay đổi theo user |
-| `hasChanges` | `boolean` | Cờ "dirty" - có thay đổi so với gốc không |
+| Field           | Type             | Mô tả                                     |
+| --------------- | ---------------- | ----------------------------------------- |
+| `originalOrder` | `IOrder`         | Bản sao gốc từ server, bất biến           |
+| `updateDraft`   | `IOrderToUpdate` | Bản làm việc, thay đổi theo user          |
+| `hasChanges`    | `boolean`        | Cờ "dirty" - có thay đổi so với gốc không |
 
 ### `updateDraft` — các field được track
 
-| Field | Mô tả |
-|-------|--------|
-| `orderItems[]` | Danh sách món (quantity + note) |
-| `type` | Loại đơn: `AT_TABLE`, `TAKE_OUT`, `DELIVERY` |
-| `table` / `tableName` | Bàn (cho dine-in) |
-| `timeLeftTakeOut` | Thời gian chờ lấy đơn (takeout) |
-| `deliveryTo`, `deliveryAddress`, `deliveryPhone` | Thông tin giao hàng |
-| `description` | Ghi chú đơn hàng |
-| `voucher` | Voucher đã chọn |
-| `owner`, `ownerPhoneNumber`, `ownerFullName` | Thông tin khách hàng |
-| `paymentMethod` | Phương thức thanh toán |
-| `deliveryFee`, `accumulatedPointsToUse` | Lấy từ đơn gốc |
+| Field                                            | Mô tả                                        |
+| ------------------------------------------------ | -------------------------------------------- |
+| `orderItems[]`                                   | Danh sách món (quantity + note)              |
+| `type`                                           | Loại đơn: `AT_TABLE`, `TAKE_OUT`, `DELIVERY` |
+| `table` / `tableName`                            | Bàn (cho dine-in)                            |
+| `timeLeftTakeOut`                                | Thời gian chờ lấy đơn (takeout)              |
+| `deliveryTo`, `deliveryAddress`, `deliveryPhone` | Thông tin giao hàng                          |
+| `description`                                    | Ghi chú đơn hàng                             |
+| `voucher`                                        | Voucher đã chọn                              |
+| `owner`, `ownerPhoneNumber`, `ownerFullName`     | Thông tin khách hàng                         |
+| `paymentMethod`                                  | Phương thức thanh toán                       |
+| `deliveryFee`, `accumulatedPointsToUse`          | Lấy từ đơn gốc                               |
 
 ---
 
@@ -164,11 +164,11 @@ addDraftNote(itemId: string, note: string)
 setDraftType(type: OrderTypeEnum)
 ```
 
-| Chuyển sang | Auto-clear |
-|------------|-----------|
-| `TAKE_OUT` | Xóa `table` |
-| `AT_TABLE` | Xóa `timeLeftTakeOut` |
-| `DELIVERY` | Không xóa gì |
+| Chuyển sang | Auto-clear            |
+| ----------- | --------------------- |
+| `TAKE_OUT`  | Xóa `table`           |
+| `AT_TABLE`  | Xóa `timeLeftTakeOut` |
+| `DELIVERY`  | Không xóa gì          |
 
 ### Thay đổi bàn (AT_TABLE)
 
@@ -248,26 +248,26 @@ Dùng để phân tích chi tiết **cái gì** đã thay đổi (dùng trong co
 
 **Phân tích item changes:**
 
-| Loại thay đổi | Mô tả |
-|--------------|--------|
-| `added` | Item mới chưa có trên server |
-| `removed` | Item bị xóa khỏi draft |
-| `quantity_changed` | Số lượng thay đổi |
-| `orderItemNoteChanged` | Ghi chú món thay đổi |
-| `unchanged` | Không thay đổi |
+| Loại thay đổi          | Mô tả                        |
+| ---------------------- | ---------------------------- |
+| `added`                | Item mới chưa có trên server |
+| `removed`              | Item bị xóa khỏi draft       |
+| `quantity_changed`     | Số lượng thay đổi            |
+| `orderItemNoteChanged` | Ghi chú món thay đổi         |
+| `unchanged`            | Không thay đổi               |
 
 **Phân tích field changes:**
 
-| Field | Detect khi |
-|-------|-----------|
-| `voucherChanged` | Slug voucher khác |
-| `tableChanged` | Bàn thay đổi |
-| `typeChanged` | Loại đơn thay đổi |
-| `noteChanged` | Ghi chú đơn thay đổi |
-| `pickupTimeChanged` | Giờ lấy thay đổi |
+| Field                    | Detect khi            |
+| ------------------------ | --------------------- |
+| `voucherChanged`         | Slug voucher khác     |
+| `tableChanged`           | Bàn thay đổi          |
+| `typeChanged`            | Loại đơn thay đổi     |
+| `noteChanged`            | Ghi chú đơn thay đổi  |
+| `pickupTimeChanged`      | Giờ lấy thay đổi      |
 | `deliveryAddressChanged` | Địa chỉ giao thay đổi |
-| `deliveryPhoneChanged` | SĐT giao thay đổi |
-| `ownerChanged` | Khách hàng thay đổi |
+| `deliveryPhoneChanged`   | SĐT giao thay đổi     |
+| `ownerChanged`           | Khách hàng thay đổi   |
 
 ---
 
@@ -331,12 +331,12 @@ Khi user bấm "Xác nhận cập nhật" trong dialog, các API được gọi 
 
 ### Lý do thứ tự này
 
-| Lý do | Giải thích |
-|-------|-----------|
-| **Xóa trước khi thêm** | Tránh conflict nếu server giới hạn số lượng item |
-| **Thêm trước khi update qty** | Item mới cần có slug trên server trước |
-| **Note sau khi thêm** | Item mới dùng slug từ newItemSlugMap |
-| **Voucher cuối cùng** | Cần biết danh sách item final để validate `minOrderValue`, `maxItems`, `voucherProducts` |
+| Lý do                         | Giải thích                                                                               |
+| ----------------------------- | ---------------------------------------------------------------------------------------- |
+| **Xóa trước khi thêm**        | Tránh conflict nếu server giới hạn số lượng item                                         |
+| **Thêm trước khi update qty** | Item mới cần có slug trên server trước                                                   |
+| **Note sau khi thêm**         | Item mới dùng slug từ newItemSlugMap                                                     |
+| **Voucher cuối cùng**         | Cần biết danh sách item final để validate `minOrderValue`, `maxItems`, `voucherProducts` |
 
 ### `newItemSlugMap` — tại sao cần?
 
@@ -372,13 +372,13 @@ Giá cuối (final total)
 
 ### Các loại voucher
 
-| Type | Cách tính |
-|------|-----------|
-| `SAME_PRICE_PRODUCT` | Tất cả sản phẩm match → giá cố định |
-| `PERCENT_ORDER` | Giảm % trên tổng đơn |
-| `FIXED_VALUE` | Giảm số tiền cố định |
-| `AT_LEAST_ONE_REQUIRED` | Chỉ cần 1 sản phẩm match |
-| `ALL_REQUIRED` | Tất cả sản phẩm phải match |
+| Type                    | Cách tính                           |
+| ----------------------- | ----------------------------------- |
+| `SAME_PRICE_PRODUCT`    | Tất cả sản phẩm match → giá cố định |
+| `PERCENT_ORDER`         | Giảm % trên tổng đơn                |
+| `FIXED_VALUE`           | Giảm số tiền cố định                |
+| `AT_LEAST_ONE_REQUIRED` | Chỉ cần 1 sản phẩm match            |
+| `ALL_REQUIRED`          | Tất cả sản phẩm phải match          |
 
 ### Promotion: Tự động cập nhật
 
@@ -388,20 +388,20 @@ Promotion **không cần gọi API riêng** — backend tự tính lại dựa t
 
 ## 10. So sánh Staff vs Client
 
-| Tính năng | Staff | Client |
-|-----------|:-----:|:------:|
-| Thêm món mới | ✅ | ❌ |
-| Xóa món | ✅ | ✅ |
-| Thay đổi số lượng | ✅ | ✅ |
-| Thêm ghi chú món | ✅ | ✅ |
-| Thay đổi loại đơn | ✅ | ✅ |
-| Thay đổi bàn | ✅ (trực tiếp) | ✅ (qua menu) |
-| Thay đổi giờ lấy (takeout) | ✅ | ✅ |
-| Thay đổi khách hàng | ✅ | ❌ |
-| Thay đổi approval | ✅ | ❌ |
-| Đổi voucher | ✅ | ✅ |
-| Bảo toàn draft khi refetch | ✅ (phức tạp) | ❌ (reset đơn giản) |
-| Dialog xác nhận | `StaffConfirmUpdateOrderDialog` | `ClientConfirmUpdateOrderDialog` |
+| Tính năng                  |              Staff              |              Client              |
+| -------------------------- | :-----------------------------: | :------------------------------: |
+| Thêm món mới               |               ✅                |                ❌                |
+| Xóa món                    |               ✅                |                ✅                |
+| Thay đổi số lượng          |               ✅                |                ✅                |
+| Thêm ghi chú món           |               ✅                |                ✅                |
+| Thay đổi loại đơn          |               ✅                |                ✅                |
+| Thay đổi bàn               |         ✅ (trực tiếp)          |          ✅ (qua menu)           |
+| Thay đổi giờ lấy (takeout) |               ✅                |                ✅                |
+| Thay đổi khách hàng        |               ✅                |                ❌                |
+| Thay đổi approval          |               ✅                |                ❌                |
+| Đổi voucher                |               ✅                |                ✅                |
+| Bảo toàn draft khi refetch |          ✅ (phức tạp)          |       ❌ (reset đơn giản)        |
+| Dialog xác nhận            | `StaffConfirmUpdateOrderDialog` | `ClientConfirmUpdateOrderDialog` |
 
 ---
 
@@ -409,47 +409,47 @@ Promotion **không cần gọi API riêng** — backend tự tính lại dựa t
 
 ### Set actions (trực tiếp)
 
-| Action | Mô tả |
-|--------|--------|
-| `setDraftType(type)` | Thay loại đơn |
-| `setDraftTable(table)` | Thay bàn |
-| `setDraftDescription(desc)` | Thay ghi chú đơn |
-| `setDraftVoucher(voucher)` | Set/xóa voucher |
-| `setDraftPaymentMethod(method)` | Thay PTTT |
+| Action                          | Mô tả             |
+| ------------------------------- | ----------------- |
+| `setDraftType(type)`            | Thay loại đơn     |
+| `setDraftTable(table)`          | Thay bàn          |
+| `setDraftDescription(desc)`     | Thay ghi chú đơn  |
+| `setDraftVoucher(voucher)`      | Set/xóa voucher   |
+| `setDraftPaymentMethod(method)` | Thay PTTT         |
 | `setDraftDeliveryAddress(addr)` | Thay địa chỉ giao |
-| `setDraftDeliveryPhone(phone)` | Thay SĐT giao |
-| `addDraftPickupTime(time)` | Set giờ lấy |
+| `setDraftDeliveryPhone(phone)`  | Thay SĐT giao     |
+| `addDraftPickupTime(time)`      | Set giờ lấy       |
 
 ### Item actions
 
-| Action | Mô tả |
-|--------|--------|
-| `addDraftItem(item)` | Thêm món mới (tạo ID tạm) |
-| `removeDraftItem(id)` | Xóa món theo ID |
-| `updateDraftItemQuantity(id, qty)` | Cập nhật số lượng |
-| `updateDraftItem(id, changes)` | Merge thay đổi vào item |
-| `addDraftNote(id, note)` | Cập nhật ghi chú món |
+| Action                             | Mô tả                     |
+| ---------------------------------- | ------------------------- |
+| `addDraftItem(item)`               | Thêm món mới (tạo ID tạm) |
+| `removeDraftItem(id)`              | Xóa món theo ID           |
+| `updateDraftItemQuantity(id, qty)` | Cập nhật số lượng         |
+| `updateDraftItem(id, changes)`     | Merge thay đổi vào item   |
+| `addDraftNote(id, note)`           | Cập nhật ghi chú món      |
 
 ### Batch/reset actions
 
-| Action | Mô tả |
-|--------|--------|
-| `setUpdateDraft(draft)` | Thay toàn bộ draft + recalc hasChanges |
-| `resetDraftToOriginal()` | Revert về original |
-| `clearUpdatingData()` | Xóa toàn bộ updating phase |
+| Action                   | Mô tả                                  |
+| ------------------------ | -------------------------------------- |
+| `setUpdateDraft(draft)`  | Thay toàn bộ draft + recalc hasChanges |
+| `resetDraftToOriginal()` | Revert về original                     |
+| `clearUpdatingData()`    | Xóa toàn bộ updating phase             |
 
 ---
 
 ## 12. API Endpoints
 
-| Action | Method | Endpoint | Hook |
-|--------|--------|----------|------|
-| Thêm item mới | POST | `/order-items` | `useAddNewOrderItem()` |
-| Cập nhật quantity | PUT | `/order-items/{slug}` | `useUpdateOrderItem()` |
-| Cập nhật note | PUT | `/order-items/{slug}/note` | `useUpdateNoteOrderItem()` |
-| Xóa item | DELETE | `/order-items/{slug}` | `useDeleteOrderItem()` |
-| Cập nhật type/table/desc | PUT | `/orders/{slug}` | `useUpdateOrderType()` |
-| Cập nhật voucher | PUT | `/orders/{slug}/voucher` | `useUpdateVoucherInOrder()` |
+| Action                   | Method | Endpoint                   | Hook                        |
+| ------------------------ | ------ | -------------------------- | --------------------------- |
+| Thêm item mới            | POST   | `/order-items`             | `useAddNewOrderItem()`      |
+| Cập nhật quantity        | PUT    | `/order-items/{slug}`      | `useUpdateOrderItem()`      |
+| Cập nhật note            | PUT    | `/order-items/{slug}/note` | `useUpdateNoteOrderItem()`  |
+| Xóa item                 | DELETE | `/order-items/{slug}`      | `useDeleteOrderItem()`      |
+| Cập nhật type/table/desc | PUT    | `/orders/{slug}`           | `useUpdateOrderType()`      |
+| Cập nhật voucher         | PUT    | `/orders/{slug}/voucher`   | `useUpdateVoucherInOrder()` |
 
 ---
 

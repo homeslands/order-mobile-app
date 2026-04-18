@@ -1,6 +1,7 @@
 # Feature 2: Voucher ↔ Payment Method Conflict Dialog
 
 ## Mô tả
+
 Khi user chọn payment method không compatible với voucher đang áp dụng, hiện Bottom Sheet cảnh báo với 2 lựa chọn: giữ voucher (revert) hoặc xóa voucher (gọi API rồi cho phép method mới).
 
 ---
@@ -10,20 +11,22 @@ Khi user chọn payment method không compatible với voucher đang áp dụng,
 ### `app/payment/voucher-conflict-bottom-sheet.tsx`
 
 Props interface:
+
 ```typescript
 interface VoucherConflictBottomSheetProps {
   visible: boolean
-  voucherCode: string              // hiển thị tên voucher trong dialog
-  paymentMethodLabel: string       // tên method user muốn chọn
+  voucherCode: string // hiển thị tên voucher trong dialog
+  paymentMethodLabel: string // tên method user muốn chọn
   isDark: boolean
   primaryColor: string
-  isRemoving: boolean              // spinner khi đang gọi API
-  onKeepVoucher: () => void        // đóng sheet, revert
-  onRemoveVoucher: () => void      // gọi API xóa voucher
+  isRemoving: boolean // spinner khi đang gọi API
+  onKeepVoucher: () => void // đóng sheet, revert
+  onRemoveVoucher: () => void // gọi API xóa voucher
 }
 ```
 
 UI Layout:
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │ ⚠️  Voucher không tương thích                        │
@@ -47,6 +50,7 @@ Bấm backdrop → gọi `onKeepVoucher`.
 ### `components/radio/payment-method-option.tsx`
 
 Thêm prop `onSelectDisabled`:
+
 ```typescript
 interface PaymentMethodOptionProps {
   // ...existing props...
@@ -58,7 +62,7 @@ const handlePress = useCallback(() => {
   if (isSupported) {
     onSelect(method)
   } else if (onSelectDisabled) {
-    onSelectDisabled(method)  // Trigger conflict dialog thay vì ignore
+    onSelectDisabled(method) // Trigger conflict dialog thay vì ignore
   }
 }, [isSupported, onSelect, onSelectDisabled, method])
 
@@ -69,6 +73,7 @@ const handlePress = useCallback(() => {
 ### `components/radio/payment-method-radio-group.tsx`
 
 Thêm prop `onConflict`:
+
 ```typescript
 interface PaymentMethodRadioGroupProps {
   // ...existing props...
@@ -85,8 +90,10 @@ interface PaymentMethodRadioGroupProps {
 ### `app/payment/[order].tsx`
 
 State + handlers mới:
+
 ```typescript
-const [conflictPendingMethod, setConflictPendingMethod] = useState<PaymentMethod | null>(null)
+const [conflictPendingMethod, setConflictPendingMethod] =
+  useState<PaymentMethod | null>(null)
 const [showConflictSheet, setShowConflictSheet] = useState(false)
 const [isRemovingVoucher, setIsRemovingVoucher] = useState(false)
 
@@ -94,10 +101,13 @@ const { mutate: updateVoucher } = isLoggedIn
   ? useUpdateVoucherInOrder()
   : useUpdatePublicVoucherInOrder()
 
-const handlePaymentMethodConflict = useCallback((blockedMethod: PaymentMethod) => {
-  setConflictPendingMethod(blockedMethod)
-  setShowConflictSheet(true)
-}, [])
+const handlePaymentMethodConflict = useCallback(
+  (blockedMethod: PaymentMethod) => {
+    setConflictPendingMethod(blockedMethod)
+    setShowConflictSheet(true)
+  },
+  [],
+)
 
 const handleKeepVoucher = useCallback(() => {
   setShowConflictSheet(false)
@@ -136,20 +146,30 @@ const handleRemoveVoucher = useCallback(() => {
         setIsRemovingVoucher(false)
         showErrorToastMessage('Không thể xóa voucher')
       },
-    }
+    },
   )
-}, [orderSlug, order, conflictPendingMethod, updateVoucher, handleMethodChange, refetchOrder])
+}, [
+  orderSlug,
+  order,
+  conflictPendingMethod,
+  updateVoucher,
+  handleMethodChange,
+  refetchOrder,
+])
 ```
 
 Truyền xuống component + mount sheet:
+
 ```tsx
-<PaymentMethodSection
+;<PaymentMethodSection
   // ...existing props...
   onConflict={handlePaymentMethodConflict}
 />
 
-{/* Conflict sheet */}
-<VoucherConflictBottomSheet
+{
+  /* Conflict sheet */
+}
+;<VoucherConflictBottomSheet
   visible={showConflictSheet}
   voucherCode={order?.voucher?.code ?? ''}
   paymentMethodLabel={getPaymentMethodLabel(conflictPendingMethod)}
@@ -185,14 +205,14 @@ function getPaymentMethodLabel(method: PaymentMethod | null): string {
 
 ## Edge Cases
 
-| Case | Xử lý |
-|------|--------|
-| Bấm backdrop → đóng sheet | Treat như "Giữ voucher" → gọi `onKeepVoucher` |
-| `isRemoving = true` | Disable cả 2 buttons, spinner trên "Xóa voucher" |
+| Case                                              | Xử lý                                                                                        |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Bấm backdrop → đóng sheet                         | Treat như "Giữ voucher" → gọi `onKeepVoucher`                                                |
+| `isRemoving = true`                               | Disable cả 2 buttons, spinner trên "Xóa voucher"                                             |
 | Payment method pending bị invalid sau xóa voucher | Trước khi gọi `handleMethodChange`, kiểm tra method còn trong `getAvailablePaymentMethods()` |
-| Double conflict (user click nhanh) | `conflictPendingMethod` chỉ lưu 1 giá trị, idempotent |
-| `order.voucher` null khi sheet đang mở | Check trong `handleRemoveVoucher`, đóng sheet sớm |
-| `accumulatedPointsToUse > 0` khi xóa voucher | Gọi `cancelLoyaltyReservation` trực tiếp trước `refetchOrder` |
+| Double conflict (user click nhanh)                | `conflictPendingMethod` chỉ lưu 1 giá trị, idempotent                                        |
+| `order.voucher` null khi sheet đang mở            | Check trong `handleRemoveVoucher`, đóng sheet sớm                                            |
+| `accumulatedPointsToUse > 0` khi xóa voucher      | Gọi `cancelLoyaltyReservation` trực tiếp trước `refetchOrder`                                |
 
 ---
 

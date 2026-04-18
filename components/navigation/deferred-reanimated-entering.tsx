@@ -1,6 +1,9 @@
 import React from 'react'
 import type { ViewStyle } from 'react-native'
-import Animated, { FadeIn, type EntryOrExitLayoutType } from 'react-native-reanimated'
+import Animated, {
+  FadeIn,
+  type EntryOrExitLayoutType,
+} from 'react-native-reanimated'
 
 type Props = {
   children: React.ReactNode

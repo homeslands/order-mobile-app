@@ -9,7 +9,9 @@ const MOBILE_BREAKPOINT = 768
  * This hook can be useful for tablet detection or responsive layouts
  */
 export function useIsMobile(): boolean {
-  const [dimensions, setDimensions] = useState<ScaledSize>(Dimensions.get('window'))
+  const [dimensions, setDimensions] = useState<ScaledSize>(
+    Dimensions.get('window'),
+  )
 
   useEffect(() => {
     const subscription = Dimensions.addEventListener('change', ({ window }) => {

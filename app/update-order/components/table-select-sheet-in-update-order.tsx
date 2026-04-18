@@ -93,7 +93,10 @@ function TableSelectSheetInUpdateOrder() {
       </View>
       {isLoading ? (
         <View className="flex-1 items-center justify-center py-12">
-          <ActivityIndicator size="small" color={isDark ? '#9ca3af' : '#6b7280'} />
+          <ActivityIndicator
+            size="small"
+            color={isDark ? '#9ca3af' : '#6b7280'}
+          />
           <Text className="mt-3 text-sm text-gray-500 dark:text-gray-400">
             {t('table.loading', 'Đang tải...')}
           </Text>

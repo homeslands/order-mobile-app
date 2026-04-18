@@ -22,6 +22,7 @@ const maxUsablePoints = Math.min(totalPoints, orderTotal)
 ```
 
 **Logic Explanation:**
+
 ```
 Why take the minimum?
 
@@ -79,6 +80,7 @@ const handleApply = () => {
 ```
 
 **UI Display for Exceeding Limit** (Lines 153-157):
+
 ```typescript
 {maxUsablePoints < totalPoints && (
   <p className="text-warning">
@@ -92,6 +94,7 @@ const handleApply = () => {
 **File**: `src/components/app/select/staff-loyalty-point-selector.tsx` (Lines 41-100)
 
 #### Staff Selector Implementation:
+
 ```typescript
 export const StaffLoyaltyPointSelector = ({ usedPoints }: Props) => {
   const [useAllPoints, setUseAllPoints] = useState(false)
@@ -145,6 +148,7 @@ export const StaffLoyaltyPointSelector = ({ usedPoints }: Props) => {
 ```
 
 **Client Selector** (Lines 45-84):
+
 - Same functionality as staff selector
 - Includes loading state handling (line 29)
 - Error boundaries (lines 61-65)
@@ -191,6 +195,7 @@ const handleQuickSelect = (amount: number) => {
 ```
 
 **Button Display Logic:**
+
 ```
 Scenario 1: Max = 500K, totalPoints = 100K
 ├─ Show: 1K, 2K, 3K, 5K, 10K, 20K, 50K, 100K (Maximum)
@@ -245,8 +250,8 @@ useEffect(() => {
 const totals = calculatePlacedOrderTotals(
   orderItems,
   deliveryFee,
-  voucher,           // Applied voucher discount
-  accumulatedPointsToUse  // Applied loyalty points
+  voucher, // Applied voucher discount
+  accumulatedPointsToUse, // Applied loyalty points
 )
 
 // Formula:
@@ -277,9 +282,8 @@ useEffect(() => {
 ```typescript
 export function usePaymentResolver(order: Order) {
   // Step 1: Get voucher's allowed payment methods
-  const voucherMethods = order?.voucher?.voucherPaymentMethods
-    .map((v) => v.paymentMethod)
-    ?? []
+  const voucherMethods =
+    order?.voucher?.voucherPaymentMethods.map((v) => v.paymentMethod) ?? []
 
   // Step 2: Get all available methods (role-based)
   const allAvailableMethods = [
@@ -299,6 +303,7 @@ export function usePaymentResolver(order: Order) {
 ```
 
 **Filtering Logic Diagram:**
+
 ```
 ┌─────────────────────────────────────────────────┐
 │ PAYMENT METHOD FILTERING FLOW                   │
@@ -336,12 +341,12 @@ const getAvailableMethodsByRole = (userRole?: UserRole) => {
         PaymentMethod.BANK_TRANSFER,
         PaymentMethod.CASH,
         PaymentMethod.CREDIT_CARD,
-        PaymentMethod.POINT
+        PaymentMethod.POINT,
       ]
 
     case UserRole.GUEST:
     default:
-      return [PaymentMethod.BANK_TRANSFER]  // Guest can only use bank transfer
+      return [PaymentMethod.BANK_TRANSFER] // Guest can only use bank transfer
   }
 }
 ```
@@ -384,8 +389,8 @@ const allowedMethods = voucher?.voucherPaymentMethods
 // Simple check: Are there any compatible methods left?
 const hasVoucherPaymentConflict = useMemo(() => {
   return (
-    effectiveMethods.length === 0 &&  // No methods available
-    !!voucher                         // But voucher exists
+    effectiveMethods.length === 0 && // No methods available
+    !!voucher // But voucher exists
   )
 }, [effectiveMethods.length, voucher])
 
@@ -394,6 +399,7 @@ const hasVoucherPaymentConflict = useMemo(() => {
 ```
 
 **Validation Flow:**
+
 ```
 ┌──────────────────────────────┐
 │ Payment Method Validation     │
@@ -438,20 +444,20 @@ const handleSelectPaymentMethod = async (method: PaymentMethod) => {
     // Method conflicts with voucher
     setIsRemoveVoucherOption(true)
     isRemovingVoucherRef.current = true
-    return  // Don't proceed further
+    return // Don't proceed further
   }
 
   // STEP 4: If voucher exists, validate method compatibility via API
   if (voucher) {
     const validationResult = await validateVoucherPaymentMethod({
       slug: voucher.slug,
-      paymentMethod: method
+      paymentMethod: method,
     })
 
     // STEP 5A: If valid, confirm the selection
     if (validationResult.isValid) {
       updateStore({
-        paymentMethod: method
+        paymentMethod: method,
       })
       setPendingPaymentMethod(undefined)
       // Continue to payment
@@ -466,7 +472,7 @@ const handleSelectPaymentMethod = async (method: PaymentMethod) => {
   } else {
     // No voucher, just confirm selection
     updateStore({
-      paymentMethod: method
+      paymentMethod: method,
     })
     setPendingPaymentMethod(undefined)
   }
@@ -474,6 +480,7 @@ const handleSelectPaymentMethod = async (method: PaymentMethod) => {
 ```
 
 **Step-by-Step Example:**
+
 ```
 Scenario: Payment Method Selection with Voucher
 
@@ -670,6 +677,7 @@ export const StaffRemoveVoucherWhenPayingDialog = ({
 ### 3.3 User Options in Dialog
 
 **Cancel Button** (Lines 48-58):
+
 ```typescript
 const handleCancel = () => {
   // Option 1: Keep current voucher, revert to previous payment method
@@ -679,7 +687,7 @@ const handleCancel = () => {
 
   // STEP 2: Update store with previous method
   updatePaymentStore({
-    paymentMethod: previousPaymentMethod
+    paymentMethod: previousPaymentMethod,
   })
 
   // STEP 3: Call parent callback
@@ -700,6 +708,7 @@ const handleCancel = () => {
 ```
 
 **Remove Voucher Button** (Lines 60-107):
+
 ```typescript
 const handleRemoveVoucher = async () => {
   // Option 2: Remove voucher, allow new payment method
@@ -711,14 +720,14 @@ const handleRemoveVoucher = async () => {
   // STEP 2: Call API to remove voucher
   const response = await updateVoucherInOrder({
     orderSlug: orderId,
-    voucher: null,  // ← Remove voucher
-    orderItems: currentItems
+    voucher: null, // ← Remove voucher
+    orderItems: currentItems,
   })
 
   // STEP 3: Show success toast
   toast({
     type: 'success',
-    message: 'Removed voucher successfully'
+    message: 'Removed voucher successfully',
   })
 
   // STEP 4: Close dialog immediately
@@ -775,6 +784,7 @@ const handleRemoveVoucher = async () => {
 ```
 
 **Auto-Close Condition** (Lines 216-217):
+
 ```typescript
 // Watch for when voucher becomes null
 useEffect(() => {
@@ -796,14 +806,14 @@ const isRemovingVoucherRef = useRef(false)
 
 // Flag is set when starting removal
 const handleRemoveVoucher = async () => {
-  isRemovingVoucherRef.current = true  // LINE 821
+  isRemovingVoucherRef.current = true // LINE 821
   // ... API call ...
 }
 
 // Flag is checked before showing dialog
 useEffect(() => {
   if (!isRemovingVoucherRef.current && hasVoucherPaymentConflict) {
-    setIsRemoveVoucherOption(true)  // LINE 211
+    setIsRemoveVoucherOption(true) // LINE 211
     isRemovingVoucherRef.current = true
   }
 }, [hasVoucherPaymentConflict])
@@ -816,12 +826,13 @@ const handleSuccess = () => {
 
   // Clear flag after delay to let state updates finish
   setTimeout(() => {
-    isRemovingVoucherRef.current = false  // LINE 862
+    isRemovingVoucherRef.current = false // LINE 862
   }, 100)
 }
 ```
 
 **Why Needed:**
+
 ```
 Without ref guard:
 
@@ -888,6 +899,7 @@ Dialog shows only once ✓
 ```
 
 **Trigger Display Logic:**
+
 ```typescript
 // Show different text based on voucher state
 const triggerButtonText = useMemo(() => {
@@ -919,9 +931,9 @@ const handleOpenSheet = () => {
 const handleVoucherClick = (voucher) => {
   // Toggle: if clicking same voucher, deselect
   if (selectedVoucher === voucher.slug) {
-    setSelectedVoucher(null)  // Deselect
+    setSelectedVoucher(null) // Deselect
   } else {
-    setSelectedVoucher(voucher.slug)  // Select new
+    setSelectedVoucher(voucher.slug) // Select new
   }
 }
 
@@ -965,8 +977,8 @@ const removeCurrentVoucher = async () => {
   try {
     const response = await updateVoucherInOrder({
       orderSlug: orderId,
-      voucher: null,  // ← Set to null to remove
-      orderItems: currentOrderItems
+      voucher: null, // ← Set to null to remove
+      orderItems: currentOrderItems,
     })
 
     // Show success
@@ -984,6 +996,7 @@ const removeCurrentVoucher = async () => {
 ```
 
 **UI for Removal:**
+
 ```typescript
 // Visual indicator when voucher is selected/deselected
 <VoucherCard
@@ -1016,7 +1029,7 @@ useEffect(() => {
   // When voucher changes, accumulatedPointsToUse becomes 0
 
   // If points were applied, reset them
-  setPointsInput(usedPoints)  // Now 0
+  setPointsInput(usedPoints) // Now 0
 
   if (usedPoints === 0 && useAllPoints) {
     // Reset "Use All Points" toggle
@@ -1063,8 +1076,8 @@ const handleVoucherSelection = (voucherSlug) => {
 const handleCompleteSelection = async () => {
   // Same voucher = no API call needed
   if (orderData.voucher?.slug === selectedVoucher) {
-    setSheetOpen(false)  // Just close
-    return  // Skip API call
+    setSheetOpen(false) // Just close
+    return // Skip API call
   }
 
   // Different voucher = apply new one
@@ -1100,7 +1113,7 @@ const isVoucherValid = (voucher) => {
   const hasEligibleItems = checkApplicableProducts(
     orderItems,
     voucher.applicabilityRule,
-    voucher.voucherProducts
+    voucher.voucherProducts,
   )
   if (!hasEligibleItems) {
     toast.warning('No eligible items in order')
@@ -1142,7 +1155,7 @@ if (orderData.voucher?.slug === selectedVoucher) {
 const { data: validationResult } = await validateVoucher({
   code: selectedVoucher.code,
   orderSlug: orderId,
-  userId: userInfo.id
+  userId: userInfo.id,
 })
 
 if (!validationResult) {
@@ -1153,8 +1166,8 @@ if (!validationResult) {
 // If validation passes, apply voucher
 const { data: updateResult } = await updateVoucherInOrder({
   orderSlug: orderId,
-  voucher: validationResult,  // Apply validated voucher
-  orderItems: currentOrderItems
+  voucher: validationResult, // Apply validated voucher
+  orderItems: currentOrderItems,
 })
 
 if (updateResult) {
@@ -1199,8 +1212,8 @@ const paymentMethod = useMemo(() => {
 const loadVouchers = async () => {
   const response = await getEligibleVouchers({
     orderSlug: orderId,
-    paymentMethod: paymentMethod,  // ← Filter by this
-    userId: userInfo.id
+    paymentMethod: paymentMethod, // ← Filter by this
+    userId: userInfo.id,
   })
 
   setVouchers(response.data)
@@ -1208,6 +1221,7 @@ const loadVouchers = async () => {
 ```
 
 **Result:**
+
 - User only sees vouchers compatible with current payment method
 - When applying new voucher, no conflict dialog appears (already filtered)
 - If user later changes payment method, payment page detects conflict and shows dialog
@@ -1515,6 +1529,7 @@ Action: User reapplies points (click "Use All" or manual)
 ## 7. Key Code Files Reference
 
 ### Loyalty Points
+
 - **Input Component**: `src/components/app/input/loyalty-point-input.tsx`
   - Lines 42-48: Max calculation
   - Lines 51-64: Input validation
@@ -1528,6 +1543,7 @@ Action: User reapplies points (click "Use All" or manual)
   - Lines 88-100: UI display
 
 ### Payment Method Validation
+
 - **Payment Resolver**: `src/utils/payment-resolver.ts`
   - Lines 20-42: Role-based methods
   - Lines 46-54: Voucher filtering
@@ -1538,6 +1554,7 @@ Action: User reapplies points (click "Use All" or manual)
   - Lines 211-237: Dialog trigger conditions
 
 ### Dialog Logic
+
 - **Dialog Component**: `src/components/app/dialog/staff-remove-voucher-when-paying-dialog.tsx`
   - Complete dialog implementation
 
@@ -1546,6 +1563,7 @@ Action: User reapplies points (click "Use All" or manual)
   - Lines 49, 206-208, 819-821: Ref-based duplicate prevention
 
 ### Voucher Selection
+
 - **Voucher Sheet**: `src/components/app/sheet/staff-voucher-list-sheet-in-payment.tsx`
   - Lines 176-294: Selection & validation flow
   - Lines 234-293: Validation steps
@@ -1560,22 +1578,22 @@ Action: User reapplies points (click "Use All" or manual)
 
 ## 8. Summary Table
 
-| Feature | Key File | Key Lines | Logic |
-|---------|----------|-----------|-------|
-| **Points Max Calc** | loyalty-point-input.tsx | 42-48 | MIN(balance, order total) |
-| **Input Validation** | loyalty-point-input.tsx | 51-64 | Numeric only, auto-cap |
-| **Use All Toggle** | staff-loyalty-point-selector.tsx | 41-62 | Auto-apply max or cancel |
-| **Quick Buttons** | loyalty-point-input.tsx | 82-90 | Filter < max, add Maximum |
-| **Real-time Calc** | Both selectors | 123-134, 149-160 | Update display on change |
-| **Payment Filtering** | payment-resolver.ts | 46-54 | Voucher methods ∩ role methods |
-| **Conflict Detection** | payment-page.tsx | 107-109 | effectiveMethods.length === 0 |
-| **Method Change** | payment-page.tsx | 392-437 | Check disabled, validate API |
-| **Dialog Trigger** | payment-page.tsx | 211-237 | Auto-show on conflict |
-| **Dialog Options** | staff-remove-voucher-when-paying-dialog.tsx | 48-107 | Cancel or Remove |
-| **Duplicate Prevention** | payment-page.tsx | 49, 206-208, 860 | Use ref to guard |
-| **Voucher Sheet** | staff-voucher-list-sheet-in-payment.tsx | 176-294 | Select, validate, apply |
-| **Points Reset** | loyalty-point-selector.tsx | 33-39 | Auto-reset on voucher change |
-| **Validation Flow** | voucher sheet | 235-293 | Client checks → API validation |
+| Feature                  | Key File                                    | Key Lines        | Logic                          |
+| ------------------------ | ------------------------------------------- | ---------------- | ------------------------------ |
+| **Points Max Calc**      | loyalty-point-input.tsx                     | 42-48            | MIN(balance, order total)      |
+| **Input Validation**     | loyalty-point-input.tsx                     | 51-64            | Numeric only, auto-cap         |
+| **Use All Toggle**       | staff-loyalty-point-selector.tsx            | 41-62            | Auto-apply max or cancel       |
+| **Quick Buttons**        | loyalty-point-input.tsx                     | 82-90            | Filter < max, add Maximum      |
+| **Real-time Calc**       | Both selectors                              | 123-134, 149-160 | Update display on change       |
+| **Payment Filtering**    | payment-resolver.ts                         | 46-54            | Voucher methods ∩ role methods |
+| **Conflict Detection**   | payment-page.tsx                            | 107-109          | effectiveMethods.length === 0  |
+| **Method Change**        | payment-page.tsx                            | 392-437          | Check disabled, validate API   |
+| **Dialog Trigger**       | payment-page.tsx                            | 211-237          | Auto-show on conflict          |
+| **Dialog Options**       | staff-remove-voucher-when-paying-dialog.tsx | 48-107           | Cancel or Remove               |
+| **Duplicate Prevention** | payment-page.tsx                            | 49, 206-208, 860 | Use ref to guard               |
+| **Voucher Sheet**        | staff-voucher-list-sheet-in-payment.tsx     | 176-294          | Select, validate, apply        |
+| **Points Reset**         | loyalty-point-selector.tsx                  | 33-39            | Auto-reset on voucher change   |
+| **Validation Flow**      | voucher sheet                               | 235-293          | Client checks → API validation |
 
 ---
 

@@ -1,7 +1,7 @@
 import { Image } from 'expo-image'
 import { Coins, Gift, Plus } from 'lucide-react-native'
 import { memo, useCallback } from 'react'
-import { Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 import { colors } from '@/constants'
 import { IGiftCard } from '@/types'
@@ -15,14 +15,20 @@ export const GIFT_CARD_IMAGE_SIZE = 128
 interface GiftCardListItemProps {
   item: IGiftCard
   primaryColor: string
+  isDark: boolean
   /** true khi thẻ này đang được chọn trong giỏ */
   inCart: boolean
   onSelect: (item: IGiftCard) => void
 }
 
 export const GiftCardListItem = memo(
-  function GiftCardListItem({ item, primaryColor, inCart, onSelect }: GiftCardListItemProps) {
-    const isDark = useColorScheme() === 'dark'
+  function GiftCardListItem({
+    item,
+    primaryColor,
+    isDark,
+    inCart,
+    onSelect,
+  }: GiftCardListItemProps) {
     const handleSelect = useCallback(() => onSelect(item), [item, onSelect])
     const imageUrl = getProductImageUrl(item.image)
     const { t } = useTranslation('giftCard')
@@ -34,15 +40,21 @@ export const GiftCardListItem = memo(
 
     return (
       <View style={s.wrapper}>
-        <View style={[
-          s.card,
-          {
-            backgroundColor: cardBg,
-            borderColor: inCart ? primaryColor : (isDark ? colors.gray[700] : colors.gray[100]),
-            borderWidth: inCart ? 1.5 : 1,
-          },
-          !item.isActive && s.cardInactive,
-        ]}>
+        <View
+          style={[
+            s.card,
+            {
+              backgroundColor: cardBg,
+              borderColor: inCart
+                ? primaryColor
+                : isDark
+                  ? colors.gray[700]
+                  : colors.gray[100],
+              borderWidth: inCart ? 1.5 : 1,
+            },
+            !item.isActive && s.cardInactive,
+          ]}
+        >
           {/* Image */}
           <View style={s.imageWrap}>
             <View style={[s.imageInner, { backgroundColor: imgBg }]}>
@@ -60,7 +72,7 @@ export const GiftCardListItem = memo(
               )}
               {!item.isActive && (
                 <View style={s.inactiveOverlay}>
-                  <Text style={s.inactiveText}>Không khả dụng</Text>
+                  <Text style={s.inactiveText}>{t('unavailable')}</Text>
                 </View>
               )}
             </View>
@@ -68,7 +80,7 @@ export const GiftCardListItem = memo(
 
           {/* Content */}
           <View style={s.content}>
-<View style={s.topInfo}>
+            <View style={s.topInfo}>
               <Text style={[s.title, { color: titleColor }]} numberOfLines={2}>
                 {capitalizeFirst(item.title)}
               </Text>
@@ -81,12 +93,20 @@ export const GiftCardListItem = memo(
             </View>
 
             <View style={s.footer}>
-              <Text style={[s.price, { color: priceColor }]}>{formatCurrency(item.price)}</Text>
+              <Text style={[s.price, { color: priceColor }]}>
+                {formatCurrency(item.price)}
+              </Text>
 
               {inCart ? (
                 /* Badge "Đã chọn" thay thế nút + */
-                <View style={[s.selectedBadge, { backgroundColor: primaryColor }]}>
-                  <Text style={[s.selectedBadgeText, { color: colors.white.light }]}>{t('selected')}</Text>
+                <View
+                  style={[s.selectedBadge, { backgroundColor: primaryColor }]}
+                >
+                  <Text
+                    style={[s.selectedBadgeText, { color: colors.white.light }]}
+                  >
+                    {t('selected')}
+                  </Text>
                 </View>
               ) : (
                 /* Nút + khi chưa có trong giỏ */
@@ -95,10 +115,18 @@ export const GiftCardListItem = memo(
                   disabled={!item.isActive}
                   style={[
                     s.addBtn,
-                    { backgroundColor: item.isActive ? primaryColor : colors.gray[300] },
+                    {
+                      backgroundColor: item.isActive
+                        ? primaryColor
+                        : colors.gray[300],
+                    },
                   ]}
                 >
-                  <Plus size={18} color={colors.white.light} strokeWidth={2.5} />
+                  <Plus
+                    size={18}
+                    color={colors.white.light}
+                    strokeWidth={2.5}
+                  />
                 </Pressable>
               )}
             </View>
@@ -117,6 +145,7 @@ export const GiftCardListItem = memo(
     prev.item.version === next.item.version &&
     prev.inCart === next.inCart &&
     prev.primaryColor === next.primaryColor &&
+    prev.isDark === next.isDark &&
     prev.onSelect === next.onSelect,
 )
 

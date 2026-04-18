@@ -1,7 +1,7 @@
 import {
-    checkMediaLibraryPermission,
-    downloadAndSaveImage,
-    requestMediaLibraryPermission,
+  checkMediaLibraryPermission,
+  downloadAndSaveImage,
+  requestMediaLibraryPermission,
 } from '@/utils'
 import { useCallback } from 'react'
 
@@ -30,4 +30,3 @@ export function useDownloadImage() {
     checkPermission,
   }
 }
-

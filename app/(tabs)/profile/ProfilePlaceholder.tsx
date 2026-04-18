@@ -54,7 +54,10 @@ export default function ProfilePlaceholder() {
   const itemHandlers = useMemo(
     () =>
       Object.fromEntries(
-        SETTINGS_ITEMS.map((item) => [item.label, () => handlePress(item.href)]),
+        SETTINGS_ITEMS.map((item) => [
+          item.label,
+          () => handlePress(item.href),
+        ]),
       ) as Record<string, () => void>,
     [handlePress],
   )

@@ -12,7 +12,10 @@ type TabBarWithTransitionProps = {
   style?: object
 }
 
-export function TabBarWithTransition({ children, style }: TabBarWithTransitionProps) {
+export function TabBarWithTransition({
+  children,
+  style,
+}: TabBarWithTransitionProps) {
   const master = useMasterTransitionOptional()
 
   const animatedStyle = useAnimatedStyle(
@@ -27,8 +30,6 @@ export function TabBarWithTransition({ children, style }: TabBarWithTransitionPr
   }
 
   return (
-    <Animated.View style={[style, animatedStyle]}>
-      {children}
-    </Animated.View>
+    <Animated.View style={[style, animatedStyle]}>{children}</Animated.View>
   )
 }

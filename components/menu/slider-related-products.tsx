@@ -1,7 +1,14 @@
 import { Image } from 'expo-image'
 import type { TFunction } from 'i18next'
 import { Plus } from 'lucide-react-native'
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Dimensions,
@@ -28,7 +35,6 @@ import { formatCurrency, showToast } from '@/utils'
 /** Ngày cố định trong session — thay useRef vì linter cấm đọc ref trong render */
 const SESSION_DATE_STR = new Date().toISOString().split('T')[0]
 
-
 interface SliderRelatedProductsProps {
   currentProduct: string
   catalog: string
@@ -54,7 +60,10 @@ const RelatedProductItem = React.memo(
     primaryColor: string
     t: TFunction<'menu'>
   }) {
-    const handleAdd = useCallback(() => onAddToCart(item.slug), [onAddToCart, item.slug])
+    const handleAdd = useCallback(
+      () => onAddToCart(item.slug),
+      [onAddToCart, item.slug],
+    )
     const imageUrl = useMemo(() => {
       const imagePath = item?.product.image?.trim()
       if (!imagePath) return null
@@ -87,7 +96,10 @@ const RelatedProductItem = React.memo(
         <View className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
           {/* Image — padded for breathing room */}
           <View className="p-2 pb-0">
-            <View className="relative w-full overflow-hidden rounded-xl" style={{ aspectRatio: 4 / 3 }}>
+            <View
+              className="relative w-full overflow-hidden rounded-xl"
+              style={{ aspectRatio: 4 / 3 }}
+            >
               {hasProductImage ? (
                 <Image
                   source={{ uri: imageUrl }}
@@ -129,24 +141,38 @@ const RelatedProductItem = React.memo(
                 {hasPromotion ? (
                   <View className="flex-row items-center gap-1.5">
                     <Text className="text-xs text-gray-400 line-through">
-                      {priceRange ? formatCurrency(priceRange.min) : formatCurrency(0)}
+                      {priceRange
+                        ? formatCurrency(priceRange.min)
+                        : formatCurrency(0)}
                     </Text>
                     <Text className="text-[13px] font-semibold text-primary">
                       {priceRange
-                        ? formatCurrency(priceRange.min * (1 - (item.promotion?.value || 0) / 100))
+                        ? formatCurrency(
+                            priceRange.min *
+                              (1 - (item.promotion?.value || 0) / 100),
+                          )
                         : formatCurrency(0)}
                     </Text>
                   </View>
                 ) : (
                   <Text className="text-[13px] font-semibold text-primary">
-                    {priceRange ? formatCurrency(priceRange.min) : t('menu.contactForPrice', 'Liên hệ')}
+                    {priceRange
+                      ? formatCurrency(priceRange.min)
+                      : t('menu.contactForPrice', 'Liên hệ')}
                   </Text>
                 )}
               </View>
               <Pressable
                 onPress={handleAdd}
                 hitSlop={6}
-                style={{ width: 26, height: 26, borderRadius: 13, backgroundColor: primaryColor, alignItems: 'center', justifyContent: 'center' }}
+                style={{
+                  width: 26,
+                  height: 26,
+                  borderRadius: 13,
+                  backgroundColor: primaryColor,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
               >
                 <Plus size={14} color="#ffffff" />
               </Pressable>
@@ -240,21 +266,27 @@ function SliderRelatedProducts({
   const handleItemPress = useCallback((slug: string) => {
     const mi = itemsMapRef.current.get(slug)
     if (!mi) {
-      navigateNative.push({ pathname: ROUTE.CLIENT_PRODUCT_DETAIL, params: { id: slug } })
+      navigateNative.push({
+        pathname: ROUTE.CLIENT_PRODUCT_DETAIL,
+        params: { id: slug },
+      })
       return
     }
     const variants = mi.product?.variants ?? []
-    const minPrice = variants.length > 0
-      ? Math.min(...variants.map((v) => v.price))
-      : 0
-    const heroImages = [mi.product?.image, ...(mi.product?.images ?? [])]
-      .filter((v): v is string => !!v)
+    const minPrice =
+      variants.length > 0 ? Math.min(...variants.map((v) => v.price)) : 0
+    const heroImages = [
+      mi.product?.image,
+      ...(mi.product?.images ?? []),
+    ].filter((v): v is string => !!v)
     const heroImageUrls = heroImages
       .map((p) => {
         if (!p?.trim()) return null
         if (/^https?:\/\//i.test(p)) return p
         const base = publicFileURL ?? ''
-        return base ? `${base.replace(/\/$/, '')}/${p.replace(/^\//, '')}` : null
+        return base
+          ? `${base.replace(/\/$/, '')}/${p.replace(/^\//, '')}`
+          : null
       })
       .filter((u): u is string => !!u)
 
@@ -292,10 +324,12 @@ function SliderRelatedProducts({
       // Read store at call time — no subscription
       const store = useOrderFlowStore.getState()
       if (!store.isHydrated) return
-      if (store.currentStep !== OrderFlowStep.ORDERING) store.setCurrentStep(OrderFlowStep.ORDERING)
+      if (store.currentStep !== OrderFlowStep.ORDERING)
+        store.setCurrentStep(OrderFlowStep.ORDERING)
       if (!store.orderingData) store.initializeOrdering()
       const uSlug = useUserStore.getState().userInfo?.slug
-      if (uSlug && !store.orderingData?.owner?.trim()) store.initializeOrdering()
+      if (uSlug && !store.orderingData?.owner?.trim())
+        store.initializeOrdering()
 
       const orderItem: IOrderItem = {
         id: `item_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
@@ -321,8 +355,6 @@ function SliderRelatedProducts({
     [t],
   )
 
-
-
   if (!relatedProductsData || relatedProductsData.length === 0) {
     if (isLoading) {
       return (
@@ -342,7 +374,10 @@ function SliderRelatedProducts({
                 style={{ width: itemWidth, marginRight: itemSpacing }}
               >
                 <View className="p-2 pb-0">
-                  <View className="rounded-xl bg-gray-200 dark:bg-gray-700" style={{ aspectRatio: 4 / 3 }} />
+                  <View
+                    className="rounded-xl bg-gray-200 dark:bg-gray-700"
+                    style={{ aspectRatio: 4 / 3 }}
+                  />
                 </View>
                 <View className="gap-2 px-2.5 pb-2.5 pt-2">
                   <View className="h-3.5 w-3/4 rounded bg-gray-200 dark:bg-gray-700" />

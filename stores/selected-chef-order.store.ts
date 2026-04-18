@@ -24,7 +24,7 @@ export const useSelectedChefOrderStore = create<ISelectedChefOrderStore>()(
           isSheetOpen: false,
         }),
     }),
-    { 
+    {
       name: 'selected-chef-order-store',
       storage: createJSONStorage(() => createSafeStorage()),
     },

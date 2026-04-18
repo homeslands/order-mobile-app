@@ -17,7 +17,10 @@ import type {
 } from '@/types'
 import { useShallow } from 'zustand/react/shallow'
 
-import { calcItemVoucherDiscount, toDisplayItem } from '@/components/cart/cart-display-item'
+import {
+  calcItemVoucherDiscount,
+  toDisplayItem,
+} from '@/components/cart/cart-display-item'
 import { useOrderFlowStore } from './order-flow.store'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -28,9 +31,7 @@ const EMPTY_ITEMS: IOrderItem[] = []
 
 /** Cart items array — re-renders only when orderItems ref changes */
 export const useCartItems = () =>
-  useOrderFlowStore(
-    (s) => s.orderingData?.orderItems ?? EMPTY_ITEMS,
-  )
+  useOrderFlowStore((s) => s.orderingData?.orderItems ?? EMPTY_ITEMS)
 
 /** Total quantity — primitive number, zero re-render on unrelated changes */
 export const useCartItemCount = () =>
@@ -77,14 +78,15 @@ export const useCartVoucherDiscount = () =>
     if (!voucher || !items || items.length === 0) return 0
     let discount = 0
     for (const item of items) {
-      discount += calcItemVoucherDiscount(toDisplayItem(item), voucher) * (item.quantity || 0)
+      discount +=
+        calcItemVoucherDiscount(toDisplayItem(item), voucher) *
+        (item.quantity || 0)
     }
     return discount
   })
 
 /** Hydration flag — true after persisted state is restored */
-export const useCartIsHydrated = () =>
-  useOrderFlowStore((s) => s.isHydrated)
+export const useCartIsHydrated = () => useOrderFlowStore((s) => s.isHydrated)
 
 /** Order type — AT_TABLE | TAKE_OUT | DELIVERY */
 export const useCartOrderType = () =>

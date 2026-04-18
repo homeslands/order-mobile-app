@@ -18,7 +18,12 @@
  */
 import { FlashList } from '@shopify/flash-list'
 import { useRouter } from 'expo-router'
-import { ArrowDownNarrowWide, ArrowUpNarrowWide, Gift, ShoppingCart } from 'lucide-react-native'
+import {
+  ArrowDownNarrowWide,
+  ArrowUpNarrowWide,
+  Gift,
+  ShoppingCart,
+} from 'lucide-react-native'
 import React, { startTransition, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Image } from 'expo-image'
@@ -37,7 +42,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Images } from '@/assets/images'
 
 import { GiftCardExistsWarningDialog } from '@/components/gift-card/gift-card-exists-warning-dialog'
-import { GiftCardListItem, GIFT_CARD_ITEM_HEIGHT, GIFT_CARD_IMAGE_SIZE } from '@/components/gift-card/gift-card-list-item'
+import {
+  GiftCardListItem,
+  GIFT_CARD_ITEM_HEIGHT,
+  GIFT_CARD_IMAGE_SIZE,
+} from '@/components/gift-card/gift-card-list-item'
 import { Skeleton } from '@/components/ui'
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
@@ -98,13 +107,21 @@ const sk = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: colors.gray[100],
   },
-  imageWrap: { width: GIFT_CARD_IMAGE_SIZE, height: GIFT_CARD_IMAGE_SIZE, padding: 8 },
+  imageWrap: {
+    width: GIFT_CARD_IMAGE_SIZE,
+    height: GIFT_CARD_IMAGE_SIZE,
+    padding: 8,
+  },
   imageInner: { flex: 1, borderRadius: 12 },
   content: { flex: 1, padding: 12, justifyContent: 'space-between' },
   topInfo: { gap: 6 },
   title: { height: 15, width: '75%', borderRadius: 6 },
   points: { height: 12, width: '40%', borderRadius: 4 },
-  footer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
   price: { height: 15, width: 80, borderRadius: 6 },
   btn: { height: 34, width: 34, borderRadius: 17 },
 })
@@ -143,10 +160,9 @@ export default function GiftCardScreen() {
     }, []),
   )
 
-  const { data, isPending, refetch, isRefetching } = useGiftCards(
-    undefined,
-    { enabled: allowFetch },
-  )
+  const { data, isPending, refetch, isRefetching } = useGiftCards(undefined, {
+    enabled: allowFetch,
+  })
 
   const items = useMemo(() => {
     const list = data?.items ?? []
@@ -173,7 +189,9 @@ export default function GiftCardScreen() {
         return
       }
 
-      if (!giftCardItem) {
+      // Đọc từ store state tại thời điểm gọi — không subscribe, không recreate callback
+      const currentGiftCardItem = useGiftCardStore.getState().giftCardItem
+      if (!currentGiftCardItem) {
         setGiftCardItem({
           id: item.slug,
           slug: item.slug,
@@ -193,7 +211,7 @@ export default function GiftCardScreen() {
       // Khác loại thẻ → replace dialog
       setPendingCard(item)
     },
-    [giftCardItem, setGiftCardItem, router],
+    [setGiftCardItem, router],
   )
 
   // #4 — cart icon: nếu đã có item → vào checkout, không thì không làm gì
@@ -231,17 +249,19 @@ export default function GiftCardScreen() {
     setPendingCard(null)
   }, [])
 
-  // ── renderItem — re-create khi giftCardItem thay đổi (để inCart đúng) ──
+  // ── renderItem — chỉ phụ thuộc slug (primitive), không re-create khi qty thay đổi ──
+  const giftCardItemSlug = giftCardItem?.slug
   const renderItem = useCallback(
     ({ item }: { item: IGiftCard }) => (
       <GiftCardListItem
         item={item}
         primaryColor={primaryColor}
-        inCart={giftCardItem?.slug === item.slug}
+        isDark={isDark}
+        inCart={giftCardItemSlug === item.slug}
         onSelect={handleSelect}
       />
     ),
-    [primaryColor, handleSelect, giftCardItem],
+    [primaryColor, isDark, handleSelect, giftCardItemSlug],
   )
 
   // ── Colors ────────────────────────────────────────────────────────────────
@@ -262,7 +282,16 @@ export default function GiftCardScreen() {
   return (
     <TabScreenLayout>
       {/* Header */}
-      <View style={[s.header, { backgroundColor: headerBg, paddingTop: STATIC_TOP_INSET + 12, borderBottomColor: borderColor }]}>
+      <View
+        style={[
+          s.header,
+          {
+            backgroundColor: headerBg,
+            paddingTop: STATIC_TOP_INSET + 12,
+            borderBottomColor: borderColor,
+          },
+        ]}
+      >
         {/* Title row */}
         <View style={s.titleRow}>
           <Image
@@ -284,7 +313,10 @@ export default function GiftCardScreen() {
                 },
               ]}
             >
-              <ShoppingCart size={20} color={isDark ? colors.gray[50] : colors.gray[900]} />
+              <ShoppingCart
+                size={20}
+                color={isDark ? colors.gray[50] : colors.gray[900]}
+              />
             </Pressable>
             {cartBadgeCount > 0 && (
               <View style={s.cartBadge}>
@@ -308,8 +340,16 @@ export default function GiftCardScreen() {
               },
             ]}
           >
-            <ArrowUpNarrowWide size={14} color={sortOrder === 'asc' ? colors.white.light : subColor} />
-            <Text style={[s.sortChipText, { color: sortOrder === 'asc' ? colors.white.light : subColor }]}>
+            <ArrowUpNarrowWide
+              size={14}
+              color={sortOrder === 'asc' ? colors.white.light : subColor}
+            />
+            <Text
+              style={[
+                s.sortChipText,
+                { color: sortOrder === 'asc' ? colors.white.light : subColor },
+              ]}
+            >
               {t('sortAsc')}
             </Text>
           </Pressable>
@@ -324,13 +364,20 @@ export default function GiftCardScreen() {
               },
             ]}
           >
-            <ArrowDownNarrowWide size={14} color={sortOrder === 'desc' ? colors.white.light : subColor} />
-            <Text style={[s.sortChipText, { color: sortOrder === 'desc' ? colors.white.light : subColor }]}>
+            <ArrowDownNarrowWide
+              size={14}
+              color={sortOrder === 'desc' ? colors.white.light : subColor}
+            />
+            <Text
+              style={[
+                s.sortChipText,
+                { color: sortOrder === 'desc' ? colors.white.light : subColor },
+              ]}
+            >
               {t('sortDesc')}
             </Text>
           </Pressable>
         </View>
-
       </View>
 
       {/* Content */}
@@ -339,7 +386,9 @@ export default function GiftCardScreen() {
       ) : items.length === 0 ? (
         <View style={s.empty}>
           <Gift size={48} color={colors.gray[300]} />
-          <Text style={[s.emptyText, { color: subColor }]}>Chưa có thẻ quà tặng nào</Text>
+          <Text style={[s.emptyText, { color: subColor }]}>
+            Chưa có thẻ quà tặng nào
+          </Text>
         </View>
       ) : (
         <FlashList

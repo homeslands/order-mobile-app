@@ -13,6 +13,7 @@ interface AnimatedCountdownTextProps {
   label?: string
   className?: string
   warningThreshold?: number // Color changes when below this (default: 60 seconds)
+  isDark?: boolean
 }
 
 /**
@@ -31,6 +32,7 @@ export const AnimatedCountdownText = React.memo(
     label = '',
     className = '',
     warningThreshold = 60,
+    isDark = false,
   }: AnimatedCountdownTextProps) => {
     // Animated style that changes color based on countdown value
     const animatedStyle = useAnimatedStyle(() => {
@@ -38,26 +40,28 @@ export const AnimatedCountdownText = React.memo(
 
       // Color logic:
       // > 60s: muted-foreground (gray)
-      // 10-60s: primary (blue)
+      // 10-60s: primary (brand color)
       // < 10s: destructive (red)
 
       let textColor: string
 
       if (seconds <= 10) {
         // Critical: Red
-        textColor = colors.destructive.light
+        textColor = isDark ? colors.destructive.dark : colors.destructive.light
       } else if (seconds <= warningThreshold) {
-        // Warning: Primary blue
-        textColor = colors.primary.light
+        // Warning: Primary
+        textColor = isDark ? colors.primary.dark : colors.primary.light
       } else {
         // Normal: Muted gray
-        textColor = colors.mutedForeground.light
+        textColor = isDark
+          ? colors.mutedForeground.dark
+          : colors.mutedForeground.light
       }
 
       return {
         color: textColor,
       }
-    })
+    }, [isDark, warningThreshold])
 
     // Memoize label text to prevent unnecessary renders
     const labelText = useMemo(() => {
@@ -68,13 +72,13 @@ export const AnimatedCountdownText = React.memo(
     return (
       <Animated.Text
         style={[animatedStyle]}
-        className={`text-center text-sm font-sans text-muted-foreground ${className}`}
+        className={`text-center font-sans text-sm ${className}`}
       >
         <Text>{labelText}</Text>
         <AnimatedTime countdownShared={countdownShared} />
       </Animated.Text>
     )
-  }
+  },
 )
 
 AnimatedCountdownText.displayName = 'AnimatedCountdownText'
@@ -104,7 +108,7 @@ const AnimatedTime = React.memo(
     )
 
     return <Text>{displayTime}</Text>
-  }
+  },
 )
 
 AnimatedTime.displayName = 'AnimatedTime'
@@ -119,11 +123,13 @@ export const AnimatedCountdownColor = React.memo(
     children,
     className = '',
     warningThreshold = 60,
+    isDark = false,
   }: {
     countdownShared: SharedValue<number>
     children: React.ReactNode
     className?: string
     warningThreshold?: number
+    isDark?: boolean
   }) => {
     const animatedStyle = useAnimatedStyle(() => {
       const seconds = countdownShared.value
@@ -131,24 +137,26 @@ export const AnimatedCountdownColor = React.memo(
       let textColor: string
 
       if (seconds <= 10) {
-        textColor = colors.destructive.light
+        textColor = isDark ? colors.destructive.dark : colors.destructive.light
       } else if (seconds <= warningThreshold) {
-        textColor = colors.primary.light
+        textColor = isDark ? colors.primary.dark : colors.primary.light
       } else {
-        textColor = colors.mutedForeground.light
+        textColor = isDark
+          ? colors.mutedForeground.dark
+          : colors.mutedForeground.light
       }
 
       return {
         color: textColor,
       }
-    })
+    }, [isDark, warningThreshold])
 
     return (
       <Animated.Text style={[animatedStyle]} className={className}>
         {children}
       </Animated.Text>
     )
-  }
+  },
 )
 
 AnimatedCountdownColor.displayName = 'AnimatedCountdownColor'

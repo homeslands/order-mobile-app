@@ -1,9 +1,11 @@
 # Point Payment Flow (Thanh Toán Bằng Xu)
 
 ## Overview
+
 The point payment system allows customers to pay for orders entirely using points (xu) from their balance. Points come from redeeming gift cards and can be used as a payment method for new orders.
 
 **Key Features:**
+
 1. **Payment Method:** Pay entire order using points
 2. **Balance Validation:** System validates sufficient points before processing
 3. **Instant Deduction:** Points deducted immediately upon successful payment
@@ -40,12 +42,14 @@ The point payment system allows customers to pay for orders entirely using point
 ### 1.3 User Eligibility for Point Payment
 
 **Who can use point payment:**
+
 - ✅ Customers (role = 'CUSTOMER')
 - ✅ With active membership card
 - ✅ With sufficient balance
 - ✅ Not default customer
 
 **Staff Requirement for Point Payment:**
+
 - Must scan/provide valid membership card code
 - Card must be linked to the order owner
 - Card must be active and not expired
@@ -57,6 +61,7 @@ The point payment system allows customers to pay for orders entirely using point
 ### 2.1 Customer Payment (via Mobile/Web)
 
 **Flow:**
+
 ```
 Customer views order
         ↓
@@ -90,6 +95,7 @@ Job service deducts points from balance
 **Auth Required:** Bearer token (user must be logged in)
 
 **Request:**
+
 ```json
 {
   "orderSlug": "order-abc123",
@@ -98,6 +104,7 @@ Job service deducts points from balance
 ```
 
 **Validation in Backend:**
+
 1. ✓ Order exists and is PENDING
 2. ✓ User is customer
 3. ✓ User has sufficient points ≥ order.subtotal
@@ -106,6 +113,7 @@ Job service deducts points from balance
 6. ✓ User has no pending requirements
 
 **Response (200 OK):**
+
 ```json
 {
   "statusCode": 200,
@@ -126,6 +134,7 @@ Job service deducts points from balance
 ### 2.2 Staff Payment (via POS)
 
 **Flow:**
+
 ```
 Staff creates order for customer
         ↓
@@ -164,6 +173,7 @@ Job deducts points from balance
 **Auth Required:** Bearer token with STAFF/MANAGER/ADMIN/SUPERADMIN role
 
 **Request:**
+
 ```json
 {
   "orderSlug": "order-abc123",
@@ -173,6 +183,7 @@ Job deducts points from balance
 ```
 
 **Staff-Specific Validations:**
+
 1. ✓ Membership card code provided
 2. ✓ Membership card exists in database
 3. ✓ Membership card user = order owner (security check)
@@ -222,6 +233,7 @@ async process(order: Order): Promise<Payment> {
 ```
 
 **Key Points:**
+
 - Balance validation only (no actual deduction yet)
 - Points deducted AFTER payment completion
 - Payment status immediately set to COMPLETED
@@ -254,6 +266,7 @@ async validate(payload: { userSlug: string; points: number }) {
 ```
 
 **Returns:**
+
 - `true`: Balance sufficient
 - `throws BalanceException`: Insufficient balance
 
@@ -296,6 +309,7 @@ async handleUpdateOrderStatus(requestData: { orderId: string }) {
 **When:** Order is marked as PAID by job service
 
 **Process:**
+
 ```
 Job finds paid order
         ↓
@@ -315,18 +329,19 @@ Get updated balance
 ```
 
 **Code:**
+
 ```typescript
 if (order.payment?.paymentMethod === PaymentMethod.POINT) {
   // Deduct points from balance
   await this.sharedBalanceService.calcBalance({
     userSlug: order.owner?.slug,
     points: order.payment.amount,
-    type: 'out'  // ← Deduction
+    type: 'out', // ← Deduction
   })
 
   // Get current balance after deduction
   const currentBalance = await this.sharedBalanceService.findOneByField({
-    userSlug: order.owner?.slug
+    userSlug: order.owner?.slug,
   })
 
   // Create point transaction record
@@ -337,7 +352,7 @@ if (order.payment?.paymentMethod === PaymentMethod.POINT) {
     objectSlug: order.slug,
     beforeBalance: currentBalance.points + order.payment.amount,
     afterBalance: currentBalance.points,
-    point: order.payment.amount
+    point: order.payment.amount,
   })
 }
 ```
@@ -347,6 +362,7 @@ if (order.payment?.paymentMethod === PaymentMethod.POINT) {
 **Purpose:** Track all point usage for auditing
 
 **Record Created:**
+
 - Type: 'OUT'
 - Description: Usage of {amount} points to pay for order
 - Object Type: 'ORDER'
@@ -365,20 +381,20 @@ enum PaymentMethod {
   BANK_TRANSFER = 'bank-transfer',
   CASH = 'cash',
   POINT = 'point',
-  CREDIT_CARD = 'credit-card'
+  CREDIT_CARD = 'credit-card',
 }
 
 enum paymentStatus {
   PENDING = 'pending',
   COMPLETED = 'completed',
-  CANCELLED = 'cancelled'
+  CANCELLED = 'cancelled',
 }
 
 interface IPayment {
   slug: string
   paymentMethod: PaymentMethod
-  amount: number           // Total payment amount
-  loss: number            // Loss/uncollected amount
+  amount: number // Total payment amount
+  loss: number // Loss/uncollected amount
   statusCode: paymentStatus
   statusMessage: string
   transactionId: string
@@ -389,18 +405,19 @@ interface IPayment {
 ### 5.2 Backend DTOs
 
 **CreatePaymentDto:**
+
 ```typescript
 export class CreatePaymentDto {
   @IsEnum(PaymentMethod)
-  paymentMethod: string      // Must be 'point'
+  paymentMethod: string // Must be 'point'
 
   @IsNotEmpty()
-  orderSlug: string          // Order to pay for
+  orderSlug: string // Order to pay for
 
   @Optional()
-  membershipCard?: string    // Card code (required for staff)
+  membershipCard?: string // Card code (required for staff)
 
-  transactionId?: string     // For credit card only
+  transactionId?: string // For credit card only
 }
 ```
 
@@ -411,6 +428,7 @@ export class CreatePaymentDto {
 ### 6.1 Scenario: Customer Pays Entire Order with Points
 
 **Setup:**
+
 - Order subtotal: 500,000 VND
 - Customer's balance: 800,000 points
 - Payment method: POINT
@@ -533,6 +551,7 @@ Response:
 ### 6.2 Scenario: Staff Pays with Customer's Membership Card
 
 **Setup:**
+
 - Order subtotal: 200,000 VND
 - Customer's balance: 250,000 points
 - Membership card code: "CARD_CODE_ABC"
@@ -609,18 +628,18 @@ Result: Order PAID, points deducted from customer's balance
 
 ### 7.1 Common Errors
 
-| Error | Cause | When |
-|-------|-------|------|
-| INSUFFICIENT_BALANCE | Points < order total | During validation |
-| USER_NOT_FOUND | User doesn't exist | Payment initiation |
-| ORDER_NOT_FOUND | Order doesn't exist | Payment initiation |
-| ORDER_ALREADY_HAS_PAYMENT | Order has valid payment | Re-initiating |
-| ORDER_STATUS_INVALID | Order not PENDING | Non-pending order |
-| MEMBERSHIP_CARD_REQUIRED | Staff didn't provide card | Staff payment |
-| MEMBERSHIP_CARD_NOT_FOUND | Card code invalid | Staff payment |
-| MEMBERSHIP_CARD_USER_NOT_FOUND | Card linked to wrong user | Card mismatch |
-| MEMBERSHIP_CARD_EXPIRED | Card expired | Expired card |
-| OWNER_NOT_A_CUSTOMER | Order owner not customer | Non-customer |
+| Error                          | Cause                     | When               |
+| ------------------------------ | ------------------------- | ------------------ |
+| INSUFFICIENT_BALANCE           | Points < order total      | During validation  |
+| USER_NOT_FOUND                 | User doesn't exist        | Payment initiation |
+| ORDER_NOT_FOUND                | Order doesn't exist       | Payment initiation |
+| ORDER_ALREADY_HAS_PAYMENT      | Order has valid payment   | Re-initiating      |
+| ORDER_STATUS_INVALID           | Order not PENDING         | Non-pending order  |
+| MEMBERSHIP_CARD_REQUIRED       | Staff didn't provide card | Staff payment      |
+| MEMBERSHIP_CARD_NOT_FOUND      | Card code invalid         | Staff payment      |
+| MEMBERSHIP_CARD_USER_NOT_FOUND | Card linked to wrong user | Card mismatch      |
+| MEMBERSHIP_CARD_EXPIRED        | Card expired              | Expired card       |
+| OWNER_NOT_A_CUSTOMER           | Order owner not customer  | Non-customer       |
 
 ### 7.2 Insufficient Balance Response
 
@@ -655,6 +674,7 @@ Result: Order PAID, points deducted from customer's balance
 **File:** `components/app/radio/payment-method-radio-group.tsx`
 
 **For Customer:**
+
 ```
 Available Methods:
 - ○ Bank Transfer
@@ -664,6 +684,7 @@ Available Methods:
 ```
 
 **For Staff:**
+
 ```
 Available Methods:
 - ○ Bank Transfer
@@ -676,12 +697,14 @@ Available Methods:
 ### 8.2 Balance Display
 
 **Where Shown:**
+
 1. Payment screen (before selecting POINT)
 2. Order summary
 3. Customer profile/dashboard
 4. Transaction history
 
 **Format:**
+
 ```
 💳 Available Points: 800,000 points
    (equivalent to ~800,000 VND)
@@ -696,6 +719,7 @@ Available Methods:
 **Service:** `PointTransactionService`
 
 **Records Created After Point Payment:**
+
 ```
 {
   type: 'OUT',
@@ -710,6 +734,7 @@ Available Methods:
 ```
 
 **Visible In:**
+
 - Customer's point history
 - Admin's audit trail
 - Order payment details
@@ -719,11 +744,13 @@ Available Methods:
 ## Part 10: Security Considerations
 
 ### 10.1 Balance Validation
+
 - **Pessimistic:** System validates BEFORE payment
 - **No Race Condition:** Transaction manager ensures atomic operation
 - **Rollback:** If deduction fails, order payment marked as failed
 
 ### 10.2 Staff Verification (Membership Card)
+
 - **Two-Factor Check:**
   1. Card exists in system
   2. Card.user = Order.owner (prevents staff from using wrong card)
@@ -732,6 +759,7 @@ Available Methods:
   - Must not be expired (expiredAt > now)
 
 ### 10.3 User Validation
+
 - User must be customer (not staff/admin)
 - User must be active
 - User must have no pending requirements
@@ -747,6 +775,7 @@ Available Methods:
 **Auth:** Bearer token (required)
 
 **Request (Customer):**
+
 ```json
 {
   "orderSlug": "order-abc123",
@@ -755,6 +784,7 @@ Available Methods:
 ```
 
 **Request (Staff):**
+
 ```json
 {
   "orderSlug": "order-abc123",
@@ -764,6 +794,7 @@ Available Methods:
 ```
 
 **Response (200 OK):**
+
 ```json
 {
   "statusCode": 200,
@@ -786,6 +817,7 @@ Available Methods:
 **Error Responses:**
 
 **400 - Insufficient Balance:**
+
 ```json
 {
   "statusCode": 400,
@@ -794,6 +826,7 @@ Available Methods:
 ```
 
 **400 - Order Not Pending:**
+
 ```json
 {
   "statusCode": 400,
@@ -802,6 +835,7 @@ Available Methods:
 ```
 
 **404 - Membership Card Not Found (Staff):**
+
 ```json
 {
   "statusCode": 404,
@@ -810,6 +844,7 @@ Available Methods:
 ```
 
 **403 - Card User Mismatch (Staff):**
+
 ```json
 {
   "statusCode": 403,
@@ -839,6 +874,7 @@ Available Methods:
    - Customer's balance updated immediately
 
 **Key Differences from Other Payment Methods:**
+
 - ✓ Instant payment (no callback waiting)
 - ✓ Atomic operation (validate + deduct in one process)
 - ✓ No external gateway (no bank/payment processor)
@@ -846,6 +882,7 @@ Available Methods:
 - ✓ Customer requires sufficient balance validation
 
 **Audit Trail:**
+
 - Payment record with transaction ID
 - Point transaction with before/after balance
 - Order marked with payment method

@@ -22,7 +22,11 @@ import {
   PRODUCT_IMAGE_MAX_WIDTH_DETAIL,
 } from '@/utils/product-image-url'
 import { TAB_ROUTES } from '@/constants/navigation.config'
-import { useOrderFlowAddToCart, useRunAfterTransition, useSpecificMenuItem } from '@/hooks'
+import {
+  useOrderFlowAddToCart,
+  useRunAfterTransition,
+  useSpecificMenuItem,
+} from '@/hooks'
 import { useMasterTransitionOptional } from '@/lib/navigation/master-transition-provider'
 import { colors } from '@/constants'
 import { getThemeColor } from '@/lib/utils'
@@ -101,7 +105,10 @@ export default function MenuItemDetailPlaceholder() {
     <View style={styles.container}>
       {/* Header: back - logo - cart */}
       <View style={styles.header}>
-        <NativeGesturePressable navigation={{ type: 'back' }} hapticStyle="light">
+        <NativeGesturePressable
+          navigation={{ type: 'back' }}
+          hapticStyle="light"
+        >
           <View style={styles.iconButton}>
             <ChevronLeft size={18} color={colors.gray[900]} />
           </View>
@@ -275,4 +282,3 @@ const styles = StyleSheet.create({
   },
   addButtonWrap: { alignItems: 'flex-end' },
 })
-

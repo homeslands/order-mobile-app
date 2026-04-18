@@ -38,12 +38,12 @@
 
 ### 2.1 Routes
 
-| Route | File | Purpose | User |
-|-------|------|---------|------|
-| `/auth/forgot-password` | `forgot-password.tsx` | Method selection | Public |
+| Route                         | File                           | Purpose          | User   |
+| ----------------------------- | ------------------------------ | ---------------- | ------ |
+| `/auth/forgot-password`       | `forgot-password.tsx`          | Method selection | Public |
 | `/auth/forgot-password/email` | `forgot-password-by-email.tsx` | Email-based flow | Public |
 | `/auth/forgot-password/phone` | `forgot-password-by-phone.tsx` | Phone-based flow | Public |
-| `/auth/login` | (redirect) | After success | Public |
+| `/auth/login`                 | (redirect)                     | After success    | Public |
 
 ### 2.2 Components & Forms
 
@@ -88,19 +88,19 @@ reset-password-form.tsx
 
 interface IForgotPasswordStore {
   // Identity information
-  email: string                      // User's email
-  phoneNumber: string                // User's phone number
+  email: string // User's email
+  phoneNumber: string // User's phone number
 
   // Current step tracking
-  step: number                       // 1, 2, or 3
+  step: number // 1, 2, or 3
 
   // Verification method
-  verificationMethod: string         // 'email' or 'phone-number'
+  verificationMethod: string // 'email' or 'phone-number'
 
   // Token & Expiration
-  token: string                      // JWT token for password reset
-  expireTime: string                 // OTP expiration time (ISO)
-  tokenExpireTime: string            // JWT token expiration time (ISO)
+  token: string // JWT token for password reset
+  expireTime: string // OTP expiration time (ISO)
+  tokenExpireTime: string // JWT token expiration time (ISO)
 
   // Actions
   setEmail(email: string): void
@@ -110,7 +110,7 @@ interface IForgotPasswordStore {
   setToken(token: string): void
   setExpireTime(time: string): void
   setTokenExpireTime(time: string): void
-  resetStore(): void                 // Clear all after success
+  resetStore(): void // Clear all after success
 }
 ```
 
@@ -122,9 +122,9 @@ const { email, step, expireTime, setStep, setToken, resetStore } =
   useForgotPasswordStore()
 
 // Update state
-setStep(2)  // Go to OTP input step
-setToken(jwtToken)  // Store JWT from OTP verification
-resetStore()  // Clear everything after password changed
+setStep(2) // Go to OTP input step
+setToken(jwtToken) // Store JWT from OTP verification
+resetStore() // Clear everything after password changed
 ```
 
 ---
@@ -133,12 +133,12 @@ resetStore()  // Clear everything after password changed
 
 ### 4.1 All Endpoints (Public, Rate-Limited)
 
-| Endpoint | Method | Rate Limit | Purpose |
-|----------|--------|-----------|---------|
-| `/auth/forgot-password/initiate` | POST | 3/min | Start forgot password |
-| `/auth/forgot-password/resend` | POST | 3/min | Resend OTP code |
-| `/auth/forgot-password/confirm` | POST | 3/min | Verify OTP, get JWT |
-| `/auth/forgot-password/change` | POST | 3/min | Change password |
+| Endpoint                         | Method | Rate Limit | Purpose               |
+| -------------------------------- | ------ | ---------- | --------------------- |
+| `/auth/forgot-password/initiate` | POST   | 3/min      | Start forgot password |
+| `/auth/forgot-password/resend`   | POST   | 3/min      | Resend OTP code       |
+| `/auth/forgot-password/confirm`  | POST   | 3/min      | Verify OTP, get JWT   |
+| `/auth/forgot-password/change`   | POST   | 3/min      | Change password       |
 
 ### 4.2 Request/Response Schemas
 
@@ -475,25 +475,25 @@ STEP 4: RESET PASSWORD
 
 const PasswordValidationRules = [
   {
-    label: "Min 8 characters",
+    label: 'Min 8 characters',
     regex: /.{8,}/,
-    required: true
+    required: true,
   },
   {
-    label: "Max 20 characters",
+    label: 'Max 20 characters',
     regex: /^.{0,20}$/,
-    required: false  // Optional but checked
+    required: false, // Optional but checked
   },
   {
-    label: "Contains letter",
+    label: 'Contains letter',
     regex: /[a-zA-Z]/,
-    required: true
+    required: true,
   },
   {
-    label: "Contains number",
+    label: 'Contains number',
     regex: /[0-9]/,
-    required: true
-  }
+    required: true,
+  },
 ]
 
 // Real-time feedback:
@@ -650,12 +650,12 @@ export const useInitiateForgotPassword = () => {
     onSuccess: (data) => {
       // Store expireTime in zustand store
       useForgotPasswordStore.setState({
-        expireTime: data.expiresAt
+        expireTime: data.expiresAt,
       })
     },
     onError: (error) => {
       // Error toast shown by global handler
-    }
+    },
   })
 }
 
@@ -668,9 +668,9 @@ export const useVerifyOTPForgotPassword = () => {
       // Store JWT in zustand store
       useForgotPasswordStore.setState({
         token: data.token,
-        tokenExpireTime: calculateExpireTime(5) // 5 minutes
+        tokenExpireTime: calculateExpireTime(5), // 5 minutes
       })
-    }
+    },
   })
 }
 
@@ -682,9 +682,9 @@ export const useResendOTPForgotPassword = () => {
     onSuccess: (data) => {
       // Reset countdown with new expireTime
       useForgotPasswordStore.setState({
-        expireTime: data.expiresAt
+        expireTime: data.expiresAt,
       })
-    }
+    },
   })
 }
 
@@ -698,7 +698,7 @@ export const useConfirmForgotPassword = () => {
       useForgotPasswordStore.getState().resetStore()
       navigate('/auth/login')
       showToast('Password reset successful')
-    }
+    },
   })
 }
 ```
@@ -711,29 +711,26 @@ export const useConfirmForgotPassword = () => {
 const { mutate: initiate, isPending: isInitiating } =
   useInitiateForgotPassword()
 
-const { mutate: verify, isPending: isVerifying } =
-  useVerifyOTPForgotPassword()
+const { mutate: verify, isPending: isVerifying } = useVerifyOTPForgotPassword()
 
-const { mutate: resend, isPending: isResending } =
-  useResendOTPForgotPassword()
+const { mutate: resend, isPending: isResending } = useResendOTPForgotPassword()
 
-const { mutate: confirm, isPending: isConfirming } =
-  useConfirmForgotPassword()
+const { mutate: confirm, isPending: isConfirming } = useConfirmForgotPassword()
 
 // Handle step 1 submit
 const handleInitiate = (email: string) => {
   initiate(
     {
       email,
-      verificationMethod: 'email'
+      verificationMethod: 'email',
     },
     {
       onSuccess: (response) => {
         // response contains expiresAt
         // Hook handles store update
-        setStep(2)  // Go to OTP input
-      }
-    }
+        setStep(2) // Go to OTP input
+      },
+    },
   )
 }
 
@@ -743,9 +740,9 @@ const handleVerify = (code: string) => {
     { code },
     {
       onSuccess: () => {
-        setStep(3)  // Go to password reset
-      }
-    }
+        setStep(3) // Go to password reset
+      },
+    },
   )
 }
 
@@ -756,13 +753,13 @@ const handleConfirm = (newPassword: string) => {
   confirm(
     {
       newPassword,
-      token
+      token,
     },
     {
       onSuccess: () => {
         // Hook handles: clear store, navigate, toast
-      }
-    }
+      },
+    },
   )
 }
 ```
@@ -920,19 +917,19 @@ toast.*
 
 ## 14. Summary Table
 
-| Aspect | Details |
-|--------|---------|
-| **Methods** | Email or Phone Number |
-| **OTP Validity** | 10 minutes |
-| **JWT Validity** | 5 minutes |
-| **Rate Limit** | 3 requests/minute per endpoint |
-| **Password Rules** | 8-20 chars, letter + number required |
-| **Public Route** | Yes, no authentication needed |
-| **State Management** | Zustand store |
-| **Form Validation** | react-hook-form + zod |
-| **Multi-channel SMS** | Zalo OA (primary) + SMS (fallback) |
-| **Database Hashing** | bcrypt |
-| **JWT Signing** | HS256 |
+| Aspect                | Details                              |
+| --------------------- | ------------------------------------ |
+| **Methods**           | Email or Phone Number                |
+| **OTP Validity**      | 10 minutes                           |
+| **JWT Validity**      | 5 minutes                            |
+| **Rate Limit**        | 3 requests/minute per endpoint       |
+| **Password Rules**    | 8-20 chars, letter + number required |
+| **Public Route**      | Yes, no authentication needed        |
+| **State Management**  | Zustand store                        |
+| **Form Validation**   | react-hook-form + zod                |
+| **Multi-channel SMS** | Zalo OA (primary) + SMS (fallback)   |
+| **Database Hashing**  | bcrypt                               |
+| **JWT Signing**       | HS256                                |
 
 ---
 

@@ -1,6 +1,6 @@
 // /**
 //  * Navigation helpers for Expo Router
-//  * 
+//  *
 //  * Các helper functions để navigate với Expo Router
 //  */
 
@@ -70,7 +70,7 @@
 
 // /**
 //  * Hook để check xem route hiện tại có match với route nào không
-//  * 
+//  *
 //  * Note: Expo Router không có pathname như web router
 //  * Cần sử dụng useSegments() hoặc usePathname() từ expo-router nếu cần
 //  */
@@ -78,7 +78,7 @@
 //   // Với Expo Router, có thể dùng useSegments() để lấy segments hiện tại
 //   // import { useSegments } from 'expo-router'
 //   // const segments = useSegments()
-  
+
 //   return {
 //     /**
 //      * Check xem route có active không
@@ -88,7 +88,7 @@
 //       if (!currentPath) return false
 //       return currentPath.includes(routePath)
 //     },
-    
+
 //     /**
 //      * Tìm route từ path
 //      */
@@ -98,4 +98,3 @@
 //     },
 //   }
 // }
-

@@ -1,10 +1,9 @@
-import { Eye, EyeOff } from 'lucide-react-native'
-import { useState, useCallback } from 'react'
+import { useCallback } from 'react'
 import { Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, Text, View } from 'react-native'
 
-import { PasswordRulesInput } from '@/components/input/password-rules-input'
+import { PasswordInputField, PasswordRulesInput } from '@/components/input'
 import { Button } from '@/components/ui'
 import { ROUTE } from '@/constants'
 import { useZodForm } from '@/hooks'
@@ -17,9 +16,12 @@ interface ResetPasswordFormProps {
   token: string
 }
 
-export function ResetPasswordForm({ onSubmit, isLoading = false, token }: ResetPasswordFormProps) {
+export function ResetPasswordForm({
+  onSubmit,
+  isLoading = false,
+  token,
+}: ResetPasswordFormProps) {
   const { t } = useTranslation('auth')
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
 
   const schema = useResetPasswordSchema()
   const {
@@ -34,93 +36,86 @@ export function ResetPasswordForm({ onSubmit, isLoading = false, token }: ResetP
     },
   })
 
-  const onFormSubmit = useCallback((values: TResetPasswordSchema) => {
-    onSubmit(values)
-  }, [onSubmit])
+  const onFormSubmit = useCallback(
+    (values: TResetPasswordSchema) => {
+      onSubmit(values)
+    },
+    [onSubmit],
+  )
 
   return (
     <View className="gap-4">
+      {/* Mật khẩu mới */}
       <View>
-        <Text className="mb-2 text-sm font-sans-medium text-foreground">
+        <Text className="mb-2 font-sans-medium text-sm text-gray-900 dark:text-white">
           {t('forgotPassword.newPassword')}
         </Text>
         <Controller
           control={control}
           name="newPassword"
-          render={({ field: { onChange, value } }) => (
+          render={({ field: { onChange, onBlur, value } }) => (
             <PasswordRulesInput
               value={value}
               onChange={onChange}
+              onBlur={onBlur}
               placeholder={t('forgotPassword.enterNewPassword')}
               disabled={isLoading}
             />
           )}
         />
         {errors.newPassword && (
-          <Text className="mt-1 text-sm text-destructive">{errors.newPassword.message}</Text>
+          <Text className="mt-1 text-sm text-red-500 dark:text-red-400">
+            {errors.newPassword.message}
+          </Text>
         )}
       </View>
 
+      {/* Xác nhận mật khẩu — PasswordInputField thay TextInput thuần */}
       <View>
-        <Text className="mb-2 text-sm font-sans-medium text-foreground">
+        <Text className="mb-2 font-sans-medium text-sm text-gray-900 dark:text-white">
           {t('forgotPassword.confirmNewPassword')}
         </Text>
         <Controller
           control={control}
           name="confirmPassword"
           render={({ field: { onChange, onBlur, value } }) => (
-            <View className="relative">
-              <TextInput
-                className={`rounded-lg border bg-card px-4 py-3 pr-12 text-base font-sans text-foreground ${
-                  errors.confirmPassword ? 'border-destructive' : 'border-border'
-                }`}
-                placeholder={t('forgotPassword.enterConfirmNewPassword')}
-                placeholderTextColor="#9ca3af"
-                value={value}
-                onChangeText={onChange}
-                onBlur={onBlur}
-                secureTextEntry={!showConfirmPassword}
-                autoCapitalize="none"
-                editable={!isLoading}
-              />
-              <TouchableOpacity
-                className="absolute bottom-0 right-4 top-0 justify-center"
-                onPress={() => setShowConfirmPassword(!showConfirmPassword)}
-                disabled={isLoading}
-              >
-                {showConfirmPassword ? (
-                  <EyeOff size={20} color="#9ca3af" />
-                ) : (
-                  <Eye size={20} color="#9ca3af" />
-                )}
-              </TouchableOpacity>
-            </View>
+            <PasswordInputField
+              value={value}
+              onChange={onChange}
+              onBlur={onBlur}
+              placeholder={t('forgotPassword.enterConfirmNewPassword')}
+              disabled={isLoading}
+              error={errors.confirmPassword?.message}
+            />
           )}
         />
-        {errors.confirmPassword && (
-          <Text className="mt-1 text-sm text-destructive">{errors.confirmPassword.message}</Text>
-        )}
       </View>
 
-      <Button variant="primary" className="mt-2 h-11 rounded-lg" disabled={isLoading} onPress={handleSubmit(onFormSubmit)}>
+      <Button
+        variant="primary"
+        className="mt-2 h-11 rounded-lg"
+        disabled={isLoading}
+        onPress={handleSubmit(onFormSubmit)}
+      >
         {isLoading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text className="text-sm font-sans-semibold text-primary-foreground">
+          <Text className="font-sans-semibold text-sm text-white">
             {t('forgotPassword.reset')}
           </Text>
         )}
       </Button>
 
-      <TouchableOpacity
-        onPress={() => navigateNative.replace(ROUTE.LOGIN)}
+      <Button
+        variant="ghost"
+        className="mt-2"
         disabled={isLoading}
-        className="mt-4"
+        onPress={() => navigateNative.replace(ROUTE.LOGIN)}
       >
-        <Text className="text-center text-sm font-sans-medium text-primary">
-          Quay lại đăng nhập
+        <Text className="text-center font-sans-medium text-sm text-amber-500 dark:text-amber-400">
+          {t('forgotPassword.backToLogin')}
         </Text>
-      </TouchableOpacity>
+      </Button>
     </View>
   )
 }

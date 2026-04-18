@@ -10,7 +10,9 @@ function CartShell({ onBack }: { onBack: () => void }) {
   return (
     <View className="flex-1 bg-white p-4 dark:bg-black">
       <View className="mb-3 flex-row items-center justify-between">
-        <Text className="text-xl font-bold text-gray-900 dark:text-white">Cart</Text>
+        <Text className="text-xl font-bold text-gray-900 dark:text-white">
+          Cart
+        </Text>
         <TouchableOpacity onPress={onBack}>
           <Text className="text-sm font-semibold text-blue-600 dark:text-blue-400">
             Back
@@ -36,12 +38,21 @@ export default function CartPage() {
 
   return contentReady ? (
     <Suspense
-      fallback={<CartShell onBack={() => (router.canGoBack() ? router.back() : router.replace('/menu'))} />}
+      fallback={
+        <CartShell
+          onBack={() =>
+            router.canGoBack() ? router.back() : router.replace('/menu')
+          }
+        />
+      }
     >
       <CartContent />
     </Suspense>
   ) : (
-    <CartShell onBack={() => (router.canGoBack() ? router.back() : router.replace('/menu'))} />
+    <CartShell
+      onBack={() =>
+        router.canGoBack() ? router.back() : router.replace('/menu')
+      }
+    />
   )
 }
-

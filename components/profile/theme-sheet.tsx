@@ -13,10 +13,25 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '@/constants'
 import { applyTheme, type ThemeMode, useThemeStore } from '@/stores/theme.store'
 
-const THEME_OPTIONS: { mode: ThemeMode; icon: typeof Sun; labelKey: string; fallback: string }[] = [
-  { mode: 'light', icon: Sun, labelKey: 'profile.theme.light', fallback: 'Sáng' },
+const THEME_OPTIONS: {
+  mode: ThemeMode
+  icon: typeof Sun
+  labelKey: string
+  fallback: string
+}[] = [
+  {
+    mode: 'light',
+    icon: Sun,
+    labelKey: 'profile.theme.light',
+    fallback: 'Sáng',
+  },
   { mode: 'dark', icon: Moon, labelKey: 'profile.theme.dark', fallback: 'Tối' },
-  { mode: 'system', icon: Monitor, labelKey: 'profile.theme.system', fallback: 'Tự động' },
+  {
+    mode: 'system',
+    icon: Monitor,
+    labelKey: 'profile.theme.system',
+    fallback: 'Tự động',
+  },
 ]
 
 export const ThemeSheet = memo(function ThemeSheet({
@@ -43,7 +58,13 @@ export const ThemeSheet = memo(function ThemeSheet({
   )
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.4} pressBehavior="close" />
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.4}
+        pressBehavior="close"
+      />
     ),
     [],
   )
@@ -85,7 +106,9 @@ export const ThemeSheet = memo(function ThemeSheet({
           const active = currentTheme === mode
           return (
             <View key={mode}>
-              {idx > 0 && <View style={[s.divider, { backgroundColor: dividerColor }]} />}
+              {idx > 0 && (
+                <View style={[s.divider, { backgroundColor: dividerColor }]} />
+              )}
               <TouchableOpacity
                 style={s.row}
                 onPress={() => handleSelect(mode)}
@@ -94,10 +117,20 @@ export const ThemeSheet = memo(function ThemeSheet({
                 <View style={s.iconWrap}>
                   <Icon size={20} color={active ? primaryColor : textColor} />
                 </View>
-                <Text style={[s.label, { color: active ? primaryColor : textColor, fontWeight: active ? '600' : '400' }]}>
+                <Text
+                  style={[
+                    s.label,
+                    {
+                      color: active ? primaryColor : textColor,
+                      fontWeight: active ? '600' : '400',
+                    },
+                  ]}
+                >
                   {t(labelKey, fallback)}
                 </Text>
-                {active && <Check size={18} color={primaryColor} strokeWidth={2.5} />}
+                {active && (
+                  <Check size={18} color={primaryColor} strokeWidth={2.5} />
+                )}
               </TouchableOpacity>
             </View>
           )

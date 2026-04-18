@@ -1,6 +1,7 @@
 jest.mock('expo-image', () => ({
   Image: () => null,
 }))
+// eslint-disable-next-line @typescript-eslint/no-unsafe-return
 jest.mock('react-native-reanimated', () => ({
   ...jest.requireActual('react-native-reanimated/mock'),
   createAnimatedComponent: (c: unknown) => c,
@@ -16,5 +17,7 @@ jest.mock('@/constants', () => ({
 import { ProductHeroImage } from '@/components/product/product-hero-image'
 
 it('is wrapped in React.memo', () => {
-  expect((ProductHeroImage as any).$$typeof).toBe(Symbol.for('react.memo'))
+  expect((ProductHeroImage as { $$typeof?: symbol }).$$typeof).toBe(
+    Symbol.for('react.memo'),
+  )
 })

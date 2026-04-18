@@ -1,4 +1,7 @@
-import { useForgotPasswordStore, type IForgotPasswordStore } from '@/stores/forgot-password.store'
+import {
+  useForgotPasswordStore,
+  type IForgotPasswordStore,
+} from '@/stores/forgot-password.store'
 import { useShallow } from 'zustand/react/shallow'
 // import { VerificationMethod } from '@/constants'
 
@@ -21,7 +24,8 @@ export const selectEmail = (state: IForgotPasswordStore) => state.email
  * Select phone number field only
  * Component re-renders only if phone number changes
  */
-export const selectPhoneNumber = (state: IForgotPasswordStore) => state.phoneNumber
+export const selectPhoneNumber = (state: IForgotPasswordStore) =>
+  state.phoneNumber
 
 /**
  * Select current step only
@@ -39,19 +43,22 @@ export const selectToken = (state: IForgotPasswordStore) => state.token
  * Select verification method only
  * Component re-renders only if method changes
  */
-export const selectVerificationMethod = (state: IForgotPasswordStore) => state.verificationMethod
+export const selectVerificationMethod = (state: IForgotPasswordStore) =>
+  state.verificationMethod
 
 /**
  * Select OTP expiration time only
  * Component re-renders only if OTP expiration changes
  */
-export const selectExpireTime = (state: IForgotPasswordStore) => state.expireTime
+export const selectExpireTime = (state: IForgotPasswordStore) =>
+  state.expireTime
 
 /**
  * Select JWT expiration time only
  * Component re-renders only if JWT expiration changes
  */
-export const selectTokenExpireTime = (state: IForgotPasswordStore) => state.tokenExpireTime
+export const selectTokenExpireTime = (state: IForgotPasswordStore) =>
+  state.tokenExpireTime
 
 // ============================================================================
 // Composite Selectors (Group Related Fields)
@@ -182,7 +189,8 @@ export const useToken = () => useForgotPasswordStore(selectToken)
  * Use verification method with memoization
  * @returns verificationMethod (EMAIL or PHONE_NUMBER)
  */
-export const useVerificationMethod = () => useForgotPasswordStore(selectVerificationMethod)
+export const useVerificationMethod = () =>
+  useForgotPasswordStore(selectVerificationMethod)
 
 /**
  * Use OTP expiration time with memoization
@@ -194,55 +202,64 @@ export const useExpireTime = () => useForgotPasswordStore(selectExpireTime)
  * Use JWT expiration time with memoization
  * @returns tokenExpireTime ISO string
  */
-export const useTokenExpireTime = () => useForgotPasswordStore(selectTokenExpireTime)
+export const useTokenExpireTime = () =>
+  useForgotPasswordStore(selectTokenExpireTime)
 
 /**
  * Use user identity fields with memoization
  * @returns { email, phoneNumber, verificationMethod }
  */
-export const useIdentity = () => useForgotPasswordStore(useShallow(selectIdentity))
+export const useIdentity = () =>
+  useForgotPasswordStore(useShallow(selectIdentity))
 
 /**
  * Use flow state with memoization
  * @returns { step, token }
  */
-export const useFlowState = () => useForgotPasswordStore(useShallow(selectFlowState))
+export const useFlowState = () =>
+  useForgotPasswordStore(useShallow(selectFlowState))
 
 /**
  * Use timing state with memoization
  * @returns { expireTime, tokenExpireTime }
  */
-export const useTimingState = () => useForgotPasswordStore(useShallow(selectTimingState))
+export const useTimingState = () =>
+  useForgotPasswordStore(useShallow(selectTimingState))
 
 /**
  * Use all setter actions (stable reference)
  * @returns all setter functions
  */
-export const useActions = () => useForgotPasswordStore(useShallow(selectActions))
+export const useActions = () =>
+  useForgotPasswordStore(useShallow(selectActions))
 
 /**
  * Use step-related actions
  * @returns { setStep, clearForgotPassword }
  */
-export const useStepActions = () => useForgotPasswordStore(useShallow(selectStepActions))
+export const useStepActions = () =>
+  useForgotPasswordStore(useShallow(selectStepActions))
 
 /**
  * Use identity-related actions
  * @returns { setEmail, setPhoneNumber, setVerificationMethod }
  */
-export const useIdentityActions = () => useForgotPasswordStore(useShallow(selectIdentityActions))
+export const useIdentityActions = () =>
+  useForgotPasswordStore(useShallow(selectIdentityActions))
 
 /**
  * Use timing-related actions
  * @returns { setExpireTime, setTokenExpireTime }
  */
-export const useTimingActions = () => useForgotPasswordStore(useShallow(selectTimingActions))
+export const useTimingActions = () =>
+  useForgotPasswordStore(useShallow(selectTimingActions))
 
 /**
  * Use OTP-related actions and state
  * @returns { setToken, setTokenExpireTime, setExpireTime }
  */
-export const useOTPActions = () => useForgotPasswordStore(useShallow(selectOTPActions))
+export const useOTPActions = () =>
+  useForgotPasswordStore(useShallow(selectOTPActions))
 
 // ============================================================================
 // Convenience Combinations
@@ -253,37 +270,45 @@ export const useOTPActions = () => useForgotPasswordStore(useShallow(selectOTPAc
  * @returns { email, setEmail }
  */
 export const useEmailState = () =>
-  useForgotPasswordStore(useShallow((state: IForgotPasswordStore) => ({
-    email: state.email,
-    setEmail: state.setEmail,
-  })))
+  useForgotPasswordStore(
+    useShallow((state: IForgotPasswordStore) => ({
+      email: state.email,
+      setEmail: state.setEmail,
+    })),
+  )
 
 /**
  * Use phone number field and its setter
  * @returns { phoneNumber, setPhoneNumber }
  */
 export const usePhoneNumberState = () =>
-  useForgotPasswordStore(useShallow((state: IForgotPasswordStore) => ({
-    phoneNumber: state.phoneNumber,
-    setPhoneNumber: state.setPhoneNumber,
-  })))
+  useForgotPasswordStore(
+    useShallow((state: IForgotPasswordStore) => ({
+      phoneNumber: state.phoneNumber,
+      setPhoneNumber: state.setPhoneNumber,
+    })),
+  )
 
 /**
  * Use step field and its setter
  * @returns { step, setStep }
  */
 export const useStepState = () =>
-  useForgotPasswordStore(useShallow((state: IForgotPasswordStore) => ({
-    step: state.step,
-    setStep: state.setStep,
-  })))
+  useForgotPasswordStore(
+    useShallow((state: IForgotPasswordStore) => ({
+      step: state.step,
+      setStep: state.setStep,
+    })),
+  )
 
 /**
  * Use token field and its setter
  * @returns { token, setToken }
  */
 export const useTokenState = () =>
-  useForgotPasswordStore(useShallow((state: IForgotPasswordStore) => ({
-    token: state.token,
-    setToken: state.setToken,
-  })))
+  useForgotPasswordStore(
+    useShallow((state: IForgotPasswordStore) => ({
+      token: state.token,
+      setToken: state.setToken,
+    })),
+  )
