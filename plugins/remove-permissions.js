@@ -1,24 +1,30 @@
 /**
- * Custom Expo config plugin — remove unwanted Android permissions that are
- * injected by third-party plugins (e.g. expo-media-library adds READ_MEDIA_IMAGES,
- * READ_MEDIA_VIDEO, READ_MEDIA_AUDIO even when the app only writes to MediaStore).
+ * Custom Expo config plugin — strip unwanted Android permissions from BOTH sources:
  *
- * On Android 13+, expo-image-picker uses the system photo picker which needs no
- * READ_MEDIA_IMAGES permission. Saving to MediaStore (writeOnly: true) also needs
- * no read permissions. We only keep WRITE_EXTERNAL_STORAGE (capped at API 29).
+ * SOURCE 1 — Config plugins (expo-media-library, expo-image-picker, expo-av…)
+ *   These inject permissions into android/app/src/main/AndroidManifest.xml during
+ *   `expo prebuild`. We filter them out of the uses-permission array.
  *
- * Runs last via withAndroidManifest, after all other plugins, so removals
- * are guaranteed to survive plugin ordering issues.
+ * SOURCE 2 — Native AndroidManifest.xml inside node_modules (e.g.
+ *   expo-image-picker, expo-image, expo-file-system each have their own manifest
+ *   declaring RECORD_AUDIO / READ_EXTERNAL_STORAGE). These are merged by Gradle
+ *   AFTER prebuild — config plugin filters have no effect on them.
+ *
+ *   Fix: add a `tools:node="remove"` entry for each unwanted permission. Gradle's
+ *   manifest merger honours this annotation and strips the permission even when a
+ *   dependency re-declares it.
+ *
+ * This plugin must stay LAST in app.json plugins array so it runs after all other
+ * plugins have registered their permissions.
  */
 const { withAndroidManifest } = require('@expo/config-plugins')
 
 const PERMISSIONS_TO_REMOVE = [
-  // Media read permissions — not needed: system photo picker handles selection
-  // and MediaStore.createAsset handles saving without read access.
+  // Media read — system photo picker and MediaStore.createAsset need no read access.
   'android.permission.READ_MEDIA_IMAGES',
   'android.permission.READ_MEDIA_VISUAL_USER_SELECTED',
   'android.permission.READ_EXTERNAL_STORAGE',
-  // Audio/video — app never accesses audio or video files.
+  // Audio/video — app never records audio or accesses video files.
   'android.permission.RECORD_AUDIO',
   'android.permission.READ_MEDIA_AUDIO',
   'android.permission.READ_MEDIA_VIDEO',
@@ -30,22 +36,27 @@ module.exports = function withRemovePermissions(config) {
   return withAndroidManifest(config, (mod) => {
     const manifest = mod.modResults
 
-    // Handle both uses-permission and uses-permission-sdk-23 tags
+    // ── Step 1: Remove from config-plugin-injected entries ──────────────────
     for (const tag of ['uses-permission', 'uses-permission-sdk-23']) {
-      const permissions = manifest.manifest[tag] ?? []
-      // eslint-disable-next-line no-console
-      console.log(
-        `[remove-permissions] ${tag} found:`,
-        permissions.map((p) => p?.$?.['android:name']),
+      const existing = manifest.manifest[tag] ?? []
+      manifest.manifest[tag] = existing.filter(
+        (perm) => !PERMISSIONS_TO_REMOVE.includes(perm?.$?.['android:name']),
       )
-      manifest.manifest[tag] = permissions.filter((perm) => {
-        const name = perm?.$?.['android:name']
-        const shouldRemove = PERMISSIONS_TO_REMOVE.includes(name)
-        if (shouldRemove) {
-          // eslint-disable-next-line no-console
-          console.log(`[remove-permissions] Removing: ${name}`)
-        }
-        return !shouldRemove
+    }
+
+    // ── Step 2: Add tools:node="remove" to block native manifest merges ──────
+    // Gradle merges AndroidManifest.xml files from every dependency at build time.
+    // tools:node="remove" tells the merger to strip the entry even when a library
+    // re-declares it — this is the only way to remove native-manifest permissions.
+    if (!manifest.manifest['uses-permission']) {
+      manifest.manifest['uses-permission'] = []
+    }
+    for (const permission of PERMISSIONS_TO_REMOVE) {
+      manifest.manifest['uses-permission'].push({
+        $: {
+          'android:name': permission,
+          'tools:node': 'remove',
+        },
       })
     }
 
