@@ -2,7 +2,14 @@
 import { colors } from '@/constants'
 import { cn } from '@/lib/utils'
 import React, { useCallback, useRef } from 'react'
-import { NativeSyntheticEvent, TextInput, TextInputKeyPressEventData, TouchableOpacity, View, useColorScheme } from 'react-native'
+import {
+  NativeSyntheticEvent,
+  TextInput,
+  TextInputKeyPressEventData,
+  TouchableOpacity,
+  View,
+  useColorScheme,
+} from 'react-native'
 
 interface OTPInputProps {
   value: string
@@ -20,53 +27,54 @@ interface OTPInputFieldProps {
   characterSet: 'numeric' | 'alphanumeric'
   disabled: boolean
   onChangeText: (text: string, index: number) => void
-  onKeyPress: (e: NativeSyntheticEvent<TextInputKeyPressEventData>, index: number) => void
+  onKeyPress: (
+    e: NativeSyntheticEvent<TextInputKeyPressEventData>,
+    index: number,
+  ) => void
   setRef: (ref: TextInput | null) => void
   onPress: () => void
 }
 
 // Memoized OTP Input Field Component
-const OTPInputField = React.memo(({
-  index,
-  value,
-  primaryColor,
-  mutedBorderColor,
-  characterSet,
-  disabled,
-  onChangeText,
-  onKeyPress,
-  setRef,
-  onPress,
-}: OTPInputFieldProps) => (
-  <TouchableOpacity
-    activeOpacity={1}
-    onPress={onPress}
-    className="flex-1"
-  >
-    <TextInput
-      ref={setRef}
-      className={cn(
-        'h-14 rounded-lg border-2 text-center text-xl font-sans-semibold',
-        'bg-card text-foreground',
-        disabled && 'opacity-50'
-      )}
-      style={
-        value
-          ? { borderColor: primaryColor }
-          : { borderColor: mutedBorderColor }
-      }
-      keyboardType={characterSet === 'numeric' ? 'number-pad' : 'default'}
-      maxLength={1}
-      value={value.toUpperCase()}
-      onChangeText={(text) => onChangeText(text, index)}
-      onKeyPress={(e) => onKeyPress(e, index)}
-      editable={!disabled}
-      selectTextOnFocus
-      autoCapitalize={characterSet === 'alphanumeric' ? 'characters' : 'none'}
-      autoCorrect={false}
-    />
-  </TouchableOpacity>
-))
+const OTPInputField = React.memo(
+  ({
+    index,
+    value,
+    primaryColor,
+    mutedBorderColor,
+    characterSet,
+    disabled,
+    onChangeText,
+    onKeyPress,
+    setRef,
+    onPress,
+  }: OTPInputFieldProps) => (
+    <TouchableOpacity activeOpacity={1} onPress={onPress} className="flex-1">
+      <TextInput
+        ref={setRef}
+        className={cn(
+          'h-14 rounded-lg border-2 text-center font-sans-semibold text-xl',
+          'bg-white text-gray-900 dark:bg-gray-800 dark:text-white',
+          disabled && 'opacity-50',
+        )}
+        style={
+          value
+            ? { borderColor: primaryColor }
+            : { borderColor: mutedBorderColor }
+        }
+        keyboardType={characterSet === 'numeric' ? 'number-pad' : 'default'}
+        maxLength={1}
+        value={value.toUpperCase()}
+        onChangeText={(text) => onChangeText(text, index)}
+        onKeyPress={(e) => onKeyPress(e, index)}
+        editable={!disabled}
+        selectTextOnFocus
+        autoCapitalize={characterSet === 'alphanumeric' ? 'characters' : 'none'}
+        autoCorrect={false}
+      />
+    </TouchableOpacity>
+  ),
+)
 
 OTPInputField.displayName = 'OTPInputField'
 
@@ -87,48 +95,58 @@ export function OTPInput({
   const pressHandlersRef = useRef<(() => void)[]>([])
   for (let i = 0; i < length; i++) {
     if (!refSettersRef.current[i]) {
-      refSettersRef.current[i] = (ref) => { inputRefs.current[i] = ref }
-      pressHandlersRef.current[i] = () => { inputRefs.current[i]?.focus() }
+      refSettersRef.current[i] = (ref) => {
+        inputRefs.current[i] = ref
+      }
+      pressHandlersRef.current[i] = () => {
+        inputRefs.current[i]?.focus()
+      }
     }
   }
 
   // Memoize change handler
-  const handleChange = useCallback((text: string, index: number) => {
-    const normalizedText = text.toUpperCase()
-    const filteredText =
-      characterSet === 'numeric'
-        ? normalizedText.replace(/\D/g, '')
-        : normalizedText.replace(/[^A-Z0-9]/g, '')
+  const handleChange = useCallback(
+    (text: string, index: number) => {
+      const normalizedText = text.toUpperCase()
+      const filteredText =
+        characterSet === 'numeric'
+          ? normalizedText.replace(/\D/g, '')
+          : normalizedText.replace(/[^A-Z0-9]/g, '')
 
-    if (filteredText.length > 0) {
-      const next = value.toUpperCase().split('')
-      const chars = filteredText.slice(0, length - index).split('')
-      chars.forEach((char, offset) => {
-        next[index + offset] = char
-      })
-      const newValue = next.join('').slice(0, length)
-      onChange(newValue)
+      if (filteredText.length > 0) {
+        const next = value.toUpperCase().split('')
+        const chars = filteredText.slice(0, length - index).split('')
+        chars.forEach((char, offset) => {
+          next[index + offset] = char
+        })
+        const newValue = next.join('').slice(0, length)
+        onChange(newValue)
 
-      // Auto focus next input
-      const nextIndex = index + chars.length
-      if (nextIndex < length) {
-        inputRefs.current[nextIndex]?.focus()
+        // Auto focus next input
+        const nextIndex = index + chars.length
+        if (nextIndex < length) {
+          inputRefs.current[nextIndex]?.focus()
+        }
+      } else {
+        // Delete character
+        const next = value.split('')
+        next[index] = ''
+        onChange(next.join('').slice(0, length))
       }
-    } else {
-      // Delete character
-      const next = value.split('')
-      next[index] = ''
-      onChange(next.join('').slice(0, length))
-    }
-  }, [value, length, characterSet, onChange])
+    },
+    [value, length, characterSet, onChange],
+  )
 
   // Memoize keypress handler
-  const handleKeyPress = useCallback((e: NativeSyntheticEvent<TextInputKeyPressEventData>, index: number) => {
-    // Handle backspace to focus previous input
-    if (e.nativeEvent.key === 'Backspace' && !value[index] && index > 0) {
-      inputRefs.current[index - 1]?.focus()
-    }
-  }, [value])
+  const handleKeyPress = useCallback(
+    (e: NativeSyntheticEvent<TextInputKeyPressEventData>, index: number) => {
+      // Handle backspace to focus previous input
+      if (e.nativeEvent.key === 'Backspace' && !value[index] && index > 0) {
+        inputRefs.current[index - 1]?.focus()
+      }
+    },
+    [value],
+  )
 
   return (
     <View className="flex-row justify-between gap-2">

@@ -85,6 +85,7 @@
     "selectReservedTableWarning2": " đã được đặt, bạn có chắc vẫn muốn chọn bàn này không?",
     "selectSize": "Kích thước",
     "selectTable": "Chọn bàn",
+    "tableLabel": "Bàn {{name}}",
     "size": "Kích thước",
     "sold": "Đã bán",
     "stock": "Số lượng tồn: ",
@@ -115,6 +116,7 @@
     "viewDetails": "Xem chi tiết",
     "viewMenu": "Xem thực đơn",
     "voucher": "Mã giảm giá",
+    "changeVoucher": "Thay đổi",
     "deliveryInfoMissing": "Thiếu thông tin giao hàng",
     "duration": "Thời gian",
     "deliveryAddress": "Địa chỉ giao hàng",
@@ -171,7 +173,9 @@
     "noAddressSelected": "Chưa chọn địa chỉ",
     "deliveryAddressNote": "Lưu ý: Hệ thống không hỗ trợ giao hàng với khoảng cách lớn hơn {{distance}}km.",
     "orderNotePlaceholder": "Thêm ghi chú cho đơn hàng...",
-    "itemNotePlaceholder": "Ghi chú món..."
+    "itemNotePlaceholder": "Ghi chú món...",
+    "placeOrder": "Đặt hàng",
+    "confirmOrder": "Xác nhận đơn hàng"
   },
   "order": {
     "all": "Tất cả",
@@ -196,6 +200,7 @@
     "completedMobile": "Xong",
     "confirm": "Xác nhận",
     "confirmAddress": "Xác nhận địa chỉ",
+    "confirmAddressSuccess": "Địa chỉ đã được cập nhật thành công",
     "confirmation": "Xác nhận thanh toán",
     "confirmCreateOrderTracking": "Xác nhận giao hàng",
     "confirmOrder": "Vui lòng xác nhận thông tin đơn hàng trước khi đặt hàng!",
@@ -282,7 +287,9 @@
     "orderInformation": "Thông tin đơn hàng",
     "orderItemCount": "Số lượng món",
     "orderItemList": "Danh sách món",
+    "itemNotePlaceholder": "Ghi chú món...",
     "orderItems": "Danh sách món",
+    "itemCount": "{{count}} sản phẩm",
     "orderLevelVoucher": "Giảm giá voucher (đơn hàng)",
     "orderList": "Danh sách đơn hàng",
     "orderListCaption": "Danh sách đơn hàng",
@@ -298,6 +305,7 @@
     "paid": "Đã thanh toán",
     "transactionId": "Mã giao dịch",
     "partialAppliedNote": "Voucher giảm tối đa theo giá trị đơn hàng",
+    "payment": "Thanh toán",
     "paymentInformation": "Thông tin thanh toán",
     "paymentMethod": "Phương thức",
     "paymentStatus": "Thanh toán",
@@ -347,10 +355,11 @@
     "totalPayment": "Tổng tiền",
     "totalPrice": "Thành tiền",
     "unitPrice": "Đơn giá",
-    "unpaid":"Chưa thanh toán",
+    "unpaid": "Chưa thanh toán",
     "update": "Chỉnh sửa đơn hàng",
     "updateNote": "Cập nhật",
     "updateOrder": "Cập nhật",
+    "updateOrderFailed": "Cập nhật thất bại, vui lòng thử lại",
     "updatePayment": "Cập nhật thanh toán",
     "usedVoucher": "Mã đang dùng",
     "viewDetail": "Xem chi tiết",
@@ -420,7 +429,19 @@
     "voucherNotSupport": "Voucher không hỗ trợ",
     "creditCardTransactionIdPlaceholder": "ID giao dịch thẻ tín dụng",
     "loyaltyPointEarningNote": "Sau khi thanh toán thành công, điểm tích lũy sẽ được cộng vào tài khoản.",
-    "transactionId": "ID giao dịch"
+    "transactionId": "ID giao dịch",
+    "alreadyPaid": "Đã thanh toán",
+    "processing": "Đang xử lý...",
+    "noMethodSelected": "Chưa chọn phương thức",
+    "coinPaymentSubmitted": "Đã thanh toán bằng xu thành công",
+    "paymentError": "Lỗi khi cập nhật phương thức thanh toán"
+  },
+  "payment": {
+    "successTitle": "Thanh toán thành công!",
+    "successSubtitle": "Đơn hàng #{{slug}} của bạn đã được thanh toán.",
+    "viewOrderDetail": "Xem chi tiết đơn",
+    "goToMenu": "Xem thực đơn",
+    "loadFailed": "Không thể tải đơn hàng. Vui lòng thử lại."
   },
   "table": {
     "title": "Danh sách bàn"

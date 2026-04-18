@@ -1,6 +1,11 @@
 import { MapPin } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useState } from 'react'
-import { StyleSheet, Text, TouchableOpacity, useColorScheme } from 'react-native'
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+} from 'react-native'
 
 import { BranchSheet } from './branch-sheet'
 import { colors } from '@/constants'

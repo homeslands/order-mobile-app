@@ -38,20 +38,16 @@ function ScrollArea({
 }: ScrollAreaProps) {
   // Separate viewport and scrollbar from children
   const childrenArray = React.Children.toArray(children)
-  const viewport = childrenArray.find(
-    (child) => {
-      if (!React.isValidElement(child)) return false
-      // Check by function reference directly (type-safe)
-      return child.type === ScrollAreaViewport
-    }
-  )
-  const scrollbar = childrenArray.find(
-    (child) => {
-      if (!React.isValidElement(child)) return false
-      // Check by function reference directly (type-safe)
-      return child.type === ScrollAreaScrollbar
-    }
-  )
+  const viewport = childrenArray.find((child) => {
+    if (!React.isValidElement(child)) return false
+    // Check by function reference directly (type-safe)
+    return child.type === ScrollAreaViewport
+  })
+  const scrollbar = childrenArray.find((child) => {
+    if (!React.isValidElement(child)) return false
+    // Check by function reference directly (type-safe)
+    return child.type === ScrollAreaScrollbar
+  })
 
   return (
     <View className={cn('relative overflow-hidden', className)}>
@@ -124,4 +120,3 @@ ScrollArea.Thumb = ScrollAreaThumb
 ScrollArea.Corner = ScrollAreaCorner
 
 export { ScrollArea }
-

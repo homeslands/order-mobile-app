@@ -21,7 +21,7 @@ Three main optimizations:
    Prevent re-renders from unrelated state changes
    Expected: -60% unrelated re-renders
 
-2️⃣ Store Restructuring  
+2️⃣ Store Restructuring
    ↓
    Split into smaller, focused atoms
    Expected: Better separation of concerns
@@ -40,7 +40,8 @@ Three main optimizations:
 
 ```typescript
 // Current: Full store subscription
-const { email, step, token, expireTime, tokenExpireTime } = useForgotPasswordStore()
+const { email, step, token, expireTime, tokenExpireTime } =
+  useForgotPasswordStore()
 
 // Issue: Component re-renders when ANY store field changes
 // Example: If countdown updates (which affects re-render count but not this component),
@@ -67,17 +68,17 @@ export const selectTokenExpireTime = (state) => state.tokenExpireTime
 export const selectIdentity = (state) => ({
   email: state.email,
   phoneNumber: state.phoneNumber,
-  verificationMethod: state.verificationMethod
+  verificationMethod: state.verificationMethod,
 })
 
 export const selectStepState = (state) => ({
   step: state.step,
-  token: state.token
+  token: state.token,
 })
 
 export const selectOTPState = (state) => ({
   expireTime: state.expireTime,
-  tokenExpireTime: state.tokenExpireTime
+  tokenExpireTime: state.tokenExpireTime,
 })
 
 // Export hooks
@@ -92,6 +93,7 @@ export const useOTPState = () => useForgotPasswordStore(selectOTPState)
 ### Usage in Components
 
 **Before:**
+
 ```typescript
 // app/auth/forgot-password/email.tsx
 const {
@@ -105,33 +107,38 @@ const {
   setExpireTime,
   expireTime,
   setTokenExpireTime,
-  tokenExpireTime,  // ← Gets ALL of these, re-renders if ANY change
+  tokenExpireTime, // ← Gets ALL of these, re-renders if ANY change
 } = useForgotPasswordStore()
 
-// Component re-renders if countdown changes (internal state), even though 
+// Component re-renders if countdown changes (internal state), even though
 // countdown doesn't depend on store
 ```
 
 **After:**
+
 ```typescript
 // app/auth/forgot-password/email.tsx
-import { useEmail, useStep, useToken, useOTPState } from '@/stores/selectors/forgot-password'
+import {
+  useEmail,
+  useStep,
+  useToken,
+  useOTPState,
+} from '@/stores/selectors/forgot-password'
 
 // Only subscribe to what you need
-const email = useEmail()        // Only re-renders if email changes
-const step = useStep()          // Only re-renders if step changes
-const token = useToken()        // Only re-renders if token changes
-const { expireTime, tokenExpireTime } = useOTPState()  // Only re-renders if OTP state changes
+const email = useEmail() // Only re-renders if email changes
+const step = useStep() // Only re-renders if step changes
+const token = useToken() // Only re-renders if token changes
+const { expireTime, tokenExpireTime } = useOTPState() // Only re-renders if OTP state changes
 
 // Separate hook for actions (never changes, no re-renders)
-const { setEmail, setStep, setToken, clearForgotPassword } = useForgotPasswordStore(
-  (state) => ({
+const { setEmail, setStep, setToken, clearForgotPassword } =
+  useForgotPasswordStore((state) => ({
     setEmail: state.setEmail,
     setStep: state.setStep,
     setToken: state.setToken,
     clearForgotPassword: state.clearForgotPassword,
-  })
-)
+  }))
 ```
 
 ### Benefits
@@ -165,7 +172,7 @@ interface IForgotPasswordStore {
   token: string
   expireTime: string
   tokenExpireTime: string
-  
+
   // Actions for all
   setEmail(email: string): void
   setPhoneNumber(phone: string): void
@@ -187,7 +194,7 @@ interface IdentitySlice {
   email: string
   phoneNumber: string
   verificationMethod: string
-  
+
   setEmail(email: string): void
   setPhoneNumber(phone: string): void
   setVerificationMethod(method: string): void
@@ -199,7 +206,7 @@ interface IdentitySlice {
 interface StateSlice {
   step: number
   token: string
-  
+
   setStep(step: number): void
   setToken(token: string): void
 }
@@ -210,7 +217,7 @@ interface StateSlice {
 interface TimingSlice {
   expireTime: string
   tokenExpireTime: string
-  
+
   setExpireTime(time: string): void
   setTokenExpireTime(time: string): void
 }
@@ -247,6 +254,7 @@ After:
 ### Problem: Janky Transitions
 
 Currently when user taps "Send OTP" button:
+
 ```
 1. User taps button
 2. Button disabled (isInitiating = true)
@@ -265,9 +273,9 @@ import { useLoading } from '@/hooks/use-navigation-loading'
 
 export function LoadingOverlay() {
   const isLoading = useLoading()
-  
+
   if (!isLoading) return null
-  
+
   return (
     <View className="absolute inset-0 bg-black/50 justify-center items-center z-50">
       <ActivityIndicator size="large" />
@@ -278,14 +286,14 @@ export function LoadingOverlay() {
 // In ForgotPasswordByEmailForm
 const handleSubmit = (email: string) => {
   setLoading(true)  // ← Show overlay immediately
-  
+
   initiateForgotPassword(
     { email },
     {
       onSuccess: () => {
         setExpireTime(...)
         setStep(2)
-        
+
         // Navigate after state is set
         setTimeout(() => {
           navigateNative.push(ROUTE.FORGOT_PASSWORD_EMAIL)
@@ -298,6 +306,7 @@ const handleSubmit = (email: string) => {
 ```
 
 **Benefits:**
+
 - User sees overlay immediately (no jank perception)
 - State updates happen while overlay is showing
 - Navigation happens after state settles
@@ -322,7 +331,7 @@ const handleSubmit = (email: string) => {
     expireTime: "...",
     step: 2
   })
-  
+
   // Navigate after state update
   navigateNative.push(...)
 }
@@ -354,7 +363,7 @@ const handleSubmit = (email: string) => {
     <Stack.Screen name="forgot-password/email" />
     <Stack.Screen name="forgot-password/phone" />
   </Stack>
-  
+
   {/* Pre-mount off-screen for instant navigation */}
   <GhostMount
     routes={[
@@ -366,6 +375,7 @@ const handleSubmit = (email: string) => {
 ```
 
 **How it works:**
+
 - Screens are mounted off-screen before user navigates
 - When user taps button, screen is already ready
 - Navigation animation is instant (just slides screen into view)
@@ -431,14 +441,17 @@ touch stores/selectors/forgot-password.ts
 ## Risk Assessment
 
 ### Low Risk ✅
+
 - Creating selectors (no breaking changes)
 - Using selectors (backward compatible)
 
 ### Medium Risk ⚠️⚠️
+
 - Removing old store subscriptions (could miss fields)
 - Batching state updates (timing-sensitive)
 
 ### Mitigation
+
 - Test each component individually
 - Use React DevTools to verify subscriptions
 - Use Profiler to check re-render counts
@@ -449,21 +462,23 @@ touch stores/selectors/forgot-password.ts
 ## Performance Impact
 
 ### Before Phase 2
+
 ```
 Store update → Component A re-renders (subscribed to full store)
             → Component B re-renders (subscribed to full store)
             → Component C re-renders (subscribed to full store)
-            
+
 If only one field changed that Component A needs:
 B and C still re-render unnecessarily (50-60% wasted)
 ```
 
 ### After Phase 2
+
 ```
 Store update (email) → Component A re-renders (subscribes to email)
                     → Component B ignores (subscribes to step)
                     → Component C ignores (subscribes to token)
-                    
+
 Only A re-renders (100% useful)
 ```
 
@@ -474,23 +489,27 @@ Only A re-renders (100% useful)
 ## Testing Checklist
 
 ### Unit Tests
+
 - [ ] Selectors return correct values
 - [ ] Selectors are memoized properly
 - [ ] Store updates don't affect unsubscribed selectors
 
 ### Integration Tests
+
 - [ ] Email field updates don't cause step change re-renders
 - [ ] Step transitions happen smoothly
 - [ ] Token updates don't affect email component
 - [ ] Loading overlay appears during async operations
 
 ### Performance Tests
+
 - [ ] Component re-renders only when subscribed field changes
 - [ ] Transitions are smooth (60fps or close)
 - [ ] No memory leaks from old subscriptions
 - [ ] Navigation latency is <100ms
 
 ### Regression Tests
+
 - [ ] All form submissions work
 - [ ] All navigation works
 - [ ] All timer countdowns work
@@ -505,7 +524,7 @@ Before Phase 2:
   Re-renders/second: ~1-2
   Transition FPS: ~50-55fps
   Time to navigate: ~300-400ms
-  
+
 After Phase 2:
   Re-renders/second: <0.5
   Transition FPS: 55-60fps
@@ -517,6 +536,7 @@ After Phase 2:
 ## Files to Create/Modify
 
 ### New Files
+
 ```
 ✅ stores/selectors/forgot-password.ts          (100-150 lines)
 ✅ hooks/use-navigation-loading.ts              (30-50 lines)
@@ -524,6 +544,7 @@ After Phase 2:
 ```
 
 ### Modified Files
+
 ```
 📝 app/auth/forgot-password/email.tsx           (-10 lines, +5 lines)
 📝 app/auth/forgot-password/phone.tsx           (-10 lines, +5 lines)
@@ -535,14 +556,14 @@ After Phase 2:
 
 ## Summary Table
 
-| Optimization | Impact | Effort | Risk |
-|---|---|---|---|
-| **Store Selectors** | -60% unrelated re-renders | 2-3h | ✅ Low |
-| **Store Split** | Better separation | 1-2h | ⚠️⚠️ Medium |
-| **Loading Overlay** | Better UX perception | 1-2h | ⚠️⚠️ Medium |
-| **Batch Updates** | Fewer re-renders | 1h | ⚠️ Low |
-| **Pre-mount Steps** | Instant navigation | 1-2h | ⚠️⚠️ Medium |
-| **Total** | **50-60% smoother UX** | **8-10h** | **⚠️⚠️ Medium** |
+| Optimization        | Impact                    | Effort    | Risk            |
+| ------------------- | ------------------------- | --------- | --------------- |
+| **Store Selectors** | -60% unrelated re-renders | 2-3h      | ✅ Low          |
+| **Store Split**     | Better separation         | 1-2h      | ⚠️⚠️ Medium     |
+| **Loading Overlay** | Better UX perception      | 1-2h      | ⚠️⚠️ Medium     |
+| **Batch Updates**   | Fewer re-renders          | 1h        | ⚠️ Low          |
+| **Pre-mount Steps** | Instant navigation        | 1-2h      | ⚠️⚠️ Medium     |
+| **Total**           | **50-60% smoother UX**    | **8-10h** | **⚠️⚠️ Medium** |
 
 ---
 
@@ -556,4 +577,3 @@ Phase 2 transforms the store from a monolithic ball of mud to a well-organized s
 4. ✅ Easier testing and debugging
 
 **When ready to proceed:** Ensure Phase 1 is fully tested and working. Phase 2 requires careful testing of store subscriptions.
-

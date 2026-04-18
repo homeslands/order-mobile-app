@@ -1,4 +1,7 @@
-import { CustomStack, profileNativeStackScreenOptions } from '@/layouts/custom-stack'
+import {
+  CustomStack,
+  profileNativeStackScreenOptions,
+} from '@/layouts/custom-stack'
 
 /**
  * Menu stack: chi tiết món /menu/[slug], product-rating, ...

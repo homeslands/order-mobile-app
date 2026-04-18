@@ -1,6 +1,7 @@
 # Feature 1: Loyalty Points Input UI
 
 ## Mô tả
+
 Cho phép người dùng đã đăng nhập nhập số điểm muốn dùng khi thanh toán đơn PENDING, với quick-select buttons, nút "Dùng tất cả", auto-cap, hiển thị savings, và tự cancel reservation khi xóa hết input.
 
 ---
@@ -10,17 +11,18 @@ Cho phép người dùng đã đăng nhập nhập số điểm muốn dùng khi
 ### `app/payment/loyalty-points-input.tsx`
 
 Props interface:
+
 ```typescript
 interface LoyaltyPointsInputProps {
   orderSlug: string
-  orderTotal: number          // order.subtotal (sau voucher discount)
-  userTotalPoints: number     // từ useLoyaltyPoints hook
-  currentPointsUsed: number   // order.accumulatedPointsToUse
+  orderTotal: number // order.subtotal (sau voucher discount)
+  userTotalPoints: number // từ useLoyaltyPoints hook
+  currentPointsUsed: number // order.accumulatedPointsToUse
   isDark: boolean
   primaryColor: string
-  onApplied: () => void       // → refetchOrder()
-  onCancelled: () => void     // → refetchOrder()
-  onResetRef?: React.MutableRefObject<() => void>  // cho Feature 3
+  onApplied: () => void // → refetchOrder()
+  onCancelled: () => void // → refetchOrder()
+  onResetRef?: React.MutableRefObject<() => void> // cho Feature 3
 }
 ```
 
@@ -31,13 +33,13 @@ interface LoyaltyPointsInputProps {
 ### `app/payment/[order].tsx`
 
 Thêm:
+
 ```typescript
 // Hook lấy điểm user
 const userSlug = userInfo?.slug
-const { data: loyaltyData } = useLoyaltyPoints(
-  userSlug,
-  { enabled: isLoggedIn && !!userSlug && order?.status === OrderStatus.PENDING }
-)
+const { data: loyaltyData } = useLoyaltyPoints(userSlug, {
+  enabled: isLoggedIn && !!userSlug && order?.status === OrderStatus.PENDING,
+})
 const userTotalPoints = loyaltyData?.result?.totalPoints ?? 0
 
 // Ref để reset input từ bên ngoài (Feature 3)
@@ -48,20 +50,23 @@ const resetLoyaltyPointsInput = useCallback(() => {
 ```
 
 Chèn vào JSX sau `<PaymentMethodSection>`:
+
 ```tsx
-{isLoggedIn && order.status === OrderStatus.PENDING && userTotalPoints > 0 && (
-  <LoyaltyPointsInput
-    orderSlug={orderSlug}
-    orderTotal={order.subtotal}
-    userTotalPoints={userTotalPoints}
-    currentPointsUsed={order.accumulatedPointsToUse ?? 0}
-    isDark={isDark}
-    primaryColor={primaryColor}
-    onApplied={refetchOrder}
-    onCancelled={refetchOrder}
-    onResetRef={loyaltyInputResetRef}
-  />
-)}
+{
+  isLoggedIn && order.status === OrderStatus.PENDING && userTotalPoints > 0 && (
+    <LoyaltyPointsInput
+      orderSlug={orderSlug}
+      orderTotal={order.subtotal}
+      userTotalPoints={userTotalPoints}
+      currentPointsUsed={order.accumulatedPointsToUse ?? 0}
+      isDark={isDark}
+      primaryColor={primaryColor}
+      onApplied={refetchOrder}
+      onCancelled={refetchOrder}
+      onResetRef={loyaltyInputResetRef}
+    />
+  )
+}
 ```
 
 ---
@@ -69,19 +74,20 @@ Chèn vào JSX sau `<PaymentMethodSection>`:
 ## Logic chi tiết
 
 ### Tính toán
+
 ```typescript
 const QUICK_SELECT_PRESETS = [1000, 2000, 3000, 5000, 10000, 20000, 50000]
 
 // maxUsablePoints = MIN(userPoints, orderTotal)
 const maxUsablePoints = useMemo(
   () => Math.min(userTotalPoints, Math.max(0, orderTotal)),
-  [userTotalPoints, orderTotal]
+  [userTotalPoints, orderTotal],
 )
 
 // Quick select: chỉ lấy preset < maxUsablePoints
 const quickSelectValues = useMemo(
   () => QUICK_SELECT_PRESETS.filter((v) => v < maxUsablePoints),
-  [maxUsablePoints]
+  [maxUsablePoints],
 )
 
 // Parse input → clamp về max
@@ -95,6 +101,7 @@ const isUseAll = clampedPoints === maxUsablePoints && maxUsablePoints > 0
 ```
 
 ### Handlers
+
 ```typescript
 // Chỉ nhận số
 const handleInputChange = (text: string) => {
@@ -122,9 +129,15 @@ const handleApply = () => {
   applyPoints(
     { orderSlug, pointsToUse: points },
     {
-      onSuccess: () => { onApplied(); setIsApplying(false) },
-      onError: () => { showErrorToastMessage('Lỗi áp dụng điểm'); setIsApplying(false) }
-    }
+      onSuccess: () => {
+        onApplied()
+        setIsApplying(false)
+      },
+      onError: () => {
+        showErrorToastMessage('Lỗi áp dụng điểm')
+        setIsApplying(false)
+      },
+    },
   )
 }
 
@@ -148,10 +161,11 @@ useEffect(() => {
   if (currentPointsUsed > 0) {
     setInputValue(String(currentPointsUsed))
   }
-}, [])  // Chỉ chạy 1 lần khi mount
+}, []) // Chỉ chạy 1 lần khi mount
 ```
 
 ### UI Layout
+
 ```
 ┌─────────────────────────────────────────────────────┐
 │ Tiêu đề: "Điểm tích lũy"                            │
@@ -173,16 +187,16 @@ useEffect(() => {
 
 ## Edge Cases
 
-| Case | Xử lý |
-|------|--------|
-| `userTotalPoints === 0` | Ẩn toàn bộ component (guard ở parent) |
-| `orderTotal === 0` | `maxUsablePoints = 0` → disable input + show "Không thể dùng điểm" |
-| Input > max | Auto-clamp khi blur |
-| Input = "0" hoặc rỗng | Nếu `currentPointsUsed > 0` → auto cancel reservation |
-| `currentPointsUsed > 0` khi mount | Pre-fill input, không gọi API lại |
-| Apply thất bại | Toast error, giữ input value |
-| `quickSelectValues` rỗng (max < 1000) | Chỉ hiển thị nút "Tối đa" |
-| Double tap "Áp dụng" | Disable button khi `isApplying = true` |
+| Case                                  | Xử lý                                                              |
+| ------------------------------------- | ------------------------------------------------------------------ |
+| `userTotalPoints === 0`               | Ẩn toàn bộ component (guard ở parent)                              |
+| `orderTotal === 0`                    | `maxUsablePoints = 0` → disable input + show "Không thể dùng điểm" |
+| Input > max                           | Auto-clamp khi blur                                                |
+| Input = "0" hoặc rỗng                 | Nếu `currentPointsUsed > 0` → auto cancel reservation              |
+| `currentPointsUsed > 0` khi mount     | Pre-fill input, không gọi API lại                                  |
+| Apply thất bại                        | Toast error, giữ input value                                       |
+| `quickSelectValues` rỗng (max < 1000) | Chỉ hiển thị nút "Tối đa"                                          |
+| Double tap "Áp dụng"                  | Disable button khi `isApplying = true`                             |
 
 ---
 

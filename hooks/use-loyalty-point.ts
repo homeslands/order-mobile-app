@@ -1,4 +1,9 @@
-import { keepPreviousData, useMutation, useInfiniteQuery, useQuery } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  useMutation,
+  useInfiniteQuery,
+  useQuery,
+} from '@tanstack/react-query'
 
 import {
   applyLoyaltyPoint,

@@ -7,18 +7,21 @@ Chia nhỏ theo thứ tự dễ → khó, mỗi step build on step trước.
 ## Phase 1: Hiển thị (không cần API)
 
 ### 1.1 Input nhập mã voucher
+
 - Thêm `TextInput` vào `PerfVoucherSheet`
 - Local state `code` trong sheet
 - Nút "Áp dụng" (disabled khi code rỗng)
 - **File:** `components/perf/cart-content.tsx` (PerfVoucherSheet)
 
 ### 1.2 Hiển thị voucher đã áp dụng
+
 - Trigger button đổi UI: "Thêm mã giảm giá" → hiện title + code + nút X gỡ
 - Đọc từ `usePerfCartVoucher()` selector
 - Bấm X → `setVoucher(null)`
 - **File:** `components/perf/cart-content.tsx` (PerfCartFooter)
 
 ### 1.3 Tổng tiền trừ voucher discount
+
 - Footer hiện giá gốc gạch ngang + giá sau voucher
 - Tính đơn giản: `total - voucherDiscount` (chưa cần 6 combinations)
 - **File:** `components/perf/cart-content.tsx` (PerfCartFooter)
@@ -28,6 +31,7 @@ Chia nhỏ theo thứ tự dễ → khó, mỗi step build on step trước.
 ## Phase 2: Kết nối API
 
 ### 2.1 Fetch voucher theo code
+
 - Nhập code trong sheet → gọi `useSpecificPublicVoucher({ code })`
 - Hiện kết quả: tên voucher, giá trị giảm, min order
 - Loading state khi fetch
@@ -36,6 +40,7 @@ Chia nhỏ theo thứ tự dễ → khó, mỗi step build on step trước.
 - **Hook:** `hooks/use-voucher.ts` → `useSpecificPublicVoucher`
 
 ### 2.2 Validate voucher trước khi áp dụng
+
 - Bấm "Áp dụng" → build request từ perf cart items → gọi `validatePublicVoucher`
 - Thành công → `setVoucher(voucher)` → đóng sheet → toast
 - Thất bại → hiện lỗi trong sheet
@@ -44,6 +49,7 @@ Chia nhỏ theo thứ tự dễ → khó, mỗi step build on step trước.
 - **Store:** `stores/perf-cart.store.ts` → `setVoucher`
 
 ### 2.3 Fetch danh sách voucher eligible
+
 - Gọi `usePublicVouchersForOrder` với perf cart items khi sheet mở
 - Build request: `{ orderItems, minOrderValue }` từ perf cart
 - Hiện danh sách voucher cards trong sheet (dưới input)
@@ -56,6 +62,7 @@ Chia nhỏ theo thứ tự dễ → khó, mỗi step build on step trước.
 ## Phase 3: Validation client-side
 
 ### 3.1 Phân loại valid / invalid voucher
+
 - Dùng `processVoucherList()` từ `components/sheet/voucher-validation.ts`
 - Input: danh sách voucher + cart product slugs + subtotal
 - Output: `{ voucher, isValid, errorMessage }[]`
@@ -64,6 +71,7 @@ Chia nhỏ theo thứ tự dễ → khó, mỗi step build on step trước.
 - **Import:** `components/sheet/voucher-validation.ts` → `processVoucherList`
 
 ### 3.2 Error message per voucher
+
 - Hiện lý do không khả dụng dưới mỗi voucher card:
   - Hết hạn
   - Hết lượt sử dụng
@@ -74,6 +82,7 @@ Chia nhỏ theo thứ tự dễ → khó, mỗi step build on step trước.
 - **File:** `components/perf/cart-content.tsx` (voucher card trong sheet)
 
 ### 3.3 Auto-remove khi giỏ thay đổi
+
 - Khi user thêm/xoá/đổi số lượng trong perf cart → check voucher còn valid không
 - Dùng `shouldAutoRemoveVoucher()` từ `voucher-validation.ts`
 - Nếu không valid → `setVoucher(null)` + toast thông báo
@@ -86,6 +95,7 @@ Chia nhỏ theo thứ tự dễ → khó, mỗi step build on step trước.
 ## Phase 4: UI polish
 
 ### 4.1 Voucher card UI
+
 - Card style: left color strip + dashed separator + content + checkbox
 - Hiện: discount label, min order value, usage progress bar, expiry countdown
 - Reuse `getDiscountLabel()` + `getExpiryText()` từ `voucher-row.tsx`
@@ -94,12 +104,14 @@ Chia nhỏ theo thứ tự dễ → khó, mỗi step build on step trước.
 - **File:** tạo `components/perf/perf-voucher-card.tsx` hoặc inline trong sheet
 
 ### 4.2 Pagination load more
+
 - Nút "Tải thêm" khi API trả `hasNext: true`
 - `currentPage` state → tăng khi bấm → fetch thêm → append vào list
 - Cap 50 items (dùng `truncateVoucherList`)
 - **File:** `components/perf/cart-content.tsx` (PerfVoucherSheet)
 
 ### 4.3 Voucher condition detail
+
 - Bấm "Xem điều kiện" trên card → mở sub-sheet chi tiết
 - Hiện: code (copy), hạn sử dụng, danh sách điều kiện
 - Dùng `buildVoucherConditions()` từ `voucher-validation.ts`
@@ -111,6 +123,7 @@ Chia nhỏ theo thứ tự dễ → khó, mỗi step build on step trước.
 ## Phase 5: Tính giá chính xác
 
 ### 5.1 Discount calculation đầy đủ
+
 - Thay thế tính đơn giản (Phase 1.3) bằng logic đầy đủ 6 combinations:
   - `percent_order` × `all_required` / `at_least_one_required`
   - `fixed_value` × `all_required` / `at_least_one_required`
@@ -121,6 +134,7 @@ Chia nhỏ theo thứ tự dễ → khó, mỗi step build on step trước.
 - **Import:** `utils/cart.ts` hoặc `cart-price-calc` native module
 
 ### 5.2 Hiện giá per-item sau voucher
+
 - Mỗi `PerfCartItemRow` hiện giá sau voucher discount (nếu item eligible)
 - Cần `displayItems` từ calculation → truyền xuống per-item
 - Giá gạch ngang (original) + giá mới (sau voucher)

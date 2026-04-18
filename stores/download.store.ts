@@ -8,5 +8,5 @@ export const useDownloadStore = create<IDownloadStore>((set) => ({
   setProgress: (progress) => set({ progress }),
   setFileName: (fileName) => set({ fileName }),
   setIsDownloading: (isDownloading) => set({ isDownloading }),
-  reset: () => set({ progress: 0, fileName: '', isDownloading: false })
+  reset: () => set({ progress: 0, fileName: '', isDownloading: false }),
 }))

@@ -10,10 +10,7 @@ const numberFormatter = new Intl.NumberFormat('vi-VN', {
   maximumFractionDigits: 0,
 })
 
-export function formatCurrencyNative(
-  value: number,
-  currency = 'đ',
-): string {
+export function formatCurrencyNative(value: number, currency = 'đ'): string {
   const safeValue = value < 0 ? 0 : value
   if (!CartPriceCalc) {
     return `${numberFormatter.format(safeValue)} ${currency}`

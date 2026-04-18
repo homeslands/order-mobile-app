@@ -40,7 +40,14 @@ export const FloatingHeader = memo(function FloatingHeader({
   const pageBg = isDark ? colors.background.dark : colors.background.light
 
   const gradientColors = useMemo(
-    () => [pageBg, `${pageBg}E6`, `${pageBg}B0`, `${pageBg}50`, `${pageBg}00`] as const,
+    () =>
+      [
+        pageBg,
+        `${pageBg}E6`,
+        `${pageBg}B0`,
+        `${pageBg}50`,
+        `${pageBg}00`,
+      ] as const,
     [pageBg],
   )
 
@@ -66,9 +73,15 @@ export const FloatingHeader = memo(function FloatingHeader({
       </View>
 
       {/* Title — absolute centered */}
-      <View style={[s.titleWrap, { top: STATIC_TOP_INSET + 10 }]} pointerEvents="none">
+      <View
+        style={[s.titleWrap, { top: STATIC_TOP_INSET + 10 }]}
+        pointerEvents="none"
+      >
         <Text
-          style={[s.title, { color: isDark ? colors.gray[50] : colors.gray[900] }]}
+          style={[
+            s.title,
+            { color: isDark ? colors.gray[50] : colors.gray[900] },
+          ]}
           numberOfLines={1}
         >
           {title}
@@ -76,7 +89,10 @@ export const FloatingHeader = memo(function FloatingHeader({
       </View>
 
       {/* Row: back + spacer + right */}
-      <View style={[s.row, { paddingTop: STATIC_TOP_INSET + 10 }]} pointerEvents="auto">
+      <View
+        style={[s.row, { paddingTop: STATIC_TOP_INSET + 10 }]}
+        pointerEvents="auto"
+      >
         <Pressable
           onPress={handleBack}
           hitSlop={8}
@@ -86,7 +102,10 @@ export const FloatingHeader = memo(function FloatingHeader({
             s.shadow,
           ]}
         >
-          <ChevronLeft size={20} color={isDark ? colors.gray[50] : colors.gray[900]} />
+          <ChevronLeft
+            size={20}
+            color={isDark ? colors.gray[50] : colors.gray[900]}
+          />
         </Pressable>
 
         {rightElement ?? <View style={s.circleBtn} />}

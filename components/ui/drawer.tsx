@@ -81,20 +81,16 @@ function Drawer({
 
   // Separate trigger and content from children
   const childrenArray = React.Children.toArray(children)
-  const trigger = childrenArray.find(
-    (child) => {
-      if (!React.isValidElement(child)) return false
-      const childType = child.type as { displayName?: string }
-      return childType?.displayName === 'DrawerTrigger'
-    }
-  )
-  const content = childrenArray.find(
-    (child) => {
-      if (!React.isValidElement(child)) return false
-      const childType = child.type as { displayName?: string }
-      return childType?.displayName === 'DrawerContent'
-    }
-  )
+  const trigger = childrenArray.find((child) => {
+    if (!React.isValidElement(child)) return false
+    const childType = child.type as { displayName?: string }
+    return childType?.displayName === 'DrawerTrigger'
+  })
+  const content = childrenArray.find((child) => {
+    if (!React.isValidElement(child)) return false
+    const childType = child.type as { displayName?: string }
+    return childType?.displayName === 'DrawerContent'
+  })
 
   // Handle Modal visibility with animation delay
   React.useEffect(() => {
@@ -123,10 +119,14 @@ function Drawer({
       >
         {React.isValidElement(content) &&
           React.cloneElement(
-            content as React.ReactElement<DrawerContentProps & { direction?: 'left' | 'right' | 'top' | 'bottom' }>,
+            content as React.ReactElement<
+              DrawerContentProps & {
+                direction?: 'left' | 'right' | 'top' | 'bottom'
+              }
+            >,
             {
               direction,
-            }
+            },
           )}
       </Modal>
     </DrawerContext.Provider>
@@ -210,7 +210,12 @@ function DrawerContent({
     }
   }, [context?.open, slideValue, fadeValue])
 
-  const getPositionStyle = (): { left?: number; right?: number; top?: number; bottom?: number } => {
+  const getPositionStyle = (): {
+    left?: number
+    right?: number
+    top?: number
+    bottom?: number
+  } => {
     switch (direction) {
       case 'left':
         return { left: 0, top: insets.top, bottom: insets.bottom }
@@ -229,25 +234,29 @@ function DrawerContent({
       case 'right':
         if (height) {
           // Calculate height from percentage string or use number directly
-          const calculatedHeight = typeof height === 'string' && height.includes('%')
-            ? (parseFloat(height) / 100) * (screenHeight - insets.top - insets.bottom)
-            : typeof height === 'number' 
-              ? height 
-              : screenHeight - insets.top - insets.bottom
-          return { 
+          const calculatedHeight =
+            typeof height === 'string' && height.includes('%')
+              ? (parseFloat(height) / 100) *
+                (screenHeight - insets.top - insets.bottom)
+              : typeof height === 'number'
+                ? height
+                : screenHeight - insets.top - insets.bottom
+          return {
             width: Math.min(screenWidth * 0.8, 340),
-            height: calculatedHeight
+            height: calculatedHeight,
           }
         }
         return { width: Math.min(screenWidth * 0.8, 340) }
       case 'top':
       case 'bottom':
         if (height) {
-          const calculatedHeight = typeof height === 'string' && height.includes('%')
-            ? (parseFloat(height) / 100) * (screenHeight - insets.top - insets.bottom)
-            : typeof height === 'number' 
-              ? height 
-              : screenHeight - insets.top - insets.bottom
+          const calculatedHeight =
+            typeof height === 'string' && height.includes('%')
+              ? (parseFloat(height) / 100) *
+                (screenHeight - insets.top - insets.bottom)
+              : typeof height === 'number'
+                ? height
+                : screenHeight - insets.top - insets.bottom
           return { height: calculatedHeight }
         }
         // For bottom drawer, use auto height if className doesn't specify max-h
@@ -325,12 +334,12 @@ function DrawerContent({
       {/* Drawer - Slide animation */}
       <Animated.View
         className={cn(
-          'absolute bg-white dark:bg-gray-800 shadow-xl',
+          'absolute bg-white shadow-xl dark:bg-gray-800',
           direction === 'left' && 'rounded-r-3xl',
           direction === 'right' && 'rounded-l-3xl',
           direction === 'top' && 'rounded-b-3xl',
           direction === 'bottom' && 'rounded-t-3xl',
-          className
+          className,
         )}
         style={[
           getPositionStyle(),
@@ -409,8 +418,8 @@ function DrawerTitle({ children, className }: DrawerTitleProps) {
   return (
     <Text
       className={cn(
-        'text-lg font-semibold text-gray-900 dark:text-gray-50 leading-none tracking-tight',
-        className
+        'text-lg font-semibold leading-none tracking-tight text-gray-900 dark:text-gray-50',
+        className,
       )}
     >
       {children}
@@ -421,9 +430,7 @@ function DrawerTitle({ children, className }: DrawerTitleProps) {
 // Description - drawer description
 function DrawerDescription({ children, className }: DrawerDescriptionProps) {
   return (
-    <Text
-      className={cn('text-sm text-gray-600 dark:text-gray-400', className)}
-    >
+    <Text className={cn('text-sm text-gray-600 dark:text-gray-400', className)}>
       {children}
     </Text>
   )

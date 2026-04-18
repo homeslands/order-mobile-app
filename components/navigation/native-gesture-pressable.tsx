@@ -139,7 +139,14 @@ export const NativeGesturePressable = React.forwardRef<
       })
 
     return gesture
-  }, [disabled, onPressOut, triggerAction, pressScale, onPressIn, isTabNavigate])
+  }, [
+    disabled,
+    onPressOut,
+    triggerAction,
+    pressScale,
+    onPressIn,
+    isTabNavigate,
+  ])
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pressScale.value }],

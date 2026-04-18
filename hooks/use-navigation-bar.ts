@@ -8,7 +8,7 @@ import {
 
 /**
  * Hook để quản lý Navigation Bar trên Android
- * 
+ *
  * @param backgroundColor - Màu nền của navigation bar (mặc định: #FFFFFF)
  * @param light - true = icon màu đen (cho nền sáng), false = icon màu trắng (cho nền tối)
  * @param animated - Có animate khi đổi màu không (mặc định: true)
@@ -16,7 +16,7 @@ import {
 export function useNavigationBar(
   backgroundColor: string = '#FFFFFF',
   light: boolean = true,
-  animated: boolean = true
+  animated: boolean = true,
 ) {
   useEffect(() => {
     // Chỉ áp dụng trên Android
@@ -33,7 +33,7 @@ export function useNavigationBar(
 
 /**
  * Utility function để đổi màu navigation bar ngay lập tức
- * 
+ *
  * @param backgroundColor - Màu nền của navigation bar
  * @param light - true = icon màu đen, false = icon màu trắng
  * @param animated - Có animate không
@@ -41,7 +41,7 @@ export function useNavigationBar(
 export const setNavigationBarColor = (
   backgroundColor: string,
   light: boolean = true,
-  animated: boolean = true
+  animated: boolean = true,
 ): Promise<{ success: boolean }> => {
   if (Platform.OS !== 'android') {
     return Promise.resolve({ success: false })
@@ -51,13 +51,14 @@ export const setNavigationBarColor = (
 
 /**
  * Utility function để ẩn/hiện navigation bar
- * 
+ *
  * @param hidden - true = ẩn, false = hiện
  */
-export const setNavigationBarHidden = (hidden: boolean): Promise<{ success: boolean }> => {
+export const setNavigationBarHidden = (
+  hidden: boolean,
+): Promise<{ success: boolean }> => {
   if (Platform.OS !== 'android') {
     return Promise.resolve({ success: false })
   }
   return hidden ? hideNavigationBar() : showNavigationBar()
 }
-

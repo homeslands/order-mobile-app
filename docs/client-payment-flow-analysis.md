@@ -1,6 +1,7 @@
 # Phân tích chi tiết Flow thanh toán Client
 
 **Các file chính:**
+
 - `app/order-ui/src/app/client/payment/page.tsx` — Trang thanh toán chính
 - `app/order-ui/src/stores/order-flow.store.ts` — Store quản lý flow đơn hàng
 - `app/order-ui/src/utils/payment-resolver.ts` — Logic xác định phương thức thanh toán khả dụng
@@ -19,27 +20,27 @@ Flow thanh toán client bắt đầu sau khi đơn hàng được tạo. User đ
 
 ### `IPaymentData` (trong Order Flow Store)
 
-| Field | Type | Mô tả |
-|-------|------|--------|
-| `orderSlug` | `string` | Mã đơn hàng |
-| `paymentMethod` | `PaymentMethod` | Phương thức thanh toán đã chọn |
-| `transactionId` | `string?` | Mã giao dịch (cho thẻ tín dụng / membership card) |
-| `qrCode` | `string` | Hình ảnh QR code cho chuyển khoản |
-| `paymentSlug` | `string` | Mã tham chiếu thanh toán |
-| `orderData` | `IOrder?` | Dữ liệu đơn hàng cache từ API |
-| `paymentAmount` | `number?` | Số tiền thanh toán |
-| `isQrValid` | `boolean` | Cờ xác nhận QR code hợp lệ |
+| Field           | Type            | Mô tả                                             |
+| --------------- | --------------- | ------------------------------------------------- |
+| `orderSlug`     | `string`        | Mã đơn hàng                                       |
+| `paymentMethod` | `PaymentMethod` | Phương thức thanh toán đã chọn                    |
+| `transactionId` | `string?`       | Mã giao dịch (cho thẻ tín dụng / membership card) |
+| `qrCode`        | `string`        | Hình ảnh QR code cho chuyển khoản                 |
+| `paymentSlug`   | `string`        | Mã tham chiếu thanh toán                          |
+| `orderData`     | `IOrder?`       | Dữ liệu đơn hàng cache từ API                     |
+| `paymentAmount` | `number?`       | Số tiền thanh toán                                |
+| `isQrValid`     | `boolean`       | Cờ xác nhận QR code hợp lệ                        |
 
 ### Actions của Store
 
-| Action | Mô tả |
-|--------|--------|
-| `initializePayment(orderSlug, paymentMethod)` | Khởi tạo thanh toán |
-| `updatePaymentMethod(method, transactionId?)` | Cập nhật phương thức |
-| `updateQrCode(qrCode)` | Cập nhật QR code (có validate) |
-| `setOrderFromAPI(order)` | Đồng bộ order từ API (giữ QR nếu API không trả) |
-| `setPaymentSlug(slug)` | Set mã tham chiếu thanh toán |
-| `clearPaymentData()` | Xóa dữ liệu, reset về bước ORDERING |
+| Action                                        | Mô tả                                           |
+| --------------------------------------------- | ----------------------------------------------- |
+| `initializePayment(orderSlug, paymentMethod)` | Khởi tạo thanh toán                             |
+| `updatePaymentMethod(method, transactionId?)` | Cập nhật phương thức                            |
+| `updateQrCode(qrCode)`                        | Cập nhật QR code (có validate)                  |
+| `setOrderFromAPI(order)`                      | Đồng bộ order từ API (giữ QR nếu API không trả) |
+| `setPaymentSlug(slug)`                        | Set mã tham chiếu thanh toán                    |
+| `clearPaymentData()`                          | Xóa dữ liệu, reset về bước ORDERING             |
 
 ---
 
@@ -47,20 +48,20 @@ Flow thanh toán client bắt đầu sau khi đơn hàng được tạo. User đ
 
 ### Payment Method Constants
 
-| Constant | Giá trị |
-|----------|---------|
+| Constant                      | Giá trị           |
+| ----------------------------- | ----------------- |
 | `PaymentMethod.BANK_TRANSFER` | `'bank-transfer'` |
-| `PaymentMethod.CASH` | `'cash'` |
-| `PaymentMethod.POINT` | `'point'` |
-| `PaymentMethod.CREDIT_CARD` | `'credit-card'` |
+| `PaymentMethod.CASH`          | `'cash'`          |
+| `PaymentMethod.POINT`         | `'point'`         |
+| `PaymentMethod.CREDIT_CARD`   | `'credit-card'`   |
 
 ### Phương thức khả dụng theo Role
 
-| Role | Phương thức khả dụng |
-|------|---------------------|
-| **CUSTOMER** (đăng nhập) | `BANK_TRANSFER`, `POINT` |
-| **STAFF / ADMIN** | `BANK_TRANSFER`, `CASH`, `CREDIT_CARD`, `POINT` |
-| **Khách vãng lai** (không đăng nhập) | `BANK_TRANSFER` |
+| Role                                 | Phương thức khả dụng                            |
+| ------------------------------------ | ----------------------------------------------- |
+| **CUSTOMER** (đăng nhập)             | `BANK_TRANSFER`, `POINT`                        |
+| **STAFF / ADMIN**                    | `BANK_TRANSFER`, `CASH`, `CREDIT_CARD`, `POINT` |
+| **Khách vãng lai** (không đăng nhập) | `BANK_TRANSFER`                                 |
 
 ---
 
@@ -69,19 +70,20 @@ Flow thanh toán client bắt đầu sau khi đơn hàng được tạo. User đ
 Utility xác định phương thức thanh toán khả dụng dựa trên nhiều yếu tố:
 
 ### Input
+
 - User role
 - Voucher hiện tại (nếu có)
 - Phương thức thanh toán hiện tại
 
 ### Output
 
-| Field | Mô tả |
-|-------|--------|
-| `effectiveMethods` | Các phương thức khả dụng cho đơn hàng + user hiện tại |
-| `defaultMethod` | Phương thức đề xuất mặc định |
-| `disabledMethods` | Phương thức bị vô hiệu hóa + lý do |
-| `payButtonEnabled` | Có cho phép bấm thanh toán không |
-| `bannerMessage` | Thông báo cảnh báo nếu không có phương thức nào khả dụng |
+| Field              | Mô tả                                                    |
+| ------------------ | -------------------------------------------------------- |
+| `effectiveMethods` | Các phương thức khả dụng cho đơn hàng + user hiện tại    |
+| `defaultMethod`    | Phương thức đề xuất mặc định                             |
+| `disabledMethods`  | Phương thức bị vô hiệu hóa + lý do                       |
+| `payButtonEnabled` | Có cho phép bấm thanh toán không                         |
+| `bannerMessage`    | Thông báo cảnh báo nếu không có phương thức nào khả dụng |
 
 ### Logic lọc
 
@@ -135,6 +137,7 @@ Utility xác định phương thức thanh toán khả dụng dựa trên nhiề
 ### Component: `ClientPaymentMethodSelect`
 
 **Hiển thị:**
+
 - Radio group các phương thức khả dụng
 - QR code hiển thị bên cạnh `BANK_TRANSFER` (nếu tổng tiền >= 2.000đ)
 - Phương thức bị disable hiện lý do
@@ -166,6 +169,7 @@ Utility xác định phương thức thanh toán khả dụng dựa trên nhiề
 ### Dialog xóa voucher khi thanh toán
 
 Có 2 phiên bản:
+
 - `ClientRemoveVoucherWhenPayingDialog` — cho khách đăng nhập
 - `ClientNoLoginRemoveVoucherWhenPayingDialog` — cho khách vãng lai
 
@@ -178,6 +182,7 @@ Có 2 phiên bản:
 ### Component: `ClientVoucherListSheetInPayment`
 
 **Khác biệt so với voucher sheet khi tạo đơn:**
+
 - Gọi API cập nhật voucher trực tiếp lên server (không chỉ local)
 - Trigger `onSuccess` callback để parent refetch order
 
@@ -214,18 +219,18 @@ Có 2 phiên bản:
 
 ### Tính năng
 
-| Tính năng | Mô tả |
-|-----------|--------|
-| Toggle "Dùng tất cả" | Áp dụng toàn bộ điểm khả dụng |
-| Nhập thủ công | Nhập số điểm muốn dùng (khi không chọn "tất cả") |
-| Hiển thị | Điểm khả dụng vs. điểm tối đa có thể dùng |
-| Tính toán real-time | Giảm trực tiếp vào tổng thanh toán |
+| Tính năng            | Mô tả                                            |
+| -------------------- | ------------------------------------------------ |
+| Toggle "Dùng tất cả" | Áp dụng toàn bộ điểm khả dụng                    |
+| Nhập thủ công        | Nhập số điểm muốn dùng (khi không chọn "tất cả") |
+| Hiển thị             | Điểm khả dụng vs. điểm tối đa có thể dùng        |
+| Tính toán real-time  | Giảm trực tiếp vào tổng thanh toán               |
 
 ### Hooks sử dụng
 
-| Hook | Mô tả |
-|------|--------|
-| `useApplyLoyaltyPoint()` | Áp dụng điểm vào đơn hàng |
+| Hook                             | Mô tả                       |
+| -------------------------------- | --------------------------- |
+| `useApplyLoyaltyPoint()`         | Áp dụng điểm vào đơn hàng   |
 | `useCancelReservationForOrder()` | Hủy reservation điểm đã đặt |
 
 ---
@@ -234,10 +239,10 @@ Có 2 phiên bản:
 
 ### Component: `OrderCountdown`
 
-| Thuộc tính | Giá trị |
-|------------|---------|
-| Thời gian | **15 phút** (900 giây) từ lúc tạo đơn |
-| UI | Draggable, có thể kéo thả vị trí |
+| Thuộc tính | Giá trị                               |
+| ---------- | ------------------------------------- |
+| Thời gian  | **15 phút** (900 giây) từ lúc tạo đơn |
+| UI         | Draggable, có thể kéo thả vị trí      |
 
 ### Khi hết thời gian
 
@@ -260,10 +265,10 @@ Có 2 phiên bản:
 
 ### Phân nhánh theo trạng thái đăng nhập
 
-| Trạng thái | API Hook | Endpoint |
-|------------|----------|----------|
-| Đã đăng nhập | `useInitiatePayment()` | `POST /payment/initiate` |
-| Vãng lai | `useInitiatePublicPayment()` | `POST /payment/initiate/public` |
+| Trạng thái   | API Hook                     | Endpoint                        |
+| ------------ | ---------------------------- | ------------------------------- |
+| Đã đăng nhập | `useInitiatePayment()`       | `POST /payment/initiate`        |
+| Vãng lai     | `useInitiatePublicPayment()` | `POST /payment/initiate/public` |
 
 ### Request body
 
@@ -370,13 +375,13 @@ Có 2 phiên bản:
 
 ### Điều kiện hiển thị QR
 
-| Điều kiện | Bắt buộc |
-|-----------|----------|
-| Phương thức = `BANK_TRANSFER` | ✅ |
-| QR code tồn tại và không rỗng | ✅ |
-| `isQrValid = true` | ✅ |
-| Số tiền QR khớp với subtotal | ✅ |
-| Tổng tiền >= 2.000đ | ✅ |
+| Điều kiện                     | Bắt buộc |
+| ----------------------------- | -------- |
+| Phương thức = `BANK_TRANSFER` | ✅       |
+| QR code tồn tại và không rỗng | ✅       |
+| `isQrValid = true`            | ✅       |
+| Số tiền QR khớp với subtotal  | ✅       |
+| Tổng tiền >= 2.000đ           | ✅       |
 
 ### Quy tắc quản lý QR
 
@@ -391,20 +396,20 @@ Có 2 phiên bản:
 
 ### Cơ chế
 
-| Thuộc tính | Giá trị |
-|------------|---------|
-| Interval | **2 giây** |
-| Trigger | Sau khi initiate payment thành công |
-| Áp dụng cho | `BANK_TRANSFER`, `POINT` |
+| Thuộc tính    | Giá trị                                 |
+| ------------- | --------------------------------------- |
+| Interval      | **2 giây**                              |
+| Trigger       | Sau khi initiate payment thành công     |
+| Áp dụng cho   | `BANK_TRANSFER`, `POINT`                |
 | Không áp dụng | `CASH`, `CREDIT_CARD` (hoàn thành ngay) |
 
 ### Payment Status
 
-| Status | Mô tả |
-|--------|--------|
-| `pending` | Đang chờ thanh toán |
+| Status      | Mô tả                 |
+| ----------- | --------------------- |
+| `pending`   | Đang chờ thanh toán   |
 | `completed` | Thanh toán thành công |
-| `cancelled` | Đã hủy |
+| `cancelled` | Đã hủy                |
 
 ### Điều kiện dừng polling
 
@@ -434,12 +439,12 @@ polling dừng khi:
 
 ### QR code edge cases
 
-| Case | Xử lý |
-|------|--------|
-| Tổng tiền < 2.000đ | Không tạo QR, vẫn polling chờ xác nhận thủ công |
-| QR amount ≠ subtotal | `isQrValid = false`, không hiển thị QR |
-| API không trả QR trong lần polling | Giữ QR cũ |
-| Set QR trùng lặp | Dùng ref chặn |
+| Case                               | Xử lý                                           |
+| ---------------------------------- | ----------------------------------------------- |
+| Tổng tiền < 2.000đ                 | Không tạo QR, vẫn polling chờ xác nhận thủ công |
+| QR amount ≠ subtotal               | `isQrValid = false`, không hiển thị QR          |
+| API không trả QR trong lần polling | Giữ QR cũ                                       |
+| Set QR trùng lặp                   | Dùng ref chặn                                   |
 
 ### Order hết hạn
 
@@ -469,31 +474,31 @@ polling dừng khi:
 
 ## 14. So sánh flow Đăng nhập vs Vãng lai
 
-| Tính năng | Đã đăng nhập | Vãng lai |
-|-----------|:------------:|:--------:|
-| Phương thức khả dụng | `BANK_TRANSFER`, `POINT` | `BANK_TRANSFER` |
-| API thanh toán | `useInitiatePayment` | `useInitiatePublicPayment` |
-| API cập nhật voucher | `useUpdateVoucherInOrder` | `useUpdatePublicVoucherInOrder` |
-| API validate voucher PM | `useValidateVoucherPaymentMethod` | `useValidatePublicVoucherPaymentMethod` |
-| Dialog gỡ voucher | `ClientRemoveVoucherWhenPayingDialog` | `ClientNoLoginRemoveVoucherWhenPayingDialog` |
-| Loyalty points | ✅ Có | ❌ Không |
-| QR code (chuyển khoản) | ✅ | ✅ |
-| Thanh toán tiền mặt | ❌ (chỉ Staff/Admin) | ❌ |
-| Thanh toán thẻ tín dụng | ❌ (chỉ Staff/Admin) | ❌ |
+| Tính năng               |             Đã đăng nhập              |                   Vãng lai                   |
+| ----------------------- | :-----------------------------------: | :------------------------------------------: |
+| Phương thức khả dụng    |       `BANK_TRANSFER`, `POINT`        |               `BANK_TRANSFER`                |
+| API thanh toán          |         `useInitiatePayment`          |          `useInitiatePublicPayment`          |
+| API cập nhật voucher    |       `useUpdateVoucherInOrder`       |       `useUpdatePublicVoucherInOrder`        |
+| API validate voucher PM |   `useValidateVoucherPaymentMethod`   |   `useValidatePublicVoucherPaymentMethod`    |
+| Dialog gỡ voucher       | `ClientRemoveVoucherWhenPayingDialog` | `ClientNoLoginRemoveVoucherWhenPayingDialog` |
+| Loyalty points          |                 ✅ Có                 |                   ❌ Không                   |
+| QR code (chuyển khoản)  |                  ✅                   |                      ✅                      |
+| Thanh toán tiền mặt     |         ❌ (chỉ Staff/Admin)          |                      ❌                      |
+| Thanh toán thẻ tín dụng |         ❌ (chỉ Staff/Admin)          |                      ❌                      |
 
 ---
 
 ## 15. API Endpoints tổng hợp
 
-| Endpoint | Method | Mô tả |
-|----------|--------|--------|
-| `/order/<slug>` | GET | Lấy thông tin đơn hàng |
-| `/payment/initiate` | POST | Khởi tạo thanh toán (đăng nhập) |
-| `/payment/initiate/public` | POST | Khởi tạo thanh toán (vãng lai) |
-| `/order/<slug>/voucher` | POST | Cập nhật voucher đơn hàng (đăng nhập) |
-| `/order/<slug>/voucher/public` | POST | Cập nhật voucher đơn hàng (vãng lai) |
-| `/voucher/payment-methods/<slug>` | GET | Validate voucher tương thích payment method |
-| `/payment/loyalty-points` | POST | Áp dụng loyalty points |
+| Endpoint                          | Method | Mô tả                                       |
+| --------------------------------- | ------ | ------------------------------------------- |
+| `/order/<slug>`                   | GET    | Lấy thông tin đơn hàng                      |
+| `/payment/initiate`               | POST   | Khởi tạo thanh toán (đăng nhập)             |
+| `/payment/initiate/public`        | POST   | Khởi tạo thanh toán (vãng lai)              |
+| `/order/<slug>/voucher`           | POST   | Cập nhật voucher đơn hàng (đăng nhập)       |
+| `/order/<slug>/voucher/public`    | POST   | Cập nhật voucher đơn hàng (vãng lai)        |
+| `/voucher/payment-methods/<slug>` | GET    | Validate voucher tương thích payment method |
+| `/payment/loyalty-points`         | POST   | Áp dụng loyalty points                      |
 
 ---
 
@@ -546,15 +551,15 @@ polling dừng khi:
 
 ### Điều kiện disable
 
-| Điều kiện | Disable? |
-|-----------|----------|
-| `payButtonEnabled = false` (không có phương thức khả dụng) | ✅ |
-| Đang gọi API initiate (loading) | ✅ |
-| Tổng tiền < 0 | ✅ |
+| Điều kiện                                                  | Disable? |
+| ---------------------------------------------------------- | -------- |
+| `payButtonEnabled = false` (không có phương thức khả dụng) | ✅       |
+| Đang gọi API initiate (loading)                            | ✅       |
+| Tổng tiền < 0                                              | ✅       |
 
 ### Hiển thị theo trạng thái
 
-| Trạng thái | Nút hiển thị |
-|------------|-------------|
-| `BANK_TRANSFER` + QR hợp lệ | "Download QR Code" |
+| Trạng thái                        | Nút hiển thị          |
+| --------------------------------- | --------------------- |
+| `BANK_TRANSFER` + QR hợp lệ       | "Download QR Code"    |
 | Các phương thức khác / chưa có QR | "Xác nhận thanh toán" |

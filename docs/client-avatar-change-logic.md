@@ -47,27 +47,27 @@ Thay đổi avatar (ảnh đại diện) tài khoản client là một feature �
 @Entity('user_tbl')
 export class User extends Base {
   @Column({ name: 'phonenumber_column', unique: true })
-  phonenumber: string;
+  phonenumber: string
 
   @Column({ name: 'first_name_column', nullable: true })
-  firstName: string;
+  firstName: string
 
   @Column({ name: 'last_name_column', nullable: true })
-  lastName: string;
+  lastName: string
 
   // ← Avatar field
   @AutoMap()
   @Column({ name: 'image_column', nullable: true })
-  image?: string;  // AWS S3 path or URL
+  image?: string // AWS S3 path or URL
 
   @Column({ name: 'email_column', nullable: true })
-  email?: string;
+  email?: string
 
   @Column({ name: 'address_column', nullable: true })
-  address?: string;
+  address?: string
 
   @Column({ name: 'dob_column', nullable: true })
-  dob?: string;
+  dob?: string
 
   // Other fields...
 }
@@ -81,32 +81,32 @@ export class User extends Base {
 export class AuthProfileResponseDto {
   @AutoMap()
   @ApiProperty()
-  readonly slug: string;
+  readonly slug: string
 
   @ApiProperty()
   @AutoMap()
-  readonly phonenumber: string;
+  readonly phonenumber: string
 
   @ApiProperty()
   @AutoMap()
-  readonly firstName?: string;
+  readonly firstName?: string
 
   @ApiProperty()
   @AutoMap()
-  readonly lastName?: string;
+  readonly lastName?: string
 
   // ← Image returned in response
   @AutoMap()
   @ApiProperty()
-  readonly image: string;  // AWS S3 path
+  readonly image: string // AWS S3 path
 
   @AutoMap(() => BranchResponseDto)
   @ApiProperty()
-  readonly branch: BranchResponseDto;
+  readonly branch: BranchResponseDto
 
   @AutoMap(() => RoleResponseDto)
   @ApiProperty()
-  role: RoleResponseDto;
+  role: RoleResponseDto
 
   // Other fields...
 }
@@ -118,16 +118,16 @@ export class AuthProfileResponseDto {
 
 ```typescript
 interface IUserInfo {
-  slug: string;
-  phonenumber: string;
-  firstName?: string;
-  lastName?: string;
-  image?: string;  // ← Stored here
-  email?: string;
-  address?: string;
-  dob?: string;
-  branch?: IBranch;
-  role?: IRole;
+  slug: string
+  phonenumber: string
+  firstName?: string
+  lastName?: string
+  image?: string // ← Stored here
+  email?: string
+  address?: string
+  dob?: string
+  branch?: IBranch
+  role?: IRole
   // Other fields...
 }
 
@@ -137,8 +137,8 @@ const userStore = (set) => ({
   setUserInfo: (user: IUserInfo) => set({ userInfo: user }),
 
   updateAvatar: (newImage: string) =>
-    set(state => ({
-      userInfo: { ...state.userInfo, image: newImage }
+    set((state) => ({
+      userInfo: { ...state.userInfo, image: newImage },
     })),
 
   clearUserInfo: () => set({ userInfo: null }),
@@ -158,6 +158,7 @@ const userStore = (set) => ({
 **Authentication**: Required (Bearer token)
 
 **File Constraints**:
+
 - Max size: **5 MB** (5,242,880 bytes)
 - Format: Any image type (JPEG, PNG, GIF, WebP, etc.)
 - Mime type: `image/*`
@@ -176,6 +177,7 @@ Body:
 ```
 
 **Form Data Example:**
+
 ```
 file: [binary data of image.jpg]
 ```
@@ -349,6 +351,7 @@ export default function ProfileAvatar() {
 **Avatar Display**: `${publicFileURL}/${userInfo.image}`
 
 Example:
+
 - publicFileURL: `https://cdn.example.com/dev`
 - image: `users/avatars/profile-1712145000000.jpg`
 - Full URL: `https://cdn.example.com/dev/users/avatars/profile-1712145000000.jpg`
@@ -453,9 +456,9 @@ export function useUploadAvatar() {
         method: 'PATCH',
         body: formData,
         headers: {
-          'Authorization': `Bearer ${getToken()}`
+          Authorization: `Bearer ${getToken()}`,
           // Content-Type is set automatically for FormData
-        }
+        },
       })
 
       if (!response.ok) {
@@ -470,7 +473,7 @@ export function useUploadAvatar() {
     },
     onError: (error) => {
       // Handle error in component
-    }
+    },
   })
 }
 ```
@@ -616,6 +619,7 @@ T7: Display updates
 ### AWS S3 Configuration
 
 **Bucket Structure:**
+
 ```
 bucket-name/
 ├── users/
@@ -630,6 +634,7 @@ bucket-name/
 ```
 
 **Access:**
+
 - **Public-read**: Avatar files are public (ACL: public-read)
 - **Signed URLs**: Optional for temporary private access (not used currently)
 - **CDN**: Optional CloudFront distribution for caching
@@ -695,9 +700,10 @@ CREATE TABLE user_tbl (
 ## 🔟 Avatar Change Checklist
 
 ### Frontend Checklist
-- [x] Image file input with accept="image/*"
+
+- [x] Image file input with accept="image/\*"
 - [x] File size validation (< 5 MB)
-- [x] File type validation (image/*)
+- [x] File type validation (image/\*)
 - [x] Preview before upload
 - [x] Loading state during upload
 - [x] Success toast message
@@ -709,9 +715,10 @@ CREATE TABLE user_tbl (
 - [x] Image onError handler
 
 ### Backend Checklist
+
 - [x] Multipart file upload handling
 - [x] File size validation (5 MB limit)
-- [x] File type validation (image/*)
+- [x] File type validation (image/\*)
 - [x] Authentication check
 - [x] S3 upload with unique filename
 - [x] Delete old avatar from S3
@@ -722,6 +729,7 @@ CREATE TABLE user_tbl (
 - [x] Transaction management
 
 ### Database Checklist
+
 - [x] image_column field in user_tbl
 - [x] Nullable (for users without avatar)
 - [x] Indexed for performance
@@ -731,25 +739,24 @@ CREATE TABLE user_tbl (
 
 ## Summary Table
 
-| Aspect | Details |
-|--------|---------|
-| **Endpoint** | PATCH /auth/upload |
-| **Method** | PATCH (File Upload) |
-| **Authentication** | Bearer token required |
-| **File Max Size** | 5 MB |
-| **File Format** | image/* (JPEG, PNG, GIF, WebP, etc.) |
-| **Storage** | AWS S3 (public-read) |
-| **Database Field** | user.image (VARCHAR 255) |
-| **Response** | AuthProfileResponseDto |
-| **Success Code** | 201 Created |
-| **Error Codes** | 121001, 121003, 121009 |
-| **Old Avatar** | Auto-deleted from S3 |
-| **Display Path** | `${publicFileURL}/${user.image}` |
-| **Performance** | < 4 seconds typical |
-| **Caching** | Browser cache + optional CDN |
+| Aspect             | Details                               |
+| ------------------ | ------------------------------------- |
+| **Endpoint**       | PATCH /auth/upload                    |
+| **Method**         | PATCH (File Upload)                   |
+| **Authentication** | Bearer token required                 |
+| **File Max Size**  | 5 MB                                  |
+| **File Format**    | image/\* (JPEG, PNG, GIF, WebP, etc.) |
+| **Storage**        | AWS S3 (public-read)                  |
+| **Database Field** | user.image (VARCHAR 255)              |
+| **Response**       | AuthProfileResponseDto                |
+| **Success Code**   | 201 Created                           |
+| **Error Codes**    | 121001, 121003, 121009                |
+| **Old Avatar**     | Auto-deleted from S3                  |
+| **Display Path**   | `${publicFileURL}/${user.image}`      |
+| **Performance**    | < 4 seconds typical                   |
+| **Caching**        | Browser cache + optional CDN          |
 
 ---
 
 **Document Status**: Complete
 **Last Updated**: 2026-04-03
-

@@ -7,6 +7,7 @@
 ## 1. Tổng Quan
 
 Hệ thống cho phép **Admin / SuperAdmin** khoá hoặc mở khoá các tính năng của hệ thống theo thời gian thực. Khi một tính năng bị khoá:
+
 - **Client / Staff** không thể sử dụng tính năng đó (UI ẩn, BE từ chối)
 - Không cần deploy lại code
 
@@ -48,27 +49,27 @@ GROUP: PRINTER
 
 ### Bảng `feature_system_group_tbl` — Nhóm tính năng
 
-| Trường | Mô tả |
-|---|---|
+| Trường | Mô tả                        |
+| ------ | ---------------------------- |
 | `name` | Tên nhóm: `ORDER`, `PRINTER` |
 
 ### Bảng `feature_flag_system_tbl` — Tính năng cha
 
-| Trường | Mô tả |
-|---|---|
-| `name` | Tên feature: `CREATE_PRIVATE`, `CREATE_PUBLIC` |
-| `groupName` | Nhóm chứa |
-| `isLocked` | Trạng thái khoá |
-| `description` | Mô tả |
+| Trường        | Mô tả                                          |
+| ------------- | ---------------------------------------------- |
+| `name`        | Tên feature: `CREATE_PRIVATE`, `CREATE_PUBLIC` |
+| `groupName`   | Nhóm chứa                                      |
+| `isLocked`    | Trạng thái khoá                                |
+| `description` | Mô tả                                          |
 
 ### Bảng `child_feature_flag_system_tbl` — Tính năng con
 
-| Trường | Mô tả |
-|---|---|
-| `name` | Tên child: `AT_TABLE`, `TAKE_OUT`, `DELIVERY` |
-| `parentName` | Tên feature cha |
-| `isLocked` | Trạng thái khoá |
-| `description` | Mô tả |
+| Trường        | Mô tả                                         |
+| ------------- | --------------------------------------------- |
+| `name`        | Tên child: `AT_TABLE`, `TAKE_OUT`, `DELIVERY` |
+| `parentName`  | Tên feature cha                               |
+| `isLocked`    | Trạng thái khoá                               |
+| `description` | Mô tả                                         |
 
 > Unique constraint: `(name, groupName)` ở parent; `(name, parentName)` ở child.
 
@@ -79,6 +80,7 @@ GROUP: PRINTER
 **File:** `feature-flag-system.scheduler.ts`
 
 Khi ứng dụng khởi động, scheduler chạy sau **1 giây** để đồng bộ cấu trúc flag từ constant (`feature-flag-system.constant.ts`) vào database:
+
 - Tạo group nếu chưa có
 - Tạo parent feature nếu chưa có
 - Tạo child feature nếu chưa có
@@ -132,7 +134,7 @@ await this.featureFlagSystemService.validateFeatureFlag(
   FeatureSystemGroups.ORDER,
   FeatureFlagSystems.ORDER.CREATE_PRIVATE.key,
   FeatureFlagSystems.ORDER.CREATE_PRIVATE.children.TAKE_OUT.key,
-);
+)
 // Throw FeatureFlagSystemException nếu locked
 ```
 
@@ -142,12 +144,12 @@ Order service dùng cách 2 khi update order type.
 
 > Prefix: `/feature-flag-system` | Auth: Bearer token
 
-| Method | Endpoint | Quyền | Mô tả |
-|---|---|---|---|
-| `GET` | `/feature-flag-system/group` | **Public** | Lấy tất cả groups + features + children |
-| `GET` | `/feature-flag-system/group/:groupName` | **Public** | Lấy features theo group |
-| `PATCH` | `/feature-flag-system/bulk-toggle` | Admin, SuperAdmin | Toggle parent features (cascade xuống con) |
-| `PATCH` | `/feature-flag-system/child/bulk-toggle` | Admin, SuperAdmin | Toggle child features (kèm logic parent) |
+| Method  | Endpoint                                 | Quyền             | Mô tả                                      |
+| ------- | ---------------------------------------- | ----------------- | ------------------------------------------ |
+| `GET`   | `/feature-flag-system/group`             | **Public**        | Lấy tất cả groups + features + children    |
+| `GET`   | `/feature-flag-system/group/:groupName`  | **Public**        | Lấy features theo group                    |
+| `PATCH` | `/feature-flag-system/bulk-toggle`       | Admin, SuperAdmin | Toggle parent features (cascade xuống con) |
+| `PATCH` | `/feature-flag-system/child/bulk-toggle` | Admin, SuperAdmin | Toggle child features (kèm logic parent)   |
 
 ---
 
@@ -184,10 +186,10 @@ Sau đó kiểm tra lại:
 
 **Tóm tắt logic tự động:**
 
-| Hành động | Kết quả |
-|---|---|
-| Mở khoá child khi parent đang khoá | Parent tự động mở khoá |
-| Khoá tất cả children | Parent tự động bị khoá |
+| Hành động                              | Kết quả                                   |
+| -------------------------------------- | ----------------------------------------- |
+| Mở khoá child khi parent đang khoá     | Parent tự động mở khoá                    |
+| Khoá tất cả children                   | Parent tự động bị khoá                    |
 | Mở một số children (không phải tất cả) | Parent mở khoá, các child khác giữ nguyên |
 
 ---
@@ -201,6 +203,7 @@ Sau đó kiểm tra lại:
 **Component:** [system-lock-management/page.tsx](../app/order-ui/src/app/system/system-lock-management/page.tsx)
 
 **Hiển thị:**
+
 - Danh sách theo Group → Parent → Children (dạng cây có thể thu gọn)
 - Badge trạng thái mỗi cấp:
   - Xanh lá: tất cả mở khoá
@@ -307,6 +310,7 @@ Nếu type hiện tại bị khoá:
 ```
 
 **Tác động với khách:**
+
 - TAKE_OUT bị khoá → Dropdown không có option "Mang đi"
 - Nếu khách đang chọn TAKE_OUT mà bị khoá → tự động chuyển sang AT_TABLE (hoặc option đầu tiên còn lại)
 - Tương tự với update order flow (`order-type-in-update-order-select.tsx`)
@@ -315,11 +319,11 @@ Nếu type hiện tại bị khoá:
 
 ## 9. Quyền Truy Cập
 
-| Hành động | Quyền |
-|---|---|
+| Hành động                       | Quyền                       |
+| ------------------------------- | --------------------------- |
 | Đọc danh sách tính năng (`GET`) | **Public** — không cần auth |
-| Toggle khoá/mở khoá (`PATCH`) | **Admin, SuperAdmin** only |
-| Tạo order khi feature bị khoá | **Bị từ chối** — mọi role |
+| Toggle khoá/mở khoá (`PATCH`)   | **Admin, SuperAdmin** only  |
+| Tạo order khi feature bị khoá   | **Bị từ chối** — mọi role   |
 
 ---
 

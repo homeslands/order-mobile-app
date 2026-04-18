@@ -8,7 +8,7 @@ import NavigationBarColorModule from './NavigationBarColorModule'
 export async function changeNavigationBarColor(
   color: string = '#000000',
   light: boolean = false,
-  animated: boolean = true
+  animated: boolean = true,
 ): Promise<{ success: boolean }> {
   if (Platform.OS !== 'android') {
     return { success: false }
@@ -20,7 +20,7 @@ export async function changeNavigationBarColor(
     const result = await NavigationBarColorModule.changeNavigationBarColor(
       color,
       light,
-      animated
+      animated,
     )
     return result ?? { success: true }
   } catch {

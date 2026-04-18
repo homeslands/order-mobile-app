@@ -47,7 +47,7 @@ export default function CartSkeleton({
                     bgClass,
                   )}
                 />
-                <View className="flex-1 min-w-0">
+                <View className="min-w-0 flex-1">
                   <View className={cn('h-7 w-32 rounded', bgClass)} />
                   <View
                     className={cn(

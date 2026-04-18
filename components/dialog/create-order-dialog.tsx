@@ -1,8 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import {
-  Loader2,
-  ShoppingCart
-} from 'lucide-react-native'
+import { Loader2, ShoppingCart } from 'lucide-react-native'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Text, TouchableOpacity, useColorScheme, View } from 'react-native'
@@ -99,7 +96,9 @@ export default function PlaceOrderDialog({
   const { displayItems, cartTotals } = useMemo(() => {
     if (!hasOpened || !order) {
       return {
-        displayItems: [] as ReturnType<typeof calculateCartDisplayAndTotals>['displayItems'],
+        displayItems: [] as ReturnType<
+          typeof calculateCartDisplayAndTotals
+        >['displayItems'],
         cartTotals: {
           subTotalBeforeDiscount: 0,
           promotionDiscount: 0,
@@ -239,10 +238,17 @@ export default function PlaceOrderDialog({
   })()
 
   const needsTable = order?.type === OrderTypeEnum.AT_TABLE && !order?.table
-  const needsDeliveryInfo = order?.type === OrderTypeEnum.DELIVERY && (
-    !order?.deliveryAddress || !order?.deliveryPhone || !PHONE_NUMBER_REGEX.test(order?.deliveryPhone || '')
-  )
-  const isButtonDisabled = disabled || isPending || isPendingWithoutLogin || needsTable || needsDeliveryInfo
+  const needsDeliveryInfo =
+    order?.type === OrderTypeEnum.DELIVERY &&
+    (!order?.deliveryAddress ||
+      !order?.deliveryPhone ||
+      !PHONE_NUMBER_REGEX.test(order?.deliveryPhone || ''))
+  const isButtonDisabled =
+    disabled ||
+    isPending ||
+    isPendingWithoutLogin ||
+    needsTable ||
+    needsDeliveryInfo
 
   const triggerContent = (
     <>
@@ -263,124 +269,128 @@ export default function PlaceOrderDialog({
   return (
     <Profiler id="CreateOrderDialog" onRender={onReactProfilerRender}>
       <>
-      <Dialog.Trigger>
-        {lightButton ? (
-          <TouchableOpacity
-            disabled={isButtonDisabled}
-            onPress={() => {
-              setHasOpened(true)
-              setIsOpen(true)
-            }}
-            activeOpacity={0.8}
-            className={`flex flex-row items-center justify-center gap-2 rounded-full bg-primary py-3 text-sm ${
-              fullWidthButton ? 'w-full' : ''
-            } ${isButtonDisabled ? 'opacity-50 px-5' : 'px-6'}`}
-          >
-            {triggerContent}
-          </TouchableOpacity>
-        ) : (
-          <Button
-            disabled={isButtonDisabled}
-            className={`flex items-center rounded-full bg-primary text-sm ${
-              fullWidthButton ? 'w-full' : 'px-16'
-            }`}
-            onPress={() => {
-              setHasOpened(true)
-              setIsOpen(true)
-            }}
-          >
-            {triggerContent}
-          </Button>
-        )}
-      </Dialog.Trigger>
+        <Dialog.Trigger>
+          {lightButton ? (
+            <TouchableOpacity
+              disabled={isButtonDisabled}
+              onPress={() => {
+                setHasOpened(true)
+                setIsOpen(true)
+              }}
+              activeOpacity={0.8}
+              className={`flex flex-row items-center justify-center gap-2 rounded-full bg-primary py-3 text-sm ${
+                fullWidthButton ? 'w-full' : ''
+              } ${isButtonDisabled ? 'px-5 opacity-50' : 'px-6'}`}
+            >
+              {triggerContent}
+            </TouchableOpacity>
+          ) : (
+            <Button
+              disabled={isButtonDisabled}
+              className={`flex items-center rounded-full bg-primary text-sm ${
+                fullWidthButton ? 'w-full' : 'px-16'
+              }`}
+              onPress={() => {
+                setHasOpened(true)
+                setIsOpen(true)
+              }}
+            >
+              {triggerContent}
+            </Button>
+          )}
+        </Dialog.Trigger>
 
-      <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        {/* #1 Lazy: Chỉ mount Dialog.Content khi user bấm Đặt món — giảm CPU khi Cart mount */}
-        {hasOpened && (
-        <Profiler id="CreateOrderDialogContent" onRender={onReactProfilerRender}>
-          <Dialog.Content className="max-w-md gap-0 rounded-md p-0">
-          <Dialog.Close onPress={() => setIsOpen(false)} />
-          <Dialog.Header className="p-4">
-            <View className="border-b border-gray-200 pb-2 dark:border-gray-700">
-              <View className="flex-row items-center gap-2">
-                <View className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20 p-1">
-                  <ShoppingCart size={16} color={primaryColor} />
-                </View>
-                <Dialog.Title>{t('order.create')}</Dialog.Title>
-              </View>
-            </View>
-            <Dialog.Description className="text-sm text-gray-600 dark:text-gray-400">
-              {t('order.confirmOrder')}
-            </Dialog.Description>
-          </Dialog.Header>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+          {/* #1 Lazy: Chỉ mount Dialog.Content khi user bấm Đặt món — giảm CPU khi Cart mount */}
+          {hasOpened && (
+            <Profiler
+              id="CreateOrderDialogContent"
+              onRender={onReactProfilerRender}
+            >
+              <Dialog.Content className="max-w-md gap-0 rounded-md p-0">
+                <Dialog.Close onPress={() => setIsOpen(false)} />
+                <Dialog.Header className="p-4">
+                  <View className="border-b border-gray-200 pb-2 dark:border-gray-700">
+                    <View className="flex-row items-center gap-2">
+                      <View className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20 p-1">
+                        <ShoppingCart size={16} color={primaryColor} />
+                      </View>
+                      <Dialog.Title>{t('order.create')}</Dialog.Title>
+                    </View>
+                  </View>
+                  <Dialog.Description className="text-sm text-gray-600 dark:text-gray-400">
+                    {t('order.confirmOrder')}
+                  </Dialog.Description>
+                </Dialog.Header>
 
-          {/* Order Items List */}
-          <ScrollArea className="flex-1 px-4">
-            <ScrollArea.Viewport>
-              <View className="flex-col gap-4 py-4">
-                {/* Order Info */}
-                <OrderInfoSection order={order} />
-                <OrderItemsList
-                  order={order}
-                  displayItemsBySlug={displayItemsBySlug}
-                  cartTotals={cartTotals}
-                  deliveryFee={deliveryFee?.deliveryFee || 0}
-                />
-              </View>
-            </ScrollArea.Viewport>
-          </ScrollArea>
-          <Dialog.Footer className="p-4">
-            {/* Total Amount */}
-            <View className="w-full flex-col items-start justify-start gap-1">
-              <OrderItemsList
-                order={order}
-                displayItemsBySlug={displayItemsBySlug}
-                cartTotals={cartTotals}
-                deliveryFee={deliveryFee?.deliveryFee || 0}
-                pricingSummaryOnly
-              />
-              <View className="mt-4 w-full flex-row justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onPress={() => setIsOpen(false)}
-                  className="min-w-24 border border-gray-300"
-                  disabled={isPending || isPendingWithoutLogin}
-                >
-                  {tCommon('common.cancel')}
-                </Button>
-                {(() => {
-                  const isDelivery = order?.type === OrderTypeEnum.DELIVERY
-                  const phoneOk =
-                    !!order?.deliveryPhone &&
-                    PHONE_NUMBER_REGEX.test(order.deliveryPhone || '')
-                  const createDisabled =
-                    isPending ||
-                    isPendingWithoutLogin ||
-                    (isDelivery && (!order?.deliveryAddress || !phoneOk))
-                  return (
-                    <Button
-                      onPress={() => {
-                        if (order) {
-                          handleSubmit(order)
-                        }
-                      }}
-                      disabled={createDisabled}
-                      className="bg-primary"
-                    >
-                      {(isPending || isPendingWithoutLogin) && (
-                        <Loader2 size={16} color="#ffffff" />
-                      )}
-                      {t('order.create')}
-                    </Button>
-                  )
-                })()}
-              </View>
-            </View>
-          </Dialog.Footer>
-          </Dialog.Content>
-        </Profiler>
-        )}
-      </Dialog>
+                {/* Order Items List */}
+                <ScrollArea className="flex-1 px-4">
+                  <ScrollArea.Viewport>
+                    <View className="flex-col gap-4 py-4">
+                      {/* Order Info */}
+                      <OrderInfoSection order={order} />
+                      <OrderItemsList
+                        order={order}
+                        displayItemsBySlug={displayItemsBySlug}
+                        cartTotals={cartTotals}
+                        deliveryFee={deliveryFee?.deliveryFee || 0}
+                      />
+                    </View>
+                  </ScrollArea.Viewport>
+                </ScrollArea>
+                <Dialog.Footer className="p-4">
+                  {/* Total Amount */}
+                  <View className="w-full flex-col items-start justify-start gap-1">
+                    <OrderItemsList
+                      order={order}
+                      displayItemsBySlug={displayItemsBySlug}
+                      cartTotals={cartTotals}
+                      deliveryFee={deliveryFee?.deliveryFee || 0}
+                      pricingSummaryOnly
+                    />
+                    <View className="mt-4 w-full flex-row justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        onPress={() => setIsOpen(false)}
+                        className="min-w-24 border border-gray-300"
+                        disabled={isPending || isPendingWithoutLogin}
+                      >
+                        {tCommon('common.cancel')}
+                      </Button>
+                      {(() => {
+                        const isDelivery =
+                          order?.type === OrderTypeEnum.DELIVERY
+                        const phoneOk =
+                          !!order?.deliveryPhone &&
+                          PHONE_NUMBER_REGEX.test(order.deliveryPhone || '')
+                        const createDisabled =
+                          isPending ||
+                          isPendingWithoutLogin ||
+                          (isDelivery && (!order?.deliveryAddress || !phoneOk))
+                        return (
+                          <Button
+                            onPress={() => {
+                              if (order) {
+                                handleSubmit(order)
+                              }
+                            }}
+                            disabled={createDisabled}
+                            className="bg-primary"
+                          >
+                            {(isPending || isPendingWithoutLogin) && (
+                              <Loader2 size={16} color="#ffffff" />
+                            )}
+                            {t('order.create')}
+                          </Button>
+                        )
+                      })()}
+                    </View>
+                  </View>
+                </Dialog.Footer>
+              </Dialog.Content>
+            </Profiler>
+          )}
+        </Dialog>
       </>
     </Profiler>
   )

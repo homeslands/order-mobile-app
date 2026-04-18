@@ -5,7 +5,10 @@
  * - isTransitionLocked: delay sang requestIdleCallback (fallback)
  */
 import { isTransitionLocked } from './transition-lock'
-import { isTransitionQueueing, scheduleTransitionTask } from './transition-task-queue'
+import {
+  isTransitionQueueing,
+  scheduleTransitionTask,
+} from './transition-task-queue'
 
 const hasRequestIdleCallback = typeof requestIdleCallback === 'function'
 

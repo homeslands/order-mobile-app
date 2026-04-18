@@ -10,10 +10,9 @@ import { http } from '@/utils'
 export async function getPointTransactions(
   params: IPointTransactionQuery,
 ): Promise<IApiResponse<IPaginationResponse<IPointTransaction>>> {
-  const response = await http.get<IApiResponse<IPaginationResponse<IPointTransaction>>>(
-    '/point-transaction',
-    { params },
-  )
+  const response = await http.get<
+    IApiResponse<IPaginationResponse<IPointTransaction>>
+  >('/point-transaction', { params })
   return response.data
 }
 

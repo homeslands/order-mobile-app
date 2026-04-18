@@ -2,12 +2,7 @@ import dayjs from 'dayjs'
 import { useCallback } from 'react'
 import { Controller, useController } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import {
-  ActivityIndicator,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native'
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 
 import { FormInput } from '@/components/form/form-input'
 import { PasswordInputField, PasswordRulesInput } from '@/components/input'
@@ -48,7 +43,6 @@ export default function RegisterForm() {
     fieldState: { error: dobError },
   } = useController({ control, name: 'dob' })
 
-
   const handleDobSelect = useCallback(
     (date: string) => {
       const d = dayjs(date)
@@ -88,10 +82,10 @@ export default function RegisterForm() {
 
   return (
     <View className="flex-1 px-6 pt-8">
-      <Text className="mb-2 text-3xl font-sans-bold text-gray-900 dark:text-white">
+      <Text className="mb-2 font-sans-bold text-3xl text-gray-900 dark:text-white">
         {t('register.title')}
       </Text>
-      <Text className="mb-8 text-base font-sans text-gray-500 dark:text-gray-400">
+      <Text className="mb-8 font-sans text-base text-gray-500 dark:text-gray-400">
         {t('register.subtitle')}
       </Text>
 
@@ -128,7 +122,9 @@ export default function RegisterForm() {
           placeholder={t('register.selectDob')}
         />
         {dobError && (
-          <Text className="mt-1 text-xs text-red-500 dark:text-red-400">{dobError.message}</Text>
+          <Text className="mt-1 text-xs text-red-500 dark:text-red-400">
+            {dobError.message}
+          </Text>
         )}
       </View>
 
@@ -164,7 +160,9 @@ export default function RegisterForm() {
           )}
         />
         {errors.password && (
-          <Text className="mt-1 text-xs text-red-500 dark:text-red-400">{errors.password.message}</Text>
+          <Text className="mt-1 text-xs text-red-500 dark:text-red-400">
+            {errors.password.message}
+          </Text>
         )}
       </View>
 
@@ -198,7 +196,7 @@ export default function RegisterForm() {
         {isLoading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text className="text-base font-sans-semibold text-white">
+          <Text className="font-sans-semibold text-base text-white">
             {t('register.register')}
           </Text>
         )}
@@ -210,9 +208,11 @@ export default function RegisterForm() {
         onPress={() => navigateNative.replace('/auth/login')}
         disabled={isLoading}
       >
-        <Text className="text-sm font-sans text-gray-500 dark:text-gray-400">
+        <Text className="font-sans text-sm text-gray-500 dark:text-gray-400">
           {t('register.haveAccount')}{' '}
-          <Text className="font-sans-semibold text-amber-500 dark:text-amber-400">{t('register.login')}</Text>
+          <Text className="font-sans-semibold text-amber-500 dark:text-amber-400">
+            {t('register.login')}
+          </Text>
         </Text>
       </TouchableOpacity>
 
@@ -222,11 +222,10 @@ export default function RegisterForm() {
         onPress={() => navigateNative.replace('/(tabs)/home')}
         disabled={isLoading}
       >
-        <Text className="text-sm font-sans text-gray-500 dark:text-gray-400">
+        <Text className="font-sans text-sm text-gray-500 dark:text-gray-400">
           {t('register.goBackToHome')}
         </Text>
       </TouchableOpacity>
-
     </View>
   )
 }

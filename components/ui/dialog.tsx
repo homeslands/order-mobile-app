@@ -95,7 +95,13 @@ function Dialog({ open, onOpenChange, children }: DialogProps) {
 
 const SPRING = SPRING_CONFIGS.modal
 
-function DialogContent({ children, className, onClose, onExitComplete, open = true }: DialogContentProps) {
+function DialogContent({
+  children,
+  className,
+  onClose,
+  onExitComplete,
+  open = true,
+}: DialogContentProps) {
   // Shared values for UI thread animations
   // Apple style: scale 0.95 -> 1, opacity 0 -> 1 đồng thời
   const scale = useSharedValue(0.95)
@@ -123,15 +129,11 @@ function DialogContent({ children, className, onClose, onExitComplete, open = tr
     backdropOpacity.value = withSpring(0, SPRING)
     opacity.value = withSpring(0, SPRING)
     scale.value = withSpring(0.95, SPRING)
-    translateY.value = withSpring(
-      -8,
-      SPRING,
-      (finished) => {
-        if (finished && onExitComplete) {
-          runOnJS(onExitComplete)()
-        }
-      },
-    )
+    translateY.value = withSpring(-8, SPRING, (finished) => {
+      if (finished && onExitComplete) {
+        runOnJS(onExitComplete)()
+      }
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
@@ -154,10 +156,7 @@ function DialogContent({ children, className, onClose, onExitComplete, open = tr
     'worklet'
     return {
       opacity: opacity.value,
-      transform: [
-        { scale: scale.value },
-        { translateY: translateY.value },
-      ],
+      transform: [{ scale: scale.value }, { translateY: translateY.value }],
     }
   })
 
@@ -195,7 +194,7 @@ function DialogContent({ children, className, onClose, onExitComplete, open = tr
         <View
           className={cn(
             'w-full rounded-lg border border-gray-200 bg-white p-6 shadow-lg dark:border-gray-700 dark:bg-gray-800',
-            className
+            className,
           )}
         >
           {children}
@@ -227,24 +226,24 @@ function DialogClose({ onPress }: { onPress: () => void }) {
 /* -------------------------------------------------------------------------- */
 
 function DialogHeader({ children, className }: BaseProps) {
-  return (
-    <View className={cn('mb-4 gap-1.5', className)}>{children}</View>
-  )
+  return <View className={cn('mb-4 gap-1.5', className)}>{children}</View>
 }
 
 function DialogTitle({ children, className }: BaseProps) {
   // Check if children is an array or contains multiple elements (for icon + text layout)
   const childrenArray = React.Children.toArray(children)
   const hasMultipleChildren = childrenArray.length > 1
-  
+
   if (hasMultipleChildren) {
     // Extract text-related classes from className (like text-destructive, text-lg, etc.)
     // Layout classes (flex, items-center, gap-2) stay on View
     // Text classes go to Text component
-    const textClasses = className?.split(' ').filter(cls => 
-      cls.startsWith('text-') || cls.startsWith('font-')
-    ).join(' ') || ''
-    
+    const textClasses =
+      className
+        ?.split(' ')
+        .filter((cls) => cls.startsWith('text-') || cls.startsWith('font-'))
+        .join(' ') || ''
+
     return (
       <View className={cn('flex-row items-center gap-2', className)}>
         {React.Children.map(children, (child) => {
@@ -254,7 +253,7 @@ function DialogTitle({ children, className }: BaseProps) {
               <Text
                 className={cn(
                   'text-lg font-semibold text-gray-900 dark:text-white',
-                  textClasses
+                  textClasses,
                 )}
               >
                 {child}
@@ -267,12 +266,12 @@ function DialogTitle({ children, className }: BaseProps) {
       </View>
     )
   }
-  
+
   return (
     <Text
       className={cn(
         'text-lg font-semibold text-gray-900 dark:text-white',
-        className
+        className,
       )}
     >
       {children}
@@ -282,12 +281,7 @@ function DialogTitle({ children, className }: BaseProps) {
 
 function DialogDescription({ children, className }: BaseProps) {
   return (
-    <Text
-      className={cn(
-        'text-sm text-gray-600 dark:text-gray-400',
-        className
-      )}
-    >
+    <Text className={cn('text-sm text-gray-600 dark:text-gray-400', className)}>
       {children}
     </Text>
   )
@@ -295,9 +289,7 @@ function DialogDescription({ children, className }: BaseProps) {
 
 function DialogFooter({ children, className }: BaseProps) {
   return (
-    <View
-      className={cn('mt-6 flex-row justify-end gap-3', className)}
-    >
+    <View className={cn('mt-6 flex-row justify-end gap-3', className)}>
       {children}
     </View>
   )

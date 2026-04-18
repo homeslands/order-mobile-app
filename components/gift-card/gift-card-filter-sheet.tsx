@@ -20,9 +20,7 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import DatePicker from 'react-native-date-picker'
-import {
-  TouchableOpacity as GHTouchable,
-} from 'react-native-gesture-handler'
+import { TouchableOpacity as GHTouchable } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors, GiftCardUsageStatus } from '@/constants'
@@ -46,7 +44,6 @@ export function isFilterActive(f: GiftCardFilter): boolean {
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
-
 
 const SNAP_POINTS = ['55%']
 
@@ -79,16 +76,23 @@ export const GiftCardFilterSheet = memo(function GiftCardFilterSheet({
   const { t } = useTranslation('giftCard')
   const { t: tCommon } = useTranslation('common')
 
-  const STATUS_OPTIONS = useMemo(() => [
-    { label: tCommon('common.all'), value: null },
-    { label: t('status.available'), value: GiftCardUsageStatus.AVAILABLE },
-    { label: t('status.used'), value: GiftCardUsageStatus.USED },
-    { label: t('status.expired'), value: GiftCardUsageStatus.EXPIRED },
-  ], [t, tCommon])
+  const STATUS_OPTIONS = useMemo(
+    () => [
+      { label: tCommon('common.all'), value: null },
+      { label: t('status.available'), value: GiftCardUsageStatus.AVAILABLE },
+      { label: t('status.used'), value: GiftCardUsageStatus.USED },
+      { label: t('status.expired'), value: GiftCardUsageStatus.EXPIRED },
+    ],
+    [t, tCommon],
+  )
 
   // Local state — initialized from value on mount (sheet remounts each open)
-  const [localStatus, setLocalStatus] = useState<GiftCardUsageStatus | null>(value.status)
-  const [localFromDate, setLocalFromDate] = useState<Date | null>(value.fromDate)
+  const [localStatus, setLocalStatus] = useState<GiftCardUsageStatus | null>(
+    value.status,
+  )
+  const [localFromDate, setLocalFromDate] = useState<Date | null>(
+    value.fromDate,
+  )
   const [localToDate, setLocalToDate] = useState<Date | null>(value.toDate)
 
   const [fromPickerOpen, setFromPickerOpen] = useState(false)
@@ -115,7 +119,11 @@ export const GiftCardFilterSheet = memo(function GiftCardFilterSheet({
   )
 
   const handleApply = useCallback(() => {
-    onApply({ status: localStatus, fromDate: localFromDate, toDate: localToDate })
+    onApply({
+      status: localStatus,
+      fromDate: localFromDate,
+      toDate: localToDate,
+    })
     sheetRef.current?.dismiss()
   }, [localStatus, localFromDate, localToDate, onApply])
 
@@ -125,164 +133,235 @@ export const GiftCardFilterSheet = memo(function GiftCardFilterSheet({
   }, [onApply])
 
   return (
-        <BottomSheetModal
-          ref={sheetRef}
-          snapPoints={SNAP_POINTS}
-          enablePanDownToClose
-          enableDynamicSizing={false}
-          enableContentPanningGesture={false}
-          enableHandlePanningGesture
-          backdropComponent={renderBackdrop}
-          backgroundStyle={{ backgroundColor: bg }}
-          handleIndicatorStyle={{ backgroundColor: isDark ? colors.gray[600] : colors.gray[300] }}
-          onDismiss={onClose}
-        >
-          <View style={[fs.content, { paddingBottom: insets.bottom + 16 }]}>
+    <BottomSheetModal
+      ref={sheetRef}
+      snapPoints={SNAP_POINTS}
+      enablePanDownToClose
+      enableDynamicSizing={false}
+      enableContentPanningGesture={false}
+      enableHandlePanningGesture
+      backdropComponent={renderBackdrop}
+      backgroundStyle={{ backgroundColor: bg }}
+      handleIndicatorStyle={{
+        backgroundColor: isDark ? colors.gray[600] : colors.gray[300],
+      }}
+      onDismiss={onClose}
+    >
+      <View style={[fs.content, { paddingBottom: insets.bottom + 16 }]}>
+        {/* ── Top group ──────────────────────────────────────────────── */}
+        <View>
+          <Text style={[fs.title, { color: textColor }]}>
+            {t('filter.title')}
+          </Text>
 
-            {/* ── Top group ──────────────────────────────────────────────── */}
-            <View>
-              <Text style={[fs.title, { color: textColor }]}>{t('filter.title')}</Text>
-
-              {/* Status */}
-              <Text style={[fs.sectionLabel, { color: subColor }]}>{t('filter.statusLabel')}</Text>
-              <View style={fs.chipRow}>
-                {STATUS_OPTIONS.map((opt) => {
-                  const active = localStatus === opt.value
-                  return (
-                    <View key={String(opt.value)} style={fs.chipWrap}>
-                      <GHTouchable
-                        onPress={() => setLocalStatus(opt.value)}
-                        activeOpacity={0.7}
-                        style={[
-                          fs.chip,
-                          { backgroundColor: active ? primaryColor : chipBg },
-                        ]}
-                      >
-                        <Text style={[
-                          fs.chipText,
-                          {
-                            color: active
-                              ? colors.white.light
-                              : isDark ? colors.gray[300] : colors.gray[700],
-                            fontWeight: active ? '700' : '500',
-                          },
-                        ]}>
-                          {opt.label}
-                        </Text>
-                      </GHTouchable>
-                    </View>
-                  )
-                })}
-              </View>
-
-              {/* Divider */}
-              <View style={[fs.divider, { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] }]} />
-
-              {/* Date range */}
-              <Text style={[fs.sectionLabel, { color: subColor }]}>{t('filter.dateRange')}</Text>
-
-              <View style={fs.dateRangeRow}>
-                {/* From */}
-                <View style={fs.datePickerWrap}>
+          {/* Status */}
+          <Text style={[fs.sectionLabel, { color: subColor }]}>
+            {t('filter.statusLabel')}
+          </Text>
+          <View style={fs.chipRow}>
+            {STATUS_OPTIONS.map((opt) => {
+              const active = localStatus === opt.value
+              return (
+                <View key={String(opt.value)} style={fs.chipWrap}>
                   <GHTouchable
-                    onPress={() => setFromPickerOpen(true)}
+                    onPress={() => setLocalStatus(opt.value)}
                     activeOpacity={0.7}
-                    style={[fs.datePicker, { backgroundColor: dateBg, borderColor: localFromDate ? primaryColor : dateBorder }]}
+                    style={[
+                      fs.chip,
+                      { backgroundColor: active ? primaryColor : chipBg },
+                    ]}
                   >
-                    <CalendarDays size={13} color={localFromDate ? primaryColor : subColor} />
-                    <View style={fs.datePickerText}>
-                      <Text style={[fs.datePickerHint, { color: subColor }]}>{t('filter.fromDate')}</Text>
-                      <Text style={[fs.datePickerVal, { color: localFromDate ? textColor : subColor }]}>
-                        {localFromDate ? dayjs(localFromDate).format('DD/MM/YYYY') : '––/––/––––'}
-                      </Text>
-                    </View>
-                    {localFromDate && (
-                      <GHTouchable onPress={() => setLocalFromDate(null)} hitSlop={10}>
-                        <X size={12} color={subColor} />
-                      </GHTouchable>
-                    )}
+                    <Text
+                      style={[
+                        fs.chipText,
+                        {
+                          color: active
+                            ? colors.white.light
+                            : isDark
+                              ? colors.gray[300]
+                              : colors.gray[700],
+                          fontWeight: active ? '700' : '500',
+                        },
+                      ]}
+                    >
+                      {opt.label}
+                    </Text>
                   </GHTouchable>
                 </View>
-
-                {/* Arrow */}
-                <ArrowRight size={16} color={subColor} />
-
-                {/* To */}
-                <View style={fs.datePickerWrap}>
-                  <GHTouchable
-                    onPress={() => setToPickerOpen(true)}
-                    activeOpacity={0.7}
-                    style={[fs.datePicker, { backgroundColor: dateBg, borderColor: localToDate ? primaryColor : dateBorder }]}
-                  >
-                    <CalendarDays size={13} color={localToDate ? primaryColor : subColor} />
-                    <View style={fs.datePickerText}>
-                      <Text style={[fs.datePickerHint, { color: subColor }]}>{t('filter.toDate')}</Text>
-                      <Text style={[fs.datePickerVal, { color: localToDate ? textColor : subColor }]}>
-                        {localToDate ? dayjs(localToDate).format('DD/MM/YYYY') : '––/––/––––'}
-                      </Text>
-                    </View>
-                    {localToDate && (
-                      <GHTouchable onPress={() => setLocalToDate(null)} hitSlop={10}>
-                        <X size={12} color={subColor} />
-                      </GHTouchable>
-                    )}
-                  </GHTouchable>
-                </View>
-              </View>
-            </View>
-
-            {/* ── Footer ─────────────────────────────────────────────────── */}
-            <View style={fs.footer}>
-              <View style={fs.btnWrap}>
-                <GHTouchable
-                  onPress={handleReset}
-                  activeOpacity={0.8}
-                  style={[fs.btn, { backgroundColor: chipBg }]}
-                >
-                  <Text style={[fs.btnText, { color: isDark ? colors.gray[50] : colors.gray[700] }]}>
-                    {tCommon('common.reset')}
-                  </Text>
-                </GHTouchable>
-              </View>
-              <View style={fs.btnWrap}>
-                <GHTouchable
-                  onPress={handleApply}
-                  activeOpacity={0.8}
-                  style={[fs.btn, { backgroundColor: primaryColor }]}
-                >
-                  <Text style={[fs.btnText, { color: colors.white.light }]}>{t('filter.apply')}</Text>
-                </GHTouchable>
-              </View>
-            </View>
+              )
+            })}
           </View>
 
-          {/* Modal date pickers — rendered inside BottomSheet so they layer above it */}
-          <DatePicker
-            modal
-            open={fromPickerOpen}
-            date={localFromDate ?? new Date()}
-            mode="date"
-            maximumDate={localToDate ?? new Date()}
-            onConfirm={(d) => { setLocalFromDate(d); setFromPickerOpen(false) }}
-            onCancel={() => setFromPickerOpen(false)}
-            confirmText={tCommon('confirm')}
-            cancelText={tCommon('cancel')}
-            theme={isDark ? 'dark' : 'light'}
+          {/* Divider */}
+          <View
+            style={[
+              fs.divider,
+              { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] },
+            ]}
           />
-          <DatePicker
-            modal
-            open={toPickerOpen}
-            date={localToDate ?? new Date()}
-            mode="date"
-            minimumDate={localFromDate ?? undefined}
-            maximumDate={new Date()}
-            onConfirm={(d) => { setLocalToDate(d); setToPickerOpen(false) }}
-            onCancel={() => setToPickerOpen(false)}
-            confirmText={tCommon('confirm')}
-            cancelText={tCommon('cancel')}
-            theme={isDark ? 'dark' : 'light'}
-          />
-        </BottomSheetModal>
+
+          {/* Date range */}
+          <Text style={[fs.sectionLabel, { color: subColor }]}>
+            {t('filter.dateRange')}
+          </Text>
+
+          <View style={fs.dateRangeRow}>
+            {/* From */}
+            <View style={fs.datePickerWrap}>
+              <GHTouchable
+                onPress={() => setFromPickerOpen(true)}
+                activeOpacity={0.7}
+                style={[
+                  fs.datePicker,
+                  {
+                    backgroundColor: dateBg,
+                    borderColor: localFromDate ? primaryColor : dateBorder,
+                  },
+                ]}
+              >
+                <CalendarDays
+                  size={13}
+                  color={localFromDate ? primaryColor : subColor}
+                />
+                <View style={fs.datePickerText}>
+                  <Text style={[fs.datePickerHint, { color: subColor }]}>
+                    {t('filter.fromDate')}
+                  </Text>
+                  <Text
+                    style={[
+                      fs.datePickerVal,
+                      { color: localFromDate ? textColor : subColor },
+                    ]}
+                  >
+                    {localFromDate
+                      ? dayjs(localFromDate).format('DD/MM/YYYY')
+                      : '––/––/––––'}
+                  </Text>
+                </View>
+                {localFromDate && (
+                  <GHTouchable
+                    onPress={() => setLocalFromDate(null)}
+                    hitSlop={10}
+                  >
+                    <X size={12} color={subColor} />
+                  </GHTouchable>
+                )}
+              </GHTouchable>
+            </View>
+
+            {/* Arrow */}
+            <ArrowRight size={16} color={subColor} />
+
+            {/* To */}
+            <View style={fs.datePickerWrap}>
+              <GHTouchable
+                onPress={() => setToPickerOpen(true)}
+                activeOpacity={0.7}
+                style={[
+                  fs.datePicker,
+                  {
+                    backgroundColor: dateBg,
+                    borderColor: localToDate ? primaryColor : dateBorder,
+                  },
+                ]}
+              >
+                <CalendarDays
+                  size={13}
+                  color={localToDate ? primaryColor : subColor}
+                />
+                <View style={fs.datePickerText}>
+                  <Text style={[fs.datePickerHint, { color: subColor }]}>
+                    {t('filter.toDate')}
+                  </Text>
+                  <Text
+                    style={[
+                      fs.datePickerVal,
+                      { color: localToDate ? textColor : subColor },
+                    ]}
+                  >
+                    {localToDate
+                      ? dayjs(localToDate).format('DD/MM/YYYY')
+                      : '––/––/––––'}
+                  </Text>
+                </View>
+                {localToDate && (
+                  <GHTouchable
+                    onPress={() => setLocalToDate(null)}
+                    hitSlop={10}
+                  >
+                    <X size={12} color={subColor} />
+                  </GHTouchable>
+                )}
+              </GHTouchable>
+            </View>
+          </View>
+        </View>
+
+        {/* ── Footer ─────────────────────────────────────────────────── */}
+        <View style={fs.footer}>
+          <View style={fs.btnWrap}>
+            <GHTouchable
+              onPress={handleReset}
+              activeOpacity={0.8}
+              style={[fs.btn, { backgroundColor: chipBg }]}
+            >
+              <Text
+                style={[
+                  fs.btnText,
+                  { color: isDark ? colors.gray[50] : colors.gray[700] },
+                ]}
+              >
+                {tCommon('common.reset')}
+              </Text>
+            </GHTouchable>
+          </View>
+          <View style={fs.btnWrap}>
+            <GHTouchable
+              onPress={handleApply}
+              activeOpacity={0.8}
+              style={[fs.btn, { backgroundColor: primaryColor }]}
+            >
+              <Text style={[fs.btnText, { color: colors.white.light }]}>
+                {t('filter.apply')}
+              </Text>
+            </GHTouchable>
+          </View>
+        </View>
+      </View>
+
+      {/* Modal date pickers — rendered inside BottomSheet so they layer above it */}
+      <DatePicker
+        modal
+        open={fromPickerOpen}
+        date={localFromDate ?? new Date()}
+        mode="date"
+        maximumDate={localToDate ?? new Date()}
+        onConfirm={(d) => {
+          setLocalFromDate(d)
+          setFromPickerOpen(false)
+        }}
+        onCancel={() => setFromPickerOpen(false)}
+        confirmText={tCommon('confirm')}
+        cancelText={tCommon('cancel')}
+        theme={isDark ? 'dark' : 'light'}
+      />
+      <DatePicker
+        modal
+        open={toPickerOpen}
+        date={localToDate ?? new Date()}
+        mode="date"
+        minimumDate={localFromDate ?? undefined}
+        maximumDate={new Date()}
+        onConfirm={(d) => {
+          setLocalToDate(d)
+          setToPickerOpen(false)
+        }}
+        onCancel={() => setToPickerOpen(false)}
+        confirmText={tCommon('confirm')}
+        cancelText={tCommon('cancel')}
+        theme={isDark ? 'dark' : 'light'}
+      />
+    </BottomSheetModal>
   )
 })
 

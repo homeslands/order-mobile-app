@@ -23,18 +23,24 @@ export type CartDisplayItem = {
 /** Compute per-unit voucher discount for a single display item — O(1), no loop */
 export function calcItemVoucherDiscount(
   item: CartDisplayItem,
-  voucher: { type: string; value: number; voucherProducts?: { product?: { slug?: string } }[] } | null,
+  voucher: {
+    type: string
+    value: number
+    voucherProducts?: { product?: { slug?: string } }[]
+  } | null,
 ): number {
   if (!voucher) return 0
   const vpSet = voucher.voucherProducts
   const eligible =
-    !vpSet || vpSet.length === 0 ||
+    !vpSet ||
+    vpSet.length === 0 ||
     vpSet.some((vp) => vp.product?.slug === item.productId)
   if (!eligible) return 0
   if (voucher.type === 'same_price_product') {
-    const newPrice = voucher.value <= 1
-      ? Math.round(item.originalPrice * (1 - voucher.value))
-      : Math.min(item.originalPrice, voucher.value)
+    const newPrice =
+      voucher.value <= 1
+        ? Math.round(item.originalPrice * (1 - voucher.value))
+        : Math.min(item.originalPrice, voucher.value)
     return item.originalPrice - newPrice
   }
   if (voucher.type === 'percent_order') {
@@ -55,9 +61,10 @@ export function toDisplayItem(item: IOrderItem): CartDisplayItem {
 
   const promoValue = item.promotionValue ?? 0
   const originalPrice = item.originalPrice ?? 0
-  const price = promoValue > 0
-    ? Math.round(originalPrice * (1 - promoValue / 100))
-    : originalPrice
+  const price =
+    promoValue > 0
+      ? Math.round(originalPrice * (1 - promoValue / 100))
+      : originalPrice
   const result: CartDisplayItem = {
     cartKey: item.id,
     productId: item.productSlug || item.slug || '',

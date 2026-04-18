@@ -18,7 +18,7 @@ export function Skeleton({ className, style, ...props }: SkeletonProps) {
   return (
     <View
       className={cn(
-        'bg-gray-200 dark:bg-gray-700 rounded-md overflow-hidden',
+        'overflow-hidden rounded-md bg-gray-200 dark:bg-gray-700',
         className,
       )}
       style={style}
@@ -26,5 +26,3 @@ export function Skeleton({ className, style, ...props }: SkeletonProps) {
     />
   )
 }
-
-

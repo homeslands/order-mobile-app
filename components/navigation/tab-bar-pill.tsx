@@ -45,21 +45,44 @@ const TabBarPill = React.memo(function TabBarPill({
   tabRoutes,
 }: TabBarPillProps) {
   const { primary, mutedForeground, background } = colors
-  const getColor = useCallback((active: boolean) => (active ? primary : mutedForeground), [primary, mutedForeground])
+  const getColor = useCallback(
+    (active: boolean) => (active ? primary : mutedForeground),
+    [primary, mutedForeground],
+  )
 
   const items = useMemo(
     () => [
-      { Icon: Home, active: tabState.isHomeActive, href: tabRoutes.home, label: t('tabs.home', 'Trang chủ') },
-      { Icon: Menu, active: tabState.isMenuActive, href: tabRoutes.menu, label: t('tabs.menu', 'Thực đơn') },
-      { Icon: Gift, active: tabState.isGiftCardActive, href: tabRoutes.giftCard, label: t('tabs.giftCard', 'Thẻ quà') },
-      { Icon: User, active: tabState.isProfileActive, href: tabRoutes.profile, label: t('tabs.profile', 'Tài khoản') },
+      {
+        Icon: Home,
+        active: tabState.isHomeActive,
+        href: tabRoutes.home,
+        label: t('tabs.home', 'Trang chủ'),
+      },
+      {
+        Icon: Menu,
+        active: tabState.isMenuActive,
+        href: tabRoutes.menu,
+        label: t('tabs.menu', 'Thực đơn'),
+      },
+      {
+        Icon: Gift,
+        active: tabState.isGiftCardActive,
+        href: tabRoutes.giftCard,
+        label: t('tabs.giftCard', 'Thẻ quà'),
+      },
+      {
+        Icon: User,
+        active: tabState.isProfileActive,
+        href: tabRoutes.profile,
+        label: t('tabs.profile', 'Tài khoản'),
+      },
     ],
     [tabState, tabRoutes, t],
   )
 
   return (
     <View
-      className="rounded-full flex-1 flex-row items-center"
+      className="flex-1 flex-row items-center rounded-full"
       style={{
         backgroundColor: background,
         paddingHorizontal: PILL_PADDING,
@@ -81,7 +104,10 @@ const TabBarPill = React.memo(function TabBarPill({
           <View className="items-center justify-center" style={{ zIndex: 1 }}>
             <Icon color={getColor(active)} size={20} />
           </View>
-          <Text className="text-[10px] mt-0.5 font-medium" style={{ color: getColor(active), zIndex: 1 }}>
+          <Text
+            className="mt-0.5 text-[10px] font-medium"
+            style={{ color: getColor(active), zIndex: 1 }}
+          >
             {label}
           </Text>
         </NativeGesturePressable>

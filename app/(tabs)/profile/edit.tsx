@@ -20,13 +20,7 @@ import customParseFormat from 'dayjs/plugin/customParseFormat'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import { Check } from 'lucide-react-native'
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   KeyboardAvoidingView,
@@ -51,7 +45,6 @@ function normalizeDob(value: string | null | undefined): string {
   if (yyyymmdd.isValid()) return yyyymmdd.format('YYYY-MM-DD')
   return ''
 }
-
 
 const PROFILE_THEME = {
   light: {
@@ -104,7 +97,9 @@ const FormField = React.memo(function FormField({
 
   return (
     <View style={editFieldStyles.field}>
-      <Text style={[editFieldStyles.label, { color: labelColor }]}>{label}</Text>
+      <Text style={[editFieldStyles.label, { color: labelColor }]}>
+        {label}
+      </Text>
       <Input
         value={localValue}
         onChangeText={editable ? handleChange : undefined}
@@ -138,15 +133,28 @@ function EditHeader({
   const { t } = useTranslation('profile')
   const pageBg = isDark ? '#1F2B3E' : colors.background.light
   const gradientColors = useMemo(
-    () => [pageBg, `${pageBg}E6`, `${pageBg}B0`, `${pageBg}50`, `${pageBg}00`] as const,
+    () =>
+      [
+        pageBg,
+        `${pageBg}E6`,
+        `${pageBg}B0`,
+        `${pageBg}50`,
+        `${pageBg}00`,
+      ] as const,
     [pageBg],
   )
   const confirmBg = isDirty
-    ? isDark ? colors.primary.dark : colors.primary.light
-    : isDark ? colors.gray[800] : colors.white.light
+    ? isDark
+      ? colors.primary.dark
+      : colors.primary.light
+    : isDark
+      ? colors.gray[800]
+      : colors.white.light
   const confirmIconColor = isDirty
     ? '#fff'
-    : isDark ? colors.gray[500] : colors.gray[300]
+    : isDark
+      ? colors.gray[500]
+      : colors.gray[300]
 
   return (
     <View style={ehStyles.container} pointerEvents="box-none">
@@ -170,7 +178,12 @@ function EditHeader({
             ehStyles.shadow,
           ]}
         >
-          <Text style={[ehStyles.cancelText, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>
+          <Text
+            style={[
+              ehStyles.cancelText,
+              { color: isDark ? colors.gray[50] : colors.gray[900] },
+            ]}
+          >
             {t('profile.cancel')}
           </Text>
         </Pressable>
@@ -179,7 +192,10 @@ function EditHeader({
           pointerEvents="none"
         >
           <Text
-            style={[ehStyles.title, { color: isDark ? colors.gray[50] : colors.gray[900] }]}
+            style={[
+              ehStyles.title,
+              { color: isDark ? colors.gray[50] : colors.gray[900] },
+            ]}
             numberOfLines={1}
           >
             {title}
@@ -252,7 +268,11 @@ const ehStyles = StyleSheet.create({
   },
 })
 
-const ProfileEditForm = React.memo(function ProfileEditForm({ userInfo }: { userInfo: IUserInfo }) {
+const ProfileEditForm = React.memo(function ProfileEditForm({
+  userInfo,
+}: {
+  userInfo: IUserInfo
+}) {
   const router = useRouter()
   const insets = useSafeAreaInsets()
   const colorScheme = useColorScheme()
@@ -327,7 +347,8 @@ const ProfileEditForm = React.memo(function ProfileEditForm({ userInfo }: { user
     }
     setIsUpdating(true)
     try {
-      const res: Awaited<ReturnType<typeof updateProfile>> = await updateProfile(payload)
+      const res: Awaited<ReturnType<typeof updateProfile>> =
+        await updateProfile(payload)
       if (res?.result) setUserInfo?.(res.result)
       else setUserInfo?.({ ...userInfo, ...payload })
       showToast(tToast('toast.updateProfileSuccess'))
@@ -346,98 +367,101 @@ const ProfileEditForm = React.memo(function ProfileEditForm({ userInfo }: { user
         style={styles.flex1}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-      <ScrollView
-        style={styles.scrollView}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={[
-          styles.scrollContent,
-          { paddingBottom: insets.bottom + 40, paddingTop: STATIC_TOP_INSET + 76 },
-        ]}
-        keyboardShouldPersistTaps="handled"
-      >
-        {/* Mục: Thông tin cơ bản */}
-        <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
-          {t('profile.generalInfo.basicInfo')}
-        </Text>
-        <View style={[styles.section, { backgroundColor: theme.card }]}>
-          <FormField
-            label={t('profile.lastName')}
-            value={userInfo.lastName ?? ''}
-            onChangeRef={lastNameRef}
-            placeholder={t('profile.enterLastName')}
-            labelColor={theme.textMuted}
-            autoCapitalize="words"
-            onChange={checkDirty}
-          />
-          <FormField
-            label={t('profile.firstName')}
-            value={userInfo.firstName ?? ''}
-            onChangeRef={firstNameRef}
-            placeholder={t('profile.enterFirstName')}
-            labelColor={theme.textMuted}
-            autoCapitalize="words"
-            onChange={checkDirty}
-          />
-          <View style={styles.field}>
-            <Text style={[styles.label, { color: theme.textMuted }]}>
-              {t('profile.dob')}
-            </Text>
-            <DobExpandablePicker
-              value={dob}
-              onSelect={handleDobChange}
-              theme={{
-                bg: theme.card,
-                editBtn: theme.editBtn,
-                text: theme.text,
-                textMuted: theme.textMuted,
-              }}
-              placeholder={t('profile.enterDob')}
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[
+            styles.scrollContent,
+            {
+              paddingBottom: insets.bottom + 40,
+              paddingTop: STATIC_TOP_INSET + 76,
+            },
+          ]}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Mục: Thông tin cơ bản */}
+          <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
+            {t('profile.generalInfo.basicInfo')}
+          </Text>
+          <View style={[styles.section, { backgroundColor: theme.card }]}>
+            <FormField
+              label={t('profile.lastName')}
+              value={userInfo.lastName ?? ''}
+              onChangeRef={lastNameRef}
+              placeholder={t('profile.enterLastName')}
+              labelColor={theme.textMuted}
+              autoCapitalize="words"
+              onChange={checkDirty}
             />
+            <FormField
+              label={t('profile.firstName')}
+              value={userInfo.firstName ?? ''}
+              onChangeRef={firstNameRef}
+              placeholder={t('profile.enterFirstName')}
+              labelColor={theme.textMuted}
+              autoCapitalize="words"
+              onChange={checkDirty}
+            />
+            <View style={styles.field}>
+              <Text style={[styles.label, { color: theme.textMuted }]}>
+                {t('profile.dob')}
+              </Text>
+              <DobExpandablePicker
+                value={dob}
+                onSelect={handleDobChange}
+                theme={{
+                  bg: theme.card,
+                  editBtn: theme.editBtn,
+                  text: theme.text,
+                  textMuted: theme.textMuted,
+                }}
+                placeholder={t('profile.enterDob')}
+              />
+            </View>
           </View>
-        </View>
 
-        {/* Mục: Số điện thoại & Email (chỉ đọc) */}
-        <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
-          {t('profile.contactInfo.title')}
-        </Text>
-        <View style={[styles.section, { backgroundColor: theme.card }]}>
-          <View style={styles.field}>
-            <Text style={[styles.label, { color: theme.textMuted }]}>
-              {t('profile.contactInfo.phone')}
-            </Text>
-            <Input
-              value={userInfo.phonenumber ?? ''}
-              editable={false}
-              className="bg-gray-100 opacity-90 dark:bg-gray-700"
-            />
+          {/* Mục: Số điện thoại & Email (chỉ đọc) */}
+          <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
+            {t('profile.contactInfo.title')}
+          </Text>
+          <View style={[styles.section, { backgroundColor: theme.card }]}>
+            <View style={styles.field}>
+              <Text style={[styles.label, { color: theme.textMuted }]}>
+                {t('profile.contactInfo.phone')}
+              </Text>
+              <Input
+                value={userInfo.phonenumber ?? ''}
+                editable={false}
+                className="bg-gray-100 opacity-90 dark:bg-gray-700"
+              />
+            </View>
+            <View style={styles.field}>
+              <Text style={[styles.label, { color: theme.textMuted }]}>
+                {t('profile.contactInfo.email')}
+              </Text>
+              <Input
+                value={userInfo.email ?? ''}
+                editable={false}
+                className="bg-gray-100 opacity-90 dark:bg-gray-700"
+              />
+            </View>
           </View>
-          <View style={styles.field}>
-            <Text style={[styles.label, { color: theme.textMuted }]}>
-              {t('profile.contactInfo.email')}
-            </Text>
-            <Input
-              value={userInfo.email ?? ''}
-              editable={false}
-              className="bg-gray-100 opacity-90 dark:bg-gray-700"
-            />
-          </View>
-        </View>
 
-        {/* Mục: Địa chỉ */}
-        <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
-          {t('profile.addressInfo')}
-        </Text>
-        <View style={[styles.section, { backgroundColor: theme.card }]}>
-          <FormField
-            label={t('profile.contactInfo.address')}
-            value={userInfo.address ?? ''}
-            onChangeRef={addressRef}
-            placeholder={t('profile.enterAddress')}
-            labelColor={theme.textMuted}
-            onChange={checkDirty}
-          />
-        </View>
-      </ScrollView>
+          {/* Mục: Địa chỉ */}
+          <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
+            {t('profile.addressInfo')}
+          </Text>
+          <View style={[styles.section, { backgroundColor: theme.card }]}>
+            <FormField
+              label={t('profile.contactInfo.address')}
+              value={userInfo.address ?? ''}
+              onChangeRef={addressRef}
+              placeholder={t('profile.enterAddress')}
+              labelColor={theme.textMuted}
+              onChange={checkDirty}
+            />
+          </View>
+        </ScrollView>
       </KeyboardAvoidingView>
 
       <ConfirmUpdateProfileBottomSheet
@@ -500,7 +524,9 @@ export default function ProfileEditScreen() {
         }
       })
       .catch(() => {})
-    return () => { cancelled = true }
+    return () => {
+      cancelled = true
+    }
     // Chỉ fetch khi slug đổi (đổi user); không thêm userInfo để tránh loop khi setUserInfo
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userInfo?.slug, router, setUserInfo])

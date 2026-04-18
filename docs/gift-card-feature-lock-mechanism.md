@@ -17,6 +17,7 @@ UI: Disable/enable option based on isLocked
 ```
 
 **3 loại gift card có thể khoá riêng:**
+
 - **SELF**: Top-up cho mình
 - **GIFT**: Tặng cho người khác
 - **BUY**: Mua như sản phẩm
@@ -80,16 +81,16 @@ export class FeatureGroup {
   id: string
 
   @Column({ unique: true })
-  slug: string          // Randomly generated identifier
+  slug: string // Randomly generated identifier
 
   @Column({ unique: true })
-  name: string          // "GIFT_CARD"
+  name: string // "GIFT_CARD"
 
   @Column()
   order: number
 
   @OneToMany(() => FeatureFlag, (flag) => flag.group)
-  features: FeatureFlag[]  // Related flags
+  features: FeatureFlag[] // Related flags
 }
 
 @Entity('feature_flag_tbl')
@@ -98,10 +99,10 @@ export class FeatureFlag {
   id: string
 
   @Column({ unique: true })
-  slug: string          // Unique per flag
+  slug: string // Unique per flag
 
   @Column({ unique: true })
-  name: string          // "SELF", "GIFT", or "BUY"
+  name: string // "SELF", "GIFT", or "BUY"
 
   @Column()
   groupName: string
@@ -110,7 +111,7 @@ export class FeatureFlag {
   groupSlug: string
 
   @Column({ default: false })
-  isLocked: boolean     // ← THE LOCK STATUS
+  isLocked: boolean // ← THE LOCK STATUS
 
   @Column()
   order: number
@@ -127,18 +128,19 @@ export class FeatureFlag {
 
 ```typescript
 export enum GiftCardType {
-  SELF = 'SELF',      // Buy for myself
-  GIFT = 'GIFT',      // Gift to others
-  BUY = 'BUY',        // Purchase gift card
-  NONE = 'NONE'       // All locked fallback
+  SELF = 'SELF', // Buy for myself
+  GIFT = 'GIFT', // Gift to others
+  BUY = 'BUY', // Purchase gift card
+  NONE = 'NONE', // All locked fallback
 }
 
 export enum GiftCardFlagGroup {
-  GIFT_CARD = 'GIFT_CARD'  // Group name in database
+  GIFT_CARD = 'GIFT_CARD', // Group name in database
 }
 ```
 
 **Each type has independent flag:**
+
 - SELF ↔ Feature flag (name='SELF', isLocked=boolean)
 - GIFT ↔ Feature flag (name='GIFT', isLocked=boolean)
 - BUY ↔ Feature flag (name='BUY', isLocked=boolean)
@@ -445,12 +447,12 @@ async bulkToggleFeatureFlags(
 
 ```typescript
 enum FeatureFlagErrorCode {
-  CREATE_ERROR = 158801,        // Error when creating flag
-  ORDER_NOT_FOUND = 158802,     // Card order not found
-  UPDATE_ERROR = 158803,        // Error when updating flag
-  REMOVE_ERROR = 158804,        // Error when removing flag
-  PARAM_REQUIRED = 158805,      // Missing required param
-  FEATURE_LOCKED = 158806       // ← Feature is locked!
+  CREATE_ERROR = 158801, // Error when creating flag
+  ORDER_NOT_FOUND = 158802, // Card order not found
+  UPDATE_ERROR = 158803, // Error when updating flag
+  REMOVE_ERROR = 158804, // Error when removing flag
+  PARAM_REQUIRED = 158805, // Missing required param
+  FEATURE_LOCKED = 158806, // ← Feature is locked!
 }
 ```
 
@@ -469,21 +471,19 @@ export const useGetFeatureFlagsByGroup = (group: string) => {
     queryKey: ['feature-flags', group],
     queryFn: () => getFeatureFlagsByGroup(group),
     // Caching strategy:
-    staleTime: 5 * 60 * 1000,      // 5 minutes
-    gcTime: 30 * 60 * 1000,         // 30 minutes (garbage collect)
-    refetchOnWindowFocus: true,     // Refetch when user refocuses tab
-    refetchOnMount: 'stale'         // Refetch if stale
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes (garbage collect)
+    refetchOnWindowFocus: true, // Refetch when user refocuses tab
+    refetchOnMount: 'stale', // Refetch if stale
   })
 }
 
 // Mutation for bulk toggle (admin only)
 export const useBulkToggleFeatureFlags = () => {
   return useMutation({
-    mutationFn: async (
-      updates: Array<{ slug: string; isLocked: boolean }>
-    ) => {
+    mutationFn: async (updates: Array<{ slug: string; isLocked: boolean }>) => {
       return bulkToggleFeatureFlags(updates)
-    }
+    },
   })
 }
 ```
@@ -492,25 +492,22 @@ export const useBulkToggleFeatureFlags = () => {
 
 ```typescript
 export async function getFeatureFlagsByGroup(
-  group: string
+  group: string,
 ): Promise<IApiResponse<IGiftCardFlagFeature[]>> {
   const response = await http.get<IApiResponse<IGiftCardFlagFeature[]>>(
     `/feature-flag`,
     {
-      params: { group }
-    }
+      params: { group },
+    },
   )
 
   return response.data
 }
 
 export async function bulkToggleFeatureFlags(
-  updates: Array<{ slug: string; isLocked: boolean }>
+  updates: Array<{ slug: string; isLocked: boolean }>,
 ): Promise<void> {
-  await http.patch<void>(
-    `/feature-flag/bulk-toggle`,
-    { updates }
-  )
+  await http.patch<void>(`/feature-flag/bulk-toggle`, { updates })
 }
 ```
 
@@ -707,6 +704,7 @@ No Polling:
 **Scenario: Admin locks GIFT type**
 
 **Before Lock:**
+
 ```
 ☑️ Top Up Coins (Self)        [enabled]
 ☑️ Gift to Others             [enabled]
@@ -714,6 +712,7 @@ No Polling:
 ```
 
 **After Lock (GIFT type):**
+
 ```
 ☑️ Top Up Coins (Self)        [enabled]
 ☐ Gift to Others      🔒 Locked [disabled]
@@ -721,6 +720,7 @@ No Polling:
 ```
 
 **Visual Changes:**
+
 ```typescript
 <Radio
   disabled={isTypeLocked(GiftCardType.GIFT)}  // ← Disabled
@@ -751,6 +751,7 @@ const handleTypeChange = (newType: GiftCardType) => {
 ```
 
 **Example:**
+
 ```
 User tries to select: GIFT (locked)
   ↓
@@ -790,9 +791,9 @@ if (isAllLocked) {
 const handleTypeChange = (newType: GiftCardType) => {
   if (selectedType === GiftCardType.GIFT && newType !== GiftCardType.GIFT) {
     // Clear GIFT-specific form fields
-    setReceivers([])              // Clear receivers
-    setReceiverQuantity(1)        // Reset quantity
-    setMessage('')                // Clear message
+    setReceivers([]) // Clear receivers
+    setReceiverQuantity(1) // Reset quantity
+    setMessage('') // Clear message
   }
 
   setSelectedType(newType)
@@ -909,13 +910,13 @@ Customer can only select from available types:
 export class FeatureFlagService {
   constructor(
     private readonly featureFlagRepository: Repository<FeatureFlag>,
-    private readonly transactionService: TransactionService
+    private readonly transactionService: TransactionService,
   ) {}
 
   // Find by slug (for checking lock status)
   async findBySlug(slug: string): Promise<FeatureFlag> {
     return this.featureFlagRepository.findOne({
-      where: { slug }
+      where: { slug },
     })
   }
 
@@ -923,7 +924,7 @@ export class FeatureFlagService {
   async queryByGroup(groupName: string): Promise<FeatureFlag[]> {
     return this.featureFlagRepository.find({
       where: { groupName },
-      order: { order: 'ASC' }
+      order: { order: 'ASC' },
     })
   }
 
@@ -935,7 +936,7 @@ export class FeatureFlagService {
 
         for (const { slug, isLocked } of updates) {
           const flag = await manager.findOne(FeatureFlag, {
-            where: { slug }
+            where: { slug },
           })
 
           if (!flag) {
@@ -955,7 +956,7 @@ export class FeatureFlagService {
       (error) => {
         logger.error('Bulk toggle failed:', error)
         throw error
-      }
+      },
     )
   }
 }
@@ -971,10 +972,10 @@ export const useGetFeatureFlagsByGroup = (group: string) => {
   return useQuery({
     queryKey: ['feature-flags', group],
     queryFn: () => getFeatureFlagsByGroup(group),
-    staleTime: 5 * 60 * 1000,           // 5 minutes
-    gcTime: 30 * 60 * 1000,             // 30 minutes garbage collect
-    refetchOnWindowFocus: true,         // Refetch on window focus
-    refetchOnMount: 'stale'             // Refetch if stale on mount
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 30 * 60 * 1000, // 30 minutes garbage collect
+    refetchOnWindowFocus: true, // Refetch on window focus
+    refetchOnMount: 'stale', // Refetch if stale on mount
   })
 }
 
@@ -983,17 +984,15 @@ export const useBulkToggleFeatureFlags = () => {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (
-      updates: Array<{ slug: string; isLocked: boolean }>
-    ) => {
+    mutationFn: async (updates: Array<{ slug: string; isLocked: boolean }>) => {
       return bulkToggleFeatureFlags(updates)
     },
     onSuccess: () => {
       // Invalidate cache to force refetch
       queryClient.invalidateQueries({
-        queryKey: ['feature-flags', GiftCardFlagGroup.GIFT_CARD]
+        queryKey: ['feature-flags', GiftCardFlagGroup.GIFT_CARD],
       })
-    }
+    },
   })
 }
 ```
@@ -1007,18 +1006,18 @@ export enum GiftCardType {
   SELF = 'SELF',
   GIFT = 'GIFT',
   BUY = 'BUY',
-  NONE = 'NONE'
+  NONE = 'NONE',
 }
 
 export enum GiftCardFlagGroup {
-  GIFT_CARD = 'GIFT_CARD'
+  GIFT_CARD = 'GIFT_CARD',
 }
 
 export const GiftCardTypeLabels: Record<GiftCardType, string> = {
   [GiftCardType.SELF]: 'Top Up Coins (Self)',
   [GiftCardType.GIFT]: 'Gift to Others',
   [GiftCardType.BUY]: 'Purchase Gift Card',
-  [GiftCardType.NONE]: 'No Option Available'
+  [GiftCardType.NONE]: 'No Option Available',
 }
 ```
 
@@ -1030,7 +1029,7 @@ export const GiftCardTypeLabels: Record<GiftCardType, string> = {
 
 ```typescript
 enum FeatureFlagErrorCode {
-  FEATURE_LOCKED = 158806  // The feature is temporarily locked
+  FEATURE_LOCKED = 158806, // The feature is temporarily locked
 }
 ```
 
@@ -1050,7 +1049,7 @@ const validateGiftCardType = (type: GiftCardType, flags: FeatureFlag[]) => {
   if (flag.isLocked) {
     throw new BadRequestException({
       code: FeatureFlagErrorCode.FEATURE_LOCKED,
-      message: 'The feature is temporarily locked.'
+      message: 'The feature is temporarily locked.',
     })
   }
 
@@ -1128,6 +1127,7 @@ CLIENT SIDE:
 ## 11. Key Files Reference
 
 ### Backend (NestJS)
+
 - **Service**: `src/gift-card-modules/feature-flag/feature-flag.service.ts`
 - **Controller**: `src/gift-card-modules/feature-flag/feature-flag.controller.ts`
 - **Entities**: `src/gift-card-modules/feature-flag/entities/feature-flag.entity.ts`
@@ -1135,6 +1135,7 @@ CLIENT SIDE:
 - **Error Codes**: `src/gift-card-modules/feature-flag/feature-flag.validation.ts`
 
 ### Frontend (React)
+
 - **API Client**: `src/api/gift-card.ts` (lines 145-170)
 - **Hooks**: `src/hooks/use-gift-card.ts` (lines 306-326)
 - **Constants**: `src/constants/gift-card.ts`

@@ -15,7 +15,10 @@ interface UseAnimatedCountdownOptions {
  * - OTP: 10 minutes (expiresAt from API)
  * - JWT: 5 minutes (calculated: now + 5min)
  */
-export function useAnimatedCountdown({ expiresAt, enabled = true }: UseAnimatedCountdownOptions): SharedValue<number> {
+export function useAnimatedCountdown({
+  expiresAt,
+  enabled = true,
+}: UseAnimatedCountdownOptions): SharedValue<number> {
   // Shared value runs on UI thread, not JS thread
   // Updates to this value don't trigger re-renders
   const countdownShared = useSharedValue(0)
@@ -31,7 +34,9 @@ export function useAnimatedCountdown({ expiresAt, enabled = true }: UseAnimatedC
     // Calculate initial time remaining
     const calculateTimeLeft = () => {
       if (!expiresAt) return 0
-      const timeLeft = Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000)
+      const timeLeft = Math.floor(
+        (new Date(expiresAt).getTime() - Date.now()) / 1000,
+      )
       return Math.max(0, timeLeft)
     }
 

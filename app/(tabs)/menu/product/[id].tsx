@@ -7,7 +7,14 @@ import { Image } from 'expo-image'
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { AppState, Platform, RefreshControl, StyleSheet, View, useColorScheme } from 'react-native'
+import {
+  AppState,
+  Platform,
+  RefreshControl,
+  StyleSheet,
+  View,
+  useColorScheme,
+} from 'react-native'
 import Animated, {
   Extrapolation,
   interpolate,
@@ -116,14 +123,17 @@ function ProductDetailContent() {
     try {
       const parsed = JSON.parse(imageUrls) as unknown
       if (!Array.isArray(parsed)) return []
-      return parsed.filter((v): v is string => typeof v === 'string' && !!v.trim())
+      return parsed.filter(
+        (v): v is string => typeof v === 'string' && !!v.trim(),
+      )
     } catch {
       return []
     }
   }, [imageUrls])
 
   // Fetch full product data for variants
-  const { data: menuItemRes, refetch: refetchMenuItem } = useSpecificMenuItem(productId)
+  const { data: menuItemRes, refetch: refetchMenuItem } =
+    useSpecificMenuItem(productId)
   const menuItem = useMemo(() => menuItemRes?.result, [menuItemRes?.result])
 
   // Enriched product — prefers API data over route params
@@ -133,21 +143,29 @@ function ProductDetailContent() {
 
     const apiName = menuItem?.product?.name
     const apiVariants = menuItem?.product?.variants ?? []
-    const apiMinPrice = apiVariants.length > 0
-      ? Math.min(...apiVariants.map((v) => v.price))
-      : undefined
+    const apiMinPrice =
+      apiVariants.length > 0
+        ? Math.min(...apiVariants.map((v) => v.price))
+        : undefined
     const apiPromotion = menuItem?.promotion?.value
 
     return {
       id: productId,
       name: apiName || name || '',
-      basePrice: apiMinPrice ?? (Number.isFinite(basePriceRaw) ? Math.max(0, basePriceRaw) : 0),
-      promotionValue: apiPromotion ?? (Number.isFinite(promotionRaw) ? Math.max(0, promotionRaw) : 0),
+      basePrice:
+        apiMinPrice ??
+        (Number.isFinite(basePriceRaw) ? Math.max(0, basePriceRaw) : 0),
+      promotionValue:
+        apiPromotion ??
+        (Number.isFinite(promotionRaw) ? Math.max(0, promotionRaw) : 0),
     }
   }, [productId, name, basePrice, promotionValue, menuItem])
   const variants = useMemo(() => menuItem?.product?.variants ?? [], [menuItem])
   const smallestVariant = useMemo(
-    () => variants.length > 0 ? variants.reduce((p, c) => (p.price < c.price ? p : c)) : null,
+    () =>
+      variants.length > 0
+        ? variants.reduce((p, c) => (p.price < c.price ? p : c))
+        : null,
     [variants],
   )
   const description = menuItem?.product?.description ?? ''
@@ -205,7 +223,12 @@ function ProductDetailContent() {
   })
 
   const headerStyle = useAnimatedStyle(() => {
-    const scale = interpolate(scrollY.value, [-120, 0], [1.1, 1], Extrapolation.CLAMP)
+    const scale = interpolate(
+      scrollY.value,
+      [-120, 0],
+      [1.1, 1],
+      Extrapolation.CLAMP,
+    )
     return { transform: [{ scale }] }
   })
 
@@ -295,7 +318,10 @@ function ProductDetailContent() {
   }, [menuItem, product, variants, smallestVariant, setSelection, t, router])
 
   const rootStyle = useMemo(
-    () => [detailStyles.root, { backgroundColor: isDark ? '#000000' : '#ffffff' }],
+    () => [
+      detailStyles.root,
+      { backgroundColor: isDark ? '#000000' : '#ffffff' },
+    ],
     [isDark],
   )
 
@@ -313,7 +339,9 @@ function ProductDetailContent() {
       <Stack.Screen
         options={{
           statusBarStyle: 'light',
-          contentStyle: { backgroundColor: isDark ? colors.gray[900] : colors.gray[200] },
+          contentStyle: {
+            backgroundColor: isDark ? colors.gray[900] : colors.gray[200],
+          },
         }}
       />
 
@@ -363,7 +391,6 @@ function ProductDetailContent() {
               noDescriptionLabel={t('menu.noDescription')}
             />
           </DeferredOptionsSection>
-
         </View>
 
         {/* Related products — outside bodySection for edge-to-edge scroll */}

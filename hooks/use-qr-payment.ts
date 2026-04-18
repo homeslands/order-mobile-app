@@ -14,7 +14,10 @@ interface QRFetchState {
   error: string | null
 }
 
-export function useQRPayment(): QRFetchState & { countdown: number; refetch: () => void } {
+export function useQRPayment(): QRFetchState & {
+  countdown: number
+  refetch: () => void
+} {
   // Split into two useState: fetch state (rare updates) + countdown (every second)
   // This confines countdown re-renders to a lightweight path — QRCard/Instructions
   // receive stable fetch props and memo actually suppresses their re-renders.

@@ -18,21 +18,10 @@ export interface IUnregisterDeviceTokenRequest {
 export async function registerDeviceToken(
   params: IRegisterDeviceTokenRequest,
 ): Promise<IApiResponse<unknown>> {
-  if (__DEV__) {
-    // eslint-disable-next-line no-console
-    console.log(
-      '[FCM] POST /notification/firebase/register-device-token',
-      JSON.stringify(params),
-    )
-  }
   const response = await http.post<IApiResponse<unknown>>(
     '/notification/firebase/register-device-token',
     params,
   )
-  if (__DEV__) {
-    // eslint-disable-next-line no-console
-    console.log('[FCM] Register response:', JSON.stringify(response.data))
-  }
   return response.data
 }
 

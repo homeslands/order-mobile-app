@@ -35,14 +35,28 @@ export const VoucherCard = memo(function VoucherCard({
   const minOrder = minOrderText ?? ''
   const usage = usagePercent ?? 0
 
-  const handlePress = useCallback(() => onSelect(voucher.slug), [onSelect, voucher.slug])
+  const handlePress = useCallback(
+    () => onSelect(voucher.slug),
+    [onSelect, voucher.slug],
+  )
 
   return (
-    <Pressable onPress={handlePress} style={[
-      vcStyles.card,
-      { borderColor: isSelected ? primaryColor : isDark ? colors.gray[700] : colors.gray[200] },
-      isSelected && { backgroundColor: isDark ? `${primaryColor}20` : `${primaryColor}10` },
-    ]}>
+    <Pressable
+      onPress={handlePress}
+      style={[
+        vcStyles.card,
+        {
+          borderColor: isSelected
+            ? primaryColor
+            : isDark
+              ? colors.gray[700]
+              : colors.gray[200],
+        },
+        isSelected && {
+          backgroundColor: isDark ? `${primaryColor}20` : `${primaryColor}10`,
+        },
+      ]}
+    >
       <View style={vcStyles.row}>
         {/* Left strip */}
         <View style={[vcStyles.strip, { backgroundColor: primaryColor }]}>
@@ -50,17 +64,33 @@ export const VoucherCard = memo(function VoucherCard({
         </View>
 
         {/* Dashed separator */}
-        <View style={[vcStyles.dashed, { borderColor: isDark ? colors.gray[700] : colors.gray[200] }]} />
+        <View
+          style={[
+            vcStyles.dashed,
+            { borderColor: isDark ? colors.gray[700] : colors.gray[200] },
+          ]}
+        />
 
         {/* Content */}
         <View style={vcStyles.content}>
-          <Text style={[vcStyles.cardTitle, { color: isDark ? colors.gray[50] : colors.gray[900] }]} numberOfLines={2}>
+          <Text
+            style={[
+              vcStyles.cardTitle,
+              { color: isDark ? colors.gray[50] : colors.gray[900] },
+            ]}
+            numberOfLines={2}
+          >
             {voucher.title}
           </Text>
           <Text style={[vcStyles.discountLabel, { color: primaryColor }]}>
             {discount}
           </Text>
-          <Text style={[vcStyles.minOrder, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>
+          <Text
+            style={[
+              vcStyles.minOrder,
+              { color: isDark ? colors.gray[400] : colors.gray[500] },
+            ]}
+          >
             Giá trị đơn hàng tối thiểu: {minOrder}
           </Text>
           {errorMessage ? (
@@ -71,9 +101,24 @@ export const VoucherCard = memo(function VoucherCard({
           {voucher.voucherPaymentMethods?.length > 0 && (
             <View style={vcStyles.pmRow}>
               {voucher.voucherPaymentMethods.map((pm) => (
-                <View key={pm.slug} style={[vcStyles.pmTag, { borderColor: primaryColor, backgroundColor: `${primaryColor}08` }]}>
+                <View
+                  key={pm.slug}
+                  style={[
+                    vcStyles.pmTag,
+                    {
+                      borderColor: primaryColor,
+                      backgroundColor: `${primaryColor}08`,
+                    },
+                  ]}
+                >
                   <Text style={[vcStyles.pmTagText, { color: primaryColor }]}>
-                    {pm.paymentMethod === 'cash' ? 'Tiền mặt' : pm.paymentMethod === 'bank-transfer' ? 'CK' : pm.paymentMethod === 'point' ? 'Điểm' : 'Thẻ'}
+                    {pm.paymentMethod === 'cash'
+                      ? 'Tiền mặt'
+                      : pm.paymentMethod === 'bank-transfer'
+                        ? 'CK'
+                        : pm.paymentMethod === 'point'
+                          ? 'Điểm'
+                          : 'Thẻ'}
                   </Text>
                 </View>
               ))}
@@ -83,11 +128,30 @@ export const VoucherCard = memo(function VoucherCard({
           {/* Usage progress */}
           {voucher.remainingUsage > 0 && (
             <View style={vcStyles.progressWrap}>
-              <Text style={[vcStyles.progressLabel, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>
+              <Text
+                style={[
+                  vcStyles.progressLabel,
+                  { color: isDark ? colors.gray[400] : colors.gray[500] },
+                ]}
+              >
                 Số lượng còn lại: {Math.round(usage)}%
               </Text>
-              <View style={[vcStyles.progressTrack, { backgroundColor: isDark ? colors.gray[700] : colors.gray[200] }]}>
-                <View style={[vcStyles.progressFill, { width: `${usage}%`, backgroundColor: primaryColor }]} />
+              <View
+                style={[
+                  vcStyles.progressTrack,
+                  {
+                    backgroundColor: isDark
+                      ? colors.gray[700]
+                      : colors.gray[200],
+                  },
+                ]}
+              >
+                <View
+                  style={[
+                    vcStyles.progressFill,
+                    { width: `${usage}%`, backgroundColor: primaryColor },
+                  ]}
+                />
               </View>
             </View>
           )}
@@ -95,10 +159,17 @@ export const VoucherCard = memo(function VoucherCard({
           {/* Expiry + conditions */}
           <View style={vcStyles.bottomRow}>
             <View style={[vcStyles.expiryBadge, { borderColor: primaryColor }]}>
-              <Text style={[vcStyles.expiryText, { color: primaryColor }]}>{expiry}</Text>
+              <Text style={[vcStyles.expiryText, { color: primaryColor }]}>
+                {expiry}
+              </Text>
             </View>
             <Pressable onPress={() => onViewCondition?.(voucher)} hitSlop={8}>
-              <Text style={[vcStyles.conditionLink, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>
+              <Text
+                style={[
+                  vcStyles.conditionLink,
+                  { color: isDark ? colors.gray[400] : colors.gray[500] },
+                ]}
+              >
                 Điều kiện
               </Text>
             </Pressable>
@@ -107,11 +178,19 @@ export const VoucherCard = memo(function VoucherCard({
 
         {/* Checkbox circle */}
         <View style={vcStyles.checkWrap}>
-          <View style={[
-            vcStyles.checkCircle,
-            { borderColor: isSelected ? primaryColor : isDark ? colors.gray[600] : colors.gray[300] },
-            isSelected && { backgroundColor: primaryColor },
-          ]}>
+          <View
+            style={[
+              vcStyles.checkCircle,
+              {
+                borderColor: isSelected
+                  ? primaryColor
+                  : isDark
+                    ? colors.gray[600]
+                    : colors.gray[300],
+              },
+              isSelected && { backgroundColor: primaryColor },
+            ]}
+          >
             {isSelected && <View style={vcStyles.checkDot} />}
           </View>
         </View>

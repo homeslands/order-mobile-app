@@ -18,7 +18,7 @@ const Table = React.forwardRef<View, ViewProps>(
         {...props}
       />
     </ScrollView>
-  )
+  ),
 )
 Table.displayName = 'Table'
 
@@ -26,17 +26,20 @@ const TableHeader = React.forwardRef<View, ViewProps>(
   ({ className, ...props }, ref) => (
     <View
       ref={ref}
-      className={cn('flex-row border-b border-gray-200 dark:border-gray-600', className)}
+      className={cn(
+        'flex-row border-b border-gray-200 dark:border-gray-600',
+        className,
+      )}
       {...props}
     />
-  )
+  ),
 )
 TableHeader.displayName = 'TableHeader'
 
 const TableBody = React.forwardRef<View, ViewProps>(
   ({ className, ...props }, ref) => (
     <View ref={ref} className={cn('flex-1', className)} {...props} />
-  )
+  ),
 )
 TableBody.displayName = 'TableBody'
 
@@ -45,12 +48,12 @@ const TableFooter = React.forwardRef<View, ViewProps>(
     <View
       ref={ref}
       className={cn(
-        'flex-row border-t border-gray-200 dark:border-gray-600 bg-gray-100/50 dark:bg-gray-800/50',
-        className
+        'flex-row border-t border-gray-200 bg-gray-100/50 dark:border-gray-600 dark:bg-gray-800/50',
+        className,
       )}
       {...props}
     />
-  )
+  ),
 )
 TableFooter.displayName = 'TableFooter'
 
@@ -63,7 +66,7 @@ const TableRow = React.forwardRef<View, TableRowProps>(
     const rowClassName = cn(
       'flex-row border-b border-gray-200 dark:border-gray-600',
       onPress && 'active:opacity-70',
-      className
+      className,
     )
     if (onPress) {
       return (
@@ -76,7 +79,7 @@ const TableRow = React.forwardRef<View, TableRowProps>(
       )
     }
     return <View ref={ref} className={rowClassName} {...props} />
-  }
+  },
 )
 TableRow.displayName = 'TableRow'
 
@@ -85,13 +88,13 @@ const TableHead = React.forwardRef<View, ViewProps>(
     <View
       ref={ref}
       className={cn(
-        'flex-1 min-w-[80px] h-10 px-2 justify-center',
-        'border-r border-gray-200 dark:border-gray-600 last:border-r-0',
-        className
+        'h-10 min-w-[80px] flex-1 justify-center px-2',
+        'border-r border-gray-200 last:border-r-0 dark:border-gray-600',
+        className,
       )}
       {...props}
     />
-  )
+  ),
 )
 TableHead.displayName = 'TableHead'
 
@@ -104,22 +107,22 @@ const TableCell = React.forwardRef<View, TableCellProps>(
     <View
       ref={ref}
       className={cn(
-        'min-w-[80px] p-2 justify-center',
+        'min-w-[80px] justify-center p-2',
         !colSpan && 'flex-1',
-        'border-r border-gray-200 dark:border-gray-600 last:border-r-0',
-        className
+        'border-r border-gray-200 last:border-r-0 dark:border-gray-600',
+        className,
       )}
       style={[colSpan ? { flex: colSpan } : undefined, style]}
       {...props}
     />
-  )
+  ),
 )
 TableCell.displayName = 'TableCell'
 
 const TableCaption = React.forwardRef<View, ViewProps>(
   ({ className, ...props }, ref) => (
     <View ref={ref} className={cn('mt-4', className)} {...props} />
-  )
+  ),
 )
 TableCaption.displayName = 'TableCaption'
 

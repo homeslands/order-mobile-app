@@ -16,7 +16,11 @@ interface ResetPasswordFormProps {
   token: string
 }
 
-export function ResetPasswordForm({ onSubmit, isLoading = false, token }: ResetPasswordFormProps) {
+export function ResetPasswordForm({
+  onSubmit,
+  isLoading = false,
+  token,
+}: ResetPasswordFormProps) {
   const { t } = useTranslation('auth')
 
   const schema = useResetPasswordSchema()
@@ -32,15 +36,18 @@ export function ResetPasswordForm({ onSubmit, isLoading = false, token }: ResetP
     },
   })
 
-  const onFormSubmit = useCallback((values: TResetPasswordSchema) => {
-    onSubmit(values)
-  }, [onSubmit])
+  const onFormSubmit = useCallback(
+    (values: TResetPasswordSchema) => {
+      onSubmit(values)
+    },
+    [onSubmit],
+  )
 
   return (
     <View className="gap-4">
       {/* Mật khẩu mới */}
       <View>
-        <Text className="mb-2 text-sm font-sans-medium text-gray-900 dark:text-white">
+        <Text className="mb-2 font-sans-medium text-sm text-gray-900 dark:text-white">
           {t('forgotPassword.newPassword')}
         </Text>
         <Controller
@@ -57,13 +64,15 @@ export function ResetPasswordForm({ onSubmit, isLoading = false, token }: ResetP
           )}
         />
         {errors.newPassword && (
-          <Text className="mt-1 text-sm text-red-500 dark:text-red-400">{errors.newPassword.message}</Text>
+          <Text className="mt-1 text-sm text-red-500 dark:text-red-400">
+            {errors.newPassword.message}
+          </Text>
         )}
       </View>
 
       {/* Xác nhận mật khẩu — PasswordInputField thay TextInput thuần */}
       <View>
-        <Text className="mb-2 text-sm font-sans-medium text-gray-900 dark:text-white">
+        <Text className="mb-2 font-sans-medium text-sm text-gray-900 dark:text-white">
           {t('forgotPassword.confirmNewPassword')}
         </Text>
         <Controller
@@ -82,18 +91,28 @@ export function ResetPasswordForm({ onSubmit, isLoading = false, token }: ResetP
         />
       </View>
 
-      <Button variant="primary" className="mt-2 h-11 rounded-lg" disabled={isLoading} onPress={handleSubmit(onFormSubmit)}>
+      <Button
+        variant="primary"
+        className="mt-2 h-11 rounded-lg"
+        disabled={isLoading}
+        onPress={handleSubmit(onFormSubmit)}
+      >
         {isLoading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text className="text-sm font-sans-semibold text-white">
+          <Text className="font-sans-semibold text-sm text-white">
             {t('forgotPassword.reset')}
           </Text>
         )}
       </Button>
 
-      <Button variant="ghost" className="mt-2" disabled={isLoading} onPress={() => navigateNative.replace(ROUTE.LOGIN)}>
-        <Text className="text-center text-sm font-sans-medium text-amber-500 dark:text-amber-400">
+      <Button
+        variant="ghost"
+        className="mt-2"
+        disabled={isLoading}
+        onPress={() => navigateNative.replace(ROUTE.LOGIN)}
+      >
+        <Text className="text-center font-sans-medium text-sm text-amber-500 dark:text-amber-400">
           {t('forgotPassword.backToLogin')}
         </Text>
       </Button>

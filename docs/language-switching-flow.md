@@ -1,9 +1,11 @@
 # Language Switching (English-Vietnamese) Flow
 
 ## Overview
+
 The application supports two languages: English (EN) and Vietnamese (VI). The language switching feature allows users to change their preferred language through the Settings dropdown menu. The selected language is persisted at both the client-side (localStorage, Zustand store) and server-side (database).
 
 **Key Flow:**
+
 1. User selects language in Settings dropdown
 2. Frontend calls API to save preference to server
 3. Server updates user's language in database
@@ -17,11 +19,13 @@ The application supports two languages: English (EN) and Vietnamese (VI). The la
 ### 1.1 i18n Configuration (`src/i18n.ts`)
 
 **What it does:**
+
 - Initializes i18next with all translation resources (41 namespaces across 2 languages)
 - Sets up language detection (userInfo > localStorage > default VI)
 - Configures React-i18next integration
 
 **Key Points:**
+
 - **i18nextLng localStorage key:** Browser automatically saves current language
 - **Language Priority:** userInfo.language (from server) > localStorage > 'vi' (default)
 - **Namespaces:** 41 namespaces like toast, auth, common, menu, etc.
@@ -41,6 +45,7 @@ const initialLanguage = (() => {
 ### 1.2 App Bootstrap (`src/app/App.tsx` - Lines 113-121)
 
 **When app initializes:**
+
 ```typescript
 // Sync language from userInfo (from server)
 if (userStore.userInfo?.language) {
@@ -60,6 +65,7 @@ if (userStore.userInfo?.language) {
 **Location:** Top-right settings icon button in header
 
 **Component Structure:**
+
 ```
 SettingsDropdown
 ├── Language Selection (Select dropdown)
@@ -74,17 +80,20 @@ SettingsDropdown
 const handleUpdateLanguage = (language: string) => {
   // Path 1: If user is authenticated
   if (userInfo?.slug) {
-    updateLanguage({ userSlug: userInfo.slug, language }, {
-      onSuccess: (response) => {
-        // Update store with new language from server
-        setUserInfo({
-          ...userInfo,
-          language: response.result.language
-        })
-        // Update i18n instance
-        i18n.changeLanguage(language)
-      }
-    })
+    updateLanguage(
+      { userSlug: userInfo.slug, language },
+      {
+        onSuccess: (response) => {
+          // Update store with new language from server
+          setUserInfo({
+            ...userInfo,
+            language: response.result.language,
+          })
+          // Update i18n instance
+          i18n.changeLanguage(language)
+        },
+      },
+    )
   }
   // Path 2: If user not authenticated
   else {
@@ -108,6 +117,7 @@ const handleUpdateLanguage = (language: string) => {
      - Update i18n → UI re-renders
 
 **Side Effect - useEffect (Lines 50-54):**
+
 ```typescript
 useEffect(() => {
   if (userInfo?.language) {
@@ -115,6 +125,7 @@ useEffect(() => {
   }
 }, [userInfo?.language, i18n])
 ```
+
 This ensures whenever userInfo.language changes, i18n is updated.
 
 ### 1.4 API Call (`src/api/language.ts`)
@@ -124,17 +135,18 @@ This ensures whenever userInfo.language changes, i18n is updated.
 ```typescript
 export async function updateLanguage(
   userSlug: string,
-  language: string
+  language: string,
 ): Promise<IApiResponse<IUserInfo>> {
   const response = await http.patch<IApiResponse<IUserInfo>>(
     `/user/${userSlug}/language`,
-    { language }
+    { language },
   )
   return response.data
 }
 ```
 
 **Request:**
+
 - Method: PATCH
 - Path: `/user/{userSlug}/language`
 - Body: `{ language: "en" | "vi" }`
@@ -153,6 +165,7 @@ export const useUpdateLanguage = () => {
 ```
 
 **Purpose:** Wraps API call in React Query mutation for:
+
 - Automatic error handling
 - Loading states
 - Retry logic
@@ -161,6 +174,7 @@ export const useUpdateLanguage = () => {
 ### 1.6 Zustand User Store (`src/stores/user.store.ts`)
 
 **State:**
+
 ```typescript
 {
   userInfo: IUserInfo | null,
@@ -171,11 +185,13 @@ export const useUpdateLanguage = () => {
 ```
 
 **Persistence:**
+
 - Key: `'user-info'`
 - Storage: localStorage
 - Auto-synced across tabs/windows
 
 **Language field** in IUserInfo (Line 15):
+
 ```typescript
 export interface IUserInfo {
   slug: string
@@ -186,7 +202,7 @@ export interface IUserInfo {
   dob: string
   email: string
   address: string
-  language: string  // ← Stores user's language preference
+  language: string // ← Stores user's language preference
   // ... other fields
 }
 ```
@@ -202,11 +218,12 @@ export class UpdateUserLanguageRequestDto {
   @ApiProperty()
   @IsNotEmpty({ message: INVALID_LANGUAGE })
   @IsEnum(UserLanguage, { message: INVALID_LANGUAGE })
-  language: string;
+  language: string
 }
 ```
 
 **Validation:**
+
 - Must not be empty
 - Must be enum value: 'vi' | 'en'
 - Error message: INVALID_LANGUAGE
@@ -220,6 +237,7 @@ language: string;
 ```
 
 **Database Column:**
+
 - Column name: `language_column`
 - Type: VARCHAR
 - Default: 'vi'
@@ -265,6 +283,7 @@ async updateUserLanguage(
 ```
 
 **Key Points:**
+
 - Route parameter `slug` is NOT used (userId from token is used for security)
 - Requires authentication (`@CurrentUser` decorator)
 - Validates language enum
@@ -304,6 +323,7 @@ async updateUserLanguage(
 ```
 
 **Steps:**
+
 1. Find user by ID (from JWT token)
 2. Validate user exists
 3. Update language field
@@ -364,19 +384,19 @@ User clicks language in dropdown
 
 ### 3.2 Timeline (T0 = User selects language)
 
-| Time | Event | Component | Description |
-|------|-------|-----------|-------------|
-| T0 | User selects language | SettingsDropdown | User clicks 'English' or 'Tiếng Việt' |
-| T1 | handleUpdateLanguage() | SettingsDropdown | Language selection handler runs |
-| T2 | Check authentication | SettingsDropdown | Check if userInfo.slug exists |
-| T3 | API call initiated | useUpdateLanguage (React Query) | useMutation.mutate() called |
-| T4 | HTTP request sent | Axios | PATCH /user/{slug}/language |
-| T5 | Request received | UserController | Endpoint handler processes request |
-| T6 | Database update | UserService | UPDATE users SET language_column = ... |
-| T7 | Response received | Frontend | API returns updated user with new language |
-| T8 | Store updated | Zustand | setUserInfo({ ...userInfo, language: 'en' }) |
-| T9 | i18n updated | i18next | i18n.changeLanguage('en') |
-| T10+ | UI re-renders | React | All components using useTranslation() re-render |
+| Time | Event                  | Component                       | Description                                     |
+| ---- | ---------------------- | ------------------------------- | ----------------------------------------------- |
+| T0   | User selects language  | SettingsDropdown                | User clicks 'English' or 'Tiếng Việt'           |
+| T1   | handleUpdateLanguage() | SettingsDropdown                | Language selection handler runs                 |
+| T2   | Check authentication   | SettingsDropdown                | Check if userInfo.slug exists                   |
+| T3   | API call initiated     | useUpdateLanguage (React Query) | useMutation.mutate() called                     |
+| T4   | HTTP request sent      | Axios                           | PATCH /user/{slug}/language                     |
+| T5   | Request received       | UserController                  | Endpoint handler processes request              |
+| T6   | Database update        | UserService                     | UPDATE users SET language_column = ...          |
+| T7   | Response received      | Frontend                        | API returns updated user with new language      |
+| T8   | Store updated          | Zustand                         | setUserInfo({ ...userInfo, language: 'en' })    |
+| T9   | i18n updated           | i18next                         | i18n.changeLanguage('en')                       |
+| T10+ | UI re-renders          | React                           | All components using useTranslation() re-render |
 
 **Total Time:** ~500ms - 1000ms (depending on network)
 
@@ -389,6 +409,7 @@ User clicks language in dropdown
 **Scenario:** User logged in as 'john-doe' switches to English
 
 **HTTP Request:**
+
 ```http
 PATCH /user/john-doe/language HTTP/1.1
 Host: api.example.com
@@ -401,6 +422,7 @@ Content-Type: application/json
 ```
 
 **Frontend Call:**
+
 ```typescript
 // settings-dropdown.tsx
 const handleUpdateLanguage = (language: string) => {
@@ -456,20 +478,24 @@ const handleUpdateLanguage = (language: string) => {
 ```
 
 **Frontend Processing (settings-dropdown.tsx):**
+
 ```typescript
 const handleUpdateLanguage = (language: string) => {
   if (userInfo?.slug) {
-    updateLanguage({ userSlug: userInfo.slug, language }, {
-      onSuccess: (response) => {
-        // Update store with response data
-        setUserInfo({
-          ...userInfo,
-          language: response.result.language  // 'en'
-        })
-        // Update i18n
-        i18n.changeLanguage(language)  // 'en'
-      }
-    })
+    updateLanguage(
+      { userSlug: userInfo.slug, language },
+      {
+        onSuccess: (response) => {
+          // Update store with response data
+          setUserInfo({
+            ...userInfo,
+            language: response.result.language, // 'en'
+          })
+          // Update i18n
+          i18n.changeLanguage(language) // 'en'
+        },
+      },
+    )
   }
 }
 ```
@@ -505,6 +531,7 @@ const handleUpdateLanguage = (language: string) => {
 ```
 
 **Frontend Error Handling:**
+
 - React Query mutation.onError callback is triggered
 - Global error handler shows toast: "User not found"
 - Language doesn't change
@@ -537,12 +564,14 @@ else {
 ```
 
 **What Happens:**
+
 1. NO API call made (no userSlug)
 2. Language saved to localStorage with key `i18nextLng`
 3. i18n instance updated immediately
 4. UI re-renders with new language
 
 **Persistence:**
+
 - Saved in localStorage
 - When user logs in later, server's language setting will override this
 - When user logs out, browser language returns to localStorage value
@@ -560,9 +589,9 @@ else {
 const initialLanguage = (() => {
   const userStore = useUserStore.getState()
   if (userStore.userInfo?.language) {
-    return userStore.userInfo.language  // Use server language
+    return userStore.userInfo.language // Use server language
   }
-  return window.localStorage.getItem('i18nextLng') || 'vi'  // Fallback
+  return window.localStorage.getItem('i18nextLng') || 'vi' // Fallback
 })()
 
 // App.tsx - Sync on initialization
@@ -574,6 +603,7 @@ useEffect(() => {
 ```
 
 **Priority Order:**
+
 1. **userInfo.language** (from server, most authoritative)
 2. **localStorage['i18nextLng']** (from previous session)
 3. **'vi'** (default fallback)
@@ -592,6 +622,7 @@ useEffect(() => {
 ```
 
 **Triggers:**
+
 - When user changes language (setUserInfo in handleUpdateLanguage)
 - When profile is refreshed from server
 - When user logs out (userInfo becomes null)
@@ -611,6 +642,7 @@ i18next (core)
 ```
 
 **Usage in Components:**
+
 ```typescript
 import { useTranslation } from 'react-i18next'
 
@@ -646,6 +678,7 @@ locales/
 ```
 
 **Example:** `locales/en/setting.json`
+
 ```json
 {
   "setting": {
@@ -662,12 +695,12 @@ locales/
 
 ### 7.3 Storage Locations
 
-| Location | Key | Scope | Persistence |
-|----------|-----|-------|-------------|
-| localStorage | `i18nextLng` | Browser | Permanent (until cleared) |
-| localStorage | `user-info` | App-wide | Permanent (until logout) |
-| Zustand Store | `userInfo.language` | App-wide | RAM + localStorage sync |
-| i18n Instance | (in-memory) | App-wide | Session only |
+| Location      | Key                 | Scope    | Persistence               |
+| ------------- | ------------------- | -------- | ------------------------- |
+| localStorage  | `i18nextLng`        | Browser  | Permanent (until cleared) |
+| localStorage  | `user-info`         | App-wide | Permanent (until logout)  |
+| Zustand Store | `userInfo.language` | App-wide | RAM + localStorage sync   |
+| i18n Instance | (in-memory)         | App-wide | Session only              |
 
 ### 7.4 Security Considerations
 
@@ -689,6 +722,7 @@ locales/
 ## Part 8: Implementation Checklist
 
 ### Frontend Checklist
+
 - [ ] i18n configuration with all namespaces
 - [ ] SettingsDropdown component with Select dropdown
 - [ ] handleUpdateLanguage() with auth check
@@ -700,6 +734,7 @@ locales/
 - [ ] All components using useTranslation()
 
 ### Backend Checklist
+
 - [ ] UserLanguage enum (VI, EN)
 - [ ] User entity with language column (default: VI)
 - [ ] UpdateUserLanguageRequestDto with validation
@@ -711,6 +746,7 @@ locales/
 - [ ] Return AuthProfileResponseDto
 
 ### Database Checklist
+
 - [ ] User table has language_column
 - [ ] Default value: 'vi'
 - [ ] Column type: VARCHAR
@@ -722,7 +758,9 @@ locales/
 ## Part 9: Troubleshooting
 
 ### Issue: Language doesn't persist after reload
+
 **Causes:**
+
 - localStorage cleared
 - Zustand store not persisted
 - userInfo not loaded from server
@@ -730,12 +768,15 @@ locales/
 **Solution:** Check localStorage and server userInfo
 
 ### Issue: Language not syncing across tabs
+
 **Cause:** Each tab has separate i18n instance in memory
 
 **Solution:** localStorage sync works, but i18n instance must reload from stored value
 
 ### Issue: UI still shows old language after change
+
 **Cause:**
+
 - Component not using useTranslation()
 - Hardcoded strings instead of translation keys
 - useTranslation() from wrong namespace
@@ -743,6 +784,7 @@ locales/
 **Solution:** Use i18n keys and correct namespace
 
 ### Issue: API returns 400 Bad Request
+
 **Cause:** Invalid language value (not 'vi' or 'en')
 
 **Solution:** Validate frontend before sending, use enum
@@ -752,6 +794,7 @@ locales/
 ## Summary
 
 **Flow in 5 Steps:**
+
 1. **User selects language** in Settings dropdown
 2. **Frontend API call** to PATCH /user/{slug}/language
 3. **Backend updates** user.language in database
@@ -759,6 +802,7 @@ locales/
 5. **Frontend updates** Zustand store and i18n → UI re-renders
 
 **Key Files:**
+
 - Frontend: `settings-dropdown.tsx`, `use-language.ts`, `i18n.ts`, `user.store.ts`
 - Backend: `user.controller.ts`, `user.service.ts`, `user.entity.ts`
 - Config: `src/locales/{en,vi}/*.json`

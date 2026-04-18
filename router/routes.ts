@@ -1,9 +1,9 @@
 // /**
 //  * Router Routes Configuration for Expo Router
-//  * 
+//  *
 //  * Note: Với Expo Router (file-based routing), routes được định nghĩa bằng cấu trúc file trong thư mục `app/`
 //  * File này chỉ định nghĩa metadata (title, icon, permission) cho sidebar navigation
-//  * 
+//  *
 //  * Để navigate, sử dụng:
 //  * ```tsx
 //  * import { useRouter } from 'expo-router'

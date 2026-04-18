@@ -15,6 +15,7 @@ Login Page → useLogin() → Auth Store → User Store → Protected Routes
 ```
 
 **Key Features:**
+
 - ✅ Persistent localStorage (survives page reload)
 - ✅ JWT decode for permissions extraction
 - ✅ ProtectedElement wraps protected routes
@@ -39,6 +40,7 @@ Guest checkout completed
 ```
 
 **Key Features:**
+
 - ✅ Supports BOTH guest & authenticated
 - ✅ Guest: Can browse, order, checkout without login
 - ✅ Auth: Full features + loyalty points + delivery
@@ -53,20 +55,21 @@ Guest checkout completed
 
 ### 2.1 Login & Authentication
 
-| Aspect | Web | App |
-|--------|-----|-----|
-| **Login Flow** | Phone + Password | Phone + Password |
-| **Token Storage** | localStorage (persistent) | Zustand + AsyncStorage (persistent) |
-| **Token Parts** | accessToken, refreshToken, expireTime | accessToken, refreshToken, expireTime |
-| **Auto Refresh** | Request interceptor (auto) | Request interceptor (auto) |
-| **Guest Support** | ❌ No | ✅ Yes |
-| **Auto-Redirect** | If already auth → skip login | N/A (supports guest) |
+| Aspect            | Web                                   | App                                   |
+| ----------------- | ------------------------------------- | ------------------------------------- |
+| **Login Flow**    | Phone + Password                      | Phone + Password                      |
+| **Token Storage** | localStorage (persistent)             | Zustand + AsyncStorage (persistent)   |
+| **Token Parts**   | accessToken, refreshToken, expireTime | accessToken, refreshToken, expireTime |
+| **Auto Refresh**  | Request interceptor (auto)            | Request interceptor (auto)            |
+| **Guest Support** | ❌ No                                 | ✅ Yes                                |
+| **Auto-Redirect** | If already auth → skip login          | N/A (supports guest)                  |
 
 ---
 
 ### 2.2 Route Protection
 
 #### Web:
+
 ```typescript
 // Protected routes wrapped with ProtectedElement
 <ProtectedElement requiredRoles={[Role.CUSTOMER]}>
@@ -81,6 +84,7 @@ Guest checkout completed
 ```
 
 #### App:
+
 ```typescript
 // No route protection wrapper
 // All routes accessible to guest users
@@ -88,13 +92,13 @@ Guest checkout completed
 // Order creation:
 export const useCreateOrder = () => {
   return useMutation({
-    mutationFn: POST /orders  // Authenticated endpoint
+    mutationFn: POST / orders, // Authenticated endpoint
   })
 }
 
 export const useCreateOrderWithoutLogin = () => {
   return useMutation({
-    mutationFn: POST /orders/public  // Public endpoint
+    mutationFn: POST / orders / public, // Public endpoint
   })
 }
 
@@ -106,6 +110,7 @@ export const useCreateOrderWithoutLogin = () => {
 ### 2.3 Permission Checking
 
 #### Web:
+
 ```typescript
 // Extracts from JWT
 const decoded = jwtDecode(token)
@@ -119,12 +124,13 @@ const permissions = decoded.authorities
 ```
 
 #### App:
+
 ```typescript
 // No JWT decoding
 // Role from useUserStore only
 
 const userInfo = useUserStore((s) => s.userInfo)
-const role = userInfo?.role?.name  // CUSTOMER, STAFF, ADMIN
+const role = userInfo?.role?.name // CUSTOMER, STAFF, ADMIN
 
 // Uses role to determine:
 // - Available features (loyalty points, delivery)
@@ -137,6 +143,7 @@ const role = userInfo?.role?.name  // CUSTOMER, STAFF, ADMIN
 ### 2.4 Order Flow
 
 #### Web (Implied - Auth Only):
+
 ```
 User (Authenticated) →
   ├─ Browse menu (GET /menu/specific) - auth endpoint
@@ -146,6 +153,7 @@ User (Authenticated) →
 ```
 
 #### App:
+
 ```
 Guest User →
   ├─ Browse menu (GET /menu/specific/public) - public
@@ -167,12 +175,14 @@ Logged-In User →
 ### 2.5 FCM Notifications
 
 #### Web:
+
 ```
 Not mentioned in auth flow docs
 Assume: Only authenticated users can receive notifications
 ```
 
 #### App:
+
 ```
 Current:
   - Logged-in: Register token → Can receive FCM ✅
@@ -229,16 +239,16 @@ Make request → Interceptor checks token expiry
 
 ## 4. Key Differences Summary
 
-| Feature | Web | App | Status |
-|---------|-----|-----|--------|
-| **Guest Support** | ❌ | ✅ | App advantage |
-| **Public Endpoints** | ❌ (all auth) | ✅ | App requirement |
-| **JWT Permission Check** | ✅ | ❌ | Web advantage |
-| **Route Protection** | ✅ (ProtectedElement) | ❌ | Web advantage |
-| **FCM Notifications** | ? | ⚠️ (limited) | App needs enhancement |
-| **Token Auto-Refresh** | ✅ | ✅ | Both equal |
-| **Persistent Storage** | ✅ (localStorage) | ✅ (AsyncStorage) | Both equal |
-| **Role-Based Features** | Via JWT authorities | Via userInfo.role | Both work |
+| Feature                  | Web                   | App               | Status                |
+| ------------------------ | --------------------- | ----------------- | --------------------- |
+| **Guest Support**        | ❌                    | ✅                | App advantage         |
+| **Public Endpoints**     | ❌ (all auth)         | ✅                | App requirement       |
+| **JWT Permission Check** | ✅                    | ❌                | Web advantage         |
+| **Route Protection**     | ✅ (ProtectedElement) | ❌                | Web advantage         |
+| **FCM Notifications**    | ?                     | ⚠️ (limited)      | App needs enhancement |
+| **Token Auto-Refresh**   | ✅                    | ✅                | Both equal            |
+| **Persistent Storage**   | ✅ (localStorage)     | ✅ (AsyncStorage) | Both equal            |
+| **Role-Based Features**  | Via JWT authorities   | Via userInfo.role | Both work             |
 
 ---
 
@@ -247,16 +257,19 @@ Make request → Interceptor checks token expiry
 ### 5.1 App-Specific Issues
 
 #### ❌ FCM Only for Auth Users
+
 **Current:** Guest cannot receive FCM notifications
 **Fix Needed:** Create public endpoint or remove auth requirement
 **Recommendation:** Implement `/notification/firebase/register-device-token/public`
 
 #### ❌ No Route Protection
+
 **Current:** No ProtectedElement wrapper
 **Impact:** Guest users can access any route (relies on endpoint auth)
 **Note:** OK for now since public endpoints handle guest
 
 #### ❌ No JWT Permission Checking
+
 **Current:** Role info from userStore, not from JWT
 **Impact:** Limited permission granularity
 **Trade-off:** Simpler but less flexible than web
@@ -266,11 +279,13 @@ Make request → Interceptor checks token expiry
 ### 5.2 Web Could Adopt From App
 
 #### ✅ Guest User Support
+
 **Web:** Only authenticated flow
 **App:** Fully supports guest checkout
 **Recommendation:** Web could add `/checkout/public` routes for guest users
 
 #### ✅ Public Endpoints Pattern
+
 **Web:** All endpoints require auth
 **App:** Has public variants (`/public` suffix)
 **Recommendation:** Web could mirror this pattern for flexibility
@@ -280,6 +295,7 @@ Make request → Interceptor checks token expiry
 ## 6. Current Auth Store Status
 
 ### Web (From docs):
+
 ```typescript
 authStore: {
   token: string
@@ -304,6 +320,7 @@ userStore: {
 ```
 
 ### App (Current):
+
 ```typescript
 useUserStore: {
   userInfo: {
@@ -327,13 +344,16 @@ useAuthStore: {
 ## 7. Conclusion
 
 ### Web Architecture:
+
 - ✅ **Pros:** Strong route protection, JWT-based permissions, localStorage persistence
 - ❌ **Cons:** No guest support, all endpoints require auth, no FCM
 
 ### App Architecture:
+
 - ✅ **Pros:** Guest user support, public endpoints, designed for mobile persistence, FCM ready
 - ❌ **Cons:** No ProtectedElement, simpler permission model, FCM limited to auth
 
 ### Recommendation:
+
 **Keep app design as-is** - it's optimized for guest checkout flow.
 **Enhancement needed:** Add public FCM endpoint for guest notifications.

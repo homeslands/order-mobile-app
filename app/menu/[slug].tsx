@@ -8,7 +8,10 @@ export default function MenuSlugRedirect() {
   const { slug } = useLocalSearchParams<{ slug: string }>()
   return (
     <Redirect
-      href={{ pathname: '/(tabs)/menu/product/[id]', params: { id: slug ?? '' } }}
+      href={{
+        pathname: '/(tabs)/menu/product/[id]',
+        params: { id: slug ?? '' },
+      }}
     />
   )
 }

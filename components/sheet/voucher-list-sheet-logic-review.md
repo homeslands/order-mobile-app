@@ -1,6 +1,7 @@
 # VOUCHER LIST SHEET - LOGIC REVIEW CHECKLIST
 
 ## MỤC ĐÍCH
+
 Component này cho phép người dùng xem danh sách voucher, tìm kiếm voucher bằng mã, chọn và áp dụng voucher vào đơn hàng.
 
 ---
@@ -8,6 +9,7 @@ Component này cho phép người dùng xem danh sách voucher, tìm kiếm vouc
 ## 1. KHỞI TẠO VÀ STATE MANAGEMENT
 
 ### ✅ Checklist:
+
 - [ ] Component có đầy đủ các state cần thiết:
   - `sheetOpen`: điều khiển mở/đóng sheet
   - `localVoucherList`: danh sách voucher hiển thị (tích lũy từ nhiều trang)
@@ -23,6 +25,7 @@ Component này cho phép người dùng xem danh sách voucher, tìm kiếm vouc
 ## 2. XÁC ĐỊNH LOẠI USER VÀ TÍNH TOÁN DỮ LIỆU
 
 ### ✅ Checklist:
+
 - [ ] Xác định `isCustomerOwner` đúng logic:
   - User phải tồn tại (`!!userInfo`)
   - Role phải là CUSTOMER
@@ -49,6 +52,7 @@ Component này cho phép người dùng xem danh sách voucher, tìm kiếm vouc
 ## 3. FETCH DỮ LIỆU VOUCHER
 
 ### ✅ Checklist:
+
 - [ ] Fetch voucher list đúng theo loại user:
   - Nếu `isCustomerOwner = true`: dùng `useVouchersForOrder` (voucher private)
   - Nếu `isCustomerOwner = false`: dùng `usePublicVouchersForOrder` (voucher public)
@@ -66,6 +70,7 @@ Component này cho phép người dùng xem danh sách voucher, tìm kiếm vouc
 ## 4. TÍCH LŨY VOUCHER TỪ NHIỀU TRANG
 
 ### ✅ Checklist:
+
 - [ ] Xác định đúng data source:
   - Nếu user là customer: dùng `voucherList?.result`
   - Nếu không: dùng `publicVoucherList?.result`
@@ -91,6 +96,7 @@ Component này cho phép người dùng xem danh sách voucher, tìm kiếm vouc
 ## 5. RESET KHI MỞ SHEET
 
 ### ✅ Checklist:
+
 - [ ] Khi `sheetOpen` chuyển từ `false` → `true`:
   - Reset `currentPage = 1`
   - Reset `hasMore = true`
@@ -109,6 +115,7 @@ Component này cho phép người dùng xem danh sách voucher, tìm kiếm vouc
 ## 6. VALIDATION VOUCHER TỰ ĐỘNG
 
 ### ✅ Checklist:
+
 - [ ] Khi `cartItems.orderItems` thay đổi, tự động check voucher hiện tại:
   - Nếu không có voucher hoặc không có orderItems: bỏ qua
   - Nếu `isRemovingVoucherRef.current = true`: bỏ qua (tránh infinite loop)
@@ -120,7 +127,7 @@ Component này cho phép người dùng xem danh sách voucher, tìm kiếm vouc
     - Nếu không có sản phẩm nào hợp lệ → `shouldRemove = true`
 
 - [ ] Check `minOrderValue`:
-  - Tính `subtotalBeforeVoucher` = tổng (originalPrice - promotionDiscount) * quantity
+  - Tính `subtotalBeforeVoucher` = tổng (originalPrice - promotionDiscount) \* quantity
   - Nếu `voucher.type !== SAME_PRICE_PRODUCT`:
     - Nếu `subtotalBeforeVoucher < voucher.minOrderValue` → `shouldRemove = true`
 
@@ -137,6 +144,7 @@ Component này cho phép người dùng xem danh sách voucher, tìm kiếm vouc
 ## 7. XỬ LÝ CHỌN VOUCHER
 
 ### ✅ Checklist:
+
 - [ ] Khi user click checkbox:
   - Nếu checked: set `tempSelectedVoucher = voucher.slug`
   - Nếu unchecked: set `tempSelectedVoucher = ''`
@@ -147,7 +155,6 @@ Component này cho phép người dùng xem danh sách voucher, tìm kiếm vouc
     - Nếu có voucher đang áp dụng: remove voucher và show toast
     - Đóng sheet
     - Return
-  
   - Nếu `tempSelectedVoucher` có giá trị:
     - Tìm voucher trong `localVoucherList` theo slug
     - Nếu không tìm thấy: show error toast và return
@@ -163,11 +170,12 @@ Component này cho phép người dùng xem danh sách voucher, tìm kiếm vouc
 ## 8. VALIDATION VÀ HIỂN THỊ VOUCHER
 
 ### ✅ Checklist:
+
 - [ ] Function `isVoucherValid` check đầy đủ các điều kiện:
   - `isActive = true`
   - Chưa hết hạn: `endDate + 30 phút >= now` (grace period 30 phút)
   - Còn lượt sử dụng: `remainingUsage > 0`
-  - Đạt minOrderValue: 
+  - Đạt minOrderValue:
     - Nếu `type === SAME_PRICE_PRODUCT`: luôn true
     - Nếu không: `minOrderValue <= (subTotalBeforeDiscount - promotionDiscount)`
   - Sản phẩm hợp lệ:
@@ -192,6 +200,7 @@ Component này cho phép người dùng xem danh sách voucher, tìm kiếm vouc
 ## 9. LOAD MORE PAGINATION
 
 ### ✅ Checklist:
+
 - [ ] Function `handleLoadMore`:
   - Check điều kiện: `!isLoadingMore && hasMore && sheetOpen`
   - Nếu đúng: set `isLoadingMore = true` và tăng `currentPage`
@@ -208,6 +217,7 @@ Component này cho phép người dùng xem danh sách voucher, tìm kiếm vouc
 ## 10. XỬ LÝ SPECIFIC VOUCHER (TÌM KIẾM)
 
 ### ✅ Checklist:
+
 - [ ] Khi user nhập mã vào input:
   - Update `selectedVoucher` state
   - Trigger fetch specific voucher (nếu enabled)
@@ -227,6 +237,7 @@ Component này cho phép người dùng xem danh sách voucher, tìm kiếm vouc
 ## 11. RENDER UI
 
 ### ✅ Checklist:
+
 - [ ] Sắp xếp voucher đúng:
   - Voucher hợp lệ (`isVoucherValid = true`) hiển thị trước
   - Voucher không hợp lệ hiển thị sau (có label "Voucher không khả dụng")
@@ -266,6 +277,7 @@ Component này cho phép người dùng xem danh sách voucher, tìm kiếm vouc
 ## 13. PERFORMANCE
 
 ### ✅ Checklist:
+
 - [ ] Sử dụng `useMemo` cho các tính toán nặng:
   - `minOrderValue`
   - `nonGiftOrderItems`
@@ -294,7 +306,7 @@ Component này cho phép người dùng xem danh sách voucher, tìm kiếm vouc
 
 4. **Effect 399-411**: Sync voucher từ cart - Logic này có conflict với các effect khác không?
 
-5. **Validation logic**: 
+5. **Validation logic**:
    - `isVoucherValid` check `hasValidProducts` yêu cầu voucher phải có `voucherProducts`
    - Nhưng trong auto-validation (196-254), chỉ check khi có `voucherProducts`
    - Có inconsistency không?
@@ -331,9 +343,9 @@ Component này cho phép người dùng xem danh sách voucher, tìm kiếm vouc
 ## KẾT LUẬN
 
 Sau khi review checklist này, cần đảm bảo:
+
 - ✅ Tất cả logic đều có mục đích rõ ràng
 - ✅ Không có logic conflict hoặc duplicate
 - ✅ Edge cases đều được xử lý
 - ✅ Performance được tối ưu
 - ✅ Code dễ maintain và debug
-

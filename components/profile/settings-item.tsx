@@ -3,7 +3,10 @@ import React from 'react'
 import { Text, View, useColorScheme } from 'react-native'
 
 import { colors } from '@/constants/colors.constant'
-import { NativeGesturePressable, type NativeGesturePressableProps } from '@/components/navigation/native-gesture-pressable'
+import {
+  NativeGesturePressable,
+  type NativeGesturePressableProps,
+} from '@/components/navigation/native-gesture-pressable'
 
 interface SettingsItemProps {
   icon: React.ComponentType<{ size?: number; color?: string }>
@@ -46,7 +49,11 @@ export function SettingsItem({
         : colors.gray[600]
 
   const iconColor = destructive ? colors.destructive.dark : colors.white.light
-  const textColor = destructive ? colors.destructive.light : isDark ? colors.white.light : '#000000'
+  const textColor = destructive
+    ? colors.destructive.light
+    : isDark
+      ? colors.white.light
+      : '#000000'
 
   const content = (
     <View className="min-h-[44px] flex-row items-center px-4 py-3">
@@ -68,7 +75,9 @@ export function SettingsItem({
             <Text
               className="mt-0.5 text-sm"
               style={{
-                color: subtitleColor ?? (isDark ? colors.gray[400] : colors.gray[500]),
+                color:
+                  subtitleColor ??
+                  (isDark ? colors.gray[400] : colors.gray[500]),
               }}
             >
               {subtitle}
@@ -89,7 +98,11 @@ export function SettingsItem({
           <ChevronRight
             size={20}
             color={
-              destructive ? colors.destructive.dark : isDark ? colors.gray[500] : colors.gray[400]
+              destructive
+                ? colors.destructive.dark
+                : isDark
+                  ? colors.gray[500]
+                  : colors.gray[400]
             }
           />
         )}
@@ -140,7 +153,9 @@ export function SettingsSection({ children, header }: SettingsSectionProps) {
                 <View
                   className="ml-16 mr-10 h-px"
                   style={{
-                    backgroundColor: isDark ? colors.gray[700] : colors.gray[200],
+                    backgroundColor: isDark
+                      ? colors.gray[700]
+                      : colors.gray[200],
                     opacity: isDark ? 0.35 : 0.5,
                   }}
                 />

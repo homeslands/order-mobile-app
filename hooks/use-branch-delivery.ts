@@ -18,8 +18,7 @@ export function useCalculateDeliveryFee(
   options?: UseCalculateDeliveryFeeOptions,
 ) {
   const { t } = useTranslation('menu')
-  const shouldFetch =
-    options?.enabled !== false && !!branchSlug
+  const shouldFetch = options?.enabled !== false && !!branchSlug
   const {
     data: branchInfo,
     isLoading,

@@ -51,7 +51,12 @@ export const TabHeader = memo(function TabHeader({
   const borderColor = isDark ? colors.border.dark : colors.border.light
 
   return (
-    <View style={[s.root, { backgroundColor: bgColor, paddingTop: STATIC_TOP_INSET }]}>
+    <View
+      style={[
+        s.root,
+        { backgroundColor: bgColor, paddingTop: STATIC_TOP_INSET },
+      ]}
+    >
       <Animated.View style={[s.row, animatedStyle]}>
         {/* Left — logo or title */}
         {variant === 'logo' ? (
@@ -68,14 +73,16 @@ export const TabHeader = memo(function TabHeader({
         )}
 
         {/* Right actions */}
-        {rightActions != null && (
-          <View style={s.actions}>{rightActions}</View>
-        )}
+        {rightActions != null && <View style={s.actions}>{rightActions}</View>}
       </Animated.View>
 
       {/* Border bottom — có thể animate opacity theo scroll */}
       <Animated.View
-        style={[s.border, { backgroundColor: borderColor }, borderAnimatedStyle]}
+        style={[
+          s.border,
+          { backgroundColor: borderColor },
+          borderAnimatedStyle,
+        ]}
       />
     </View>
   )

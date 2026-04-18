@@ -58,14 +58,18 @@ export const VoucherSheet = memo(function VoucherSheet({
   const [code, setCode] = useState('')
   const [searchCode, setSearchCode] = useState('')
   const [selectedVoucher, setSelectedVoucher] = useState<IVoucher | null>(null)
-  const [conditionVoucher, setConditionVoucher] = useState<IVoucher | null>(null)
+  const [conditionVoucher, setConditionVoucher] = useState<IVoucher | null>(
+    null,
+  )
   const [_validating, setValidating] = useState(false)
 
   // Auth — switch between private/public hooks
   const userInfo = useUserStore((s) => s.userInfo)
   const userSlug = userInfo?.slug
   const isCustomerOwner =
-    !!userInfo && userInfo.role?.name === Role.CUSTOMER && userInfo.phonenumber !== 'default-customer'
+    !!userInfo &&
+    userInfo.role?.name === Role.CUSTOMER &&
+    userInfo.phonenumber !== 'default-customer'
 
   const { mutate: validatePrivate } = useValidateVoucher()
   const { mutate: validatePublic } = useValidatePublicVoucher()
@@ -83,7 +87,9 @@ export const VoucherSheet = memo(function VoucherSheet({
   }, [visible, currentVoucher])
 
   // 2.1 — Fetch voucher by code (single hook, conditional fetch fn)
-  const specificFetch = isCustomerOwner ? useSpecificVoucher : useSpecificPublicVoucher
+  const specificFetch = isCustomerOwner
+    ? useSpecificVoucher
+    : useSpecificPublicVoucher
   const { data: specificRes, isFetching } = specificFetch(
     { code: searchCode },
     visible && searchCode.length > 0,
@@ -109,30 +115,47 @@ export const VoucherSheet = memo(function VoucherSheet({
       t: tVoucher,
     })
     return result[0] ?? null
-  }, [fetchedVoucher, cartProductSlugs, total, userSlug, isCustomerOwner, tVoucher])
+  }, [
+    fetchedVoucher,
+    cartProductSlugs,
+    total,
+    userSlug,
+    isCustomerOwner,
+    tVoucher,
+  ])
   const listRequestItems = useMemo(
-    () => items.map((item) => ({
-      quantity: item.quantity,
-      variant: item.variant?.slug ?? '',
-      promotion: '',
-      order: '',
-    })),
+    () =>
+      items.map((item) => ({
+        quantity: item.quantity,
+        variant: item.variant?.slug ?? '',
+        promotion: '',
+        order: '',
+      })),
     [items],
   )
 
-  const voucherRequestParams = useMemo(() => visible ? {
-    hasPaging: true,
-    page: 1,
-    size: 10,
-    minOrderValue: total,
-    orderItems: listRequestItems,
-    ...(isCustomerOwner && userSlug ? { user: userSlug } : {}),
-  } : undefined, [visible, total, isCustomerOwner, userSlug, listRequestItems])
+  const voucherRequestParams = useMemo(
+    () =>
+      visible
+        ? {
+            hasPaging: true,
+            page: 1,
+            size: 10,
+            minOrderValue: total,
+            orderItems: listRequestItems,
+            ...(isCustomerOwner && userSlug ? { user: userSlug } : {}),
+          }
+        : undefined,
+    [visible, total, isCustomerOwner, userSlug, listRequestItems],
+  )
 
   // Delay enabling list query until sheet animation settles (~150ms)
   const [queryReady, setQueryReady] = useState(false)
   useEffect(() => {
-    if (!visible) { setQueryReady(false); return }
+    if (!visible) {
+      setQueryReady(false)
+      return
+    }
     const t = setTimeout(() => setQueryReady(true), 150)
     return () => clearTimeout(t)
   }, [visible])
@@ -142,12 +165,17 @@ export const VoucherSheet = memo(function VoucherSheet({
   const [allVouchers, setAllVouchers] = useState<IVoucher[]>([])
 
   const paginatedParams = useMemo(
-    () => voucherRequestParams ? { ...voucherRequestParams, page: currentPage } : undefined,
+    () =>
+      voucherRequestParams
+        ? { ...voucherRequestParams, page: currentPage }
+        : undefined,
     [voucherRequestParams, currentPage],
   )
 
   // F5 — Single hook, conditional fetch fn
-  const listFetch = isCustomerOwner ? useVouchersForOrder : usePublicVouchersForOrder
+  const listFetch = isCustomerOwner
+    ? useVouchersForOrder
+    : usePublicVouchersForOrder
   const { data: eligibleRes, isLoading: isLoadingList } = listFetch(
     paginatedParams,
     queryReady && items.length > 0,
@@ -158,14 +186,20 @@ export const VoucherSheet = memo(function VoucherSheet({
   // Accumulate pages
   const prevPageRef = useRef(0)
   useEffect(() => {
-    if (!eligibleRes?.result?.items || eligibleRes.result.page === prevPageRef.current) return
+    if (
+      !eligibleRes?.result?.items ||
+      eligibleRes.result.page === prevPageRef.current
+    )
+      return
     prevPageRef.current = eligibleRes.result.page
     if (currentPage === 1) {
       setAllVouchers(eligibleRes.result.items)
     } else {
       setAllVouchers((prev) => {
         const slugs = new Set(prev.map((v) => v.slug))
-        const newItems = eligibleRes.result!.items.filter((v: IVoucher) => !slugs.has(v.slug))
+        const newItems = eligibleRes.result!.items.filter(
+          (v: IVoucher) => !slugs.has(v.slug),
+        )
         return [...prev, ...newItems]
       })
     }
@@ -194,7 +228,10 @@ export const VoucherSheet = memo(function VoucherSheet({
 
   // Merge applied voucher into raw list so it always appears in processed results
   const rawEligibleVouchers = useMemo(() => {
-    if (currentVoucher && !allVouchers.some((v) => v.slug === currentVoucher.slug)) {
+    if (
+      currentVoucher &&
+      !allVouchers.some((v) => v.slug === currentVoucher.slug)
+    ) {
       return [currentVoucher, ...allVouchers]
     }
     return allVouchers
@@ -202,14 +239,22 @@ export const VoucherSheet = memo(function VoucherSheet({
 
   // 3.1 + 3.2 — Classify valid/invalid + error messages
   const processed = useMemo(
-    () => processVoucherList(rawEligibleVouchers, {
+    () =>
+      processVoucherList(rawEligibleVouchers, {
+        cartProductSlugs,
+        subTotalAfterPromotion: total,
+        userSlug,
+        isCustomerOwner,
+        t: tVoucher,
+      }),
+    [
+      rawEligibleVouchers,
       cartProductSlugs,
-      subTotalAfterPromotion: total,
+      total,
       userSlug,
       isCustomerOwner,
-      t: tVoucher,
-    }),
-    [rawEligibleVouchers, cartProductSlugs, total, userSlug, isCustomerOwner, tVoucher],
+      tVoucher,
+    ],
   )
   const { validVouchers, invalidVouchers } = useMemo(() => {
     const valid: typeof processed = []
@@ -228,7 +273,13 @@ export const VoucherSheet = memo(function VoucherSheet({
   )
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.4} pressBehavior="close" />
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.4}
+        pressBehavior="close"
+      />
     ),
     [],
   )
@@ -264,14 +315,18 @@ export const VoucherSheet = memo(function VoucherSheet({
     return list
   }, [rawEligibleVouchers, fetchedVoucher, currentVoucher])
 
-  const handleSelectBySlug = useCallback((slug: string) => {
-    setSelectedVoucher((prev) => {
-      if (prev?.slug === slug) return null
-      return allAvailable.find((v) => v.slug === slug) ?? null
-    })
-  }, [allAvailable])
+  const handleSelectBySlug = useCallback(
+    (slug: string) => {
+      setSelectedVoucher((prev) => {
+        if (prev?.slug === slug) return null
+        return allAvailable.find((v) => v.slug === slug) ?? null
+      })
+    },
+    [allAvailable],
+  )
 
-  const isCurrentApplied = selectedVoucher?.slug === currentVoucher?.slug && !!currentVoucher
+  const isCurrentApplied =
+    selectedVoucher?.slug === currentVoucher?.slug && !!currentVoucher
   const isNewSelection = !!selectedVoucher && !isCurrentApplied
 
   const handleFooterPress = useCallback(() => {
@@ -290,7 +345,10 @@ export const VoucherSheet = memo(function VoucherSheet({
             quantity: item.quantity,
             variant: item.variant?.slug ?? '',
             note: item.note || '',
-            promotion: (item.promotionValue ?? 0) > 0 ? (item.promotion?.slug ?? '') : null,
+            promotion:
+              (item.promotionValue ?? 0) > 0
+                ? (item.promotion?.slug ?? '')
+                : null,
             order: null,
           })),
         },
@@ -308,19 +366,35 @@ export const VoucherSheet = memo(function VoucherSheet({
     } else {
       sheetRef.current?.dismiss()
     }
-  }, [selectedVoucher, isCurrentApplied, onApply, validateVoucher, items, userSlug, tVoucher])
+  }, [
+    selectedVoucher,
+    isCurrentApplied,
+    onApply,
+    validateVoucher,
+    items,
+    userSlug,
+    tVoucher,
+  ])
 
   const handleViewCondition = useCallback((v: IVoucher) => {
     setConditionVoucher(v)
   }, [])
 
-  const handleCloseConditionModal = useCallback(() => setConditionVoucher(null), [])
+  const handleCloseConditionModal = useCallback(
+    () => setConditionVoucher(null),
+    [],
+  )
 
   // ─── Footer component pinned at bottom via BottomSheetFooter ────────────────
   const renderFooter = useCallback(
     (props: BottomSheetFooterProps) => (
       <BottomSheetFooter {...props} bottomInset={insets.bottom}>
-        <View style={[voucherSheetStyles.footer, { backgroundColor: isDark ? colors.gray[900] : colors.white.light }]}>
+        <View
+          style={[
+            voucherSheetStyles.footer,
+            { backgroundColor: isDark ? colors.gray[900] : colors.white.light },
+          ]}
+        >
           <Pressable
             onPress={handleFooterPress}
             style={[
@@ -330,25 +404,44 @@ export const VoucherSheet = memo(function VoucherSheet({
                   ? colors.destructive.light
                   : isNewSelection
                     ? primaryColor
-                    : isDark ? colors.gray[700] : colors.gray[200],
+                    : isDark
+                      ? colors.gray[700]
+                      : colors.gray[200],
               },
             ]}
           >
-            <Text style={[
-              voucherSheetStyles.footerBtnText,
-              {
-                color: isCurrentApplied || isNewSelection
-                  ? colors.white.light
-                  : isDark ? colors.gray[300] : colors.gray[600],
-              },
-            ]}>
-              {isCurrentApplied ? tVoucher('voucher.removeVoucher') : isNewSelection ? tVoucher('voucher.apply') : tVoucher('voucher.close')}
+            <Text
+              style={[
+                voucherSheetStyles.footerBtnText,
+                {
+                  color:
+                    isCurrentApplied || isNewSelection
+                      ? colors.white.light
+                      : isDark
+                        ? colors.gray[300]
+                        : colors.gray[600],
+                },
+              ]}
+            >
+              {isCurrentApplied
+                ? tVoucher('voucher.removeVoucher')
+                : isNewSelection
+                  ? tVoucher('voucher.apply')
+                  : tVoucher('voucher.close')}
             </Text>
           </Pressable>
         </View>
       </BottomSheetFooter>
     ),
-    [isDark, primaryColor, isCurrentApplied, isNewSelection, handleFooterPress, insets.bottom, tVoucher],
+    [
+      isDark,
+      primaryColor,
+      isCurrentApplied,
+      isNewSelection,
+      handleFooterPress,
+      insets.bottom,
+      tVoucher,
+    ],
   )
 
   return (
@@ -369,153 +462,243 @@ export const VoucherSheet = memo(function VoucherSheet({
         footerComponent={renderFooter}
         android_keyboardInputMode="adjustResize"
       >
-          {/* Fixed header */}
-          <View style={voucherSheetStyles.fixedHeader}>
-            <Text style={[voucherSheetStyles.title, { color: isDark ? colors.gray[50] : colors.gray[900] }]}>
-              {tVoucher('voucher.code')}
-            </Text>
+        {/* Fixed header */}
+        <View style={voucherSheetStyles.fixedHeader}>
+          <Text
+            style={[
+              voucherSheetStyles.title,
+              { color: isDark ? colors.gray[50] : colors.gray[900] },
+            ]}
+          >
+            {tVoucher('voucher.code')}
+          </Text>
 
-            <View style={voucherSheetStyles.inputRow}>
-              <View style={[
+          <View style={voucherSheetStyles.inputRow}>
+            <View
+              style={[
                 voucherSheetStyles.inputWrap,
-                { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] },
-              ]}>
-                <Ticket size={20} color={isDark ? colors.gray[400] : colors.gray[500]} />
-                <BottomSheetTextInput
-                  value={code}
-                  onChangeText={setCode}
-                  placeholder={tVoucher('voucher.enterCode')}
-                  placeholderTextColor={isDark ? colors.gray[600] : colors.gray[400]}
-                  autoCapitalize="sentences"
-                  autoCorrect={false}
-                  returnKeyType="done"
-                  onSubmitEditing={handleSearch}
-                  style={[
-                    voucherSheetStyles.input,
-                    { color: isDark ? colors.gray[50] : colors.gray[900] },
-                  ]}
-                />
-              </View>
-              <Pressable
-                onPress={handleSearch}
-                disabled={!code.trim()}
+                {
+                  backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
+                },
+              ]}
+            >
+              <Ticket
+                size={20}
+                color={isDark ? colors.gray[400] : colors.gray[500]}
+              />
+              <BottomSheetTextInput
+                value={code}
+                onChangeText={setCode}
+                placeholder={tVoucher('voucher.enterCode')}
+                placeholderTextColor={
+                  isDark ? colors.gray[600] : colors.gray[400]
+                }
+                autoCapitalize="sentences"
+                autoCorrect={false}
+                returnKeyType="done"
+                onSubmitEditing={handleSearch}
                 style={[
-                  voucherSheetStyles.searchBtn,
-                  { backgroundColor: code.trim() ? primaryColor : isDark ? colors.gray[700] : colors.gray[200] },
+                  voucherSheetStyles.input,
+                  { color: isDark ? colors.gray[50] : colors.gray[900] },
                 ]}
-              >
-                <Search size={18} color={code.trim() ? colors.white.light : isDark ? colors.gray[500] : colors.gray[400]} />
-              </Pressable>
+              />
             </View>
-            {currentVoucher ? (
-              <View style={voucherSheetStyles.appliedRow}>
-                <Ticket size={14} color={primaryColor} />
-                <Text style={[voucherSheetStyles.appliedText, { color: primaryColor }]} numberOfLines={1}>
-                  Đang dùng: {currentVoucher.title}
+            <Pressable
+              onPress={handleSearch}
+              disabled={!code.trim()}
+              style={[
+                voucherSheetStyles.searchBtn,
+                {
+                  backgroundColor: code.trim()
+                    ? primaryColor
+                    : isDark
+                      ? colors.gray[700]
+                      : colors.gray[200],
+                },
+              ]}
+            >
+              <Search
+                size={18}
+                color={
+                  code.trim()
+                    ? colors.white.light
+                    : isDark
+                      ? colors.gray[500]
+                      : colors.gray[400]
+                }
+              />
+            </Pressable>
+          </View>
+          {currentVoucher ? (
+            <View style={voucherSheetStyles.appliedRow}>
+              <Ticket size={14} color={primaryColor} />
+              <Text
+                style={[
+                  voucherSheetStyles.appliedText,
+                  { color: primaryColor },
+                ]}
+                numberOfLines={1}
+              >
+                {tVoucher('voucher.currentlyUsing', {
+                  title: currentVoucher.title,
+                })}
+              </Text>
+            </View>
+          ) : (
+            <Text
+              style={[
+                voucherSheetStyles.note,
+                { color: isDark ? colors.gray[400] : colors.gray[500] },
+              ]}
+            >
+              {tVoucher('voucher.maxOnePerOrder')}
+            </Text>
+          )}
+        </View>
+
+        {/* Scrollable voucher list */}
+        <BottomSheetScrollView
+          style={voucherSheetStyles.scrollView}
+          contentContainerStyle={voucherSheetStyles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        >
+          {/* Search result area */}
+          {isFetching && searchCode.length > 0 && (
+            <View style={voucherSheetStyles.resultRow}>
+              <Text
+                style={{
+                  color: isDark ? colors.gray[400] : colors.gray[500],
+                  fontSize: 13,
+                }}
+              >
+                {tVoucher('voucher.searching')}
+              </Text>
+            </View>
+          )}
+          {!isFetching && searchCode.length > 0 && !fetchedVoucher && (
+            <View style={voucherSheetStyles.resultRow}>
+              <Text style={{ color: colors.destructive.light, fontSize: 13 }}>
+                {tVoucher('voucher.codeNotFound', { code: searchCode })}
+              </Text>
+            </View>
+          )}
+          {!isFetching && fetchedVoucher && processedFetched && (
+            <VoucherCard
+              voucher={processedFetched.voucher}
+              isSelected={
+                selectedVoucher?.slug === processedFetched.voucher.slug
+              }
+              primaryColor={primaryColor}
+              isDark={isDark}
+              onSelect={handleSelectBySlug}
+              onViewCondition={handleViewCondition}
+              discountLabel={processedFetched.discountLabel}
+              expiryText={processedFetched.expiryText}
+              minOrderText={processedFetched.minOrderText}
+              usagePercent={processedFetched.usagePercent}
+            />
+          )}
+
+          {/* Valid vouchers */}
+          {validVouchers.length > 0 && (
+            <>
+              <View style={voucherSheetStyles.listHeader}>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: '600',
+                    color: isDark ? colors.gray[50] : colors.gray[900],
+                  }}
+                >
+                  {tVoucher('voucher.availableVouchers')}
+                </Text>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: isDark ? colors.gray[400] : colors.gray[500],
+                  }}
+                >
+                  {tVoucher('voucher.maxOne')}
                 </Text>
               </View>
-            ) : (
-              <Text style={[voucherSheetStyles.note, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>
-                Áp dụng tối đa 1 mã / đơn hàng
-              </Text>
-            )}
-          </View>
+              {validVouchers.map((p) => (
+                <VoucherCard
+                  key={p.voucher.slug}
+                  voucher={p.voucher}
+                  isSelected={selectedVoucher?.slug === p.voucher.slug}
+                  primaryColor={primaryColor}
+                  isDark={isDark}
+                  onSelect={handleSelectBySlug}
+                  onViewCondition={handleViewCondition}
+                  discountLabel={p.discountLabel}
+                  expiryText={p.expiryText}
+                  minOrderText={p.minOrderText}
+                  usagePercent={p.usagePercent}
+                />
+              ))}
+            </>
+          )}
 
-          {/* Scrollable voucher list */}
-          <BottomSheetScrollView
-            style={voucherSheetStyles.scrollView}
-            contentContainerStyle={voucherSheetStyles.scrollContent}
-            showsVerticalScrollIndicator={false}
-          >
-            {/* Search result area */}
-            {isFetching && searchCode.length > 0 && (
-              <View style={voucherSheetStyles.resultRow}>
-                <Text style={{ color: isDark ? colors.gray[400] : colors.gray[500], fontSize: 13 }}>Đang tìm...</Text>
+          {/* Invalid vouchers */}
+          {invalidVouchers.length > 0 && (
+            <>
+              <View style={voucherSheetStyles.listHeader}>
+                <Text
+                  style={{
+                    fontSize: 14,
+                    fontWeight: '600',
+                    color: isDark ? colors.gray[400] : colors.gray[500],
+                  }}
+                >
+                  {tVoucher('voucher.unavailable')}
+                </Text>
               </View>
-            )}
-            {!isFetching && searchCode.length > 0 && !fetchedVoucher && (
-              <View style={voucherSheetStyles.resultRow}>
-                <Text style={{ color: colors.destructive.light, fontSize: 13 }}>Không tìm thấy mã &quot;{searchCode}&quot;</Text>
-              </View>
-            )}
-            {!isFetching && fetchedVoucher && processedFetched && (
-              <VoucherCard
-                voucher={processedFetched.voucher}
-                isSelected={selectedVoucher?.slug === processedFetched.voucher.slug}
-                primaryColor={primaryColor}
-                isDark={isDark}
-                onSelect={handleSelectBySlug}
-                onViewCondition={handleViewCondition}
-                discountLabel={processedFetched.discountLabel}
-                expiryText={processedFetched.expiryText}
-                minOrderText={processedFetched.minOrderText}
-                usagePercent={processedFetched.usagePercent}
-              />
-            )}
-
-            {/* Valid vouchers */}
-            {validVouchers.length > 0 && (
-              <>
-                <View style={voucherSheetStyles.listHeader}>
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: isDark ? colors.gray[50] : colors.gray[900] }}>Voucher khả dụng</Text>
-                  <Text style={{ fontSize: 12, color: isDark ? colors.gray[400] : colors.gray[500] }}>Tối đa: 1</Text>
-                </View>
-                {validVouchers.map((p) => (
+              {invalidVouchers.slice(0, 5).map((p) => (
+                <View key={p.voucher.slug} style={{ opacity: 0.5 }}>
                   <VoucherCard
-                    key={p.voucher.slug}
                     voucher={p.voucher}
-                    isSelected={selectedVoucher?.slug === p.voucher.slug}
+                    isSelected={false}
                     primaryColor={primaryColor}
                     isDark={isDark}
                     onSelect={handleSelectBySlug}
                     onViewCondition={handleViewCondition}
+                    errorMessage={p.errorMessage}
                     discountLabel={p.discountLabel}
                     expiryText={p.expiryText}
                     minOrderText={p.minOrderText}
                     usagePercent={p.usagePercent}
                   />
-                ))}
-              </>
-            )}
-
-            {/* Invalid vouchers */}
-            {invalidVouchers.length > 0 && (
-              <>
-                <View style={voucherSheetStyles.listHeader}>
-                  <Text style={{ fontSize: 14, fontWeight: '600', color: isDark ? colors.gray[400] : colors.gray[500] }}>Không khả dụng</Text>
                 </View>
-                {invalidVouchers.slice(0, 5).map((p) => (
-                  <View key={p.voucher.slug} style={{ opacity: 0.5 }}>
-                    <VoucherCard
-                      voucher={p.voucher}
-                      isSelected={false}
-                      primaryColor={primaryColor}
-                      isDark={isDark}
-                      onSelect={handleSelectBySlug}
-                      onViewCondition={handleViewCondition}
-                      errorMessage={p.errorMessage}
-                      discountLabel={p.discountLabel}
-                      expiryText={p.expiryText}
-                      minOrderText={p.minOrderText}
-                      usagePercent={p.usagePercent}
-                    />
-                  </View>
-                ))}
-              </>
-            )}
+              ))}
+            </>
+          )}
 
-            {/* Loading / load more */}
-            {isLoadingList && (
-              <Text style={{ textAlign: 'center', marginTop: 16, fontSize: 13, color: isDark ? colors.gray[400] : colors.gray[500] }}>
-                Đang tải voucher...
+          {/* Loading / load more */}
+          {isLoadingList && (
+            <Text
+              style={{
+                textAlign: 'center',
+                marginTop: 16,
+                fontSize: 13,
+                color: isDark ? colors.gray[400] : colors.gray[500],
+              }}
+            >
+              {tVoucher('voucher.loadingVouchers')}
+            </Text>
+          )}
+          {!isLoadingList && hasMore && (
+            <Pressable
+              onPress={handleLoadMore}
+              style={voucherSheetStyles.loadMoreBtn}
+            >
+              <Text
+                style={{ fontSize: 13, fontWeight: '600', color: primaryColor }}
+              >
+                {tVoucher('voucher.loadMore')}
               </Text>
-            )}
-            {!isLoadingList && hasMore && (
-              <Pressable onPress={handleLoadMore} style={voucherSheetStyles.loadMoreBtn}>
-                <Text style={{ fontSize: 13, fontWeight: '600', color: primaryColor }}>Tải thêm</Text>
-              </Pressable>
-            )}
-          </BottomSheetScrollView>
+            </Pressable>
+          )}
+        </BottomSheetScrollView>
       </BottomSheetModal>
 
       <VoucherConditionModal

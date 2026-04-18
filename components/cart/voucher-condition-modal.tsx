@@ -1,12 +1,17 @@
 import { colors } from '@/constants'
 import type { IVoucher } from '@/types'
 import { showToast } from '@/utils'
-import { BottomSheetBackdrop, type BottomSheetBackdropProps, BottomSheetModal } from '@gorhom/bottom-sheet'
+import {
+  BottomSheetBackdrop,
+  type BottomSheetBackdropProps,
+  BottomSheetModal,
+} from '@gorhom/bottom-sheet'
 import { formatCurrencyNative } from 'cart-price-calc'
 import dayjs from 'dayjs'
 import * as Clipboard from 'expo-clipboard'
 import { Copy } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 const CONDITION_SHEET_SNAP = ['60%']
@@ -30,6 +35,7 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
   indicatorStyle,
   bottomInset,
 }: VoucherConditionModalProps) {
+  const { t: tToast } = useTranslation('toast')
   const sheetRef = useRef<BottomSheetModal>(null)
 
   useEffect(() => {
@@ -103,7 +109,7 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
               hitSlop={8}
               onPress={() => {
                 Clipboard.setStringAsync(voucher.code)
-                showToast('Đã sao chép mã')
+                showToast(tToast('toast.copyCodeSuccess'))
               }}
             >
               <Copy

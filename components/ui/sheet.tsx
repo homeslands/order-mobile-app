@@ -7,7 +7,7 @@ import {
   ScrollView,
   Text,
   View,
-  useColorScheme
+  useColorScheme,
 } from 'react-native'
 import Animated, {
   useAnimatedStyle,
@@ -59,10 +59,10 @@ function Sheet({ open, onOpenChange, children }: SheetProps) {
   // Find SheetContent child and pass props
   const childrenArray = React.Children.toArray(children)
   const sheetContentChild = childrenArray.find(
-    (child) => React.isValidElement(child) && child.type === SheetContent
+    (child) => React.isValidElement(child) && child.type === SheetContent,
   )
   const otherChildren = childrenArray.filter(
-    (child) => !React.isValidElement(child) || child.type !== SheetContent
+    (child) => !React.isValidElement(child) || child.type !== SheetContent,
   )
 
   // Handle Modal visibility with animation delay
@@ -101,12 +101,18 @@ function Sheet({ open, onOpenChange, children }: SheetProps) {
   )
 }
 
-function SheetContent({ children, className, onClose, open, direction = 'right' }: SheetContentProps) {
+function SheetContent({
+  children,
+  className,
+  onClose,
+  open,
+  direction = 'right',
+}: SheetContentProps) {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
   const insets = useSafeAreaInsets()
   const { width: screenWidth, height: screenHeight } = Dimensions.get('window')
-  
+
   // Animation values
   const slideValue = useSharedValue(1)
   const fadeValue = useSharedValue(0)
@@ -153,28 +159,28 @@ function SheetContent({ children, className, onClose, open, direction = 'right' 
   const positionStyle = useMemo(() => {
     switch (direction) {
       case 'left':
-        return { 
-          left: 0, 
-          top: insets.top, 
-          bottom: insets.bottom 
+        return {
+          left: 0,
+          top: insets.top,
+          bottom: insets.bottom,
         }
       case 'right':
-        return { 
-          right: 0, 
-          top: insets.top, 
-          bottom: insets.bottom 
+        return {
+          right: 0,
+          top: insets.top,
+          bottom: insets.bottom,
         }
       case 'bottom':
-        return { 
-          bottom: insets.bottom, 
-          left: 0, 
-          right: 0 
+        return {
+          bottom: insets.bottom,
+          left: 0,
+          right: 0,
         }
       default:
-        return { 
-          right: 0, 
-          top: insets.top, 
-          bottom: insets.bottom 
+        return {
+          right: 0,
+          top: insets.top,
+          bottom: insets.bottom,
         }
     }
   }, [direction, insets])
@@ -184,18 +190,18 @@ function SheetContent({ children, className, onClose, open, direction = 'right' 
     switch (direction) {
       case 'left':
       case 'right':
-        return { 
+        return {
           width: Math.min(screenWidth * 0.85, 400),
-          height: screenHeight - insets.top - insets.bottom
+          height: screenHeight - insets.top - insets.bottom,
         }
       case 'bottom':
-        return { 
-          maxHeight: screenHeight * 0.9 - insets.top 
+        return {
+          maxHeight: screenHeight * 0.9 - insets.top,
         }
       default:
-        return { 
+        return {
           width: Math.min(screenWidth * 0.85, 400),
-          height: screenHeight - insets.top - insets.bottom
+          height: screenHeight - insets.top - insets.bottom,
         }
     }
   }, [direction, screenWidth, screenHeight, insets])
@@ -286,7 +292,7 @@ function SheetContent({ children, className, onClose, open, direction = 'right' 
         {/* Handle indicator for bottom sheet */}
         {direction === 'bottom' && (
           <View className="items-center py-3">
-            <View className="w-10 h-1 rounded-full bg-gray-300 dark:bg-gray-600" />
+            <View className="h-1 w-10 rounded-full bg-gray-300 dark:bg-gray-600" />
           </View>
         )}
 
@@ -314,7 +320,7 @@ function SheetTitle({ children, className }: SheetTitleProps) {
     <Text
       className={cn(
         'text-lg font-semibold text-gray-900 dark:text-white',
-        className
+        className,
       )}
     >
       {children}
@@ -324,9 +330,7 @@ function SheetTitle({ children, className }: SheetTitleProps) {
 
 function SheetDescription({ children, className }: SheetDescriptionProps) {
   return (
-    <Text
-      className={cn('text-sm text-gray-600 dark:text-gray-400', className)}
-    >
+    <Text className={cn('text-sm text-gray-600 dark:text-gray-400', className)}>
       {children}
     </Text>
   )
@@ -334,7 +338,7 @@ function SheetDescription({ children, className }: SheetDescriptionProps) {
 
 function SheetFooter({ children, className }: SheetFooterProps) {
   return (
-    <View className={cn('flex-row gap-3 mt-4', className)}>{children}</View>
+    <View className={cn('mt-4 flex-row gap-3', className)}>{children}</View>
   )
 }
 

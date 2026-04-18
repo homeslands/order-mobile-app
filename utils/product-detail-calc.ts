@@ -13,7 +13,9 @@ function computeProductDetailTotalJS(
 }
 
 /** Cached native module ref — resolved once, not on every call */
-let _nativeFn: ((p: number, q: number, t: number, pr: number) => number | null) | null = null
+let _nativeFn:
+  | ((p: number, q: number, t: number, pr: number) => number | null)
+  | null = null
 let _nativeResolved = false
 
 function getNativeCompute() {
@@ -22,7 +24,12 @@ function getNativeCompute() {
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports -- Optional native; dynamic require cho fallback web/Expo Go
     const mod = require('cart-price-calc') as {
-      computeProductDetailTotalNative?: (p: number, q: number, t: number, pr: number) => number | null
+      computeProductDetailTotalNative?: (
+        p: number,
+        q: number,
+        t: number,
+        pr: number,
+      ) => number | null
     }
     _nativeFn = mod.computeProductDetailTotalNative ?? null
   } catch {
@@ -41,7 +48,17 @@ export function computeProductDetailTotal(
   if (price == null) return null
   const nativeFn = getNativeCompute()
   if (nativeFn) {
-    return nativeFn(price, quantity, toppingExtraPrice, promotionDiscountPercent)
+    return nativeFn(
+      price,
+      quantity,
+      toppingExtraPrice,
+      promotionDiscountPercent,
+    )
   }
-  return computeProductDetailTotalJS(price, quantity, toppingExtraPrice, promotionDiscountPercent)
+  return computeProductDetailTotalJS(
+    price,
+    quantity,
+    toppingExtraPrice,
+    promotionDiscountPercent,
+  )
 }

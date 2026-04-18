@@ -147,9 +147,6 @@ export async function downloadAndSavePDF(
         }),
       )
 
-      // eslint-disable-next-line no-console
-      console.log('PDF saved to:', String(targetFile))
-
       return true
     } catch (writeError) {
       setIsDownloading(false)

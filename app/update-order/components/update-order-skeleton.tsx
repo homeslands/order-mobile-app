@@ -10,7 +10,10 @@ import { Skeleton } from '@/components/ui'
  */
 export default function UpdateOrderSkeleton() {
   return (
-    <ScreenContainer edges={['top']} className="flex-1 bg-gray-50 dark:bg-gray-900">
+    <ScreenContainer
+      edges={['top']}
+      className="flex-1 bg-gray-50 dark:bg-gray-900"
+    >
       <View className="flex-row items-center border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
         <Skeleton className="mr-3 h-8 w-8 rounded-full" />
         <Skeleton className="h-5 flex-1 rounded-md" />

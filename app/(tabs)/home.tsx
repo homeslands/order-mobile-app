@@ -26,7 +26,11 @@ import {
   SwiperBanner,
   YouTubeVideoSection,
 } from '@/components/home'
-import { TabHeader, TabScreenLayout, useTabBarBottomPadding } from '@/components/layout'
+import {
+  TabHeader,
+  TabScreenLayout,
+  useTabBarBottomPadding,
+} from '@/components/layout'
 import { Skeleton } from '@/components/ui'
 import { NotificationBell } from '@/components/notification/notification-bell'
 import { BannerPage, colors, youtubeVideoId } from '@/constants'
@@ -69,7 +73,6 @@ export default function HomeScreen() {
   } = useBanners({ page: BannerPage.HOME, isActive: true })
 
   useRunAfterTransition(() => setReady(true), [])
-
 
   const banners: IBanner[] = useMemo(() => {
     const raw = bannerResponse?.result
@@ -148,13 +151,12 @@ export default function HomeScreen() {
         {/* 1. Hero Banner với parallax */}
         <View style={{ height: BANNER_H, overflow: 'hidden' }}>
           {showBannerSkeleton ? (
-            <Skeleton className="w-full h-full rounded-none" />
+            <Skeleton className="h-full w-full rounded-none" />
           ) : (
-            <Animated.View style={[{ height: BANNER_INNER_H }, bannerParallaxStyle]}>
-              <SwiperBanner
-                bannerData={banners}
-                height={BANNER_INNER_H}
-              />
+            <Animated.View
+              style={[{ height: BANNER_INNER_H }, bannerParallaxStyle]}
+            >
+              <SwiperBanner bannerData={banners} height={BANNER_INNER_H} />
             </Animated.View>
           )}
         </View>

@@ -6,7 +6,10 @@
  * - fullScreenGestureEnabled: true — vuốt đóng có quán tính hãm phanh đồng bộ
  * - headerShown: false — màn tự custom header; set true nếu cần header native trượt theo nội dung
  */
-import { CustomStack, profileNativeStackScreenOptions } from '@/layouts/custom-stack'
+import {
+  CustomStack,
+  profileNativeStackScreenOptions,
+} from '@/layouts/custom-stack'
 
 export default function ProfilePlaceholderLayout() {
   return <CustomStack screenOptions={profileNativeStackScreenOptions} />

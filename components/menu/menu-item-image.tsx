@@ -25,7 +25,15 @@ function MenuItemImageBase({
 }: MenuItemImageProps) {
   // Phase gate chưa ready — giữ View trống để tránh decode storm khi enter tab
   if (!isEnabled) {
-    return <View className="bg-gray-100 dark:bg-gray-700" style={[styles.placeholder, borderRadius != null ? { borderRadius } : null]} />
+    return (
+      <View
+        className="bg-gray-100 dark:bg-gray-700"
+        style={[
+          styles.placeholder,
+          borderRadius != null ? { borderRadius } : null,
+        ]}
+      />
+    )
   }
 
   // Không có URL — dùng ảnh mặc định

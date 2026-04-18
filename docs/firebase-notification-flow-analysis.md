@@ -2,28 +2,28 @@
 
 **Các file chính:**
 
-| Nhóm | File |
-|------|------|
-| **Config** | `order-ui/src/lib/firebase-config.ts` |
-| **Service Worker** | `order-ui/public/firebase-messaging-sw.js` |
-| **Lấy token (Web)** | `order-ui/src/utils/getWebFcmToken.ts` |
-| **Lấy token (Native)** | `order-ui/src/utils/getNativeFcmToken.ts` |
-| **Hook lấy token** | `order-ui/src/hooks/use-firebase-notification.ts` |
-| **Hook lắng nghe** | `order-ui/src/hooks/use-notification-listener.ts` |
-| **Queue đăng ký token** | `order-ui/src/services/token-registration-queue.ts` |
-| **Quản lý refresh token** | `order-ui/src/services/fcm-token-manager.ts` |
-| **Provider** | `order-ui/src/components/app/notification-provider.tsx` |
-| **Store** | `order-ui/src/stores/notification.store.ts` |
-| **UI (System)** | `order-ui/src/components/app/popover/system-notification-popover.tsx` |
-| **UI (Client)** | `order-ui/src/components/app/popover/client-notification-popover.tsx` |
-| **Navigation** | `order-ui/src/utils/notification-navigation.ts` |
-| **Types** | `order-ui/src/types/notification.types.ts` |
-| **Constants** | `order-ui/src/constants/notification.constants.ts` |
-| **Backend Service** | `order-api/src/notification/notification.service.ts` |
-| **Backend Firebase** | `order-api/src/notification/firebase/firebase.service.ts` |
-| **Backend Producer** | `order-api/src/notification/notification.producer.ts` |
-| **Backend Consumer** | `order-api/src/notification/notification.consumer.ts` |
-| **Backend Triggers** | `order-api/src/notification/notification.utils.ts` |
+| Nhóm                      | File                                                                  |
+| ------------------------- | --------------------------------------------------------------------- |
+| **Config**                | `order-ui/src/lib/firebase-config.ts`                                 |
+| **Service Worker**        | `order-ui/public/firebase-messaging-sw.js`                            |
+| **Lấy token (Web)**       | `order-ui/src/utils/getWebFcmToken.ts`                                |
+| **Lấy token (Native)**    | `order-ui/src/utils/getNativeFcmToken.ts`                             |
+| **Hook lấy token**        | `order-ui/src/hooks/use-firebase-notification.ts`                     |
+| **Hook lắng nghe**        | `order-ui/src/hooks/use-notification-listener.ts`                     |
+| **Queue đăng ký token**   | `order-ui/src/services/token-registration-queue.ts`                   |
+| **Quản lý refresh token** | `order-ui/src/services/fcm-token-manager.ts`                          |
+| **Provider**              | `order-ui/src/components/app/notification-provider.tsx`               |
+| **Store**                 | `order-ui/src/stores/notification.store.ts`                           |
+| **UI (System)**           | `order-ui/src/components/app/popover/system-notification-popover.tsx` |
+| **UI (Client)**           | `order-ui/src/components/app/popover/client-notification-popover.tsx` |
+| **Navigation**            | `order-ui/src/utils/notification-navigation.ts`                       |
+| **Types**                 | `order-ui/src/types/notification.types.ts`                            |
+| **Constants**             | `order-ui/src/constants/notification.constants.ts`                    |
+| **Backend Service**       | `order-api/src/notification/notification.service.ts`                  |
+| **Backend Firebase**      | `order-api/src/notification/firebase/firebase.service.ts`             |
+| **Backend Producer**      | `order-api/src/notification/notification.producer.ts`                 |
+| **Backend Consumer**      | `order-api/src/notification/notification.consumer.ts`                 |
+| **Backend Triggers**      | `order-api/src/notification/notification.utils.ts`                    |
 
 ---
 
@@ -42,28 +42,29 @@ Hệ thống sử dụng **Firebase Cloud Messaging (FCM)** để gửi thông b
 
 ### Frontend (`firebase-config.ts`)
 
-| Env Variable | Mô tả |
-|-------------|--------|
-| `VITE_FIREBASE_API_KEY` | API key |
-| `VITE_FIREBASE_AUTH_DOMAIN` | Auth domain |
-| `VITE_FIREBASE_PROJECT_ID` | Project ID |
-| `VITE_FIREBASE_STORAGE_BUCKET` | Storage bucket |
-| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Sender ID |
-| `VITE_FIREBASE_APP_ID_WEB` | App ID (phải là web, không phải Android/iOS) |
-| `VITE_FIREBASE_VAPID_KEY` | VAPID key cho web push |
+| Env Variable                        | Mô tả                                        |
+| ----------------------------------- | -------------------------------------------- |
+| `VITE_FIREBASE_API_KEY`             | API key                                      |
+| `VITE_FIREBASE_AUTH_DOMAIN`         | Auth domain                                  |
+| `VITE_FIREBASE_PROJECT_ID`          | Project ID                                   |
+| `VITE_FIREBASE_STORAGE_BUCKET`      | Storage bucket                               |
+| `VITE_FIREBASE_MESSAGING_SENDER_ID` | Sender ID                                    |
+| `VITE_FIREBASE_APP_ID_WEB`          | App ID (phải là web, không phải Android/iOS) |
+| `VITE_FIREBASE_VAPID_KEY`           | VAPID key cho web push                       |
 
 **Validation:**
+
 - Kiểm tra App ID phải đúng format web (không phải Android/iOS)
 - Detect platform (web/android/ios) để chọn App ID phù hợp
 - Kiểm tra Project ID không conflict giữa nhiều Firebase app
 
 ### Backend
 
-| Env Variable | Mô tả |
-|-------------|--------|
-| `FIREBASE_PROJECT_ID` | Project ID |
+| Env Variable            | Mô tả                 |
+| ----------------------- | --------------------- |
+| `FIREBASE_PROJECT_ID`   | Project ID            |
 | `FIREBASE_CLIENT_EMAIL` | Service account email |
-| `FIREBASE_PRIVATE_KEY` | Private key |
+| `FIREBASE_PRIVATE_KEY`  | Private key           |
 
 ---
 
@@ -154,36 +155,37 @@ Hệ thống sử dụng **Firebase Cloud Messaging (FCM)** để gửi thông b
 
 Hàng đợi đăng ký token với cơ chế retry:
 
-| Thuộc tính | Giá trị |
-|------------|---------|
-| Max retry | **3 lần** |
-| Backoff delays | 1s → 5s → 15s (exponential) |
+| Thuộc tính     | Giá trị                         |
+| -------------- | ------------------------------- |
+| Max retry      | **3 lần**                       |
+| Backoff delays | 1s → 5s → 15s (exponential)     |
 | Auto-retry khi | Mạng reconnect (`online` event) |
-| Toast debounce | 5 giây |
+| Toast debounce | 5 giây                          |
 
 **Phân loại lỗi:**
 
-| Loại lỗi | HTTP Status | Retry? |
-|-----------|-------------|--------|
-| Network (timeout, connection) | — | ✅ |
-| Validation | 400 | ❌ |
-| Auth | 401, 403 | ❌ |
-| Server | 500+ | ✅ |
-| Rate limit | 429 | ✅ (delay riêng) |
+| Loại lỗi                      | HTTP Status | Retry?           |
+| ----------------------------- | ----------- | ---------------- |
+| Network (timeout, connection) | —           | ✅               |
+| Validation                    | 400         | ❌               |
+| Auth                          | 401, 403    | ❌               |
+| Server                        | 500+        | ✅               |
+| Rate limit                    | 429         | ✅ (delay riêng) |
 
 **Sau khi đăng ký thành công:**
+
 - Lưu token vào `userStore` (persisted)
 - Lưu timestamp vào `localStorage`
 
 ### 3.5. Token Refresh Manager (`fcm-token-manager.ts`)
 
-| Thuộc tính | Giá trị |
-|------------|---------|
-| Kiểm tra mỗi | **24 giờ** (`TOKEN_CHECK_INTERVAL`) |
-| Refresh nếu token > | **48 giờ** (`TOKEN_REFRESH_THRESHOLD`) |
-| Re-check khi | Tab trở lại visible (`visibilitychange`) |
-| Bắt đầu khi | User đăng nhập |
-| Dừng khi | User đăng xuất |
+| Thuộc tính          | Giá trị                                  |
+| ------------------- | ---------------------------------------- |
+| Kiểm tra mỗi        | **24 giờ** (`TOKEN_CHECK_INTERVAL`)      |
+| Refresh nếu token > | **48 giờ** (`TOKEN_REFRESH_THRESHOLD`)   |
+| Re-check khi        | Tab trở lại visible (`visibilitychange`) |
+| Bắt đầu khi         | User đăng nhập                           |
+| Dừng khi            | User đăng xuất                           |
 
 ---
 
@@ -191,14 +193,14 @@ Hàng đợi đăng ký token với cơ chế retry:
 
 ### 4.1. Triggers (Khi nào gửi thông báo?)
 
-| Event | Message Code | Người nhận |
-|-------|-------------|------------|
-| Đơn hàng thanh toán | `ORDER_NEEDS_PROCESSED` | Tất cả chef trong branch |
-| Đơn hàng đã xử lý | `ORDER_NEEDS_DELIVERED` | Tất cả staff trong branch |
-| Đơn hàng sẵn sàng lấy | `ORDER_NEEDS_READY_TO_GET` | Khách hàng |
-| In hóa đơn thất bại | `ORDER_BILL_FAILED_PRINTING` | Staff |
-| In chef order thất bại | `ORDER_CHEF_ORDER_FAILED_PRINTING` | Staff |
-| In label ticket thất bại | `ORDER_LABEL_TICKET_FAILED_PRINTING` | Staff |
+| Event                    | Message Code                         | Người nhận                |
+| ------------------------ | ------------------------------------ | ------------------------- |
+| Đơn hàng thanh toán      | `ORDER_NEEDS_PROCESSED`              | Tất cả chef trong branch  |
+| Đơn hàng đã xử lý        | `ORDER_NEEDS_DELIVERED`              | Tất cả staff trong branch |
+| Đơn hàng sẵn sàng lấy    | `ORDER_NEEDS_READY_TO_GET`           | Khách hàng                |
+| In hóa đơn thất bại      | `ORDER_BILL_FAILED_PRINTING`         | Staff                     |
+| In chef order thất bại   | `ORDER_CHEF_ORDER_FAILED_PRINTING`   | Staff                     |
+| In label ticket thất bại | `ORDER_LABEL_TICKET_FAILED_PRINTING` | Staff                     |
 
 ### 4.2. Flow gửi (Producer → Consumer → FCM)
 
@@ -374,20 +376,20 @@ Hàng đợi đăng ký token với cơ chế retry:
 
 ### State
 
-| Field | Type | Mô tả |
-|-------|------|--------|
+| Field           | Type              | Mô tả                                  |
+| --------------- | ----------------- | -------------------------------------- |
 | `notifications` | `INotification[]` | Danh sách in-memory (max **50** items) |
 
 ### Actions
 
-| Action | Mô tả |
-|--------|--------|
+| Action                     | Mô tả                                                 |
+| -------------------------- | ----------------------------------------------------- |
 | `addNotification(payload)` | Thêm/cập nhật notification, parse `data.payload` JSON |
-| `markAsRead(slug)` | Đánh dấu đã đọc (local) |
-| `markAllAsRead()` | Đánh dấu tất cả đã đọc |
-| `getUnreadCount()` | Trả về số notification chưa đọc |
-| `getUnreadPrinterFails()` | Trả về số lỗi in chưa đọc |
-| `hydrateFromApi(apiData)` | Merge notification từ API vào local store |
+| `markAsRead(slug)`         | Đánh dấu đã đọc (local)                               |
+| `markAllAsRead()`          | Đánh dấu tất cả đã đọc                                |
+| `getUnreadCount()`         | Trả về số notification chưa đọc                       |
+| `getUnreadPrinterFails()`  | Trả về số lỗi in chưa đọc                             |
+| `hydrateFromApi(apiData)`  | Merge notification từ API vào local store             |
 
 ### Payload Parsing Logic
 
@@ -405,34 +407,34 @@ Component wrapper quản lý toàn bộ notification lifecycle:
 
 ### Trách nhiệm
 
-| # | Trách nhiệm |
-|---|-------------|
-| 1 | Lấy FCM token qua `useFirebaseNotification()` |
-| 2 | Lắng nghe notification qua `useNotificationListener()` |
-| 3 | Extract message code từ nhiều nguồn trong payload |
-| 4 | Hiển thị toast notification (custom styling) |
-| 5 | Phát âm thanh notification |
-| 6 | Xử lý đặc biệt cho printer fail (sound khác + refetch printer events) |
-| 7 | Hiện dialog xin quyền nếu notification bị denied |
-| 8 | Quản lý FCM token refresh scheduler |
+| #   | Trách nhiệm                                                           |
+| --- | --------------------------------------------------------------------- |
+| 1   | Lấy FCM token qua `useFirebaseNotification()`                         |
+| 2   | Lắng nghe notification qua `useNotificationListener()`                |
+| 3   | Extract message code từ nhiều nguồn trong payload                     |
+| 4   | Hiển thị toast notification (custom styling)                          |
+| 5   | Phát âm thanh notification                                            |
+| 6   | Xử lý đặc biệt cho printer fail (sound khác + refetch printer events) |
+| 7   | Hiện dialog xin quyền nếu notification bị denied                      |
+| 8   | Quản lý FCM token refresh scheduler                                   |
 
 ### Toast Notification
 
-| Thuộc tính | Giá trị |
-|------------|---------|
-| Duration | **6 giây** |
-| Position | Top-right |
-| Styling | Custom Tailwind, icon + title + body + action button |
-| Auto-dismiss | ✅ |
-| Library | `react-hot-toast` |
+| Thuộc tính   | Giá trị                                              |
+| ------------ | ---------------------------------------------------- |
+| Duration     | **6 giây**                                           |
+| Position     | Top-right                                            |
+| Styling      | Custom Tailwind, icon + title + body + action button |
+| Auto-dismiss | ✅                                                   |
+| Library      | `react-hot-toast`                                    |
 
 ### Sound
 
-| Case | Volume | File |
-|------|--------|------|
-| Notification thường | **0.5** | `notification.mp3` |
-| Printer failure | **0.8** | `notification.mp3` |
-| `ORDER_NEEDS_PROCESSED` | **Bỏ qua** (tránh spam) | — |
+| Case                    | Volume                  | File               |
+| ----------------------- | ----------------------- | ------------------ |
+| Notification thường     | **0.5**                 | `notification.mp3` |
+| Printer failure         | **0.8**                 | `notification.mp3` |
+| `ORDER_NEEDS_PROCESSED` | **Bỏ qua** (tránh spam) | —                  |
 
 ---
 
@@ -442,24 +444,24 @@ Component wrapper quản lý toàn bộ notification lifecycle:
 
 **Component:** `system-notification-popover.tsx`
 
-| Tính năng | Mô tả |
-|-----------|--------|
-| Bell icon | Hiển thị badge đếm số chưa đọc |
-| Tab "Tất cả" | Notification không phải printer fail |
-| Tab "Lỗi" | Notification printer failure |
-| Fetch API | Khi mở popover, fetch từ API |
-| Auto-fetch | Nếu page hiện tại toàn printer fail → fetch page tiếp |
-| Click item | Mark as read + navigate đến order liên quan |
+| Tính năng    | Mô tả                                                 |
+| ------------ | ----------------------------------------------------- |
+| Bell icon    | Hiển thị badge đếm số chưa đọc                        |
+| Tab "Tất cả" | Notification không phải printer fail                  |
+| Tab "Lỗi"    | Notification printer failure                          |
+| Fetch API    | Khi mở popover, fetch từ API                          |
+| Auto-fetch   | Nếu page hiện tại toàn printer fail → fetch page tiếp |
+| Click item   | Mark as read + navigate đến order liên quan           |
 
 ### 8.2. Printer Failure Dialog
 
-| Tính năng | Mô tả |
-|-----------|--------|
-| Hiển thị | Danh sách đơn hàng in thất bại |
-| Phân loại | Theo message code (bill / chef order / label ticket) |
-| Dedup | Track slug đã hiển thị, tránh trùng lặp |
-| Grace period | Chỉ hiển thị unread + 30 giây sau retry |
-| Update | Cập nhật khi printer events thay đổi |
+| Tính năng    | Mô tả                                                |
+| ------------ | ---------------------------------------------------- |
+| Hiển thị     | Danh sách đơn hàng in thất bại                       |
+| Phân loại    | Theo message code (bill / chef order / label ticket) |
+| Dedup        | Track slug đã hiển thị, tránh trùng lặp              |
+| Grace period | Chỉ hiển thị unread + 30 giây sau retry              |
+| Update       | Cập nhật khi printer events thay đổi                 |
 
 ### 8.3. Client Notification Popover
 
@@ -472,7 +474,7 @@ Tương tự System nhưng cho giao diện khách hàng.
 ### Local (In-App)
 
 ```ts
-notificationStore.markAsRead(slug)  // Cập nhật store ngay lập tức (optimistic)
+notificationStore.markAsRead(slug) // Cập nhật store ngay lập tức (optimistic)
 ```
 
 ### Backend Sync
@@ -485,10 +487,10 @@ PATCH /notification/{slug}/read
 
 ### Tự động đánh dấu
 
-| Case | Hành vi |
-|------|---------|
-| Foreground: Click notification trong app | Mark as read |
-| Background (Native): Tap notification | Mark as read |
+| Case                                                   | Hành vi                    |
+| ------------------------------------------------------ | -------------------------- |
+| Foreground: Click notification trong app               | Mark as read               |
+| Background (Native): Tap notification                  | Mark as read               |
 | Background (Web): Click system notification → navigate | Mark khi user quay lại app |
 
 ---
@@ -499,12 +501,13 @@ PATCH /notification/{slug}/read
 
 **Hiển thị khi:** `useFirebaseNotification` detect `permissionDenied = true`
 
-| Platform | Hướng dẫn |
-|----------|-----------|
-| Web | Thanh địa chỉ → Notifications → Allow |
-| Native | Settings → App → Notifications → Allow |
+| Platform | Hướng dẫn                              |
+| -------- | -------------------------------------- |
+| Web      | Thanh địa chỉ → Notifications → Allow  |
+| Native   | Settings → App → Notifications → Allow |
 
 **Hành vi:**
+
 - User có thể dismiss dialog
 - Không tự mở lại nếu đã dismiss
 - Track trạng thái dismiss để tránh hiện lại liên tục
@@ -554,25 +557,25 @@ PATCH /notification/{slug}/read
 
 ### Message Codes
 
-| Code | Mô tả |
-|------|--------|
-| `order-needs-processed` | Đơn cần xử lý (gửi cho chef) |
-| `order-needs-delivered` | Đơn cần giao (gửi cho staff) |
-| `order-needs-cancelled` | Đơn bị hủy |
-| `order-needs-ready-to-get` | Đơn sẵn sàng lấy (gửi cho khách) |
-| `order-bill-failed-printing` | In hóa đơn thất bại |
-| `order-chef-order-failed-printing` | In chef order thất bại |
-| `order-label-ticket-failed-printing` | In label ticket thất bại |
+| Code                                 | Mô tả                            |
+| ------------------------------------ | -------------------------------- |
+| `order-needs-processed`              | Đơn cần xử lý (gửi cho chef)     |
+| `order-needs-delivered`              | Đơn cần giao (gửi cho staff)     |
+| `order-needs-cancelled`              | Đơn bị hủy                       |
+| `order-needs-ready-to-get`           | Đơn sẵn sàng lấy (gửi cho khách) |
+| `order-bill-failed-printing`         | In hóa đơn thất bại              |
+| `order-chef-order-failed-printing`   | In chef order thất bại           |
+| `order-label-ticket-failed-printing` | In label ticket thất bại         |
 
 ---
 
 ## 12. API Endpoints
 
-| Endpoint | Method | Mô tả |
-|----------|--------|--------|
-| `/notification/firebase/register-device-token` | POST | Đăng ký FCM token |
-| `/notification` | GET | Lấy danh sách notification (phân trang) |
-| `/notification/{slug}/read` | PATCH | Đánh dấu đã đọc |
+| Endpoint                                       | Method | Mô tả                                   |
+| ---------------------------------------------- | ------ | --------------------------------------- |
+| `/notification/firebase/register-device-token` | POST   | Đăng ký FCM token                       |
+| `/notification`                                | GET    | Lấy danh sách notification (phân trang) |
+| `/notification/{slug}/read`                    | PATCH  | Đánh dấu đã đọc                         |
 
 ### Request đăng ký token
 
@@ -586,6 +589,7 @@ POST /notification/firebase/register-device-token
 ```
 
 **Backend xử lý:**
+
 - Token đã tồn tại → Cập nhật `userId`, `platform`, `userAgent`
 - Token mới → Tạo `FirebaseDeviceToken` entity mới
 
@@ -608,12 +612,12 @@ POST /notification/firebase/register-device-token
 
 ### Firebase Initialization Errors (Frontend)
 
-| Lỗi | Xử lý |
-|------|--------|
-| Config thiếu | Validate trước khi init, log warning |
-| Project ID conflict | Log chi tiết, cảnh báo |
-| App ID sai format (Android/iOS thay vì Web) | Reject, log error |
-| Init thất bại | Fallback gracefully, không crash app |
+| Lỗi                                         | Xử lý                                |
+| ------------------------------------------- | ------------------------------------ |
+| Config thiếu                                | Validate trước khi init, log warning |
+| Project ID conflict                         | Log chi tiết, cảnh báo               |
+| App ID sai format (Android/iOS thay vì Web) | Reject, log error                    |
+| Init thất bại                               | Fallback gracefully, không crash app |
 
 ---
 

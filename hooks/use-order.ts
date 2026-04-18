@@ -1,4 +1,9 @@
-import { keepPreviousData, useInfiniteQuery, useMutation, useQuery } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+} from '@tanstack/react-query'
 
 import {
   addNewOrderItem,
@@ -49,10 +54,7 @@ import {
 } from '@/types'
 import { useDownloadImage } from './use-download-image'
 
-export const useOrders = (
-  q: IOrdersQuery,
-  options?: { enabled?: boolean },
-) => {
+export const useOrders = (q: IOrdersQuery, options?: { enabled?: boolean }) => {
   return useQuery({
     queryKey: ['orders', q],
     queryFn: () => getAllOrders(q),
@@ -393,8 +395,15 @@ export const useGetPrinterEvents = (params?: IGetPrinterEventsRequest) => {
     },
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
-      if (lastPage?.result && typeof lastPage.result === 'object' && 'hasNext' in lastPage.result) {
-        const paginationResult = lastPage.result as { hasNext: boolean; page: number }
+      if (
+        lastPage?.result &&
+        typeof lastPage.result === 'object' &&
+        'hasNext' in lastPage.result
+      ) {
+        const paginationResult = lastPage.result as {
+          hasNext: boolean
+          page: number
+        }
         return paginationResult.hasNext ? paginationResult.page + 1 : undefined
       }
       return undefined

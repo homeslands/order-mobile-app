@@ -1,18 +1,18 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 
 import {
-    createBanner,
-    deleteBanner,
-    getBanners,
-    getSpecificBanner,
-    updateBanner,
-    uploadBannerImage,
+  createBanner,
+  deleteBanner,
+  getBanners,
+  getSpecificBanner,
+  updateBanner,
+  uploadBannerImage,
 } from '@/api'
 import { QUERYKEY } from '@/constants'
 import {
-    IBannerRequest,
-    ICreateBannerRequest,
-    IUpdateBannerRequest,
+  IBannerRequest,
+  ICreateBannerRequest,
+  IUpdateBannerRequest,
 } from '@/types'
 
 export const useBanners = (params?: IBannerRequest) => {

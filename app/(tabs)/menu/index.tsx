@@ -24,7 +24,14 @@ import { FlashList } from '@shopify/flash-list'
 import { useQuery } from '@tanstack/react-query'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
-import React, { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   AppState,
@@ -50,7 +57,10 @@ type FlatItem =
   | { _kind: 'header'; key: string; name: string }
   | { _kind: 'item'; data: MenuDisplayItem }
 
-function overrideItemLayout(layout: { span?: number; size?: number }, item: FlatItem) {
+function overrideItemLayout(
+  layout: { span?: number; size?: number },
+  item: FlatItem,
+) {
   layout.size = item._kind === 'header' ? 40 : MENU_ITEM_ESTIMATED_HEIGHT
 }
 
@@ -110,9 +120,12 @@ export default function MenuPage() {
     if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
   }, [])
 
-  useEffect(() => () => {
-    if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
-  }, [])
+  useEffect(
+    () => () => {
+      if (searchTimerRef.current) clearTimeout(searchTimerRef.current)
+    },
+    [],
+  )
 
   // Stable ref map — handlers read from here instead of closing over itemsRaw.
   const itemsMapRef = React.useRef<Map<string, MenuDisplayItem>>(new Map())
@@ -120,7 +133,9 @@ export default function MenuPage() {
   const shouldClearMemoryCacheOnBlurRef = React.useRef(false)
   const hasUserStartedScrollRef = React.useRef(false)
   const hasLoadedImagesOnceRef = React.useRef(false)
-  const prefetchedImageUrlsRef = React.useRef(makeLruSet(PREFETCH_URL_CACHE_MAX))
+  const prefetchedImageUrlsRef = React.useRef(
+    makeLruSet(PREFETCH_URL_CACHE_MAX),
+  )
   const prefetchTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
     null,
   )
@@ -133,15 +148,18 @@ export default function MenuPage() {
 
       let timer: ReturnType<typeof setTimeout> | null = null
       const task = InteractionManager.runAfterInteractions(() => {
-        timer = setTimeout(() => {
-          startTransition(() => {
-            setAllowFetch(true)
-            if (isFirstLoad) {
-              setImagePhaseCount(Infinity)
-              hasLoadedImagesOnceRef.current = true
-            }
-          })
-        }, isFirstLoad ? MENU_ENTRY_IMAGE_DELAY_MS : MENU_ENTRY_FETCH_DELAY_MS)
+        timer = setTimeout(
+          () => {
+            startTransition(() => {
+              setAllowFetch(true)
+              if (isFirstLoad) {
+                setImagePhaseCount(Infinity)
+                hasLoadedImagesOnceRef.current = true
+              }
+            })
+          },
+          isFirstLoad ? MENU_ENTRY_IMAGE_DELAY_MS : MENU_ENTRY_FETCH_DELAY_MS,
+        )
       })
 
       return () => {
@@ -184,7 +202,12 @@ export default function MenuPage() {
   )
   const handleCatalogSelect = useCallback(
     (slug: string | undefined) => {
-      setMenuFilter((prev) => ({ ...prev, catalog: slug, isNewProduct: undefined, isTopSell: undefined }))
+      setMenuFilter((prev) => ({
+        ...prev,
+        catalog: slug,
+        isNewProduct: undefined,
+        isTopSell: undefined,
+      }))
     },
     [setMenuFilter],
   )
@@ -207,7 +230,10 @@ export default function MenuPage() {
 
   const [priceSheetVisible, setPriceSheetVisible] = useState(false)
   const handleOpenPriceSheet = useCallback(() => setPriceSheetVisible(true), [])
-  const handleClosePriceSheet = useCallback(() => setPriceSheetVisible(false), [])
+  const handleClosePriceSheet = useCallback(
+    () => setPriceSheetVisible(false),
+    [],
+  )
   const handlePriceSelect = useCallback(
     (min: number, max: number) => {
       setMenuFilter((prev) => ({
@@ -325,7 +351,9 @@ export default function MenuPage() {
         defaultVariantSlug: cheapestVariantSlug,
         menuItem: item,
         cheapestVariant: cheapestVariantObj,
-        heroImageUrls: heroImagePaths.map((p) => getProductImageUrl(p)).filter((u): u is string => !!u),
+        heroImageUrls: heroImagePaths
+          .map((p) => getProductImageUrl(p))
+          .filter((u): u is string => !!u),
       }
     })
   }, [menuData?.result?.menuItems])
@@ -347,7 +375,11 @@ export default function MenuPage() {
     initialPrefetchDoneRef.current = true
     const INITIAL_PREFETCH_COUNT = 8
     const urls: string[] = []
-    for (let i = 0; i < Math.min(INITIAL_PREFETCH_COUNT, itemsRaw.length); i++) {
+    for (
+      let i = 0;
+      i < Math.min(INITIAL_PREFETCH_COUNT, itemsRaw.length);
+      i++
+    ) {
       const url = itemsRaw[i].imageUrl
       if (url && !prefetchedImageUrlsRef.current.has(url)) {
         prefetchedImageUrlsRef.current.add(url)
@@ -376,15 +408,26 @@ export default function MenuPage() {
     const uncategorized: MenuDisplayItem[] = []
     for (const data of filteredItems) {
       const slug = data.menuItem.product.catalog?.slug
-      if (!slug) { uncategorized.push(data); continue }
+      if (!slug) {
+        uncategorized.push(data)
+        continue
+      }
       const bucket = byCatalog.get(slug)
-      if (bucket) { bucket.push(data) } else { byCatalog.set(slug, [data]) }
+      if (bucket) {
+        bucket.push(data)
+      } else {
+        byCatalog.set(slug, [data])
+      }
     }
     const result: FlatItem[] = []
     for (const cat of catalogList) {
       const items = byCatalog.get(cat.slug)
       if (!items?.length) continue
-      result.push({ _kind: 'header', key: `header-${cat.slug}`, name: cat.name })
+      result.push({
+        _kind: 'header',
+        key: `header-${cat.slug}`,
+        name: cat.name,
+      })
       for (const data of items) result.push({ _kind: 'item', data })
     }
     for (const data of uncategorized) result.push({ _kind: 'item', data })
@@ -424,7 +467,8 @@ export default function MenuPage() {
         const urlsToPrefetch: string[] = []
         for (let i = startIndex; i <= endIndex; i += 1) {
           const imageUrl = itemsRawRef.current[i]?.imageUrl
-          if (!imageUrl || prefetchedImageUrlsRef.current.has(imageUrl)) continue
+          if (!imageUrl || prefetchedImageUrlsRef.current.has(imageUrl))
+            continue
           prefetchedImageUrlsRef.current.add(imageUrl)
           urlsToPrefetch.push(imageUrl)
         }
@@ -552,7 +596,13 @@ export default function MenuPage() {
         />
       )
     },
-    [handleOpenDetail, handleAddToCart, primaryColor, isDark, catalogHeaderColor],
+    [
+      handleOpenDetail,
+      handleAddToCart,
+      primaryColor,
+      isDark,
+      catalogHeaderColor,
+    ],
   )
 
   const handleScrollBeginDrag = useCallback(() => {
@@ -562,7 +612,15 @@ export default function MenuPage() {
   return (
     <TabScreenLayout>
       {/* Header + filter — static, solid bg */}
-      <View style={[styles.header, { backgroundColor: isDark ? colors.gray[900] : '#ffffff', paddingTop: STATIC_TOP_INSET + 12 }]}>
+      <View
+        style={[
+          styles.header,
+          {
+            backgroundColor: isDark ? colors.gray[900] : '#ffffff',
+            paddingTop: STATIC_TOP_INSET + 12,
+          },
+        ]}
+      >
         <View style={styles.headerRow}>
           <Image
             source={Images.Brand.Logo}
@@ -570,7 +628,13 @@ export default function MenuPage() {
             style={styles.logo}
           />
           <View style={styles.headerRight}>
-            <NotificationBell color={isDark ? colors.mutedForeground.dark : colors.mutedForeground.light} />
+            <NotificationBell
+              color={
+                isDark
+                  ? colors.mutedForeground.dark
+                  : colors.mutedForeground.light
+              }
+            />
             <SelectBranchDropdown />
           </View>
         </View>
@@ -592,54 +656,55 @@ export default function MenuPage() {
             onOpenPriceSheet={handleOpenPriceSheet}
             searchPlaceholder={t('menu.searchProduct')}
             allLabel={t('menu.all')}
-            specialChipLabels={{ isTopSell: t('menu.isTopSell'), isNewProduct: t('menu.isNewProduct') }}
+            specialChipLabels={{
+              isTopSell: t('menu.isTopSell'),
+              isNewProduct: t('menu.isNewProduct'),
+            }}
           />
         )}
       </View>
 
       {!hasBranch ? (
         <View style={styles.emptyBox}>
-          <Text style={styles.emptyText}>
-            {t('menu.selectBranchPrompt')}
-          </Text>
+          <Text style={styles.emptyText}>{t('menu.selectBranchPrompt')}</Text>
         </View>
       ) : (
         <MenuImagePhaseContext.Provider value={imagePhaseCount}>
-        <FlashList
-          data={flatItems}
-          renderItem={renderItem}
-          keyExtractor={menuKeyExtractor}
-          getItemType={(item) => item._kind}
-          overrideItemLayout={overrideItemLayout}
-          drawDistance={300}
-          keyboardDismissMode="on-drag"
-          refreshControl={
-            <RefreshControl
-              refreshing={isRefreshing}
-              onRefresh={handleRefresh}
-              tintColor={primaryColor}
-              colors={[primaryColor]}
-            />
-          }
-          onScrollBeginDrag={handleScrollBeginDrag}
-          onViewableItemsChanged={
-            ENABLE_SCROLL_PREFETCH ? onViewableItemsChanged : undefined
-          }
-          viewabilityConfig={menuViewabilityConfig}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContent}
-          ListEmptyComponent={
-            <View style={styles.emptyBox}>
-              <Text style={styles.emptyText}>
-                {isFetching
-                  ? t('menu.loadingMenu')
-                  : searchKeyword
-                    ? t('menu.searchNotFound', { keyword: searchText })
-                    : t('menu.noMenuData')}
-              </Text>
-            </View>
-          }
-        />
+          <FlashList
+            data={flatItems}
+            renderItem={renderItem}
+            keyExtractor={menuKeyExtractor}
+            getItemType={(item) => item._kind}
+            overrideItemLayout={overrideItemLayout}
+            drawDistance={300}
+            keyboardDismissMode="on-drag"
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+                tintColor={primaryColor}
+                colors={[primaryColor]}
+              />
+            }
+            onScrollBeginDrag={handleScrollBeginDrag}
+            onViewableItemsChanged={
+              ENABLE_SCROLL_PREFETCH ? onViewableItemsChanged : undefined
+            }
+            viewabilityConfig={menuViewabilityConfig}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.listContent}
+            ListEmptyComponent={
+              <View style={styles.emptyBox}>
+                <Text style={styles.emptyText}>
+                  {isFetching
+                    ? t('menu.loadingMenu')
+                    : searchKeyword
+                      ? t('menu.searchNotFound', { keyword: searchText })
+                      : t('menu.noMenuData')}
+                </Text>
+              </View>
+            }
+          />
         </MenuImagePhaseContext.Provider>
       )}
 

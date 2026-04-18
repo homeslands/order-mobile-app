@@ -60,7 +60,10 @@ export function useOrderFlowAddToCart() {
     try {
       scheduleStoreUpdate(() => addOrderingItem(orderItem))
       showToast(
-        i18n.t('toast.addSuccess', { ns: 'toast', defaultValue: 'Đã thêm vào giỏ hàng' }),
+        i18n.t('toast.addSuccess', {
+          ns: 'toast',
+          defaultValue: 'Đã thêm vào giỏ hàng',
+        }),
         'Thông báo',
       )
     } catch {

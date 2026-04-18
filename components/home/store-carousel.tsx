@@ -26,7 +26,10 @@ const PaginationDot = React.memo(function PaginationDot({
   const scale = useSharedValue(isActive ? DOT_SCALE_ACTIVE : 1)
 
   useEffect(() => {
-    scale.value = withSpring(isActive ? DOT_SCALE_ACTIVE : 1, SPRING_CONFIGS.dot)
+    scale.value = withSpring(
+      isActive ? DOT_SCALE_ACTIVE : 1,
+      SPRING_CONFIGS.dot,
+    )
   }, [isActive, scale])
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -46,7 +49,9 @@ const PaginationDot = React.memo(function PaginationDot({
 
 // ─── StoreCarousel ────────────────────────────────────────────────────────────
 
-const StoreCarousel = React.memo(function StoreCarousel({ images }: StoreCarouselProps) {
+const StoreCarousel = React.memo(function StoreCarousel({
+  images,
+}: StoreCarouselProps) {
   const flatListRef = useRef<FlatList>(null)
   const [activeIndex, setActiveIndex] = useState(0)
   const activeIndexRef = useRef(0)
@@ -115,7 +120,7 @@ const StoreCarousel = React.memo(function StoreCarousel({ images }: StoreCarouse
   const pagination = useMemo(
     () => (
       <View
-        className="absolute bottom-4 left-0 right-0 flex-row justify-center items-center"
+        className="absolute bottom-4 left-0 right-0 flex-row items-center justify-center"
         style={{ gap: 8 }}
       >
         {carouselImages.map((_, index) => (
@@ -127,7 +132,7 @@ const StoreCarousel = React.memo(function StoreCarousel({ images }: StoreCarouse
   )
 
   return (
-    <View className="overflow-hidden w-full max-w-6xl rounded-xl mx-auto">
+    <View className="mx-auto w-full max-w-6xl overflow-hidden rounded-xl">
       <FlatList
         ref={flatListRef}
         data={carouselImages}
@@ -144,7 +149,10 @@ const StoreCarousel = React.memo(function StoreCarousel({ images }: StoreCarouse
         onScrollToIndexFailed={(info) => {
           const wait = new Promise((resolve) => setTimeout(resolve, 500))
           wait.then(() => {
-            flatListRef.current?.scrollToIndex({ index: info.index, animated: true })
+            flatListRef.current?.scrollToIndex({
+              index: info.index,
+              animated: true,
+            })
           })
         }}
       />

@@ -1,10 +1,7 @@
 import { TriangleAlert } from 'lucide-react-native'
 import { useTranslation } from 'react-i18next'
 
-import {
-  Button,
-  Dialog,
-} from '@/components/ui'
+import { Button, Dialog } from '@/components/ui'
 
 import { ITable } from '@/types'
 
@@ -29,9 +26,9 @@ export default function SelectReservedTableDialog({
     <Dialog open={!!table} onOpenChange={onCancel}>
       <Dialog.Content className="max-w-[22rem] rounded-md sm:max-w-[32rem]">
         <Dialog.Header>
-          <Dialog.Title className="pb-4 border-b border-destructive text-destructive">
+          <Dialog.Title className="border-b border-destructive pb-4 text-destructive">
             <div className="flex items-center gap-2">
-              <TriangleAlert className="w-6 h-6" />
+              <TriangleAlert className="h-6 w-6" />
               {t('menu.tableNote')}
             </div>
           </Dialog.Title>

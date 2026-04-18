@@ -10,10 +10,16 @@ interface DataTableCellProps<T> {
 }
 
 /** Presentational cell: no logic, only render value or column.render(row, value). */
-export function DataTableCell<T>({ column, row, value }: DataTableCellProps<T>) {
+export function DataTableCell<T>({
+  column,
+  row,
+  value,
+}: DataTableCellProps<T>) {
   const content = column.render
     ? column.render(row, value)
-    : (value != null && value !== '' ? String(value) : '—')
+    : value != null && value !== ''
+      ? String(value)
+      : '—'
 
   const isPrimitive =
     content == null ||
@@ -23,12 +29,15 @@ export function DataTableCell<T>({ column, row, value }: DataTableCellProps<T>) 
   return (
     <View
       className={cn(
-        'flex-1 justify-center px-3 py-2.5 border-r border-gray-100 dark:border-gray-800'
+        'flex-1 justify-center border-r border-gray-100 px-3 py-2.5 dark:border-gray-800',
       )}
       style={{ width: column.widthResolved, minWidth: column.widthResolved }}
     >
       {isPrimitive ? (
-        <Text className="text-sm text-gray-900 dark:text-gray-100" numberOfLines={1}>
+        <Text
+          className="text-sm text-gray-900 dark:text-gray-100"
+          numberOfLines={1}
+        >
           {content ?? '—'}
         </Text>
       ) : (

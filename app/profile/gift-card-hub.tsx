@@ -66,25 +66,58 @@ export default function GiftCardHubScreen() {
   const primaryColor = usePrimaryColor()
   const insets = useSafeAreaInsets()
 
-  const SECTIONS: MenuSection[] = useMemo(() => [
-    {
-      key: 'coin',
-      title: t('hub.sectionCoin'),
-      items: [
-        { key: 'coin-history', label: t('hub.coinHistory'), icon: Wallet, iconColor: '#7C3AED', route: '/profile/coin-hub' },
-      ],
-    },
-    {
-      key: 'gift-card',
-      title: t('hub.sectionGiftCard'),
-      items: [
-        { key: 'my-cards', label: t('hub.myCards'),      icon: Gift,        iconColor: '#4CAF50', route: '/profile/gift-cards'      },
-        { key: 'redeem',   label: t('hub.useCard'),      icon: Ticket,      iconColor: '#5DA8E8', route: '/gift-card/redeem'         },
-        { key: 'buy',      label: t('hub.buy'),           icon: ShoppingBag, iconColor: '#F5A623', route: '/(tabs)/gift-card'         },
-        { key: 'orders',   label: t('hub.orderHistory'),  icon: History,     iconColor: '#E85D5D', route: '/profile/gift-card-orders' },
-      ],
-    },
-  ], [t])
+  const SECTIONS: MenuSection[] = useMemo(
+    () => [
+      {
+        key: 'coin',
+        title: t('hub.sectionCoin'),
+        items: [
+          {
+            key: 'coin-history',
+            label: t('hub.coinHistory'),
+            icon: Wallet,
+            iconColor: '#7C3AED',
+            route: '/profile/coin-hub',
+          },
+        ],
+      },
+      {
+        key: 'gift-card',
+        title: t('hub.sectionGiftCard'),
+        items: [
+          {
+            key: 'my-cards',
+            label: t('hub.myCards'),
+            icon: Gift,
+            iconColor: '#4CAF50',
+            route: '/profile/gift-cards',
+          },
+          {
+            key: 'redeem',
+            label: t('hub.useCard'),
+            icon: Ticket,
+            iconColor: '#5DA8E8',
+            route: '/gift-card/redeem',
+          },
+          {
+            key: 'buy',
+            label: t('hub.buy'),
+            icon: ShoppingBag,
+            iconColor: '#F5A623',
+            route: '/(tabs)/gift-card',
+          },
+          {
+            key: 'orders',
+            label: t('hub.orderHistory'),
+            icon: History,
+            iconColor: '#E85D5D',
+            route: '/profile/gift-card-orders',
+          },
+        ],
+      },
+    ],
+    [t],
+  )
 
   const [ready, setReady] = useState(false)
   const [balanceVisible, setBalanceVisible] = useState(true)
@@ -93,17 +126,22 @@ export default function GiftCardHubScreen() {
 
   const { balance, isLoading } = useCoinBalance(ready)
 
-  const bg        = isDark ? colors.background.dark : colors.background.light
-  const cardBg    = isDark ? '#2B3B4C'              : '#ffffff'
-  const textColor = isDark ? colors.gray[50]        : colors.gray[900]
-  const subColor  = isDark ? '#8B9BB2'              : colors.gray[500]
-  const divColor  = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'
+  const bg = isDark ? colors.background.dark : colors.background.light
+  const cardBg = isDark ? '#2B3B4C' : '#ffffff'
+  const textColor = isDark ? colors.gray[50] : colors.gray[900]
+  const subColor = isDark ? '#8B9BB2' : colors.gray[500]
+  const divColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'
   const sectionLabelColor = isDark ? colors.gray[400] : colors.gray[500]
 
   return (
     <View style={[s.container, { backgroundColor: bg }]}>
       {/* ── Solid hero background ────────────────────────────────────────── */}
-      <View style={[s.heroBg, { height: HERO_HEIGHT, backgroundColor: primaryColor }]} />
+      <View
+        style={[
+          s.heroBg,
+          { height: HERO_HEIGHT, backgroundColor: primaryColor },
+        ]}
+      />
 
       {/* ── Back button ─────────────────────────────────────────────────── */}
       <Pressable
@@ -111,7 +149,11 @@ export default function GiftCardHubScreen() {
         hitSlop={12}
         style={[s.backBtn, { top: STATIC_TOP_INSET + 8 }]}
       >
-        <ChevronRight size={20} color={colors.white.light} style={{ transform: [{ rotate: '180deg' }] }} />
+        <ChevronRight
+          size={20}
+          color={colors.white.light}
+          style={{ transform: [{ rotate: '180deg' }] }}
+        />
       </Pressable>
 
       <ScrollView
@@ -119,7 +161,12 @@ export default function GiftCardHubScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 32 }}
       >
         {/* ── Balance zone ────────────────────────────────────────────────── */}
-        <View style={[s.heroZone, { height: HERO_HEIGHT, paddingTop: STATIC_TOP_INSET + 44 }]}>
+        <View
+          style={[
+            s.heroZone,
+            { height: HERO_HEIGHT, paddingTop: STATIC_TOP_INSET + 44 },
+          ]}
+        >
           <Text style={s.screenTitle}>{t('hub.title')}</Text>
           <Text style={s.balanceLabelText}>{t('hub.balance')}</Text>
 
@@ -132,10 +179,15 @@ export default function GiftCardHubScreen() {
                 {balanceVisible ? formatPoints(balance) : '••••••'}
               </Text>
             )}
-            <Pressable onPress={() => setBalanceVisible((v) => !v)} hitSlop={12}>
-              {balanceVisible
-                ? <EyeOff size={20} color="rgba(255,255,255,0.7)" />
-                : <Eye    size={20} color="rgba(255,255,255,0.7)" />}
+            <Pressable
+              onPress={() => setBalanceVisible((v) => !v)}
+              hitSlop={12}
+            >
+              {balanceVisible ? (
+                <EyeOff size={20} color="rgba(255,255,255,0.7)" />
+              ) : (
+                <Eye size={20} color="rgba(255,255,255,0.7)" />
+              )}
             </Pressable>
           </View>
         </View>
@@ -155,16 +207,33 @@ export default function GiftCardHubScreen() {
                     <View key={item.key}>
                       <TouchableOpacity
                         style={s.menuItem}
-                        onPress={() => navigateNative.push(item.route as Parameters<typeof navigateNative.push>[0])}
+                        onPress={() =>
+                          navigateNative.push(
+                            item.route as Parameters<
+                              typeof navigateNative.push
+                            >[0],
+                          )
+                        }
                         activeOpacity={0.7}
                       >
-                        <View style={[s.menuIconWrap, { backgroundColor: item.iconColor }]}>
+                        <View
+                          style={[
+                            s.menuIconWrap,
+                            { backgroundColor: item.iconColor },
+                          ]}
+                        >
                           <Icon size={18} color="#ffffff" />
                         </View>
-                        <Text style={[s.menuTitle, { color: textColor }]}>{item.label}</Text>
+                        <Text style={[s.menuTitle, { color: textColor }]}>
+                          {item.label}
+                        </Text>
                         <ChevronRight size={20} color={subColor} />
                       </TouchableOpacity>
-                      {!isLast && <View style={[s.menuDivider, { backgroundColor: divColor }]} />}
+                      {!isLast && (
+                        <View
+                          style={[s.menuDivider, { backgroundColor: divColor }]}
+                        />
+                      )}
                     </View>
                   )
                 })}

@@ -53,12 +53,16 @@ function validateCartItems(
     }
 
     const variants = menuItem.product?.variants || []
-    const sizeName = (cartItem.variant?.size?.name || cartItem.size || '').toLowerCase().trim()
+    const sizeName = (cartItem.variant?.size?.name || cartItem.size || '')
+      .toLowerCase()
+      .trim()
 
     // Find matching variant: exact slug → same size name → first variant
     const matchedVariant =
       variants.find((v) => v.slug === cartItem.variant?.slug) ||
-      variants.find((v) => (v.size?.name || '').toLowerCase().trim() === sizeName) ||
+      variants.find(
+        (v) => (v.size?.name || '').toLowerCase().trim() === sizeName,
+      ) ||
       variants[0]
 
     if (!matchedVariant) {
@@ -70,7 +74,8 @@ function validateCartItems(
     const slugChanged = matchedVariant.slug !== cartItem.variant?.slug
     const priceChanged = matchedVariant.price !== cartItem.variant?.price
     const newPromotion = menuItem.promotion || null
-    const promotionChanged = (newPromotion?.slug || null) !== (cartItem.promotion?.slug || null)
+    const promotionChanged =
+      (newPromotion?.slug || null) !== (cartItem.promotion?.slug || null)
 
     if (slugChanged || priceChanged || promotionChanged) {
       updated.push(cartItem.name || productSlug)
@@ -120,16 +125,20 @@ export function useCartValidation() {
       isValidatingRef.current = true
 
       try {
-        const query = { branch: branchSlug, date: new Date().toISOString().slice(0, 10) }
+        const query = {
+          branch: branchSlug,
+          date: new Date().toISOString().slice(0, 10),
+        }
         const fetchMenu =
           hasUser && roleName !== Role.CUSTOMER
             ? getSpecificMenu
             : getPublicSpecificMenu
 
         // Use queryClient to leverage cache
-        const queryKey = hasUser && roleName !== Role.CUSTOMER
-          ? ['specific-menu', query]
-          : ['public-specific-menu', query]
+        const queryKey =
+          hasUser && roleName !== Role.CUSTOMER
+            ? ['specific-menu', query]
+            : ['public-specific-menu', query]
 
         const menuData = await queryClient.fetchQuery({
           queryKey,
@@ -175,7 +184,9 @@ export function useCartValidation() {
               const variants = mi.product?.variants || []
               const newVariant: IProductVariant | undefined =
                 variants.find((v) => v.slug === item.variant?.slug) ||
-                variants.find((v) => v.size?.slug === item.variant?.size?.slug) ||
+                variants.find(
+                  (v) => v.size?.slug === item.variant?.size?.slug,
+                ) ||
                 variants[0]
 
               if (newVariant) {
@@ -187,14 +198,18 @@ export function useCartValidation() {
           // Show feedback
           if (result.removed.length > 0) {
             const names = result.removed.slice(0, 3).join(', ')
-            const suffix = result.removed.length > 3 ? ` và ${result.removed.length - 3} món khác` : ''
+            const suffix =
+              result.removed.length > 3
+                ? ` và ${result.removed.length - 3} món khác`
+                : ''
             showToast(`${names}${suffix} không còn trong menu, đã xoá`)
           } else if (result.updated.length > 0) {
             showToast(`Đã cập nhật giá mới cho ${result.updated.length} món`)
           }
 
           // Re-validate voucher after item changes
-          const voucherAfter = useOrderFlowStore.getState().orderingData?.voucher
+          const voucherAfter =
+            useOrderFlowStore.getState().orderingData?.voucher
           if (voucherAfter && result.removed.length > 0) {
             cartActions.setVoucher(null)
           }

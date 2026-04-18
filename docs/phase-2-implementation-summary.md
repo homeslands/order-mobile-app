@@ -11,7 +11,9 @@ All Phase 2 optimizations have been successfully implemented. This document trac
 Phase 2 focused on three major optimizations:
 
 ### ✅ **1. Store Selectors** (-60% unrelated re-renders)
+
 ### ✅ **2. Loading Overlay** (Better UX perception)
+
 ### ✅ **3. Navigation Loading State** (Smooth transitions)
 
 ---
@@ -25,40 +27,50 @@ Phase 2 focused on three major optimizations:
 Created a comprehensive selector library with:
 
 #### Single Field Selectors
+
 ```typescript
-selectEmail, selectPhoneNumber, selectStep, selectToken,
-selectVerificationMethod, selectExpireTime, selectTokenExpireTime
+;(selectEmail,
+  selectPhoneNumber,
+  selectStep,
+  selectToken,
+  selectVerificationMethod,
+  selectExpireTime,
+  selectTokenExpireTime)
 ```
 
 #### Composite Selectors
+
 ```typescript
-selectIdentity           // { email, phoneNumber, verificationMethod }
-selectFlowState          // { step, token }
-selectTimingState        // { expireTime, tokenExpireTime }
-selectExpirations        // { otpExpiresAt, tokenExpiresAt }
+selectIdentity // { email, phoneNumber, verificationMethod }
+selectFlowState // { step, token }
+selectTimingState // { expireTime, tokenExpireTime }
+selectExpirations // { otpExpiresAt, tokenExpiresAt }
 ```
 
 #### Action Selectors
+
 ```typescript
-selectActions            // All setters
-selectStepActions        // { setStep, clearForgotPassword }
-selectIdentityActions    // { setEmail, setPhoneNumber, setVerificationMethod }
-selectTimingActions      // { setExpireTime, setTokenExpireTime }
-selectOTPActions         // { setToken, setTokenExpireTime, setExpireTime }
+selectActions // All setters
+selectStepActions // { setStep, clearForgotPassword }
+selectIdentityActions // { setEmail, setPhoneNumber, setVerificationMethod }
+selectTimingActions // { setExpireTime, setTokenExpireTime }
+selectOTPActions // { setToken, setTokenExpireTime, setExpireTime }
 ```
 
 #### Hook Shortcuts (Easy Usage)
+
 ```typescript
-useEmail()              // Only re-renders if email changes
-useStep()               // Only re-renders if step changes
-useToken()              // Only re-renders if token changes
-useIdentity()           // Only re-renders if any identity field changes
-useFlowState()          // Only re-renders if step or token change
-useActions()            // Stable reference (never re-renders)
-useIdentityActions()    // Stable reference
+useEmail() // Only re-renders if email changes
+useStep() // Only re-renders if step changes
+useToken() // Only re-renders if token changes
+useIdentity() // Only re-renders if any identity field changes
+useFlowState() // Only re-renders if step or token change
+useActions() // Stable reference (never re-renders)
+useIdentityActions() // Stable reference
 ```
 
 **Benefits:**
+
 - 🚀 Components only subscribe to fields they need
 - ✅ 60% fewer unrelated re-renders
 - ✅ Clear, semantic selectors
@@ -70,6 +82,7 @@ useIdentityActions()    // Stable reference
 ### 2.2 Loading Overlay ✅
 
 **Files Created:**
+
 - `lib/navigation/loading-overlay.tsx` (20 lines)
 - `hooks/use-navigation-loading.ts` (40 lines)
 
@@ -93,9 +106,9 @@ export const useNavigationLoadingControl = () => useNavigationLoadingStore(...)
 ```typescript
 export function NavigationLoadingOverlay() {
   const isLoading = useNavigationLoading()
-  
+
   if (!isLoading) return null
-  
+
   return (
     <View className="absolute inset-0 bg-black/50 justify-center items-center z-50">
       <ActivityIndicator size="large" color="#fff" />
@@ -105,6 +118,7 @@ export function NavigationLoadingOverlay() {
 ```
 
 **Benefits:**
+
 - ✅ Shows loading state immediately to user
 - ✅ Prevents jank perception during transitions
 - ✅ Clean, reusable component
@@ -115,13 +129,14 @@ export function NavigationLoadingOverlay() {
 ### 2.3 Updated Components ✅
 
 #### email.tsx Changes
+
 ```typescript
 // Before: Subscribe to entire store (8 fields)
 const { email, step, token, expireTime, ... } = useForgotPasswordStore()
 
 // After: Subscribe to specific fields only
 const email = useEmail()          // Only if email changes
-const step = useStep()            // Only if step changes  
+const step = useStep()            // Only if step changes
 const token = useToken()          // Only if token changes
 const expireTime = useExpireTime() // Only if OTP expires
 
@@ -144,9 +159,11 @@ initiateForgotPassword({...}, {
 ```
 
 #### phone.tsx Changes
+
 Same as email.tsx but with phone-specific fields
 
 #### JSX Structure
+
 ```typescript
 return (
   <>
@@ -164,25 +181,27 @@ return (
 
 ### Expected Improvements
 
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| Store subscriptions per component | 8+ fields | 3-4 fields | 🚀 -60% |
-| Re-renders from unrelated fields | High | Very Low | 🚀 -90% |
-| Button re-renders per state change | 2-3 | 1 | 🚀 -50% |
-| Transition FPS | 50-55fps | 55-60fps | 🚀 +10% |
-| Time to navigate | 300-400ms | <200ms | 🚀 -40% |
+| Metric                             | Before    | After      | Improvement |
+| ---------------------------------- | --------- | ---------- | ----------- |
+| Store subscriptions per component  | 8+ fields | 3-4 fields | 🚀 -60%     |
+| Re-renders from unrelated fields   | High      | Very Low   | 🚀 -90%     |
+| Button re-renders per state change | 2-3       | 1          | 🚀 -50%     |
+| Transition FPS                     | 50-55fps  | 55-60fps   | 🚀 +10%     |
+| Time to navigate                   | 300-400ms | <200ms     | 🚀 -40%     |
 
 ### How It Works
 
 **Before:**
+
 ```
-Any store field updates 
+Any store field updates
   → Component subscribes to full store
   → Component re-renders even if field is unrelated
   → Potential jank during API calls
 ```
 
 **After:**
+
 ```
 Any store field updates
   → Component only subscribed to needed fields
@@ -196,6 +215,7 @@ Any store field updates
 ## 4. Files Created/Modified
 
 ### New Files
+
 ```
 ✅ stores/selectors/forgot-password.ts          (180+ lines)
 ✅ lib/navigation/loading-overlay.tsx           (20 lines)
@@ -203,6 +223,7 @@ Any store field updates
 ```
 
 ### Modified Files
+
 ```
 📝 app/auth/forgot-password/email.tsx
    - Changed from direct store subscription to selectors
@@ -223,6 +244,7 @@ Any store field updates
 ## 5. Usage Examples
 
 ### Before Phase 2
+
 ```typescript
 // Gets ALL fields, re-renders on ANY change
 const { email, step, token, expireTime, tokenExpireTime, ... } = useForgotPasswordStore()
@@ -231,29 +253,31 @@ const { email, step, token, expireTime, tokenExpireTime, ... } = useForgotPasswo
 ```
 
 ### After Phase 2
+
 ```typescript
 // Only gets what you need
 import { useEmail, useStep, useToken } from '@/stores/selectors/forgot-password'
 
-const email = useEmail()    // Only re-renders if email changes
-const step = useStep()      // Only re-renders if step changes
-const token = useToken()    // Only re-renders if token changes
+const email = useEmail() // Only re-renders if email changes
+const step = useStep() // Only re-renders if step changes
+const token = useToken() // Only re-renders if token changes
 
 // Result: Only needed re-renders happen
 ```
 
 ### Loading State
+
 ```typescript
 const { isLoading, setLoading } = useNavigationLoadingControl()
 
 const handleSubmit = async () => {
-  setLoading(true)  // Show overlay immediately
-  
+  setLoading(true) // Show overlay immediately
+
   await api.call({
     onSuccess: () => {
       // Update state
-      setTimeout(() => setLoading(false), 300)  // Hide after state settles
-    }
+      setTimeout(() => setLoading(false), 300) // Hide after state settles
+    },
   })
 }
 ```
@@ -263,24 +287,28 @@ const handleSubmit = async () => {
 ## 6. Benefits Summary
 
 ### Architectural
+
 - ✅ Cleaner separation of concerns
 - ✅ Selectors are composable and reusable
 - ✅ Easy to test (pure functions)
 - ✅ Clear data flow
 
 ### Performance
+
 - ✅ 60% fewer unrelated re-renders
 - ✅ Smoother transitions (60fps)
 - ✅ Faster navigation (<200ms)
 - ✅ Better UX perception with loading overlay
 
 ### Developer Experience
+
 - ✅ Clear hook names (useEmail, useStep, etc.)
 - ✅ Type-safe selectors
 - ✅ Easy to find and use selectors
 - ✅ Less boilerplate in components
 
 ### User Experience
+
 - ✅ Smooth, responsive interactions
 - ✅ Loading state shown immediately
 - ✅ No UI jank during operations
@@ -291,12 +319,14 @@ const handleSubmit = async () => {
 ## 7. Testing Checklist
 
 ### Unit Tests
+
 - [ ] Selectors return correct values
 - [ ] Selectors are properly memoized
 - [ ] Loading state updates correctly
 - [ ] All selector types work as expected
 
 ### Integration Tests
+
 - [ ] Email change doesn't cause step component re-render
 - [ ] Step change only re-renders relevant components
 - [ ] Loading overlay appears during API calls
@@ -305,6 +335,7 @@ const handleSubmit = async () => {
 - [ ] Navigation happens smoothly with loading overlay
 
 ### Performance Tests
+
 - [ ] Re-renders are significantly reduced (< 0.5 per second during input)
 - [ ] Transitions maintain 55-60fps
 - [ ] Navigation latency is < 200ms
@@ -312,6 +343,7 @@ const handleSubmit = async () => {
 - [ ] No unintended re-renders of unrelated components
 
 ### Regression Tests
+
 - [ ] All email/phone form fields work
 - [ ] OTP entry works
 - [ ] Timer countdowns work
@@ -325,6 +357,7 @@ const handleSubmit = async () => {
 ## 8. Code Quality
 
 ### Lines Added
+
 - Selectors: 180 lines
 - Loading hook: 40 lines
 - Loading overlay: 20 lines
@@ -332,12 +365,14 @@ const handleSubmit = async () => {
 - Impact: 60% fewer re-renders
 
 ### Maintainability
+
 - ✅ All selectors are semantic and named clearly
 - ✅ No complex logic in selectors (pure functions)
 - ✅ Well-commented code
 - ✅ Easy to extend with new selectors
 
 ### Type Safety
+
 - ✅ Full TypeScript support
 - ✅ Type-safe selectors
 - ✅ IDE autocomplete works great
@@ -348,6 +383,7 @@ const handleSubmit = async () => {
 ## 9. Backward Compatibility
 
 ✅ **100% Backward Compatible**
+
 - Old store still works unchanged
 - No breaking changes to store interface
 - Can migrate components gradually
@@ -376,6 +412,7 @@ Expected testing time: ~1-2 hours
 ## 11. What's Next (Phase 3)
 
 When ready, Phase 3 will add:
+
 1. **Reanimated Countdown** - Run on UI thread for 60fps
 2. **Virtualized Forms** - Only render active step
 3. **Offline Support** - Queue submissions when offline
@@ -387,21 +424,25 @@ When ready, Phase 3 will add:
 ### Phase 2 Accomplishments
 
 ✅ **Store Selectors**
+
 - 180 lines of well-organized, reusable selectors
 - 60% reduction in unrelated re-renders
 - Clear, semantic hook shortcuts
 
 ✅ **Loading Overlay**
+
 - Smooth UX during transitions
 - Prevents jank perception
 - Reusable component
 
 ✅ **Updated Screens**
+
 - Both email and phone screens use selectors
 - Better organized state management
 - Loading state management added
 
 ✅ **Performance Gains**
+
 - Fewer re-renders
 - Smoother transitions (60fps)
 - Faster navigation (<200ms)
@@ -409,6 +450,7 @@ When ready, Phase 3 will add:
 ### Ready for Testing
 
 All Phase 2 code is:
+
 - ✅ Implemented
 - ✅ Well-documented
 - ✅ Type-safe
@@ -416,4 +458,3 @@ All Phase 2 code is:
 - ✅ Backward compatible
 
 **Next step:** Thorough testing of all components and flows to ensure no regressions.
-

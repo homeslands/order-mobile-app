@@ -1,4 +1,12 @@
-import { ICartItem, IDisplayCartItem, IDisplayOrderItem, IOrderDetail, IOrderItem, IPromotion, IVoucher } from '@/types'
+import {
+  ICartItem,
+  IDisplayCartItem,
+  IDisplayOrderItem,
+  IOrderDetail,
+  IOrderItem,
+  IPromotion,
+  IVoucher,
+} from '@/types'
 
 // ─── Re-exports (public API unchanged for @/utils consumers) ─────────────────
 
@@ -95,7 +103,12 @@ export function calculateCartDisplayAndTotals(
         voucher: Record<string, unknown> | null
       }) => {
         displayItems: IDisplayCartItem[]
-        totals: { subTotalBeforeDiscount: number; promotionDiscount: number; voucherDiscount: number; finalTotal: number }
+        totals: {
+          subTotalBeforeDiscount: number
+          promotionDiscount: number
+          voucherDiscount: number
+          finalTotal: number
+        }
       } | null
     }
     const nativeResult = calculateDisplayItemsNative({

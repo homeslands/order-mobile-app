@@ -14,4 +14,3 @@ export enum OrderFlowStep {
   PAYMENT = 'payment',
   UPDATING = 'updating',
 }
-

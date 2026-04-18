@@ -12,14 +12,14 @@ Hệ thống quản lý **xu (points)** mà người dùng nhận được từ 
 
 ## 2. So Sánh Với Loyalty Points
 
-| Khía cạnh | Gift Card Points (`point_transaction_tbl`) | Loyalty Points (`accumulated_point_transaction_history_tbl`) |
-|---|---|---|
-| **Module** | `gift-card-modules/point-transaction` | `accumulated-point` |
-| **Loại giao dịch** | `IN` / `OUT` | `ADD` / `USE` / `RESERVE` / `REFUND` |
-| **Trạng thái** | Không có | `PENDING` / `CONFIRMED` / `CANCELLED` |
-| **Nguồn gốc** | Mua thẻ quà tặng, dùng thẻ | Thanh toán đơn hàng thức ăn |
-| **Object liên quan** | `ORDER` / `GIFT_CARD` / `CARD_ORDER` | Order |
-| **Mục đích** | Theo dõi xu từ thẻ quà tặng | Theo dõi điểm tích lũy mua hàng |
+| Khía cạnh            | Gift Card Points (`point_transaction_tbl`) | Loyalty Points (`accumulated_point_transaction_history_tbl`) |
+| -------------------- | ------------------------------------------ | ------------------------------------------------------------ |
+| **Module**           | `gift-card-modules/point-transaction`      | `accumulated-point`                                          |
+| **Loại giao dịch**   | `IN` / `OUT`                               | `ADD` / `USE` / `RESERVE` / `REFUND`                         |
+| **Trạng thái**       | Không có                                   | `PENDING` / `CONFIRMED` / `CANCELLED`                        |
+| **Nguồn gốc**        | Mua thẻ quà tặng, dùng thẻ                 | Thanh toán đơn hàng thức ăn                                  |
+| **Object liên quan** | `ORDER` / `GIFT_CARD` / `CARD_ORDER`       | Order                                                        |
+| **Mục đích**         | Theo dõi xu từ thẻ quà tặng                | Theo dõi điểm tích lũy mua hàng                              |
 
 ---
 
@@ -27,32 +27,32 @@ Hệ thống quản lý **xu (points)** mà người dùng nhận được từ 
 
 ### Entity `PointTransaction` (bảng `point_transaction_tbl`)
 
-| Trường | Kiểu | Mô tả |
-|---|---|---|
-| `type` | `IN` / `OUT` | Hướng giao dịch: nhận vào / chi ra |
-| `desc` | string | Mô tả giao dịch |
-| `objectId` | UUID | ID của object liên quan |
-| `objectType` | enum | Loại object: `order` / `gift-card` / `card-order` |
-| `objectSlug` | string | Slug của object liên quan |
-| `points` | number | Số điểm giao dịch |
-| `userId` | UUID | ID user sở hữu giao dịch |
-| `userSlug` | string | Slug user |
-| `balance` | decimal(10,2) | **Số dư sau giao dịch** |
+| Trường       | Kiểu          | Mô tả                                             |
+| ------------ | ------------- | ------------------------------------------------- |
+| `type`       | `IN` / `OUT`  | Hướng giao dịch: nhận vào / chi ra                |
+| `desc`       | string        | Mô tả giao dịch                                   |
+| `objectId`   | UUID          | ID của object liên quan                           |
+| `objectType` | enum          | Loại object: `order` / `gift-card` / `card-order` |
+| `objectSlug` | string        | Slug của object liên quan                         |
+| `points`     | number        | Số điểm giao dịch                                 |
+| `userId`     | UUID          | ID user sở hữu giao dịch                          |
+| `userSlug`   | string        | Slug user                                         |
+| `balance`    | decimal(10,2) | **Số dư sau giao dịch**                           |
 
 ### Enum `PointTransactionTypeEnum`
 
-| Giá trị | Ý nghĩa |
-|---|---|
-| `IN` | Nhận xu vào tài khoản |
-| `OUT` | Dùng xu khỏi tài khoản |
+| Giá trị | Ý nghĩa                |
+| ------- | ---------------------- |
+| `IN`    | Nhận xu vào tài khoản  |
+| `OUT`   | Dùng xu khỏi tài khoản |
 
 ### Enum `PointTransactionObjectTypeEnum`
 
-| Giá trị | Ý nghĩa |
-|---|---|
-| `ORDER` | Liên quan đến đơn hàng |
-| `GIFT_CARD` | Liên quan đến thẻ quà tặng |
-| `CARD_ORDER` | Liên quan đến đơn mua thẻ |
+| Giá trị      | Ý nghĩa                    |
+| ------------ | -------------------------- |
+| `ORDER`      | Liên quan đến đơn hàng     |
+| `GIFT_CARD`  | Liên quan đến thẻ quà tặng |
+| `CARD_ORDER` | Liên quan đến đơn mua thẻ  |
 
 ---
 
@@ -140,13 +140,13 @@ GiftCardService.use(req)
 
 ## 5. Validation & Ràng Buộc
 
-| Ràng buộc | Mô tả |
-|---|---|
-| `OUT + GIFT_CARD` bị cấm | Gift card chỉ cho xu, không trừ xu |
-| `IN + ORDER` bị cấm | Order không tự tạo xu IN qua module này |
-| `points ≥ 0` | Số xu phải không âm |
-| `userSlug` bắt buộc | Phải xác định được user nhận/dùng xu |
-| `objectSlug` bắt buộc | Phải có object tham chiếu hợp lệ |
+| Ràng buộc                | Mô tả                                   |
+| ------------------------ | --------------------------------------- |
+| `OUT + GIFT_CARD` bị cấm | Gift card chỉ cho xu, không trừ xu      |
+| `IN + ORDER` bị cấm      | Order không tự tạo xu IN qua module này |
+| `points ≥ 0`             | Số xu phải không âm                     |
+| `userSlug` bắt buộc      | Phải xác định được user nhận/dùng xu    |
+| `objectSlug` bắt buộc    | Phải có object tham chiếu hợp lệ        |
 
 ---
 
@@ -154,26 +154,26 @@ GiftCardService.use(req)
 
 > Controller prefix: `/point-transaction` | Auth: Bearer token
 
-| Method | Endpoint | Mô tả |
-|---|---|---|
-| `POST` | `/point-transaction` | Tạo giao dịch điểm thủ công |
-| `GET` | `/point-transaction` | Lấy danh sách giao dịch (có filter, phân trang) |
-| `GET` | `/point-transaction/analysis` | Thống kê tổng nhận / tổng dùng / chênh lệch |
-| `GET` | `/point-transaction/:slug` | Xem chi tiết 1 giao dịch |
-| `GET` | `/point-transaction/export` | Xuất PDF lịch sử của user |
-| `GET` | `/point-transaction/:slug/export` | Xuất PDF 1 giao dịch |
-| `GET` | `/point-transaction/export/system` | Xuất Excel toàn hệ thống (admin) |
+| Method | Endpoint                           | Mô tả                                           |
+| ------ | ---------------------------------- | ----------------------------------------------- |
+| `POST` | `/point-transaction`               | Tạo giao dịch điểm thủ công                     |
+| `GET`  | `/point-transaction`               | Lấy danh sách giao dịch (có filter, phân trang) |
+| `GET`  | `/point-transaction/analysis`      | Thống kê tổng nhận / tổng dùng / chênh lệch     |
+| `GET`  | `/point-transaction/:slug`         | Xem chi tiết 1 giao dịch                        |
+| `GET`  | `/point-transaction/export`        | Xuất PDF lịch sử của user                       |
+| `GET`  | `/point-transaction/:slug/export`  | Xuất PDF 1 giao dịch                            |
+| `GET`  | `/point-transaction/export/system` | Xuất Excel toàn hệ thống (admin)                |
 
 ### `GET /point-transaction` — Query params
 
-| Param | Kiểu | Bắt buộc | Mô tả |
-|---|---|---|---|
-| `userSlug` | string | Không | Lọc theo user |
-| `type` | `in` / `out` | Không | Lọc theo loại giao dịch |
-| `fromDate` | `YYYY-MM-DD` | Không | Từ ngày |
-| `toDate` | `YYYY-MM-DD` | Không | Đến ngày |
-| `k` | string | Không | Tìm theo tên / số điện thoại |
-| `page`, `size` | number | Không | Phân trang |
+| Param          | Kiểu         | Bắt buộc | Mô tả                        |
+| -------------- | ------------ | -------- | ---------------------------- |
+| `userSlug`     | string       | Không    | Lọc theo user                |
+| `type`         | `in` / `out` | Không    | Lọc theo loại giao dịch      |
+| `fromDate`     | `YYYY-MM-DD` | Không    | Từ ngày                      |
+| `toDate`       | `YYYY-MM-DD` | Không    | Đến ngày                     |
+| `k`            | string       | Không    | Tìm theo tên / số điện thoại |
+| `page`, `size` | number       | Không    | Phân trang                   |
 
 ### `GET /point-transaction/analysis` — Response
 
@@ -211,11 +211,11 @@ Component: `system-transaction-point-history.tabscontent.tsx`
 
 ### Summary cards (phía trên bảng)
 
-| Card | Icon | Màu | Giá trị |
-|---|---|---|---|
-| Tổng xu nhận | TrendingUp | Xanh lá | `totalEarned` |
-| Tổng xu đã dùng | TrendingDown | Đỏ | `totalSpent` |
-| Chênh lệch | Arrow | Theo giá trị | `netDifference` |
+| Card            | Icon         | Màu          | Giá trị         |
+| --------------- | ------------ | ------------ | --------------- |
+| Tổng xu nhận    | TrendingUp   | Xanh lá      | `totalEarned`   |
+| Tổng xu đã dùng | TrendingDown | Đỏ           | `totalSpent`    |
+| Chênh lệch      | Arrow        | Theo giá trị | `netDifference` |
 
 ### Bộ lọc
 
@@ -226,14 +226,14 @@ Component: `system-transaction-point-history.tabscontent.tsx`
 
 ### Bảng dữ liệu (columns)
 
-| Cột | Nội dung |
-|---|---|
-| STT | Số thứ tự |
-| Tên khách hàng | `firstName lastName` |
-| Số điện thoại | `phoneNumber` |
-| Loại | Badge: xanh "+Nhận xu" (IN) / đỏ "-Dùng xu" (OUT) |
-| Số xu | Formatted với dấu +/-, màu tương ứng |
-| Thời gian | `HH:mm:ss DD/MM/YYYY` |
+| Cột            | Nội dung                                          |
+| -------------- | ------------------------------------------------- |
+| STT            | Số thứ tự                                         |
+| Tên khách hàng | `firstName lastName`                              |
+| Số điện thoại  | `phoneNumber`                                     |
+| Loại           | Badge: xanh "+Nhận xu" (IN) / đỏ "-Dùng xu" (OUT) |
+| Số xu          | Formatted với dấu +/-, màu tương ứng              |
+| Thời gian      | `HH:mm:ss DD/MM/YYYY`                             |
 
 **Export**: Nút xuất Excel theo filter hiện tại.
 

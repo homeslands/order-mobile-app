@@ -45,10 +45,10 @@ export default function DeleteAllCartDialog() {
         icon={<TriangleAlert size={20} color="#ef4444" />}
         content={
           <View className="flex items-center gap-4">
-              <Label className="text-left leading-5">
-                {t('order.deleteAllWarning')}
-              </Label>
-            </View>
+            <Label className="text-left leading-5">
+              {t('order.deleteAllWarning')}
+            </Label>
+          </View>
         }
         descriptionClassName="text-destructive rounded-md bg-red-100 p-2 dark:bg-transparent"
       />

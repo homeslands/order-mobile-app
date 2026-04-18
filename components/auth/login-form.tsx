@@ -1,11 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Controller } from 'react-hook-form'
-import {
-  ActivityIndicator,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native'
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 
 import { FormInput } from '@/components/form/form-input'
 import { PasswordInputField } from '@/components/input'
@@ -23,10 +18,13 @@ interface LoginFormProps {
 export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
   const { t } = useTranslation('auth')
 
-  const { control, handleSubmit, formState: { isSubmitting, errors } } =
-    useZodForm(loginSchema, {
-      defaultValues: { phonenumber: '', password: '' },
-    })
+  const {
+    control,
+    handleSubmit,
+    formState: { isSubmitting, errors },
+  } = useZodForm(loginSchema, {
+    defaultValues: { phonenumber: '', password: '' },
+  })
 
   const { mutate: loginMutation, isPending } = useLogin()
   const { handleAuthSuccess } = usePostAuthActions()
@@ -39,7 +37,8 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
           try {
             await handleAuthSuccess(response.result, onLoginSuccess)
           } catch (error) {
-            const message = error instanceof Error ? error.message : 'Unknown error'
+            const message =
+              error instanceof Error ? error.message : 'Unknown error'
             showErrorToastMessage(message)
           }
         },
@@ -60,10 +59,10 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
 
   return (
     <View className="flex-1 px-6 pt-12">
-      <Text className="mb-2 text-3xl font-sans-bold text-gray-900 dark:text-white">
+      <Text className="mb-2 font-sans-bold text-3xl text-gray-900 dark:text-white">
         {t('login.title')}
       </Text>
-      <Text className="mb-8 text-base font-sans text-gray-500 dark:text-gray-400">
+      <Text className="mb-8 font-sans text-base text-gray-500 dark:text-gray-400">
         {t('login.description')}
       </Text>
 
@@ -92,7 +91,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
             disabled={isLoading}
             hitSlop={8}
           >
-            <Text className="text-sm font-sans-semibold text-amber-500 dark:text-amber-400">
+            <Text className="font-sans-semibold text-sm text-amber-500 dark:text-amber-400">
               {t('login.forgotPassword')}
             </Text>
           </TouchableOpacity>
@@ -133,7 +132,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         {isLoading ? (
           <ActivityIndicator color="#fff" />
         ) : (
-          <Text className="text-base font-sans-semibold text-white">
+          <Text className="font-sans-semibold text-base text-white">
             {t('login.login')}
           </Text>
         )}
@@ -145,7 +144,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         onPress={() => navigateNative.replace('/auth/register')}
         disabled={isLoading}
       >
-        <Text className="text-sm font-sans text-gray-500 dark:text-gray-400">
+        <Text className="font-sans text-sm text-gray-500 dark:text-gray-400">
           {t('login.noAccount')}{' '}
           <Text className="font-sans-semibold text-amber-500 dark:text-amber-400">
             {t('login.register')}
@@ -159,7 +158,7 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         onPress={() => navigateNative.replace('/(tabs)/home')}
         disabled={isLoading}
       >
-        <Text className="text-sm font-sans text-gray-500 dark:text-gray-400">
+        <Text className="font-sans text-sm text-gray-500 dark:text-gray-400">
           {t('login.goBackToHome')}
         </Text>
       </TouchableOpacity>

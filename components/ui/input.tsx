@@ -15,19 +15,23 @@ export const Input = forwardRef<TextInput, InputProps>(
       <TextInput
         ref={ref}
         className={cn(
-          'h-10 rounded-lg border bg-white dark:bg-gray-800 px-3 py-2 text-base',
+          'h-10 rounded-lg border bg-white px-3 py-2 text-base dark:bg-gray-800',
           'text-gray-900 dark:text-white',
           'border-gray-200 dark:border-gray-700',
           error && 'border-destructive',
           'placeholder:text-gray-500 dark:placeholder:text-gray-400',
-          className
+          className,
         )}
         style={{ fontFamily: 'BeVietnamPro_400Regular' }}
-        placeholderTextColor={colorScheme === 'dark' ? colors.mutedForeground.dark : colors.mutedForeground.light}
+        placeholderTextColor={
+          colorScheme === 'dark'
+            ? colors.mutedForeground.dark
+            : colors.mutedForeground.light
+        }
         {...props}
       />
     )
-  }
+  },
 )
 
 Input.displayName = 'Input'

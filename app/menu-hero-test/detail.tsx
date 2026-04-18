@@ -72,9 +72,9 @@ export default function MenuHeroTestDetailScreen() {
                   kiểm tra:
                 </Text>
                 <Text className="mt-2 text-sm text-gray-600 dark:text-gray-400">
-                  • Hero Transition từ thumbnail → header image{'\n'}
-                  • Native Stack hãm phanh (NativeStackWithMasterTransition){'\n'}
-                  • Không flicker, không double image
+                  • Hero Transition từ thumbnail → header image{'\n'}• Native
+                  Stack hãm phanh (NativeStackWithMasterTransition){'\n'}• Không
+                  flicker, không double image
                 </Text>
               </View>
             </View>
@@ -84,4 +84,3 @@ export default function MenuHeroTestDetailScreen() {
     </ScreenContainer>
   )
 }
-

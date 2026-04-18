@@ -25,7 +25,11 @@ const FlagVN = memo(function FlagVN() {
     'M15,4.5 L16.23,8.3 L20.23,8.3 L17,10.65 L18.23,14.45 L15,12.1 L11.77,14.45 L13,10.65 L9.77,8.3 L13.77,8.3 Z'
   return (
     <Svg width={FLAG_W} height={FLAG_H} viewBox="0 0 30 20">
-      <Defs><ClipPath id="vn"><Rect width={30} height={20} rx={2} /></ClipPath></Defs>
+      <Defs>
+        <ClipPath id="vn">
+          <Rect width={30} height={20} rx={2} />
+        </ClipPath>
+      </Defs>
       <G clipPath="url(#vn)">
         <Rect width={30} height={20} fill="#DA251D" />
         <Path d={star} fill="#FFFF00" />
@@ -37,7 +41,11 @@ const FlagVN = memo(function FlagVN() {
 const FlagUK = memo(function FlagUK() {
   return (
     <Svg width={FLAG_W} height={FLAG_H} viewBox="0 0 60 30">
-      <Defs><ClipPath id="uk"><Rect width={60} height={30} rx={2} /></ClipPath></Defs>
+      <Defs>
+        <ClipPath id="uk">
+          <Rect width={60} height={30} rx={2} />
+        </ClipPath>
+      </Defs>
       <G clipPath="url(#uk)">
         <Rect width={60} height={30} fill="#012169" />
         <Path d="M0 0L60 30M60 0L0 30" stroke="#fff" strokeWidth={6} />
@@ -80,7 +88,13 @@ export const LanguageSheet = memo(function LanguageSheet({
   )
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
-      <BottomSheetBackdrop {...props} disappearsOnIndex={-1} appearsOnIndex={0} opacity={0.4} pressBehavior="close" />
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.4}
+        pressBehavior="close"
+      />
     ),
     [],
   )
@@ -97,24 +111,28 @@ export const LanguageSheet = memo(function LanguageSheet({
         updateLang(
           { userSlug: userInfo.slug, language: code },
           {
-            onSuccess: (data) => {
-              if (data.result) setUserInfo(data.result)
+            onSuccess: () => {
+              // Preserve existing userInfo (branch, role, etc.) — the language
+              // endpoint may return a partial object missing the branch field,
+              // which would clear userBranchSlug and trigger "branch not selected".
+              const current = useUserStore.getState().userInfo
+              if (current) setUserInfo({ ...current, language: code })
               i18n.changeLanguage(code)
-              showToast(code === 'vi' ? 'Đã chuyển sang Tiếng Việt' : 'Switched to English')
+              showToast(t('profile.language.switched', { lng: code }))
               sheetRef.current?.dismiss()
             },
             onError: () => {
-              showToast(code === 'vi' ? 'Không thể đổi ngôn ngữ' : 'Failed to change language')
+              showToast(t('profile.language.switchFailed', { lng: code }))
             },
           },
         )
       } else {
         i18n.changeLanguage(code)
-        showToast(code === 'vi' ? 'Đã chuyển sang Tiếng Việt' : 'Switched to English')
+        showToast(t('profile.language.switched', { lng: code }))
         sheetRef.current?.dismiss()
       }
     },
-    [currentLang, isPending, userInfo, updateLang, setUserInfo],
+    [currentLang, isPending, userInfo, updateLang, setUserInfo, t],
   )
 
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
@@ -140,18 +158,32 @@ export const LanguageSheet = memo(function LanguageSheet({
           const active = currentLang === code
           return (
             <View key={code}>
-              {idx > 0 && <View style={[s.divider, { backgroundColor: dividerColor }]} />}
+              {idx > 0 && (
+                <View style={[s.divider, { backgroundColor: dividerColor }]} />
+              )}
               <TouchableOpacity
                 style={s.row}
                 onPress={() => handleSelect(code)}
                 activeOpacity={0.6}
                 disabled={isPending}
               >
-                <View style={s.flagWrap}><Flag /></View>
-                <Text style={[s.label, { color: active ? primaryColor : textColor, fontWeight: active ? '600' : '400' }]}>
+                <View style={s.flagWrap}>
+                  <Flag />
+                </View>
+                <Text
+                  style={[
+                    s.label,
+                    {
+                      color: active ? primaryColor : textColor,
+                      fontWeight: active ? '600' : '400',
+                    },
+                  ]}
+                >
                   {label}
                 </Text>
-                {active && <Check size={18} color={primaryColor} strokeWidth={2.5} />}
+                {active && (
+                  <Check size={18} color={primaryColor} strokeWidth={2.5} />
+                )}
               </TouchableOpacity>
             </View>
           )

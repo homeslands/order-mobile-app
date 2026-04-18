@@ -1,5 +1,6 @@
 {
   "profile": {
+    "edit": "Chỉnh sửa",
     "accountAndSecurity": "Tài khoản và bảo mật",
     "orderHistory": {
       "title": "Lịch sử đơn hàng"
@@ -16,7 +17,7 @@
       "edit": "Sửa",
       "basicInfo": "Thông tin cơ bản",
       "contactInfo": "Thông tin liên hệ",
-      "addressInfo":"Thông tin địa chỉ"
+      "addressInfo": "Thông tin địa chỉ"
     },
     "verifyEmailScreen": {
       "title": "Xác minh email",
@@ -397,7 +398,9 @@
     "settings": "Cài đặt",
     "language": {
       "title": "Ngôn ngữ",
-      "subtitle": "Chọn ngôn ngữ hiển thị"
+      "subtitle": "Chọn ngôn ngữ hiển thị",
+      "switched": "Đã chuyển sang Tiếng Việt",
+      "switchFailed": "Không thể đổi ngôn ngữ"
     },
     "giftCardAndCoin": {
       "title": "Thẻ quà tặng & Xu"
@@ -407,6 +410,23 @@
       "light": "Sáng",
       "dark": "Tối",
       "system": "Tự động"
+    },
+    "dobPicker": {
+      "confirm": "Xác nhận",
+      "months": [
+        "Tháng 1",
+        "Tháng 2",
+        "Tháng 3",
+        "Tháng 4",
+        "Tháng 5",
+        "Tháng 6",
+        "Tháng 7",
+        "Tháng 8",
+        "Tháng 9",
+        "Tháng 10",
+        "Tháng 11",
+        "Tháng 12"
+      ]
     },
     "cancel": "Huỷ",
     "changeAvatar": "Đổi ảnh đại diện",
@@ -421,7 +441,13 @@
     "qr": {
       "title": "Mã QR của tôi",
       "subtitle": "Xuất trình mã này để nhân viên xác nhận tài khoản",
-      "notLoggedIn": "Chưa đăng nhập"
+      "notLoggedIn": "Chưa đăng nhập",
+      "selectTitle": "Chọn loại QR",
+      "selectSubtitle": "Chọn hình thức QR phù hợp với yêu cầu của bạn",
+      "memberId": "Mã định danh",
+      "memberIdDesc": "Nhân viên quét mã tại quầy",
+      "coinPayment": "Thanh toán Xu",
+      "coinPaymentDesc": "Quét QR để thanh toán bằng xu"
     },
     "orderStatus": {
       "completed": "Hoàn thành",

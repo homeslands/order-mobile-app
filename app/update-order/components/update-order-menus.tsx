@@ -21,11 +21,18 @@ interface UpdateOrderMenusProps {
   primaryColor: string
 }
 
-type CatalogHeader = { type: 'header'; catalogSlug: string; catalogName: string }
+type CatalogHeader = {
+  type: 'header'
+  catalogSlug: string
+  catalogName: string
+}
 type MenuRow = { type: 'item'; item: IMenuItem }
 type FlatListItem = CatalogHeader | MenuRow
 
-export default function UpdateOrderMenus({ branchSlug, primaryColor }: UpdateOrderMenusProps) {
+export default function UpdateOrderMenus({
+  branchSlug,
+  primaryColor,
+}: UpdateOrderMenusProps) {
   const { t } = useTranslation('menu')
   const isDark = useColorScheme() === 'dark'
   const { data: catalogs, isPending: isLoadingCatalog } = useCatalog()
@@ -44,21 +51,24 @@ export default function UpdateOrderMenus({ branchSlug, primaryColor }: UpdateOrd
     menuRequest,
     shouldFetchAuth,
   )
-  const { data: publicMenuData, isPending: isLoadingPublicMenu } = usePublicSpecificMenu(
-    menuRequest,
-    shouldFetchPublic,
-  )
+  const { data: publicMenuData, isPending: isLoadingPublicMenu } =
+    usePublicSpecificMenu(menuRequest, shouldFetchPublic)
 
   const menuData = isAuthenticated ? authMenuData : publicMenuData
-  const isLoadingMenu = isAuthenticated ? isLoadingAuthMenu : isLoadingPublicMenu
+  const isLoadingMenu = isAuthenticated
+    ? isLoadingAuthMenu
+    : isLoadingPublicMenu
 
   const menuItems = useMemo(() => {
     const items = menuData?.result?.menuItems
     if (!items) return undefined
     return [...items].sort((a, b) => {
-      if (a.isLocked !== b.isLocked) return Number(a.isLocked) - Number(b.isLocked)
-      const aInStock = (a.currentStock !== 0 && a.currentStock !== null) || !a.product.isLimit
-      const bInStock = (b.currentStock !== 0 && b.currentStock !== null) || !b.product.isLimit
+      if (a.isLocked !== b.isLocked)
+        return Number(a.isLocked) - Number(b.isLocked)
+      const aInStock =
+        (a.currentStock !== 0 && a.currentStock !== null) || !a.product.isLimit
+      const bInStock =
+        (b.currentStock !== 0 && b.currentStock !== null) || !b.product.isLimit
       return Number(bInStock) - Number(aInStock)
     })
   }, [menuData])
@@ -67,7 +77,10 @@ export default function UpdateOrderMenus({ branchSlug, primaryColor }: UpdateOrd
     const grouped =
       catalogs?.result?.map((catalog) => ({
         catalog,
-        items: menuItems?.filter((mi) => mi.product.catalog?.slug === catalog.slug) || [],
+        items:
+          menuItems?.filter(
+            (mi) => mi.product.catalog?.slug === catalog.slug,
+          ) || [],
       })) || []
     grouped.sort((a, b) => b.items.length - a.items.length)
     return grouped
@@ -77,7 +90,11 @@ export default function UpdateOrderMenus({ branchSlug, primaryColor }: UpdateOrd
     const result: FlatListItem[] = []
     for (const group of groupedItems) {
       if (group.items.length === 0) continue
-      result.push({ type: 'header', catalogSlug: group.catalog.slug, catalogName: group.catalog.name })
+      result.push({
+        type: 'header',
+        catalogSlug: group.catalog.slug,
+        catalogName: group.catalog.name,
+      })
       for (const item of group.items) {
         result.push({ type: 'item', item })
       }
@@ -124,7 +141,9 @@ export default function UpdateOrderMenus({ branchSlug, primaryColor }: UpdateOrd
   const overrideItemLayout = useCallback(
     (layout: { span?: number; size?: number }, item: FlatListItem) => {
       layout.size =
-        item.type === 'header' ? UPDATE_ORDER_CATALOG_HEADER_HEIGHT : UPDATE_ORDER_MENU_ITEM_HEIGHT
+        item.type === 'header'
+          ? UPDATE_ORDER_CATALOG_HEADER_HEIGHT
+          : UPDATE_ORDER_MENU_ITEM_HEIGHT
     },
     [],
   )
@@ -136,8 +155,16 @@ export default function UpdateOrderMenus({ branchSlug, primaryColor }: UpdateOrd
   if (!branchSlug) {
     return (
       <View style={s.center}>
-        <Text style={[s.grayText, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>
-          {t('menu.noBranchForMenu', 'Không xác định được chi nhánh để tải thực đơn')}
+        <Text
+          style={[
+            s.grayText,
+            { color: isDark ? colors.gray[400] : colors.gray[500] },
+          ]}
+        >
+          {t(
+            'menu.noBranchForMenu',
+            'Không xác định được chi nhánh để tải thực đơn',
+          )}
         </Text>
       </View>
     )
@@ -162,7 +189,12 @@ export default function UpdateOrderMenus({ branchSlug, primaryColor }: UpdateOrd
   if (!menuItems || menuItems.length === 0) {
     return (
       <View style={s.center}>
-        <Text style={[s.grayText, { color: isDark ? colors.gray[400] : colors.gray[500] }]}>
+        <Text
+          style={[
+            s.grayText,
+            { color: isDark ? colors.gray[400] : colors.gray[500] },
+          ]}
+        >
           {t('menu.noData', 'Không có dữ liệu')}
         </Text>
       </View>

@@ -26,7 +26,9 @@ export const NotificationBell = memo(function NotificationBell({
   })
 
   const handlePress = useCallback(() => {
-    navigateNative.push('/notification' as Parameters<typeof navigateNative.push>[0])
+    navigateNative.push(
+      '/notification' as Parameters<typeof navigateNative.push>[0],
+    )
   }, [])
 
   return (

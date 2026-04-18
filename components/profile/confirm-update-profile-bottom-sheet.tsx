@@ -6,8 +6,22 @@ import {
   BottomSheetModal,
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet'
-import React, { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react'
-import { ActivityIndicator, StyleSheet, Text, useColorScheme, View } from 'react-native'
+import React, {
+  forwardRef,
+  useCallback,
+  useEffect,
+  useImperativeHandle,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
+import {
+  ActivityIndicator,
+  StyleSheet,
+  Text,
+  useColorScheme,
+  View,
+} from 'react-native'
 import { TouchableOpacity as GHTouchable } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
@@ -27,7 +41,10 @@ const SNAP_POINTS = [220]
 const ConfirmUpdateProfileBottomSheetBase = forwardRef<
   ConfirmUpdateProfileBottomSheetRef,
   Props
->(function ConfirmUpdateProfileBottomSheetBase({ onConfirm, isLoading = false }, ref) {
+>(function ConfirmUpdateProfileBottomSheetBase(
+  { onConfirm, isLoading = false },
+  ref,
+) {
   const { t } = useTranslation('profile')
   const { t: tCommon } = useTranslation('common')
   const isDark = useColorScheme() === 'dark'
@@ -86,45 +103,63 @@ const ConfirmUpdateProfileBottomSheetBase = forwardRef<
       handleIndicatorStyle={handleIndicator}
       onDismiss={() => setVisible(false)}
     >
-          <View style={[styles.content, { paddingBottom: insets.bottom + 16 }]}>
-            <View style={styles.body}>
-              <Text style={[styles.title, { color: isDark ? '#F9FAFB' : '#111827' }]}>
-                {t('profile.updateProfile')}
-              </Text>
-              <Text style={[styles.desc, { color: isDark ? '#9CA3AF' : '#6B7280' }]}>
-                {t('profile.confirmUpdateProfile')}
-              </Text>
-            </View>
+      <View style={[styles.content, { paddingBottom: insets.bottom + 16 }]}>
+        <View style={styles.body}>
+          <Text
+            style={[styles.title, { color: isDark ? '#F9FAFB' : '#111827' }]}
+          >
+            {t('profile.updateProfile')}
+          </Text>
+          <Text
+            style={[styles.desc, { color: isDark ? '#9CA3AF' : '#6B7280' }]}
+          >
+            {t('profile.confirmUpdateProfile')}
+          </Text>
+        </View>
 
-            <View style={styles.btnRow}>
-              <View style={styles.btnWrap}>
-                <GHTouchable
-                  onPress={isLoading ? undefined : close}
-                  activeOpacity={0.8}
-                  style={[styles.btn, { backgroundColor: isDark ? '#374151' : '#F3F4F6', opacity: isLoading ? 0.5 : 1 }]}
-                >
-                  <Text style={[styles.btnText, { color: isDark ? '#F9FAFB' : '#374151' }]}>
-                    {tCommon('common.cancel', 'Huỷ')}
-                  </Text>
-                </GHTouchable>
-              </View>
-              <View style={styles.btnWrap}>
-                <GHTouchable
-                  onPress={isLoading ? undefined : handleConfirm}
-                  activeOpacity={0.8}
-                  style={[styles.btn, { backgroundColor: '#F7A737', opacity: isLoading ? 0.8 : 1 }]}
-                >
-                  {isLoading ? (
-                    <ActivityIndicator size="small" color="#ffffff" />
-                  ) : (
-                    <Text style={[styles.btnText, { color: '#ffffff' }]}>
-                      {tCommon('common.confirm', 'Xác nhận')}
-                    </Text>
-                  )}
-                </GHTouchable>
-              </View>
-            </View>
+        <View style={styles.btnRow}>
+          <View style={styles.btnWrap}>
+            <GHTouchable
+              onPress={isLoading ? undefined : close}
+              activeOpacity={0.8}
+              style={[
+                styles.btn,
+                {
+                  backgroundColor: isDark ? '#374151' : '#F3F4F6',
+                  opacity: isLoading ? 0.5 : 1,
+                },
+              ]}
+            >
+              <Text
+                style={[
+                  styles.btnText,
+                  { color: isDark ? '#F9FAFB' : '#374151' },
+                ]}
+              >
+                {tCommon('common.cancel', 'Huỷ')}
+              </Text>
+            </GHTouchable>
           </View>
+          <View style={styles.btnWrap}>
+            <GHTouchable
+              onPress={isLoading ? undefined : handleConfirm}
+              activeOpacity={0.8}
+              style={[
+                styles.btn,
+                { backgroundColor: '#F7A737', opacity: isLoading ? 0.8 : 1 },
+              ]}
+            >
+              {isLoading ? (
+                <ActivityIndicator size="small" color="#ffffff" />
+              ) : (
+                <Text style={[styles.btnText, { color: '#ffffff' }]}>
+                  {tCommon('common.confirm', 'Xác nhận')}
+                </Text>
+              )}
+            </GHTouchable>
+          </View>
+        </View>
+      </View>
     </BottomSheetModal>
   )
 })
@@ -168,4 +203,5 @@ const styles = StyleSheet.create({
   },
 })
 
-export const ConfirmUpdateProfileBottomSheet = ConfirmUpdateProfileBottomSheetBase
+export const ConfirmUpdateProfileBottomSheet =
+  ConfirmUpdateProfileBottomSheetBase

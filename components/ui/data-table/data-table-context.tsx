@@ -28,7 +28,9 @@ export type DataTableContextValue<T> = {
   totalWidth: number
 }
 
-const DataTableContext = createContext<DataTableContextValue<unknown> | null>(null)
+const DataTableContext = createContext<DataTableContextValue<unknown> | null>(
+  null,
+)
 
 export function DataTableProvider<T>({
   value,
@@ -46,6 +48,7 @@ export function DataTableProvider<T>({
 
 export function useDataTableContext<T>(): DataTableContextValue<T> {
   const ctx = useContext(DataTableContext)
-  if (!ctx) throw new Error('DataTable components must be used within DataTable')
+  if (!ctx)
+    throw new Error('DataTable components must be used within DataTable')
   return ctx as DataTableContextValue<T>
 }

@@ -1,4 +1,9 @@
-import { PaymentMethod, paymentStatus, PrinterJobStatus, PrinterJobType } from '@/constants'
+import {
+  PaymentMethod,
+  paymentStatus,
+  PrinterJobStatus,
+  PrinterJobType,
+} from '@/constants'
 import { IBase } from './base.type'
 // import { ICatalog } from './catalog.type'
 import { IChefOrderItemStatus, IChefOrders } from './area.type'

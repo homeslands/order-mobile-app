@@ -9,11 +9,18 @@ interface DataTableEmptyProps {
   className?: string
 }
 
-export function DataTableEmpty({ message = 'No data', className }: DataTableEmptyProps) {
+export function DataTableEmpty({
+  message = 'No data',
+  className,
+}: DataTableEmptyProps) {
   return (
-    <View className={cn('flex-1 items-center justify-center py-12 px-4', className)}>
+    <View
+      className={cn('flex-1 items-center justify-center px-4 py-12', className)}
+    >
       <FileQuestion size={40} color={colors.mutedForeground.dark} />
-      <Text className="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">{message}</Text>
+      <Text className="mt-2 text-center text-sm text-gray-500 dark:text-gray-400">
+        {message}
+      </Text>
     </View>
   )
 }

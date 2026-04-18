@@ -28,23 +28,26 @@ interface ToastItemProps {
 }
 
 const ICON_MAP = {
-  error:   <XCircle   size={16} color="#dc2626" />,
+  error: <XCircle size={16} color="#dc2626" />,
   success: <CheckCircle size={16} color="#16a34a" />,
   warning: <AlertCircle size={16} color="#d97706" />,
-  info:    <Info       size={16} color="#2563eb" />,
+  info: <Info size={16} color="#2563eb" />,
 } as const
 
-const ToastItem = React.memo(function ToastItem({ toast, onHide }: ToastItemProps) {
+const ToastItem = React.memo(function ToastItem({
+  toast,
+  onHide,
+}: ToastItemProps) {
   const translateY = useSharedValue(-80)
-  const opacity    = useSharedValue(0)
-  const insets     = useSafeAreaInsets()
-  const isDark     = useColorScheme() === 'dark'
+  const opacity = useSharedValue(0)
+  const insets = useSafeAreaInsets()
+  const isDark = useColorScheme() === 'dark'
 
   useEffect(() => {
     translateY.value = -80
-    opacity.value    = 0
+    opacity.value = 0
 
-    const delayMs    = toast.duration * 1000
+    const delayMs = toast.duration * 1000
     const hideCallback = (finished?: boolean) => {
       'worklet'
       if (finished) runOnJS(onHide)(toast.id)

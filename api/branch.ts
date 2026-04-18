@@ -1,9 +1,9 @@
 import {
-    IApiResponse,
-    IBranch,
-    IBranchInfoForDelivery,
-    ICreateBranchRequest,
-    IUpdateBranchRequest,
+  IApiResponse,
+  IBranch,
+  IBranchInfoForDelivery,
+  ICreateBranchRequest,
+  IUpdateBranchRequest,
 } from '@/types'
 import { http } from '@/utils'
 

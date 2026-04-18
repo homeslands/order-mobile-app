@@ -1,4 +1,7 @@
-import { CustomStack, profileNativeStackScreenOptions } from '@/layouts/custom-stack'
+import {
+  CustomStack,
+  profileNativeStackScreenOptions,
+} from '@/layouts/custom-stack'
 
 /**
  * Payment stack: màn thanh toán /payment/[order]

@@ -1,4 +1,9 @@
-import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form'
+import {
+  Controller,
+  type Control,
+  type FieldValues,
+  type Path,
+} from 'react-hook-form'
 import { Text, TextInput, View, useColorScheme } from 'react-native'
 import { useRef, useEffect, useState } from 'react'
 
@@ -14,7 +19,14 @@ interface FormInputProps<T extends FieldValues> {
   placeholder?: string
   keyboardType?: 'default' | 'email-address' | 'number-pad' | 'phone-pad'
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
-  autoComplete?: 'off' | 'email' | 'tel' | 'password' | 'name' | 'username' | undefined
+  autoComplete?:
+    | 'off'
+    | 'email'
+    | 'tel'
+    | 'password'
+    | 'name'
+    | 'username'
+    | undefined
   disabled?: boolean
   secureTextEntry?: boolean
   useTextInput?: boolean // Use TextInput instead of Input component for custom styling
@@ -36,7 +48,14 @@ interface FormInputFieldProps {
   placeholder?: string
   keyboardType?: 'default' | 'email-address' | 'number-pad' | 'phone-pad'
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
-  autoComplete?: 'off' | 'email' | 'tel' | 'password' | 'name' | 'username' | undefined
+  autoComplete?:
+    | 'off'
+    | 'email'
+    | 'tel'
+    | 'password'
+    | 'name'
+    | 'username'
+    | undefined
   disabled?: boolean
   secureTextEntry?: boolean
   useTextInput?: boolean
@@ -129,23 +148,29 @@ function FormInputField({
         <Text
           className={cn(
             'mb-1 text-xs text-gray-500 dark:text-gray-400',
-            labelClassName
+            labelClassName,
           )}
         >
           {label}
-          {required && <Text className="text-red-500 dark:text-red-400"> *</Text>}
+          {required && (
+            <Text className="text-red-500 dark:text-red-400"> *</Text>
+          )}
         </Text>
       )}
       {useTextInput ? (
         <TextInput
           className={cn(
-            'bg-white dark:bg-gray-800 text-gray-900 dark:text-white rounded-lg px-4 py-3 text-base border font-sans',
-            showError ? 'border-red-500 dark:border-red-400' : 'border-gray-200 dark:border-gray-700',
+            'rounded-lg border bg-white px-4 py-3 font-sans text-base text-gray-900 dark:bg-gray-800 dark:text-white',
+            showError
+              ? 'border-red-500 dark:border-red-400'
+              : 'border-gray-200 dark:border-gray-700',
             disabled && 'opacity-50',
-            className
+            className,
           )}
           placeholder={placeholder}
-          placeholderTextColor={isDark ? colors.mutedForeground.dark : colors.mutedForeground.light}
+          placeholderTextColor={
+            isDark ? colors.mutedForeground.dark : colors.mutedForeground.light
+          }
           value={localValue}
           onChangeText={handleChangeText}
           onBlur={handleBlur}
@@ -172,7 +197,7 @@ function FormInputField({
         <Text
           className={cn(
             'mt-1 text-xs text-red-500 dark:text-red-400',
-            errorClassName
+            errorClassName,
           )}
         >
           {error}
@@ -211,7 +236,10 @@ export function FormInput<T extends FieldValues>({
     <Controller
       control={control}
       name={name}
-      render={({ field: { value, onChange, onBlur }, fieldState: { error } }) => (
+      render={({
+        field: { value, onChange, onBlur },
+        fieldState: { error },
+      }) => (
         <FormInputField
           value={value}
           onChange={onChange}

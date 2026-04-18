@@ -8,8 +8,7 @@ import { useBranchStore } from '../branch.store'
 import { useMenuFilterStore } from '../menu-filter.store'
 
 /** Stable selectors — subscribe từng primitive, không re-render khi field khác đổi */
-export const useDateFilter = () =>
-  useMenuFilterStore((s) => s.menuFilter.date)
+export const useDateFilter = () => useMenuFilterStore((s) => s.menuFilter.date)
 export const useBranchFilter = () =>
   useMenuFilterStore((s) => s.menuFilter.branch)
 export const useCatalogFilter = () =>
@@ -22,8 +21,7 @@ export const useMaxPriceFilter = () =>
   useMenuFilterStore((s) => s.menuFilter.maxPrice)
 export const useMenuSlugFilter = () =>
   useMenuFilterStore((s) => s.menuFilter.menu)
-export const useSetMenuFilter = () =>
-  useMenuFilterStore((s) => s.setMenuFilter)
+export const useSetMenuFilter = () => useMenuFilterStore((s) => s.setMenuFilter)
 
 /** Các field cần cho ISpecificMenuRequest — atomic selectors + useMemo for stable ref */
 export const useMenuFilterForRequest = (catalogOverride?: string) => {
@@ -35,15 +33,18 @@ export const useMenuFilterForRequest = (catalogOverride?: string) => {
   const maxPrice = useMenuFilterStore((s) => s.menuFilter.maxPrice)
   const slug = useMenuFilterStore((s) => s.menuFilter.menu)
   const resolvedCatalog = catalogOverride ?? catalog
-  return useMemo(() => ({
-    date,
-    branch,
-    catalog: resolvedCatalog,
-    productName,
-    minPrice,
-    maxPrice,
-    slug,
-  }), [date, branch, resolvedCatalog, productName, minPrice, maxPrice, slug])
+  return useMemo(
+    () => ({
+      date,
+      branch,
+      catalog: resolvedCatalog,
+      productName,
+      minPrice,
+      maxPrice,
+      slug,
+    }),
+    [date, branch, resolvedCatalog, productName, minPrice, maxPrice, slug],
+  )
 }
 
 /** Branch slug — atomic selector */

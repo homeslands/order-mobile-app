@@ -27,14 +27,14 @@ Single source of truth for all physics. Import `SPRING_CONFIGS` or `MOTION`.
 import { SPRING_CONFIGS, MOTION } from '@/constants'
 ```
 
-| Config | Use case | Key values |
-|---|---|---|
-| `SPRING_CONFIGS.press` | Button/Pressable tap feedback | damping 24, stiffness 350, mass 0.5 |
-| `SPRING_CONFIGS.modal` | Sheet/Dialog open-close | damping 30, stiffness 380, mass 0.6 |
-| `SPRING_CONFIGS.dot` | Pagination dot scale | damping 28, stiffness 400, mass 0.3 |
-| `SPRING_CONFIGS.popover` | Dropdown/Tooltip | damping 32, stiffness 420, mass 0.4 |
-| `MOTION.parallaxSpring` | Parallax background slide | damping 18, stiffness 220, mass 0.9 |
-| `MOTION.stackTransition` | Stack screen push | stiffness 300, damping 30 |
+| Config                   | Use case                      | Key values                          |
+| ------------------------ | ----------------------------- | ----------------------------------- |
+| `SPRING_CONFIGS.press`   | Button/Pressable tap feedback | damping 24, stiffness 350, mass 0.5 |
+| `SPRING_CONFIGS.modal`   | Sheet/Dialog open-close       | damping 30, stiffness 380, mass 0.6 |
+| `SPRING_CONFIGS.dot`     | Pagination dot scale          | damping 28, stiffness 400, mass 0.3 |
+| `SPRING_CONFIGS.popover` | Dropdown/Tooltip              | damping 32, stiffness 420, mass 0.4 |
+| `MOTION.parallaxSpring`  | Parallax background slide     | damping 18, stiffness 220, mass 0.9 |
+| `MOTION.stackTransition` | Stack screen push             | stiffness 300, damping 30           |
 
 ---
 
@@ -72,7 +72,11 @@ export function AnimatedPressable({
   }, [scale])
 
   return (
-    <Pressable onPressIn={handlePressIn} onPressOut={handlePressOut} onPress={onPress}>
+    <Pressable
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      onPress={onPress}
+    >
       <Animated.View style={animatedStyle} className={className}>
         {children}
       </Animated.View>
@@ -109,9 +113,9 @@ The parallax effect runs during stack navigation via `MasterTransitionProvider`.
 ```ts
 // lib/transitions/reanimated-parallax-config.ts — re-exports from MOTION:
 export const REANIMATED_PARALLAX_SPRING = MOTION.parallaxSpring
-export const PARALLAX_BG_SCALE_START = MOTION.parallaxBgScaleStart  // 0.97
-export const PARALLAX_BG_SCALE_END = MOTION.parallaxBgScaleEnd      // 1.0
-export const PARALLAX_SHADOW_OPACITY_END = MOTION.shadowOpacityEnd  // 0.15
+export const PARALLAX_BG_SCALE_START = MOTION.parallaxBgScaleStart // 0.97
+export const PARALLAX_BG_SCALE_END = MOTION.parallaxBgScaleEnd // 1.0
+export const PARALLAX_SHADOW_OPACITY_END = MOTION.shadowOpacityEnd // 0.15
 ```
 
 ```tsx
@@ -122,11 +126,15 @@ export function MenuScreen() {
   const { progress } = useMasterTransition()
 
   const backgroundStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: interpolate(
-      progress.value,
-      [0, 1],
-      [PARALLAX_BG_SCALE_START, PARALLAX_BG_SCALE_END],
-    )}],
+    transform: [
+      {
+        scale: interpolate(
+          progress.value,
+          [0, 1],
+          [PARALLAX_BG_SCALE_START, PARALLAX_BG_SCALE_END],
+        ),
+      },
+    ],
   }))
 
   return <Animated.View style={backgroundStyle}>{/* ... */}</Animated.View>
@@ -142,7 +150,10 @@ export function MenuScreen() {
 Two distinct animations for push vs pop:
 
 ```ts
-import { OPEN_TIMING, CLOSE_SPRING } from '@/lib/navigation/interactive-transition'
+import {
+  OPEN_TIMING,
+  CLOSE_SPRING,
+} from '@/lib/navigation/interactive-transition'
 
 // PUSH (open) — timing, ease-out-expo feel, 400ms
 // Cubic bezier: (0.21, 1.02, 0.35, 1) — fast start, long deceleration phase
@@ -150,7 +161,12 @@ OPEN_TIMING = { duration: 400, easing: Easing.bezier(0.21, 1.02, 0.35, 1) }
 
 // POP (close/gesture release) — spring, velocity-aware
 // ζ ≈ 0.82 → 95% settle ~280ms
-CLOSE_SPRING = { damping: 26, stiffness: 190, mass: 0.7, overshootClamping: true }
+CLOSE_SPRING = {
+  damping: 26,
+  stiffness: 190,
+  mass: 0.7,
+  overshootClamping: true,
+}
 ```
 
 **Do NOT override these** in individual screens — they're set globally in the navigation engine.
@@ -170,8 +186,13 @@ export const ProductCard = memo(({ product }: { product: IProduct }) => {
 
   return (
     <Pressable
-      onPressIn={capture}  // ✅ Capture layout BEFORE navigation starts
-      onPress={() => router.push({ pathname: '/(tabs)/menu/product/[id]', params: { id: product.id } })}
+      onPressIn={capture} // ✅ Capture layout BEFORE navigation starts
+      onPress={() =>
+        router.push({
+          pathname: '/(tabs)/menu/product/[id]',
+          params: { id: product.id },
+        })
+      }
     >
       <Animated.View ref={animatedRef}>
         <Image source={{ uri: product.imageUri }} />
@@ -188,13 +209,17 @@ export function ProductDetail() {
 
   return (
     <Animated.View style={animatedStyle}>
-      <Image source={{ uri: product.imageUri }} style={{ width: '100%', height: 300 }} />
+      <Image
+        source={{ uri: product.imageUri }}
+        style={{ width: '100%', height: 300 }}
+      />
     </Animated.View>
   )
 }
 ```
 
 **Rules:**
+
 - `capture()` → always in `onPressIn`, never `onPress` (too late — navigation already started)
 - `measure()` runs synchronously on JS thread — keep the view mounted when calling
 - If view is detached or not yet laid out, `measure()` throws — this is caught in `useSharedElementSource`
@@ -210,8 +235,8 @@ import { scheduleTransitionTask } from '@/lib/navigation/transition-task-queue'
 
 // ❌ Heavy work inline during transition
 router.push(route)
-updateOrderFlowStore(largePayload)    // blocks JS thread during animation
-writeToAsyncStorage(data)             // I/O during animation
+updateOrderFlowStore(largePayload) // blocks JS thread during animation
+writeToAsyncStorage(data) // I/O during animation
 
 // ✅ Queue it — runs 100ms after transition completes
 router.push(route)
@@ -224,6 +249,7 @@ scheduleTransitionTask(() => {
 ```
 
 **What to queue:**
+
 - Heavy Zustand store updates (order-flow, cart with large payloads)
 - AsyncStorage / SecureStore writes
 - Analytics events
@@ -231,6 +257,7 @@ scheduleTransitionTask(() => {
 - JSON.parse on large objects
 
 **What NOT to queue (run immediately):**
+
 - UI state needed for the destination screen to render (must be ready before screen mounts)
 - Auth state changes
 - Navigation params
@@ -248,8 +275,8 @@ const style = useAnimatedStyle(() => ({
 
 // ❌ Calling JS functions inside worklet
 const style = useAnimatedStyle(() => {
-  console.log(progress.value)          // crashes — not a worklet
-  someZustandAction()                  // crashes — not a worklet
+  console.log(progress.value) // crashes — not a worklet
+  someZustandAction() // crashes — not a worklet
   return { opacity: progress.value }
 })
 
@@ -260,7 +287,7 @@ const onAnimationEnd = useCallback(() => {
 
 const style = useAnimatedStyle(() => {
   if (progress.value === 0) {
-    runOnJS(onAnimationEnd)()          // bridge back to JS — only if necessary
+    runOnJS(onAnimationEnd)() // bridge back to JS — only if necessary
   }
   return { opacity: progress.value }
 })
@@ -270,15 +297,15 @@ const style = useAnimatedStyle(() => {
 
 ## Anti-Patterns
 
-| ❌ Don't | ✅ Do |
-|---|---|
-| `Animated` from `react-native` | `Animated` from `react-native-reanimated` |
-| Hardcode `damping: 20, stiffness: 200` | `SPRING_CONFIGS.press` / `SPRING_CONFIGS.modal` |
-| Heavy store update during `router.push` | `scheduleTransitionTask(() => update())` |
-| `useColorScheme()` inside `useAnimatedStyle` | Pass `isDark` from outside the worklet |
-| `measure()` in render | `measure()` in `onPressIn` callback only |
-| New `useSharedValue` for every list item | Share a single value or use item-scoped keys |
-| `runOnJS` for every state update | Batch updates, call once at animation end |
+| ❌ Don't                                     | ✅ Do                                           |
+| -------------------------------------------- | ----------------------------------------------- |
+| `Animated` from `react-native`               | `Animated` from `react-native-reanimated`       |
+| Hardcode `damping: 20, stiffness: 200`       | `SPRING_CONFIGS.press` / `SPRING_CONFIGS.modal` |
+| Heavy store update during `router.push`      | `scheduleTransitionTask(() => update())`        |
+| `useColorScheme()` inside `useAnimatedStyle` | Pass `isDark` from outside the worklet          |
+| `measure()` in render                        | `measure()` in `onPressIn` callback only        |
+| New `useSharedValue` for every list item     | Share a single value or use item-scoped keys    |
+| `runOnJS` for every state update             | Batch updates, call once at animation end       |
 
 ---
 

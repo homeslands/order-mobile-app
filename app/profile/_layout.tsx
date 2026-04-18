@@ -1,4 +1,7 @@
-import { CustomStack, profileNativeStackScreenOptions } from '@/layouts/custom-stack'
+import {
+  CustomStack,
+  profileNativeStackScreenOptions,
+} from '@/layouts/custom-stack'
 
 /**
  * Profile: Native Stack — slide_from_right + hãm phanh chuẩn native.

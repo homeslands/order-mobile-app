@@ -5,7 +5,11 @@ import { Checkbox } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import type { DataTableColumnResolved } from './types'
 
-function getValue<T>(row: T, key: string, accessor?: (row: T) => unknown): unknown {
+function getValue<T>(
+  row: T,
+  key: string,
+  accessor?: (row: T) => unknown,
+): unknown {
   if (accessor) return accessor(row)
   return (row as Record<string, unknown>)[key]
 }
@@ -33,7 +37,10 @@ export function DataTableRow<T>({
 }: DataTableRowProps<T>) {
   const totalWidth = columns.reduce((s, c) => s + c.widthResolved, 0)
   const content = (
-    <View style={{ width: totalWidth, minWidth: totalWidth }} className="flex-row">
+    <View
+      style={{ width: totalWidth, minWidth: totalWidth }}
+      className="flex-row"
+    >
       {columns.map((col) => (
         <DataTableCell
           key={col.key}
@@ -47,13 +54,13 @@ export function DataTableRow<T>({
 
   const rowClassName = cn(
     'flex-row items-center border-b border-gray-100 dark:border-gray-800',
-    selected && 'bg-primary/10 dark:bg-primary/20'
+    selected && 'bg-primary/10 dark:bg-primary/20',
   )
 
   if (selectable) {
     return (
       <View className={rowClassName}>
-        <View className="pl-2 pr-1 py-2">
+        <View className="py-2 pl-2 pr-1">
           <Checkbox
             checked={selected}
             onCheckedChange={() => onToggleSelection(rowId)}
@@ -66,7 +73,10 @@ export function DataTableRow<T>({
 
   if (onPress) {
     return (
-      <Pressable onPress={() => onPress(row)} className={cn(rowClassName, 'active:opacity-80')}>
+      <Pressable
+        onPress={() => onPress(row)}
+        className={cn(rowClassName, 'active:opacity-80')}
+      >
         {content}
       </Pressable>
     )

@@ -2,9 +2,15 @@ import { FlashList } from '@shopify/flash-list'
 import { Image } from 'expo-image'
 import { NotebookText } from 'lucide-react-native'
 import React, { memo, useCallback, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 
-import { APPLICABILITY_RULE, colors, publicFileURL, VOUCHER_TYPE } from '@/constants'
+import {
+  APPLICABILITY_RULE,
+  colors,
+  publicFileURL,
+  VOUCHER_TYPE,
+} from '@/constants'
 import { scheduleStoreUpdate } from '@/lib/navigation'
 import { useOrderFlowStore } from '@/stores'
 import { IOrderItem } from '@/types'
@@ -29,7 +35,10 @@ const THEME_LIGHT = {
   qtyBtnBorder: { borderColor: colors.gray[300] },
   qtyBtnTextColor: { color: colors.gray[700] },
   qtyTextColor: { color: colors.gray[900] },
-  noteRowTheme: { borderColor: colors.gray[200], backgroundColor: colors.gray[50] },
+  noteRowTheme: {
+    borderColor: colors.gray[200],
+    backgroundColor: colors.gray[50],
+  },
   noteInputColor: { color: colors.gray[700] },
   noteIconColor: colors.gray[400],
   notePlaceholderColor: colors.gray[400],
@@ -44,7 +53,10 @@ const THEME_DARK = {
   qtyBtnBorder: { borderColor: colors.gray[700] },
   qtyBtnTextColor: { color: colors.gray[300] },
   qtyTextColor: { color: colors.gray[50] },
-  noteRowTheme: { borderColor: colors.gray[700], backgroundColor: colors.gray[900] },
+  noteRowTheme: {
+    borderColor: colors.gray[700],
+    backgroundColor: colors.gray[900],
+  },
   noteInputColor: { color: colors.gray[200] },
   noteIconColor: colors.gray[500],
   notePlaceholderColor: colors.gray[600],
@@ -86,8 +98,12 @@ const OrderItemRow = memo(
     onQtyChange,
     onNoteChange,
   }: OrderItemRowProps) {
+    const { t } = useTranslation('menu')
     const themeStyles = isDark ? THEME_DARK : THEME_LIGHT
-    const priceStyle = useMemo(() => [row.price, { color: primaryColor }], [primaryColor])
+    const priceStyle = useMemo(
+      () => [row.price, { color: primaryColor }],
+      [primaryColor],
+    )
 
     // ── Optimistic qty ──────────────────────────────────────────────────────
     const [pendingQty, setPendingQty] = useState<number | null>(null)
@@ -152,7 +168,8 @@ const OrderItemRow = memo(
           : original
 
     const showLineThrough =
-      (_isSamePrice || _hasPromotion || _hasVoucher) && original > displayUnitPrice
+      (_isSamePrice || _hasPromotion || _hasVoucher) &&
+      original > displayUnitPrice
 
     const lineTotal = displayUnitPrice * displayQty
     const lineTotalOriginal = original * displayQty
@@ -186,7 +203,10 @@ const OrderItemRow = memo(
             {item.variant?.size?.name ? (
               <View style={row.sizeChipWrap}>
                 <View style={[row.sizeChip, themeStyles.chipBorder]}>
-                  <Text style={[row.sizeChipText, themeStyles.chipTextColor]} numberOfLines={1}>
+                  <Text
+                    style={[row.sizeChipText, themeStyles.chipTextColor]}
+                    numberOfLines={1}
+                  >
                     {capitalizeFirst(item.variant.size.name)}
                   </Text>
                 </View>
@@ -195,7 +215,9 @@ const OrderItemRow = memo(
 
             <View style={row.bottomRow}>
               <View style={row.priceCol}>
-                <Text style={priceStyle}>{formatCurrencyNative(lineTotal)}</Text>
+                <Text style={priceStyle}>
+                  {formatCurrencyNative(lineTotal)}
+                </Text>
                 {showLineThrough && (
                   <Text style={[row.originalPrice, themeStyles.origPriceColor]}>
                     {formatCurrencyNative(lineTotalOriginal)}
@@ -213,11 +235,20 @@ const OrderItemRow = memo(
                     displayQty <= 1 && row.qtyBtnDisabled,
                   ]}
                 >
-                  <Text style={[row.qtyBtnText, themeStyles.qtyBtnTextColor]}>−</Text>
+                  <Text style={[row.qtyBtnText, themeStyles.qtyBtnTextColor]}>
+                    −
+                  </Text>
                 </Pressable>
-                <Text style={[row.qtyText, themeStyles.qtyTextColor]}>{displayQty}</Text>
-                <Pressable onPress={handleIncrease} style={[row.qtyBtn, themeStyles.qtyBtnBorder]}>
-                  <Text style={[row.qtyBtnText, themeStyles.qtyBtnTextColor]}>+</Text>
+                <Text style={[row.qtyText, themeStyles.qtyTextColor]}>
+                  {displayQty}
+                </Text>
+                <Pressable
+                  onPress={handleIncrease}
+                  style={[row.qtyBtn, themeStyles.qtyBtnBorder]}
+                >
+                  <Text style={[row.qtyBtnText, themeStyles.qtyBtnTextColor]}>
+                    +
+                  </Text>
                 </Pressable>
                 <RemoveOrderItemInUpdateOrderDialog
                   orderItem={item}
@@ -236,7 +267,7 @@ const OrderItemRow = memo(
           <TextInput
             value={localNote}
             onChangeText={handleNoteChange}
-            placeholder="Ghi chú món..."
+            placeholder={t('order.itemNotePlaceholder')}
             placeholderTextColor={themeStyles.notePlaceholderColor}
             style={[row.noteInput, themeStyles.noteInputColor]}
             multiline
@@ -251,10 +282,14 @@ const OrderItemRow = memo(
     prev.item === next.item &&
     // Value comparison — calculateOrderDisplayAndTotals always creates new objects,
     // so reference equality would re-render all items on every qty change.
-    (prev.displayItem?.finalPrice ?? 0) === (next.displayItem?.finalPrice ?? 0) &&
-    (prev.displayItem?.priceAfterPromotion ?? 0) === (next.displayItem?.priceAfterPromotion ?? 0) &&
-    (prev.displayItem?.voucherDiscount ?? 0) === (next.displayItem?.voucherDiscount ?? 0) &&
-    (prev.displayItem?.promotionDiscount ?? 0) === (next.displayItem?.promotionDiscount ?? 0) &&
+    (prev.displayItem?.finalPrice ?? 0) ===
+      (next.displayItem?.finalPrice ?? 0) &&
+    (prev.displayItem?.priceAfterPromotion ?? 0) ===
+      (next.displayItem?.priceAfterPromotion ?? 0) &&
+    (prev.displayItem?.voucherDiscount ?? 0) ===
+      (next.displayItem?.voucherDiscount ?? 0) &&
+    (prev.displayItem?.promotionDiscount ?? 0) ===
+      (next.displayItem?.promotionDiscount ?? 0) &&
     prev.primaryColor === next.primaryColor &&
     prev.isDark === next.isDark &&
     prev.totalOrderItems === next.totalOrderItems &&
@@ -273,16 +308,25 @@ export default function UpdateOrderContentNative({
   isDark,
   primaryColor,
 }: UpdateOrderContentNativeProps) {
+  const { t } = useTranslation('menu')
   const updatingData = useOrderFlowStore((s) => s.updatingData)
-  const updateDraftItemQuantity = useOrderFlowStore((s) => s.updateDraftItemQuantity)
+  const updateDraftItemQuantity = useOrderFlowStore(
+    (s) => s.updateDraftItemQuantity,
+  )
   const addDraftNote = useOrderFlowStore((s) => s.addDraftNote)
 
   const voucher = updatingData?.updateDraft?.voucher ?? null
-  const orderItems = useMemo(() => updatingData?.updateDraft?.orderItems ?? [], [updatingData])
+  const orderItems = useMemo(
+    () => updatingData?.updateDraft?.orderItems ?? [],
+    [updatingData],
+  )
 
   const { displayItems } = useMemo(
     () =>
-      calculateOrderDisplayAndTotals(transformOrderItemToOrderDetail(orderItems), voucher),
+      calculateOrderDisplayAndTotals(
+        transformOrderItemToOrderDetail(orderItems),
+        voucher,
+      ),
     [orderItems, voucher],
   )
   const displayItemMap = useMemo(() => {
@@ -294,21 +338,29 @@ export default function UpdateOrderContentNative({
   const isSamePriceVoucher = useCallback(
     (item: IOrderItem) =>
       voucher?.type === VOUCHER_TYPE.SAME_PRICE_PRODUCT &&
-      (voucher?.voucherProducts?.some((vp) => vp.product?.slug === item.productSlug) ?? false),
+      (voucher?.voucherProducts?.some(
+        (vp) => vp.product?.slug === item.productSlug,
+      ) ??
+        false),
     [voucher],
   )
   const isAtLeastOneVoucher = useCallback(
     (item: IOrderItem) =>
       voucher?.applicabilityRule === APPLICABILITY_RULE.AT_LEAST_ONE_REQUIRED &&
-      (voucher?.voucherProducts?.some((vp) => vp.product?.slug === item.productSlug) ?? false),
+      (voucher?.voucherProducts?.some(
+        (vp) => vp.product?.slug === item.productSlug,
+      ) ??
+        false),
     [voucher],
   )
   const hasVoucherDiscount = useCallback(
-    (item: IOrderItem) => (displayItemMap.get(item.slug)?.voucherDiscount ?? 0) > 0,
+    (item: IOrderItem) =>
+      (displayItemMap.get(item.slug)?.voucherDiscount ?? 0) > 0,
     [displayItemMap],
   )
   const hasPromotionDiscount = useCallback(
-    (item: IOrderItem) => (displayItemMap.get(item.slug)?.promotionDiscount ?? 0) > 0,
+    (item: IOrderItem) =>
+      (displayItemMap.get(item.slug)?.promotionDiscount ?? 0) > 0,
     [displayItemMap],
   )
 
@@ -350,9 +402,16 @@ export default function UpdateOrderContentNative({
       </View>
     ),
     [
-      displayItemMap, primaryColor, isDark, orderItems.length,
-      isSamePriceVoucher, isAtLeastOneVoucher, hasVoucherDiscount, hasPromotionDiscount,
-      handleQtyChange, handleNoteChange,
+      displayItemMap,
+      primaryColor,
+      isDark,
+      orderItems.length,
+      isSamePriceVoucher,
+      isAtLeastOneVoucher,
+      hasVoucherDiscount,
+      hasPromotionDiscount,
+      handleQtyChange,
+      handleNoteChange,
     ],
   )
 
@@ -364,25 +423,40 @@ export default function UpdateOrderContentNative({
   const listHeader = useMemo(
     () => (
       <View style={c.listHeader}>
-        <Text style={[c.cardTitle, { color: valueColor }]}>Danh sách món</Text>
-        <Text style={[c.cardSub, { color: labelColor }]}>{orderItems.length} sản phẩm</Text>
+        <Text style={[c.cardTitle, { color: valueColor }]}>
+          {t('order.orderItemList')}
+        </Text>
+        <Text style={[c.cardSub, { color: labelColor }]}>
+          {t('order.itemCount', { count: orderItems.length })}
+        </Text>
       </View>
     ),
-    [valueColor, labelColor, orderItems.length],
+    [valueColor, labelColor, orderItems.length, t],
   )
 
   const listFooter = useMemo(
     () => (
-      <View style={[c.card, { backgroundColor: cardBg, borderColor: cardBorder }]}>
+      <View
+        style={[c.card, { backgroundColor: cardBg, borderColor: cardBorder }]}
+      >
         <View style={[c.cardHeader, { borderBottomColor: dividerColor }]}>
-          <Text style={[c.cardTitle, { color: valueColor }]}>Ghi chú đơn hàng</Text>
+          <Text style={[c.cardTitle, { color: valueColor }]}>
+            {t('order.orderNote')}
+          </Text>
         </View>
         <View style={c.cardBody}>
           <OrderNoteInUpdateOrderInput order={updatingData?.updateDraft} />
         </View>
       </View>
     ),
-    [cardBg, cardBorder, dividerColor, valueColor, updatingData?.updateDraft],
+    [
+      cardBg,
+      cardBorder,
+      dividerColor,
+      valueColor,
+      updatingData?.updateDraft,
+      t,
+    ],
   )
 
   return (
@@ -390,7 +464,9 @@ export default function UpdateOrderContentNative({
       data={orderItems}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
-      overrideItemLayout={(layout: { span?: number; size?: number }) => { layout.size = 152 }}
+      overrideItemLayout={(layout: { span?: number; size?: number }) => {
+        layout.size = 152
+      }}
       ListHeaderComponent={listHeader}
       ListFooterComponent={listFooter}
       contentContainerStyle={{ padding: 16, paddingBottom: 32 }}

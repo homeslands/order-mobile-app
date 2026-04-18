@@ -15,13 +15,7 @@ import { StaticText } from '@/components/ui'
 import { colors } from '@/constants'
 import type { IProductVariant } from '@/types'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import {
-  Pressable,
-  StyleSheet,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native'
+import { Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native'
 import { HIT_SLOP_ICON } from '@/lib/navigation'
 import {
   useDetailQuantity,
@@ -190,24 +184,57 @@ export const ProductDetailOptionsSection = React.memo(
     return (
       <View style={{ flexDirection: 'column', gap: 16 }}>
         {variants.length > 0 && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-            <Text style={{ fontSize: 14, fontWeight: '600', color: isDark ? colors.gray[50] : colors.gray[900] }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 8,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: '600',
+                color: isDark ? colors.gray[50] : colors.gray[900],
+              }}
+            >
               {selectSizeLabel}
             </Text>
             <View style={styles.variantRow}>
               {variants.map((v) => (
-                <VariantChip key={v.slug} variant={v} onSelect={handleSizeChange} />
+                <VariantChip
+                  key={v.slug}
+                  variant={v}
+                  onSelect={handleSizeChange}
+                />
               ))}
             </View>
           </View>
         )}
 
         {variants.length > 0 && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8, paddingTop: 8 }}>
-            <Text style={{ fontSize: 14, fontWeight: '600', color: isDark ? colors.gray[50] : colors.gray[900] }}>
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 8,
+              paddingTop: 8,
+            }}
+          >
+            <Text
+              style={{
+                fontSize: 14,
+                fontWeight: '600',
+                color: isDark ? colors.gray[50] : colors.gray[900],
+              }}
+            >
               {selectQuantityLabel}
             </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+            <View
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}
+            >
               <NonPropQuantitySelector
                 quantity={quantity}
                 onChange={setQuantity}
@@ -216,7 +243,12 @@ export const ProductDetailOptionsSection = React.memo(
                 currentQuantity={currentStock}
               />
               {isLimit && (
-                <Text style={{ fontSize: 12, color: isDark ? colors.gray[400] : colors.gray[500] }}>
+                <Text
+                  style={{
+                    fontSize: 12,
+                    color: isDark ? colors.gray[400] : colors.gray[500],
+                  }}
+                >
                   {currentStock}/{defaultStock} {inStockLabel}
                 </Text>
               )}
@@ -232,7 +264,13 @@ export const ProductDetailOptionsSection = React.memo(
           }}
         />
         <View style={{ gap: 4, paddingTop: 4 }}>
-          <Text style={{ fontSize: 18, fontWeight: '600', color: isDark ? colors.gray[50] : colors.gray[900] }}>
+          <Text
+            style={{
+              fontSize: 18,
+              fontWeight: '600',
+              color: isDark ? colors.gray[50] : colors.gray[900],
+            }}
+          >
             {descriptionLabel}
           </Text>
           <StaticText
@@ -295,7 +333,14 @@ export function DeferredOptionsSection({
   if (!ready) {
     return (
       fallback ?? (
-        <View style={{ minHeight: 120, backgroundColor: colors.gray[200], borderRadius: 12, marginHorizontal: 16 }} />
+        <View
+          style={{
+            minHeight: 120,
+            backgroundColor: colors.gray[200],
+            borderRadius: 12,
+            marginHorizontal: 16,
+          }}
+        />
       )
     )
   }

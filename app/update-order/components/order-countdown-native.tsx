@@ -1,8 +1,15 @@
 import dayjs from 'dayjs'
 import { Timer } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
+import { useTranslation } from 'react-i18next'
 import { StyleSheet, TextInput, useColorScheme } from 'react-native'
-import Animated, { runOnJS, useAnimatedProps, useAnimatedReaction, useAnimatedStyle } from 'react-native-reanimated'
+import Animated, {
+  runOnJS,
+  useAnimatedProps,
+  useAnimatedReaction,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated'
 
 import { colors } from '@/constants'
 import { useAnimatedCountdown } from '@/hooks/use-animated-countdown'
@@ -12,12 +19,12 @@ const AnimatedTextInput = Animated.createAnimatedComponent(TextInput)
 
 const ORDER_TIMEOUT_SECONDS = 900 // 15 minutes
 
-function formatCountdown(sec: number): string {
+function formatCountdown(sec: number, prefix: string): string {
   'worklet'
   if (sec <= 0) return '0:00'
   const m = Math.floor(sec / 60)
   const s = sec % 60
-  return `Còn ${m}:${s < 10 ? '0' : ''}${s}`
+  return `${prefix}${m}:${s < 10 ? '0' : ''}${s}`
 }
 
 interface OrderCountdownNativeProps {
@@ -33,8 +40,12 @@ const OrderCountdownNative = memo(function OrderCountdownNative({
   setIsExpired,
 }: OrderCountdownNativeProps) {
   const isDark = useColorScheme() === 'dark'
+  const { t } = useTranslation('payment')
+  const countdownPrefixShared = useSharedValue(t('countdown.remaining'))
   const onExpiredRef = useRef(setIsExpired)
-  useEffect(() => { onExpiredRef.current = setIsExpired })
+  useEffect(() => {
+    onExpiredRef.current = setIsExpired
+  })
 
   // Convert createdAt → expiresAt for the hook
   const expiresAt = useMemo(() => {
@@ -45,7 +56,10 @@ const OrderCountdownNative = memo(function OrderCountdownNative({
   }, [createdAt])
 
   // SharedValue — updates on UI thread, zero re-renders
-  const secondsShared = useAnimatedCountdown({ expiresAt, enabled: !!expiresAt })
+  const secondsShared = useAnimatedCountdown({
+    expiresAt,
+    enabled: !!expiresAt,
+  })
 
   // Handle already-expired on mount
   useEffect(() => {
@@ -55,7 +69,9 @@ const OrderCountdownNative = memo(function OrderCountdownNative({
   }, [expiresAt])
 
   // Bridge expiry from UI thread → JS
-  const fireExpired = useCallback(() => { onExpiredRef.current(true) }, [])
+  const fireExpired = useCallback(() => {
+    onExpiredRef.current(true)
+  }, [])
   useAnimatedReaction(
     () => secondsShared.value,
     (current, previous) => {
@@ -79,7 +95,7 @@ const OrderCountdownNative = memo(function OrderCountdownNative({
 
   // Text — formatted on UI thread
   const textProps = useAnimatedProps(() => ({
-    value: formatCountdown(secondsShared.value),
+    value: formatCountdown(secondsShared.value, countdownPrefixShared.value),
   }))
 
   return (
