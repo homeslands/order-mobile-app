@@ -11,9 +11,9 @@
     "ios": {
       "supportsTablet": true,
       "infoPlist": {
-        "NSCameraUsageDescription": "Cho phép ứng dụng truy cập camera để chụp ảnh đại diện.",
-        "NSPhotoLibraryUsageDescription": "Cho phép ứng dụng truy cập thư viện ảnh để lưu ảnh.",
-        "NSPhotoLibraryAddUsageDescription": "Cho phép ứng dụng lưu ảnh vào thư viện.",
+        "NSCameraUsageDescription": "Cho phép ứng dụng sử dụng camera để chụp ảnh đại diện.",
+        "NSPhotoLibraryUsageDescription": "Cho phép ứng dụng truy cập thư viện ảnh để chọn ảnh đại diện.",
+        "NSPhotoLibraryAddUsageDescription": "Cho phép ứng dụng lưu ảnh hoá đơn và mã QR thanh toán vào thư viện ảnh.",
         "ITSAppUsesNonExemptEncryption": false
       },
       "bundleIdentifier": "com.trendcoffee.order"
@@ -52,8 +52,8 @@
       [
         "expo-media-library",
         {
-          "photosPermission": "Cho phép ứng dụng truy cập thư viện ảnh để lưu ảnh.",
-          "savePhotosPermission": "Cho phép ứng dụng lưu ảnh vào thư viện.",
+          "photosPermission": "Cho phép ứng dụng truy cập thư viện ảnh để chọn ảnh đại diện.",
+          "savePhotosPermission": "Cho phép ứng dụng lưu ảnh hoá đơn và mã QR thanh toán vào thư viện ảnh.",
           "isAccessMediaLocationEnabled": false,
           "granularPermissions": []
         }
