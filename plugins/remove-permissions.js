@@ -29,14 +29,25 @@ const PERMISSIONS_TO_REMOVE = [
 module.exports = function withRemovePermissions(config) {
   return withAndroidManifest(config, (mod) => {
     const manifest = mod.modResults
-    const permissions = manifest.manifest['uses-permission'] ?? []
 
-    manifest.manifest['uses-permission'] = permissions.filter(
-      (perm) =>
-        !PERMISSIONS_TO_REMOVE.includes(
-          perm.$['android:name'],
-        ),
-    )
+    // Handle both uses-permission and uses-permission-sdk-23 tags
+    for (const tag of ['uses-permission', 'uses-permission-sdk-23']) {
+      const permissions = manifest.manifest[tag] ?? []
+      // eslint-disable-next-line no-console
+      console.log(
+        `[remove-permissions] ${tag} found:`,
+        permissions.map((p) => p?.$?.['android:name']),
+      )
+      manifest.manifest[tag] = permissions.filter((perm) => {
+        const name = perm?.$?.['android:name']
+        const shouldRemove = PERMISSIONS_TO_REMOVE.includes(name)
+        if (shouldRemove) {
+          // eslint-disable-next-line no-console
+          console.log(`[remove-permissions] Removing: ${name}`)
+        }
+        return !shouldRemove
+      })
+    }
 
     return mod
   })
