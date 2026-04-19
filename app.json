@@ -69,6 +69,7 @@
         }
       ],
       "@react-native-community/datetimepicker",
+      "./plugins/abi-filters",
       "./plugins/remove-permissions"
     ],
     "experiments": {
