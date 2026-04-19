@@ -2,7 +2,7 @@
   "expo": {
     "name": "TREND Coffee",
     "slug": "order-mobile-app",
-    "version": "2.2.2",
+    "version": "2.2.3",
     "orientation": "portrait",
     "icon": "./assets/images/trend/logo-icon-padded.png",
     "scheme": "trend",
@@ -28,7 +28,7 @@
       "permissions": [
         "android.permission.WRITE_EXTERNAL_STORAGE"
       ],
-      "versionCode": 41,
+      "versionCode": 42,
       "package": "com.trendcoffee.order"
     },
     "web": {
@@ -69,6 +69,7 @@
         }
       ],
       "@react-native-community/datetimepicker",
+      "./plugins/abi-filters",
       "./plugins/remove-permissions"
     ],
     "experiments": {
