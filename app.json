@@ -70,7 +70,8 @@
       ],
       "@react-native-community/datetimepicker",
       "./plugins/abi-filters",
-      "./plugins/remove-permissions"
+      "./plugins/remove-permissions",
+      "./plugins/android-release-signing"
     ],
     "experiments": {
       "typedRoutes": true
