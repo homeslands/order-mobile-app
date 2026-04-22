@@ -1,16 +1,11 @@
+import { FlashList, type FlashListRef } from '@shopify/flash-list'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ImageSourcePropType } from 'react-native'
-import {
-  FlatList,
-  Pressable,
-  Text,
-  View,
-  useWindowDimensions,
-} from 'react-native'
+import { Pressable, Text, View, useWindowDimensions } from 'react-native'
 import Animated, {
   interpolate,
   useAnimatedScrollHandler,
@@ -147,7 +142,10 @@ const HighlightCard = React.memo(function HighlightCard({
         {
           width: cardWidth,
           height: cardHeight,
-          marginLeft: extendedIndex === 0 ? 0 : CARD_GAP,
+          // Gap được chia đều 2 bên mỗi card — tránh conditional margin theo
+          // index vì FlashList recycle cells, nếu layout phụ thuộc index đầu
+          // tiên sẽ gây layout flicker lúc recycle.
+          marginHorizontal: CARD_GAP / 2,
           borderRadius: 20,
         },
         animStyle,
@@ -213,8 +211,8 @@ interface HighlightMenuCarouselProps {
   primaryColor?: string
 }
 
-const AnimatedFlatList = Animated.createAnimatedComponent(
-  FlatList<HighlightMenuItem>,
+const AnimatedFlashList = Animated.createAnimatedComponent(
+  FlashList<HighlightMenuItem>,
 )
 
 /**
@@ -237,7 +235,9 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
 
   const cardWidth = screenWidth * 0.72
   const cardHeight = cardWidth * 1.28
-  const sideInset = (screenWidth - cardWidth) / 2
+  // sideInset bù CARD_GAP/2 vì mỗi card có marginHorizontal = CARD_GAP/2.
+  // Đảm bảo card trung tâm luôn căn đúng giữa màn hình.
+  const sideInset = (screenWidth - cardWidth) / 2 - CARD_GAP / 2
   const step = cardWidth + CARD_GAP
 
   /**
@@ -251,8 +251,8 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
   }, [highlightMenus, count])
 
   // Ref for imperative scrollToOffset during teleport.
-  // createAnimatedComponent forwards the ref to the wrapped FlatList.
-  const listRef = useRef<FlatList<HighlightMenuItem>>(null)
+  // createAnimatedComponent forwards the ref to the wrapped FlashList.
+  const listRef = useRef<FlashListRef<HighlightMenuItem>>(null)
 
   // scrollX tracks raw FlatList content offset.
   // Real first item lives at offset 1*step, so init there.
@@ -338,22 +338,23 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
 
   return (
     <View>
-      <AnimatedFlatList
-        ref={listRef as React.Ref<FlatList<HighlightMenuItem>>}
-        data={extendedMenus}
-        renderItem={renderItem}
-        keyExtractor={keyExtractor}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
-        snapToInterval={step}
-        decelerationRate="fast"
-        contentContainerStyle={listContentStyle}
-        style={{ height: cardHeight + 12 }}
-        onMomentumScrollEnd={handleScrollEnd}
-        onScrollToIndexFailed={() => {}}
-      />
+      {/* FlashList horizontal cần parent có bounded height để layout đúng. */}
+      <View style={{ height: cardHeight + 12 }}>
+        <AnimatedFlashList
+          ref={listRef as React.Ref<FlashListRef<HighlightMenuItem>>}
+          data={extendedMenus}
+          renderItem={renderItem}
+          keyExtractor={keyExtractor}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+          snapToInterval={step}
+          decelerationRate="fast"
+          contentContainerStyle={listContentStyle}
+          onMomentumScrollEnd={handleScrollEnd}
+        />
+      </View>
 
       {/* Dot indicators — indexed against real items only.
           Each dot's targetOffset = scroll position where that real item is centered.
