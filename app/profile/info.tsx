@@ -1,6 +1,4 @@
-import { LinearGradient } from 'expo-linear-gradient'
 import {
-  ChevronLeft,
   Mail,
   MapPin,
   Phone,
@@ -20,119 +18,13 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { FloatingHeader } from '@/components/navigation'
 import { Button } from '@/components/ui'
 import { ROUTE, colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { navigateNative } from '@/lib/navigation'
 import { useUserStore } from '@/stores'
 import { useTranslation } from 'react-i18next'
-
-function InfoHeader({
-  title,
-  onBack,
-  onEdit,
-  isDark,
-}: {
-  title: string
-  onBack: () => void
-  onEdit: () => void
-  isDark: boolean
-}) {
-  const pageBg = isDark ? colors.background.dark : colors.background.light
-  const gradientColors = useMemo(
-    () => [`${pageBg}F0`, `${pageBg}AA`, `${pageBg}00`] as const,
-    [pageBg],
-  )
-
-  return (
-    <View style={phStyles.container} pointerEvents="box-none">
-      <LinearGradient
-        colors={gradientColors}
-        locations={[0, 0.5, 1]}
-        style={StyleSheet.absoluteFill}
-      />
-      <View
-        style={[phStyles.row, { paddingTop: STATIC_TOP_INSET + 10 }]}
-        pointerEvents="auto"
-      >
-        <Pressable
-          onPress={onBack}
-          hitSlop={8}
-          style={[
-            phStyles.circleBtn,
-            { backgroundColor: isDark ? colors.gray[800] : colors.white.light },
-            phStyles.shadow,
-          ]}
-        >
-          <ChevronLeft
-            size={20}
-            color={isDark ? colors.gray[50] : colors.gray[900]}
-          />
-        </Pressable>
-
-        <Text
-          style={[
-            phStyles.title,
-            { color: isDark ? colors.gray[50] : colors.gray[900] },
-          ]}
-          numberOfLines={1}
-        >
-          {title}
-        </Text>
-
-        <Pressable
-          onPress={onEdit}
-          hitSlop={8}
-          style={[
-            phStyles.circleBtn,
-            { backgroundColor: isDark ? colors.gray[800] : colors.white.light },
-            phStyles.shadow,
-          ]}
-        >
-          <SquarePen
-            size={20}
-            color={isDark ? colors.gray[50] : colors.gray[900]}
-          />
-        </Pressable>
-      </View>
-    </View>
-  )
-}
-
-const phStyles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 20,
-    paddingBottom: 24,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-  },
-  circleBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  shadow: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 24,
-    elevation: 2,
-  },
-  title: {
-    fontSize: 17,
-    fontWeight: '700',
-  },
-})
 
 function ProfileInfoScreen() {
   const { t } = useTranslation('profile')
@@ -371,11 +263,29 @@ function ProfileInfoScreen() {
         )}
       </ScrollView>
 
-      <InfoHeader
+      <FloatingHeader
         title={t('profile.generalInfo.title')}
-        onBack={() => navigateNative.back()}
-        onEdit={() => navigateNative.push(ROUTE.CLIENT_PROFILE_EDIT)}
-        isDark={isDark}
+        disableBlur
+        rightElement={
+          <Pressable
+            onPress={() => navigateNative.push(ROUTE.CLIENT_PROFILE_EDIT)}
+            hitSlop={8}
+            style={[
+              headerRightStyles.circleBtn,
+              {
+                backgroundColor: isDark
+                  ? colors.gray[800]
+                  : colors.white.light,
+              },
+              headerRightStyles.shadow,
+            ]}
+          >
+            <SquarePen
+              size={20}
+              color={isDark ? colors.gray[50] : colors.gray[900]}
+            />
+          </Pressable>
+        }
       />
     </View>
   )
@@ -383,3 +293,22 @@ function ProfileInfoScreen() {
 
 ProfileInfoScreen.displayName = 'ProfileInfoScreen'
 export default React.memo(ProfileInfoScreen)
+
+// Style nút phải của FloatingHeader — match kích thước + shadow của nút back
+// (38x38 circle) để 2 bên header cân xứng.
+const headerRightStyles = StyleSheet.create({
+  circleBtn: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 24,
+    elevation: 2,
+  },
+})

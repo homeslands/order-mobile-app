@@ -1,6 +1,7 @@
 /**
  * Thông tin cá nhân — UI giống Profile: avatar, 2 nút header, các trường thông tin bên dưới.
  */
+import { FloatingHeader } from '@/components/navigation'
 import { colors, publicFileURL } from '@/constants'
 import { ROUTE } from '@/constants/route.contstant'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
@@ -8,22 +9,12 @@ import { navigateNative } from '@/lib/navigation'
 import { useAuthStore, useUserStore } from '@/stores'
 import { useLogoutSheetStore } from '@/stores/logout-sheet.store'
 import { showToast } from '@/utils'
-import { BlurView } from 'expo-blur'
 import { Image } from 'expo-image'
-import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
-import {
-  ChevronLeft,
-  Mail,
-  MapPin,
-  Phone,
-  Shield,
-  User as UserIcon,
-} from 'lucide-react-native'
+import { Mail, MapPin, Phone, Shield, User as UserIcon } from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -65,128 +56,24 @@ const ICON_COLORS = {
   green: '#4CAF50',
 }
 
-// ─── Header — cart style ──────────────────────────────────────────────────────
-
-const GIHeader = React.memo(function GIHeader({
-  onBack,
-  onEdit,
-  isDark,
-  pageBg,
-}: {
-  onBack: () => void
-  onEdit: () => void
-  isDark: boolean
-  pageBg: string
-}) {
-  const { t } = useTranslation('profile')
-  const gradientColors = useMemo(
-    () =>
-      [
-        pageBg,
-        `${pageBg}E6`,
-        `${pageBg}B0`,
-        `${pageBg}50`,
-        `${pageBg}00`,
-      ] as const,
-    [pageBg],
-  )
-  return (
-    <View style={hStyles.container} pointerEvents="box-none">
-      <View style={StyleSheet.absoluteFill} pointerEvents="none">
-        {Platform.OS === 'ios' && (
-          <BlurView
-            intensity={20}
-            tint={isDark ? 'dark' : 'light'}
-            style={StyleSheet.absoluteFill}
-          />
-        )}
-        <LinearGradient
-          colors={gradientColors}
-          locations={[0, 0.3, 0.62, 0.85, 1]}
-          style={StyleSheet.absoluteFill}
-        />
-      </View>
-      <View
-        style={[hStyles.row, { paddingTop: STATIC_TOP_INSET + 10 }]}
-        pointerEvents="auto"
-      >
-        <Pressable
-          onPress={onBack}
-          hitSlop={8}
-          style={[
-            hStyles.circleBtn,
-            { backgroundColor: isDark ? colors.gray[800] : colors.white.light },
-            hStyles.shadow,
-          ]}
-        >
-          <ChevronLeft
-            size={20}
-            color={isDark ? colors.gray[50] : colors.gray[900]}
-          />
-        </Pressable>
-        <View style={hStyles.circleBtn} />
-        <Pressable
-          onPress={onEdit}
-          hitSlop={8}
-          style={[
-            hStyles.editPill,
-            { backgroundColor: isDark ? colors.gray[800] : colors.white.light },
-            hStyles.shadow,
-          ]}
-        >
-          <Text
-            style={[
-              hStyles.editText,
-              { color: isDark ? colors.gray[50] : colors.gray[900] },
-            ]}
-          >
-            {t('profile.edit', 'Sửa')}
-          </Text>
-        </Pressable>
-      </View>
-    </View>
-  )
-})
-
+// Edit pill cho rightElement của FloatingHeader — giữ style cũ (pill bo tròn
+// + text "Sửa") để không phá layout hiện tại của màn hình.
 const hStyles = StyleSheet.create({
-  container: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 20,
-    paddingBottom: 24,
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-  },
-  circleBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   editPill: {
-    height: 42,
-    borderRadius: 21,
+    height: 38,
+    borderRadius: 19,
     paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  editText: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  shadow: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.03,
     shadowRadius: 24,
     elevation: 2,
+  },
+  editText: {
+    fontSize: 15,
+    fontWeight: '600',
   },
 })
 
@@ -526,11 +413,33 @@ export default function GeneralInfo() {
         </TouchableOpacity>
       </ScrollView>
 
-      <GIHeader
+      <FloatingHeader
+        title={t('profile.generalInfo.title', 'Thông tin cá nhân')}
+        disableBlur
         onBack={handleBack}
-        onEdit={handleEdit}
-        isDark={isDark}
-        pageBg={theme.bg}
+        rightElement={
+          <Pressable
+            onPress={handleEdit}
+            hitSlop={8}
+            style={[
+              hStyles.editPill,
+              {
+                backgroundColor: isDark
+                  ? colors.gray[800]
+                  : colors.white.light,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                hStyles.editText,
+                { color: isDark ? colors.gray[50] : colors.gray[900] },
+              ]}
+            >
+              {t('profile.edit', 'Sửa')}
+            </Text>
+          </Pressable>
+        }
       />
     </View>
   )
