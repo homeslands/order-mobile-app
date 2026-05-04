@@ -114,6 +114,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
 
   const userPhone = useUserStore((s) => s.userInfo?.phonenumber ?? '')
   const isHydrated = useOrderFlowStore((s) => s.isHydrated)
+  const isGpsInputRef = useRef(false)
 
   // ─── Query hooks ─────────────────────────────────────────────────────────────
   const suggestionsQuery = useGetAddressSuggestions(queryAddress)
@@ -124,6 +125,19 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
     const { lat, lng } = addressByPlaceIdQuery.data.result
     setPendingSelection({ lat, lng, placeId: selectedPlaceId, address: addressInput })
   }, [addressByPlaceIdQuery.data, selectedPlaceId, addressInput])
+
+  // ─── GPS auto-select first suggestion ────────────────────────────────────────
+  useEffect(() => {
+    if (!isGpsInputRef.current) return
+    const results = suggestionsQuery.data?.result
+    if (!results?.length) return
+    isGpsInputRef.current = false
+    const first = results[0]
+    setAddressInput(first.placePrediction.text.text)
+    setSelectedPlaceId(first.placePrediction.placeId)
+    setShowSuggestions(false)
+    Keyboard.dismiss()
+  }, [suggestionsQuery.data])
 
   // ─── Distance check ───────────────────────────────────────────────────────────
   const lastProcessedKeyRef = useRef('')
@@ -232,6 +246,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
         ].filter(Boolean)
         const addressText = parts.join(', ')
         setAddressInput(addressText)
+        isGpsInputRef.current = true
         setShowSuggestions(true)
       }
     } catch {
@@ -270,6 +285,9 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
       setPendingSelection({ lat: saved.lat, lng: saved.lng, placeId: '', address: saved.address })
     }
   }, [isHydrated, visible]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  const hasCoords = pendingLat !== 0 && pendingLng !== 0
+  const phoneIsInvalid = !!phoneInput && !PHONE_NUMBER_REGEX.test(phoneInput)
 
   const canConfirm =
     !!actions.currentAddress &&
@@ -324,7 +342,6 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   const textPrimary = isDark ? colors.gray[50] : colors.gray[900]
   const textMuted = isDark ? colors.gray[400] : colors.gray[500]
   const borderDefault = isDark ? colors.gray[700] : colors.gray[200]
-  const surfaceAlt = isDark ? colors.gray[800] : colors.gray[50]
 
   // API returns lat/lng as strings despite the TypeScript type saying number
   const branchLat = parseFloat(String(branchLocation?.lat ?? 10.7769))
@@ -415,7 +432,11 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
             </View>
 
             {/* Time + distance info */}
-            {distanceQuery.data?.result && (
+            {(!hasCoords || distanceQuery.isLoading) ? (
+              <View style={[f.infoRow, { backgroundColor: `${primaryColor}0a`, borderColor: primaryColor }]}>
+                <ActivityIndicator size="small" color={primaryColor} style={{ flex: 1, paddingVertical: 12 }} />
+              </View>
+            ) : distanceQuery.data?.result ? (
               <View style={[f.infoRow, { backgroundColor: `${primaryColor}0a`, borderColor: primaryColor }]}>
                 <View style={f.infoItem}>
                   <Text style={[f.infoLabel, { color: textMuted }]}>Thời gian dự kiến</Text>
@@ -438,10 +459,13 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
                   </Text>
                 </View>
               </View>
-            )}
+            ) : null}
 
             {/* Phone input */}
-            <View style={[f.phoneWrapper, { backgroundColor: `${primaryColor}0a`, borderColor: primaryColor }]}>
+            <View style={[f.phoneWrapper, {
+              backgroundColor: phoneIsInvalid ? (isDark ? `${colors.destructive.dark}15` : `${colors.destructive.light}15`) : `${primaryColor}0a`,
+              borderColor: phoneIsInvalid ? (isDark ? colors.destructive.dark : colors.destructive.light) : primaryColor,
+            }]}>
               <Text style={f.phoneIcon}>📞</Text>
               <BottomSheetTextInput
                 value={phoneInput}
@@ -453,6 +477,11 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
                 returnKeyType="done"
               />
             </View>
+            {phoneIsInvalid && (
+              <Text style={[f.phoneError, { color: isDark ? colors.destructive.dark : colors.destructive.light }]}>
+                Số điện thoại phải đủ 10 số
+              </Text>
+            )}
           </>
         ) : (
           /* ══════════════════════════════════════════
@@ -460,7 +489,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
              ══════════════════════════════════════════ */
           <>
             {/* Range note */}
-            <Text style={[f.feeNote, { color: isDark ? colors.destructive.dark : colors.destructive.light }]}>
+            <Text style={[f.feeNote, { color: textMuted }]}>
               Giao hàng trong bán kính {maxDistance ?? '...'} km
             </Text>
 
@@ -570,20 +599,6 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
                 {isLocating ? 'Đang lấy vị trí...' : 'Dùng vị trí hiện tại'}
               </Text>
             </Pressable>
-
-            {/* Phone input */}
-            <View style={[f.phoneWrapper, { backgroundColor: surfaceAlt, borderColor: borderDefault }]}>
-              <Text style={f.phoneIcon}>📞</Text>
-              <BottomSheetTextInput
-                value={phoneInput}
-                onChangeText={(text) => { setPhoneInput(text); actions.setDeliveryPhone(text) }}
-                placeholder="Số điện thoại nhận hàng"
-                placeholderTextColor={textMuted}
-                style={[f.input, { color: textPrimary }]}
-                keyboardType="phone-pad"
-                returnKeyType="done"
-              />
-            </View>
           </>
         )}
       </BottomSheetScrollView>
@@ -803,5 +818,10 @@ const f = StyleSheet.create({
   feeNote: {
     fontSize: 12,
     fontStyle: 'italic',
+  },
+  phoneError: {
+    fontSize: 11,
+    marginTop: -4,
+    paddingHorizontal: 4,
   },
 })
