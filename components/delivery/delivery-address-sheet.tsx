@@ -375,23 +375,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
           </View>
         </View>
 
-        {/* ── GPS shortcut ── */}
-        <Pressable
-          onPress={handleGPS}
-          disabled={isLocating}
-          style={[f.gpsRow, { borderColor: primaryColor, backgroundColor: `${primaryColor}12` }]}
-        >
-          {isLocating ? (
-            <ActivityIndicator size="small" color={primaryColor} />
-          ) : (
-            <Navigation size={14} color={primaryColor} />
-          )}
-          <Text style={[f.gpsText, { color: primaryColor }]}>
-            {isLocating ? 'Đang lấy vị trí...' : 'Dùng vị trí hiện tại'}
-          </Text>
-        </Pressable>
-
-        {/* ── Suggestions list ── */}
+        {/* ── Suggestions list — ngay dưới ô nhập địa chỉ ── */}
         {showSuggestions && (
           <View
             style={[
@@ -441,6 +425,22 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
             />
           </View>
         )}
+
+        {/* ── GPS shortcut ── */}
+        <Pressable
+          onPress={handleGPS}
+          disabled={isLocating}
+          style={[f.gpsRow, { borderColor: primaryColor, backgroundColor: `${primaryColor}12` }]}
+        >
+          {isLocating ? (
+            <ActivityIndicator size="small" color={primaryColor} />
+          ) : (
+            <Navigation size={14} color={primaryColor} />
+          )}
+          <Text style={[f.gpsText, { color: primaryColor }]}>
+            {isLocating ? 'Đang lấy vị trí...' : 'Dùng vị trí hiện tại'}
+          </Text>
+        </Pressable>
 
         {/* ── Distance bar (appears after address confirmed) ── */}
         {actions.currentAddress && distanceQuery.data?.result && (
@@ -651,6 +651,5 @@ const f = StyleSheet.create({
   feeNote: {
     fontSize: 12,
     fontStyle: 'italic',
-    textAlign: 'center',
   },
 })
