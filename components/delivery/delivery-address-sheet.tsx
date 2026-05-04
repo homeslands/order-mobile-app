@@ -27,6 +27,7 @@ import {
   useGetAddressByPlaceId,
   useGetAddressSuggestions,
   useGetDistanceAndDuration,
+  useDebouncedInput,
 } from '@/hooks'
 import { useGetBranchDeliveryConfig } from '@/hooks/use-branch-delivery'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
@@ -93,8 +94,11 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   const { maxDistance } = useGetBranchDeliveryConfig(branchSlug)
 
   // ─── Local state ─────────────────────────────────────────────────────────────
-  const [addressInput, setAddressInput] = useState('')
-  const [queryAddress, setQueryAddress] = useState('')
+  const {
+    inputValue: addressInput,
+    setInputValue: setAddressInput,
+    debouncedInputValue: queryAddress,
+  } = useDebouncedInput({ delay: 300 })
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [selectedPlaceId, setSelectedPlaceId] = useState('')
   const [pendingSelection, setPendingSelection] = useState<{
@@ -108,12 +112,6 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
 
   const userPhone = useUserStore((s) => s.userInfo?.phonenumber ?? '')
   const isHydrated = useOrderFlowStore((s) => s.isHydrated)
-
-  // ─── Debounce 300ms ─────────────────────────────────────────────────────────
-  useEffect(() => {
-    const timer = setTimeout(() => setQueryAddress(addressInput), 300)
-    return () => clearTimeout(timer)
-  }, [addressInput])
 
   // ─── Query hooks ─────────────────────────────────────────────────────────────
   const suggestionsQuery = useGetAddressSuggestions(queryAddress)
@@ -411,7 +409,8 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
               data={suggestionsQuery.data?.result ?? []}
               keyExtractor={(item) => item.placePrediction.placeId}
               keyboardShouldPersistTaps="always"
-              scrollEnabled={false}
+              scrollEnabled
+              nestedScrollEnabled
               renderItem={({ item }: { item: IAddressSuggestion }) => (
                 <Pressable
                   onPress={() => {
@@ -595,6 +594,7 @@ const f = StyleSheet.create({
     borderRadius: 10,
     borderWidth: 1,
     overflow: 'hidden',
+    maxHeight: 220,
   },
   suggestionItem: {
     flexDirection: 'row',
