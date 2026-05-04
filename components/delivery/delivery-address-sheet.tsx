@@ -264,7 +264,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
       backdropComponent={renderBackdrop}
       backgroundStyle={bgStyle}
       onDismiss={onClose}
-      keyboardBehavior="interactive"
+      keyboardBehavior="extend"
       keyboardBlurBehavior="restore"
     >
       <BottomSheetScrollView
