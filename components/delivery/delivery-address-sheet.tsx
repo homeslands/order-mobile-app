@@ -223,14 +223,11 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
           geocoded.city,
         ].filter(Boolean)
         const addressText = parts.join(', ')
+        // Auto-fill search input so autocomplete suggestions appear.
+        // User must tap a suggestion to acquire a real placeId — GPS coords alone
+        // cannot be submitted as the server requires a Google Places placeId.
         setAddressInput(addressText)
-        setShowSuggestions(false)
-        setPendingSelection({
-          lat: latitude,
-          lng: longitude,
-          placeId: '',
-          address: addressText,
-        })
+        setShowSuggestions(true)
       }
     } catch {
       showToast('Không thể xác định vị trí')
@@ -242,22 +239,33 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   // ─── State restore ────────────────────────────────────────────────────────────
   useEffect(() => {
     if (!isHydrated || !visible) return
-    if (actions.currentAddress) setAddressInput(actions.currentAddress)
-    if (actions.currentPhone) {
-      setPhoneInput(actions.currentPhone)
+    // Read snapshot directly to avoid stale-closure re-fires when actions ref changes
+    const s = useOrderFlowStore.getState()
+    const saved =
+      mode === 'cart'
+        ? {
+            address: s.orderingData?.deliveryAddress ?? '',
+            phone: s.orderingData?.deliveryPhone ?? '',
+            lat: s.orderingData?.deliveryLat,
+            lng: s.orderingData?.deliveryLng,
+          }
+        : {
+            address: s.updatingData?.updateDraft?.deliveryAddress ?? '',
+            phone: s.updatingData?.updateDraft?.deliveryPhone ?? '',
+            lat: s.updatingData?.updateDraft?.deliveryLat,
+            lng: s.updatingData?.updateDraft?.deliveryLng,
+          }
+    if (saved.address) setAddressInput(saved.address)
+    if (saved.phone) {
+      setPhoneInput(saved.phone)
     } else if (userPhone) {
       setPhoneInput(userPhone)
       actions.setDeliveryPhone(userPhone)
     }
-    if (actions.currentLat && actions.currentLng) {
-      setPendingSelection({
-        lat: actions.currentLat,
-        lng: actions.currentLng,
-        placeId: '',
-        address: actions.currentAddress,
-      })
+    if (saved.lat && saved.lng) {
+      setPendingSelection({ lat: saved.lat, lng: saved.lng, placeId: '', address: saved.address })
     }
-  }, [isHydrated, visible, actions, userPhone])
+  }, [isHydrated, visible]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const canConfirm =
     !!actions.currentAddress &&

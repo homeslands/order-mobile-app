@@ -89,6 +89,7 @@ export function createOrderingDeliveryMethods(set: SetFn, get: GetFn) {
           deliveryAddress: '',
           deliveryDistance: 0,
           deliveryDuration: 0,
+          deliveryPhone: '',
           deliveryLat: undefined,
           deliveryLng: undefined,
           deliveryPlaceId: '',
