@@ -280,7 +280,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
         </View>
 
         {/* ── Route card: From → To ── */}
-        <View style={[f.routeCard, { backgroundColor: surfaceAlt, borderColor: borderDefault }]}>
+        <View style={f.routeCard}>
           {/* From: branch */}
           <View style={f.routeRow}>
             <View style={f.indicatorCol}>
@@ -298,7 +298,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
           {/* To: delivery input */}
           <View style={f.routeRow}>
             <View style={f.indicatorColDest}>
-              <View style={[f.toDot, { borderColor: '#ef4444' }]} />
+              <MapPin size={16} color="#ef4444" />
             </View>
             <View
               style={[
@@ -500,11 +500,8 @@ const f = StyleSheet.create({
 
   // Route card
   routeCard: {
-    borderRadius: 12,
-    borderWidth: 1,
-    paddingVertical: 8,
-    paddingRight: 12,
-    overflow: 'hidden',
+    paddingVertical: 4,
+    paddingRight: 4,
   },
   routeRow: {
     flexDirection: 'row',
@@ -530,13 +527,6 @@ const f = StyleSheet.create({
     flex: 1,
     width: 2,
     marginTop: 4,
-  },
-  toDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 2,
-    borderWidth: 2,
-    backgroundColor: 'transparent',
   },
   routeTextCol: {
     flex: 1,
