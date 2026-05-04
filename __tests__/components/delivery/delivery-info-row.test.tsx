@@ -3,7 +3,7 @@ jest.mock('react-native-reanimated', () =>
 )
 
 import { render, fireEvent } from '@testing-library/react-native'
-import { DeliveryInfoRow } from '@/components/delivery'
+import { DeliveryInfoRow } from '@/components/delivery/delivery-info-row'
 
 describe('DeliveryInfoRow', () => {
   it('renders CTA text when no address', () => {
