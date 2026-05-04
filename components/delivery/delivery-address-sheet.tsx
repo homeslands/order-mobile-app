@@ -14,7 +14,6 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Dimensions,
-  FlatList,
   Keyboard,
   Pressable,
   StyleSheet,
@@ -530,36 +529,30 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
                 {suggestionsQuery.isLoading && (
                   <ActivityIndicator size="small" color={primaryColor} style={{ padding: 12 }} />
                 )}
-                <FlatList
-                  data={suggestionsQuery.data?.result ?? []}
-                  keyExtractor={(item) => item.placePrediction.placeId}
-                  keyboardShouldPersistTaps="always"
-                  scrollEnabled
-                  nestedScrollEnabled
-                  renderItem={({ item }: { item: IAddressSuggestion }) => (
-                    <Pressable
-                      onPress={() => {
-                        setAddressInput(item.placePrediction.text.text)
-                        setSelectedPlaceId(item.placePrediction.placeId)
-                        setShowSuggestions(false)
-                        Keyboard.dismiss()
-                      }}
-                      style={[f.suggestionItem, { borderBottomColor: isDark ? colors.gray[700] : colors.gray[100] }]}
-                    >
-                      <MapPin size={12} color={textMuted} style={{ marginTop: 2 }} />
-                      <View style={{ flex: 1 }}>
-                        <Text style={[f.suggestionMain, { color: isDark ? colors.gray[100] : colors.gray[900] }]} numberOfLines={1}>
-                          {item.placePrediction.structuredFormat.mainText.text}
+                {(suggestionsQuery.data?.result ?? []).map((item: IAddressSuggestion) => (
+                  <Pressable
+                    key={item.placePrediction.placeId}
+                    onPress={() => {
+                      setAddressInput(item.placePrediction.text.text)
+                      setSelectedPlaceId(item.placePrediction.placeId)
+                      setShowSuggestions(false)
+                      Keyboard.dismiss()
+                    }}
+                    style={[f.suggestionItem, { borderBottomColor: isDark ? colors.gray[700] : colors.gray[100] }]}
+                  >
+                    <MapPin size={12} color={textMuted} style={{ marginTop: 2 }} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[f.suggestionMain, { color: isDark ? colors.gray[100] : colors.gray[900] }]} numberOfLines={1}>
+                        {item.placePrediction.structuredFormat.mainText.text}
+                      </Text>
+                      {item.placePrediction.structuredFormat.secondaryText?.text && (
+                        <Text style={[f.suggestionSub, { color: textMuted }]} numberOfLines={1}>
+                          {item.placePrediction.structuredFormat.secondaryText.text}
                         </Text>
-                        {item.placePrediction.structuredFormat.secondaryText?.text && (
-                          <Text style={[f.suggestionSub, { color: textMuted }]} numberOfLines={1}>
-                            {item.placePrediction.structuredFormat.secondaryText.text}
-                          </Text>
-                        )}
-                      </View>
-                    </Pressable>
-                  )}
-                />
+                      )}
+                    </View>
+                  </Pressable>
+                ))}
               </View>
             )}
 
