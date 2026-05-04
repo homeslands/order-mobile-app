@@ -9,7 +9,7 @@ import {
 } from '@gorhom/bottom-sheet'
 import * as Location from 'expo-location'
 import { formatCurrencyNative } from 'cart-price-calc'
-import { MapPin, Navigation, Pencil, X } from 'lucide-react-native'
+import { MapPin, Navigation, Pencil, Phone, X } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ActivityIndicator,
@@ -267,12 +267,14 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
             phone: s.orderingData?.deliveryPhone ?? '',
             lat: s.orderingData?.deliveryLat,
             lng: s.orderingData?.deliveryLng,
+            placeId: '',
           }
         : {
             address: s.updatingData?.updateDraft?.deliveryAddress ?? '',
             phone: s.updatingData?.updateDraft?.deliveryPhone ?? '',
             lat: s.updatingData?.updateDraft?.deliveryLat,
             lng: s.updatingData?.updateDraft?.deliveryLng,
+            placeId: s.updatingData?.updateDraft?.deliveryPlaceId ?? '',
           }
     if (saved.address) setAddressInput(saved.address)
     if (saved.phone) {
@@ -282,7 +284,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
       actions.setDeliveryPhone(userPhone)
     }
     if (saved.lat && saved.lng) {
-      setPendingSelection({ lat: saved.lat, lng: saved.lng, placeId: '', address: saved.address })
+      setPendingSelection({ lat: saved.lat, lng: saved.lng, placeId: saved.placeId, address: saved.address })
     }
   }, [isHydrated, visible]) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -462,26 +464,47 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
             ) : null}
 
             {/* Phone input */}
-            <View style={[f.phoneWrapper, {
-              backgroundColor: phoneIsInvalid ? (isDark ? `${colors.destructive.dark}15` : `${colors.destructive.light}15`) : `${primaryColor}0a`,
-              borderColor: phoneIsInvalid ? (isDark ? colors.destructive.dark : colors.destructive.light) : primaryColor,
-            }]}>
-              <Text style={f.phoneIcon}>📞</Text>
-              <BottomSheetTextInput
-                value={phoneInput}
-                onChangeText={(text) => { setPhoneInput(text); actions.setDeliveryPhone(text) }}
-                placeholder="Số điện thoại nhận hàng"
-                placeholderTextColor={textMuted}
-                style={[f.input, { color: textPrimary }]}
-                keyboardType="phone-pad"
-                returnKeyType="done"
-              />
+            <View style={f.phoneSection}>
+              <Text style={[f.sectionLabel, { color: textMuted }]}>Số điện thoại nhận hàng</Text>
+              <View style={[f.phoneWrapper, {
+                backgroundColor: phoneIsInvalid
+                  ? (isDark ? `${colors.destructive.dark}15` : `${colors.destructive.light}15`)
+                  : `${primaryColor}0a`,
+                borderColor: phoneIsInvalid
+                  ? (isDark ? colors.destructive.dark : colors.destructive.light)
+                  : primaryColor,
+              }]}>
+                <Phone
+                  size={14}
+                  color={phoneIsInvalid
+                    ? (isDark ? colors.destructive.dark : colors.destructive.light)
+                    : primaryColor}
+                />
+                <BottomSheetTextInput
+                  value={phoneInput}
+                  onChangeText={(text) => { setPhoneInput(text); actions.setDeliveryPhone(text) }}
+                  placeholder="Nhập số điện thoại..."
+                  placeholderTextColor={textMuted}
+                  style={[f.input, { color: textPrimary }]}
+                  keyboardType="phone-pad"
+                  returnKeyType="done"
+                  maxLength={12}
+                />
+                {phoneInput.length > 0 && (
+                  <Pressable
+                    onPress={() => { setPhoneInput(''); actions.setDeliveryPhone('') }}
+                    hitSlop={8}
+                  >
+                    <X size={14} color={textMuted} />
+                  </Pressable>
+                )}
+              </View>
+              {phoneIsInvalid && (
+                <Text style={[f.phoneError, { color: isDark ? colors.destructive.dark : colors.destructive.light }]}>
+                  Số điện thoại phải đủ 10 số
+                </Text>
+              )}
             </View>
-            {phoneIsInvalid && (
-              <Text style={[f.phoneError, { color: isDark ? colors.destructive.dark : colors.destructive.light }]}>
-                Số điện thoại phải đủ 10 số
-              </Text>
-            )}
           </>
         ) : (
           /* ══════════════════════════════════════════
@@ -791,7 +814,17 @@ const f = StyleSheet.create({
     fontWeight: '700',
   },
 
-  // Phone (standalone — no flex:1 like inputWrapper)
+  // Phone section
+  phoneSection: {
+    gap: 6,
+  },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  // Phone input row (no flex:1 like inputWrapper)
   phoneWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -800,9 +833,6 @@ const f = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 10,
     borderWidth: 1,
-  },
-  phoneIcon: {
-    fontSize: 14,
   },
 
   confirmBtn: {
