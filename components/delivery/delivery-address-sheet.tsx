@@ -224,7 +224,13 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
         ].filter(Boolean)
         const addressText = parts.join(', ')
         setAddressInput(addressText)
-        setShowSuggestions(true)
+        setShowSuggestions(false)
+        setPendingSelection({
+          lat: latitude,
+          lng: longitude,
+          placeId: '',
+          address: addressText,
+        })
       }
     } catch {
       showToast('Không thể xác định vị trí')
@@ -251,7 +257,12 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
         address: actions.currentAddress,
       })
     }
-  }, [isHydrated, visible])
+  }, [isHydrated, visible, actions, userPhone])
+
+  const canConfirm =
+    !!actions.currentAddress &&
+    !!phoneInput &&
+    PHONE_NUMBER_REGEX.test(phoneInput)
 
   const bgStyle = useMemo(
     () => ({
@@ -597,47 +608,35 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
         </View>
 
         {/* Confirm button */}
-        {(() => {
-          const hasAddress = !!actions.currentAddress
-          const hasValidPhone =
-            !!phoneInput && PHONE_NUMBER_REGEX.test(phoneInput)
-          const canConfirm = hasAddress && hasValidPhone
-          return (
-            <Pressable
-              onPress={() => {
-                if (canConfirm) onClose()
-              }}
-              disabled={!canConfirm}
-              style={[
-                styles.confirmBtn,
-                {
-                  backgroundColor: canConfirm
-                    ? primaryColor
-                    : isDark
-                      ? colors.gray[700]
-                      : colors.gray[300],
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  styles.confirmText,
-                  {
-                    color: canConfirm
-                      ? colors.white.light
-                      : isDark
-                        ? colors.gray[400]
-                        : colors.gray[500],
-                  },
-                ]}
-              >
-                {canConfirm
-                  ? '✓ Xác nhận địa chỉ này'
-                  : 'Thiếu thông tin giao hàng'}
-              </Text>
-            </Pressable>
-          )
-        })()}
+        <Pressable
+          onPress={() => { if (canConfirm) onClose() }}
+          disabled={!canConfirm}
+          style={[
+            styles.confirmBtn,
+            {
+              backgroundColor: canConfirm
+                ? primaryColor
+                : isDark
+                  ? colors.gray[700]
+                  : colors.gray[300],
+            },
+          ]}
+        >
+          <Text
+            style={[
+              styles.confirmText,
+              {
+                color: canConfirm
+                  ? colors.white.light
+                  : isDark
+                    ? colors.gray[400]
+                    : colors.gray[500],
+              },
+            ]}
+          >
+            {canConfirm ? 'Xác nhận địa chỉ này' : 'Thiếu thông tin giao hàng'}
+          </Text>
+        </Pressable>
 
         {/* Fee note */}
         <View
