@@ -100,7 +100,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
 
   // ─── Local state ─────────────────────────────────────────────────────────────
   const [addressInput, setAddressInput] = useState('')
-  const [queryAddress] = useDebounce(addressInput, 300)
+  const [queryAddress] = useDebounce(addressInput, 600)
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [selectedPlaceId, setSelectedPlaceId] = useState('')
   const [pendingSelection, setPendingSelection] = useState<{
@@ -421,7 +421,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
                 <View style={f.infoItem}>
                   <Text style={[f.infoLabel, { color: textMuted }]}>Thời gian dự kiến</Text>
                   <Text style={[f.infoValue, { color: textPrimary }]}>
-                    ~{Math.round(distanceQuery.data.result.duration / 60)} phút
+                    ~{Math.round(distanceQuery.data.result.duration)} phút
                   </Text>
                 </View>
                 <View style={[f.infoSep, { backgroundColor: borderDefault }]} />
