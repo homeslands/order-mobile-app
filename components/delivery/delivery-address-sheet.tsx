@@ -20,6 +20,7 @@ import {
   View,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useDebounce } from 'use-debounce'
 import { useShallow } from 'zustand/react/shallow'
 
 import { colors, PHONE_NUMBER_REGEX } from '@/constants'
@@ -27,7 +28,6 @@ import {
   useGetAddressByPlaceId,
   useGetAddressSuggestions,
   useGetDistanceAndDuration,
-  useDebouncedInput,
 } from '@/hooks'
 import { useGetBranchDeliveryConfig } from '@/hooks/use-branch-delivery'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
@@ -94,11 +94,8 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   const { maxDistance } = useGetBranchDeliveryConfig(branchSlug)
 
   // ─── Local state ─────────────────────────────────────────────────────────────
-  const {
-    inputValue: addressInput,
-    setInputValue: setAddressInput,
-    debouncedInputValue: queryAddress,
-  } = useDebouncedInput({ delay: 300 })
+  const [addressInput, setAddressInput] = useState('')
+  const [queryAddress] = useDebounce(addressInput, 300)
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [selectedPlaceId, setSelectedPlaceId] = useState('')
   const [pendingSelection, setPendingSelection] = useState<{
