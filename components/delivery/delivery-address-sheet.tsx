@@ -10,7 +10,7 @@ import {
 import * as Location from 'expo-location'
 import { formatCurrencyNative } from 'cart-price-calc'
 import { MapPin, Navigation, Pencil, Phone, X } from 'lucide-react-native'
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { type ElementRef, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Dimensions,
@@ -115,6 +115,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   const userPhone = useUserStore((s) => s.userInfo?.phonenumber ?? '')
   const isHydrated = useOrderFlowStore((s) => s.isHydrated)
   const isGpsInputRef = useRef(false)
+  const addressInputRef = useRef<ElementRef<typeof BottomSheetTextInput>>(null)
 
   // ─── Query hooks ─────────────────────────────────────────────────────────────
   const suggestionsQuery = useGetAddressSuggestions(queryAddress)
@@ -138,11 +139,31 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
     if (!results?.length) return
     isGpsInputRef.current = false
     const first = results[0]
-    setAddressInput(first.placePrediction.text.text)
+    const gpsText = first.placePrediction.text.text
+    setAddressInput(gpsText)
+    addressInputRef.current?.setNativeProps({ text: gpsText })
     setSelectedPlaceId(first.placePrediction.placeId)
     setShowSuggestions(false)
     Keyboard.dismiss()
   }, [suggestionsQuery.data])
+
+  // ─── Address input handlers (stable — no re-render on typing) ───────────────
+  const handleAddressChange = useCallback((text: string) => {
+    setAddressInput(text)
+    setShowSuggestions(text.length > 0)
+    if (!text) {
+      setSelectedPlaceId('')
+      setPendingSelection(null)
+    }
+  }, [])
+
+  const handleAddressClear = useCallback(() => {
+    setAddressInput('')
+    setSelectedPlaceId('')
+    setPendingSelection(null)
+    setShowSuggestions(false)
+    addressInputRef.current?.clear()
+  }, [])
 
   // ─── Distance check ───────────────────────────────────────────────────────────
   const lastProcessedKeyRef = useRef('')
@@ -251,6 +272,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
         ].filter(Boolean)
         const addressText = parts.join(', ')
         setAddressInput(addressText)
+        addressInputRef.current?.setNativeProps({ text: addressText })
         isGpsInputRef.current = true
         setShowSuggestions(true)
       }
@@ -549,12 +571,9 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
                   ]}
                 >
                   <BottomSheetTextInput
-                    value={addressInput}
-                    onChangeText={(text) => {
-                      setAddressInput(text)
-                      setShowSuggestions(text.length > 0)
-                      if (!text) { setSelectedPlaceId(''); setPendingSelection(null) }
-                    }}
+                    ref={addressInputRef}
+                    defaultValue={addressInput}
+                    onChangeText={handleAddressChange}
                     placeholder="Nhập địa chỉ giao hàng..."
                     placeholderTextColor={textMuted}
                     style={[f.input, { color: textPrimary }]}
@@ -564,10 +583,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
                   {addressInput.length > 0 && (
                     <Pressable
                       onPress={() => {
-                        setAddressInput('')
-                        setSelectedPlaceId('')
-                        setPendingSelection(null)
-                        setShowSuggestions(false)
+                        handleAddressClear()
                         actions.clearDeliveryInfo()
                       }}
                       hitSlop={8}
@@ -589,7 +605,9 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
                   <Pressable
                     key={item.placePrediction.placeId}
                     onPress={() => {
-                      setAddressInput(item.placePrediction.text.text)
+                      const picked = item.placePrediction.text.text
+                      setAddressInput(picked)
+                      addressInputRef.current?.setNativeProps({ text: picked })
                       setSelectedPlaceId(item.placePrediction.placeId)
                       setShowSuggestions(false)
                       Keyboard.dismiss()
