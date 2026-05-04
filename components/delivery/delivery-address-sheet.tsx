@@ -368,7 +368,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
               <Text style={[f.confirmedAddress, { color: textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
                 {actions.currentAddress}
               </Text>
-              <Pressable onPress={handleEditAddress} hitSlop={8} style={[f.editBtn, { backgroundColor: `${primaryColor}18` }]}>
+              <Pressable onPress={handleEditAddress} hitSlop={8} style={[f.editBtn, { backgroundColor: `${primaryColor}0f` }]}>
                 <Pencil size={14} color={primaryColor} />
               </Pressable>
             </View>
@@ -416,7 +416,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
 
             {/* Time + distance info */}
             {distanceQuery.data?.result && (
-              <View style={[f.infoRow, { backgroundColor: `${primaryColor}0f`, borderColor: primaryColor }]}>
+              <View style={[f.infoRow, { backgroundColor: `${primaryColor}0a`, borderColor: primaryColor }]}>
                 <View style={f.infoItem}>
                   <Text style={[f.infoLabel, { color: textMuted }]}>Thời gian dự kiến</Text>
                   <Text style={[f.infoValue, { color: textPrimary }]}>
@@ -441,7 +441,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
             )}
 
             {/* Phone input */}
-            <View style={[f.phoneWrapper, { backgroundColor: `${primaryColor}0f`, borderColor: primaryColor }]}>
+            <View style={[f.phoneWrapper, { backgroundColor: `${primaryColor}0a`, borderColor: primaryColor }]}>
               <Text style={f.phoneIcon}>📞</Text>
               <BottomSheetTextInput
                 value={phoneInput}
@@ -559,7 +559,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
             <Pressable
               onPress={handleGPS}
               disabled={isLocating}
-              style={[f.gpsRow, { borderColor: primaryColor, backgroundColor: `${primaryColor}12` }]}
+              style={[f.gpsRow, { borderColor: primaryColor, backgroundColor: `${primaryColor}0a` }]}
             >
               {isLocating ? (
                 <ActivityIndicator size="small" color={primaryColor} />
@@ -784,7 +784,7 @@ const f = StyleSheet.create({
     height: 44,
     paddingHorizontal: 12,
     borderRadius: 10,
-    borderWidth: 1.5,
+    borderWidth: 1,
   },
   phoneIcon: {
     fontSize: 14,
