@@ -18,11 +18,13 @@ export const SimpleOrderTypeSheetInUpdateOrder = memo(
   function SimpleOrderTypeSheetInUpdateOrder({
     visible,
     onClose,
+    onDeliverySelected,
     isDark,
     primaryColor,
   }: {
     visible: boolean
     onClose: () => void
+    onDeliverySelected?: () => void
     isDark: boolean
     primaryColor: string
   }) {
@@ -74,8 +76,9 @@ export const SimpleOrderTypeSheetInUpdateOrder = memo(
       (value: OrderTypeEnum) => {
         setDraftType(value)
         sheetRef.current?.dismiss()
+        if (value === OrderTypeEnum.DELIVERY) onDeliverySelected?.()
       },
-      [setDraftType],
+      [setDraftType, onDeliverySelected],
     )
 
     return (

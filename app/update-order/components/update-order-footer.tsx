@@ -332,6 +332,7 @@ export default memo(function UpdateOrderFooter({
       <SimpleOrderTypeSheetInUpdateOrder
         visible={orderTypeSheetVisible}
         onClose={closeOrderTypeSheet}
+        onDeliverySelected={openDeliverySheet}
         isDark={isDark}
         primaryColor={primaryColor}
       />

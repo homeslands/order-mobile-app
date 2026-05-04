@@ -20,11 +20,13 @@ const ORDER_TYPE_SHEET_BASE_HEIGHT = 280
 export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
   visible,
   onClose,
+  onDeliverySelected,
   isDark,
   primaryColor,
 }: {
   visible: boolean
   onClose: () => void
+  onDeliverySelected?: () => void
   isDark: boolean
   primaryColor: string
 }) {
@@ -69,8 +71,9 @@ export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
     (value: string) => {
       selectType(value)
       sheetRef.current?.dismiss()
+      if (value === 'delivery') onDeliverySelected?.()
     },
-    [selectType],
+    [selectType, onDeliverySelected],
   )
 
   return (

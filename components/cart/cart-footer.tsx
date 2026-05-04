@@ -419,6 +419,7 @@ export const CartFooter = memo(function CartFooter({
       <SimpleOrderTypeSheet
         visible={orderTypeSheetVisible}
         onClose={closeOrderTypeSheet}
+        onDeliverySelected={openDeliverySheet}
         isDark={isDark}
         primaryColor={primaryColor}
       />
