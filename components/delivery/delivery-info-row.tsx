@@ -30,7 +30,7 @@ export const DeliveryInfoRow = memo(function DeliveryInfoRow({
           borderStyle: hasAddress ? 'solid' : 'dashed',
           backgroundColor: hasAddress
             ? isDark ? colors.gray[800] : colors.gray[50]
-            : isDark ? `${colors.primary.dark}15` : `${colors.primary.light}10`,
+            : isDark ? 'rgba(214,137,16,0.08)' : 'rgba(247,167,55,0.06)',
         },
       ]}
     >
