@@ -137,6 +137,8 @@ export interface IOrderToUpdate {
   deliveryDuration?: number
   deliveryPhone?: string
   deliveryPlaceId?: string
+  deliveryLat?: number
+  deliveryLng?: number
   deliveryFee?: number
   deliveryTo?: {
     formattedAddress: string
