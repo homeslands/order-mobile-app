@@ -8,10 +8,12 @@ import {
   BottomSheetTextInput,
 } from '@gorhom/bottom-sheet'
 import * as Location from 'expo-location'
-import { MapPin, Navigation, X } from 'lucide-react-native'
+import { formatCurrencyNative } from 'cart-price-calc'
+import { MapPin, Navigation, Pencil, X } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ActivityIndicator,
+  Dimensions,
   FlatList,
   Keyboard,
   Pressable,
@@ -19,6 +21,7 @@ import {
   Text,
   View,
 } from 'react-native'
+import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useDebounce } from 'use-debounce'
 import { useShallow } from 'zustand/react/shallow'
@@ -26,13 +29,16 @@ import { useShallow } from 'zustand/react/shallow'
 import { colors, PHONE_NUMBER_REGEX } from '@/constants'
 import {
   useGetAddressByPlaceId,
+  useGetAddressDirection,
   useGetAddressSuggestions,
   useGetDistanceAndDuration,
 } from '@/hooks'
-import { useGetBranchDeliveryConfig } from '@/hooks/use-branch-delivery'
+import { useCalculateDeliveryFee, useGetBranchDeliveryConfig } from '@/hooks/use-branch-delivery'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import type { IAddressSuggestion } from '@/types'
-import { showToast } from '@/utils'
+import { decodePolyline, showToast } from '@/utils'
+
+const MAP_HEIGHT = Dimensions.get('window').height * 0.38
 
 export interface DeliveryAddressSheetProps {
   visible: boolean
@@ -155,6 +161,48 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
     actions.setDeliveryCoords(lat, lng, placeId)
     actions.setDeliveryDistanceDuration(distance, duration)
   }, [distanceQuery.data, pendingSelection, maxDistance, actions])
+
+  // ─── Direction + route polyline ─────────────────────────────────────────────
+  const directionQuery = useGetAddressDirection(branchSlug, pendingLat, pendingLng)
+  const routeCoords = useMemo(() => {
+    if (!directionQuery.data?.result) return []
+    return directionQuery.data.result.legs
+      .flatMap((leg) => leg.steps)
+      .flatMap((step) => decodePolyline(step.polyline.points))
+  }, [directionQuery.data])
+
+  // ─── Delivery fee ────────────────────────────────────────────────────────────
+  const confirmedDistance = distanceQuery.data?.result?.distance ?? 0
+  const { deliveryFee } = useCalculateDeliveryFee(confirmedDistance, branchSlug, {
+    enabled: !!actions.currentAddress && confirmedDistance > 0,
+  })
+
+  // ─── Map ref + fit to route ───────────────────────────────────────────────────
+  const mapRef = useRef<MapView>(null)
+  useEffect(() => {
+    if (!actions.currentAddress || !branchLocation || !pendingSelection) return
+    const coords = [
+      { latitude: branchLocation.lat, longitude: branchLocation.lng },
+      { latitude: pendingSelection.lat, longitude: pendingSelection.lng },
+    ]
+    const timer = setTimeout(() => {
+      mapRef.current?.fitToCoordinates(coords, {
+        edgePadding: { top: 40, right: 40, bottom: 60, left: 40 },
+        animated: true,
+      })
+    }, 350)
+    return () => clearTimeout(timer)
+  }, [actions.currentAddress, branchLocation, pendingSelection])
+
+  // ─── Edit address handler ─────────────────────────────────────────────────────
+  const handleEditAddress = useCallback(() => {
+    setPendingSelection(null)
+    setSelectedPlaceId('')
+    setShowSuggestions(addressInput.length > 0)
+    lastProcessedKeyRef.current = ''
+    lastRejectedKeyRef.current = ''
+    actions.clearDeliveryInfo()
+  }, [actions, addressInput])
 
   // ─── Sheet open/close ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -306,178 +354,242 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
           </Pressable>
         </View>
 
-        {/* ── Range note ── */}
-        <Text style={[f.feeNote, { color: isDark ? colors.destructive.dark : colors.destructive.light }]}>
-          Giao hàng trong bán kính {maxDistance ?? '...'} km
-        </Text>
-
-        {/* ── Route card: From → To ── */}
-        <View style={f.routeCard}>
-          {/* From: branch */}
-          <View style={f.routeRow}>
-            <View style={f.indicatorCol}>
-              <View style={[f.fromDot, { backgroundColor: primaryColor }]} />
-              <View style={[f.connectorLine, { backgroundColor: borderDefault }]} />
-            </View>
-            <View style={f.routeTextCol}>
-              <Text style={[f.routeLabel, { color: textMuted }]}>Từ</Text>
-              <Text style={[f.routeAddress, { color: textPrimary }]} numberOfLines={2}>
-                {branchLocation?.formattedAddress ?? 'Chi nhánh hiện tại'}
+        {actions.currentAddress ? (
+          /* ══════════════════════════════════════════
+             CONFIRMATION VIEW — hiển thị sau khi chọn xong
+             ══════════════════════════════════════════ */
+          <>
+            {/* Confirmed address + edit button */}
+            <View style={[f.confirmedRow, { borderColor: borderDefault }]}>
+              <MapPin size={14} color="#ef4444" />
+              <Text style={[f.confirmedAddress, { color: textPrimary }]} numberOfLines={2}>
+                {actions.currentAddress}
               </Text>
+              <Pressable onPress={handleEditAddress} hitSlop={8} style={f.editBtn}>
+                <Pencil size={13} color={primaryColor} />
+                <Text style={[f.editBtnText, { color: primaryColor }]}>Sửa</Text>
+              </Pressable>
             </View>
-          </View>
 
-          {/* To: delivery input */}
-          <View style={f.routeRow}>
-            <View style={f.indicatorColDest}>
-              <MapPin size={16} color="#ef4444" />
-            </View>
-            <View
-              style={[
-                f.inputWrapper,
-                {
-                  backgroundColor: isDark ? colors.gray[900] : colors.white.light,
-                  borderColor: showSuggestions ? primaryColor : borderDefault,
-                },
-              ]}
-            >
-              <BottomSheetTextInput
-                value={addressInput}
-                onChangeText={(text) => {
-                  setAddressInput(text)
-                  setShowSuggestions(text.length > 0)
-                  if (!text) {
-                    setSelectedPlaceId('')
-                    setPendingSelection(null)
-                  }
+            {/* Map */}
+            <View style={[f.mapContainer, { borderColor: borderDefault }]}>
+              <MapView
+                ref={mapRef}
+                provider={PROVIDER_GOOGLE}
+                style={f.map}
+                initialRegion={{
+                  latitude: branchLocation?.lat ?? 10.7769,
+                  longitude: branchLocation?.lng ?? 106.7009,
+                  latitudeDelta: 0.05,
+                  longitudeDelta: 0.05,
                 }}
-                placeholder="Nhập địa chỉ giao hàng..."
+                scrollEnabled={false}
+                zoomEnabled={false}
+                pitchEnabled={false}
+                rotateEnabled={false}
+              >
+                {branchLocation && (
+                  <Marker
+                    coordinate={{ latitude: branchLocation.lat, longitude: branchLocation.lng }}
+                    pinColor={primaryColor}
+                    title="Chi nhánh"
+                  />
+                )}
+                {pendingSelection && (
+                  <Marker
+                    coordinate={{ latitude: pendingSelection.lat, longitude: pendingSelection.lng }}
+                    pinColor="#ef4444"
+                    title="Điểm giao"
+                  />
+                )}
+                {routeCoords.length > 0 && (
+                  <Polyline
+                    coordinates={routeCoords}
+                    strokeColor={primaryColor}
+                    strokeWidth={3}
+                  />
+                )}
+              </MapView>
+            </View>
+
+            {/* Time + distance info */}
+            {distanceQuery.data?.result && (
+              <View style={[f.infoRow, { backgroundColor: surfaceAlt, borderColor: borderDefault }]}>
+                <View style={f.infoItem}>
+                  <Text style={[f.infoLabel, { color: textMuted }]}>Thời gian dự kiến</Text>
+                  <Text style={[f.infoValue, { color: textPrimary }]}>
+                    ~{Math.round(distanceQuery.data.result.duration / 60)} phút
+                  </Text>
+                </View>
+                <View style={[f.infoSep, { backgroundColor: borderDefault }]} />
+                <View style={f.infoItem}>
+                  <Text style={[f.infoLabel, { color: textMuted }]}>Khoảng cách</Text>
+                  <Text style={[f.infoValue, { color: textPrimary }]}>
+                    {distanceQuery.data.result.distance.toFixed(1)} km
+                  </Text>
+                </View>
+                <View style={[f.infoSep, { backgroundColor: borderDefault }]} />
+                <View style={f.infoItem}>
+                  <Text style={[f.infoLabel, { color: textMuted }]}>Phí giao hàng</Text>
+                  <Text style={[f.infoValue, { color: primaryColor }]}>
+                    {deliveryFee != null ? formatCurrencyNative(deliveryFee) : '...'}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {/* Phone input */}
+            <View style={[f.phoneWrapper, { backgroundColor: surfaceAlt, borderColor: borderDefault }]}>
+              <Text style={f.phoneIcon}>📞</Text>
+              <BottomSheetTextInput
+                value={phoneInput}
+                onChangeText={(text) => { setPhoneInput(text); actions.setDeliveryPhone(text) }}
+                placeholder="Số điện thoại nhận hàng"
                 placeholderTextColor={textMuted}
                 style={[f.input, { color: textPrimary }]}
-                returnKeyType="search"
-                onFocus={() => setShowSuggestions(addressInput.length > 0)}
+                keyboardType="phone-pad"
+                returnKeyType="done"
               />
-              {addressInput.length > 0 && (
-                <Pressable
-                  onPress={() => {
-                    setAddressInput('')
-                    setSelectedPlaceId('')
-                    setPendingSelection(null)
-                    setShowSuggestions(false)
-                    actions.clearDeliveryInfo()
-                  }}
-                  hitSlop={8}
-                >
-                  <X size={14} color={textMuted} />
-                </Pressable>
-              )}
             </View>
-          </View>
-        </View>
-
-        {/* ── Suggestions list — ngay dưới ô nhập địa chỉ ── */}
-        {showSuggestions && (
-          <View
-            style={[
-              f.suggestionsBox,
-              { backgroundColor: isDark ? colors.gray[800] : colors.white.light, borderColor: borderDefault },
-            ]}
-          >
-            {suggestionsQuery.isLoading && (
-              <ActivityIndicator size="small" color={primaryColor} style={{ padding: 12 }} />
-            )}
-            <FlatList
-              data={suggestionsQuery.data?.result ?? []}
-              keyExtractor={(item) => item.placePrediction.placeId}
-              keyboardShouldPersistTaps="always"
-              scrollEnabled
-              nestedScrollEnabled
-              renderItem={({ item }: { item: IAddressSuggestion }) => (
-                <Pressable
-                  onPress={() => {
-                    const text = item.placePrediction.text.text
-                    setAddressInput(text)
-                    setSelectedPlaceId(item.placePrediction.placeId)
-                    setShowSuggestions(false)
-                    Keyboard.dismiss()
-                  }}
-                  style={[f.suggestionItem, { borderBottomColor: isDark ? colors.gray[700] : colors.gray[100] }]}
-                >
-                  <MapPin size={12} color={textMuted} style={{ marginTop: 2 }} />
-                  <View style={{ flex: 1 }}>
-                    <Text
-                      style={[f.suggestionMain, { color: isDark ? colors.gray[100] : colors.gray[900] }]}
-                      numberOfLines={1}
-                    >
-                      {item.placePrediction.structuredFormat.mainText.text}
-                    </Text>
-                    {item.placePrediction.structuredFormat.secondaryText?.text && (
-                      <Text
-                        style={[f.suggestionSub, { color: textMuted }]}
-                        numberOfLines={1}
-                      >
-                        {item.placePrediction.structuredFormat.secondaryText.text}
-                      </Text>
-                    )}
-                  </View>
-                </Pressable>
-              )}
-            />
-          </View>
-        )}
-
-        {/* ── GPS shortcut ── */}
-        <Pressable
-          onPress={handleGPS}
-          disabled={isLocating}
-          style={[f.gpsRow, { borderColor: primaryColor, backgroundColor: `${primaryColor}12` }]}
-        >
-          {isLocating ? (
-            <ActivityIndicator size="small" color={primaryColor} />
-          ) : (
-            <Navigation size={14} color={primaryColor} />
-          )}
-          <Text style={[f.gpsText, { color: primaryColor }]}>
-            {isLocating ? 'Đang lấy vị trí...' : 'Dùng vị trí hiện tại'}
-          </Text>
-        </Pressable>
-
-        {/* ── Distance bar (appears after address confirmed) ── */}
-        {actions.currentAddress && distanceQuery.data?.result && (
-          <View
-            style={[
-              f.distanceBar,
-              { backgroundColor: isDark ? '#14532d' : '#f0fdf4', borderColor: isDark ? '#166534' : '#bbf7d0' },
-            ]}
-          >
-            <Text style={[f.distanceText, { color: isDark ? '#86efac' : '#15803d' }]}>
-              📏 {distanceQuery.data.result.distance.toFixed(1)} km ·{' '}
-              ~{Math.round(distanceQuery.data.result.duration / 60)} phút
+          </>
+        ) : (
+          /* ══════════════════════════════════════════
+             SELECTION VIEW — chọn địa chỉ giao hàng
+             ══════════════════════════════════════════ */
+          <>
+            {/* Range note */}
+            <Text style={[f.feeNote, { color: isDark ? colors.destructive.dark : colors.destructive.light }]}>
+              Giao hàng trong bán kính {maxDistance ?? '...'} km
             </Text>
-          </View>
-        )}
 
-        {/* ── Phone input ── */}
-        <View
-          style={[
-            f.phoneWrapper,
-            { backgroundColor: surfaceAlt, borderColor: borderDefault },
-          ]}
-        >
-          <Text style={f.phoneIcon}>📞</Text>
-          <BottomSheetTextInput
-            value={phoneInput}
-            onChangeText={(text) => {
-              setPhoneInput(text)
-              actions.setDeliveryPhone(text)
-            }}
-            placeholder="Số điện thoại nhận hàng"
-            placeholderTextColor={textMuted}
-            style={[f.input, { color: textPrimary }]}
-            keyboardType="phone-pad"
-            returnKeyType="done"
-          />
-        </View>
+            {/* Route card: From → To */}
+            <View style={f.routeCard}>
+              <View style={f.routeRow}>
+                <View style={f.indicatorCol}>
+                  <View style={[f.fromDot, { backgroundColor: primaryColor }]} />
+                  <View style={[f.connectorLine, { backgroundColor: borderDefault }]} />
+                </View>
+                <View style={f.routeTextCol}>
+                  <Text style={[f.routeLabel, { color: textMuted }]}>Từ</Text>
+                  <Text style={[f.routeAddress, { color: textPrimary }]} numberOfLines={2}>
+                    {branchLocation?.formattedAddress ?? 'Chi nhánh hiện tại'}
+                  </Text>
+                </View>
+              </View>
+              <View style={f.routeRow}>
+                <View style={f.indicatorColDest}>
+                  <MapPin size={16} color="#ef4444" />
+                </View>
+                <View
+                  style={[
+                    f.inputWrapper,
+                    {
+                      backgroundColor: isDark ? colors.gray[900] : colors.white.light,
+                      borderColor: showSuggestions ? primaryColor : borderDefault,
+                    },
+                  ]}
+                >
+                  <BottomSheetTextInput
+                    value={addressInput}
+                    onChangeText={(text) => {
+                      setAddressInput(text)
+                      setShowSuggestions(text.length > 0)
+                      if (!text) { setSelectedPlaceId(''); setPendingSelection(null) }
+                    }}
+                    placeholder="Nhập địa chỉ giao hàng..."
+                    placeholderTextColor={textMuted}
+                    style={[f.input, { color: textPrimary }]}
+                    returnKeyType="search"
+                    onFocus={() => setShowSuggestions(addressInput.length > 0)}
+                  />
+                  {addressInput.length > 0 && (
+                    <Pressable
+                      onPress={() => {
+                        setAddressInput('')
+                        setSelectedPlaceId('')
+                        setPendingSelection(null)
+                        setShowSuggestions(false)
+                        actions.clearDeliveryInfo()
+                      }}
+                      hitSlop={8}
+                    >
+                      <X size={14} color={textMuted} />
+                    </Pressable>
+                  )}
+                </View>
+              </View>
+            </View>
+
+            {/* Suggestions */}
+            {showSuggestions && (
+              <View style={[f.suggestionsBox, { backgroundColor: isDark ? colors.gray[800] : colors.white.light, borderColor: borderDefault }]}>
+                {suggestionsQuery.isLoading && (
+                  <ActivityIndicator size="small" color={primaryColor} style={{ padding: 12 }} />
+                )}
+                <FlatList
+                  data={suggestionsQuery.data?.result ?? []}
+                  keyExtractor={(item) => item.placePrediction.placeId}
+                  keyboardShouldPersistTaps="always"
+                  scrollEnabled
+                  nestedScrollEnabled
+                  renderItem={({ item }: { item: IAddressSuggestion }) => (
+                    <Pressable
+                      onPress={() => {
+                        setAddressInput(item.placePrediction.text.text)
+                        setSelectedPlaceId(item.placePrediction.placeId)
+                        setShowSuggestions(false)
+                        Keyboard.dismiss()
+                      }}
+                      style={[f.suggestionItem, { borderBottomColor: isDark ? colors.gray[700] : colors.gray[100] }]}
+                    >
+                      <MapPin size={12} color={textMuted} style={{ marginTop: 2 }} />
+                      <View style={{ flex: 1 }}>
+                        <Text style={[f.suggestionMain, { color: isDark ? colors.gray[100] : colors.gray[900] }]} numberOfLines={1}>
+                          {item.placePrediction.structuredFormat.mainText.text}
+                        </Text>
+                        {item.placePrediction.structuredFormat.secondaryText?.text && (
+                          <Text style={[f.suggestionSub, { color: textMuted }]} numberOfLines={1}>
+                            {item.placePrediction.structuredFormat.secondaryText.text}
+                          </Text>
+                        )}
+                      </View>
+                    </Pressable>
+                  )}
+                />
+              </View>
+            )}
+
+            {/* GPS shortcut */}
+            <Pressable
+              onPress={handleGPS}
+              disabled={isLocating}
+              style={[f.gpsRow, { borderColor: primaryColor, backgroundColor: `${primaryColor}12` }]}
+            >
+              {isLocating ? (
+                <ActivityIndicator size="small" color={primaryColor} />
+              ) : (
+                <Navigation size={14} color={primaryColor} />
+              )}
+              <Text style={[f.gpsText, { color: primaryColor }]}>
+                {isLocating ? 'Đang lấy vị trí...' : 'Dùng vị trí hiện tại'}
+              </Text>
+            </Pressable>
+
+            {/* Phone input */}
+            <View style={[f.phoneWrapper, { backgroundColor: surfaceAlt, borderColor: borderDefault }]}>
+              <Text style={f.phoneIcon}>📞</Text>
+              <BottomSheetTextInput
+                value={phoneInput}
+                onChangeText={(text) => { setPhoneInput(text); actions.setDeliveryPhone(text) }}
+                placeholder="Số điện thoại nhận hàng"
+                placeholderTextColor={textMuted}
+                style={[f.input, { color: textPrimary }]}
+                keyboardType="phone-pad"
+                returnKeyType="done"
+              />
+            </View>
+          </>
+        )}
       </BottomSheetScrollView>
     </BottomSheetModal>
   )
@@ -610,18 +722,64 @@ const f = StyleSheet.create({
     marginTop: 1,
   },
 
-  // Distance bar
-  distanceBar: {
+  // Confirmation view
+  confirmedRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 8,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingVertical: 10,
+    borderRadius: 10,
     borderWidth: 1,
   },
-  distanceText: {
-    fontSize: 12,
+  confirmedAddress: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '500',
+    lineHeight: 18,
+  },
+  editBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  editBtnText: {
+    fontSize: 13,
     fontWeight: '600',
+  },
+  mapContainer: {
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    height: MAP_HEIGHT,
+  },
+  map: {
+    width: '100%',
+    height: MAP_HEIGHT,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 10,
+    borderWidth: 1,
+    paddingVertical: 12,
+  },
+  infoItem: {
+    flex: 1,
+    alignItems: 'center',
+    gap: 4,
+  },
+  infoSep: {
+    width: 1,
+    height: 32,
+  },
+  infoLabel: {
+    fontSize: 11,
+    fontWeight: '500',
+  },
+  infoValue: {
+    fontSize: 14,
+    fontWeight: '700',
   },
 
   // Phone (standalone — no flex:1 like inputWrapper)
