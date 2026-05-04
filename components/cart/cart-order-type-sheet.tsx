@@ -8,7 +8,7 @@ import {
   type BottomSheetBackdropProps,
   BottomSheetModal,
 } from '@gorhom/bottom-sheet'
-import { PackageCheck, UtensilsCrossed } from 'lucide-react-native'
+import { PackageCheck, Truck, UtensilsCrossed } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { StyleSheet, Text, View } from 'react-native'
@@ -115,7 +115,12 @@ export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
             : isDark
               ? colors.gray[400]
               : colors.gray[500]
-          const Icon = opt.value === 'take-out' ? PackageCheck : UtensilsCrossed
+          const Icon =
+            opt.value === 'take-out'
+              ? PackageCheck
+              : opt.value === 'delivery'
+                ? Truck
+                : UtensilsCrossed
           return (
             <TouchableOpacity
               activeOpacity={0.7}
