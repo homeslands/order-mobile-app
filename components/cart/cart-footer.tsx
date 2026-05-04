@@ -20,11 +20,14 @@ import {
   useCartVoucherDiscount,
 } from '@/stores/cart.store'
 import {
+  useOrderFlowDeliveryDistance,
   useOrderFlowOrderType,
   useOrderFlowTableName,
 } from '@/stores/selectors/order-flow.selectors'
+import { useCalculateDeliveryFee } from '@/hooks/use-branch-delivery'
+import { useBranchStore } from '@/stores'
 import type { IFeatureLock, IVoucher } from '@/types'
-import { showErrorToastMessage, showToast } from '@/utils'
+import { parseKm, showErrorToastMessage, showToast } from '@/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { formatCurrencyNative } from 'cart-price-calc'
 import { ChevronRight, ShoppingBag, Ticket } from 'lucide-react-native'
@@ -33,6 +36,7 @@ import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { DeliveryAddressSheet, DeliveryInfoRow } from '@/components/delivery'
 import { ConfirmOrderSheet } from './cart-confirm-order-sheet'
 import { SimpleOrderTypeSheet } from './cart-order-type-sheet'
 import { SimpleTableSheet } from './cart-table-sheet'
@@ -82,9 +86,25 @@ export const CartFooter = memo(function CartFooter({
   const [orderTypeSheetVisible, setOrderTypeSheetVisible] = useState(false)
   const [tableSheetVisible, setTableSheetVisible] = useState(false)
   const [voucherSheetOpen, setVoucherSheetOpen] = useState(false)
+  const [deliverySheetVisible, setDeliverySheetVisible] = useState(false)
+
+  const deliveryDistance = useOrderFlowDeliveryDistance()
+  const deliveryAddress = useOrderFlowStore(
+    (s) => s.orderingData?.deliveryAddress ?? '',
+  )
+  const deliveryPhone = useOrderFlowStore(
+    (s) => s.orderingData?.deliveryPhone ?? '',
+  )
+  const branchSlug = useBranchStore((s) => s.branch?.slug ?? '')
+
+  const { deliveryFee } = useCalculateDeliveryFee(
+    parseKm(deliveryDistance) ?? 0,
+    branchSlug,
+    { enabled: orderType === 'delivery' && (deliveryDistance ?? 0) > 0 },
+  )
 
   const voucherDiscount = useCartVoucherDiscount()
-  const finalTotal = total - voucherDiscount
+  const finalTotal = total - voucherDiscount + (deliveryFee ?? 0)
 
   const [confirmSheetVisible, setConfirmSheetVisible] = useState(false)
   const { validate } = useCartValidation()
@@ -104,6 +124,11 @@ export const CartFooter = memo(function CartFooter({
   )
   const closeTableSheet = useCallback(() => setTableSheetVisible(false), [])
   const closeVoucherSheet = useCallback(() => setVoucherSheetOpen(false), [])
+  const openDeliverySheet = useCallback(() => setDeliverySheetVisible(true), [])
+  const closeDeliverySheet = useCallback(
+    () => setDeliverySheetVisible(false),
+    [],
+  )
   const handleApplyVoucher = useCallback((v: IVoucher) => {
     cartActions.setVoucher(v)
     showToast(`Áp dụng: ${v.title}`)
@@ -111,7 +136,10 @@ export const CartFooter = memo(function CartFooter({
   }, [])
   const showTableSelect = orderType === 'at-table'
   const tableLabel = tableName || t('menu.selectTable', 'Chọn bàn')
-  const isOrderDisabled = showTableSelect && !tableName
+  const needsDeliveryInfo =
+    orderType === 'delivery' &&
+    (!deliveryAddress || !deliveryPhone || !/^[0-9]{10}$/.test(deliveryPhone))
+  const isOrderDisabled = (showTableSelect && !tableName) || needsDeliveryInfo
   const orderBtnLabel = isOrderDisabled
     ? t('menu.selectTable', 'Chọn bàn')
     : t('cart.placeOrder', 'Đặt hàng')
@@ -279,6 +307,14 @@ export const CartFooter = memo(function CartFooter({
           )}
         </View>
 
+        {orderType === 'delivery' && (
+          <DeliveryInfoRow
+            address={deliveryAddress}
+            onPress={openDeliverySheet}
+            isDark={isDark}
+          />
+        )}
+
         {/* Pickup Time Chips — tự ẩn khi không phải TAKE_OUT */}
         <PickupTimeChips isDark={isDark} primaryColor={primaryColor} />
 
@@ -339,6 +375,11 @@ export const CartFooter = memo(function CartFooter({
               <Text style={[footerStyles.totalValue, ft.primaryColorStyle]}>
                 {formatCurrencyNative(finalTotal)}
               </Text>
+              {orderType === 'delivery' && (deliveryFee ?? 0) > 0 && (
+                <Text style={[footerStyles.deliveryFeeNote, ft.mutedColor]}>
+                  (+{formatCurrencyNative(deliveryFee ?? 0)} ship)
+                </Text>
+              )}
             </View>
           </View>
           <Pressable
@@ -395,6 +436,15 @@ export const CartFooter = memo(function CartFooter({
         isDark={isDark}
         primaryColor={primaryColor}
         onApply={handleApplyVoucher}
+      />
+
+      <DeliveryAddressSheet
+        visible={deliverySheetVisible}
+        onClose={closeDeliverySheet}
+        mode="cart"
+        branchSlug={branchSlug}
+        isDark={isDark}
+        primaryColor={primaryColor}
       />
     </>
   )
@@ -492,6 +542,10 @@ const footerStyles = StyleSheet.create({
   totalValue: {
     fontSize: 20,
     fontWeight: '700',
+  },
+  deliveryFeeNote: {
+    fontSize: 10,
+    marginTop: 1,
   },
   checkoutBtn: {
     flexDirection: 'row',
