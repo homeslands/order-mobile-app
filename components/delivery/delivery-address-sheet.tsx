@@ -48,7 +48,7 @@ export interface DeliveryAddressSheetProps {
   primaryColor: string
 }
 
-const SNAP_POINTS = ['85%']
+const SNAP_POINTS = ['90%']
 
 export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   visible,
@@ -365,12 +365,11 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
             {/* Confirmed address + edit button */}
             <View style={[f.confirmedRow, { borderColor: borderDefault }]}>
               <MapPin size={14} color="#ef4444" />
-              <Text style={[f.confirmedAddress, { color: textPrimary }]} numberOfLines={2}>
+              <Text style={[f.confirmedAddress, { color: textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
                 {actions.currentAddress}
               </Text>
-              <Pressable onPress={handleEditAddress} hitSlop={8} style={f.editBtn}>
-                <Pencil size={13} color={primaryColor} />
-                <Text style={[f.editBtnText, { color: primaryColor }]}>Sửa</Text>
+              <Pressable onPress={handleEditAddress} hitSlop={8} style={[f.editBtn, { backgroundColor: `${primaryColor}18` }]}>
+                <Pencil size={14} color={primaryColor} />
               </Pressable>
             </View>
 
@@ -417,7 +416,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
 
             {/* Time + distance info */}
             {distanceQuery.data?.result && (
-              <View style={[f.infoRow, { backgroundColor: surfaceAlt, borderColor: borderDefault }]}>
+              <View style={[f.infoRow, { backgroundColor: `${primaryColor}0f`, borderColor: primaryColor }]}>
                 <View style={f.infoItem}>
                   <Text style={[f.infoLabel, { color: textMuted }]}>Thời gian dự kiến</Text>
                   <Text style={[f.infoValue, { color: textPrimary }]}>
@@ -442,7 +441,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
             )}
 
             {/* Phone input */}
-            <View style={[f.phoneWrapper, { backgroundColor: surfaceAlt, borderColor: borderDefault }]}>
+            <View style={[f.phoneWrapper, { backgroundColor: `${primaryColor}0f`, borderColor: primaryColor }]}>
               <Text style={f.phoneIcon}>📞</Text>
               <BottomSheetTextInput
                 value={phoneInput}
@@ -736,13 +735,11 @@ const f = StyleSheet.create({
     lineHeight: 18,
   },
   editBtn: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-  },
-  editBtnText: {
-    fontSize: 13,
-    fontWeight: '600',
+    justifyContent: 'center',
+    width: 32,
+    height: 32,
+    borderRadius: 8,
   },
   mapContainer: {
     borderRadius: 12,
