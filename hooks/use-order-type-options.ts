@@ -104,7 +104,7 @@ export function useOrderTypeOptions(options?: UseOrderTypeOptionsOptions) {
     })
 
     return availableTypes
-  }, [t, orderTypeLockStatus, isUserLoggedIn])
+  }, [t, orderTypeLockStatus, isUserLoggedIn, relevantParentFeature?.children])
 
   const selectedType = useMemo(() => {
     if (cartItems?.type) {
