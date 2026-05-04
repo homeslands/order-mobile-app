@@ -134,6 +134,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   const pendingLng = pendingSelection?.lng ?? 0
 
   const distanceQuery = useGetDistanceAndDuration(branchSlug, pendingLat, pendingLng)
+  const directionQuery = useGetAddressDirection(branchSlug, pendingLat, pendingLng)
 
   useEffect(() => {
     if (!pendingSelection || !distanceQuery.data?.result || !maxDistance) return
@@ -163,7 +164,6 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   }, [distanceQuery.data, pendingSelection, maxDistance, actions])
 
   // ─── Direction + route polyline ─────────────────────────────────────────────
-  const directionQuery = useGetAddressDirection(branchSlug, pendingLat, pendingLng)
   const routeCoords = useMemo(() => {
     if (!directionQuery.data?.result) return []
     return directionQuery.data.result.legs
@@ -182,7 +182,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   useEffect(() => {
     if (!actions.currentAddress || !branchLocation || !pendingSelection) return
     const coords = [
-      { latitude: branchLocation.lat, longitude: branchLocation.lng },
+      { latitude: parseFloat(String(branchLocation.lat)), longitude: parseFloat(String(branchLocation.lng)) },
       { latitude: pendingSelection.lat, longitude: pendingSelection.lng },
     ]
     const timer = setTimeout(() => {
@@ -327,6 +327,10 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   const borderDefault = isDark ? colors.gray[700] : colors.gray[200]
   const surfaceAlt = isDark ? colors.gray[800] : colors.gray[50]
 
+  // API returns lat/lng as strings despite the TypeScript type saying number
+  const branchLat = parseFloat(String(branchLocation?.lat ?? 10.7769))
+  const branchLng = parseFloat(String(branchLocation?.lng ?? 106.7009))
+
   return (
     <BottomSheetModal
       ref={sheetRef}
@@ -378,8 +382,8 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
                 provider={PROVIDER_GOOGLE}
                 style={f.map}
                 initialRegion={{
-                  latitude: branchLocation?.lat ?? 10.7769,
-                  longitude: branchLocation?.lng ?? 106.7009,
+                  latitude: branchLat,
+                  longitude: branchLng,
                   latitudeDelta: 0.05,
                   longitudeDelta: 0.05,
                 }}
@@ -390,7 +394,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
               >
                 {branchLocation && (
                   <Marker
-                    coordinate={{ latitude: branchLocation.lat, longitude: branchLocation.lng }}
+                    coordinate={{ latitude: branchLat, longitude: branchLng }}
                     pinColor={primaryColor}
                     title="Chi nhánh"
                   />
