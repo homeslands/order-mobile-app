@@ -7,10 +7,13 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { colors } from '@/constants'
 import { FOOTER_BOTTOM_EXTRA } from '@/constants/status-bar'
 import { useTables } from '@/hooks'
+import { useCalculateDeliveryFee } from '@/hooks/use-branch-delivery'
+import { DeliveryAddressSheet, DeliveryInfoRow } from '@/components/delivery'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import { OrderStatus, OrderTypeEnum } from '@/types'
 import {
   calculateOrderDisplayAndTotals,
+  parseKm,
   showErrorToastMessage,
   transformOrderItemToOrderDetail,
 } from '@/utils'
@@ -39,6 +42,7 @@ export default memo(function UpdateOrderFooter({
   const [orderTypeSheetVisible, setOrderTypeSheetVisible] = useState(false)
   const [tableSheetVisible, setTableSheetVisible] = useState(false)
   const [voucherSheetOpen, setVoucherSheetOpen] = useState(false)
+  const [deliverySheetVisible, setDeliverySheetVisible] = useState(false)
 
   const updatingData = useOrderFlowStore((s) => s.updatingData)
   const removeDraftVoucher = useOrderFlowStore((s) => s.removeDraftVoucher)
@@ -49,13 +53,28 @@ export default memo(function UpdateOrderFooter({
   const selectedTableSlug = draft?.table ?? null
   const voucher = draft?.voucher ?? null
   const orderItems = useMemo(() => draft?.orderItems ?? [], [draft])
-  const deliveryFee = originalOrder?.deliveryFee ?? 0
+  const draftDeliveryAddress = draft?.deliveryAddress ?? ''
+  const draftDeliveryPhone = draft?.deliveryPhone ?? ''
+  const draftDeliveryDistance = draft?.deliveryDistance ?? 0
   const accumulatedPointsToUse = originalOrder?.accumulatedPointsToUse ?? 0
 
   // Resolve table name from slug
   const branchFromStore = useBranchStore((s) => s.branch?.slug)
   const branchFromUser = useUserStore((s) => s.userInfo?.branch?.slug)
   const branchSlug = branchFromStore || branchFromUser
+
+  const { deliveryFee: newDeliveryFee } = useCalculateDeliveryFee(
+    parseKm(draftDeliveryDistance) ?? 0,
+    branchSlug ?? '',
+    {
+      enabled:
+        orderType === OrderTypeEnum.DELIVERY && draftDeliveryDistance > 0,
+    },
+  )
+  const effectiveDeliveryFee =
+    orderType === OrderTypeEnum.DELIVERY && draftDeliveryDistance > 0
+      ? (newDeliveryFee ?? originalOrder?.deliveryFee ?? 0)
+      : (originalOrder?.deliveryFee ?? 0)
   const { data: tablesData } = useTables(branchSlug ?? undefined)
   const tableName = useMemo(() => {
     if (!selectedTableSlug || !tablesData?.result) return null
@@ -80,11 +99,11 @@ export default memo(function UpdateOrderFooter({
   )
   const subtotal =
     (cartTotals?.subTotalBeforeDiscount ?? 0) +
-    deliveryFee -
+    effectiveDeliveryFee -
     accumulatedPointsToUse
   const voucherDiscount = cartTotals?.voucherDiscount ?? 0
   const finalTotal =
-    (cartTotals?.finalTotal ?? 0) + deliveryFee - accumulatedPointsToUse
+    (cartTotals?.finalTotal ?? 0) + effectiveDeliveryFee - accumulatedPointsToUse
 
   // Auto-remove voucher if maxItems exceeded
   const voucherSlug = voucher?.slug
@@ -110,7 +129,10 @@ export default memo(function UpdateOrderFooter({
   const showTableSelect = orderType === OrderTypeEnum.AT_TABLE
   const confirmDisabled =
     (orderType === OrderTypeEnum.AT_TABLE && !selectedTableSlug) ||
-    (orderType === OrderTypeEnum.DELIVERY && !draft?.deliveryAddress)
+    (orderType === OrderTypeEnum.DELIVERY &&
+      (!draftDeliveryAddress ||
+        !draftDeliveryPhone ||
+        !/^[0-9]{10}$/.test(draftDeliveryPhone)))
   const isPending = originalOrder?.status === OrderStatus.PENDING
 
   // Handlers
@@ -126,6 +148,11 @@ export default memo(function UpdateOrderFooter({
   const closeTableSheet = useCallback(() => setTableSheetVisible(false), [])
   const openVoucherSheet = useCallback(() => setVoucherSheetOpen(true), [])
   const closeVoucherSheet = useCallback(() => setVoucherSheetOpen(false), [])
+  const openDeliverySheet = useCallback(() => setDeliverySheetVisible(true), [])
+  const closeDeliverySheet = useCallback(
+    () => setDeliverySheetVisible(false),
+    [],
+  )
 
   // Memoised theme-dependent styles
   const ft = useMemo(
@@ -227,6 +254,14 @@ export default memo(function UpdateOrderFooter({
           )}
         </View>
 
+        {orderType === OrderTypeEnum.DELIVERY && (
+          <DeliveryInfoRow
+            address={draftDeliveryAddress}
+            onPress={openDeliverySheet}
+            isDark={isDark}
+          />
+        )}
+
         {/* Pickup Time Chips — tự ẩn khi không phải TAKE_OUT */}
         <PickupTimeChipsInUpdateOrder
           isDark={isDark}
@@ -277,6 +312,12 @@ export default memo(function UpdateOrderFooter({
               <Text style={[f.totalValue, ft.primaryColorStyle]}>
                 {formatCurrencyNative(finalTotal)}
               </Text>
+              {orderType === OrderTypeEnum.DELIVERY &&
+                effectiveDeliveryFee > 0 && (
+                  <Text style={[f.deliveryFeeNote, ft.mutedColor]}>
+                    (+{formatCurrencyNative(effectiveDeliveryFee)} ship)
+                  </Text>
+                )}
             </View>
           </View>
           {isPending && (
@@ -303,6 +344,15 @@ export default memo(function UpdateOrderFooter({
       <VoucherSheetInUpdateOrder
         visible={voucherSheetOpen}
         onClose={closeVoucherSheet}
+        isDark={isDark}
+        primaryColor={primaryColor}
+      />
+
+      <DeliveryAddressSheet
+        visible={deliverySheetVisible}
+        onClose={closeDeliverySheet}
+        mode="update-order"
+        branchSlug={branchSlug ?? ''}
         isDark={isDark}
         primaryColor={primaryColor}
       />
@@ -393,5 +443,9 @@ const f = StyleSheet.create({
   totalValue: {
     fontSize: 20,
     fontWeight: '700',
+  },
+  deliveryFeeNote: {
+    fontSize: 10,
+    marginTop: 1,
   },
 })
