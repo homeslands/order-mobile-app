@@ -267,6 +267,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
       keyboardBehavior="extend"
       keyboardBlurBehavior="restore"
     >
+      <View style={f.sheetRoot}>
       <BottomSheetScrollView
         contentContainerStyle={f.scroll}
         keyboardShouldPersistTaps="handled"
@@ -424,8 +425,6 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
           </View>
         )}
 
-        <View style={[f.divider, { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] }]} />
-
         {/* ── Phone input ── */}
         <View
           style={[
@@ -447,8 +446,13 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
             returnKeyType="done"
           />
         </View>
+      </BottomSheetScrollView>
 
-        {/* ── Confirm button ── */}
+      {/* ── Fixed footer ── */}
+      <View style={[f.footer, { borderTopColor: borderDefault }]}>
+        <Text style={[f.feeNote, { color: isDark ? colors.destructive.dark : colors.destructive.light }]}>
+          Giao hàng trong bán kính {maxDistance ?? '...'} km
+        </Text>
         <Pressable
           onPress={() => {
             if (canConfirm) onClose()
@@ -459,32 +463,31 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
             { backgroundColor: canConfirm ? primaryColor : isDark ? colors.gray[700] : colors.gray[300] },
           ]}
         >
-          <Text
-            style={[
-              f.confirmText,
-              { color: canConfirm ? colors.white.light : textMuted },
-            ]}
-          >
+          <Text style={[f.confirmText, { color: canConfirm ? colors.white.light : textMuted }]}>
             {canConfirm ? 'Xác nhận địa chỉ này' : 'Thiếu thông tin giao hàng'}
           </Text>
         </Pressable>
-
-        {/* ── Fee note ── */}
-        <View style={[f.feeNote, { backgroundColor: isDark ? colors.gray[800] : '#fef9c3' }]}>
-          <Text style={[f.feeNoteText, { color: isDark ? colors.gray[300] : '#854d0e' }]}>
-            ⚡ Giao hàng trong bán kính {maxDistance ?? '...'} km
-          </Text>
-        </View>
-      </BottomSheetScrollView>
+      </View>
+      </View>
     </BottomSheetModal>
   )
 })
 
 const f = StyleSheet.create({
+  sheetRoot: {
+    flex: 1,
+  },
   scroll: {
     paddingHorizontal: 16,
-    paddingBottom: 24,
+    paddingBottom: 16,
     gap: 10,
+  },
+  footer: {
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    paddingBottom: 20,
+    gap: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
   header: {
     flexDirection: 'row',
@@ -616,11 +619,6 @@ const f = StyleSheet.create({
     fontWeight: '600',
   },
 
-  divider: {
-    height: 1,
-    marginVertical: 2,
-  },
-
   // Phone (standalone — no flex:1 like inputWrapper)
   phoneWrapper: {
     flexDirection: 'row',
@@ -646,11 +644,8 @@ const f = StyleSheet.create({
     fontWeight: '700',
   },
   feeNote: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  feeNoteText: {
     fontSize: 12,
+    fontStyle: 'italic',
+    textAlign: 'center',
   },
 })
