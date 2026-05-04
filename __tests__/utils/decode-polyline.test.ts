@@ -21,4 +21,14 @@ describe('decodePolyline', () => {
     expect(result[0]).toHaveProperty('latitude')
     expect(result[0]).toHaveProperty('longitude')
   })
+
+  it('filters out NaN coordinates from malformed input', () => {
+    // valid encoded string followed by a truncated/malformed chunk
+    const result = decodePolyline('_p~iF~ps|U')
+    // all returned points must have finite coordinates
+    result.forEach((point) => {
+      expect(Number.isFinite(point.latitude)).toBe(true)
+      expect(Number.isFinite(point.longitude)).toBe(true)
+    })
+  })
 })

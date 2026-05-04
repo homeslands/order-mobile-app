@@ -1,8 +1,8 @@
-export function decodePolyline(
-  encoded: string,
-): { latitude: number; longitude: number }[] {
+import type { LatLng } from 'react-native-maps'
+
+export function decodePolyline(encoded: string): LatLng[] {
   if (!encoded) return []
-  const result: { latitude: number; longitude: number }[] = []
+  const result: LatLng[] = []
   let index = 0
   let lat = 0
   let lng = 0
