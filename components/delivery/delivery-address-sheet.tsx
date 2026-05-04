@@ -123,7 +123,12 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   useEffect(() => {
     if (!addressByPlaceIdQuery.data?.result || !selectedPlaceId) return
     const { lat, lng } = addressByPlaceIdQuery.data.result
-    setPendingSelection({ lat, lng, placeId: selectedPlaceId, address: addressInput })
+    setPendingSelection({
+      lat: parseFloat(String(lat)),
+      lng: parseFloat(String(lng)),
+      placeId: selectedPlaceId,
+      address: addressInput,
+    })
   }, [addressByPlaceIdQuery.data, selectedPlaceId, addressInput])
 
   // ─── GPS auto-select first suggestion ────────────────────────────────────────
