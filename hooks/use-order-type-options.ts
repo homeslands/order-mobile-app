@@ -9,7 +9,6 @@ import {
 import { useGetSystemFeatureFlagsByGroup } from '@/hooks'
 import { useOrderFlowStore, useUserStore } from '@/stores'
 import { OrderTypeEnum } from '@/types'
-import { useShallow } from 'zustand/react/shallow'
 
 export interface OrderTypeOption {
   label: string
@@ -33,10 +32,7 @@ export function useOrderTypeOptions(options?: UseOrderTypeOptionsOptions) {
 
   const cartItems = getCartItems()
   // Check if user is logged in
-  const userInfo = useUserStore(useShallow((s) => s.userInfo))
-  const isUserLoggedIn = useMemo(() => {
-    return !!userInfo
-  }, [userInfo])
+  const isUserLoggedIn = useUserStore((s) => !!s.userInfo)
 
   // Wrap featureFlags in useMemo to avoid changing dependencies
   const featureFlags = useMemo(
@@ -108,7 +104,7 @@ export function useOrderTypeOptions(options?: UseOrderTypeOptionsOptions) {
     })
 
     return availableTypes
-  }, [t, orderTypeLockStatus, isUserLoggedIn, relevantParentFeature])
+  }, [t, orderTypeLockStatus, isUserLoggedIn])
 
   const selectedType = useMemo(() => {
     if (cartItems?.type) {
