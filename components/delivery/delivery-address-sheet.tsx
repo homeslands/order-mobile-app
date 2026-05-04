@@ -1,6 +1,8 @@
 import {
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
+  BottomSheetFooter,
+  type BottomSheetFooterProps,
   BottomSheetModal,
   BottomSheetScrollView,
   BottomSheetTextInput,
@@ -17,6 +19,7 @@ import {
   Text,
   View,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useShallow } from 'zustand/react/shallow'
 
 import { colors, PHONE_NUMBER_REGEX } from '@/constants'
@@ -50,6 +53,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   primaryColor,
 }: DeliveryAddressSheetProps) {
   const sheetRef = useRef<BottomSheetModal>(null)
+  const { bottom: bottomInset } = useSafeAreaInsets()
 
   // ─── Store actions (unconditional) ──────────────────────────────────────────
   const cartState = useOrderFlowStore(
@@ -248,6 +252,33 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
     [],
   )
 
+  const renderFooter = useCallback(
+    (props: BottomSheetFooterProps) => (
+      <BottomSheetFooter {...props} bottomInset={bottomInset}>
+        <View
+          style={[
+            f.footer,
+            { backgroundColor: isDark ? colors.gray[900] : colors.white.light },
+          ]}
+        >
+          <Pressable
+            onPress={() => { if (canConfirm) onClose() }}
+            disabled={!canConfirm}
+            style={[
+              f.confirmBtn,
+              { backgroundColor: canConfirm ? primaryColor : isDark ? colors.gray[700] : colors.gray[300] },
+            ]}
+          >
+            <Text style={[f.confirmText, { color: canConfirm ? colors.white.light : (isDark ? colors.gray[400] : colors.gray[500]) }]}>
+              {canConfirm ? 'Xác nhận địa chỉ này' : 'Thiếu thông tin giao hàng'}
+            </Text>
+          </Pressable>
+        </View>
+      </BottomSheetFooter>
+    ),
+    [bottomInset, isDark, canConfirm, primaryColor, onClose],
+  )
+
   const textPrimary = isDark ? colors.gray[50] : colors.gray[900]
   const textMuted = isDark ? colors.gray[400] : colors.gray[500]
   const borderDefault = isDark ? colors.gray[700] : colors.gray[200]
@@ -266,8 +297,8 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
       onDismiss={onClose}
       keyboardBehavior="extend"
       keyboardBlurBehavior="restore"
+      footerComponent={renderFooter}
     >
-      <View style={f.sheetRoot}>
       <BottomSheetScrollView
         contentContainerStyle={f.scroll}
         keyboardShouldPersistTaps="handled"
@@ -279,6 +310,11 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
             <X size={20} color={textMuted} />
           </Pressable>
         </View>
+
+        {/* ── Range note ── */}
+        <Text style={[f.feeNote, { color: isDark ? colors.destructive.dark : colors.destructive.light }]}>
+          Giao hàng trong bán kính {maxDistance ?? '...'} km
+        </Text>
 
         {/* ── Route card: From → To ── */}
         <View style={f.routeCard}>
@@ -348,7 +384,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
         <Pressable
           onPress={handleGPS}
           disabled={isLocating}
-          style={[f.gpsRow, { borderColor: borderDefault }]}
+          style={[f.gpsRow, { borderColor: primaryColor, backgroundColor: `${primaryColor}12` }]}
         >
           {isLocating ? (
             <ActivityIndicator size="small" color={primaryColor} />
@@ -447,47 +483,20 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
           />
         </View>
       </BottomSheetScrollView>
-
-      {/* ── Fixed footer ── */}
-      <View style={[f.footer, { borderTopColor: borderDefault }]}>
-        <Text style={[f.feeNote, { color: isDark ? colors.destructive.dark : colors.destructive.light }]}>
-          Giao hàng trong bán kính {maxDistance ?? '...'} km
-        </Text>
-        <Pressable
-          onPress={() => {
-            if (canConfirm) onClose()
-          }}
-          disabled={!canConfirm}
-          style={[
-            f.confirmBtn,
-            { backgroundColor: canConfirm ? primaryColor : isDark ? colors.gray[700] : colors.gray[300] },
-          ]}
-        >
-          <Text style={[f.confirmText, { color: canConfirm ? colors.white.light : textMuted }]}>
-            {canConfirm ? 'Xác nhận địa chỉ này' : 'Thiếu thông tin giao hàng'}
-          </Text>
-        </Pressable>
-      </View>
-      </View>
     </BottomSheetModal>
   )
 })
 
 const f = StyleSheet.create({
-  sheetRoot: {
-    flex: 1,
-  },
   scroll: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    gap: 10,
+    paddingHorizontal: 20,
+    paddingBottom: 80,
+    gap: 12,
   },
   footer: {
-    paddingHorizontal: 16,
-    paddingTop: 10,
-    paddingBottom: 20,
-    gap: 8,
-    borderTopWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 8,
   },
   header: {
     flexDirection: 'row',
@@ -504,7 +513,6 @@ const f = StyleSheet.create({
   // Route card
   routeCard: {
     paddingVertical: 4,
-    paddingRight: 4,
   },
   routeRow: {
     flexDirection: 'row',
@@ -572,10 +580,10 @@ const f = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingVertical: 10,
+    paddingVertical: 11,
     paddingHorizontal: 14,
     borderRadius: 10,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderWidth: 1,
   },
   gpsText: {
     fontSize: 13,
