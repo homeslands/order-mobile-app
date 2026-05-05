@@ -196,7 +196,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
       lastRejectedKeyRef.current = key
       setPendingSelection(null)
       setSelectedPlaceId('')
-      setAddressInput('')
+      setAddressText('')
       setShowSuggestions(false)
       actions.clearDeliveryInfo()
       showToast(`Địa chỉ cách chi nhánh quá ${maxDistance}km`)
@@ -364,7 +364,14 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
           ]}
         >
           <Pressable
-            onPress={() => { if (canConfirm) onClose() }}
+            onPress={() => {
+              if (canConfirm) {
+                // Re-sync phone to store in case clearDeliveryInfo wiped it
+                // during an edit session (local phoneInput stays populated)
+                actions.setDeliveryPhone(phoneInput)
+                onClose()
+              }
+            }}
             disabled={!canConfirm}
             style={[
               f.confirmBtn,
