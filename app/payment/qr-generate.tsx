@@ -109,6 +109,10 @@ const ActiveQR = memo(function ActiveQR({
 
   const qrOpacity = useSharedValue(1)
 
+  const getQRRef = useCallback((ref: Svg | null) => {
+    svgRef.current = ref
+  }, [])
+
   const handleDownload = useCallback(() => {
     svgRef.current?.toDataURL((data) => {
       void downloadQRCodeImage(data, `payment_qr_${Date.now()}`)
@@ -134,9 +138,7 @@ const ActiveQR = memo(function ActiveQR({
         <QRCode
           value={token}
           size={QR_SIZE}
-          getRef={(ref) => {
-            svgRef.current = ref
-          }}
+          getRef={getQRRef}
         />
       </Animated.View>
 
@@ -342,10 +344,6 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  // qrImage: {
-  //   width: QR_SIZE,
-  //   height: QR_SIZE,
-  // },
   progressTrack: {
     width: '100%',
     height: 4,
@@ -368,7 +366,7 @@ const s = StyleSheet.create({
     paddingVertical: 8,
   },
   downloadBtnText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
   },
   errorIcon: { fontSize: 48 },
