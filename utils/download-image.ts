@@ -239,21 +239,17 @@ export async function downloadAndSaveImage(
 }
 
 /**
- * Download QR code image (for QR code components)
- * Note: This requires capturing the QR code view as an image first
- * You may need to use react-native-view-shot library for this
- * @param _qrCodeData - Data to encode in QR code (usually order slug)
- * @param _fileName - Optional custom file name
- * @returns Promise<boolean> - true if successful, false otherwise
+ * Save a QR code SVG capture to Photos.
+ * Caller must capture the SVG ref via react-native-qrcode-svg's getRef +
+ * toDataURL() before calling this — the base64PngData is the raw PNG bytes
+ * returned by toDataURL (no data-URI prefix).
  */
 export async function downloadQRCodeImage(
-  _qrCodeData: string,
-  _fileName?: string,
+  base64PngData: string,
+  fileName?: string,
 ): Promise<boolean> {
   try {
-    // Check permission first
     const hasPermission = await checkMediaLibraryPermission()
-
     if (!hasPermission) {
       const granted = await requestMediaLibraryPermission()
       if (!granted) {
@@ -262,11 +258,28 @@ export async function downloadQRCodeImage(
       }
     }
 
-    // For QR code, we need to capture it as an image first
-    // This requires using react-native-view-shot or similar library
-    // For now, we'll return false and suggest using downloadAndSaveImage with a QR code image URL
-    showToast(i18n.t('common.useScreenshotForQRCode', { ns: 'common' }))
-    return false
+    const finalFileName = fileName ?? `qr_${Date.now()}`
+    const tempFile = new File(Paths.cache, `${finalFileName}.png`)
+
+    const binaryString = atob(base64PngData)
+    const bytes = new Uint8Array(binaryString.length)
+    for (let i = 0; i < binaryString.length; i++) {
+      bytes[i] = binaryString.charCodeAt(i)
+    }
+
+    const writer = tempFile.writableStream().getWriter()
+    try {
+      await writer.write(bytes)
+      await writer.close()
+    } catch (writeError) {
+      await writer.abort()
+      throw writeError
+    }
+
+    await MediaLibrary.createAssetAsync(String(tempFile))
+
+    showToast(i18n.t('common.imageSavedSuccess', { ns: 'common' }))
+    return true
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error downloading QR code:', error)
