@@ -10,6 +10,7 @@ import {
   BottomSheetModal,
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet'
+import { useLocalSearchParams } from 'expo-router'
 import {
   FlashList,
   type FlashListRef,
@@ -581,9 +582,14 @@ export default function GiftCardOrdersScreen() {
     [t],
   )
 
+  const params = useLocalSearchParams<{ autoOpen?: string }>()
+  const autoOpenConsumed = useRef(false)
+
   const [ready, setReady] = useState(false)
   const [selectedType, setSelectedType] = useState('ALL')
-  const [detailSlug, setDetailSlug] = useState<string | null>(null)
+  const [detailSlug, setDetailSlug] = useState<string | null>(
+    () => params.autoOpen ?? null,
+  )
   const [dateFilter, setDateFilter] = useState<DateFilter>({
     fromDate: null,
     toDate: null,
@@ -593,6 +599,13 @@ export default function GiftCardOrdersScreen() {
   const flashListRef = useRef<FlashListRef<ICardOrderResponse>>(null)
 
   useRunAfterTransition(() => setReady(true), [])
+
+  // Mark auto-open param as consumed so re-renders don't re-open the sheet
+  useEffect(() => {
+    if (params.autoOpen && !autoOpenConsumed.current) {
+      autoOpenConsumed.current = true
+    }
+  }, [params.autoOpen])
 
   const queryParams = useMemo(
     () => ({
