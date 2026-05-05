@@ -3,6 +3,7 @@ import { ChevronRight, ShoppingBag, Ticket } from 'lucide-react-native'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { useShallow } from 'zustand/react/shallow'
 
 import { colors, PHONE_NUMBER_REGEX } from '@/constants'
 import { FOOTER_BOTTOM_EXTRA } from '@/constants/status-bar'
@@ -44,11 +45,13 @@ export default memo(function UpdateOrderFooter({
   const [voucherSheetOpen, setVoucherSheetOpen] = useState(false)
   const [deliverySheetVisible, setDeliverySheetVisible] = useState(false)
 
-  const updatingData = useOrderFlowStore((s) => s.updatingData)
+  const draft = useOrderFlowStore(
+    useShallow((s) => s.updatingData?.updateDraft),
+  )
+  const originalOrder = useOrderFlowStore(
+    useShallow((s) => s.updatingData?.originalOrder),
+  )
   const removeDraftVoucher = useOrderFlowStore((s) => s.removeDraftVoucher)
-
-  const draft = updatingData?.updateDraft
-  const originalOrder = updatingData?.originalOrder
   const orderType = (draft?.type as OrderTypeEnum) ?? OrderTypeEnum.AT_TABLE
   const selectedTableSlug = draft?.table ?? null
   const voucher = draft?.voucher ?? null
@@ -149,15 +152,17 @@ export default memo(function UpdateOrderFooter({
   const openVoucherSheet = useCallback(() => setVoucherSheetOpen(true), [])
   const closeVoucherSheet = useCallback(() => setVoucherSheetOpen(false), [])
   const openDeliverySheet = useCallback(() => setDeliverySheetVisible(true), [])
+  const clearDraftDeliveryInfo = useOrderFlowStore(
+    (s) => s.clearDraftDeliveryInfo,
+  )
   const closeDeliverySheet = useCallback(() => {
     setDeliverySheetVisible(false)
-    const s = useOrderFlowStore.getState()
-    const addr = s.updatingData?.updateDraft?.deliveryAddress ?? ''
-    const phone = s.updatingData?.updateDraft?.deliveryPhone ?? ''
+    const addr = draft?.deliveryAddress ?? ''
+    const phone = draft?.deliveryPhone ?? ''
     if (addr && !PHONE_NUMBER_REGEX.test(phone)) {
-      s.clearDraftDeliveryInfo()
+      clearDraftDeliveryInfo()
     }
-  }, [])
+  }, [draft, clearDraftDeliveryInfo])
 
   // Memoised theme-dependent styles
   const ft = useMemo(
