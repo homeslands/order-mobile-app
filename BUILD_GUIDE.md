@@ -73,17 +73,31 @@ eas build:view <build-id>
 # 1. Xóa Metro cache (bắt buộc mỗi khi đổi .env)
 rm -rf node_modules/.cache/metro
 
-# 2. Chạy codegen (bắt buộc trước khi sync)
+# 2. Xóa pre-built bundle nếu có (tránh Gradle dùng bundle JS cũ)
+rm -f android/app/src/main/assets/index.android.bundle
+
+# 3. Xóa .cxx để tránh lỗi CMake add_subdirectory khi clean
+rm -rf android/app/.cxx
+
+# 4. Chạy codegen (bắt buộc trước khi sync/clean)
 cd android && ./gradlew generateCodegenArtifactsFromSchema
+
+# 5. Clean Gradle build artifacts
+./gradlew clean && cd ..
 ```
 
 Sau đó trong Android Studio:
 
 1. **File → Sync Project with Gradle Files**
-2. **Build → Clean Project**
-3. **Build → Rebuild Project** (hoặc Run)
+2. **Build → Rebuild Project** (hoặc Run)
 
-> **Lưu ý:** `Build → Clean Project` đã được cấu hình tự động xóa `app/.cxx` trước khi clean native — không cần xóa tay nữa. Mỗi lần đổi file .env, chỉ được build APK/AAB 1 lần.
+Hoặc dùng CLI:
+
+```bash
+npx expo run:android --variant release
+```
+
+> **Lưu ý:** Phải xóa `app/.cxx` **trước** khi chạy `./gradlew clean` — nếu không, CMake sẽ lỗi `add_subdirectory` vì JNI dirs chưa được tạo.
 
 ### Flow lần đầu setup / sau `npm install`
 

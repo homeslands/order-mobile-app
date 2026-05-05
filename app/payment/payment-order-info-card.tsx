@@ -139,6 +139,14 @@ export const PaymentOrderInfoCard = memo(function PaymentOrderInfoCard({
               </Text>
             </View>
           )}
+        {order.type === OrderTypeEnum.DELIVERY && order.deliveryPhone && (
+          <View style={s.row}>
+            <Text style={[s.label, theme.subtle]}>
+              {t('order.deliveryPhone', 'SĐT nhận hàng')}
+            </Text>
+            <Text style={[s.value, theme.value]}>{order.deliveryPhone}</Text>
+          </View>
+        )}
         {order.description ? (
           <View style={s.row}>
             <Text style={[s.label, theme.subtle]}>

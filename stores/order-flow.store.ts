@@ -254,38 +254,46 @@ export const useOrderFlowStore = create<IOrderFlowStore>()(
       setOrderingType: (type: OrderTypeEnum) => {
         const { orderingData } = get()
 
+        const deliveryClear =
+          type !== OrderTypeEnum.DELIVERY
+            ? {
+                deliveryAddress: '',
+                deliveryDistance: 0,
+                deliveryDuration: 0,
+                deliveryPhone: '',
+                deliveryLat: undefined,
+                deliveryLng: undefined,
+                deliveryPlaceId: '',
+              }
+            : {}
+
         // If orderingData is null, initialize it first
         if (!orderingData) {
           get().initializeOrdering()
-          // Get orderingData after initialization
           const { orderingData: newOrderingData } = get()
-          if (!newOrderingData) {
-            return
-          }
-
-          const updatedData = {
-            ...newOrderingData,
-            type,
-            ...(type === OrderTypeEnum.TAKE_OUT
-              ? { table: '', tableName: '' }
-              : { timeLeftTakeOut: undefined }),
-          }
+          if (!newOrderingData) return
 
           set({
-            orderingData: updatedData,
+            orderingData: {
+              ...newOrderingData,
+              type,
+              ...(type === OrderTypeEnum.TAKE_OUT
+                ? { table: '', tableName: '' }
+                : { timeLeftTakeOut: undefined }),
+              ...deliveryClear,
+            },
             lastModified: dayjs().valueOf(),
           })
         } else {
-          const updatedData = {
-            ...orderingData,
-            type,
-            ...(type === OrderTypeEnum.TAKE_OUT
-              ? { table: '', tableName: '' }
-              : { timeLeftTakeOut: undefined }),
-          }
-
           set({
-            orderingData: updatedData,
+            orderingData: {
+              ...orderingData,
+              type,
+              ...(type === OrderTypeEnum.TAKE_OUT
+                ? { table: '', tableName: '' }
+                : { timeLeftTakeOut: undefined }),
+              ...deliveryClear,
+            },
             lastModified: dayjs().valueOf(),
           })
         }

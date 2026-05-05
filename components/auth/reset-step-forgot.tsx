@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Text, TouchableOpacity, View, useColorScheme } from 'react-native'
 
-import { AnimatedCountdownText } from '@/components/auth'
+import { AnimatedCountdownText } from './animated-countdown-text'
 import { ResetPasswordForm } from '@/components/form'
 import { Button } from '@/components/ui'
 import { useAnimatedCountdown, useCountdown } from '@/hooks'
