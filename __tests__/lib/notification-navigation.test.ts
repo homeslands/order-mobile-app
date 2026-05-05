@@ -18,20 +18,27 @@ jest.mock('@/constants', () => ({
 }))
 
 import { getRouteForMessage } from '@/lib/notification-navigation'
+import { NotificationMessageCode } from '@/constants'
 
 describe('getRouteForMessage', () => {
   it('routes CARD_ORDER_PAID to gift-card-orders with autoOpen param', () => {
-    const route = getRouteForMessage({ message: 'card-order-paid', order: 'order-abc' })
+    const route = getRouteForMessage({
+      message: NotificationMessageCode.CARD_ORDER_PAID,
+      order: 'order-abc',
+    })
     expect(route).toBe('/profile/gift-card-orders?autoOpen=order-abc')
   })
 
   it('returns null for CARD_ORDER_PAID when order is missing', () => {
-    const route = getRouteForMessage({ message: 'card-order-paid' })
+    const route = getRouteForMessage({ message: NotificationMessageCode.CARD_ORDER_PAID })
     expect(route).toBeNull()
   })
 
   it('still routes ORDER_PAID to payment screen', () => {
-    const route = getRouteForMessage({ message: 'order-paid', order: 'order-xyz' })
+    const route = getRouteForMessage({
+      message: NotificationMessageCode.ORDER_PAID,
+      order: 'order-xyz',
+    })
     expect(route).toBe('/payment/order-xyz')
   })
 })
