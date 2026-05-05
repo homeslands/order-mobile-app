@@ -4,16 +4,18 @@ import {
   BottomSheetScrollView,
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet'
-import { X } from 'lucide-react-native'
+import { Download, X } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native'
 import QRCode from 'react-native-qrcode-svg'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import type { Svg } from 'react-native-svg'
 
 import { colors } from '@/constants'
 import { useUserStore } from '@/stores'
 import { useScanSheetStore } from '@/stores/scan-sheet.store'
+import { downloadQRCodeImage } from '@/utils'
 
 const QR_SIZE = 220
 const SNAP_POINTS = ['62%']
@@ -29,6 +31,7 @@ const QrContent = memo(function QrContent({
 }) {
   const { t } = useTranslation('profile')
   const userInfo = useUserStore((s) => s.userInfo)
+  const svgRef = useRef<Svg | null>(null)
 
   const primary = isDark ? colors.primary.dark : colors.primary.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
@@ -40,6 +43,16 @@ const QrContent = memo(function QrContent({
     .join(' ')
 
   const slug = userInfo?.slug ?? null
+
+  const getQRRef = useCallback((ref: Svg | null) => {
+    svgRef.current = ref
+  }, [])
+
+  const handleDownload = useCallback(() => {
+    svgRef.current?.toDataURL((data) => {
+      void downloadQRCodeImage(data, `member_qr_${Date.now()}`)
+    })
+  }, [])
 
   return (
     <View style={s.content}>
@@ -71,6 +84,7 @@ const QrContent = memo(function QrContent({
             color="#000000"
             backgroundColor="#FFFFFF"
             ecl="H"
+            getRef={getQRRef}
           />
         ) : (
           <View style={s.qrPlaceholder}>
@@ -91,6 +105,17 @@ const QrContent = memo(function QrContent({
         <Text style={[s.userPhone, { color: mutedColor }]} numberOfLines={1}>
           {userInfo.phonenumber}
         </Text>
+      ) : null}
+      {slug ? (
+        <Pressable
+          style={[s.downloadBtn, { borderColor: primary }]}
+          onPress={handleDownload}
+        >
+          <Download size={14} color={primary} />
+          <Text style={[s.downloadBtnText, { color: primary }]}>
+            {t('profile.qr.downloadButton')}
+          </Text>
+        </Pressable>
       ) : null}
     </View>
   )
@@ -113,6 +138,10 @@ const ScanSheetPortal = memo(function ScanSheetPortal() {
     () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
     [isDark],
   )
+
+  const handleClose = useCallback(() => {
+    sheetRef.current?.dismiss()
+  }, [])
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -145,7 +174,7 @@ const ScanSheetPortal = memo(function ScanSheetPortal() {
       >
         <QrContent
           isDark={isDark}
-          onClose={() => sheetRef.current?.dismiss()}
+          onClose={handleClose}
         />
       </BottomSheetScrollView>
     </BottomSheetModal>
@@ -245,7 +274,21 @@ const s = StyleSheet.create({
   userPhone: {
     fontSize: 14,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 12,
+  },
+  downloadBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1.5,
+    borderRadius: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    marginBottom: 8,
+  },
+  downloadBtnText: {
+    fontSize: 15,
+    fontWeight: '600',
   },
 })
 
