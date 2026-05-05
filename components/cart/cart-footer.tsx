@@ -4,6 +4,7 @@
 import { getSystemFeatureFlagsByGroup } from '@/api'
 import {
   colors,
+  PHONE_NUMBER_REGEX,
   QUERYKEY,
   SystemLockFeatureChild,
   SystemLockFeatureGroup,
@@ -125,10 +126,15 @@ export const CartFooter = memo(function CartFooter({
   const closeTableSheet = useCallback(() => setTableSheetVisible(false), [])
   const closeVoucherSheet = useCallback(() => setVoucherSheetOpen(false), [])
   const openDeliverySheet = useCallback(() => setDeliverySheetVisible(true), [])
-  const closeDeliverySheet = useCallback(
-    () => setDeliverySheetVisible(false),
-    [],
-  )
+  const closeDeliverySheet = useCallback(() => {
+    setDeliverySheetVisible(false)
+    const s = useOrderFlowStore.getState()
+    const addr = s.orderingData?.deliveryAddress ?? ''
+    const phone = s.orderingData?.deliveryPhone ?? ''
+    if (addr && !PHONE_NUMBER_REGEX.test(phone)) {
+      s.clearDeliveryInfo()
+    }
+  }, [])
   const handleApplyVoucher = useCallback((v: IVoucher) => {
     cartActions.setVoucher(v)
     showToast(`Áp dụng: ${v.title}`)

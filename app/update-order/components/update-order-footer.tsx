@@ -4,7 +4,7 @@ import { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
-import { colors } from '@/constants'
+import { colors, PHONE_NUMBER_REGEX } from '@/constants'
 import { FOOTER_BOTTOM_EXTRA } from '@/constants/status-bar'
 import { useTables } from '@/hooks'
 import { useCalculateDeliveryFee } from '@/hooks/use-branch-delivery'
@@ -149,10 +149,15 @@ export default memo(function UpdateOrderFooter({
   const openVoucherSheet = useCallback(() => setVoucherSheetOpen(true), [])
   const closeVoucherSheet = useCallback(() => setVoucherSheetOpen(false), [])
   const openDeliverySheet = useCallback(() => setDeliverySheetVisible(true), [])
-  const closeDeliverySheet = useCallback(
-    () => setDeliverySheetVisible(false),
-    [],
-  )
+  const closeDeliverySheet = useCallback(() => {
+    setDeliverySheetVisible(false)
+    const s = useOrderFlowStore.getState()
+    const addr = s.updatingData?.updateDraft?.deliveryAddress ?? ''
+    const phone = s.updatingData?.updateDraft?.deliveryPhone ?? ''
+    if (addr && !PHONE_NUMBER_REGEX.test(phone)) {
+      s.clearDraftDeliveryInfo()
+    }
+  }, [])
 
   // Memoised theme-dependent styles
   const ft = useMemo(
