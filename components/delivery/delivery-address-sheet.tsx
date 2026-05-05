@@ -330,6 +330,11 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
 
   const hasCoords = pendingLat !== 0 && pendingLng !== 0
   const phoneIsInvalid = !!phoneInput && !PHONE_NUMBER_REGEX.test(phoneInput)
+  // True while waiting for coords (addressByPlaceIdQuery) or distance check to resolve
+  const isResolvingAddress =
+    !!selectedPlaceId &&
+    !actions.currentAddress &&
+    !addressByPlaceIdQuery.isError
 
   const canConfirm =
     !!actions.currentAddress &&
@@ -648,11 +653,21 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
               </View>
             )}
 
+            {/* Loading indicator while resolving suggestion → coords → distance */}
+            {isResolvingAddress && (
+              <View style={[f.resolvingRow, { backgroundColor: `${primaryColor}0a`, borderColor: primaryColor }]}>
+                <ActivityIndicator size="small" color={primaryColor} />
+                <Text style={[f.resolvingText, { color: primaryColor }]}>
+                  Đang xác nhận địa chỉ...
+                </Text>
+              </View>
+            )}
+
             {/* GPS shortcut */}
             <Pressable
               onPress={handleGPS}
-              disabled={isLocating}
-              style={[f.gpsRow, { borderColor: primaryColor, backgroundColor: `${primaryColor}0a` }]}
+              disabled={isLocating || isResolvingAddress}
+              style={[f.gpsRow, { borderColor: primaryColor, backgroundColor: `${primaryColor}0a`, opacity: isResolvingAddress ? 0.5 : 1 }]}
             >
               {isLocating ? (
                 <ActivityIndicator size="small" color={primaryColor} />
@@ -889,6 +904,19 @@ const f = StyleSheet.create({
   feeNote: {
     fontSize: 12,
     fontStyle: 'italic',
+  },
+  resolvingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+  },
+  resolvingText: {
+    fontSize: 13,
+    fontWeight: '500',
   },
   phoneError: {
     fontSize: 11,

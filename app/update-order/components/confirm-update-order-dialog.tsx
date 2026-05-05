@@ -107,8 +107,7 @@ export default memo(function ConfirmUpdateOrderDialog({
         (originalOrder.table?.slug || null) !== (draft.table || null) ||
         (originalOrder.description ?? '') !== (draft.description ?? '') ||
         (originalOrder.timeLeftTakeOut ?? 0) !== (draft.timeLeftTakeOut ?? 0) ||
-        (originalOrder.deliveryTo?.placeId || '') !==
-          (draft.deliveryTo?.placeId || draft.deliveryPlaceId || '') ||
+        (originalOrder.deliveryTo?.placeId || '') !== (draft.deliveryPlaceId || '') ||
         (originalOrder.deliveryPhone ?? '') !== (draft.deliveryPhone ?? '')
 
       if (metaChanged) {
@@ -119,8 +118,7 @@ export default memo(function ConfirmUpdateOrderDialog({
             table: draft.table || null,
             description: draft.description ?? '',
             timeLeftTakeOut: draft.timeLeftTakeOut ?? 0,
-            deliveryTo:
-              draft.deliveryTo?.placeId ?? draft.deliveryPlaceId ?? undefined,
+            deliveryTo: draft.deliveryPlaceId || undefined,
             deliveryPhone: draft.deliveryPhone ?? undefined,
           },
         })
