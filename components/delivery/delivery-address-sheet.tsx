@@ -10,7 +10,7 @@ import {
 import * as Location from 'expo-location'
 import { formatCurrencyNative } from 'cart-price-calc'
 import { MapPin, Navigation, Pencil, Phone, X } from 'lucide-react-native'
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { forwardRef, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   Dimensions,
@@ -49,6 +49,62 @@ export interface DeliveryAddressSheetProps {
 }
 
 const SNAP_POINTS = ['90%']
+
+interface DeliveryMapProps {
+  branchLat: number
+  branchLng: number
+  hasBranchLocation: boolean
+  pendingSelection: { lat: number; lng: number } | null
+  routeCoords: { latitude: number; longitude: number }[]
+  primaryColor: string
+}
+
+const DeliveryMap = memo(
+  forwardRef<MapView, DeliveryMapProps>(function DeliveryMap(
+    { branchLat, branchLng, hasBranchLocation, pendingSelection, routeCoords, primaryColor },
+    ref,
+  ) {
+    return (
+      <MapView
+        ref={ref}
+        provider={PROVIDER_GOOGLE}
+        style={f.map}
+        initialRegion={{
+          latitude: branchLat,
+          longitude: branchLng,
+          latitudeDelta: 0.05,
+          longitudeDelta: 0.05,
+        }}
+        scrollEnabled={false}
+        zoomEnabled={false}
+        pitchEnabled={false}
+        rotateEnabled={false}
+      >
+        {hasBranchLocation && (
+          <Marker
+            coordinate={{ latitude: branchLat, longitude: branchLng }}
+            pinColor={primaryColor}
+            title="Chi nhánh"
+          />
+        )}
+        {pendingSelection && (
+          <Marker
+            coordinate={{ latitude: pendingSelection.lat, longitude: pendingSelection.lng }}
+            pinColor="#ef4444"
+            title="Điểm giao"
+          />
+        )}
+        {routeCoords.length > 0 && (
+          <Polyline
+            coordinates={routeCoords}
+            strokeColor={primaryColor}
+            strokeWidth={3}
+          />
+        )}
+      </MapView>
+    )
+  }),
+)
 
 export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   visible,
@@ -417,8 +473,14 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   const borderDefault = isDark ? colors.gray[700] : colors.gray[200]
 
   // API returns lat/lng as strings despite the TypeScript type saying number
-  const branchLat = parseFloat(String(branchLocation?.lat ?? 10.7769))
-  const branchLng = parseFloat(String(branchLocation?.lng ?? 106.7009))
+  const branchLat = useMemo(
+    () => parseFloat(String(branchLocation?.lat ?? 10.7769)),
+    [branchLocation?.lat],
+  )
+  const branchLng = useMemo(
+    () => parseFloat(String(branchLocation?.lng ?? 106.7009)),
+    [branchLocation?.lng],
+  )
 
   return (
     <BottomSheetModal
@@ -465,43 +527,15 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
 
             {/* Map */}
             <View style={[f.mapContainer, { borderColor: borderDefault }]}>
-              <MapView
+              <DeliveryMap
                 ref={mapRef}
-                provider={PROVIDER_GOOGLE}
-                style={f.map}
-                initialRegion={{
-                  latitude: branchLat,
-                  longitude: branchLng,
-                  latitudeDelta: 0.05,
-                  longitudeDelta: 0.05,
-                }}
-                scrollEnabled={false}
-                zoomEnabled={false}
-                pitchEnabled={false}
-                rotateEnabled={false}
-              >
-                {branchLocation && (
-                  <Marker
-                    coordinate={{ latitude: branchLat, longitude: branchLng }}
-                    pinColor={primaryColor}
-                    title="Chi nhánh"
-                  />
-                )}
-                {pendingSelection && (
-                  <Marker
-                    coordinate={{ latitude: pendingSelection.lat, longitude: pendingSelection.lng }}
-                    pinColor="#ef4444"
-                    title="Điểm giao"
-                  />
-                )}
-                {routeCoords.length > 0 && (
-                  <Polyline
-                    coordinates={routeCoords}
-                    strokeColor={primaryColor}
-                    strokeWidth={3}
-                  />
-                )}
-              </MapView>
+                branchLat={branchLat}
+                branchLng={branchLng}
+                hasBranchLocation={!!branchLocation}
+                pendingSelection={pendingSelection}
+                routeCoords={routeCoords}
+                primaryColor={primaryColor}
+              />
             </View>
 
             {/* Time + distance info */}
