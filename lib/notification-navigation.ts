@@ -33,7 +33,7 @@ function parseNotificationData(
   return { ...data, ...parsed }
 }
 
-function getRouteForMessage(routeData: NotificationRouteData): string | null {
+export function getRouteForMessage(routeData: NotificationRouteData): string | null {
   const { message, order } = routeData
 
   switch (message) {
@@ -48,8 +48,10 @@ function getRouteForMessage(routeData: NotificationRouteData): string | null {
       return order ? `/payment/${order}` : null
 
     case NotificationMessageCode.ORDER_PAID:
-    case NotificationMessageCode.CARD_ORDER_PAID:
       return order ? `/payment/${order}` : null
+
+    case NotificationMessageCode.CARD_ORDER_PAID:
+      return order ? `/profile/gift-card-orders?autoOpen=${order}` : null
 
     case NotificationMessageCode.ORDER_BILL_FAILED_PRINTING:
     case NotificationMessageCode.ORDER_CHEF_ORDER_FAILED_PRINTING:

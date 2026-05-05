@@ -1,0 +1,37 @@
+jest.mock('@/lib/navigation', () => ({
+  isNavigationLocked: jest.fn(() => false),
+  navigateNative: { push: jest.fn() },
+}))
+
+jest.mock('@/constants', () => ({
+  NotificationMessageCode: {
+    ORDER_NEEDS_READY_TO_GET: 'order-needs-ready-to-get',
+    ORDER_NEEDS_PROCESSED: 'order-needs-processed',
+    ORDER_NEEDS_DELIVERED: 'order-needs-delivered',
+    ORDER_NEEDS_CANCELLED: 'order-needs-cancelled',
+    ORDER_PAID: 'order-paid',
+    CARD_ORDER_PAID: 'card-order-paid',
+    ORDER_BILL_FAILED_PRINTING: 'order-bill-failed-printing',
+    ORDER_CHEF_ORDER_FAILED_PRINTING: 'order-chef-order-failed-printing',
+    ORDER_LABEL_TICKET_FAILED_PRINTING: 'order-label-ticket-failed-printing',
+  },
+}))
+
+import { getRouteForMessage } from '@/lib/notification-navigation'
+
+describe('getRouteForMessage', () => {
+  it('routes CARD_ORDER_PAID to gift-card-orders with autoOpen param', () => {
+    const route = getRouteForMessage({ message: 'card-order-paid', order: 'order-abc' })
+    expect(route).toBe('/profile/gift-card-orders?autoOpen=order-abc')
+  })
+
+  it('returns null for CARD_ORDER_PAID when order is missing', () => {
+    const route = getRouteForMessage({ message: 'card-order-paid' })
+    expect(route).toBeNull()
+  })
+
+  it('still routes ORDER_PAID to payment screen', () => {
+    const route = getRouteForMessage({ message: 'order-paid', order: 'order-xyz' })
+    expect(route).toBe('/payment/order-xyz')
+  })
+})
