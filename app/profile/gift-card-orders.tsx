@@ -583,10 +583,10 @@ export default function GiftCardOrdersScreen() {
   )
 
   const params = useLocalSearchParams<{ autoOpen?: string }>()
-  const autoOpenConsumed = useRef(false)
 
   const [ready, setReady] = useState(false)
   const [selectedType, setSelectedType] = useState('ALL')
+  // autoOpen param seeds the initial slug; lazy initializer runs only once
   const [detailSlug, setDetailSlug] = useState<string | null>(
     () => params.autoOpen ?? null,
   )
@@ -599,13 +599,6 @@ export default function GiftCardOrdersScreen() {
   const flashListRef = useRef<FlashListRef<ICardOrderResponse>>(null)
 
   useRunAfterTransition(() => setReady(true), [])
-
-  // Mark auto-open param as consumed so re-renders don't re-open the sheet
-  useEffect(() => {
-    if (params.autoOpen && !autoOpenConsumed.current) {
-      autoOpenConsumed.current = true
-    }
-  }, [params.autoOpen])
 
   const queryParams = useMemo(
     () => ({
