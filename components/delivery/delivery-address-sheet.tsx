@@ -186,8 +186,10 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   }, [actions])
 
   const handlePhoneBlur = useCallback(() => {
-    // Final sync on blur covers partial entries user leaves without completing
-    actions.setDeliveryPhone(phoneInputRef.current)
+    const value = phoneInputRef.current
+    if (!value || PHONE_NUMBER_REGEX.test(value)) {
+      actions.setDeliveryPhone(value)
+    }
   }, [actions])
 
   // ─── Distance check ───────────────────────────────────────────────────────────
