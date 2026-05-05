@@ -243,6 +243,8 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
 
   const handlePhoneBlur = useCallback(() => {
     const value = phoneInputRef.current
+    // Partial numbers are intentionally NOT written to the store — same guard as
+    // handlePhoneChange. canConfirm prevents confirm with invalid phone regardless.
     if (!value || PHONE_NUMBER_REGEX.test(value)) {
       actions.setDeliveryPhone(value)
     }
