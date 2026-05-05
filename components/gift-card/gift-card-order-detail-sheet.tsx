@@ -234,6 +234,8 @@ export const GiftCardOrderDetailSheet = memo(function GiftCardOrderDetailSheet({
 
   const giftCards = order?.giftCards ?? []
   const hasGiftCards = giftCards.length > 0 && order?.type === GiftCardType.BUY
+  const recipients = order?.receipients ?? []
+  const isGiftType = order?.type === GiftCardType.GIFT
 
   return (
     <BottomSheetModal
@@ -349,6 +351,68 @@ export const GiftCardOrderDetailSheet = memo(function GiftCardOrderDetailSheet({
                 />
               </InfoRow>
             </View>
+
+            {/* ── Sender + Recipients (GIFT type) ──────────────────── */}
+            {isGiftType && (
+              <>
+                <Text style={[s.sectionTitle, { color: subColor }]}>
+                  {t('orderDetail.sender')}
+                </Text>
+                <View style={[s.card, { backgroundColor: cardBg, borderColor }]}>
+                  <View style={s.personRow}>
+                    <View style={s.personTopLine}>
+                      <Text style={[s.personName, { color: textColor }]}>
+                        {order.customerName}
+                      </Text>
+                      <Text style={[s.personPhone, { color: subColor }]}>
+                        {order.customerPhone}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {recipients.length > 0 && (
+                  <>
+                    <Text style={[s.sectionTitle, { color: subColor }]}>
+                      {t('orderDetail.recipientsSection')}
+                    </Text>
+                    <View
+                      style={[s.card, { backgroundColor: cardBg, borderColor }]}
+                    >
+                      {recipients.map((r, i) => (
+                        <View key={r.slug}>
+                          <View style={s.personRow}>
+                            <View style={s.personTopLine}>
+                              <Text style={[s.personName, { color: textColor }]}>
+                                {r.name}
+                              </Text>
+                              <Text style={[s.personPhone, { color: subColor }]}>
+                                {r.phone}
+                              </Text>
+                            </View>
+                            {!!r.message && (
+                              <Text
+                                style={[s.personMessage, { color: subColor }]}
+                              >
+                                {r.message}
+                              </Text>
+                            )}
+                          </View>
+                          {i < recipients.length - 1 && (
+                            <View
+                              style={[
+                                s.divider,
+                                { backgroundColor: borderColor },
+                              ]}
+                            />
+                          )}
+                        </View>
+                      ))}
+                    </View>
+                  </>
+                )}
+              </>
+            )}
 
             {/* ── Gift cards list ───────────────────────────────────── */}
             {hasGiftCards && (
@@ -473,4 +537,19 @@ const s = StyleSheet.create({
     letterSpacing: 0.3,
   },
   gcVal: { fontSize: 13, fontWeight: '700' },
+
+  // Person rows (sender / recipients)
+  personRow: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 4,
+  },
+  personTopLine: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  personName: { fontSize: 14, fontWeight: '600' },
+  personPhone: { fontSize: 13 },
+  personMessage: { fontSize: 12, fontStyle: 'italic' },
 })

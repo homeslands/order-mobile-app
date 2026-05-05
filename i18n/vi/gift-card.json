@@ -171,7 +171,9 @@
     "type": "Loại",
     "orderCode": "Mã đơn hàng",
     "giftCardsSection": "Danh sách thẻ ({{count}})",
-    "notFound": "Không tìm thấy đơn hàng"
+    "notFound": "Không tìm thấy đơn hàng",
+    "sender": "Người gửi",
+    "recipientsSection": "Người nhận"
   },
   "orderSuccess": {
     "title": "Chi tiết đơn hàng",
