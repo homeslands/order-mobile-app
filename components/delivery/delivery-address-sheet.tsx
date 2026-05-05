@@ -120,6 +120,8 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   // defaultValue re-application (the BottomSheetTextInput bug).
   const [inputMountKey, setInputMountKey] = useState(0)
   const mountTextRef = useRef('')
+  const phoneInputRef = useRef(phoneInput)
+  useEffect(() => { phoneInputRef.current = phoneInput }, [phoneInput])
 
   const setAddressText = useCallback((text: string) => {
     mountTextRef.current = text
@@ -173,6 +175,20 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
     setPendingSelection(null)
     setShowSuggestions(false)
   }, [])
+
+  const handlePhoneChange = useCallback((text: string) => {
+    setPhoneInput(text)
+    // Only write to store when complete (10 digits) or cleared — prevents
+    // per-keystroke store mutations that trigger CartFooter/UpdateOrderFooter re-renders
+    if (!text || PHONE_NUMBER_REGEX.test(text)) {
+      actions.setDeliveryPhone(text)
+    }
+  }, [actions])
+
+  const handlePhoneBlur = useCallback(() => {
+    // Final sync on blur covers partial entries user leaves without completing
+    actions.setDeliveryPhone(phoneInputRef.current)
+  }, [actions])
 
   // ─── Distance check ───────────────────────────────────────────────────────────
   const lastProcessedKeyRef = useRef('')
@@ -359,6 +375,14 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
     [],
   )
 
+  const handleConfirm = useCallback(() => {
+    if (!canConfirm) return
+    // Ensure store has the latest phone value before closing (in case blur
+    // hasn't fired yet — user taps confirm immediately after last digit)
+    actions.setDeliveryPhone(phoneInputRef.current)
+    onClose()
+  }, [canConfirm, actions, onClose])
+
   const renderFooter = useCallback(
     (props: BottomSheetFooterProps) => (
       <BottomSheetFooter {...props} bottomInset={bottomInset}>
@@ -369,14 +393,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
           ]}
         >
           <Pressable
-            onPress={() => {
-              if (canConfirm) {
-                // Re-sync phone to store in case clearDeliveryInfo wiped it
-                // during an edit session (local phoneInput stays populated)
-                actions.setDeliveryPhone(phoneInput)
-                onClose()
-              }
-            }}
+            onPress={handleConfirm}
             disabled={!canConfirm}
             style={[
               f.confirmBtn,
@@ -390,7 +407,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
         </View>
       </BottomSheetFooter>
     ),
-    [bottomInset, isDark, canConfirm, primaryColor, onClose],
+    [bottomInset, isDark, canConfirm, primaryColor, handleConfirm],
   )
 
   const textPrimary = isDark ? colors.gray[50] : colors.gray[900]
@@ -534,7 +551,8 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
                 />
                 <BottomSheetTextInput
                   value={phoneInput}
-                  onChangeText={(text) => { setPhoneInput(text); actions.setDeliveryPhone(text) }}
+                  onChangeText={handlePhoneChange}
+                  onBlur={handlePhoneBlur}
                   placeholder="Nhập số điện thoại..."
                   placeholderTextColor={textMuted}
                   style={[f.input, { color: textPrimary }]}
