@@ -319,7 +319,12 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
       actions.setDeliveryPhone(userPhone)
     }
     if (saved.lat && saved.lng) {
-      setPendingSelection({ lat: saved.lat, lng: saved.lng, placeId: saved.placeId, address: saved.address })
+      setPendingSelection({
+        lat: parseFloat(String(saved.lat)),
+        lng: parseFloat(String(saved.lng)),
+        placeId: saved.placeId,
+        address: saved.address,
+      })
     }
   }, [isHydrated, visible]) // eslint-disable-line react-hooks/exhaustive-deps
 
