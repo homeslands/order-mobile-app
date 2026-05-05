@@ -586,7 +586,8 @@ export default function GiftCardOrdersScreen() {
 
   const [ready, setReady] = useState(false)
   const [selectedType, setSelectedType] = useState('ALL')
-  // autoOpen param seeds the initial slug; lazy initializer runs only once
+  // autoOpen param seeds the initial slug; lazy initializer runs only once.
+  // Slugs are alphanumeric+hyphens — no URL-decoding needed.
   const [detailSlug, setDetailSlug] = useState<string | null>(
     () => params.autoOpen ?? null,
   )

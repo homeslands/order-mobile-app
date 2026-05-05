@@ -234,6 +234,7 @@ export const GiftCardOrderDetailSheet = memo(function GiftCardOrderDetailSheet({
 
   const giftCards = order?.giftCards ?? []
   const hasGiftCards = giftCards.length > 0 && order?.type === GiftCardType.BUY
+  // "receipients" is a typo in the backend contract — mirrors API field name exactly
   const recipients = useMemo(
     () => order?.receipients ?? [],
     [order?.receipients],
