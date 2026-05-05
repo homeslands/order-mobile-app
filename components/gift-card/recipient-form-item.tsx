@@ -23,7 +23,7 @@ import {
 import { Input } from '@/components/ui'
 import { colors } from '@/constants'
 import { useUserByPhone } from '@/hooks/use-users'
-import type { CheckoutFormValues } from '@/app/gift-card/checkout'
+import type { CheckoutFormValues } from '@/app/gift-card/checkout/schema'
 
 const MIN_QTY = 1
 const MAX_QTY = 10

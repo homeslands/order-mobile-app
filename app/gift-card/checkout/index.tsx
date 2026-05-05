@@ -36,7 +36,6 @@ import {
   View,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { z } from 'zod'
 
 import { GiftCardCartItem } from '@/components/gift-card/gift-card-cart-item'
 import { GiftCardTypeSelector } from '@/components/gift-card/gift-card-type-selector'
@@ -59,32 +58,8 @@ import {
   showErrorToastMessage,
 } from '@/utils'
 
-// ─── Schema ──────────────────────────────────────────────────────────────────
-
-const recipientSchema = z.object({
-  // recipientSlug is set when user selects a suggestion — required for routing
-  recipientSlug: z.string().min(10, 'Vui lòng chọn người nhận từ gợi ý'),
-  phone: z
-    .string()
-    .regex(
-      /^0[0-9]{9,10}$/,
-      'Số điện thoại không hợp lệ (10-11 số, bắt đầu bằng 0)',
-    ),
-  name: z.string().optional(),
-  quantity: z.number({ message: 'Nhập số lượng hợp lệ' }).min(1, 'Tối thiểu 1'),
-  message: z.string().max(200, 'Tối đa 200 ký tự').optional(),
-})
-
-const checkoutSchema = z.object({
-  cardOrderType: z.enum([
-    GiftCardType.SELF,
-    GiftCardType.GIFT,
-    GiftCardType.BUY,
-  ]),
-  recipients: z.array(recipientSchema),
-})
-
-export type CheckoutFormValues = z.infer<typeof checkoutSchema>
+export type { CheckoutFormValues } from './schema'
+import { checkoutSchema, type CheckoutFormValues } from './schema'
 
 // ─── Summary Row ─────────────────────────────────────────────────────────────
 

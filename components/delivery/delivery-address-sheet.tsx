@@ -260,7 +260,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
     setSelectedPlaceId(first.placePrediction.placeId)
     setShowSuggestions(false)
     Keyboard.dismiss()
-  }, [suggestionsQuery.data])
+  }, [suggestionsQuery.data, setAddressText])
 
   // ─── Address input handlers (stable — no re-render on typing) ───────────────
   const handleAddressChange = useCallback((text: string) => {
@@ -344,7 +344,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
     actions.setDeliveryAddress(address)
     actions.setDeliveryCoords(lat, lng, placeId)
     actions.setDeliveryDistanceDuration(distance, duration)
-  }, [distanceQuery.data, pendingSelection, maxDistance, actions])
+  }, [distanceQuery.data, pendingSelection, maxDistance, actions, setAddressText])
 
   // ─── Direction + route polyline ─────────────────────────────────────────────
   const routeCoords = useMemo(() => {
@@ -424,7 +424,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
     } finally {
       setIsLocating(false)
     }
-  }, [])
+  }, [setAddressText])
 
   // ─── State restore ────────────────────────────────────────────────────────────
   useEffect(() => {

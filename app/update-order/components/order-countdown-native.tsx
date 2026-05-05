@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import { Timer } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { StyleSheet, Text, useColorScheme } from 'react-native'
 import Animated, { useAnimatedStyle } from 'react-native-reanimated'
 
 import { colors } from '@/constants'
@@ -50,7 +50,6 @@ const OrderCountdownNative = memo(function OrderCountdownNative({
     if (!expiresAt) return
 
     const initial = calcRemaining(expiresAt)
-    setSeconds(initial)
     if (initial <= 0) {
       onExpiredRef.current(true)
       return

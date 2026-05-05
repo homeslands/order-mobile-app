@@ -17,6 +17,7 @@
     "lint:fix": "eslint . --ext .ts,.tsx --fix",
     "format": "prettier . --write",
     "check": "npm run typecheck && npm run lint",
+    "check:all": "npm run check && npm run check-circular && npm test",
     "check-circular": "madge --circular --ts-config tsconfig.json --extensions ts,tsx app stores utils api hooks lib providers",
     "android": "expo run:android",
     "android:clean": "npx expo prebuild --platform android --clean && echo 'sdk.dir=/Users/phanquyetthang/Library/Android/sdk' > android/local.properties && npx expo run:android",
