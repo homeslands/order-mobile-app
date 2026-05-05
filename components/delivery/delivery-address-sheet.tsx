@@ -21,11 +21,11 @@ import {
   View,
 } from 'react-native'
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useDebounce } from 'use-debounce'
 import { useShallow } from 'zustand/react/shallow'
 
 import { colors, PHONE_NUMBER_REGEX } from '@/constants'
+import { STATIC_BOTTOM_INSET } from '@/constants/status-bar'
 import {
   useGetAddressByPlaceId,
   useGetAddressDirection,
@@ -106,6 +106,53 @@ const DeliveryMap = memo(
   }),
 )
 
+interface SuggestionItemProps {
+  item: IAddressSuggestion
+  onSelect: (placeId: string, text: string) => void
+  isDark: boolean
+}
+
+const SuggestionItem = memo(function SuggestionItem({
+  item,
+  onSelect,
+  isDark,
+}: SuggestionItemProps) {
+  const handlePress = useCallback(() => {
+    onSelect(item.placePrediction.placeId, item.placePrediction.text.text)
+  }, [item.placePrediction.placeId, item.placePrediction.text.text, onSelect])
+
+  const textMuted = isDark ? colors.gray[400] : colors.gray[500]
+  const textPrimary = isDark ? colors.gray[100] : colors.gray[900]
+
+  return (
+    <Pressable
+      onPress={handlePress}
+      style={[
+        f.suggestionItem,
+        { borderBottomColor: isDark ? colors.gray[700] : colors.gray[100] },
+      ]}
+    >
+      <MapPin size={12} color={textMuted} style={{ marginTop: 2 }} />
+      <View style={{ flex: 1 }}>
+        <Text
+          style={[f.suggestionMain, { color: textPrimary }]}
+          numberOfLines={1}
+        >
+          {item.placePrediction.structuredFormat.mainText.text}
+        </Text>
+        {item.placePrediction.structuredFormat.secondaryText?.text && (
+          <Text
+            style={[f.suggestionSub, { color: textMuted }]}
+            numberOfLines={1}
+          >
+            {item.placePrediction.structuredFormat.secondaryText.text}
+          </Text>
+        )}
+      </View>
+    </Pressable>
+  )
+})
+
 export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   visible,
   onClose,
@@ -115,7 +162,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   primaryColor,
 }: DeliveryAddressSheetProps) {
   const sheetRef = useRef<BottomSheetModal>(null)
-  const { bottom: bottomInset } = useSafeAreaInsets()
+  const bottomInset = STATIC_BOTTOM_INSET
 
   // ─── Store actions (unconditional) ──────────────────────────────────────────
   const cartState = useOrderFlowStore(
@@ -176,6 +223,8 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   // defaultValue re-application (the BottomSheetTextInput bug).
   const [inputMountKey, setInputMountKey] = useState(0)
   const mountTextRef = useRef('')
+  const addressInputRef = useRef(addressInput)
+  useEffect(() => { addressInputRef.current = addressInput }, [addressInput])
   const phoneInputRef = useRef(phoneInput)
   useEffect(() => { phoneInputRef.current = phoneInput }, [phoneInput])
 
@@ -196,9 +245,9 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
       lat: parseFloat(String(lat)),
       lng: parseFloat(String(lng)),
       placeId: selectedPlaceId,
-      address: addressInput,
+      address: addressInputRef.current,
     })
-  }, [addressByPlaceIdQuery.data, selectedPlaceId, addressInput])
+  }, [addressByPlaceIdQuery.data, selectedPlaceId])
 
   // ─── GPS auto-select first suggestion ────────────────────────────────────────
   useEffect(() => {
@@ -231,6 +280,16 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
     setPendingSelection(null)
     setShowSuggestions(false)
   }, [])
+
+  const handleSelectSuggestion = useCallback(
+    (placeId: string, text: string) => {
+      setAddressText(text)
+      setSelectedPlaceId(placeId)
+      setShowSuggestions(false)
+      Keyboard.dismiss()
+    },
+    [setAddressText],
+  )
 
   const handlePhoneChange = useCallback((text: string) => {
     setPhoneInput(text)
@@ -405,17 +464,18 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   }, [isHydrated, visible]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const hasCoords = pendingLat !== 0 && pendingLng !== 0
-  const phoneIsInvalid = !!phoneInput && !PHONE_NUMBER_REGEX.test(phoneInput)
+  const phoneIsValid = useMemo(
+    () => !!phoneInput && PHONE_NUMBER_REGEX.test(phoneInput),
+    [phoneInput],
+  )
+  const phoneIsInvalid = !!phoneInput && !phoneIsValid
   // True while waiting for coords (addressByPlaceIdQuery) or distance check to resolve
   const isResolvingAddress =
     !!selectedPlaceId &&
     !actions.currentAddress &&
     !addressByPlaceIdQuery.isError
 
-  const canConfirm =
-    !!actions.currentAddress &&
-    !!phoneInput &&
-    PHONE_NUMBER_REGEX.test(phoneInput)
+  const canConfirm = !!actions.currentAddress && phoneIsValid
 
   const bgStyle = useMemo(
     () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
@@ -683,28 +743,12 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
                   <ActivityIndicator size="small" color={primaryColor} style={{ padding: 12 }} />
                 )}
                 {(suggestionsQuery.data?.result ?? []).map((item: IAddressSuggestion) => (
-                  <Pressable
+                  <SuggestionItem
                     key={item.placePrediction.placeId}
-                    onPress={() => {
-                      setAddressText(item.placePrediction.text.text)
-                      setSelectedPlaceId(item.placePrediction.placeId)
-                      setShowSuggestions(false)
-                      Keyboard.dismiss()
-                    }}
-                    style={[f.suggestionItem, { borderBottomColor: isDark ? colors.gray[700] : colors.gray[100] }]}
-                  >
-                    <MapPin size={12} color={textMuted} style={{ marginTop: 2 }} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={[f.suggestionMain, { color: isDark ? colors.gray[100] : colors.gray[900] }]} numberOfLines={1}>
-                        {item.placePrediction.structuredFormat.mainText.text}
-                      </Text>
-                      {item.placePrediction.structuredFormat.secondaryText?.text && (
-                        <Text style={[f.suggestionSub, { color: textMuted }]} numberOfLines={1}>
-                          {item.placePrediction.structuredFormat.secondaryText.text}
-                        </Text>
-                      )}
-                    </View>
-                  </Pressable>
+                    item={item}
+                    onSelect={handleSelectSuggestion}
+                    isDark={isDark}
+                  />
                 ))}
               </View>
             )}
