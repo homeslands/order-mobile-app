@@ -10,7 +10,7 @@ import {
   SystemLockFeatureGroup,
   SystemLockFeatureType,
 } from '@/constants'
-import { FOOTER_BOTTOM_EXTRA } from '@/constants/status-bar'
+import { FOOTER_BOTTOM_EXTRA, STATIC_BOTTOM_INSET } from '@/constants/status-bar'
 import { useCartValidation } from '@/hooks/use-cart-validation'
 import { useOrderFlowStore, useUserStore } from '@/stores'
 import {
@@ -21,9 +21,7 @@ import {
   useCartVoucherDiscount,
 } from '@/stores/cart.store'
 import {
-  useOrderFlowDeliveryDistance,
-  useOrderFlowOrderType,
-  useOrderFlowTableName,
+  useOrderFlowCartFooterData,
 } from '@/stores/selectors/order-flow.selectors'
 import { useCalculateDeliveryFee } from '@/hooks/use-branch-delivery'
 import { useBranchStore } from '@/stores'
@@ -35,7 +33,6 @@ import { ChevronRight, ShoppingBag, Ticket } from 'lucide-react-native'
 import React, { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { DeliveryAddressSheet, DeliveryInfoRow } from '@/components/delivery'
 import { ConfirmOrderSheet } from './cart-confirm-order-sheet'
@@ -76,26 +73,24 @@ export const CartFooter = memo(function CartFooter({
   isDark: boolean
 }) {
   const { t } = useTranslation('menu')
-  const { bottom: bottomInset } = useSafeAreaInsets()
+  const bottomInset = STATIC_BOTTOM_INSET
   const queryClient = useQueryClient()
   const hasUser = useUserStore((s) => !!s.userInfo)
   const total = useCartTotal()
   const itemCount = useCartItemCount()
   const voucher = useCartVoucher()
-  const orderType = useOrderFlowOrderType()
-  const tableName = useOrderFlowTableName()
   const [orderTypeSheetVisible, setOrderTypeSheetVisible] = useState(false)
   const [tableSheetVisible, setTableSheetVisible] = useState(false)
   const [voucherSheetOpen, setVoucherSheetOpen] = useState(false)
   const [deliverySheetVisible, setDeliverySheetVisible] = useState(false)
 
-  const deliveryDistance = useOrderFlowDeliveryDistance()
-  const deliveryAddress = useOrderFlowStore(
-    (s) => s.orderingData?.deliveryAddress ?? '',
-  )
-  const deliveryPhone = useOrderFlowStore(
-    (s) => s.orderingData?.deliveryPhone ?? '',
-  )
+  const {
+    type: orderType,
+    tableName,
+    deliveryDistance,
+    deliveryAddress,
+    deliveryPhone,
+  } = useOrderFlowCartFooterData()
   const branchSlug = useBranchStore((s) => s.branch?.slug ?? '')
 
   const { deliveryFee } = useCalculateDeliveryFee(
@@ -315,8 +310,8 @@ export const CartFooter = memo(function CartFooter({
 
         {orderType === 'delivery' && (
           <DeliveryInfoRow
-            address={deliveryAddress}
-            phone={deliveryPhone}
+            address={deliveryAddress ?? ''}
+            phone={deliveryPhone ?? ''}
             onPress={openDeliverySheet}
             isDark={isDark}
           />
