@@ -108,14 +108,19 @@ const ActiveQR = memo(function ActiveQR({
   )
 
   const qrOpacity = useSharedValue(1)
+  const isDownloading = useRef(false)
 
   const getQRRef = useCallback((ref: Svg | null) => {
     svgRef.current = ref
   }, [])
 
   const handleDownload = useCallback(() => {
+    if (isDownloading.current) return
+    isDownloading.current = true
     svgRef.current?.toDataURL((data) => {
-      void downloadQRCodeImage(data, `payment_qr_${Date.now()}`)
+      void downloadQRCodeImage(data, `payment_qr_${Date.now()}`).finally(() => {
+        isDownloading.current = false
+      })
     })
   }, [])
 

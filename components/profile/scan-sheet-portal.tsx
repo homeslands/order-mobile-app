@@ -32,6 +32,7 @@ const QrContent = memo(function QrContent({
   const { t } = useTranslation('profile')
   const userInfo = useUserStore((s) => s.userInfo)
   const svgRef = useRef<Svg | null>(null)
+  const isDownloading = useRef(false)
 
   const primary = isDark ? colors.primary.dark : colors.primary.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
@@ -49,8 +50,12 @@ const QrContent = memo(function QrContent({
   }, [])
 
   const handleDownload = useCallback(() => {
+    if (isDownloading.current) return
+    isDownloading.current = true
     svgRef.current?.toDataURL((data) => {
-      void downloadQRCodeImage(data, `member_qr_${Date.now()}`)
+      void downloadQRCodeImage(data, `member_qr_${Date.now()}`).finally(() => {
+        isDownloading.current = false
+      })
     })
   }, [])
 

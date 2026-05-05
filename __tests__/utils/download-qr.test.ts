@@ -1,26 +1,26 @@
 import * as MediaLibrary from 'expo-media-library'
 import { File } from 'expo-file-system'
 
+// mockWriter must be declared before jest.mock (jest hoists mock-prefixed vars)
+const mockWriter = {
+  write: jest.fn().mockResolvedValue(undefined),
+  close: jest.fn().mockResolvedValue(undefined),
+  abort: jest.fn().mockResolvedValue(undefined),
+}
+
 jest.mock('expo-media-library', () => ({
   getPermissionsAsync: jest.fn(),
   requestPermissionsAsync: jest.fn(),
   createAssetAsync: jest.fn(),
 }))
 
-jest.mock('expo-file-system', () => {
-  const mockWriter = {
-    write: jest.fn().mockResolvedValue(undefined),
-    close: jest.fn().mockResolvedValue(undefined),
-    abort: jest.fn().mockResolvedValue(undefined),
-  }
-  return {
-    File: jest.fn().mockImplementation(() => ({
-      writableStream: () => ({ getWriter: () => mockWriter }),
-      toString: () => 'file:///cache/qr_test.png',
-    })),
-    Paths: { cache: 'file:///cache' },
-  }
-})
+jest.mock('expo-file-system', () => ({
+  File: jest.fn().mockImplementation(() => ({
+    writableStream: () => ({ getWriter: () => mockWriter }),
+    toString: () => 'file:///cache/qr_test.png',
+  })),
+  Paths: { cache: 'file:///cache' },
+}))
 
 jest.mock('@/i18n', () => ({
   t: (key: string) => key,
@@ -36,7 +36,12 @@ import { showToast } from '@/utils/toast'
 const VALID_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
 
 describe('downloadQRCodeImage', () => {
-  beforeEach(() => jest.clearAllMocks())
+  beforeEach(() => {
+    jest.clearAllMocks()
+    mockWriter.write.mockResolvedValue(undefined)
+    mockWriter.close.mockResolvedValue(undefined)
+    mockWriter.abort.mockResolvedValue(undefined)
+  })
 
   it('returns false and shows toast when permission denied', async () => {
     ;(MediaLibrary.getPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'undetermined' })
@@ -60,7 +65,19 @@ describe('downloadQRCodeImage', () => {
     expect(result).toBe(true)
   })
 
-  it('returns false and shows error toast when write throws', async () => {
+  it('returns false and shows error toast when file write fails', async () => {
+    ;(MediaLibrary.getPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'granted' })
+    mockWriter.write.mockRejectedValue(new Error('write failed'))
+
+    const result = await downloadQRCodeImage(VALID_BASE64)
+
+    expect(result).toBe(false)
+    expect(mockWriter.abort).toHaveBeenCalled()
+    expect(MediaLibrary.createAssetAsync).not.toHaveBeenCalled()
+    expect(showToast).toHaveBeenCalledWith('common.errorSavingQRCode')
+  })
+
+  it('returns false and shows error toast when createAssetAsync fails', async () => {
     ;(MediaLibrary.getPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'granted' })
     ;(MediaLibrary.createAssetAsync as jest.Mock).mockRejectedValue(new Error('disk full'))
 
