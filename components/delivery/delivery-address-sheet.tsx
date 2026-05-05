@@ -20,12 +20,12 @@ import {
   Text,
   View,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps'
 import { useDebounce } from 'use-debounce'
 import { useShallow } from 'zustand/react/shallow'
 
 import { colors, PHONE_NUMBER_REGEX } from '@/constants'
-import { STATIC_BOTTOM_INSET } from '@/constants/status-bar'
 import {
   useGetAddressByPlaceId,
   useGetAddressDirection,
@@ -162,7 +162,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   primaryColor,
 }: DeliveryAddressSheetProps) {
   const sheetRef = useRef<BottomSheetModal>(null)
-  const bottomInset = STATIC_BOTTOM_INSET
+  const { bottom: bottomInset } = useSafeAreaInsets()
 
   // ─── Store actions (unconditional) ──────────────────────────────────────────
   const cartState = useOrderFlowStore(
