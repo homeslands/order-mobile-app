@@ -2,7 +2,9 @@ import { FloatingHeader } from '@/components/navigation/floating-header'
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { QR_TTL_S, useQRPayment } from '@/hooks/use-qr-payment'
-import { memo, useCallback, useEffect, useMemo } from 'react'
+import { downloadQRCodeImage } from '@/utils'
+import { Download } from 'lucide-react-native'
+import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   ActivityIndicator,
@@ -15,6 +17,7 @@ import {
   useColorScheme,
 } from 'react-native'
 import QRCode from 'react-native-qrcode-svg'
+import type { Svg } from 'react-native-svg'
 import Animated, {
   cancelAnimation,
   useAnimatedStyle,
@@ -91,6 +94,7 @@ const ActiveQR = memo(function ActiveQR({
   primary: string
 }) {
   const { t } = useTranslation('payment')
+  const svgRef = useRef<Svg | null>(null)
   const { mutedColor, cardBg } = useMemo(
     () => ({
       mutedColor: isDark ? colors.gray[400] : colors.gray[500],
@@ -104,6 +108,12 @@ const ActiveQR = memo(function ActiveQR({
   )
 
   const qrOpacity = useSharedValue(1)
+
+  const handleDownload = useCallback(() => {
+    svgRef.current?.toDataURL((data) => {
+      void downloadQRCodeImage(data, `payment_qr_${Date.now()}`)
+    })
+  }, [])
 
   useEffect(() => {
     if (isRefreshing) {
@@ -121,7 +131,13 @@ const ActiveQR = memo(function ActiveQR({
   return (
     <View style={[s.qrCard, { backgroundColor: cardBg }]}>
       <Animated.View style={qrWrapStyle}>
-        <QRCode value={token} size={QR_SIZE} />
+        <QRCode
+          value={token}
+          size={QR_SIZE}
+          getRef={(ref) => {
+            svgRef.current = ref
+          }}
+        />
       </Animated.View>
 
       <ProgressBar
@@ -137,6 +153,16 @@ const ActiveQR = memo(function ActiveQR({
           {countdown}s
         </Text>
       </Text>
+
+      <Pressable
+        style={[s.downloadBtn, { borderColor: primary }]}
+        onPress={handleDownload}
+      >
+        <Download size={14} color={primary} />
+        <Text style={[s.downloadBtnText, { color: primary }]}>
+          {t('qrGenerate.downloadButton')}
+        </Text>
+      </Pressable>
     </View>
   )
 })
@@ -332,6 +358,19 @@ const s = StyleSheet.create({
   },
   countdownText: { fontSize: 14 },
   countdownHighlight: { fontWeight: '700' },
+  downloadBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1.5,
+    borderRadius: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+  },
+  downloadBtnText: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
   errorIcon: { fontSize: 48 },
   errorText: {
     fontSize: 14,
