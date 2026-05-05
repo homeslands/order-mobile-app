@@ -234,7 +234,10 @@ export const GiftCardOrderDetailSheet = memo(function GiftCardOrderDetailSheet({
 
   const giftCards = order?.giftCards ?? []
   const hasGiftCards = giftCards.length > 0 && order?.type === GiftCardType.BUY
-  const recipients = order?.receipients ?? []
+  const recipients = useMemo(
+    () => order?.receipients ?? [],
+    [order?.receipients],
+  )
   const isGiftType = order?.type === GiftCardType.GIFT
 
   return (
