@@ -152,17 +152,15 @@ export default memo(function UpdateOrderFooter({
   const openVoucherSheet = useCallback(() => setVoucherSheetOpen(true), [])
   const closeVoucherSheet = useCallback(() => setVoucherSheetOpen(false), [])
   const openDeliverySheet = useCallback(() => setDeliverySheetVisible(true), [])
-  const clearDraftDeliveryInfo = useOrderFlowStore(
-    (s) => s.clearDraftDeliveryInfo,
-  )
   const closeDeliverySheet = useCallback(() => {
     setDeliverySheetVisible(false)
-    const addr = draft?.deliveryAddress ?? ''
-    const phone = draft?.deliveryPhone ?? ''
+    const s = useOrderFlowStore.getState()
+    const addr = s.updatingData?.updateDraft?.deliveryAddress ?? ''
+    const phone = s.updatingData?.updateDraft?.deliveryPhone ?? ''
     if (addr && !PHONE_NUMBER_REGEX.test(phone)) {
-      clearDraftDeliveryInfo()
+      s.clearDraftDeliveryInfo()
     }
-  }, [draft, clearDraftDeliveryInfo])
+  }, [])
 
   // Memoised theme-dependent styles
   const ft = useMemo(
