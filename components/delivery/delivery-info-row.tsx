@@ -6,12 +6,14 @@ import { colors } from '@/constants'
 
 interface DeliveryInfoRowProps {
   address: string
+  phone?: string
   onPress: () => void
   isDark: boolean
 }
 
 export const DeliveryInfoRow = memo(function DeliveryInfoRow({
   address,
+  phone,
   onPress,
   isDark,
 }: DeliveryInfoRowProps) {
@@ -51,6 +53,16 @@ export const DeliveryInfoRow = memo(function DeliveryInfoRow({
       >
         {hasAddress ? address : 'Chọn địa chỉ giao hàng'}
       </Text>
+      {hasAddress && phone && (
+        <Text
+          style={[
+            styles.phone,
+            { color: isDark ? colors.gray[400] : colors.gray[500] },
+          ]}
+        >
+          {phone}
+        </Text>
+      )}
       {hasAddress && (
         <Text
           style={[
@@ -78,6 +90,10 @@ const styles = StyleSheet.create({
   text: {
     flex: 1,
     fontSize: 13,
+    fontWeight: '500',
+  },
+  phone: {
+    fontSize: 12,
     fontWeight: '500',
   },
   editLabel: {

@@ -262,6 +262,7 @@ export default memo(function UpdateOrderFooter({
         {orderType === OrderTypeEnum.DELIVERY && (
           <DeliveryInfoRow
             address={draftDeliveryAddress}
+            phone={draftDeliveryPhone}
             onPress={openDeliverySheet}
             isDark={isDark}
           />

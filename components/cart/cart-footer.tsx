@@ -316,6 +316,7 @@ export const CartFooter = memo(function CartFooter({
         {orderType === 'delivery' && (
           <DeliveryInfoRow
             address={deliveryAddress}
+            phone={deliveryPhone}
             onPress={openDeliverySheet}
             isDark={isDark}
           />
