@@ -1,9 +1,8 @@
-import { CheckCircle2, Download, FileDown } from 'lucide-react-native'
-import React, { useCallback } from 'react'
+import { FileDown } from 'lucide-react-native'
+import React, { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   ActivityIndicator,
-  Platform,
   Pressable,
   StyleSheet,
   Text,
@@ -13,7 +12,6 @@ import {
 import { InvoiceTemplate } from '@/components/profile'
 import { colors } from '@/constants'
 import { useExportPublicOrderInvoice, useOrderBySlug } from '@/hooks'
-import { useDownloadStore } from '@/stores'
 import { OrderStatus } from '@/types'
 import { downloadAndSavePDF, showToast } from '@/utils'
 
@@ -31,19 +29,28 @@ export const InvoiceSection = React.memo(function InvoiceSection({
   const { t: tToast } = useTranslation('toast')
   const { mutate: exportInvoice, isPending: isExportingInvoice } =
     useExportPublicOrderInvoice()
-  const { isDownloading, progress, fileName } = useDownloadStore()
+  const [isSaving, setIsSaving] = useState(false)
 
-  const orderSlugForInvoice = order?.slug
+  const isLoading = isExportingInvoice || isSaving
+
   const handleDownload = useCallback(() => {
-    if (!orderSlugForInvoice) return
-    exportInvoice(orderSlugForInvoice, {
-      onSuccess: async (blob) => {
-        const name = `TRENDCoffee-invoice-${orderSlugForInvoice}-${Date.now()}`
-        await downloadAndSavePDF(blob, name)
+    if (!order?.slug || isLoading) return
+    exportInvoice(order.slug, {
+      onSuccess: async (data) => {
+        const name = `TRENDCoffee-invoice-${order.slug}-${Date.now()}`
+        setIsSaving(true)
+        try {
+          await downloadAndSavePDF(data, name)
+          showToast(tCommon('common.downloadSuccess'))
+        } catch {
+          showToast(tToast('toast.invoiceExportError'))
+        } finally {
+          setIsSaving(false)
+        }
       },
       onError: () => showToast(tToast('toast.invoiceExportError')),
     })
-  }, [orderSlugForInvoice, exportInvoice, tToast])
+  }, [order?.slug, isLoading, exportInvoice, tCommon, tToast])
 
   if (!order || order.status !== OrderStatus.PAID) return null
 
@@ -58,164 +65,21 @@ export const InvoiceSection = React.memo(function InvoiceSection({
         {t('order.invoice')}
       </Text>
       <InvoiceTemplate order={order} />
-      {(isExportingInvoice || isDownloading) && (
-        <View
-          style={[
-            invoiceStyles.downloadCard,
-            {
-              backgroundColor: isDark ? colors.gray[900] : '#fff',
-              borderColor: isDark ? colors.gray[700] : colors.gray[200],
-            },
-          ]}
-        >
-          <View style={invoiceStyles.downloadRow}>
-            <View
-              style={[
-                invoiceStyles.downloadIcon,
-                { backgroundColor: `${primaryColor}18` },
-              ]}
-            >
-              <Download size={20} color={primaryColor} />
-            </View>
-            <View style={invoiceStyles.flex1}>
-              <Text
-                style={[
-                  invoiceStyles.smSemibold,
-                  { color: isDark ? colors.gray[100] : colors.gray[900] },
-                ]}
-              >
-                {isExportingInvoice
-                  ? tCommon('common.downloadingInvoice')
-                  : tCommon('common.savingFile')}
-              </Text>
-              <Text
-                style={[
-                  invoiceStyles.xsText,
-                  {
-                    color: isDark ? colors.gray[400] : colors.gray[500],
-                    marginTop: 2,
-                  },
-                ]}
-              >
-                {isExportingInvoice
-                  ? tCommon('common.pleaseWait')
-                  : tCommon('common.savingToDownloads')}
-              </Text>
-            </View>
-            {progress > 0 && (
-              <View
-                style={[
-                  invoiceStyles.progressBadge,
-                  { backgroundColor: `${primaryColor}18` },
-                ]}
-              >
-                <Text style={[invoiceStyles.smBold, { color: primaryColor }]}>
-                  {progress}%
-                </Text>
-              </View>
-            )}
-          </View>
-          {progress > 0 ? (
-            <View
-              style={[
-                invoiceStyles.progressTrack,
-                {
-                  backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
-                },
-              ]}
-            >
-              <View
-                style={[
-                  invoiceStyles.progressFill,
-                  {
-                    width: `${progress}%` as unknown as number,
-                    backgroundColor: primaryColor,
-                  },
-                ]}
-              />
-            </View>
-          ) : (
-            <View style={invoiceStyles.processingRow}>
-              <ActivityIndicator size="small" color={primaryColor} />
-              <Text
-                style={[
-                  invoiceStyles.xsText,
-                  { color: isDark ? colors.gray[400] : colors.gray[500] },
-                ]}
-              >
-                {tCommon('common.processing')}
-              </Text>
-            </View>
-          )}
-        </View>
-      )}
-      {fileName && !isDownloading && !isExportingInvoice && (
-        <View
-          style={[
-            invoiceStyles.successCard,
-            {
-              backgroundColor: isDark
-                ? 'rgba(20, 83, 45, 0.2)'
-                : colors.success.bgLight,
-              borderColor: isDark
-                ? colors.success.borderDark
-                : colors.success.borderLight,
-            },
-          ]}
-        >
-          <View style={invoiceStyles.downloadRow}>
-            <CheckCircle2
-              size={24}
-              color={isDark ? colors.success.dark : colors.success.light}
-            />
-            <View style={invoiceStyles.flex1}>
-              <Text
-                style={[
-                  invoiceStyles.smSemibold,
-                  {
-                    color: isDark
-                      ? colors.success.dark
-                      : colors.success.borderDark,
-                  },
-                ]}
-              >
-                {tCommon('common.downloadSuccess')}
-              </Text>
-              <Text
-                style={[
-                  invoiceStyles.xsText,
-                  {
-                    color: isDark
-                      ? colors.success.dark
-                      : colors.success.iconBgLight,
-                    marginTop: 2,
-                  },
-                ]}
-              >
-                {Platform.OS === 'android'
-                  ? tCommon('common.fileSavedToDownloads')
-                  : tCommon('common.fileSavedToFilesApp')}
-              </Text>
-            </View>
-          </View>
-        </View>
-      )}
       <Pressable
         onPress={handleDownload}
-        disabled={isExportingInvoice || isDownloading}
+        disabled={isLoading}
         style={[
           invoiceStyles.downloadBtn,
-          {
-            backgroundColor:
-              isExportingInvoice || isDownloading
-                ? colors.gray[400]
-                : primaryColor,
-          },
+          { backgroundColor: isLoading ? colors.gray[400] : primaryColor },
         ]}
       >
-        <FileDown size={18} color={colors.white.light} />
+        {isLoading ? (
+          <ActivityIndicator size="small" color={colors.white.light} />
+        ) : (
+          <FileDown size={18} color={colors.white.light} />
+        )}
         <Text style={invoiceStyles.downloadBtnText}>
-          {isExportingInvoice || isDownloading
+          {isLoading
             ? tCommon('common.downloading')
             : tCommon('common.downloadPDF')}
         </Text>
@@ -227,43 +91,6 @@ export const InvoiceSection = React.memo(function InvoiceSection({
 export const invoiceStyles = StyleSheet.create({
   invoiceSection: { marginBottom: 16 },
   invoiceTitle: { fontSize: 18, textAlign: 'center', marginBottom: 16 },
-  downloadCard: {
-    marginBottom: 16,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  downloadRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 12,
-  },
-  downloadIcon: { padding: 8, borderRadius: 999 },
-  flex1: { flex: 1 },
-  smSemibold: { fontSize: 14, fontWeight: '600' },
-  smBold: { fontSize: 14, fontWeight: '700' },
-  xsText: { fontSize: 12 },
-  progressBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 999,
-  },
-  progressTrack: { height: 10, borderRadius: 999, overflow: 'hidden' },
-  progressFill: { height: '100%', borderRadius: 999 },
-  processingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-  },
-  successCard: {
-    marginBottom: 16,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
   downloadBtn: {
     marginTop: 12,
     height: 48,
