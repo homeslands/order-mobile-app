@@ -28,10 +28,7 @@ export async function downloadAndSavePDF(
   const CHUNK_SIZE = 8192
   let binary = ''
   for (let i = 0; i < uint8Array.length; i += CHUNK_SIZE) {
-    binary += String.fromCharCode.apply(
-      null,
-      uint8Array.subarray(i, i + CHUNK_SIZE) as unknown as number[],
-    )
+    binary += String.fromCharCode(...uint8Array.subarray(i, i + CHUNK_SIZE))
   }
   const base64 = btoa(binary)
 
@@ -39,7 +36,7 @@ export async function downloadAndSavePDF(
     const tempPath = `${RNBlobUtil.fs.dirs.CacheDir}/${safeName}.pdf`
     await RNBlobUtil.fs.writeFile(tempPath, base64, 'base64')
     try {
-      await RNBlobUtil.MediaCollection.copyToMediaStore(
+      const savedUri = await RNBlobUtil.MediaCollection.copyToMediaStore(
         {
           name: `${safeName}.pdf`,
           parentFolder: '',
@@ -48,6 +45,9 @@ export async function downloadAndSavePDF(
         'Download',
         tempPath,
       )
+      if (!savedUri) {
+        throw new Error('MediaStore save failed — file not written to Downloads')
+      }
     } finally {
       await RNBlobUtil.fs.unlink(tempPath).catch(() => {})
     }
@@ -60,10 +60,14 @@ export async function downloadAndSavePDF(
     await LegacyFS.writeAsStringAsync(fileUri, base64, {
       encoding: LegacyFS.EncodingType.Base64,
     })
-    await Sharing.shareAsync(fileUri, {
-      mimeType: 'application/pdf',
-      dialogTitle: safeName,
-      UTI: 'com.adobe.pdf',
-    })
+    try {
+      await Sharing.shareAsync(fileUri, {
+        mimeType: 'application/pdf',
+        dialogTitle: safeName,
+        UTI: 'com.adobe.pdf',
+      })
+    } finally {
+      await LegacyFS.deleteAsync(fileUri, { idempotent: true }).catch(() => {})
+    }
   }
 }
