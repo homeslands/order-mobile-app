@@ -231,39 +231,18 @@ export async function exportOrderInvoice(order: string): Promise<Blob> {
 export async function exportPublicOrderInvoice(
   order: string,
 ): Promise<ArrayBuffer> {
-  const { setProgress, setFileName, setIsDownloading, reset } =
-    useDownloadStore.getState()
-  const currentDate = new Date().toISOString()
-  setFileName(`TRENDCoffee-invoice-${currentDate}.pdf`)
-  setIsDownloading(true)
-  try {
-    // Use 'arraybuffer' instead of 'blob' for React Native compatibility
-    const response = await http.post<ArrayBuffer>(
-      `/invoice/export/public`,
-      { order },
-      {
-        responseType: 'arraybuffer',
-        headers: {
-          Accept: 'application/pdf',
-        },
-        onDownloadProgress: (progressEvent) => {
-          const percentCompleted = Math.round(
-            (progressEvent.loaded * 100) / (progressEvent.total ?? 1),
-          )
-          setProgress(percentCompleted)
-        },
-        doNotShowLoading: true,
-      } as AxiosRequestConfig,
-    )
-
-    // Return ArrayBuffer directly - works better in React Native
-    // Don't reset progress here - let downloadAndSavePDF handle it
-    return response.data as ArrayBuffer
-  } catch (error) {
-    setIsDownloading(false)
-    reset()
-    throw error
-  }
+  const response = await http.post<ArrayBuffer>(
+    `/invoice/export/public`,
+    { order },
+    {
+      responseType: 'arraybuffer',
+      headers: {
+        Accept: 'application/pdf',
+      },
+      doNotShowLoading: true,
+    } as AxiosRequestConfig,
+  )
+  return response.data as ArrayBuffer
 }
 
 //Update order
