@@ -1,17 +1,14 @@
+import RNBlobUtil from 'react-native-blob-util'
 import * as LegacyFS from 'expo-file-system/legacy'
 import * as Sharing from 'expo-sharing'
 import { Platform } from 'react-native'
-
-// Android: pre-select the public Downloads folder in the SAF picker
-const ANDROID_DOWNLOADS_URI =
-  'content://com.android.externalstorage.documents/tree/primary%3ADownload'
 
 /**
  * Write an ArrayBuffer as a PDF and deliver it to the user.
  * Throws on failure — caller is responsible for error handling and toasts.
  *
  * iOS     — share sheet → "Save to Files"
- * Android — SAF folder picker pre-opened at Downloads → one-tap Allow
+ * Android — saved directly to Downloads via MediaStore (no dialog)
  */
 export async function downloadAndSavePDF(
   data: ArrayBuffer,
@@ -39,24 +36,21 @@ export async function downloadAndSavePDF(
   const base64 = btoa(binary)
 
   if (Platform.OS === 'android') {
-    const permissions =
-      await LegacyFS.StorageAccessFramework.requestDirectoryPermissionsAsync(
-        ANDROID_DOWNLOADS_URI,
+    const tempPath = `${RNBlobUtil.fs.dirs.CacheDir}/${safeName}.pdf`
+    await RNBlobUtil.fs.writeFile(tempPath, base64, 'base64')
+    try {
+      await RNBlobUtil.MediaCollection.copyToMediaStore(
+        {
+          name: `${safeName}.pdf`,
+          parentFolder: '',
+          mimeType: 'application/pdf',
+        },
+        'Download',
+        tempPath,
       )
-    if (!permissions.granted) {
-      throw new Error('Storage permission denied')
+    } finally {
+      await RNBlobUtil.fs.unlink(tempPath).catch(() => {})
     }
-    const destUri =
-      await LegacyFS.StorageAccessFramework.createFileAsync(
-        permissions.directoryUri,
-        `${safeName}.pdf`,
-        'application/pdf',
-      )
-    await LegacyFS.StorageAccessFramework.writeAsStringAsync(
-      destUri,
-      base64,
-      { encoding: LegacyFS.EncodingType.Base64 },
-    )
   } else {
     // iOS: write to document dir then share sheet → "Save to Files"
     if (!LegacyFS.documentDirectory) {
