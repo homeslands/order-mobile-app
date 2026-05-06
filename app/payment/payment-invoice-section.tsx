@@ -1,5 +1,5 @@
 import { FileDown } from 'lucide-react-native'
-import React, { useCallback, useState } from 'react'
+import { memo, useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   ActivityIndicator,
@@ -15,7 +15,7 @@ import { useExportPublicOrderInvoice, useOrderBySlug } from '@/hooks'
 import { OrderStatus } from '@/types'
 import { downloadAndSavePDF, showToast } from '@/utils'
 
-export const InvoiceSection = React.memo(function InvoiceSection({
+export const InvoiceSection = memo(function InvoiceSection({
   order,
   primaryColor,
   isDark,
