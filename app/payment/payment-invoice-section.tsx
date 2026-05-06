@@ -35,10 +35,11 @@ export const InvoiceSection = React.memo(function InvoiceSection({
 
   const handleDownload = useCallback(() => {
     if (!order?.slug || isLoading) return
-    exportInvoice(order.slug, {
+    const slug = order.slug
+    setIsSaving(true)
+    exportInvoice(slug, {
       onSuccess: async (data) => {
-        const name = `TRENDCoffee-invoice-${order.slug}-${Date.now()}`
-        setIsSaving(true)
+        const name = `TRENDCoffee-invoice-${slug}-${Date.now()}`
         try {
           await downloadAndSavePDF(data, name)
           showToast(tCommon('common.downloadSuccess'))
@@ -48,7 +49,10 @@ export const InvoiceSection = React.memo(function InvoiceSection({
           setIsSaving(false)
         }
       },
-      onError: () => showToast(tToast('toast.invoiceExportError')),
+      onError: () => {
+        setIsSaving(false)
+        showToast(tToast('toast.invoiceExportError'))
+      },
     })
   }, [order?.slug, isLoading, exportInvoice, tCommon, tToast])
 
