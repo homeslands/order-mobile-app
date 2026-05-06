@@ -1,4 +1,5 @@
 import * as LegacyFS from 'expo-file-system/legacy'
+import * as Sharing from 'expo-sharing'
 import { Platform } from 'react-native'
 
 /**
@@ -41,5 +42,11 @@ export async function downloadAndSavePDF(
 
   await LegacyFS.writeAsStringAsync(fileUri, base64, {
     encoding: LegacyFS.EncodingType.Base64,
+  })
+
+  await Sharing.shareAsync(fileUri, {
+    mimeType: 'application/pdf',
+    dialogTitle: safeName,
+    UTI: 'com.adobe.pdf',
   })
 }
