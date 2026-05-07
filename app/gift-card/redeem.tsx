@@ -57,15 +57,15 @@ function RedeemSuccess({
   const { t } = useTranslation('giftCard')
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const cardBg = isDark ? colors.gray[900] : colors.white.light
-  const borderColor = isDark ? colors.gray[800] : colors.gray[100]
-  const rowBg = isDark ? colors.gray[800] : colors.gray[50]
+  const cardBg = isDark ? colors.card.dark : colors.white.light
+  const borderColor = isDark ? colors.border.dark : colors.gray[100]
+  const rowBg = isDark ? colors.background.dark : colors.gray[50]
 
   return (
     <View style={sc.container}>
       {/* Icon */}
       <View style={sc.iconBlock}>
-        <View style={sc.iconCircle}>
+        <View style={[sc.iconCircle, { backgroundColor: isDark ? colors.success.iconBgDark : colors.success.iconBgLight }]}>
           <CheckCircle2 size={44} color="#16a34a" />
         </View>
         <Text style={[sc.title, { color: textColor }]}>
@@ -139,7 +139,6 @@ const sc = StyleSheet.create({
     width: 88,
     height: 88,
     borderRadius: 44,
-    backgroundColor: '#dcfce7',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
@@ -232,10 +231,10 @@ export default function RedeemGiftCardScreen() {
   }, [router])
 
   const bg = isDark ? colors.background.dark : colors.background.light
-  const cardBg = isDark ? colors.gray[900] : colors.white.light
+  const cardBg = isDark ? colors.card.dark : colors.white.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const borderColor = isDark ? colors.gray[800] : colors.gray[100]
+  const borderColor = isDark ? colors.border.dark : colors.gray[100]
 
   return (
     <View style={[s.container, { backgroundColor: bg }]}>
