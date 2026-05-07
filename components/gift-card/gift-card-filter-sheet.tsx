@@ -17,7 +17,7 @@ import {
 import dayjs from 'dayjs'
 import { ArrowRight, CalendarDays, X } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import DatePicker from 'react-native-date-picker'
 import { TouchableOpacity as GHTouchable } from 'react-native-gesture-handler'
@@ -192,43 +192,42 @@ export const GiftCardFilterSheet = memo(function GiftCardFilterSheet({
             {STATUS_OPTIONS.map((opt) => {
               const active = localStatus === opt.value
               return (
-                <View key={String(opt.value)} style={fs.chipWrap}>
-                  <GHTouchable
-                    onPress={() => {
-                      setLocalStatus(opt.value)
-                      onStatusChange?.(opt.value)
-                    }}
-                    activeOpacity={0.7}
+                <Pressable
+                  key={String(opt.value)}
+                  onPress={() => {
+                    setLocalStatus(opt.value)
+                    onStatusChange?.(opt.value)
+                  }}
+                  style={[
+                    fs.chip,
+                    fs.chipWrap,
+                    {
+                      backgroundColor: active
+                        ? opt.value === null
+                          ? primaryColor
+                          : getStatusChipBg(opt.value, isDark)
+                        : chipBg,
+                    },
+                  ]}
+                >
+                  <Text
                     style={[
-                      fs.chip,
+                      fs.chipText,
                       {
-                        backgroundColor: active
+                        color: active
                           ? opt.value === null
-                            ? primaryColor
-                            : getStatusChipBg(opt.value, isDark)
-                          : chipBg,
+                            ? colors.white.light
+                            : getStatusChipText(opt.value, isDark)
+                          : isDark
+                            ? colors.gray[300]
+                            : colors.gray[700],
+                        fontWeight: active ? '700' : '500',
                       },
                     ]}
                   >
-                    <Text
-                      style={[
-                        fs.chipText,
-                        {
-                          color: active
-                            ? opt.value === null
-                              ? colors.white.light
-                              : getStatusChipText(opt.value, isDark)
-                            : isDark
-                              ? colors.gray[300]
-                              : colors.gray[700],
-                          fontWeight: active ? '700' : '500',
-                        },
-                      ]}
-                    >
-                      {opt.label}
-                    </Text>
-                  </GHTouchable>
-                </View>
+                    {opt.label}
+                  </Text>
+                </Pressable>
               )
             })}
           </View>
