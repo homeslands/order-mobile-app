@@ -29,6 +29,7 @@ export function useRegisterDeviceToken(enabled = true) {
     if (token === storedToken) return
 
     isRegistering.current = true
+    let cancelled = false
 
     const run = async () => {
       try {
@@ -36,8 +37,10 @@ export function useRegisterDeviceToken(enabled = true) {
         if (storedToken && storedToken !== token) {
           await unregisterToken(storedToken)
         }
+        if (cancelled) return
 
         const result = await registerTokenWithRetry(token)
+        if (cancelled) return
 
         if (result.success) {
           // Only save to store AFTER server confirms — this is the gate
@@ -52,6 +55,10 @@ export function useRegisterDeviceToken(enabled = true) {
     }
 
     run()
+
+    return () => {
+      cancelled = true
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, token])
 
