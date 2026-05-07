@@ -5,5 +5,6 @@
  * 1. enableScreens(true) + enableFreeze(true) — trước khi bất kỳ Screen nào render
  * 2. expo-router/entry — registerComponent + mount app
  */
+import './lib/firebase-background-handler'
 import './lib/navigation-setup'
 import 'expo-router/entry'
