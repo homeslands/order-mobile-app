@@ -40,13 +40,13 @@ const PROFILE_THEME = {
     avatarFallback: colors.border.light,
   },
   dark: {
-    bg: '#1F2B3E',
-    card: '#2B3B4C',
+    bg: colors.background.dark,
+    card: colors.card.dark,
     text: colors.foreground.dark,
-    textMuted: '#8B9BB2',
-    editBtn: '#3D4F66',
+    textMuted: colors.mutedForeground.dark,
+    editBtn: colors.border.dark,
     divider: 'rgba(255,255,255,0.08)',
-    avatarFallback: '#2B3B4C',
+    avatarFallback: colors.card.dark,
   },
 } as const
 
@@ -425,7 +425,7 @@ export default function GeneralInfo() {
               hStyles.editPill,
               {
                 backgroundColor: isDark
-                  ? colors.gray[800]
+                  ? colors.card.dark
                   : colors.white.light,
               },
             ]}
