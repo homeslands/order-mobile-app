@@ -6,7 +6,7 @@
  * - Unregisters token from server on logout
  */
 import { AppState, type AppStateStatus } from 'react-native'
-import * as Notifications from 'expo-notifications'
+import messaging from '@react-native-firebase/messaging'
 import * as Device from 'expo-device'
 
 import { useUserStore } from '@/stores'
@@ -41,8 +41,10 @@ async function setStoredTimestamp(ts: number): Promise<void> {
     const { createSafeStorage } = await import('@/utils/storage')
     const storage = createSafeStorage()
     storage.setItem(STORAGE_KEY_TIMESTAMP, String(ts))
-  } catch {
-    // Silent fail
+  } catch (e) {
+    // Storage failure disables the 48h stale-token refresh until next cold start
+    // eslint-disable-next-line no-console
+    console.error('[FCM] setStoredTimestamp failed:', e)
   }
 }
 
@@ -52,8 +54,7 @@ async function checkAndRefresh(): Promise<void> {
   if (!Device.isDevice) return
 
   try {
-    const pushToken = await Notifications.getDevicePushTokenAsync()
-    const currentToken = pushToken.data as string
+    const currentToken = await messaging().getToken()
 
     if (currentToken !== storedToken) {
       // Firebase rotated the token — re-register immediately regardless of age
@@ -61,6 +62,9 @@ async function checkAndRefresh(): Promise<void> {
       if (result.success) {
         useUserStore.getState().setDeviceToken(currentToken)
         await setStoredTimestamp(Date.now())
+      } else {
+        // eslint-disable-next-line no-console
+        console.error('[FCM] Re-registration after token rotation failed:', result.error)
       }
       return
     }
@@ -79,9 +83,13 @@ async function checkAndRefresh(): Promise<void> {
     const result = await registerTokenWithRetry(currentToken)
     if (result.success) {
       await setStoredTimestamp(Date.now())
+    } else {
+      // eslint-disable-next-line no-console
+      console.error('[FCM] Re-registration of stale token failed:', result.error)
     }
-  } catch {
-    // Silent fail — refresh will be retried on next interval/foreground
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.error('[FCM] checkAndRefresh failed:', e)
   }
 }
 
