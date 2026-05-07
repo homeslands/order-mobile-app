@@ -2,14 +2,15 @@
  * useFirebaseToken — request notification permission + get FCM device token.
  *
  * - Only runs on physical device (simulator returns null)
- * - Compares new token vs stored token → skips if unchanged
- * - Saves new token to userStore (persisted AsyncStorage)
+ * - iOS: uses @react-native-firebase/messaging to get FCM token (not raw APNs token)
+ * - Android: same Firebase SDK, already worked before
  * - Returns { token, permissionDenied } for upstream consumers
  */
 import { useEffect, useRef, useState } from 'react'
 import { Platform } from 'react-native'
 import * as Device from 'expo-device'
 import * as Notifications from 'expo-notifications'
+import messaging from '@react-native-firebase/messaging'
 
 import { useUserStore } from '@/stores'
 
@@ -43,32 +44,50 @@ async function requestPermissionAndGetToken(): Promise<{
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 250, 250, 250],
       lightColor: '#F7A737',
-      sound: 'notification.wav',
+      sound: 'notification.mp3',
     })
   }
 
-  // Request permission
-  const { status: existing } = await Notifications.getPermissionsAsync()
-  let finalStatus = existing
+  // iOS: request permission via Firebase (also satisfies expo-notifications)
+  // Android: Firebase permission is auto-granted on most versions
+  const authStatus = await messaging().requestPermission()
+  // eslint-disable-next-line no-console
+  console.log('[FCM] Permission status:', authStatus, {
+    AUTHORIZED: messaging.AuthorizationStatus.AUTHORIZED,
+    PROVISIONAL: messaging.AuthorizationStatus.PROVISIONAL,
+    DENIED: messaging.AuthorizationStatus.DENIED,
+  })
+  const granted =
+    authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+    authStatus === messaging.AuthorizationStatus.PROVISIONAL
 
-  if (existing !== 'granted') {
-    const { status } = await Notifications.requestPermissionsAsync()
-    finalStatus = status
-  }
-
-  if (finalStatus !== 'granted') {
+  if (!granted) {
     return { token: null, permissionDenied: true }
   }
 
-  // Get FCM token (projectId from app.json > extra > eas > projectId)
-  try {
-    const pushToken = await Notifications.getDevicePushTokenAsync()
-    return { token: pushToken.data as string, permissionDenied: false }
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('[FCM] Failed to get device push token:', error)
-    return { token: null, permissionDenied: false }
+  // iOS requires explicit APNs registration before FCM token is available
+  if (Platform.OS === 'ios') {
+    await messaging().registerDeviceForRemoteMessages()
   }
+
+  // Get FCM token — retry up to 5x with backoff (APNs token may arrive async)
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      const fcmToken = await messaging().getToken()
+      // eslint-disable-next-line no-console
+      console.log('[FCM] token:', fcmToken)
+      return { token: fcmToken ?? null, permissionDenied: false }
+    } catch {
+      if (attempt < 4) {
+        await new Promise<void>((resolve) =>
+          setTimeout(resolve, 1000 * (attempt + 1)),
+        )
+      }
+    }
+  }
+  // eslint-disable-next-line no-console
+  console.error('[FCM] Failed to get FCM token after 5 attempts')
+  return { token: null, permissionDenied: false }
 }
 
 export function useFirebaseToken(enabled = true) {
@@ -105,17 +124,16 @@ export function useFirebaseToken(enabled = true) {
     }
   }, [enabled])
 
-  // Listen for Firebase-side token rotation (e.g. token invalidated while app is open)
+  // Listen for FCM token rotation (e.g. token invalidated while app is open)
   useEffect(() => {
     if (!enabled) return
 
-    const subscription = Notifications.addPushTokenListener(({ data }) => {
-      const newToken = data as string
+    const unsubscribe = messaging().onTokenRefresh((newToken: string) => {
       if (!newToken) return
       setToken(newToken)
     })
 
-    return () => subscription.remove()
+    return unsubscribe
   }, [enabled])
 
   return { token, permissionDenied, storedToken }
