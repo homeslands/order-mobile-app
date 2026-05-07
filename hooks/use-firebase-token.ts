@@ -32,8 +32,6 @@ async function requestPermissionAndGetToken(): Promise<{
 }> {
   // Only real devices can receive push notifications
   if (!Device.isDevice) {
-    // eslint-disable-next-line no-console
-    console.warn('[FCM] Push notifications are not supported on simulator')
     return { token: null, permissionDenied: false }
   }
 
@@ -51,12 +49,6 @@ async function requestPermissionAndGetToken(): Promise<{
   // iOS: request permission via Firebase (also satisfies expo-notifications)
   // Android: Firebase permission is auto-granted on most versions
   const authStatus = await messaging().requestPermission()
-  // eslint-disable-next-line no-console
-  console.log('[FCM] Permission status:', authStatus, {
-    AUTHORIZED: messaging.AuthorizationStatus.AUTHORIZED,
-    PROVISIONAL: messaging.AuthorizationStatus.PROVISIONAL,
-    DENIED: messaging.AuthorizationStatus.DENIED,
-  })
   const granted =
     authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
     authStatus === messaging.AuthorizationStatus.PROVISIONAL
@@ -74,8 +66,6 @@ async function requestPermissionAndGetToken(): Promise<{
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
       const fcmToken = await messaging().getToken()
-      // eslint-disable-next-line no-console
-      console.log('[FCM] token:', fcmToken)
       return { token: fcmToken ?? null, permissionDenied: false }
     } catch {
       if (attempt < 4) {
@@ -85,8 +75,6 @@ async function requestPermissionAndGetToken(): Promise<{
       }
     }
   }
-  // eslint-disable-next-line no-console
-  console.error('[FCM] Failed to get FCM token after 5 attempts')
   return { token: null, permissionDenied: false }
 }
 
