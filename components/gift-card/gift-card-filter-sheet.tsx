@@ -392,8 +392,9 @@ const fs = StyleSheet.create({
   chipWrap: { flex: 1 },
   chip: {
     flex: 1,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingVertical: 7,
+    paddingHorizontal: 14,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
   },
