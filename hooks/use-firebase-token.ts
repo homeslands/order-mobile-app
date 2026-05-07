@@ -83,7 +83,10 @@ export function useFirebaseToken(enabled = true) {
 
     requestPermissionAndGetToken()
       .then(({ token: newToken, permissionDenied: denied }) => {
-        if (cancelled) return
+        if (cancelled) {
+          hasRunRef.current = false
+          return
+        }
 
         setPermissionDenied(denied)
 
@@ -94,11 +97,10 @@ export function useFirebaseToken(enabled = true) {
         // (handled in use-register-device-token.ts)
       })
       .catch((e) => {
+        hasRunRef.current = false
         if (cancelled) return
         // eslint-disable-next-line no-console
         console.error('[FCM] requestPermissionAndGetToken rejected:', e)
-        // Reset guard so the next enable=true cycle can retry
-        hasRunRef.current = false
       })
 
     return () => {
