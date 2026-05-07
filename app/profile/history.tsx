@@ -2,8 +2,15 @@ import { ScreenContainer } from '@/components/layout'
 import { FlashList } from '@shopify/flash-list'
 import { useQueryClient } from '@tanstack/react-query'
 import { LinearGradient } from 'expo-linear-gradient'
-import { ChevronLeft, Package } from 'lucide-react-native'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  ArrowRight,
+  CalendarDays,
+  ChevronLeft,
+  Package,
+  SlidersHorizontal,
+  X,
+} from 'lucide-react-native'
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Pressable,
@@ -14,6 +21,15 @@ import {
   useColorScheme,
   View,
 } from 'react-native'
+import {
+  BottomSheetBackdrop,
+  BottomSheetModal,
+  type BottomSheetBackdropProps,
+} from '@gorhom/bottom-sheet'
+import dayjs from 'dayjs'
+import DatePicker from 'react-native-date-picker'
+import { TouchableOpacity as GHTouchable } from 'react-native-gesture-handler'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { getOrderBySlug } from '@/api'
 import { colors, NotificationMessageCode } from '@/constants'
@@ -71,9 +87,9 @@ const FilterBar = React.memo(function FilterBar({
               sel
                 ? { borderColor: primaryColor, backgroundColor: primaryColor }
                 : {
-                    borderColor: isDark ? colors.gray[700] : colors.gray[200],
+                    borderColor: isDark ? colors.border.dark : colors.gray[200],
                     backgroundColor: isDark
-                      ? colors.gray[800]
+                      ? colors.border.dark
                       : colors.white.light,
                   },
               isPending && !sel && { opacity: 0.5 },
@@ -100,6 +116,296 @@ const FilterBar = React.memo(function FilterBar({
   )
 })
 
+// ─── History date filter types ────────────────────────────────────────────────
+
+interface HistoryDateFilter {
+  fromDate: Date | null
+  toDate: Date | null
+}
+
+// ─── History date filter sheet ────────────────────────────────────────────────
+
+const HISTORY_FILTER_SNAP = ['50%']
+
+const HistoryDateFilterSheet = memo(function HistoryDateFilterSheet({
+  visible,
+  value,
+  primaryColor,
+  isDark,
+  onClose,
+  onApply,
+}: {
+  visible: boolean
+  value: HistoryDateFilter
+  primaryColor: string
+  isDark: boolean
+  onClose: () => void
+  onApply: (v: HistoryDateFilter) => void
+}) {
+  const sheetRef = useRef<BottomSheetModal>(null)
+  const { bottom } = useSafeAreaInsets()
+  const { t } = useTranslation('menu')
+  const { t: tCommon } = useTranslation('common')
+
+  const [localFrom, setLocalFrom] = useState<Date | null>(value.fromDate)
+  const [localTo, setLocalTo] = useState<Date | null>(value.toDate)
+  const [fromOpen, setFromOpen] = useState(false)
+  const [toOpen, setToOpen] = useState(false)
+  const defaultNow = useMemo(() => new Date(), [])
+
+  const bg = isDark ? colors.card.dark : colors.white.light
+  const textColor = isDark ? colors.gray[50] : colors.gray[900]
+  const subColor = isDark ? colors.gray[400] : colors.gray[500]
+  const chipBg = isDark ? colors.border.dark : colors.gray[100]
+  const dateBg = isDark ? colors.background.dark : colors.gray[50]
+  const dateBorder = isDark ? colors.border.dark : colors.gray[200]
+
+  useEffect(() => {
+    if (visible) sheetRef.current?.present()
+    else sheetRef.current?.dismiss()
+  }, [visible])
+
+  const renderBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.4}
+        pressBehavior="close"
+      />
+    ),
+    [],
+  )
+
+  const handleApply = useCallback(() => {
+    onApply({ fromDate: localFrom, toDate: localTo })
+    sheetRef.current?.dismiss()
+  }, [localFrom, localTo, onApply])
+
+  const handleReset = useCallback(() => {
+    onApply({ fromDate: null, toDate: null })
+    sheetRef.current?.dismiss()
+  }, [onApply])
+
+  return (
+    <BottomSheetModal
+      ref={sheetRef}
+      snapPoints={HISTORY_FILTER_SNAP}
+      enablePanDownToClose
+      enableDynamicSizing={false}
+      enableContentPanningGesture={false}
+      enableHandlePanningGesture
+      backdropComponent={renderBackdrop}
+      backgroundStyle={{ backgroundColor: bg }}
+      handleIndicatorStyle={{
+        backgroundColor: isDark ? colors.gray[600] : colors.gray[300],
+      }}
+      onDismiss={onClose}
+    >
+      <View style={[hfs.content, { paddingBottom: bottom + 16 }]}>
+        <View>
+          <Text style={[hfs.title, { color: textColor }]}>
+            {t('order.filterTitle')}
+          </Text>
+          <Text style={[hfs.sectionLabel, { color: subColor }]}>
+            {t('order.dateRange')}
+          </Text>
+          <View style={hfs.dateRow}>
+            {/* From */}
+            <View style={hfs.dateWrap}>
+              <GHTouchable
+                onPress={() => setFromOpen(true)}
+                activeOpacity={0.7}
+                style={[
+                  hfs.datePicker,
+                  {
+                    backgroundColor: dateBg,
+                    borderColor: localFrom ? primaryColor : dateBorder,
+                  },
+                ]}
+              >
+                <CalendarDays
+                  size={13}
+                  color={localFrom ? primaryColor : subColor}
+                />
+                <View style={hfs.dateText}>
+                  <Text style={[hfs.dateHint, { color: subColor }]}>
+                    {t('order.fromDate')}
+                  </Text>
+                  <Text
+                    style={[
+                      hfs.dateVal,
+                      { color: localFrom ? textColor : subColor },
+                    ]}
+                  >
+                    {localFrom
+                      ? dayjs(localFrom).format('DD/MM/YYYY')
+                      : '––/––/––––'}
+                  </Text>
+                </View>
+                {localFrom && (
+                  <GHTouchable
+                    onPress={() => setLocalFrom(null)}
+                    hitSlop={10}
+                  >
+                    <X size={12} color={subColor} />
+                  </GHTouchable>
+                )}
+              </GHTouchable>
+            </View>
+
+            <ArrowRight size={16} color={subColor} />
+
+            {/* To */}
+            <View style={hfs.dateWrap}>
+              <GHTouchable
+                onPress={() => setToOpen(true)}
+                activeOpacity={0.7}
+                style={[
+                  hfs.datePicker,
+                  {
+                    backgroundColor: dateBg,
+                    borderColor: localTo ? primaryColor : dateBorder,
+                  },
+                ]}
+              >
+                <CalendarDays
+                  size={13}
+                  color={localTo ? primaryColor : subColor}
+                />
+                <View style={hfs.dateText}>
+                  <Text style={[hfs.dateHint, { color: subColor }]}>
+                    {t('order.toDate')}
+                  </Text>
+                  <Text
+                    style={[
+                      hfs.dateVal,
+                      { color: localTo ? textColor : subColor },
+                    ]}
+                  >
+                    {localTo
+                      ? dayjs(localTo).format('DD/MM/YYYY')
+                      : '––/––/––––'}
+                  </Text>
+                </View>
+                {localTo && (
+                  <GHTouchable onPress={() => setLocalTo(null)} hitSlop={10}>
+                    <X size={12} color={subColor} />
+                  </GHTouchable>
+                )}
+              </GHTouchable>
+            </View>
+          </View>
+        </View>
+
+        {/* Footer */}
+        <View style={hfs.footer}>
+          <View style={hfs.btnWrap}>
+            <GHTouchable
+              onPress={handleReset}
+              activeOpacity={0.8}
+              style={[hfs.btn, { backgroundColor: chipBg }]}
+            >
+              <Text
+                style={[
+                  hfs.btnText,
+                  { color: isDark ? colors.gray[50] : colors.gray[700] },
+                ]}
+              >
+                {tCommon('common.reset')}
+              </Text>
+            </GHTouchable>
+          </View>
+          <View style={hfs.btnWrap}>
+            <GHTouchable
+              onPress={handleApply}
+              activeOpacity={0.8}
+              style={[hfs.btn, { backgroundColor: primaryColor }]}
+            >
+              <Text style={[hfs.btnText, { color: colors.white.light }]}>
+                {t('order.filterApply')}
+              </Text>
+            </GHTouchable>
+          </View>
+        </View>
+      </View>
+
+      <DatePicker
+        modal
+        open={fromOpen}
+        date={localFrom ?? defaultNow}
+        mode="date"
+        maximumDate={localTo ?? defaultNow}
+        onConfirm={(d) => {
+          setLocalFrom(d)
+          setFromOpen(false)
+        }}
+        onCancel={() => setFromOpen(false)}
+        confirmText={tCommon('common.confirm')}
+        cancelText={tCommon('common.cancel')}
+        theme={isDark ? 'dark' : 'light'}
+      />
+      <DatePicker
+        modal
+        open={toOpen}
+        date={localTo ?? defaultNow}
+        mode="date"
+        minimumDate={localFrom ?? undefined}
+        maximumDate={defaultNow}
+        onConfirm={(d) => {
+          setLocalTo(d)
+          setToOpen(false)
+        }}
+        onCancel={() => setToOpen(false)}
+        confirmText={tCommon('common.confirm')}
+        cancelText={tCommon('common.cancel')}
+        theme={isDark ? 'dark' : 'light'}
+      />
+    </BottomSheetModal>
+  )
+})
+
+const hfs = StyleSheet.create({
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    justifyContent: 'space-between',
+  },
+  title: { fontSize: 17, fontWeight: '700', marginBottom: 20 },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+    marginBottom: 10,
+  },
+  dateRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  dateWrap: { flex: 1 },
+  datePicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    height: 52,
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+  },
+  dateText: { flex: 1, gap: 2 },
+  dateHint: { fontSize: 10, fontWeight: '500' },
+  dateVal: { fontSize: 13, fontWeight: '600' },
+  footer: { flexDirection: 'row', gap: 10 },
+  btnWrap: { flex: 1 },
+  btn: {
+    height: 46,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  btnText: { fontSize: 15, fontWeight: '700' },
+})
+
 function OrderHistoryPage() {
   const { t } = useTranslation('menu')
   const { t: tProfile } = useTranslation('profile')
@@ -115,6 +421,11 @@ function OrderHistoryPage() {
   // Fetch sau khi transition xong → màn trượt ngay, skeleton hiện, data load không block animation
   const [allowFetch, setAllowFetch] = useState(false)
   useRunAfterTransition(() => setAllowFetch(true), [])
+  const [dateFilter, setDateFilter] = useState<HistoryDateFilter>({
+    fromDate: null,
+    toDate: null,
+  })
+  const [filterSheetOpen, setFilterSheetOpen] = useState(false)
 
   const {
     data: orderResponse,
@@ -129,6 +440,12 @@ function OrderHistoryPage() {
       order: 'DESC',
       hasPaging: true,
       status: status === OrderStatus.ALL ? undefined : status,
+      ...(dateFilter.fromDate
+        ? { startDate: dayjs(dateFilter.fromDate).format('YYYY-MM-DD') }
+        : {}),
+      ...(dateFilter.toDate
+        ? { endDate: dayjs(dateFilter.toDate).format('YYYY-MM-DD') }
+        : {}),
     },
     { enabled: allowFetch && !!userInfo?.slug },
   )
@@ -226,6 +543,14 @@ function OrderHistoryPage() {
     setPage(1)
   }, [])
 
+  const handleFilterOpen = useCallback(() => setFilterSheetOpen(true), [])
+  const handleFilterClose = useCallback(() => setFilterSheetOpen(false), [])
+  const handleFilterApply = useCallback((v: HistoryDateFilter) => {
+    setDateFilter(v)
+    setPage(1)
+    setFilterSheetOpen(false)
+  }, [])
+
   const overrideItemLayout = useCallback(
     (layout: { span?: number; size?: number }) => {
       layout.size = ORDER_HISTORY_ITEM_HEIGHT
@@ -267,8 +592,8 @@ function OrderHistoryPage() {
           style={[
             pageStyles.pageBtn,
             {
-              backgroundColor: isDark ? colors.gray[800] : colors.white.light,
-              borderColor: isDark ? colors.gray[700] : colors.gray[200],
+              backgroundColor: isDark ? colors.card.dark : colors.white.light,
+              borderColor: isDark ? colors.border.dark : colors.gray[200],
             },
             !hasPrevious && { opacity: 0.5 },
           ]}
@@ -302,8 +627,8 @@ function OrderHistoryPage() {
           style={[
             pageStyles.pageBtn,
             {
-              backgroundColor: isDark ? colors.gray[800] : colors.white.light,
-              borderColor: isDark ? colors.gray[700] : colors.gray[200],
+              backgroundColor: isDark ? colors.card.dark : colors.white.light,
+              borderColor: isDark ? colors.border.dark : colors.gray[200],
             },
             !hasNext && { opacity: 0.5 },
           ]}
@@ -356,8 +681,19 @@ function OrderHistoryPage() {
   )
 
   const screenBg = isDark ? colors.background.dark : colors.background.light
-  const headerBg = isDark ? colors.gray[800] : colors.white.light
-  const headerBorder = isDark ? colors.gray[700] : colors.gray[200]
+  const isDateFilterActive =
+    dateFilter.fromDate !== null || dateFilter.toDate !== null
+
+  const listPaddingStyle = useMemo(
+    () => ({
+      paddingHorizontal: 16,
+      paddingTop: isDateFilterActive ? 168 : 130,
+      paddingBottom: 24,
+    }),
+    [isDateFilterActive],
+  )
+  const headerBg = isDark ? colors.card.dark : colors.white.light
+  const headerBorder = isDark ? colors.border.dark : colors.gray[200]
   const gradientColors = useMemo(
     () =>
       [
@@ -392,7 +728,7 @@ function OrderHistoryPage() {
           overrideItemLayout={overrideItemLayout}
           ListFooterComponent={ListFooterComponent}
           ListEmptyComponent={ListEmptyComponent}
-          contentContainerStyle={pageStyles.listPadding}
+          contentContainerStyle={listPaddingStyle}
           refreshControl={
             <RefreshControl
               refreshing={isRefetching}
@@ -428,7 +764,7 @@ function OrderHistoryPage() {
                 pageStyles.circleBtn,
                 {
                   backgroundColor: isDark
-                    ? colors.gray[800]
+                    ? colors.card.dark
                     : colors.white.light,
                 },
                 pageStyles.shadow,
@@ -449,7 +785,40 @@ function OrderHistoryPage() {
               {t('order.history', 'Lịch sử đơn hàng')}
             </Text>
 
-            <View style={pageStyles.circleBtn} />
+            <Pressable
+              onPress={handleFilterOpen}
+              hitSlop={4}
+              style={[
+                pageStyles.circleBtn,
+                {
+                  backgroundColor: isDateFilterActive
+                    ? `${primaryColor}15`
+                    : isDark
+                      ? colors.card.dark
+                      : colors.white.light,
+                },
+                !isDateFilterActive && pageStyles.shadow,
+              ]}
+            >
+              <SlidersHorizontal
+                size={18}
+                color={
+                  isDateFilterActive
+                    ? primaryColor
+                    : isDark
+                      ? colors.gray[50]
+                      : colors.gray[900]
+                }
+              />
+              {isDateFilterActive && (
+                <View
+                  style={[
+                    pageStyles.filterActiveDot,
+                    { backgroundColor: primaryColor },
+                  ]}
+                />
+              )}
+            </Pressable>
           </View>
 
           {/* Filter chips */}
@@ -463,8 +832,71 @@ function OrderHistoryPage() {
               labels={filterBarLabels}
             />
           </View>
+
+          {/* Active date chips */}
+          {isDateFilterActive && (
+            <View style={pageStyles.dateChipRow} pointerEvents="auto">
+              {dateFilter.fromDate && (
+                <View
+                  style={[
+                    pageStyles.dateChip,
+                    {
+                      backgroundColor: `${primaryColor}15`,
+                      borderColor: `${primaryColor}30`,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[pageStyles.dateChipText, { color: primaryColor }]}
+                  >
+                    {t('order.fromDate')}:{' '}
+                    {dayjs(dateFilter.fromDate).format('DD/MM/YYYY')}
+                  </Text>
+                </View>
+              )}
+              {dateFilter.toDate && (
+                <View
+                  style={[
+                    pageStyles.dateChip,
+                    {
+                      backgroundColor: `${primaryColor}15`,
+                      borderColor: `${primaryColor}30`,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[pageStyles.dateChipText, { color: primaryColor }]}
+                  >
+                    {t('order.toDate')}:{' '}
+                    {dayjs(dateFilter.toDate).format('DD/MM/YYYY')}
+                  </Text>
+                </View>
+              )}
+              <Pressable
+                onPress={() => {
+                  setDateFilter({ fromDate: null, toDate: null })
+                  setPage(1)
+                }}
+                hitSlop={8}
+              >
+                <X
+                  size={14}
+                  color={isDark ? colors.gray[400] : colors.gray[500]}
+                />
+              </Pressable>
+            </View>
+          )}
         </View>
       </ScreenContainer>
+
+      <HistoryDateFilterSheet
+        visible={filterSheetOpen}
+        value={dateFilter}
+        primaryColor={primaryColor}
+        isDark={isDark}
+        onClose={handleFilterClose}
+        onApply={handleFilterApply}
+      />
     </View>
   )
 }
@@ -520,7 +952,6 @@ const pageStyles = StyleSheet.create({
     paddingVertical: 8,
   },
   filterChipText: { fontSize: 14, fontWeight: '500' },
-  listPadding: { paddingHorizontal: 16, paddingTop: 130, paddingBottom: 24 },
   paginationRow: {
     marginTop: 16,
     flexDirection: 'row',
@@ -545,4 +976,29 @@ const pageStyles = StyleSheet.create({
   },
   emptyTitle: { marginTop: 16, fontSize: 18, fontWeight: '600' },
   emptyDesc: { marginTop: 8, fontSize: 14, textAlign: 'center' },
+  filterActiveDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    position: 'absolute',
+    top: 6,
+    right: 6,
+  },
+  dateChipRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 6,
+    paddingHorizontal: 16,
+    paddingBottom: 8,
+  },
+  dateChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  dateChipText: { fontSize: 11, fontWeight: '600' },
 })
