@@ -186,12 +186,10 @@ function PaymentSkeleton() {
 const sk = StyleSheet.create({
   wrapper: { padding: 16, gap: 12, marginTop: 8 },
   card: {
-    backgroundColor: colors.white.light,
     borderRadius: 16,
     padding: 16,
     gap: 10,
     borderWidth: 1,
-    borderColor: colors.gray[100],
   },
   line: { height: 16, borderRadius: 6 },
 })
@@ -804,7 +802,7 @@ export default function GiftCardPaymentScreen() {
                     s.footerBtn,
                     {
                       backgroundColor: isDark
-                        ? colors.gray[800]
+                        ? colors.border.dark
                         : colors.gray[100],
                     },
                   ]}
