@@ -18,6 +18,7 @@ import { showToast } from '@/utils'
 
 const SOUND_VOLUME = 0.5
 
+// Preloaded sound instance — reuse across notifications, avoid re-loading file
 let cachedSound: Audio.Sound | null = null
 
 async function playNotificationSound(): Promise<void> {
@@ -33,6 +34,8 @@ async function playNotificationSound(): Promise<void> {
     await cachedSound.setVolumeAsync(SOUND_VOLUME)
     await cachedSound.playAsync()
   } catch {
+    // Unload native audio resource before clearing reference to prevent
+    // orphaned buffers in the native Audio engine
     if (cachedSound) {
       await cachedSound.unloadAsync().catch(() => {})
     }
