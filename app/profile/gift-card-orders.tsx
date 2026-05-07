@@ -275,7 +275,7 @@ interface DateFilter {
   toDate: Date | null
 }
 
-const DATE_SNAP = ['50%']
+const DATE_SNAP = ['65%']
 
 const DateFilterSheet = memo(function DateFilterSheet({
   visible,
@@ -284,6 +284,8 @@ const DateFilterSheet = memo(function DateFilterSheet({
   isDark,
   onClose,
   onApply,
+  selectedType,
+  onTypeChange,
 }: {
   visible: boolean
   value: DateFilter
@@ -291,6 +293,8 @@ const DateFilterSheet = memo(function DateFilterSheet({
   isDark: boolean
   onClose: () => void
   onApply: (v: DateFilter) => void
+  selectedType: string
+  onTypeChange: (v: string) => void
 }) {
   const sheetRef = useRef<BottomSheetModal>(null)
   const { bottom } = useSafeAreaInsets()
@@ -308,6 +312,16 @@ const DateFilterSheet = memo(function DateFilterSheet({
   const chipBg = isDark ? colors.border.dark : colors.gray[100]
   const dateBg = isDark ? colors.background.dark : colors.gray[50]
   const dateBorder = isDark ? colors.border.dark : colors.gray[200]
+
+  const TYPE_FILTER_OPTIONS = useMemo(
+    () => [
+      { label: t('orders.types.all'), value: 'ALL' },
+      { label: t('type.self'), value: GiftCardType.SELF },
+      { label: t('type.gift'), value: GiftCardType.GIFT },
+      { label: t('type.buy'), value: GiftCardType.BUY },
+    ],
+    [t],
+  )
 
   const defaultNow = useMemo(() => new Date(), [])
 
@@ -331,8 +345,9 @@ const DateFilterSheet = memo(function DateFilterSheet({
 
   const handleReset = useCallback(() => {
     onApply({ fromDate: null, toDate: null })
+    onTypeChange('ALL')
     sheetRef.current?.dismiss()
-  }, [onApply])
+  }, [onApply, onTypeChange])
 
   useEffect(() => {
     if (visible) sheetRef.current?.present()
@@ -359,6 +374,48 @@ const DateFilterSheet = memo(function DateFilterSheet({
           <Text style={[ds.title, { color: textColor }]}>
             {t('orders.filterTitle')}
           </Text>
+          {/* Type */}
+          <Text style={[ds.sectionLabel, { color: subColor }]}>
+            {t('orders.typeLabel')}
+          </Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={ds.typeChipScroll}
+          >
+            {TYPE_FILTER_OPTIONS.map((opt) => {
+              const active = selectedType === opt.value
+              return (
+                <GHTouchable
+                  key={opt.value}
+                  onPress={() => onTypeChange(opt.value)}
+                  activeOpacity={0.7}
+                  style={[
+                    ds.typeChip,
+                    {
+                      backgroundColor: active ? primaryColor : chipBg,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      ds.typeChipText,
+                      {
+                        color: active
+                          ? colors.white.light
+                          : isDark
+                            ? colors.gray[300]
+                            : colors.gray[700],
+                        fontWeight: active ? '700' : '500',
+                      },
+                    ]}
+                  >
+                    {opt.label}
+                  </Text>
+                </GHTouchable>
+              )
+            })}
+          </ScrollView>
           <Text style={[ds.sectionLabel, { color: subColor }]}>
             {t('orders.dateRange')}
           </Text>
@@ -553,6 +610,13 @@ const ds = StyleSheet.create({
     justifyContent: 'center',
   },
   btnText: { fontSize: 15, fontWeight: '700' },
+  typeChipScroll: { flexDirection: 'row', gap: 8, paddingBottom: 14 },
+  typeChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 999,
+  },
+  typeChipText: { fontSize: 13 },
 })
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
@@ -847,10 +911,12 @@ export default function GiftCardOrdersScreen() {
       <DateFilterSheet
         visible={filterSheetOpen}
         value={dateFilter}
+        selectedType={selectedType}
         primaryColor={primaryColor}
         isDark={isDark}
         onClose={handleFilterClose}
         onApply={handleFilterApply}
+        onTypeChange={handleTypeSelect}
       />
     </View>
   )

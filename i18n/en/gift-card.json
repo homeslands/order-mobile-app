@@ -55,6 +55,7 @@
     "types": {
       "all": "All"
     },
+    "typeLabel": "Type",
     "filterTitle": "Filter",
     "dateRange": "Date Range",
     "fromDate": "From Date",
