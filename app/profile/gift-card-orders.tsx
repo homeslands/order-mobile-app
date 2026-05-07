@@ -275,7 +275,7 @@ interface DateFilter {
   toDate: Date | null
 }
 
-const DATE_SNAP = ['65%']
+const DATE_SNAP = ['75%']
 
 const DateFilterSheet = memo(function DateFilterSheet({
   visible,
@@ -286,6 +286,8 @@ const DateFilterSheet = memo(function DateFilterSheet({
   onApply,
   selectedType,
   onTypeChange,
+  selectedSort,
+  onSortChange,
 }: {
   visible: boolean
   value: DateFilter
@@ -295,6 +297,8 @@ const DateFilterSheet = memo(function DateFilterSheet({
   onApply: (v: DateFilter) => void
   selectedType: string
   onTypeChange: (v: string) => void
+  selectedSort: string
+  onSortChange: (v: string) => void
 }) {
   const sheetRef = useRef<BottomSheetModal>(null)
   const { bottom } = useSafeAreaInsets()
@@ -323,6 +327,14 @@ const DateFilterSheet = memo(function DateFilterSheet({
     [t],
   )
 
+  const SORT_OPTIONS = useMemo(
+    () => [
+      { label: t('orders.sortNewest'), value: '-createdAt' },
+      { label: t('orders.sortOldest'), value: '+createdAt' },
+    ],
+    [t],
+  )
+
   const defaultNow = useMemo(() => new Date(), [])
 
   const renderBackdrop = useCallback(
@@ -346,8 +358,9 @@ const DateFilterSheet = memo(function DateFilterSheet({
   const handleReset = useCallback(() => {
     onApply({ fromDate: null, toDate: null })
     onTypeChange('ALL')
+    onSortChange('-createdAt')
     sheetRef.current?.dismiss()
-  }, [onApply, onTypeChange])
+  }, [onApply, onTypeChange, onSortChange])
 
   useEffect(() => {
     if (visible) sheetRef.current?.present()
@@ -415,6 +428,42 @@ const DateFilterSheet = memo(function DateFilterSheet({
               )
             })}
           </ScrollView>
+          {/* Sort */}
+          <Text style={[ds.sectionLabel, { color: subColor }]}>
+            {t('orders.sortLabel')}
+          </Text>
+          <View style={ds.sortRow}>
+            {SORT_OPTIONS.map((opt) => {
+              const active = selectedSort === opt.value
+              return (
+                <Pressable
+                  key={opt.value}
+                  onPress={() => onSortChange(opt.value)}
+                  style={[
+                    ds.sortChip,
+                    { backgroundColor: active ? primaryColor : chipBg },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      ds.sortChipText,
+                      {
+                        color: active
+                          ? colors.white.light
+                          : isDark
+                            ? colors.gray[300]
+                            : colors.gray[700],
+                        fontWeight: active ? '700' : '500',
+                      },
+                    ]}
+                  >
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              )
+            })}
+          </View>
+
           <Text style={[ds.sectionLabel, { color: subColor }]}>
             {t('orders.dateRange')}
           </Text>
@@ -616,6 +665,16 @@ const ds = StyleSheet.create({
     borderRadius: 999,
   },
   typeChipText: { fontSize: 13 },
+  sortRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
+  sortChip: {
+    flex: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sortChipText: { fontSize: 13 },
 })
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
@@ -659,6 +718,7 @@ export default function GiftCardOrdersScreen() {
     toDate: null,
   })
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
+  const [sortDir, setSortDir] = useState<'-createdAt' | '+createdAt'>('-createdAt')
 
   const flashListRef = useRef<FlashListRef<ICardOrderResponse>>(null)
 
@@ -667,7 +727,7 @@ export default function GiftCardOrdersScreen() {
   const queryParams = useMemo(
     () => ({
       customerSlug: userSlug,
-      sort: '-createdAt',
+      sort: sortDir,
       ...(dateFilter.fromDate
         ? { fromDate: dayjs(dateFilter.fromDate).format('YYYY-MM-DD') }
         : {}),
@@ -675,7 +735,7 @@ export default function GiftCardOrdersScreen() {
         ? { toDate: dayjs(dateFilter.toDate).format('YYYY-MM-DD') }
         : {}),
     }),
-    [userSlug, dateFilter],
+    [userSlug, dateFilter, sortDir],
   )
 
   const {
@@ -709,6 +769,10 @@ export default function GiftCardOrdersScreen() {
     flashListRef.current?.scrollToOffset({ offset: 0, animated: false })
   }, [dateFilter])
 
+  useEffect(() => {
+    flashListRef.current?.scrollToOffset({ offset: 0, animated: false })
+  }, [sortDir])
+
   const bg = isDark ? colors.background.dark : colors.background.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
@@ -722,8 +786,15 @@ export default function GiftCardOrdersScreen() {
     setFilterSheetOpen(false)
   }, [])
 
+  const handleSortChange = useCallback(
+    (v: string) => setSortDir(v as '-createdAt' | '+createdAt'),
+    [],
+  )
+
   const isDateActive =
-    dateFilter.fromDate !== null || dateFilter.toDate !== null
+    dateFilter.fromDate !== null ||
+    dateFilter.toDate !== null ||
+    sortDir !== '-createdAt'
 
   const handleEndReached = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage()
@@ -916,6 +987,8 @@ export default function GiftCardOrdersScreen() {
         onClose={handleFilterClose}
         onApply={handleFilterApply}
         onTypeChange={handleTypeSelect}
+        selectedSort={sortDir}
+        onSortChange={handleSortChange}
       />
     </View>
   )
