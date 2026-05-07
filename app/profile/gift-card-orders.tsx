@@ -297,8 +297,8 @@ const DateFilterSheet = memo(function DateFilterSheet({
   onApply: (v: DateFilter) => void
   selectedType: string
   onTypeChange: (v: string) => void
-  selectedSort: string
-  onSortChange: (v: string) => void
+  selectedSort: '-createdAt' | '+createdAt'
+  onSortChange: (v: '-createdAt' | '+createdAt') => void
 }) {
   const sheetRef = useRef<BottomSheetModal>(null)
   const { bottom } = useSafeAreaInsets()
@@ -329,8 +329,8 @@ const DateFilterSheet = memo(function DateFilterSheet({
 
   const SORT_OPTIONS = useMemo(
     () => [
-      { label: t('orders.sortNewest'), value: '-createdAt' },
-      { label: t('orders.sortOldest'), value: '+createdAt' },
+      { label: t('orders.sortNewest'), value: '-createdAt' as const },
+      { label: t('orders.sortOldest'), value: '+createdAt' as const },
     ],
     [t],
   )
@@ -787,7 +787,7 @@ export default function GiftCardOrdersScreen() {
   }, [])
 
   const handleSortChange = useCallback(
-    (v: string) => setSortDir(v as '-createdAt' | '+createdAt'),
+    (v: '-createdAt' | '+createdAt') => setSortDir(v),
     [],
   )
 
