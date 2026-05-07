@@ -70,7 +70,7 @@ const TYPE_CFG = {
     color: colors.gray[500],
     darkColor: colors.gray[400],
     bgL: colors.gray[200],
-    bgD: colors.gray[700],
+    bgD: colors.border.dark,
     prefix: '-',
     Icon: Clock,
   },
@@ -84,15 +84,31 @@ const TYPE_CFG = {
   },
 } as const
 
-const ORDER_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  [OrderStatus.PAID]: { bg: colors.success.iconBgLight, text: '#16a34a' },
-  [OrderStatus.COMPLETED]: { bg: colors.success.iconBgLight, text: '#16a34a' },
-  [OrderStatus.PENDING]: {
-    bg: colors.warning.iconBgLight,
-    text: colors.warning.textLight,
-  },
-  [OrderStatus.SHIPPING]: { bg: '#dbeafe', text: '#1d4ed8' },
-  [OrderStatus.FAILED]: { bg: '#fee2e2', text: colors.destructive.dark },
+function getOrderStatusColors(
+  isDark: boolean,
+): Record<string, { bg: string; text: string }> {
+  return {
+    [OrderStatus.PAID]: {
+      bg: isDark ? '#14532d' : colors.success.iconBgLight,
+      text: isDark ? '#86efac' : '#16a34a',
+    },
+    [OrderStatus.COMPLETED]: {
+      bg: isDark ? '#14532d' : colors.success.iconBgLight,
+      text: isDark ? '#86efac' : '#16a34a',
+    },
+    [OrderStatus.PENDING]: {
+      bg: isDark ? colors.warning.iconBgDark : colors.warning.iconBgLight,
+      text: isDark ? colors.warning.textDark : colors.warning.textLight,
+    },
+    [OrderStatus.SHIPPING]: {
+      bg: isDark ? '#1e3a5f' : '#dbeafe',
+      text: isDark ? '#93c5fd' : '#1d4ed8',
+    },
+    [OrderStatus.FAILED]: {
+      bg: isDark ? '#7f1d1d' : '#fee2e2',
+      text: isDark ? '#fca5a5' : colors.destructive.dark,
+    },
+  }
 }
 
 // ─── CopyableInline ───────────────────────────────────────────────────────────
@@ -282,11 +298,11 @@ export const LoyaltyPointDetailHistoryDialog = memo(
 
     const typeColor = isDark ? cfg.darkColor : cfg.color
     const iconBg = isDark ? cfg.bgD : cfg.bgL
-    const bg = isDark ? colors.gray[900] : colors.white.light
+    const bg = isDark ? colors.card.dark : colors.white.light
     const textColor = isDark ? colors.gray[50] : colors.gray[900]
     const subColor = isDark ? colors.gray[400] : colors.gray[500]
-    const borderColor = isDark ? colors.gray[700] : colors.gray[200]
-    const cardBg = isDark ? colors.gray[800] : colors.gray[50]
+    const borderColor = isDark ? colors.border.dark : colors.gray[200]
+    const cardBg = isDark ? colors.background.dark : colors.gray[50]
 
     const TypeIcon = cfg.Icon
 
@@ -312,6 +328,8 @@ export const LoyaltyPointDetailHistoryDialog = memo(
 
     const orderStatusCfg = useMemo(() => {
       if (!order) return null
+      const statusColors = getOrderStatusColors(isDark)
+      const cfg = statusColors[order.status]
       const statusLabelMap: Record<string, string> = {
         [OrderStatus.PAID]: t('profile.orderStatus.completed'),
         [OrderStatus.COMPLETED]: t('profile.orderStatus.completed'),
@@ -319,11 +337,10 @@ export const LoyaltyPointDetailHistoryDialog = memo(
         [OrderStatus.SHIPPING]: t('profile.orderStatus.shipping'),
         [OrderStatus.FAILED]: t('profile.orderStatus.failed'),
       }
-      const colors = ORDER_STATUS_COLORS[order.status]
-      return colors
-        ? { ...colors, label: statusLabelMap[order.status] ?? order.status }
+      return cfg
+        ? { ...cfg, label: statusLabelMap[order.status] ?? order.status }
         : { bg: cardBg, text: subColor, label: order.status }
-    }, [order, t, cardBg, subColor])
+    }, [order, isDark, t, cardBg, subColor])
 
     const orderTypeLabel = useMemo(() => {
       if (!order) return ''
@@ -387,8 +404,12 @@ export const LoyaltyPointDetailHistoryDialog = memo(
                       s.badge,
                       {
                         backgroundColor: isPending
-                          ? colors.warning.iconBgLight
-                          : colors.success.iconBgLight,
+                          ? isDark
+                            ? colors.warning.iconBgDark
+                            : colors.warning.iconBgLight
+                          : isDark
+                            ? colors.success.iconBgDark
+                            : colors.success.iconBgLight,
                       },
                     ]}
                   >
@@ -397,8 +418,12 @@ export const LoyaltyPointDetailHistoryDialog = memo(
                         s.badgeText,
                         {
                           color: isPending
-                            ? colors.warning.textLight
-                            : '#16a34a',
+                            ? isDark
+                              ? colors.warning.textDark
+                              : colors.warning.textLight
+                            : isDark
+                              ? '#86efac'
+                              : '#16a34a',
                         },
                       ]}
                     >
