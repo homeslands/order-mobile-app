@@ -107,6 +107,7 @@
     "selectBranchPrompt": "Please select a branch to view menu.",
     "loadingMenu": "Loading menu...",
     "noMenuData": "No menu data. Please select a different branch or try again later.",
+    "catalogEmpty": "Product categories will be updated soon",
     "searchNotFound": "No results for \"{{keyword}}\"",
     "addedToCart": "Added {{name}} to cart",
     "allPrices": "All prices",
