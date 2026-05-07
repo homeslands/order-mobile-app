@@ -163,14 +163,19 @@ const bds = StyleSheet.create({
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
 function PaymentSkeleton() {
+  const isDark = useColorScheme() === 'dark'
+  const cardOverride = {
+    backgroundColor: isDark ? colors.card.dark : colors.white.light,
+    borderColor: isDark ? colors.border.dark : colors.gray[100],
+  }
   return (
     <View style={sk.wrapper}>
-      <View style={sk.card}>
+      <View style={[sk.card, cardOverride]}>
         <Skeleton style={sk.line} />
         <Skeleton style={[sk.line, { width: '60%' }]} />
         <Skeleton style={[sk.line, { width: '40%' }]} />
       </View>
-      <View style={sk.card}>
+      <View style={[sk.card, cardOverride]}>
         <Skeleton style={[sk.line, { width: '50%' }]} />
         <Skeleton style={{ height: 200, borderRadius: 12 }} />
       </View>
@@ -241,7 +246,7 @@ const QRSection = memo(function QRSection({
     <View
       style={[
         qs.container,
-        { borderColor: isDark ? colors.gray[700] : colors.gray[200] },
+        { borderColor: isDark ? colors.border.dark : colors.gray[200] },
       ]}
     >
       <View style={qs.qrWrap}>
@@ -393,7 +398,7 @@ const GiftCardPaymentSuccessScreen = memo(
               style={[
                 suc.btnSecondary,
                 {
-                  backgroundColor: isDark ? colors.gray[700] : colors.gray[100],
+                  backgroundColor: isDark ? colors.border.dark : colors.gray[100],
                   borderColor: isDark ? colors.gray[500] : colors.gray[300],
                   flex: 1,
                 },
@@ -600,8 +605,8 @@ export default function GiftCardPaymentScreen() {
 
   // Colors
   const bg = isDark ? colors.background.dark : colors.background.light
-  const cardBg = isDark ? colors.gray[900] : colors.white.light
-  const borderColor = isDark ? colors.gray[700] : colors.gray[200]
+  const cardBg = isDark ? colors.card.dark : colors.white.light
+  const borderColor = isDark ? colors.border.dark : colors.gray[200]
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
 
