@@ -42,6 +42,9 @@ export function useRegisterDeviceToken(enabled = true) {
         if (result.success) {
           // Only save to store AFTER server confirms — this is the gate
           setDeviceToken(token)
+        } else {
+          // eslint-disable-next-line no-console
+          console.error('[FCM] Token registration failed permanently:', result.error)
         }
       } finally {
         isRegistering.current = false
