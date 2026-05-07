@@ -14,18 +14,6 @@ import messaging from '@react-native-firebase/messaging'
 
 import { useUserStore } from '@/stores'
 
-// Foreground: suppress OS notification — app handles via toast + sound instead.
-// Background: OS handles automatically (this handler only applies when app is in foreground).
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: false,
-    shouldPlaySound: false,
-    shouldSetBadge: true,
-    shouldShowBanner: false,
-    shouldShowList: true,
-  }),
-})
-
 async function requestPermissionAndGetToken(): Promise<{
   token: string | null
   permissionDenied: boolean
@@ -36,16 +24,8 @@ async function requestPermissionAndGetToken(): Promise<{
   }
 
   if (Platform.OS === 'android') {
-    // Android 13+ (API 33+): must create channel + request POST_NOTIFICATIONS
-    // at runtime. messaging().requestPermission() does NOT trigger the system
-    // dialog on Android — only expo-notifications does.
-    await Notifications.setNotificationChannelAsync('default', {
-      name: 'default',
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#F7A737',
-      sound: 'notification.mp3',
-    })
+    // Android 13+ (API 33+): must request POST_NOTIFICATIONS at runtime.
+    // messaging().requestPermission() does NOT trigger the system dialog on Android.
     const { status } = await Notifications.requestPermissionsAsync()
     if (status !== 'granted') {
       return { token: null, permissionDenied: true }
@@ -59,10 +39,14 @@ async function requestPermissionAndGetToken(): Promise<{
     if (!granted) {
       return { token: null, permissionDenied: true }
     }
-    await messaging().registerDeviceForRemoteMessages()
+    try {
+      await messaging().registerDeviceForRemoteMessages()
+    } catch {
+      // APNs registration failure is non-fatal — token fetch will fail if needed
+    }
   }
 
-  // Get FCM token — retry up to 5x with backoff (APNs token may arrive async)
+  // Get FCM token — retry up to 5x with backoff (APNs token may arrive async on iOS)
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
       const fcmToken = await messaging().getToken()
