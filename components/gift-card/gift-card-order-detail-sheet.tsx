@@ -39,12 +39,16 @@ import { formatCurrency } from '@/utils'
 
 const SNAP_POINTS = ['80%']
 
-const PAYMENT_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  COMPLETED: { bg: '#dcfce7', text: '#16a34a' },
-  PAID: { bg: '#dcfce7', text: '#16a34a' },
-  PENDING: { bg: '#fef9c3', text: '#b45309' },
-  FAILED: { bg: '#fee2e2', text: '#dc2626' },
-  CANCELLED: { bg: '#fee2e2', text: '#dc2626' },
+function getPaymentStatusColors(
+  isDark: boolean,
+): Record<string, { bg: string; text: string }> {
+  return {
+    COMPLETED: { bg: isDark ? '#14532d' : '#dcfce7', text: isDark ? '#86efac' : '#16a34a' },
+    PAID:      { bg: isDark ? '#14532d' : '#dcfce7', text: isDark ? '#86efac' : '#16a34a' },
+    PENDING:   { bg: isDark ? '#713f12' : '#fef9c3', text: isDark ? '#fde68a' : '#b45309' },
+    FAILED:    { bg: isDark ? '#7f1d1d' : '#fee2e2', text: isDark ? '#fca5a5' : '#dc2626' },
+    CANCELLED: { bg: isDark ? '#7f1d1d' : '#fee2e2', text: isDark ? '#fca5a5' : '#dc2626' },
+  }
 }
 
 // ─── CopyableInline ───────────────────────────────────────────────────────────
@@ -161,11 +165,11 @@ export const GiftCardOrderDetailSheet = memo(function GiftCardOrderDetailSheet({
   )
 
   // Derived
-  const bg = isDark ? colors.gray[900] : colors.white.light
+  const bg = isDark ? colors.card.dark : colors.white.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const borderColor = isDark ? colors.gray[700] : colors.gray[200]
-  const cardBg = isDark ? colors.gray[800] : colors.gray[50]
+  const borderColor = isDark ? colors.border.dark : colors.gray[200]
+  const cardBg = isDark ? colors.background.dark : colors.gray[50]
 
   const paymentStatusLabelMap = useMemo(
     () => ({
@@ -192,16 +196,17 @@ export const GiftCardOrderDetailSheet = memo(function GiftCardOrderDetailSheet({
   const statusCfg = useMemo(() => {
     if (!order) return null
     const key = (order.paymentStatus ?? '').toUpperCase()
-    const colors = PAYMENT_STATUS_COLORS[key]
-    return colors
+    const statusColors = getPaymentStatusColors(isDark)
+    const cfg = statusColors[key]
+    return cfg
       ? {
-          ...colors,
+          ...cfg,
           label:
             paymentStatusLabelMap[key as keyof typeof paymentStatusLabelMap] ??
             order.paymentStatus,
         }
       : { bg: cardBg, text: subColor, label: order.paymentStatus }
-  }, [order, paymentStatusLabelMap, cardBg, subColor])
+  }, [order, isDark, paymentStatusLabelMap, cardBg, subColor])
 
   const typeLabel =
     order?.type === GiftCardType.GIFT

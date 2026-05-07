@@ -131,16 +131,16 @@ function StatusBadge({ status, isDark }: { status: string; isDark: boolean }) {
   let label = status ?? ''
 
   if (upper === 'COMPLETED' || upper === 'PAID') {
-    bg = '#dcfce7'
-    color = '#16a34a'
+    bg = isDark ? '#14532d' : '#dcfce7'
+    color = isDark ? '#86efac' : '#16a34a'
     label = t('orderStatus.completedShort')
   } else if (upper === 'PENDING') {
-    bg = '#fef9c3'
-    color = '#b45309'
+    bg = isDark ? '#713f12' : '#fef9c3'
+    color = isDark ? '#fde68a' : '#b45309'
     label = t('orderStatus.pendingShort')
   } else if (upper === 'CANCELLED') {
-    bg = '#fee2e2'
-    color = '#dc2626'
+    bg = isDark ? '#7f1d1d' : '#fee2e2'
+    color = isDark ? '#fca5a5' : '#dc2626'
     label = t('orderStatus.cancelled')
   }
 
