@@ -35,8 +35,10 @@ async function requestPermissionAndGetToken(): Promise<{
     return { token: null, permissionDenied: false }
   }
 
-  // Android 13+ needs explicit notification channel
   if (Platform.OS === 'android') {
+    // Android 13+ (API 33+): must create channel + request POST_NOTIFICATIONS
+    // at runtime. messaging().requestPermission() does NOT trigger the system
+    // dialog on Android — only expo-notifications does.
     await Notifications.setNotificationChannelAsync('default', {
       name: 'default',
       importance: Notifications.AndroidImportance.MAX,
@@ -44,21 +46,19 @@ async function requestPermissionAndGetToken(): Promise<{
       lightColor: '#F7A737',
       sound: 'notification.mp3',
     })
-  }
-
-  // iOS: request permission via Firebase (also satisfies expo-notifications)
-  // Android: Firebase permission is auto-granted on most versions
-  const authStatus = await messaging().requestPermission()
-  const granted =
-    authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-    authStatus === messaging.AuthorizationStatus.PROVISIONAL
-
-  if (!granted) {
-    return { token: null, permissionDenied: true }
-  }
-
-  // iOS requires explicit APNs registration before FCM token is available
-  if (Platform.OS === 'ios') {
+    const { status } = await Notifications.requestPermissionsAsync()
+    if (status !== 'granted') {
+      return { token: null, permissionDenied: true }
+    }
+  } else {
+    // iOS: Firebase handles the permission dialog + APNs registration
+    const authStatus = await messaging().requestPermission()
+    const granted =
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL
+    if (!granted) {
+      return { token: null, permissionDenied: true }
+    }
     await messaging().registerDeviceForRemoteMessages()
   }
 
