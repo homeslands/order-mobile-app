@@ -41,17 +41,21 @@ async function requestPermissionAndGetToken(): Promise<{
     }
     try {
       await messaging().registerDeviceForRemoteMessages()
-    } catch {
-      // APNs registration failure is non-fatal — token fetch will fail if needed
+    } catch (e) {
+      // APNs registration failure will cause getToken() to fail in the loop below
+      // eslint-disable-next-line no-console
+      console.error('[FCM] registerDeviceForRemoteMessages failed (iOS):', e)
     }
   }
 
   // Get FCM token — retry up to 5x with backoff (APNs token may arrive async on iOS)
+  let lastError: unknown
   for (let attempt = 0; attempt < 5; attempt++) {
     try {
       const fcmToken = await messaging().getToken()
       return { token: fcmToken ?? null, permissionDenied: false }
-    } catch {
+    } catch (e) {
+      lastError = e
       if (attempt < 4) {
         await new Promise<void>((resolve) =>
           setTimeout(resolve, 1000 * (attempt + 1)),
@@ -59,6 +63,8 @@ async function requestPermissionAndGetToken(): Promise<{
       }
     }
   }
+  // eslint-disable-next-line no-console
+  console.error('[FCM] getToken failed after 5 attempts:', lastError)
   return { token: null, permissionDenied: false }
 }
 
@@ -87,8 +93,12 @@ export function useFirebaseToken(enabled = true) {
         // NOTE: Don't save to store here — only save AFTER server confirms registration
         // (handled in use-register-device-token.ts)
       })
-      .catch(() => {
-        // Silent fail — will be retried on next auth cycle
+      .catch((e) => {
+        if (cancelled) return
+        // eslint-disable-next-line no-console
+        console.error('[FCM] requestPermissionAndGetToken rejected:', e)
+        // Reset guard so the next enable=true cycle can retry
+        hasRunRef.current = false
       })
 
     return () => {
