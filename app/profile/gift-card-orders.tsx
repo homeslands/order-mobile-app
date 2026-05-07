@@ -90,12 +90,12 @@ const FilterBar = memo(function FilterBar({
                 backgroundColor: active
                   ? primaryColor
                   : isDark
-                    ? colors.gray[800]
+                    ? colors.border.dark
                     : colors.gray[100],
                 borderColor: active
                   ? primaryColor
                   : isDark
-                    ? colors.gray[700]
+                    ? colors.border.dark
                     : colors.gray[200],
               },
             ]}
@@ -126,9 +126,9 @@ const FilterBar = memo(function FilterBar({
 function StatusBadge({ status, isDark }: { status: string; isDark: boolean }) {
   const { t } = useTranslation('giftCard')
   const upper = (status ?? '').toUpperCase()
-  let bg = isDark ? colors.gray[700] : colors.gray[200]
+  let bg = isDark ? colors.border.dark : colors.gray[200]
   let color = isDark ? colors.gray[400] : colors.gray[500]
-  let label = status
+  let label = status ?? ''
 
   if (upper === 'COMPLETED' || upper === 'PAID') {
     bg = '#dcfce7'
@@ -188,8 +188,8 @@ const OrderListItem = memo(function OrderListItem({
 }) {
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const bg = isDark ? colors.gray[900] : colors.white.light
-  const borderColor = isDark ? colors.gray[700] : colors.gray[100]
+  const bg = isDark ? colors.card.dark : colors.white.light
+  const borderColor = isDark ? colors.border.dark : colors.gray[100]
 
   const { t } = useTranslation('giftCard')
   const handlePress = useCallback(
@@ -302,12 +302,12 @@ const DateFilterSheet = memo(function DateFilterSheet({
   const [fromOpen, setFromOpen] = useState(false)
   const [toOpen, setToOpen] = useState(false)
 
-  const bg = isDark ? colors.gray[900] : colors.white.light
+  const bg = isDark ? colors.card.dark : colors.white.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const chipBg = isDark ? colors.gray[800] : colors.gray[100]
-  const dateBg = isDark ? colors.gray[800] : colors.gray[50]
-  const dateBorder = isDark ? colors.gray[700] : colors.gray[200]
+  const chipBg = isDark ? colors.border.dark : colors.gray[100]
+  const dateBg = isDark ? colors.background.dark : colors.gray[50]
+  const dateBorder = isDark ? colors.border.dark : colors.gray[200]
 
   const defaultNow = useMemo(() => new Date(), [])
 
@@ -687,7 +687,7 @@ export default function GiftCardOrdersScreen() {
     [],
   )
 
-  const borderColor = isDark ? colors.gray[700] : colors.gray[200]
+  const borderColor = isDark ? colors.border.dark : colors.gray[200]
 
   const ListFooter = isFetchingNextPage ? (
     <ActivityIndicator color={primaryColor} style={{ paddingVertical: 16 }} />
@@ -723,7 +723,7 @@ export default function GiftCardOrdersScreen() {
                 backgroundColor: isDateActive
                   ? `${primaryColor}15`
                   : isDark
-                    ? colors.gray[800]
+                    ? colors.border.dark
                     : colors.white.light,
               },
             ]}
