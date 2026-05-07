@@ -22,6 +22,7 @@ import { colors } from '@/constants'
 import { PROFILE_SETTINGS_ITEM_HEIGHT } from '@/constants/list-item-sizes'
 import { useLoyaltyPoints, useRunAfterTransition } from '@/hooks'
 import { useAuthStore, useUserStore } from '@/stores'
+import { cleanupTokenOnLogout } from '@/lib/fcm-token-manager'
 import {
   ProfileItem,
   type ProfileItemProps,
@@ -145,6 +146,8 @@ export default function ProfilePlaceholderScreen() {
   )
 
   const handleLogout = useCallback(() => {
+    const capturedToken = useUserStore.getState().deviceToken ?? undefined
+    cleanupTokenOnLogout(capturedToken).catch(() => {})
     setLogout()
     removeUserInfo()
     router.replace('/(tabs)/home' as never)

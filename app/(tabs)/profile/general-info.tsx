@@ -6,6 +6,7 @@ import { colors, publicFileURL } from '@/constants'
 import { ROUTE } from '@/constants/route.contstant'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { navigateNative } from '@/lib/navigation'
+import { cleanupTokenOnLogout } from '@/lib/fcm-token-manager'
 import { useAuthStore, useUserStore } from '@/stores'
 import { useLogoutSheetStore } from '@/stores/logout-sheet.store'
 import { showToast } from '@/utils'
@@ -40,13 +41,13 @@ const PROFILE_THEME = {
     avatarFallback: colors.border.light,
   },
   dark: {
-    bg: colors.background.dark,
-    card: colors.card.dark,
+    bg: '#1F2B3E',
+    card: '#2B3B4C',
     text: colors.foreground.dark,
-    textMuted: colors.mutedForeground.dark,
-    editBtn: colors.border.dark,
+    textMuted: '#8B9BB2',
+    editBtn: '#3D4F66',
     divider: 'rgba(255,255,255,0.08)',
-    avatarFallback: colors.card.dark,
+    avatarFallback: '#2B3B4C',
   },
 } as const
 
@@ -207,6 +208,8 @@ export default function GeneralInfo() {
 
   const handleLogoutConfirm = useCallback(() => {
     isLoggingOutRef.current = true
+    const capturedToken = useUserStore.getState().deviceToken ?? undefined
+    cleanupTokenOnLogout(capturedToken).catch(() => {})
     setLogout()
     removeUserInfo()
     router.replace('/(tabs)/home' as never)
@@ -425,7 +428,7 @@ export default function GeneralInfo() {
               hStyles.editPill,
               {
                 backgroundColor: isDark
-                  ? colors.card.dark
+                  ? colors.gray[800]
                   : colors.white.light,
               },
             ]}
