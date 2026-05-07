@@ -22,5 +22,6 @@ if (Platform.OS === 'android') {
     vibrationPattern: [0, 250, 250, 250],
     lightColor: '#F7A737',
     sound: 'notification.mp3',
-  }).catch(() => {})
+    // eslint-disable-next-line no-console
+  }).catch((e) => console.error('[Notifications] Failed to create Android default channel:', e))
 }

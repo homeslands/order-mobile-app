@@ -33,11 +33,14 @@ async function playNotificationSound(): Promise<void> {
     await cachedSound.setPositionAsync(0)
     await cachedSound.setVolumeAsync(SOUND_VOLUME)
     await cachedSound.playAsync()
-  } catch {
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn('[Audio] Notification sound playback failed:', e)
     // Unload native audio resource before clearing reference to prevent
     // orphaned buffers in the native Audio engine
     if (cachedSound) {
-      await cachedSound.unloadAsync().catch(() => {})
+      // eslint-disable-next-line no-console
+      await cachedSound.unloadAsync().catch((unloadErr) => console.warn('[Audio] Failed to unload sound:', unloadErr))
     }
     cachedSound = null
   }
