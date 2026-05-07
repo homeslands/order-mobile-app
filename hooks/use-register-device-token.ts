@@ -59,6 +59,8 @@ export function useRegisterDeviceToken(enabled = true) {
     return () => {
       cancelled = true
     }
+    // setDeviceToken is stable (Zustand); storedToken intentionally omitted —
+    // including it would re-run on server write-back and create a registration loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, token])
 
