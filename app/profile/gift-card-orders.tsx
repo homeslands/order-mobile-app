@@ -386,10 +386,9 @@ const DateFilterSheet = memo(function DateFilterSheet({
             {TYPE_FILTER_OPTIONS.map((opt) => {
               const active = selectedType === opt.value
               return (
-                <GHTouchable
+                <Pressable
                   key={opt.value}
                   onPress={() => onTypeChange(opt.value)}
-                  activeOpacity={0.7}
                   style={[
                     ds.typeChip,
                     {
@@ -412,7 +411,7 @@ const DateFilterSheet = memo(function DateFilterSheet({
                   >
                     {opt.label}
                   </Text>
-                </GHTouchable>
+                </Pressable>
               )
             })}
           </ScrollView>
