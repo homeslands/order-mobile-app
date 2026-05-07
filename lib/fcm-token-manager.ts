@@ -22,6 +22,7 @@ const STORAGE_KEY_TIMESTAMP = 'fcm_token_registered_at'
 let intervalId: ReturnType<typeof setInterval> | null = null
 let appStateSubscription: ReturnType<typeof AppState.addEventListener> | null =
   null
+let isRefreshing = false
 
 async function getStoredTimestamp(): Promise<number> {
   try {
@@ -49,11 +50,13 @@ async function setStoredTimestamp(ts: number): Promise<void> {
 }
 
 async function checkAndRefresh(): Promise<void> {
-  const storedToken = useUserStore.getState().deviceToken
-  if (!storedToken) return
-  if (!Device.isDevice) return
+  if (isRefreshing) return
+  isRefreshing = true
 
   try {
+    const storedToken = useUserStore.getState().deviceToken
+    if (!storedToken || !Device.isDevice) return
+
     const currentToken = await messaging().getToken()
 
     if (currentToken !== storedToken) {
@@ -90,6 +93,8 @@ async function checkAndRefresh(): Promise<void> {
   } catch (e) {
     // eslint-disable-next-line no-console
     console.error('[FCM] checkAndRefresh failed:', e)
+  } finally {
+    isRefreshing = false
   }
 }
 
@@ -118,6 +123,7 @@ function handleAppStateChange(state: AppStateStatus): void {
 
 /** Start periodic token refresh — call after login */
 export function startTokenRefreshScheduler(): void {
+  isRefreshing = false
   stopTokenRefreshScheduler()
 
   // Initial check
