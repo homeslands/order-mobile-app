@@ -61,6 +61,9 @@
     "fromDate": "Từ ngày",
     "toDate": "Đến ngày",
     "apply": "Áp dụng",
+    "sortLabel": "Sắp xếp",
+    "sortNewest": "Mới nhất",
+    "sortOldest": "Cũ nhất",
     "empty": {
       "noOrders": "Chưa có đơn nào",
       "noOwned": "Bạn chưa mua thẻ quà tặng nào",

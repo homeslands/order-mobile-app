@@ -61,6 +61,9 @@
     "fromDate": "From Date",
     "toDate": "To Date",
     "apply": "Apply",
+    "sortLabel": "Sort",
+    "sortNewest": "Newest",
+    "sortOldest": "Oldest",
     "empty": {
       "noOrders": "No orders yet",
       "noOwned": "You haven't purchased any gift cards",
