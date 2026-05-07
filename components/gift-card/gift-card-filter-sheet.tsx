@@ -47,6 +47,34 @@ export function isFilterActive(f: GiftCardFilter): boolean {
 
 const SNAP_POINTS = ['55%']
 
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getStatusChipBg(
+  status: GiftCardUsageStatus | null,
+  isDark: boolean,
+): string {
+  if (status === GiftCardUsageStatus.AVAILABLE)
+    return isDark ? '#14532d' : '#dcfce7'
+  if (status === GiftCardUsageStatus.EXPIRED)
+    return isDark ? '#7f1d1d' : '#fee2e2'
+  if (status === GiftCardUsageStatus.USED)
+    return isDark ? colors.border.dark : colors.gray[200]
+  return isDark ? colors.border.dark : colors.gray[200]
+}
+
+function getStatusChipText(
+  status: GiftCardUsageStatus | null,
+  isDark: boolean,
+): string {
+  if (status === GiftCardUsageStatus.AVAILABLE)
+    return isDark ? '#86efac' : '#16a34a'
+  if (status === GiftCardUsageStatus.EXPIRED)
+    return isDark ? '#fca5a5' : '#dc2626'
+  if (status === GiftCardUsageStatus.USED)
+    return isDark ? colors.gray[400] : colors.gray[500]
+  return isDark ? colors.gray[300] : colors.gray[700]
+}
+
 // ─── Component ────────────────────────────────────────────────────────────────
 
 interface Props {
@@ -54,6 +82,7 @@ interface Props {
   value: GiftCardFilter
   onClose: () => void
   onApply: (v: GiftCardFilter) => void
+  onStatusChange?: (v: GiftCardUsageStatus | null) => void
   primaryColor: string
   isDark: boolean
 }
@@ -63,6 +92,7 @@ export const GiftCardFilterSheet = memo(function GiftCardFilterSheet({
   value,
   onClose,
   onApply,
+  onStatusChange,
   primaryColor,
   isDark,
 }: Props) {
@@ -98,12 +128,12 @@ export const GiftCardFilterSheet = memo(function GiftCardFilterSheet({
   const [fromPickerOpen, setFromPickerOpen] = useState(false)
   const [toPickerOpen, setToPickerOpen] = useState(false)
 
-  const bg = isDark ? colors.gray[900] : colors.white.light
+  const bg = isDark ? colors.card.dark : colors.white.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const chipBg = isDark ? colors.gray[800] : colors.gray[100]
-  const dateBg = isDark ? colors.gray[800] : colors.gray[50]
-  const dateBorder = isDark ? colors.gray[700] : colors.gray[200]
+  const chipBg = isDark ? colors.border.dark : colors.gray[100]
+  const dateBg = isDark ? colors.background.dark : colors.gray[50]
+  const dateBorder = isDark ? colors.border.dark : colors.gray[200]
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -164,11 +194,20 @@ export const GiftCardFilterSheet = memo(function GiftCardFilterSheet({
               return (
                 <View key={String(opt.value)} style={fs.chipWrap}>
                   <GHTouchable
-                    onPress={() => setLocalStatus(opt.value)}
+                    onPress={() => {
+                      setLocalStatus(opt.value)
+                      onStatusChange?.(opt.value)
+                    }}
                     activeOpacity={0.7}
                     style={[
                       fs.chip,
-                      { backgroundColor: active ? primaryColor : chipBg },
+                      {
+                        backgroundColor: active
+                          ? opt.value === null
+                            ? primaryColor
+                            : getStatusChipBg(opt.value, isDark)
+                          : chipBg,
+                      },
                     ]}
                   >
                     <Text
@@ -176,7 +215,9 @@ export const GiftCardFilterSheet = memo(function GiftCardFilterSheet({
                         fs.chipText,
                         {
                           color: active
-                            ? colors.white.light
+                            ? opt.value === null
+                              ? colors.white.light
+                              : getStatusChipText(opt.value, isDark)
                             : isDark
                               ? colors.gray[300]
                               : colors.gray[700],
@@ -196,7 +237,7 @@ export const GiftCardFilterSheet = memo(function GiftCardFilterSheet({
           <View
             style={[
               fs.divider,
-              { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] },
+              { backgroundColor: isDark ? colors.border.dark : colors.gray[100] },
             ]}
           />
 
