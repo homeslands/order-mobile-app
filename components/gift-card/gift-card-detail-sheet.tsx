@@ -51,8 +51,8 @@ function CopyRow({
   const [copied, setCopied] = useState(false)
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
-  const rowBg = isDark ? colors.gray[800] : colors.gray[50]
-  const borderColor = isDark ? colors.gray[700] : colors.gray[200]
+  const rowBg = isDark ? colors.background.dark : colors.gray[50]
+  const borderColor = isDark ? colors.border.dark : colors.gray[200]
 
   const handleCopy = useCallback(() => {
     Clipboard.setString(value)
@@ -188,11 +188,11 @@ export const GiftCardDetailSheet = memo(function GiftCardDetailSheet({
   }, [card, userSlug, redeem, onClose, t])
 
   // Derived
-  const bg = isDark ? colors.gray[900] : colors.white.light
+  const bg = isDark ? colors.card.dark : colors.white.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const borderColor = isDark ? colors.gray[700] : colors.gray[200]
-  const sectionBg = isDark ? colors.gray[800] : colors.gray[50]
+  const borderColor = isDark ? colors.border.dark : colors.gray[200]
+  const sectionBg = isDark ? colors.background.dark : colors.gray[50]
 
   const isAvailable = card?.status === GiftCardUsageStatus.AVAILABLE
 
@@ -206,7 +206,7 @@ export const GiftCardDetailSheet = memo(function GiftCardDetailSheet({
       }
     if (card.status === GiftCardUsageStatus.USED)
       return {
-        bg: isDark ? colors.gray[700] : colors.gray[200],
+        bg: isDark ? colors.border.dark : colors.gray[200],
         text: isDark ? colors.gray[400] : colors.gray[500],
         label: t('status.used'),
       }
@@ -363,7 +363,7 @@ export const GiftCardDetailSheet = memo(function GiftCardDetailSheet({
 
       {/* Redeem button — chỉ khi available */}
       {isAvailable && card && (
-        <View style={[s.footer, { paddingBottom: bottom + 12 }]}>
+        <View style={[s.footer, { paddingBottom: bottom + 16 }]}>
           <Pressable
             onPress={handleRedeem}
             disabled={isRedeeming}

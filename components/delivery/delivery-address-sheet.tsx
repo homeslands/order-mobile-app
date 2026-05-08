@@ -478,7 +478,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   const canConfirm = !!actions.currentAddress && phoneIsValid
 
   const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
+    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
     [isDark],
   )
 
@@ -509,7 +509,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
         <View
           style={[
             f.footer,
-            { backgroundColor: isDark ? colors.gray[900] : colors.white.light },
+            { backgroundColor: isDark ? colors.card.dark : colors.white.light },
           ]}
         >
           <Pressable
@@ -706,7 +706,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
                   style={[
                     f.inputWrapper,
                     {
-                      backgroundColor: isDark ? colors.gray[900] : colors.white.light,
+                      backgroundColor: isDark ? colors.background.dark : colors.white.light,
                       borderColor: showSuggestions ? primaryColor : borderDefault,
                     },
                   ]}
@@ -738,7 +738,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
 
             {/* Suggestions */}
             {showSuggestions && (
-              <View style={[f.suggestionsBox, { backgroundColor: isDark ? colors.gray[800] : colors.white.light, borderColor: borderDefault }]}>
+              <View style={[f.suggestionsBox, { backgroundColor: isDark ? colors.card.dark : colors.white.light, borderColor: borderDefault }]}>
                 {suggestionsQuery.isLoading && (
                   <ActivityIndicator size="small" color={primaryColor} style={{ padding: 12 }} />
                 )}
@@ -794,7 +794,7 @@ const f = StyleSheet.create({
   footer: {
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 8,
+    paddingBottom: 16,
   },
   header: {
     flexDirection: 'row',

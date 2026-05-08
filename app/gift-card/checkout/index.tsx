@@ -853,7 +853,7 @@ const cs = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 20,
+    paddingBottom: 16,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   cancelBtn: {

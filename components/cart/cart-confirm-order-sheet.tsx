@@ -199,7 +199,7 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
   ])
 
   const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
+    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
     [isDark],
   )
   const renderBackdrop = useCallback(
@@ -226,8 +226,8 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
           style={[
             confirmOrderStyles.footer,
             {
-              backgroundColor: isDark ? colors.gray[900] : colors.white.light,
-              borderTopColor: isDark ? colors.gray[700] : colors.border.light,
+              backgroundColor: isDark ? colors.card.dark : colors.white.light,
+              borderTopColor: isDark ? colors.border.dark : colors.border.light,
             },
           ]}
         >
@@ -237,7 +237,7 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
             style={[
               confirmOrderStyles.cancelBtn,
               {
-                backgroundColor: isDark ? colors.gray[700] : colors.gray[100],
+                backgroundColor: isDark ? colors.border.dark : colors.gray[100],
                 opacity: isSubmitting ? 0.5 : 1,
               },
             ]}
@@ -299,7 +299,7 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
         style={[
           confirmOrderStyles.header,
           {
-            borderBottomColor: isDark ? colors.gray[700] : colors.border.light,
+            borderBottomColor: isDark ? colors.border.dark : colors.border.light,
           },
         ]}
       >
@@ -323,7 +323,7 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
           <View
             style={[
               confirmOrderStyles.infoRow,
-              { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] },
+              { backgroundColor: isDark ? colors.background.dark : colors.gray[100] },
             ]}
           >
             <Text
@@ -352,7 +352,7 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
               style={[
                 confirmOrderStyles.infoRow,
                 {
-                  backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
+                  backgroundColor: isDark ? colors.background.dark : colors.gray[100],
                 },
               ]}
             >
@@ -379,7 +379,7 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
               style={[
                 confirmOrderStyles.infoRow,
                 {
-                  backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
+                  backgroundColor: isDark ? colors.background.dark : colors.gray[100],
                 },
               ]}
             >
@@ -409,7 +409,7 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
         <View
           style={[
             confirmOrderStyles.itemsSection,
-            { borderTopColor: isDark ? colors.gray[700] : colors.border.light },
+            { borderTopColor: isDark ? colors.border.dark : colors.border.light },
           ]}
         >
           {displayItems.map((item, idx) => (
@@ -452,7 +452,7 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
         <View
           style={[
             confirmOrderStyles.totalsSection,
-            { borderTopColor: isDark ? colors.gray[700] : colors.border.light },
+            { borderTopColor: isDark ? colors.border.dark : colors.border.light },
           ]}
         >
           <View style={confirmOrderStyles.totalRow}>
@@ -518,7 +518,7 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
               confirmOrderStyles.totalRow,
               confirmOrderStyles.finalRow,
               {
-                borderTopColor: isDark ? colors.gray[700] : colors.border.light,
+                borderTopColor: isDark ? colors.border.dark : colors.border.light,
               },
             ]}
           >
@@ -622,7 +622,7 @@ const confirmOrderStyles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 20,
+    paddingBottom: 16,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   cancelBtn: {
