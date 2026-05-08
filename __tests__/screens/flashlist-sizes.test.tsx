@@ -34,6 +34,13 @@ jest.mock('@gorhom/bottom-sheet', () => ({
   })),
 }))
 jest.mock('lucide-react-native', () => new Proxy({}, { get: () => () => null }))
+jest.mock('expo-notifications', () => ({
+  setBadgeCountAsync: jest.fn(() => Promise.resolve()),
+  addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
+  addNotificationReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
+  getPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
+  requestPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
+}))
 jest.mock('dayjs', () => {
   const dayjs = jest.fn(() => ({
     format: jest.fn(() => ''),
