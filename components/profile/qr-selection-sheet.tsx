@@ -75,10 +75,15 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
   const isDark = useColorScheme() === 'dark'
   const { bottom } = useSafeAreaInsets()
   const router = useRouter()
+  const userDismissedRef = useRef(false)
 
   useEffect(() => {
-    if (visible) sheetRef.current?.present()
-    else sheetRef.current?.dismiss()
+    if (visible) {
+      userDismissedRef.current = false
+      sheetRef.current?.present()
+    } else if (!userDismissedRef.current) {
+      sheetRef.current?.dismiss()
+    }
   }, [visible])
 
   const bgStyle = useMemo(
@@ -98,6 +103,11 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
     ),
     [],
   )
+
+  const handleSheetDismiss = useCallback(() => {
+    userDismissedRef.current = true
+    close()
+  }, [close])
 
   const handleMemberCard = useCallback(() => {
     close()
@@ -138,7 +148,7 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
       enableHandlePanningGesture
       backdropComponent={renderBackdrop}
       backgroundStyle={bgStyle}
-      onDismiss={close}
+      onDismiss={handleSheetDismiss}
     >
       <BottomSheetScrollView
         contentContainerStyle={contentStyle}

@@ -9,7 +9,7 @@ import { AppState, type AppStateStatus } from 'react-native'
 import messaging from '@react-native-firebase/messaging'
 import * as Device from 'expo-device'
 
-import { useUserStore } from '@/stores'
+import { useAuthStore, useUserStore } from '@/stores'
 import {
   registerTokenWithRetry,
   unregisterToken,
@@ -56,6 +56,7 @@ async function checkAndRefresh(): Promise<void> {
   try {
     const storedToken = useUserStore.getState().deviceToken
     if (!storedToken || !Device.isDevice) return
+    if (!useAuthStore.getState().isAuthenticated()) return
 
     const currentToken = await messaging().getToken()
 

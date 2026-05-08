@@ -4,18 +4,15 @@ import {
   BottomSheetScrollView,
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet'
-import { Download, X } from 'lucide-react-native'
+import { X } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native'
 import QRCode from 'react-native-qrcode-svg'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import type { Svg } from 'react-native-svg'
-
 import { colors } from '@/constants'
 import { useUserStore } from '@/stores'
 import { useScanSheetStore } from '@/stores/scan-sheet.store'
-import { downloadQRCodeImage } from '@/utils'
 
 const QR_SIZE = 220
 const SNAP_POINTS = ['62%']
@@ -31,33 +28,15 @@ const QrContent = memo(function QrContent({
 }) {
   const { t } = useTranslation('profile')
   const userInfo = useUserStore((s) => s.userInfo)
-  const svgRef = useRef<Svg | null>(null)
-  const isDownloading = useRef(false)
-
   const primary = isDark ? colors.primary.dark : colors.primary.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const mutedColor = isDark ? colors.gray[400] : colors.gray[500]
-  const qrBg = isDark ? colors.gray[800] : colors.white.light
 
   const fullName = [userInfo?.firstName, userInfo?.lastName]
     .filter(Boolean)
     .join(' ')
 
   const slug = userInfo?.slug ?? null
-
-  const getQRRef = useCallback((ref: Svg | null) => {
-    svgRef.current = ref
-  }, [])
-
-  const handleDownload = useCallback(() => {
-    if (isDownloading.current) return
-    isDownloading.current = true
-    svgRef.current?.toDataURL((data) => {
-      void downloadQRCodeImage(data, `member_qr_${Date.now()}`).finally(() => {
-        isDownloading.current = false
-      })
-    })
-  }, [])
 
   return (
     <View style={s.content}>
@@ -77,7 +56,7 @@ const QrContent = memo(function QrContent({
       </Text>
 
       {/* QR Container */}
-      <View style={[s.qrWrap, { backgroundColor: qrBg }]}>
+      <View style={s.qrWrap}>
         <View style={[s.corner, s.cornerTL, { borderColor: primary }]} />
         <View style={[s.corner, s.cornerTR, { borderColor: primary }]} />
         <View style={[s.corner, s.cornerBL, { borderColor: primary }]} />
@@ -87,9 +66,7 @@ const QrContent = memo(function QrContent({
             value={slug}
             size={QR_SIZE}
             color="#000000"
-            backgroundColor="#FFFFFF"
             ecl="H"
-            getRef={getQRRef}
           />
         ) : (
           <View style={s.qrPlaceholder}>
@@ -111,17 +88,6 @@ const QrContent = memo(function QrContent({
           {userInfo.phonenumber}
         </Text>
       ) : null}
-      {slug ? (
-        <Pressable
-          style={[s.downloadBtn, { borderColor: primary }]}
-          onPress={handleDownload}
-        >
-          <Download size={14} color={primary} />
-          <Text style={[s.downloadBtnText, { color: primary }]}>
-            {t('profile.qr.downloadButton')}
-          </Text>
-        </Pressable>
-      ) : null}
     </View>
   )
 })
@@ -133,20 +99,35 @@ const ScanSheetPortal = memo(function ScanSheetPortal() {
   const sheetRef = useRef<BottomSheetModal>(null)
   const isDark = useColorScheme() === 'dark'
   const { bottom: bottomInset } = useSafeAreaInsets()
+  // Tracks whether the sheet was dismissed by user gesture (backdrop / pan-down).
+  // When true, the useEffect skips calling dismiss() to avoid re-registering
+  // the modal into @gorhom/bottom-sheet's provider stack, which would cause it
+  // to be "restored" when the next modal (QRSelectionSheet) closes.
+  const userDismissedRef = useRef(false)
 
   useEffect(() => {
-    if (visible) sheetRef.current?.present()
-    else sheetRef.current?.dismiss()
+    if (visible) {
+      userDismissedRef.current = false
+      sheetRef.current?.present()
+    } else if (!userDismissedRef.current) {
+      sheetRef.current?.dismiss()
+    }
   }, [visible])
 
   const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
+    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
     [isDark],
   )
 
   const handleClose = useCallback(() => {
+    userDismissedRef.current = true
     sheetRef.current?.dismiss()
   }, [])
+
+  const handleDismiss = useCallback(() => {
+    userDismissedRef.current = true
+    close()
+  }, [close])
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -171,7 +152,7 @@ const ScanSheetPortal = memo(function ScanSheetPortal() {
       enableDynamicSizing={false}
       backdropComponent={renderBackdrop}
       backgroundStyle={bgStyle}
-      onDismiss={close}
+      onDismiss={handleDismiss}
     >
       <BottomSheetScrollView
         contentContainerStyle={[s.scroll, { paddingBottom: bottomInset + 16 }]}
@@ -220,6 +201,7 @@ const s = StyleSheet.create({
     width: QR_SIZE + 40,
     height: QR_SIZE + 40,
     borderRadius: 20,
+    backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
@@ -280,20 +262,6 @@ const s = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 12,
-  },
-  downloadBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    borderWidth: 1.5,
-    borderRadius: 10,
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    marginBottom: 8,
-  },
-  downloadBtnText: {
-    fontSize: 15,
-    fontWeight: '600',
   },
 })
 
