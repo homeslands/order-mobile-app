@@ -14,6 +14,7 @@ import {
   View,
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
+import * as Notifications from 'expo-notifications'
 
 import { FloatingHeader } from '@/components/navigation/floating-header'
 import { Skeleton } from '@/components/ui'
@@ -131,25 +132,38 @@ const NotificationItem = memo(function NotificationItem({
 }) {
   const { t } = useTranslation('notification')
 
+  const isCardOrder = item.message === NotificationMessageCode.CARD_ORDER_PAID
+  const cardOrderSlug = item.metadata?.cardOrder ?? ''
+  const orderRef = isCardOrder
+    ? (item.metadata?.cardOrderCode || cardOrderSlug)
+    : (item.metadata?.order ?? '')
+
   const handlePress = useCallback(() => {
     onMarkRead(item.slug)
-    const orderSlug = item.metadata?.order
-    if (orderSlug) {
-      navigateNative.push({
-        pathname: '/order/[id]',
-        params: { id: orderSlug },
-      })
+    if (isCardOrder) {
+      if (cardOrderSlug) {
+        navigateNative.push(
+          `/profile/gift-card-orders?autoOpen=${cardOrderSlug}`,
+        )
+      }
+    } else {
+      const orderSlug = item.metadata?.order
+      if (orderSlug) {
+        navigateNative.push({
+          pathname: '/order/[id]',
+          params: { id: orderSlug },
+        })
+      }
     }
-  }, [item.slug, item.metadata?.order, onMarkRead])
+  }, [item.slug, item.metadata?.order, isCardOrder, cardOrderSlug, onMarkRead])
 
   const title = useMemo(
     () => getNotificationTitle(item.message, t),
     [item.message, t],
   )
-  const orderSlug = item.metadata?.order ?? ''
   const body = useMemo(
-    () => getNotificationBody(item.message, orderSlug, t),
-    [item.message, orderSlug, t],
+    () => getNotificationBody(item.message, orderRef, t),
+    [item.message, orderRef, t],
   )
   const timeAgo = useMemo(
     () => formatTimeAgo(item.createdAt, t),
@@ -352,6 +366,10 @@ export default function NotificationScreen() {
       useNotificationStore.getState().hydrateFromApi(items)
     }
   }, [apiData])
+
+  useEffect(() => {
+    Notifications.setBadgeCountAsync(0).catch(() => {})
+  }, [])
 
   const handleRefresh = useCallback(() => {
     setPagination({ forSlug: userSlug ?? '', page: 1 })
