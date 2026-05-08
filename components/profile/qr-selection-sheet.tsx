@@ -70,6 +70,7 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
   const visible = useQRSelectionSheetStore((s) => s.visible)
   const close = useQRSelectionSheetStore((s) => s.close)
   const openScanSheet = useScanSheetStore((s) => s.open)
+  const closeScanSheet = useScanSheetStore((s) => s.close)
   const sheetRef = useRef<BottomSheetModal>(null)
   const isDark = useColorScheme() === 'dark'
   const { bottom } = useSafeAreaInsets()
@@ -81,7 +82,7 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
   }, [visible])
 
   const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
+    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
     [isDark],
   )
 
@@ -105,10 +106,11 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
 
   const handlePaymentQR = useCallback(() => {
     close()
+    closeScanSheet()
     scheduleTransitionTask(() => router.push('/payment/qr-generate'))
     // router intentionally omitted — push destination is a string literal
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [close])
+  }, [close, closeScanSheet])
 
   const contentStyle = useMemo(
     () => [s.content, { paddingBottom: bottom + 24 }],
@@ -121,7 +123,7 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
       primary: isDark ? colors.primary.dark : colors.primary.light,
       textColor: isDark ? colors.gray[50] : colors.gray[900],
       mutedColor: isDark ? colors.gray[400] : colors.gray[500],
-      cardBg: isDark ? colors.gray[800] : colors.gray[50],
+      cardBg: isDark ? colors.border.dark : colors.gray[50],
     }),
     [isDark],
   )
