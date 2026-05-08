@@ -1,4 +1,4 @@
-import { AlertCircle, CheckCircle, Info, XCircle } from 'lucide-react-native'
+import { AlertCircle, CircleCheck, Info, XCircle } from 'lucide-react-native'
 import React, { useEffect } from 'react'
 import { StyleSheet, Text, useColorScheme, View } from 'react-native'
 import Animated, {
@@ -16,7 +16,6 @@ import { SPRING_CONFIGS, colors } from '@/constants'
 
 interface ToastData {
   id: string
-  title: string
   message?: string
   type: 'info' | 'error' | 'success' | 'warning'
   duration: number
@@ -28,10 +27,10 @@ interface ToastItemProps {
 }
 
 const ICON_MAP = {
-  error: <XCircle size={16} color="#dc2626" />,
-  success: <CheckCircle size={16} color="#16a34a" />,
-  warning: <AlertCircle size={16} color="#d97706" />,
-  info: <Info size={16} color="#2563eb" />,
+  error: <XCircle size={16} color="#ffffff" fill="#dc2626" />,
+  success: <CircleCheck size={16} color="#ffffff" fill="#16a34a" />,
+  warning: <AlertCircle size={16} color="#ffffff" fill="#d97706" />,
+  info: <Info size={16} color="#ffffff" fill="#2563eb" />,
 } as const
 
 const ToastItem = React.memo(function ToastItem({
@@ -73,7 +72,7 @@ const ToastItem = React.memo(function ToastItem({
     opacity: opacity.value,
   }))
 
-  const bg = isDark ? colors.gray[800] : '#ffffff'
+  const bg = isDark ? colors.card.dark : '#ffffff'
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
 
   return (
