@@ -14,7 +14,7 @@ import {
   useNotificationStore,
   type NotificationPayload,
 } from '@/stores/notification.store'
-import { showToast } from '@/utils'
+import { showToastInternal } from '@/providers/toast-provider'
 
 const SOUND_VOLUME = 0.5
 
@@ -73,7 +73,7 @@ export function useNotificationListener(enabled = true) {
 
       const title = payload.notification?.title || 'Thông báo'
       const body = payload.notification?.body || ''
-      if (body) showToast(body, title)
+      if (body) showToastInternal(title, body, 'info')
 
       playNotificationSound().catch(() => {})
     })
