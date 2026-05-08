@@ -1,12 +1,5 @@
 import * as MediaLibrary from 'expo-media-library'
-import { File } from 'expo-file-system'
-
-// mockWriter must be declared before jest.mock (jest hoists mock-prefixed vars)
-const mockWriter = {
-  write: jest.fn().mockResolvedValue(undefined),
-  close: jest.fn().mockResolvedValue(undefined),
-  abort: jest.fn().mockResolvedValue(undefined),
-}
+import * as LegacyFS from 'expo-file-system/legacy'
 
 jest.mock('expo-media-library', () => ({
   getPermissionsAsync: jest.fn(),
@@ -14,12 +7,11 @@ jest.mock('expo-media-library', () => ({
   createAssetAsync: jest.fn(),
 }))
 
-jest.mock('expo-file-system', () => ({
-  File: jest.fn().mockImplementation(() => ({
-    writableStream: () => ({ getWriter: () => mockWriter }),
-    toString: () => 'file:///cache/qr_test.png',
-  })),
-  Paths: { cache: 'file:///cache' },
+jest.mock('expo-file-system/legacy', () => ({
+  cacheDirectory: 'file:///cache/',
+  writeAsStringAsync: jest.fn().mockResolvedValue(undefined),
+  deleteAsync: jest.fn().mockResolvedValue(undefined),
+  EncodingType: { Base64: 'base64' },
 }))
 
 jest.mock('@/i18n', () => ({
@@ -38,9 +30,6 @@ const VALID_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42m
 describe('downloadQRCodeImage', () => {
   beforeEach(() => {
     jest.clearAllMocks()
-    mockWriter.write.mockResolvedValue(undefined)
-    mockWriter.close.mockResolvedValue(undefined)
-    mockWriter.abort.mockResolvedValue(undefined)
   })
 
   it('returns false and shows toast when permission denied', async () => {
@@ -60,19 +49,22 @@ describe('downloadQRCodeImage', () => {
 
     const result = await downloadQRCodeImage(VALID_BASE64, 'payment_qr')
 
-    expect(File).toHaveBeenCalled()
-    expect(MediaLibrary.createAssetAsync).toHaveBeenCalledWith('file:///cache/qr_test.png')
+    expect(LegacyFS.writeAsStringAsync).toHaveBeenCalledWith(
+      'file:///cache/payment_qr.png',
+      VALID_BASE64,
+      { encoding: 'base64' },
+    )
+    expect(MediaLibrary.createAssetAsync).toHaveBeenCalledWith('file:///cache/payment_qr.png')
     expect(result).toBe(true)
   })
 
   it('returns false and shows error toast when file write fails', async () => {
     ;(MediaLibrary.getPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'granted' })
-    mockWriter.write.mockRejectedValue(new Error('write failed'))
+    ;(LegacyFS.writeAsStringAsync as jest.Mock).mockRejectedValue(new Error('write failed'))
 
     const result = await downloadQRCodeImage(VALID_BASE64)
 
     expect(result).toBe(false)
-    expect(mockWriter.abort).toHaveBeenCalled()
     expect(MediaLibrary.createAssetAsync).not.toHaveBeenCalled()
     expect(showToast).toHaveBeenCalledWith('common.errorSavingQRCode')
   })
