@@ -27,10 +27,10 @@ interface ToastItemProps {
 }
 
 const ICON_MAP = {
-  error: <XCircle size={16} color="#ffffff" fill="#dc2626" />,
-  success: <CircleCheck size={16} color="#ffffff" fill="#16a34a" />,
-  warning: <AlertCircle size={16} color="#ffffff" fill="#d97706" />,
-  info: <Info size={16} color="#ffffff" fill="#2563eb" />,
+  error: <XCircle size={20} color="#ffffff" fill="#dc2626" />,
+  success: <CircleCheck size={20} color="#ffffff" fill="#16a34a" />,
+  warning: <AlertCircle size={20} color="#ffffff" fill="#d97706" />,
+  info: <Info size={20} color="#ffffff" fill="#2563eb" />,
 } as const
 
 const ToastItem = React.memo(function ToastItem({
