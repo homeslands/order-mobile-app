@@ -76,6 +76,12 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
   const { bottom } = useSafeAreaInsets()
   const router = useRouter()
   const userDismissedRef = useRef(false)
+  // Action to run after the sheet's dismiss animation fully completes.
+  // By deferring to onDismiss we guarantee QRSelectionSheet is already removed
+  // from @gorhom's modal queue before the next sheet calls present(), which
+  // prevents the provider from stacking them and later "restoring" SSP when QRS
+  // next dismisses (the root cause of the identity-QR overlaying payment-QR bug).
+  const postDismissActionRef = useRef<(() => void) | null>(null)
 
   useEffect(() => {
     if (visible) {
@@ -107,11 +113,20 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
   const handleSheetDismiss = useCallback(() => {
     userDismissedRef.current = true
     close()
+    // Run any pending post-dismiss action (e.g. open ScanSheetPortal).
+    // Executing here guarantees QRSelectionSheet is fully removed from
+    // @gorhom's modal queue before the next modal calls present().
+    const action = postDismissActionRef.current
+    postDismissActionRef.current = null
+    if (action) scheduleTransitionTask(action)
   }, [close])
 
   const handleMemberCard = useCallback(() => {
+    // Store action — do NOT call openScanSheet here. Calling present(SSP)
+    // in the same render cycle as dismiss(QRS) can stack them in @gorhom's
+    // provider queue, causing SSP to be "restored" when QRS next dismisses.
+    postDismissActionRef.current = openScanSheet
     close()
-    scheduleTransitionTask(openScanSheet)
   }, [close, openScanSheet])
 
   const handlePaymentQR = useCallback(() => {
