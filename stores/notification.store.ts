@@ -130,6 +130,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
         n.slug === slug ? { ...n, isRead: true } : n,
       ),
     }))
+    syncBadge(get().notifications.filter((n) => !n.isRead).length)
   },
 
   markAllAsRead: () => {
@@ -148,6 +149,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
         map.has(n.slug) ? { ...n, isRead: map.get(n.slug)! } : n,
       ),
     }))
+    syncBadge(get().notifications.filter((n) => !n.isRead).length)
   },
 
   clearAll: () => {
