@@ -32,7 +32,9 @@ jest.mock('@/stores/notification.store', () => ({
   },
 }))
 
-jest.mock('@/utils', () => ({ showToast: jest.fn() }))
+jest.mock('@/providers/toast-provider', () => ({
+  showToastInternal: jest.fn(),
+}))
 
 import { useNotificationListener } from '@/hooks/use-notification-listener'
 
