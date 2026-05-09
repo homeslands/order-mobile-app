@@ -13,10 +13,10 @@ const badgeVariants = variants(
     default:
       'border-transparent bg-gray-900 dark:bg-gray-50 text-gray-50 dark:text-gray-900',
     secondary:
-      'border-transparent bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-50',
+      'border-transparent bg-gray-100 dark:bg-[#2e2e2e] text-gray-900 dark:text-gray-50',
     destructive: 'border-transparent bg-red-600 dark:bg-red-700 text-white',
     outline:
-      'text-gray-900 dark:text-gray-50 border-gray-200 dark:border-gray-700',
+      'text-gray-900 dark:text-gray-50 border-gray-200 dark:border-[#2e2e2e]',
   },
 )
 

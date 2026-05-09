@@ -14,7 +14,7 @@ interface SimpleDatePickerProps {
  */
 export function SimpleDatePicker({ value }: SimpleDatePickerProps) {
   return (
-    <View className="min-h-10 min-w-[120px] justify-center rounded-lg border border-gray-200 px-3 dark:border-gray-700">
+    <View className="min-h-10 min-w-[120px] justify-center rounded-lg border border-gray-200 px-3 dark:border-[#2e2e2e]">
       <Text className="text-sm text-gray-700 dark:text-gray-300">{value}</Text>
     </View>
   )

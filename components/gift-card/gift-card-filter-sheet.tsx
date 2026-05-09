@@ -200,7 +200,9 @@ export const GiftCardFilterSheet = memo(function GiftCardFilterSheet({
           <View
             style={[
               fs.divider,
-              { backgroundColor: isDark ? colors.border.dark : colors.gray[100] },
+              {
+                backgroundColor: isDark ? colors.border.dark : colors.gray[100],
+              },
             ]}
           />
 

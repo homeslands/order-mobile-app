@@ -35,12 +35,12 @@ const TypeOption = memo(function TypeOption({
   const borderColor = selected
     ? primaryColor
     : isDark
-      ? colors.gray[700]
+      ? colors.border.dark
       : colors.gray[200]
   const bgColor = selected
     ? `${primaryColor}12`
     : isDark
-      ? colors.gray[900]
+      ? colors.card.dark
       : colors.white.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
@@ -61,7 +61,7 @@ const TypeOption = memo(function TypeOption({
             backgroundColor: selected
               ? `${primaryColor}20`
               : isDark
-                ? colors.gray[800]
+                ? colors.border.dark
                 : colors.gray[100],
           },
         ]}

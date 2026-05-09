@@ -25,7 +25,8 @@ jest.mock('@/utils/toast', () => ({
 import { downloadQRCodeImage } from '@/utils/download-image'
 import { showToast } from '@/utils/toast'
 
-const VALID_BASE64 = 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+const VALID_BASE64 =
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
 
 describe('downloadQRCodeImage', () => {
   beforeEach(() => {
@@ -33,8 +34,12 @@ describe('downloadQRCodeImage', () => {
   })
 
   it('returns false and shows toast when permission denied', async () => {
-    ;(MediaLibrary.getPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'undetermined' })
-    ;(MediaLibrary.requestPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'denied' })
+    ;(MediaLibrary.getPermissionsAsync as jest.Mock).mockResolvedValue({
+      status: 'undetermined',
+    })
+    ;(MediaLibrary.requestPermissionsAsync as jest.Mock).mockResolvedValue({
+      status: 'denied',
+    })
 
     const result = await downloadQRCodeImage(VALID_BASE64, 'test_qr')
 
@@ -44,8 +49,12 @@ describe('downloadQRCodeImage', () => {
   })
 
   it('writes base64 PNG to cache and saves to media library when permitted', async () => {
-    ;(MediaLibrary.getPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'granted' })
-    ;(MediaLibrary.createAssetAsync as jest.Mock).mockResolvedValue({ id: 'asset-1' })
+    ;(MediaLibrary.getPermissionsAsync as jest.Mock).mockResolvedValue({
+      status: 'granted',
+    })
+    ;(MediaLibrary.createAssetAsync as jest.Mock).mockResolvedValue({
+      id: 'asset-1',
+    })
 
     const result = await downloadQRCodeImage(VALID_BASE64, 'payment_qr')
 
@@ -54,13 +63,19 @@ describe('downloadQRCodeImage', () => {
       VALID_BASE64,
       { encoding: 'base64' },
     )
-    expect(MediaLibrary.createAssetAsync).toHaveBeenCalledWith('file:///cache/payment_qr.png')
+    expect(MediaLibrary.createAssetAsync).toHaveBeenCalledWith(
+      'file:///cache/payment_qr.png',
+    )
     expect(result).toBe(true)
   })
 
   it('returns false and shows error toast when file write fails', async () => {
-    ;(MediaLibrary.getPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'granted' })
-    ;(LegacyFS.writeAsStringAsync as jest.Mock).mockRejectedValue(new Error('write failed'))
+    ;(MediaLibrary.getPermissionsAsync as jest.Mock).mockResolvedValue({
+      status: 'granted',
+    })
+    ;(LegacyFS.writeAsStringAsync as jest.Mock).mockRejectedValue(
+      new Error('write failed'),
+    )
 
     const result = await downloadQRCodeImage(VALID_BASE64)
 
@@ -70,8 +85,12 @@ describe('downloadQRCodeImage', () => {
   })
 
   it('returns false and shows error toast when createAssetAsync fails', async () => {
-    ;(MediaLibrary.getPermissionsAsync as jest.Mock).mockResolvedValue({ status: 'granted' })
-    ;(MediaLibrary.createAssetAsync as jest.Mock).mockRejectedValue(new Error('disk full'))
+    ;(MediaLibrary.getPermissionsAsync as jest.Mock).mockResolvedValue({
+      status: 'granted',
+    })
+    ;(MediaLibrary.createAssetAsync as jest.Mock).mockRejectedValue(
+      new Error('disk full'),
+    )
 
     const result = await downloadQRCodeImage(VALID_BASE64)
 

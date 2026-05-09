@@ -584,7 +584,9 @@ export default function GiftCardCheckoutScreen() {
             style={[
               cs.header,
               {
-                borderBottomColor: isDark ? colors.border.dark : colors.gray[200],
+                borderBottomColor: isDark
+                  ? colors.border.dark
+                  : colors.gray[200],
               },
             ]}
           >

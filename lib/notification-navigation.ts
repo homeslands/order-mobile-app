@@ -28,14 +28,20 @@ function parseNotificationData(
       parsed = JSON.parse(data.payload) as Record<string, string>
     } catch (e) {
       // eslint-disable-next-line no-console
-      console.warn('[Notifications] Failed to parse notification payload:', data.payload, e)
+      console.warn(
+        '[Notifications] Failed to parse notification payload:',
+        data.payload,
+        e,
+      )
     }
   }
 
   return { ...data, ...parsed }
 }
 
-export function getRouteForMessage(routeData: NotificationRouteData): string | null {
+export function getRouteForMessage(
+  routeData: NotificationRouteData,
+): string | null {
   const { message, order } = routeData
 
   switch (message) {

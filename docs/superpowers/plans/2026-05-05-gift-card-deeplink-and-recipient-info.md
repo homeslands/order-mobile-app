@@ -12,19 +12,20 @@
 
 ## File Map
 
-| File | Change |
-|------|--------|
-| `lib/notification-navigation.ts` | Export `getRouteForMessage`; map `CARD_ORDER_PAID` to `/profile/gift-card-orders?autoOpen={order}` |
-| `__tests__/lib/notification-navigation.test.ts` | New — unit tests for `getRouteForMessage` |
-| `app/profile/gift-card-orders.tsx` | Import `useLocalSearchParams`; add `useEffect` + `useRef` to consume `autoOpen` param on mount |
-| `components/gift-card/gift-card-order-detail-sheet.tsx` | Add sender section + recipients section for GIFT-type orders; add styles |
-| `i18n/vi/gift-card.json` | Add `orderDetail.sender` and `orderDetail.recipientsSection` keys |
+| File                                                    | Change                                                                                             |
+| ------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `lib/notification-navigation.ts`                        | Export `getRouteForMessage`; map `CARD_ORDER_PAID` to `/profile/gift-card-orders?autoOpen={order}` |
+| `__tests__/lib/notification-navigation.test.ts`         | New — unit tests for `getRouteForMessage`                                                          |
+| `app/profile/gift-card-orders.tsx`                      | Import `useLocalSearchParams`; add `useEffect` + `useRef` to consume `autoOpen` param on mount     |
+| `components/gift-card/gift-card-order-detail-sheet.tsx` | Add sender section + recipients section for GIFT-type orders; add styles                           |
+| `i18n/vi/gift-card.json`                                | Add `orderDetail.sender` and `orderDetail.recipientsSection` keys                                  |
 
 ---
 
 ## Task 1: Fix notification route mapping for CARD_ORDER_PAID
 
 **Files:**
+
 - Modify: `lib/notification-navigation.ts:36-63`
 - Create: `__tests__/lib/notification-navigation.test.ts`
 
@@ -62,7 +63,10 @@ import { getRouteForMessage } from '@/lib/notification-navigation'
 
 describe('getRouteForMessage', () => {
   it('routes CARD_ORDER_PAID to gift-card-orders with autoOpen param', () => {
-    const route = getRouteForMessage({ message: 'card-order-paid', order: 'order-abc' })
+    const route = getRouteForMessage({
+      message: 'card-order-paid',
+      order: 'order-abc',
+    })
     expect(route).toBe('/profile/gift-card-orders?autoOpen=order-abc')
   })
 
@@ -72,7 +76,10 @@ describe('getRouteForMessage', () => {
   })
 
   it('still routes ORDER_PAID to payment screen', () => {
-    const route = getRouteForMessage({ message: 'order-paid', order: 'order-xyz' })
+    const route = getRouteForMessage({
+      message: 'order-paid',
+      order: 'order-xyz',
+    })
     expect(route).toBe('/payment/order-xyz')
   })
 })
@@ -91,7 +98,9 @@ Expected: FAIL — `getRouteForMessage` is not exported.
 In `lib/notification-navigation.ts`, replace the existing `getRouteForMessage` function (lines 36-63) with:
 
 ```typescript
-export function getRouteForMessage(routeData: NotificationRouteData): string | null {
+export function getRouteForMessage(
+  routeData: NotificationRouteData,
+): string | null {
   const { message, order } = routeData
 
   switch (message) {
@@ -150,6 +159,7 @@ git commit -m "fix(notification): route CARD_ORDER_PAID to gift-card-orders scre
 ## Task 2: Auto-open detail sheet from `autoOpen` deeplink param
 
 **Files:**
+
 - Modify: `app/profile/gift-card-orders.tsx:30,584-595`
 
 ### Background
@@ -165,11 +175,13 @@ No test needed — this is a React component integration change best verified by
 In `app/profile/gift-card-orders.tsx`, the file already imports from `'react'` and Expo packages. Find the existing import block (around line 30) and add `useLocalSearchParams` from `expo-router`.
 
 The file currently imports:
+
 ```typescript
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 ```
 
 Add after the existing imports (or alongside other expo-router imports if any):
+
 ```typescript
 import { useLocalSearchParams } from 'expo-router'
 ```
@@ -217,7 +229,7 @@ Expected: no errors.
 In the running app or simulator, navigate programmatically to verify:
 
 ```
-Expo Go / dev build: 
+Expo Go / dev build:
   In the app JS console or dev menu, trigger:
   router.push('/profile/gift-card-orders?autoOpen=<any-valid-gift-card-order-slug>')
 ```
@@ -240,6 +252,7 @@ git commit -m "fix(gift-card): auto-open detail sheet from notification deeplink
 ## Task 3: Add sender + recipient section to gift card order detail sheet
 
 **Files:**
+
 - Modify: `components/gift-card/gift-card-order-detail-sheet.tsx:235-400,409-476`
 - Modify: `i18n/vi/gift-card.json:165-175`
 
@@ -248,6 +261,7 @@ git commit -m "fix(gift-card): auto-open detail sheet from notification deeplink
 `ICardOrderResponse` already contains `customerName`, `customerPhone` (the buyer/sender) and `receipients: IReceiverGiftCardResponse[]` (each with `name`, `phone`, `message`). These are fetched by the existing `useCardOrderBySlug` call. We just need to render them for `GiftCardType.GIFT` orders.
 
 Layout for GIFT-type orders (added after the info card):
+
 ```
 [Người gửi]      ← sectionTitle
 ┌────────────────────────────┐
@@ -436,6 +450,7 @@ Expected: no errors.
 - [ ] **Step 6: Manual test**
 
 Open a GIFT-type gift card order in the detail sheet. Confirm:
+
 - "Người gửi" section shows buyer name + phone
 - "Người nhận" section shows each recipient's name, phone, and message (if any)
 - Recipients with empty `message` show no message line

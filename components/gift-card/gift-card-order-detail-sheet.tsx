@@ -43,11 +43,26 @@ function getPaymentStatusColors(
   isDark: boolean,
 ): Record<string, { bg: string; text: string }> {
   return {
-    COMPLETED: { bg: isDark ? '#14532d' : '#dcfce7', text: isDark ? '#86efac' : '#16a34a' },
-    PAID:      { bg: isDark ? '#14532d' : '#dcfce7', text: isDark ? '#86efac' : '#16a34a' },
-    PENDING:   { bg: isDark ? '#713f12' : '#fef9c3', text: isDark ? '#fde68a' : '#b45309' },
-    FAILED:    { bg: isDark ? '#7f1d1d' : '#fee2e2', text: isDark ? '#fca5a5' : '#dc2626' },
-    CANCELLED: { bg: isDark ? '#7f1d1d' : '#fee2e2', text: isDark ? '#fca5a5' : '#dc2626' },
+    COMPLETED: {
+      bg: isDark ? '#14532d' : '#dcfce7',
+      text: isDark ? '#86efac' : '#16a34a',
+    },
+    PAID: {
+      bg: isDark ? '#14532d' : '#dcfce7',
+      text: isDark ? '#86efac' : '#16a34a',
+    },
+    PENDING: {
+      bg: isDark ? '#713f12' : '#fef9c3',
+      text: isDark ? '#fde68a' : '#b45309',
+    },
+    FAILED: {
+      bg: isDark ? '#7f1d1d' : '#fee2e2',
+      text: isDark ? '#fca5a5' : '#dc2626',
+    },
+    CANCELLED: {
+      bg: isDark ? '#7f1d1d' : '#fee2e2',
+      text: isDark ? '#fca5a5' : '#dc2626',
+    },
   }
 }
 
@@ -367,7 +382,9 @@ export const GiftCardOrderDetailSheet = memo(function GiftCardOrderDetailSheet({
                 <Text style={[s.sectionTitle, { color: subColor }]}>
                   {t('orderDetail.sender')}
                 </Text>
-                <View style={[s.card, { backgroundColor: cardBg, borderColor }]}>
+                <View
+                  style={[s.card, { backgroundColor: cardBg, borderColor }]}
+                >
                   <View style={s.personRow}>
                     <View style={s.personTopLine}>
                       <Text style={[s.personName, { color: textColor }]}>
@@ -392,10 +409,14 @@ export const GiftCardOrderDetailSheet = memo(function GiftCardOrderDetailSheet({
                         <View key={r.slug}>
                           <View style={s.personRow}>
                             <View style={s.personTopLine}>
-                              <Text style={[s.personName, { color: textColor }]}>
+                              <Text
+                                style={[s.personName, { color: textColor }]}
+                              >
                                 {r.name}
                               </Text>
-                              <Text style={[s.personPhone, { color: subColor }]}>
+                              <Text
+                                style={[s.personPhone, { color: subColor }]}
+                              >
                                 {r.phone}
                               </Text>
                             </View>

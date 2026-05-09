@@ -65,7 +65,16 @@ function RedeemSuccess({
     <View style={sc.container}>
       {/* Icon */}
       <View style={sc.iconBlock}>
-        <View style={[sc.iconCircle, { backgroundColor: isDark ? colors.success.iconBgDark : colors.success.iconBgLight }]}>
+        <View
+          style={[
+            sc.iconCircle,
+            {
+              backgroundColor: isDark
+                ? colors.success.iconBgDark
+                : colors.success.iconBgLight,
+            },
+          ]}
+        >
           <CheckCircle2 size={44} color="#16a34a" />
         </View>
         <Text style={[sc.title, { color: textColor }]}>

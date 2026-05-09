@@ -198,7 +198,9 @@ export const CoinFilterSheet = memo(function CoinFilterSheet({
           <View
             style={[
               fs.divider,
-              { backgroundColor: isDark ? colors.border.dark : colors.gray[100] },
+              {
+                backgroundColor: isDark ? colors.border.dark : colors.gray[100],
+              },
             ]}
           />
 

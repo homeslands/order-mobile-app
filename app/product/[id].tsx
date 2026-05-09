@@ -70,7 +70,7 @@ export default function ProductDetailPage() {
       >
         <Animated.View
           style={[headerStyle, { height: 220 }]}
-          className="items-center justify-center bg-gray-200 dark:bg-gray-800"
+          className="items-center justify-center bg-gray-200 dark:bg-[#1c1c1e]"
         >
           <Text className="text-lg font-semibold text-gray-900 dark:text-white">
             Parallax Header
@@ -91,7 +91,7 @@ export default function ProductDetailPage() {
           {/* Lazy section: hoan mount block phu de giam JS cost frame dau. */}
           <Suspense
             fallback={
-              <View className="mt-6 rounded-xl bg-gray-100 p-4 dark:bg-gray-800">
+              <View className="mt-6 rounded-xl bg-gray-100 p-4 dark:bg-[#1c1c1e]">
                 <Text className="text-sm text-gray-500 dark:text-gray-400">
                   Loading related products...
                 </Text>

@@ -54,7 +54,7 @@ const OTPInputField = React.memo(
         ref={setRef}
         className={cn(
           'h-14 rounded-lg border-2 text-center font-sans-semibold text-xl',
-          'bg-white text-gray-900 dark:bg-gray-800 dark:text-white',
+          'bg-white text-gray-900 dark:bg-[#121212] dark:text-white',
           disabled && 'opacity-50',
         )}
         style={

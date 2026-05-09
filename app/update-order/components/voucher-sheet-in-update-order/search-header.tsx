@@ -34,7 +34,11 @@ export function SearchHeader({
         <View
           style={[
             styles.inputWrap,
-            { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] },
+            {
+              backgroundColor: isDark
+                ? colors.background.dark
+                : colors.gray[100],
+            },
           ]}
         >
           <Ticket
@@ -65,7 +69,7 @@ export function SearchHeader({
               backgroundColor: code.trim()
                 ? primaryColor
                 : isDark
-                  ? colors.gray[700]
+                  ? colors.border.dark
                   : colors.gray[200],
             },
           ]}

@@ -8,7 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, Text, useColorScheme, View } from 'react-native'
 
 import TableRow from '@/components/select/table-row'
-import { TableStatus } from '@/constants'
+import { colors, TableStatus } from '@/constants'
 import { useTables } from '@/hooks'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import { ITable } from '@/types'
@@ -83,10 +83,12 @@ function TableSelectSheetInUpdateOrder() {
       enablePanDownToClose
       enableContentPanningGesture={false}
       backdropComponent={renderBackdrop}
-      backgroundStyle={{ backgroundColor: isDark ? '#111827' : '#ffffff' }}
+      backgroundStyle={{
+        backgroundColor: isDark ? colors.card.dark : '#ffffff',
+      }}
       containerStyle={{ zIndex: 9999, elevation: 9999 }}
     >
-      <View className="border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+      <View className="border-b border-gray-200 px-4 py-3 dark:border-[#2e2e2e]">
         <Text className="text-base font-semibold text-gray-900 dark:text-gray-50">
           {t('table.title')}
         </Text>

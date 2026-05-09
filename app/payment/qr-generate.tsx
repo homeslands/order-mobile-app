@@ -2,9 +2,7 @@ import { FloatingHeader } from '@/components/navigation/floating-header'
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { QR_TTL_S, useQRPayment } from '@/hooks/use-qr-payment'
-import { downloadQRCodeImage } from '@/utils'
-import { Download } from 'lucide-react-native'
-import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
+import { memo, useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   ActivityIndicator,
@@ -17,7 +15,6 @@ import {
   useColorScheme,
 } from 'react-native'
 import QRCode from 'react-native-qrcode-svg'
-import type { Svg } from 'react-native-svg'
 import Animated, {
   cancelAnimation,
   useAnimatedStyle,
@@ -64,7 +61,7 @@ const ProgressBar = memo(function ProgressBar({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const trackBg = isDark ? colors.gray[700] : colors.gray[200]
+  const trackBg = isDark ? colors.border.dark : colors.gray[200]
 
   return (
     <View
@@ -94,11 +91,10 @@ const ActiveQR = memo(function ActiveQR({
   primary: string
 }) {
   const { t } = useTranslation('payment')
-  const svgRef = useRef<Svg | null>(null)
   const { mutedColor, cardBg } = useMemo(
     () => ({
       mutedColor: isDark ? colors.gray[400] : colors.gray[500],
-      cardBg: isDark ? colors.gray[800] : colors.white.light,
+      cardBg: isDark ? colors.card.dark : colors.white.light,
     }),
     [isDark],
   )
@@ -108,21 +104,6 @@ const ActiveQR = memo(function ActiveQR({
   )
 
   const qrOpacity = useSharedValue(1)
-  const isDownloading = useRef(false)
-
-  const getQRRef = useCallback((ref: Svg | null) => {
-    svgRef.current = ref
-  }, [])
-
-  const handleDownload = useCallback(() => {
-    if (isDownloading.current) return
-    isDownloading.current = true
-    svgRef.current?.toDataURL((data) => {
-      void downloadQRCodeImage(data, `payment_qr_${Date.now()}`).finally(() => {
-        isDownloading.current = false
-      })
-    })
-  }, [])
 
   useEffect(() => {
     if (isRefreshing) {
@@ -140,11 +121,7 @@ const ActiveQR = memo(function ActiveQR({
   return (
     <View style={[s.qrCard, { backgroundColor: cardBg }]}>
       <Animated.View style={qrWrapStyle}>
-        <QRCode
-          value={token}
-          size={QR_SIZE}
-          getRef={getQRRef}
-        />
+        <QRCode value={token} size={QR_SIZE} />
       </Animated.View>
 
       <ProgressBar
@@ -160,16 +137,6 @@ const ActiveQR = memo(function ActiveQR({
           {countdown}s
         </Text>
       </Text>
-
-      <Pressable
-        style={[s.downloadBtn, { borderColor: primary }]}
-        onPress={handleDownload}
-      >
-        <Download size={14} color={primary} />
-        <Text style={[s.downloadBtnText, { color: primary }]}>
-          {t('qrGenerate.downloadButton')}
-        </Text>
-      </Pressable>
     </View>
   )
 })
@@ -197,10 +164,10 @@ const QRCard = memo(function QRCard({
 }) {
   const { t } = useTranslation('payment')
   const { mutedColor, cardBg, skeletonWrapStyle } = useMemo(() => {
-    const skBg = isDark ? colors.gray[700] : colors.gray[100]
+    const skBg = isDark ? colors.border.dark : colors.gray[100]
     return {
       mutedColor: isDark ? colors.gray[400] : colors.gray[500],
-      cardBg: isDark ? colors.gray[800] : colors.white.light,
+      cardBg: isDark ? colors.card.dark : colors.white.light,
       skeletonWrapStyle: [s.qrImageWrap, { backgroundColor: skBg }],
     }
   }, [isDark])
@@ -264,7 +231,7 @@ const Instructions = memo(function Instructions({
     () => ({
       textColor: isDark ? colors.gray[50] : colors.gray[900],
       mutedColor: isDark ? colors.gray[400] : colors.gray[500],
-      cardBg: isDark ? colors.gray[800] : colors.white.light,
+      cardBg: isDark ? colors.card.dark : colors.white.light,
     }),
     [isDark],
   )
@@ -285,6 +252,11 @@ const Instructions = memo(function Instructions({
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
+// DEV-only: sample VietQR string used when the bank sandbox is unavailable.
+// Never reaches production — __DEV__ is stripped by the Metro bundler in release builds.
+const DEV_SAMPLE_QR =
+  '00020101021238570010A000000727012700069704520113TRENDCOFFEE0000110499999999530370454051000055020256304ABCD'
+
 export default function QRGenerateScreen() {
   const { t } = useTranslation('payment')
   const isDark = useColorScheme() === 'dark'
@@ -298,8 +270,17 @@ export default function QRGenerateScreen() {
     [isDark],
   )
 
-  const { token, countdown, isLoading, isRefreshing, error, refetch } =
-    useQRPayment()
+  const {
+    token: realToken,
+    countdown,
+    isLoading,
+    isRefreshing,
+    error,
+    refetch,
+  } = useQRPayment()
+
+  // In dev builds, fall back to sample QR when the bank sandbox is down
+  const token = __DEV__ && !realToken ? DEV_SAMPLE_QR : realToken
 
   return (
     <View style={[s.root, { backgroundColor: bg }]}>
@@ -361,19 +342,6 @@ const s = StyleSheet.create({
   },
   countdownText: { fontSize: 14 },
   countdownHighlight: { fontWeight: '700' },
-  downloadBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    borderWidth: 1.5,
-    borderRadius: 10,
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-  },
-  downloadBtnText: {
-    fontSize: 15,
-    fontWeight: '600',
-  },
   errorIcon: { fontSize: 48 },
   errorText: {
     fontSize: 14,

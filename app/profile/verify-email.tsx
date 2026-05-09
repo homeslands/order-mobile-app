@@ -95,7 +95,7 @@ const VerifyEmailHeader = React.memo(function VerifyEmailHeader({
           hitSlop={8}
           style={[
             headerStyles.circleBtn,
-            { backgroundColor: isDark ? colors.gray[800] : colors.white.light },
+            { backgroundColor: isDark ? colors.card.dark : colors.white.light },
             headerStyles.shadow,
           ]}
         >

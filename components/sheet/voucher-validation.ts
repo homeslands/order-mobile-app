@@ -88,29 +88,29 @@ export function processVoucherList(
     const errorChecks = [
       {
         cond: requiresLogin && !isCustomerOwner,
-        msg: t('voucher.needVerifyIdentity'),
+        msg: t('needVerifyIdentity'),
       },
-      { cond: isExpired, msg: t('voucher.expired') },
-      { cond: v.remainingUsage === 0, msg: t('voucher.outOfStock') },
+      { cond: isExpired, msg: t('expired') },
+      { cond: v.remainingUsage === 0, msg: t('outOfStock') },
       {
         cond:
           v.type !== VOUCHER_TYPE.SAME_PRICE_PRODUCT &&
           v.minOrderValue > subTotalAfterPromotion,
-        msg: t('voucher.minOrderNotMet'),
+        msg: t('minOrderNotMet'),
       },
       {
         cond:
           vpSet.size > 0 &&
           v.applicabilityRule === APPLICABILITY_RULE.ALL_REQUIRED &&
           !allInVoucher,
-        msg: t('voucher.requireOnlyApplicableProducts'),
+        msg: t('requireOnlyApplicableProducts'),
       },
       {
         cond:
           vpSet.size > 0 &&
           v.applicabilityRule === APPLICABILITY_RULE.AT_LEAST_ONE_REQUIRED &&
           !anyInVoucher,
-        msg: t('voucher.requireSomeApplicableProducts'),
+        msg: t('requireSomeApplicableProducts'),
       },
     ]
     const errorMessage = errorChecks.find((e) => e.cond)?.msg || ''
@@ -118,21 +118,21 @@ export function processVoucherList(
     // E4 — Pre-compute display strings once here, not in each card render
     const discountLabel =
       v.type === VOUCHER_TYPE.PERCENT_ORDER
-        ? t('voucher.percentDiscount', { value: v.value })
+        ? t('percentDiscount', { value: v.value })
         : v.type === VOUCHER_TYPE.SAME_PRICE_PRODUCT
-          ? t('voucher.samePriceProduct', { value: formatCurrency(v.value) })
-          : t('voucher.fixedDiscount', { value: formatCurrency(v.value) })
+          ? t('samePriceProduct', { value: formatCurrency(v.value) })
+          : t('fixedDiscount', { value: formatCurrency(v.value) })
 
     const endDiff = dayjs.utc(v.endDate).diff(now, 'second')
     const expiryText =
       endDiff <= 0
-        ? t('voucher.expiresInHoursMinutes', { hours: 0, minutes: 0 })
+        ? t('expiresInHoursMinutes', { hours: 0, minutes: 0 })
         : endDiff < 86400
-          ? t('voucher.expiresInHoursMinutes', {
+          ? t('expiresInHoursMinutes', {
               hours: Math.floor(endDiff / 3600),
               minutes: Math.floor((endDiff % 3600) / 60),
             })
-          : t('voucher.expiresInDaysHoursMinutes', {
+          : t('expiresInDaysHoursMinutes', {
               days: Math.floor(endDiff / 86400),
               hours: Math.floor((endDiff % 86400) / 3600),
               minutes: Math.floor((endDiff % 3600) / 60),
@@ -211,44 +211,44 @@ export function buildVoucherConditions(voucher: IVoucher, t: TFn): string[] {
   const conditions: string[] = []
   const discountLabel =
     voucher.type === VOUCHER_TYPE.PERCENT_ORDER
-      ? t('voucher.percentDiscount', { value: voucher.value })
+      ? t('percentDiscount', { value: voucher.value })
       : voucher.type === VOUCHER_TYPE.SAME_PRICE_PRODUCT
-        ? t('voucher.samePriceProduct', {
+        ? t('samePriceProduct', {
             value: formatCurrency(voucher.value),
           })
-        : t('voucher.fixedDiscount', { value: formatCurrency(voucher.value) })
+        : t('fixedDiscount', { value: formatCurrency(voucher.value) })
 
-  conditions.push(`${t('voucher.value')}: ${discountLabel}`)
+  conditions.push(`${t('value')}: ${discountLabel}`)
   conditions.push(
-    `${t('voucher.minOrderValue')}: ${formatCurrency(voucher.minOrderValue)}`,
+    `${t('minOrderValue')}: ${formatCurrency(voucher.minOrderValue)}`,
   )
   conditions.push(
     voucher.isVerificationIdentity
-      ? t('voucher.requiresAccount')
-      : t('voucher.noAccountRequired'),
+      ? t('requiresAccount')
+      : t('noAccountRequired'),
   )
   conditions.push(
     voucher.numberOfUsagePerUser > 0
-      ? `${t('voucher.numberOfUsagePerUser')}: ${voucher.numberOfUsagePerUser} ${t('voucher.usage')}/1 ${t('voucher.verificationIdentityType')}`
-      : `${t('voucher.numberOfUsagePerUser')}: ${t('voucher.unlimited')}`,
+      ? `${t('numberOfUsagePerUser')}: ${voucher.numberOfUsagePerUser} ${t('usage')}/1 ${t('verificationIdentityType')}`
+      : `${t('numberOfUsagePerUser')}: ${t('unlimited')}`,
   )
   if (voucher.voucherProducts?.length > 0) {
     const names = voucher.voucherProducts
       .map((vp) => vp.product?.name || vp.slug)
       .filter(Boolean)
-    conditions.push(`${t('voucher.products')}: ${names.join(', ')}`)
+    conditions.push(`${t('products')}: ${names.join(', ')}`)
   } else {
-    conditions.push(`${t('voucher.products')}: ${t('voucher.allProducts')}`)
+    conditions.push(`${t('products')}: ${t('allProducts')}`)
   }
   if (voucher.voucherPaymentMethods?.length > 0) {
     const pmMap: Record<string, string> = {
-      cash: t('voucher.paymentMethod.cash'),
-      'bank-transfer': t('voucher.paymentMethod.bankTransfer'),
-      point: t('voucher.paymentMethod.point'),
-      'credit-card': t('voucher.paymentMethod.creditCard'),
+      cash: t('paymentMethod.cash'),
+      'bank-transfer': t('paymentMethod.bankTransfer'),
+      point: t('paymentMethod.point'),
+      'credit-card': t('paymentMethod.creditCard'),
     }
     conditions.push(
-      `${t('voucher.paymentMethods')}: ${voucher.voucherPaymentMethods.map((pm) => pmMap[pm.paymentMethod] ?? pm.paymentMethod).join(', ')}`,
+      `${t('paymentMethods')}: ${voucher.voucherPaymentMethods.map((pm) => pmMap[pm.paymentMethod] ?? pm.paymentMethod).join(', ')}`,
     )
   }
   return conditions

@@ -135,7 +135,7 @@ const NotificationItem = memo(function NotificationItem({
   const isCardOrder = item.message === NotificationMessageCode.CARD_ORDER_PAID
   const cardOrderSlug = item.metadata?.cardOrder ?? ''
   const orderRef = isCardOrder
-    ? (item.metadata?.cardOrderCode || cardOrderSlug)
+    ? item.metadata?.cardOrderCode || cardOrderSlug
     : (item.metadata?.order ?? '')
 
   const handlePress = useCallback(() => {

@@ -15,31 +15,34 @@
 ## File Structure
 
 ### Tạo mới
-| File | Mô tả |
-|---|---|
-| `utils/decode-polyline.ts` | Decode Google encoded polyline → `{latitude,longitude}[]` |
-| `components/delivery/delivery-address-sheet.tsx` | Bottom sheet chính: map + autocomplete + GPS + phone |
-| `components/delivery/delivery-info-row.tsx` | Row tóm tắt địa chỉ trong CartFooter/UpdateOrderFooter |
-| `components/delivery/index.ts` | Barrel export |
-| `__tests__/utils/decode-polyline.test.ts` | Unit test decode-polyline |
-| `__tests__/hooks/use-order-type-options-delivery.test.tsx` | Test DELIVERY option trong hook |
-| `__tests__/components/delivery/delivery-info-row.test.tsx` | Render test |
+
+| File                                                       | Mô tả                                                     |
+| ---------------------------------------------------------- | --------------------------------------------------------- |
+| `utils/decode-polyline.ts`                                 | Decode Google encoded polyline → `{latitude,longitude}[]` |
+| `components/delivery/delivery-address-sheet.tsx`           | Bottom sheet chính: map + autocomplete + GPS + phone      |
+| `components/delivery/delivery-info-row.tsx`                | Row tóm tắt địa chỉ trong CartFooter/UpdateOrderFooter    |
+| `components/delivery/index.ts`                             | Barrel export                                             |
+| `__tests__/utils/decode-polyline.test.ts`                  | Unit test decode-polyline                                 |
+| `__tests__/hooks/use-order-type-options-delivery.test.tsx` | Test DELIVERY option trong hook                           |
+| `__tests__/components/delivery/delivery-info-row.test.tsx` | Render test                                               |
 
 ### Sửa đổi
-| File | Thay đổi |
-|---|---|
-| `app.json` | Thêm expo-location plugin + Google Maps keys cho Android/iOS |
-| `hooks/use-order-type-options.ts` | Thêm DELIVERY cho logged-in user |
-| `components/cart/cart-order-type-sheet.tsx` | Thêm Truck icon + Delivery option |
-| `components/cart/cart-footer.tsx` | DeliveryInfoRow + DeliveryAddressSheet + fee + disable check |
-| `app/update-order/components/update-order-footer.tsx` | Tương tự CartFooter |
-| `components/dialog/order-info-section.tsx` | Hiển thị address + phone khi DELIVERY |
+
+| File                                                  | Thay đổi                                                     |
+| ----------------------------------------------------- | ------------------------------------------------------------ |
+| `app.json`                                            | Thêm expo-location plugin + Google Maps keys cho Android/iOS |
+| `hooks/use-order-type-options.ts`                     | Thêm DELIVERY cho logged-in user                             |
+| `components/cart/cart-order-type-sheet.tsx`           | Thêm Truck icon + Delivery option                            |
+| `components/cart/cart-footer.tsx`                     | DeliveryInfoRow + DeliveryAddressSheet + fee + disable check |
+| `app/update-order/components/update-order-footer.tsx` | Tương tự CartFooter                                          |
+| `components/dialog/order-info-section.tsx`            | Hiển thị address + phone khi DELIVERY                        |
 
 ---
 
 ## Task 1: Install packages & configure app.json
 
 **Files:**
+
 - Modify: `app.json`
 - Modify: `package.json` (via install)
 
@@ -115,6 +118,7 @@ git commit -m "feat(delivery): install react-native-maps and expo-location, conf
 ## Task 2: `utils/decode-polyline.ts` (TDD)
 
 **Files:**
+
 - Create: `__tests__/utils/decode-polyline.test.ts`
 - Create: `utils/decode-polyline.ts`
 
@@ -217,6 +221,7 @@ git commit -m "feat(delivery): add decode-polyline utility"
 ## Task 3: Thêm DELIVERY vào `hooks/use-order-type-options.ts`
 
 **Files:**
+
 - Modify: `hooks/use-order-type-options.ts`
 - Create: `__tests__/hooks/use-order-type-options-delivery.test.tsx`
 
@@ -227,7 +232,13 @@ git commit -m "feat(delivery): add decode-polyline utility"
 jest.mock('react-native-reanimated', () =>
   require('react-native-reanimated/mock'),
 )
-jest.mock('@/hooks/use-branch', () => ({ useGetBranchInfoForDelivery: () => ({ data: null, isLoading: false, error: null }) }))
+jest.mock('@/hooks/use-branch', () => ({
+  useGetBranchInfoForDelivery: () => ({
+    data: null,
+    isLoading: false,
+    error: null,
+  }),
+}))
 
 import { renderHook } from '@testing-library/react-native'
 import { useOrderTypeOptions } from '@/hooks/use-order-type-options'
@@ -260,14 +271,16 @@ beforeEach(() => {
   ;(useGetSystemFeatureFlagsByGroup as jest.Mock).mockReturnValue({
     data: { result: mockFeatureFlags },
   })
-  ;(useOrderFlowStore as unknown as jest.Mock).mockImplementation((sel: (s: Record<string, unknown>) => unknown) =>
-    sel({
-      setOrderingType: jest.fn(),
-      getCartItems: () => ({ type: OrderTypeEnum.AT_TABLE }),
-    }),
+  ;(useOrderFlowStore as unknown as jest.Mock).mockImplementation(
+    (sel: (s: Record<string, unknown>) => unknown) =>
+      sel({
+        setOrderingType: jest.fn(),
+        getCartItems: () => ({ type: OrderTypeEnum.AT_TABLE }),
+      }),
   )
-  ;(useUserStore as unknown as jest.Mock).mockImplementation((sel: (s: Record<string, unknown>) => unknown) =>
-    sel({ userInfo: { slug: 'u1', role: { name: 'CUSTOMER' } } }),
+  ;(useUserStore as unknown as jest.Mock).mockImplementation(
+    (sel: (s: Record<string, unknown>) => unknown) =>
+      sel({ userInfo: { slug: 'u1', role: { name: 'CUSTOMER' } } }),
   )
 })
 
@@ -279,8 +292,8 @@ describe('useOrderTypeOptions — DELIVERY', () => {
   })
 
   it('does NOT include DELIVERY when user is not logged in', () => {
-    ;(useUserStore as unknown as jest.Mock).mockImplementation((sel: (s: Record<string, unknown>) => unknown) =>
-      sel({ userInfo: null }),
+    ;(useUserStore as unknown as jest.Mock).mockImplementation(
+      (sel: (s: Record<string, unknown>) => unknown) => sel({ userInfo: null }),
     )
     const { result } = renderHook(() => useOrderTypeOptions({ enabled: true }))
     const values = result.current.orderTypes.map((t) => t.value)
@@ -376,6 +389,7 @@ git commit -m "feat(delivery): add DELIVERY option to useOrderTypeOptions for lo
 ## Task 4: `components/delivery/delivery-info-row.tsx`
 
 **Files:**
+
 - Create: `components/delivery/delivery-info-row.tsx`
 - Create: `components/delivery/index.ts`
 - Create: `__tests__/components/delivery/delivery-info-row.test.tsx`
@@ -552,6 +566,7 @@ git commit -m "feat(delivery): add DeliveryInfoRow component"
 ## Task 5: `delivery-address-sheet.tsx` — skeleton (sheet + map + branch marker)
 
 **Files:**
+
 - Create: `components/delivery/delivery-address-sheet.tsx`
 
 - [ ] **Step 1: Tạo skeleton với BottomSheetModal + MapView**
@@ -815,6 +830,7 @@ git commit -m "feat(delivery): add DeliveryAddressSheet skeleton with MapView an
 ## Task 6: `delivery-address-sheet` — autocomplete + suggestions
 
 **Files:**
+
 - Modify: `components/delivery/delivery-address-sheet.tsx`
 
 - [ ] **Step 1: Thêm state và hooks cho autocomplete**
@@ -828,7 +844,10 @@ const [queryAddress, setQueryAddress] = useState('')
 const [showSuggestions, setShowSuggestions] = useState(false)
 const [selectedPlaceId, setSelectedPlaceId] = useState('')
 const [pendingSelection, setPendingSelection] = useState<{
-  lat: number; lng: number; placeId: string; address: string
+  lat: number
+  lng: number
+  placeId: string
+  address: string
 } | null>(null)
 
 // ─── Debounce addressInput → queryAddress (300ms) ────────────────────────────
@@ -845,7 +864,12 @@ const addressByPlaceIdQuery = useGetAddressByPlaceId(selectedPlaceId)
 useEffect(() => {
   if (!addressByPlaceIdQuery.data?.result || !selectedPlaceId) return
   const { lat, lng } = addressByPlaceIdQuery.data.result
-  setPendingSelection({ lat, lng, placeId: selectedPlaceId, address: addressInput })
+  setPendingSelection({
+    lat,
+    lng,
+    placeId: selectedPlaceId,
+    address: addressInput,
+  })
 }, [addressByPlaceIdQuery.data, selectedPlaceId, addressInput])
 ```
 
@@ -1081,6 +1105,7 @@ git commit -m "feat(delivery): add autocomplete search and suggestion list to De
 ## Task 7: `delivery-address-sheet` — GPS flow
 
 **Files:**
+
 - Modify: `components/delivery/delivery-address-sheet.tsx`
 
 - [ ] **Step 1: Thêm state và GPS handler**
@@ -1109,7 +1134,10 @@ const handleGPS = useCallback(async () => {
     const { latitude, longitude } = position.coords
 
     // Reverse geocode → address text → auto-fill input để trigger suggestions
-    const [geocoded] = await Location.reverseGeocodeAsync({ latitude, longitude })
+    const [geocoded] = await Location.reverseGeocodeAsync({
+      latitude,
+      longitude,
+    })
     if (geocoded) {
       const parts = [
         geocoded.streetNumber,
@@ -1178,6 +1206,7 @@ git commit -m "feat(delivery): add GPS flow to DeliveryAddressSheet using expo-l
 ## Task 8: `delivery-address-sheet` — distance check + route polyline + persist
 
 **Files:**
+
 - Modify: `components/delivery/delivery-address-sheet.tsx`
 
 - [ ] **Step 1: Thêm deduplicate refs và distance/direction hooks**
@@ -1192,8 +1221,16 @@ const pendingLat = pendingSelection?.lat ?? 0
 const pendingLng = pendingSelection?.lng ?? 0
 const hasCoords = !!pendingSelection
 
-const distanceQuery = useGetDistanceAndDuration(branchSlug, pendingLat, pendingLng)
-const directionQuery = useGetAddressDirection(branchSlug, pendingLat, pendingLng)
+const distanceQuery = useGetDistanceAndDuration(
+  branchSlug,
+  pendingLat,
+  pendingLng,
+)
+const directionQuery = useGetAddressDirection(
+  branchSlug,
+  pendingLat,
+  pendingLng,
+)
 ```
 
 > Note: Hooks `useGetDistanceAndDuration` và `useGetAddressDirection` đã có `enabled: !!branch && !!lat && !!lng` — khi `pendingLat/pendingLng` là 0 (default) chúng sẽ tự disable.
@@ -1317,6 +1354,7 @@ git commit -m "feat(delivery): add distance check, reject logic, and route polyl
 ## Task 9: `delivery-address-sheet` — phone input + confirm + state restore
 
 **Files:**
+
 - Modify: `components/delivery/delivery-address-sheet.tsx`
 
 - [ ] **Step 1: Thêm phone state**
@@ -1440,6 +1478,7 @@ git commit -m "feat(delivery): add phone input, confirm button, and state restor
 ## Task 10: Thêm Delivery option vào `cart-order-type-sheet.tsx`
 
 **Files:**
+
 - Modify: `components/cart/cart-order-type-sheet.tsx`
 
 - [ ] **Step 1: Import Truck icon và thêm vào icon map**
@@ -1487,6 +1526,7 @@ git commit -m "feat(delivery): add Truck icon for Delivery option in order type 
 ## Task 11: `cart-footer.tsx` — tích hợp Delivery
 
 **Files:**
+
 - Modify: `components/cart/cart-footer.tsx`
 
 - [ ] **Step 1: Import thêm các dependencies**
@@ -1634,6 +1674,7 @@ git commit -m "feat(delivery): integrate DeliveryAddressSheet into CartFooter wi
 ## Task 12: `update-order-footer.tsx` — tích hợp Delivery
 
 **Files:**
+
 - Modify: `app/update-order/components/update-order-footer.tsx`
 
 - [ ] **Step 1: Import thêm dependencies**
@@ -1658,7 +1699,9 @@ const draftDeliveryDistance = draft?.deliveryDistance ?? 0
 const { deliveryFee } = useCalculateDeliveryFee(
   parseKm(draftDeliveryDistance) ?? 0,
   branchSlug ?? '',
-  { enabled: orderType === OrderTypeEnum.DELIVERY && draftDeliveryDistance > 0 },
+  {
+    enabled: orderType === OrderTypeEnum.DELIVERY && draftDeliveryDistance > 0,
+  },
 )
 
 const openDeliverySheet = useCallback(() => setDeliverySheetVisible(true), [])
@@ -1753,6 +1796,7 @@ git commit -m "feat(delivery): integrate DeliveryAddressSheet into UpdateOrderFo
 ## Task 13: `order-info-section.tsx` — hiển thị delivery info trong confirm dialog
 
 **Files:**
+
 - Modify: `components/dialog/order-info-section.tsx`
 
 - [ ] **Step 1: Đọc file hiện tại**

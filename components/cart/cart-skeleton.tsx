@@ -39,7 +39,7 @@ export default function CartSkeleton({
       >
         {Array.from({ length: SKELETON_ROWS }).map((_, i) => (
           <View key={i} className="px-4 py-2">
-            <View className="overflow-hidden rounded-xl bg-white dark:bg-gray-900">
+            <View className="overflow-hidden rounded-xl bg-white dark:bg-[#1c1c1e]">
               <View className="flex-row gap-3 p-3">
                 <View
                   className={cn(
@@ -63,7 +63,7 @@ export default function CartSkeleton({
               </View>
               <View
                 className={cn(
-                  'flex-row items-center gap-2.5 border-t border-gray-100 px-3 pb-3 pt-2 dark:border-gray-700',
+                  'flex-row items-center gap-2.5 border-t border-gray-100 px-3 pb-3 pt-2 dark:border-[#2e2e2e]',
                 )}
               >
                 <View className={cn('h-5 w-5 shrink-0 rounded', bgClass)} />
@@ -77,7 +77,7 @@ export default function CartSkeleton({
       {!hideFooter && (
         <View
           className={cn(
-            'absolute bottom-0 left-0 right-0 border-t border-gray-200 bg-white px-4 pt-3 dark:border-gray-700 dark:bg-gray-800',
+            'absolute bottom-0 left-0 right-0 border-t border-gray-200 bg-white px-4 pt-3 dark:border-[#2e2e2e] dark:bg-[#1c1c1e]',
           )}
           style={{ paddingBottom: footerPaddingBottom }}
         >

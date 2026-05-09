@@ -27,7 +27,7 @@ export default function OrderTypeDropdown() {
             isFocus ? 'text-blue-500' : 'text-gray-600 dark:text-gray-400'
           }`}
           style={{
-            backgroundColor: isDark ? colors.gray[900] : colors.white.light,
+            backgroundColor: isDark ? colors.card.dark : colors.white.light,
           }}
         >
           {t('menu.selectOrderType')}
@@ -38,7 +38,7 @@ export default function OrderTypeDropdown() {
   }
 
   return (
-    <View className="bg-white p-4 dark:bg-gray-800">
+    <View className="bg-white p-4 dark:bg-[#1c1c1e]">
       {renderLabel()}
       <Dropdown
         style={{
@@ -51,7 +51,7 @@ export default function OrderTypeDropdown() {
           borderWidth: 0.5,
           borderRadius: 8,
           paddingHorizontal: 8,
-          backgroundColor: isDark ? colors.gray[800] : colors.white.light,
+          backgroundColor: isDark ? colors.card.dark : colors.white.light,
         }}
         placeholderStyle={{
           fontSize: 16,
@@ -64,7 +64,7 @@ export default function OrderTypeDropdown() {
         inputSearchStyle={{
           height: 40,
           fontSize: 16,
-          backgroundColor: isDark ? colors.gray[800] : colors.white.light,
+          backgroundColor: isDark ? colors.card.dark : colors.white.light,
           color: isDark ? colors.white.light : colors.gray[900],
           borderRadius: 8,
         }}
@@ -97,7 +97,7 @@ export default function OrderTypeDropdown() {
           </View>
         )}
         containerStyle={{
-          backgroundColor: isDark ? colors.gray[800] : colors.white.light,
+          backgroundColor: isDark ? colors.card.dark : colors.white.light,
         }}
         itemTextStyle={{
           color: isDark ? colors.white.light : colors.gray[900],

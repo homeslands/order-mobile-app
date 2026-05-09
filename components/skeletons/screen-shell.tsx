@@ -12,9 +12,9 @@ export function ScreenShell() {
   return (
     <ScreenContainer
       edges={['top']}
-      className="flex-1 bg-white dark:bg-gray-900"
+      className="flex-1 bg-white dark:bg-[#121212]"
     >
-      <View className="border-b border-gray-100 px-4 py-3 dark:border-gray-800">
+      <View className="border-b border-gray-100 px-4 py-3 dark:border-[#2e2e2e]">
         <Skeleton className="h-8 w-24 rounded-md" />
       </View>
       <View className="flex-1 gap-4 px-4 py-6">

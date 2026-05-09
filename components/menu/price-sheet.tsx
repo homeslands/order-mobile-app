@@ -72,7 +72,7 @@ export const PriceFilterSheet = memo(function PriceFilterSheet({
   )
 
   const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
+    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
     [isDark],
   )
   const handleIndicator = useMemo(
@@ -124,7 +124,7 @@ export const PriceFilterSheet = memo(function PriceFilterSheet({
     closeSheet()
   }, [onSelect, closeSheet])
 
-  const inputBg = isDark ? colors.gray[800] : colors.gray[100]
+  const inputBg = isDark ? colors.background.dark : colors.gray[100]
   const inputColor = isDark ? colors.gray[50] : colors.gray[900]
   const labelColor = isDark ? colors.gray[400] : colors.gray[500]
 
@@ -251,7 +251,9 @@ export const PriceFilterSheet = memo(function PriceFilterSheet({
               style={[
                 styles.btn,
                 {
-                  backgroundColor: isDark ? colors.gray[700] : colors.gray[100],
+                  backgroundColor: isDark
+                    ? colors.border.dark
+                    : colors.gray[100],
                 },
               ]}
             >

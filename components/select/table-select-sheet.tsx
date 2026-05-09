@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, Text, useColorScheme, View } from 'react-native'
 
-import { TableStatus } from '@/constants'
+import { colors, TableStatus } from '@/constants'
 import { TABLE_SELECT_ITEM_HEIGHT } from '@/constants/list-item-sizes'
 import { useTables } from '@/hooks'
 import { useOrderFlowStore } from '@/stores'
@@ -225,7 +225,7 @@ function TableSelectSheet({
   const keyExtractor = useCallback((item: ITable) => item.slug, [])
 
   const backgroundStyle = useMemo(
-    () => ({ backgroundColor: isDark ? '#111827' : '#ffffff' }),
+    () => ({ backgroundColor: isDark ? colors.card.dark : '#ffffff' }),
     [isDark],
   )
   const containerStyle = useMemo(() => ({ zIndex: 9999, elevation: 9999 }), [])
@@ -242,7 +242,7 @@ function TableSelectSheet({
       backgroundStyle={backgroundStyle}
       containerStyle={containerStyle}
     >
-      <View className="border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+      <View className="border-b border-gray-200 px-4 py-3 dark:border-[#2e2e2e]">
         <Text className="text-base font-semibold text-gray-900 dark:text-gray-50">
           {t('table.title')}
         </Text>

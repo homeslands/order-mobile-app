@@ -68,7 +68,10 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
           ]}
         >
           <View
-            style={[tableSheetStyles.statusDot, { backgroundColor: statusColor }]}
+            style={[
+              tableSheetStyles.statusDot,
+              { backgroundColor: statusColor },
+            ]}
           />
           <View style={tableSheetStyles.tableNameRow}>
             <Text
@@ -151,7 +154,7 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
   )
 
   const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
+    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
     [isDark],
   )
 

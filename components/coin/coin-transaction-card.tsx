@@ -98,8 +98,8 @@ export const CoinTransactionCard = memo(function CoinTransactionCard({
 
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const bg = isDark ? colors.gray[900] : colors.white.light
-  const borderColor = isDark ? colors.gray[700] : colors.gray[100]
+  const bg = isDark ? colors.card.dark : colors.white.light
+  const borderColor = isDark ? colors.border.dark : colors.gray[100]
 
   const iconBg = isDark ? cfg.iconBgDark : cfg.iconBgLight
   const pillBg = isDark ? cfg.pillBgDark : cfg.pillBgLight

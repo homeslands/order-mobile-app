@@ -49,7 +49,7 @@ export const ProductPriceFooter = React.memo(function ProductPriceFooter({
   const selectedVariant = useDetailSelectedVariant()
   const isDisabled = isLocked || !selectedVariant
 
-  const bgColor = isDark ? colors.gray[900] : colors.white.light
+  const bgColor = isDark ? colors.card.dark : colors.white.light
 
   return (
     <View

@@ -107,7 +107,8 @@ export default memo(function ConfirmUpdateOrderDialog({
         (originalOrder.table?.slug || null) !== (draft.table || null) ||
         (originalOrder.description ?? '') !== (draft.description ?? '') ||
         (originalOrder.timeLeftTakeOut ?? 0) !== (draft.timeLeftTakeOut ?? 0) ||
-        (originalOrder.deliveryTo?.placeId || '') !== (draft.deliveryPlaceId || '') ||
+        (originalOrder.deliveryTo?.placeId || '') !==
+          (draft.deliveryPlaceId || '') ||
         (originalOrder.deliveryPhone ?? '') !== (draft.deliveryPhone ?? '')
 
       if (metaChanged) {
@@ -227,7 +228,7 @@ export default memo(function ConfirmUpdateOrderDialog({
   // ── Sheet UI ─────────────────────────────────────────────────────────────────
 
   const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
+    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
     [isDark],
   )
   const renderBackdrop = useCallback(
@@ -327,7 +328,9 @@ export default memo(function ConfirmUpdateOrderDialog({
               style={[
                 cd.infoRow,
                 {
-                  backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
+                  backgroundColor: isDark
+                    ? colors.background.dark
+                    : colors.gray[100],
                 },
               ]}
             >

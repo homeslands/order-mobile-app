@@ -35,13 +35,13 @@ const TableItem = memo(function TableItem({
         'mx-3 my-2 flex-row items-center gap-3 rounded-xl p-4',
         isSelected
           ? 'border border-primary/60 bg-primary/5'
-          : 'border border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900',
+          : 'border border-gray-100 bg-white dark:border-[#2e2e2e] dark:bg-[#1c1c1e]',
       )}
     >
       <View
         className={cn(
           'h-6 w-6 items-center justify-center rounded-full',
-          isSelected ? 'bg-primary/10' : 'bg-gray-100 dark:bg-gray-800',
+          isSelected ? 'bg-primary/10' : 'bg-gray-100 dark:bg-[#2e2e2e]',
         )}
       >
         <Circle

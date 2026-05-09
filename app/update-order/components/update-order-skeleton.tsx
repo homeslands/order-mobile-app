@@ -12,9 +12,9 @@ export default function UpdateOrderSkeleton() {
   return (
     <ScreenContainer
       edges={['top']}
-      className="flex-1 bg-gray-50 dark:bg-gray-900"
+      className="flex-1 bg-gray-50 dark:bg-[#121212]"
     >
-      <View className="flex-row items-center border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
+      <View className="flex-row items-center border-b border-gray-200 bg-white px-4 py-3 dark:border-[#2e2e2e] dark:bg-[#1c1c1e]">
         <Skeleton className="mr-3 h-8 w-8 rounded-full" />
         <Skeleton className="h-5 flex-1 rounded-md" />
       </View>
@@ -24,7 +24,7 @@ export default function UpdateOrderSkeleton() {
           <Skeleton className="h-10 w-32 rounded-md" />
         </View>
         {/* Order info */}
-        <View className="mb-4 rounded-lg border border-gray-100 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+        <View className="mb-4 rounded-lg border border-gray-100 bg-white p-4 dark:border-[#2e2e2e] dark:bg-[#1c1c1e]">
           <Skeleton className="mb-3 h-4 w-32 rounded-md" />
           <Skeleton className="mb-2 h-6 w-40 rounded-md" />
           <Skeleton className="mb-2 h-4 w-28 rounded-md" />
@@ -34,7 +34,7 @@ export default function UpdateOrderSkeleton() {
         {[1, 2, 3].map((i) => (
           <View
             key={i}
-            className="mb-4 flex-row gap-3 rounded-lg border border-gray-100 bg-white p-4 dark:border-gray-700 dark:bg-gray-800"
+            className="mb-4 flex-row gap-3 rounded-lg border border-gray-100 bg-white p-4 dark:border-[#2e2e2e] dark:bg-[#1c1c1e]"
           >
             <Skeleton className="h-16 w-16 rounded-lg" />
             <View className="flex-1 gap-2">
@@ -45,7 +45,7 @@ export default function UpdateOrderSkeleton() {
           </View>
         ))}
         {/* Footer */}
-        <View className="rounded-lg border border-gray-100 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+        <View className="rounded-lg border border-gray-100 bg-white p-4 dark:border-[#2e2e2e] dark:bg-[#1c1c1e]">
           <Skeleton className="mb-2 h-4 w-40 rounded-md" />
           <Skeleton className="h-11 w-full rounded-lg" />
         </View>

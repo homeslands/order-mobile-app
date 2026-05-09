@@ -12,7 +12,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { SPRING_CONFIGS, colors } from '@/constants'
+import { colors, SPRING_CONFIGS } from '@/constants'
 
 interface ToastData {
   id: string
@@ -27,10 +27,10 @@ interface ToastItemProps {
 }
 
 const ICON_MAP = {
-  error: <XCircle size={20} color="#ffffff" fill="#dc2626" />,
-  success: <CircleCheck size={20} color="#ffffff" fill="#16a34a" />,
-  warning: <AlertCircle size={20} color="#ffffff" fill="#d97706" />,
-  info: <Info size={20} color="#ffffff" fill="#2563eb" />,
+  error: <XCircle size={28} color="#ffffff" fill="#dc2626" />,
+  success: <CircleCheck size={28} color="#ffffff" fill="#16a34a" />,
+  warning: <AlertCircle size={28} color="#ffffff" fill="#d97706" />,
+  info: <Info size={28} color="#ffffff" fill="#2563eb" />,
 } as const
 
 const ToastItem = React.memo(function ToastItem({

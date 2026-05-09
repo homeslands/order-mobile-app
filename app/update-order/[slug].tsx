@@ -169,7 +169,7 @@ export default function UpdateOrderScreen() {
             s.expiredHeader,
             {
               borderBottomColor: isDark ? colors.gray[700] : colors.gray[200],
-              backgroundColor: isDark ? colors.gray[800] : colors.white.light,
+              backgroundColor: isDark ? colors.card.dark : colors.white.light,
             },
           ]}
         >
@@ -245,7 +245,7 @@ export default function UpdateOrderScreen() {
             style={[
               s.tabBar,
               {
-                backgroundColor: isDark ? colors.gray[800] : colors.white.light,
+                backgroundColor: isDark ? colors.card.dark : colors.white.light,
                 borderBottomColor: isDark ? colors.gray[700] : colors.gray[200],
               },
             ]}

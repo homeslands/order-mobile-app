@@ -12,11 +12,11 @@
 
 ## File Map
 
-| File | Change |
-|------|--------|
-| `index.js` | Add `firebase-background-handler` import (first line) |
-| `app/_layout.tsx` | Remove `firebase-background-handler` import |
-| `hooks/use-firebase-token.ts` | Fix sound name `notification.wav` → `notification.mp3`; remove console.log/warn statements |
+| File                                 | Change                                                                                         |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------- |
+| `index.js`                           | Add `firebase-background-handler` import (first line)                                          |
+| `app/_layout.tsx`                    | Remove `firebase-background-handler` import                                                    |
+| `hooks/use-firebase-token.ts`        | Fix sound name `notification.wav` → `notification.mp3`; remove console.log/warn statements     |
 | `hooks/use-notification-listener.ts` | Remove duplicate `addNotificationReceivedListener` block — keep only `messaging().onMessage()` |
 
 ---
@@ -26,6 +26,7 @@
 The background handler MUST be registered before React starts. Currently it is imported inside `app/_layout.tsx` (a React component), which means it is only registered after the React tree mounts. Messages received while the app is killed or in background before the JS bundle hydrates are dropped.
 
 **Files:**
+
 - Modify: `index.js`
 - Modify: `app/_layout.tsx`
 - Modify: `lib/firebase-background-handler.ts`
@@ -33,12 +34,14 @@ The background handler MUST be registered before React starts. Currently it is i
 - [ ] **Step 1: Open `index.js` and add the background handler as the very first import**
 
 Current `index.js`:
+
 ```js
 import './lib/navigation-setup'
 import 'expo-router/entry'
 ```
 
 Replace with:
+
 ```js
 import './lib/firebase-background-handler'
 import './lib/navigation-setup'
@@ -50,6 +53,7 @@ The order matters: `firebase-background-handler` must be first so `setBackground
 - [ ] **Step 2: Remove the same import from `app/_layout.tsx`**
 
 In `app/_layout.tsx`, delete line 1:
+
 ```ts
 import '@/lib/firebase-background-handler'
 ```
@@ -59,6 +63,7 @@ After the edit the first import in `_layout.tsx` should be `import { BottomSheet
 - [ ] **Step 3: Verify `lib/firebase-background-handler.ts` content is correct**
 
 File should read exactly:
+
 ```ts
 import messaging from '@react-native-firebase/messaging'
 
@@ -93,11 +98,13 @@ in killed/background state were silently dropped."
 The notification channel is created with `sound: 'notification.wav'` but the actual file in `android/app/src/main/res/raw/` is `notification.mp3`. Android silently falls back to the default system sound when the named file is not found, so custom sound never plays.
 
 **Files:**
+
 - Modify: `hooks/use-firebase-token.ts:47`
 
 - [ ] **Step 1: Open `hooks/use-firebase-token.ts` and fix the sound name**
 
 Find the block at lines 41–49:
+
 ```ts
 if (Platform.OS === 'android') {
   await Notifications.setNotificationChannelAsync('default', {
@@ -111,6 +118,7 @@ if (Platform.OS === 'android') {
 ```
 
 Change `'notification.wav'` to `'notification.mp3'`:
+
 ```ts
 if (Platform.OS === 'android') {
   await Notifications.setNotificationChannelAsync('default', {
@@ -130,6 +138,7 @@ ls android/app/src/main/res/raw/
 ```
 
 Expected output must include `notification.mp3`. If the file is missing, copy it:
+
 ```bash
 cp assets/sound/notification.mp3 android/app/src/main/res/raw/notification.mp3
 ```
@@ -158,12 +167,14 @@ back to default system sound."
 ### Task 3: Remove duplicate foreground notification listener
 
 `hooks/use-notification-listener.ts` registers TWO listeners for foreground notifications:
+
 1. `messaging().onMessage()` — Firebase SDK, fires for FCM messages on both platforms
 2. `Notifications.addNotificationReceivedListener()` — expo-notifications, also fires for FCM messages on Android
 
 On Android, both fire for the same message, causing duplicate toast popups and double sound playback. The Firebase `onMessage` listener is the correct one to keep — it handles both Android and iOS identically and receives the full Firebase payload.
 
 **Files:**
+
 - Modify: `hooks/use-notification-listener.ts`
 
 - [ ] **Step 1: Open `hooks/use-notification-listener.ts` and remove the expo-notifications listener block**
@@ -179,7 +190,10 @@ useEffect(() => {
   listenerRef.current = Notifications.addNotificationReceivedListener(
     (notification) => {
       // eslint-disable-next-line no-console
-      console.log('[FCM] Foreground notification received:', JSON.stringify(notification.request.content))
+      console.log(
+        '[FCM] Foreground notification received:',
+        JSON.stringify(notification.request.content),
+      )
       const payload = expoToPayload(notification)
 
       // Add to store
@@ -209,6 +223,7 @@ useEffect(() => {
 - [ ] **Step 2: Remove now-unused imports and variables**
 
 After removing the block, also remove:
+
 - `listenerRef` declaration: `const listenerRef = useRef<Notifications.EventSubscription | null>(null)`
 - `expoToPayload` function (lines 47–61 approximately)
 - The `import * as Notifications from 'expo-notifications'` import at top if it has no other usages
@@ -227,7 +242,9 @@ The final `hooks/use-notification-listener.ts` should look like:
  */
 import { Audio, type AVPlaybackSource } from 'expo-av'
 import { useEffect } from 'react'
-import messaging, { type FirebaseMessagingTypes } from '@react-native-firebase/messaging'
+import messaging, {
+  type FirebaseMessagingTypes,
+} from '@react-native-firebase/messaging'
 
 import {
   useNotificationStore,
@@ -323,17 +340,20 @@ identically on both platforms."
 The pre-commit hook blocks commits containing `console.log` in TS/TSX files. Current `hooks/use-firebase-token.ts` has three debug statements added during debugging that must be removed before any future commit touching this file.
 
 **Files:**
+
 - Modify: `hooks/use-firebase-token.ts`
 
 - [ ] **Step 1: Remove the three debug console statements**
 
 Remove line containing:
+
 ```ts
 // eslint-disable-next-line no-console
 console.warn('[FCM] Push notifications are not supported on simulator')
 ```
 
 Remove lines containing:
+
 ```ts
 // eslint-disable-next-line no-console
 console.log('[FCM] Permission status:', authStatus, {
@@ -344,12 +364,14 @@ console.log('[FCM] Permission status:', authStatus, {
 ```
 
 Remove lines containing:
+
 ```ts
 // eslint-disable-next-line no-console
 console.log('[FCM] token:', fcmToken)
 ```
 
 Remove lines containing:
+
 ```ts
 // eslint-disable-next-line no-console
 console.error('[FCM] Failed to get FCM token after 5 attempts')
@@ -427,6 +449,7 @@ git commit -m "chore(notification): remove debug console logs from FCM token hoo
 After all tasks are committed, verify on a physical device:
 
 **Android:**
+
 - [ ] Build and install a fresh APK: `expo run:android`
 - [ ] Grant notification permission when prompted
 - [ ] Send a test notification from Firebase Console → Messaging → Send test message
@@ -435,6 +458,7 @@ After all tasks are committed, verify on a physical device:
 - [ ] Verify: Only ONE toast appears (not two)
 
 **iOS (physical device, development build):**
+
 - [ ] Build and install: `expo run:ios --device`
 - [ ] Grant notification permission when prompted on first launch
 - [ ] Confirm in Xcode console that FCM token is registered (check server logs)

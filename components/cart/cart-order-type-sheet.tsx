@@ -47,7 +47,7 @@ export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
     [bottomInset],
   )
   const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
+    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
     [isDark],
   )
   const renderBackdrop = useCallback(

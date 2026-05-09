@@ -299,7 +299,9 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
         style={[
           confirmOrderStyles.header,
           {
-            borderBottomColor: isDark ? colors.border.dark : colors.border.light,
+            borderBottomColor: isDark
+              ? colors.border.dark
+              : colors.border.light,
           },
         ]}
       >
@@ -323,7 +325,11 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
           <View
             style={[
               confirmOrderStyles.infoRow,
-              { backgroundColor: isDark ? colors.background.dark : colors.gray[100] },
+              {
+                backgroundColor: isDark
+                  ? colors.background.dark
+                  : colors.gray[100],
+              },
             ]}
           >
             <Text
@@ -352,7 +358,9 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
               style={[
                 confirmOrderStyles.infoRow,
                 {
-                  backgroundColor: isDark ? colors.background.dark : colors.gray[100],
+                  backgroundColor: isDark
+                    ? colors.background.dark
+                    : colors.gray[100],
                 },
               ]}
             >
@@ -379,7 +387,9 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
               style={[
                 confirmOrderStyles.infoRow,
                 {
-                  backgroundColor: isDark ? colors.background.dark : colors.gray[100],
+                  backgroundColor: isDark
+                    ? colors.background.dark
+                    : colors.gray[100],
                 },
               ]}
             >
@@ -409,7 +419,9 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
         <View
           style={[
             confirmOrderStyles.itemsSection,
-            { borderTopColor: isDark ? colors.border.dark : colors.border.light },
+            {
+              borderTopColor: isDark ? colors.border.dark : colors.border.light,
+            },
           ]}
         >
           {displayItems.map((item, idx) => (
@@ -452,7 +464,9 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
         <View
           style={[
             confirmOrderStyles.totalsSection,
-            { borderTopColor: isDark ? colors.border.dark : colors.border.light },
+            {
+              borderTopColor: isDark ? colors.border.dark : colors.border.light,
+            },
           ]}
         >
           <View style={confirmOrderStyles.totalRow}>
@@ -518,7 +532,9 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
               confirmOrderStyles.totalRow,
               confirmOrderStyles.finalRow,
               {
-                borderTopColor: isDark ? colors.border.dark : colors.border.light,
+                borderTopColor: isDark
+                  ? colors.border.dark
+                  : colors.border.light,
               },
             ]}
           >

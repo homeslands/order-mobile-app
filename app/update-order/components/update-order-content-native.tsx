@@ -45,7 +45,7 @@ const THEME_LIGHT = {
 } as const
 
 const THEME_DARK = {
-  cardBg: { backgroundColor: colors.gray[800] },
+  cardBg: { backgroundColor: colors.card.dark },
   nameColor: { color: colors.gray[50] },
   chipBorder: { borderColor: colors.gray[600] },
   chipTextColor: { color: colors.gray[300] },
@@ -54,8 +54,8 @@ const THEME_DARK = {
   qtyBtnTextColor: { color: colors.gray[300] },
   qtyTextColor: { color: colors.gray[50] },
   noteRowTheme: {
-    borderColor: colors.gray[700],
-    backgroundColor: colors.gray[900],
+    borderColor: colors.border.dark,
+    backgroundColor: colors.background.dark,
   },
   noteInputColor: { color: colors.gray[200] },
   noteIconColor: colors.gray[500],
@@ -377,7 +377,7 @@ export default function UpdateOrderContentNative({
     [addDraftNote],
   )
 
-  const cardBg = isDark ? colors.gray[800] : colors.white.light
+  const cardBg = isDark ? colors.card.dark : colors.white.light
   const cardBorder = isDark ? colors.gray[700] : colors.gray[100]
   const dividerColor = isDark ? colors.gray[700] : colors.gray[100]
   const labelColor = isDark ? colors.gray[400] : colors.gray[500]

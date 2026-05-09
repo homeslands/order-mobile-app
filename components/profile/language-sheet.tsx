@@ -83,7 +83,7 @@ export const LanguageSheet = memo(function LanguageSheet({
 
   const snapPoints = useMemo(() => [180 + bottom], [bottom])
   const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
+    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
     [isDark],
   )
   const renderBackdrop = useCallback(

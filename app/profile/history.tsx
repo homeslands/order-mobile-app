@@ -10,7 +10,14 @@ import {
   SlidersHorizontal,
   X,
 } from 'lucide-react-native'
-import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Pressable,
@@ -245,10 +252,7 @@ const HistoryDateFilterSheet = memo(function HistoryDateFilterSheet({
                   </Text>
                 </View>
                 {localFrom && (
-                  <GHTouchable
-                    onPress={() => setLocalFrom(null)}
-                    hitSlop={10}
-                  >
+                  <GHTouchable onPress={() => setLocalFrom(null)} hitSlop={10}>
                     <X size={12} color={subColor} />
                   </GHTouchable>
                 )}

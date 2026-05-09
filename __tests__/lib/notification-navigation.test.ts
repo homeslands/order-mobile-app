@@ -21,7 +21,15 @@ import { getRouteForMessage } from '@/lib/notification-navigation'
 import { NotificationMessageCode } from '@/constants'
 
 describe('getRouteForMessage', () => {
-  it('routes CARD_ORDER_PAID to gift-card-orders with autoOpen param', () => {
+  it('routes CARD_ORDER_PAID using cardOrderSlug field', () => {
+    const route = getRouteForMessage({
+      message: NotificationMessageCode.CARD_ORDER_PAID,
+      cardOrderSlug: 'card-abc',
+    })
+    expect(route).toBe('/profile/gift-card-orders?autoOpen=card-abc')
+  })
+
+  it('falls back to order field when cardOrderSlug is absent', () => {
     const route = getRouteForMessage({
       message: NotificationMessageCode.CARD_ORDER_PAID,
       order: 'order-abc',
@@ -29,8 +37,10 @@ describe('getRouteForMessage', () => {
     expect(route).toBe('/profile/gift-card-orders?autoOpen=order-abc')
   })
 
-  it('returns null for CARD_ORDER_PAID when order is missing', () => {
-    const route = getRouteForMessage({ message: NotificationMessageCode.CARD_ORDER_PAID })
+  it('returns null for CARD_ORDER_PAID when both slug fields are missing', () => {
+    const route = getRouteForMessage({
+      message: NotificationMessageCode.CARD_ORDER_PAID,
+    })
     expect(route).toBeNull()
   })
 

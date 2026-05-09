@@ -34,9 +34,9 @@ export default function OrderTypeSelectInUpdateOrder({
         <TouchableOpacity
           className={cn(
             'h-11 min-w-0 flex-1 flex-row items-center gap-2 rounded-md px-3 py-2',
-            'bg-white dark:bg-gray-800',
-            'border border-gray-200 dark:border-gray-700',
-            'active:bg-gray-100/50 dark:active:bg-gray-700/50',
+            'bg-white dark:bg-[#1c1c1e]',
+            'border border-gray-200 dark:border-[#2e2e2e]',
+            'active:bg-gray-100/50 dark:active:bg-[#2e2e2e]/50',
           )}
         >
           <ShoppingBag
@@ -58,7 +58,7 @@ export default function OrderTypeSelectInUpdateOrder({
         side="bottom"
         sideOffset={4}
       >
-        <View className="border-b border-gray-200 px-3 py-2 dark:border-gray-700">
+        <View className="border-b border-gray-200 px-3 py-2 dark:border-[#2e2e2e]">
           <Text className="text-sm font-semibold text-gray-900 dark:text-gray-50">
             {t('menu.selectOrderType', 'Chọn loại đơn')}
           </Text>
@@ -73,8 +73,8 @@ export default function OrderTypeSelectInUpdateOrder({
                 onPress={() => handleChange(type.value)}
                 className={cn(
                   'flex-row items-center gap-3 px-4 py-3',
-                  !isLast && 'border-b border-gray-100 dark:border-gray-800',
-                  isSelected && 'bg-gray-50 dark:bg-gray-800/50',
+                  !isLast && 'border-b border-gray-100 dark:border-[#2e2e2e]',
+                  isSelected && 'bg-gray-50 dark:bg-[#2e2e2e]/50',
                   'active:bg-gray-100 dark:active:bg-gray-700',
                 )}
               >

@@ -30,7 +30,7 @@ export interface PasswordRulesInputProps {
 }
 
 function segmentColor(index: number, metCount: number): string {
-  if (index >= metCount) return 'bg-gray-200 dark:bg-gray-700'
+  if (index >= metCount) return 'bg-gray-200 dark:bg-[#2e2e2e]'
   if (metCount === 1) return 'bg-red-500'
   if (metCount === 2) return 'bg-amber-500'
   return 'bg-green-500'
@@ -56,7 +56,7 @@ const RuleTag = memo(function RuleTag({
         'rounded-full px-2 py-0.5',
         met
           ? 'bg-green-100 dark:bg-green-900/40'
-          : 'bg-gray-100 dark:bg-gray-800',
+          : 'bg-gray-100 dark:bg-[#2e2e2e]',
       )}
     >
       <Text
@@ -105,8 +105,8 @@ export function PasswordRulesInput({
       <View className="relative">
         <TextInput
           className={cn(
-            'rounded-lg border bg-white px-4 py-3 pr-12 text-base text-gray-900 dark:bg-gray-800 dark:text-white',
-            'border-gray-300 dark:border-gray-700',
+            'rounded-lg border bg-white px-4 py-3 pr-12 text-base text-gray-900 dark:bg-[#121212] dark:text-white',
+            'border-gray-300 dark:border-[#2e2e2e]',
             disabled && 'opacity-50',
           )}
           placeholder={placeholder}

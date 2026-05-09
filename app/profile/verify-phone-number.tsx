@@ -88,7 +88,7 @@ const VerifyPhoneHeader = React.memo(function VerifyPhoneHeader({
           hitSlop={8}
           style={[
             headerStyles.circleBtn,
-            { backgroundColor: isDark ? colors.gray[800] : colors.white.light },
+            { backgroundColor: isDark ? colors.card.dark : colors.white.light },
             headerStyles.shadow,
           ]}
         >
@@ -162,7 +162,7 @@ const PhoneNumberCard = React.memo(function PhoneNumberCard({
   return (
     <View
       style={{
-        backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
+        backgroundColor: isDark ? colors.background.dark : colors.gray[100],
         borderRadius: 12,
         paddingVertical: 12,
       }}

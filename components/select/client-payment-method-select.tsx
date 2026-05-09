@@ -40,8 +40,8 @@ export default function ClientPaymentMethodSelect({
   }
 
   return (
-    <View className="mt-6 w-full flex-col gap-2 rounded-lg border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
-      <View className="flex-col gap-1 bg-gray-100 p-4 dark:bg-gray-900">
+    <View className="mt-6 w-full flex-col gap-2 rounded-lg border border-gray-200 bg-white dark:border-[#2e2e2e] dark:bg-[#1c1c1e]">
+      <View className="flex-col gap-1 bg-gray-100 p-4 dark:bg-[#121212]">
         <Label className="text-base">{t('paymentMethod.title')}</Label>
         <Text className="text-xs text-gray-500 dark:text-gray-400">
           ({t('paymentMethod.cashMethodNote')})

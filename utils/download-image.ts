@@ -166,7 +166,9 @@ export async function downloadAndSaveImage(
 
     showToast(i18n.t('common.savingImage', { ns: 'common' }))
     await MediaLibrary.createAssetAsync(downloadResult.uri)
-    LegacyFS.deleteAsync(downloadResult.uri, { idempotent: true }).catch(() => {})
+    LegacyFS.deleteAsync(downloadResult.uri, { idempotent: true }).catch(
+      () => {},
+    )
 
     showToast(i18n.t('common.imageSavedSuccess', { ns: 'common' }))
     return true

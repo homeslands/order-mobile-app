@@ -60,9 +60,11 @@ notification tap
 After the existing info card, add a sender/recipient section rendered only when `order.type === GiftCardType.GIFT`.
 
 **Người gửi section** — one row:
+
 - Source: `order.customerName`, `order.customerPhone`
 
 **Người nhận section** — one row per entry in `order.receipients[]`:
+
 - `recipient.name`, `recipient.phone`
 - `recipient.message` (shown below name/phone if non-empty)
 
@@ -87,11 +89,11 @@ IReceiverGiftCardResponse.message   → Người nhận: lời nhắn (optional)
 
 ## Files Changed
 
-| File | Change |
-|------|--------|
-| `lib/notification-navigation.ts` | Map `CARD_ORDER_PAID` to new route with `autoOpen` param |
-| `app/profile/gift-card-orders.tsx` | Consume `autoOpen` param on mount to auto-open detail sheet |
-| `components/gift-card/gift-card-order-detail-sheet.tsx` | Add sender + recipient section for GIFT-type orders |
+| File                                                    | Change                                                      |
+| ------------------------------------------------------- | ----------------------------------------------------------- |
+| `lib/notification-navigation.ts`                        | Map `CARD_ORDER_PAID` to new route with `autoOpen` param    |
+| `app/profile/gift-card-orders.tsx`                      | Consume `autoOpen` param on mount to auto-open detail sheet |
+| `components/gift-card/gift-card-order-detail-sheet.tsx` | Add sender + recipient section for GIFT-type orders         |
 
 ## Testing
 

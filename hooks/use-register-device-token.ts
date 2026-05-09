@@ -47,7 +47,10 @@ export function useRegisterDeviceToken(enabled = true) {
           setDeviceToken(token)
         } else {
           // eslint-disable-next-line no-console
-          console.error('[FCM] Token registration failed permanently:', result.error)
+          console.error(
+            '[FCM] Token registration failed permanently:',
+            result.error,
+          )
         }
       } finally {
         isRegistering.current = false

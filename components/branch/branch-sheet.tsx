@@ -139,7 +139,7 @@ export const BranchSheet = memo(function BranchSheet({
 
   const bgStyle = useMemo(
     () => ({
-      backgroundColor: isDark ? colors.gray[900] : colors.white.light,
+      backgroundColor: isDark ? colors.card.dark : colors.white.light,
     }),
     [isDark],
   )

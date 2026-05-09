@@ -46,7 +46,9 @@ export async function downloadAndSavePDF(
         tempPath,
       )
       if (!savedUri) {
-        throw new Error('MediaStore save failed — file not written to Downloads')
+        throw new Error(
+          'MediaStore save failed — file not written to Downloads',
+        )
       }
     } finally {
       await RNBlobUtil.fs.unlink(tempPath).catch(() => {})

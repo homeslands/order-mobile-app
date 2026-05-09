@@ -127,9 +127,9 @@ export default function GiftCardHubScreen() {
   const { balance, isLoading } = useCoinBalance(ready)
 
   const bg = isDark ? colors.background.dark : colors.background.light
-  const cardBg = isDark ? '#2B3B4C' : '#ffffff'
+  const cardBg = isDark ? colors.card.dark : '#ffffff'
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
-  const subColor = isDark ? '#8B9BB2' : colors.gray[500]
+  const subColor = isDark ? colors.mutedForeground.dark : colors.gray[500]
   const divColor = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'
   const sectionLabelColor = isDark ? colors.gray[400] : colors.gray[500]
 

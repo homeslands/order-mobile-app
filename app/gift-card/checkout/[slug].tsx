@@ -396,7 +396,9 @@ const GiftCardPaymentSuccessScreen = memo(
               style={[
                 suc.btnSecondary,
                 {
-                  backgroundColor: isDark ? colors.border.dark : colors.gray[100],
+                  backgroundColor: isDark
+                    ? colors.border.dark
+                    : colors.gray[100],
                   borderColor: isDark ? colors.gray[500] : colors.gray[300],
                   flex: 1,
                 },

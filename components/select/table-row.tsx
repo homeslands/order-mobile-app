@@ -23,9 +23,9 @@ function TableRow({ table, isSelected, statusLabel, onPress }: Props) {
       onPress={onPress}
       className={cn(
         'flex-row items-center gap-3 px-4 py-3',
-        'border-b border-gray-100 dark:border-gray-800',
-        isSelected && 'bg-gray-50 dark:bg-gray-800/50',
-        'active:bg-gray-100 dark:active:bg-gray-700',
+        'border-b border-gray-100 dark:border-[#2e2e2e]',
+        isSelected && 'bg-gray-50 dark:bg-[#2e2e2e]/50',
+        'active:bg-gray-100 dark:active:bg-[#2e2e2e]',
       )}
     >
       {/* Indicator dot để phân biệt trạng thái bàn */}

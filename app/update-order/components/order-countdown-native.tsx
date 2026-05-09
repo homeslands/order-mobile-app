@@ -12,7 +12,10 @@ const WARNING_THRESHOLD_SEC = 120
 const CRITICAL_THRESHOLD_SEC = 60
 
 function calcRemaining(expiresAt: string): number {
-  return Math.max(0, Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000))
+  return Math.max(
+    0,
+    Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000),
+  )
 }
 
 function formatCountdown(sec: number, prefix: string): string {
@@ -44,7 +47,9 @@ const OrderCountdownNative = memo(function OrderCountdownNative({
   )
 
   const onExpiredRef = useRef(setIsExpired)
-  useEffect(() => { onExpiredRef.current = setIsExpired })
+  useEffect(() => {
+    onExpiredRef.current = setIsExpired
+  })
 
   useEffect(() => {
     if (!expiresAt) return

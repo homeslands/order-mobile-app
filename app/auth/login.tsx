@@ -18,7 +18,7 @@ import { useAuthStore } from '@/stores'
 
 export default function LoginScreen() {
   const isDark = useColorScheme() === 'dark'
-  const bgColor = isDark ? colors.gray[900] : '#ffffff'
+  const bgColor = isDark ? colors.background.dark : '#ffffff'
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated())
   const masterTransition = useMasterTransitionOptional()
   const queryClient = useQueryClient()

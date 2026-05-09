@@ -62,7 +62,7 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
 
   return (
     <ScrollView
-      className="rounded-md border border-gray-100 bg-white px-3 py-5 dark:border-gray-700 dark:bg-gray-800"
+      className="rounded-md border border-gray-100 bg-white px-3 py-5 dark:border-[#2e2e2e] dark:bg-[#1c1c1e]"
       showsVerticalScrollIndicator={false}
     >
       {/* Logo */}
@@ -84,11 +84,11 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
               value={order.slug}
               size={128}
               color={isDark ? '#ffffff' : '#000000'}
-              backgroundColor={isDark ? '#1f2937' : '#ffffff'}
+              backgroundColor={isDark ? colors.card.dark : '#ffffff'}
             />
           ) : (
             <View
-              className="h-32 w-32 items-center justify-center rounded-md bg-gray-100 dark:bg-gray-700"
+              className="h-32 w-32 items-center justify-center rounded-md bg-gray-100 dark:bg-[#2e2e2e]"
               style={{
                 borderWidth: 1,
                 borderColor: '#e5e7eb',
@@ -181,7 +181,7 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
       {/* Invoice items */}
       <View className="mt-4">
         {/* Table Header */}
-        <View className="mb-2 flex-row border-b border-dashed border-gray-300 pb-2 dark:border-gray-600">
+        <View className="mb-2 flex-row border-b border-dashed border-gray-300 pb-2 dark:border-[#2e2e2e]">
           <View className="flex-[0.35]">
             <Text className="text-xs font-semibold text-gray-900 dark:text-gray-50">
               {t('order.item', 'Sản phẩm')}
@@ -212,7 +212,7 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
         {/* Table Body */}
         {order?.orderItems.map((item) => (
           <View key={item.slug}>
-            <View className="mb-2 flex-row border-b border-dashed border-gray-200 pb-2 dark:border-gray-700">
+            <View className="mb-2 flex-row border-b border-dashed border-gray-200 pb-2 dark:border-[#2e2e2e]">
               <View className="flex-[0.35]">
                 <Text className="text-xs text-gray-900 dark:text-gray-50">
                   {item?.variant?.product?.name}{' '}
@@ -244,7 +244,7 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
             </View>
 
             {item?.note && (
-              <View className="mb-2 rounded-md bg-gray-50 px-2 py-1 pb-2 dark:bg-gray-700/50">
+              <View className="mb-2 rounded-md bg-gray-50 px-2 py-1 pb-2 dark:bg-[#2e2e2e]/50">
                 <Text className="text-[11px] italic text-gray-600 dark:text-gray-400">
                   📝 {t('order.note', 'Ghi chú')}: {item.note}
                 </Text>
@@ -254,7 +254,7 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
         ))}
 
         {/* Payment Summary */}
-        <View className="mt-4 border-t border-gray-200 pt-2 dark:border-gray-700">
+        <View className="mt-4 border-t border-gray-200 pt-2 dark:border-[#2e2e2e]">
           <View className="flex-row items-center justify-between py-2">
             <Text className="text-xs text-gray-900 dark:text-gray-50">
               {t('order.pttt', 'Phương thức thanh toán')}
@@ -329,7 +329,7 @@ export default React.memo(function Invoice({ order }: InvoiceProps) {
               {formatCurrency(loss || 0)}
             </Text>
           </View>
-          <View className="mt-2 flex-row items-center justify-between border-t-2 border-dashed border-gray-300 py-3 dark:border-gray-600">
+          <View className="mt-2 flex-row items-center justify-between border-t-2 border-dashed border-gray-300 py-3 dark:border-[#2e2e2e]">
             <Text className="text-base font-semibold text-gray-900 dark:text-gray-50">
               {t('order.totalPayment', 'Tổng tiền')}
             </Text>

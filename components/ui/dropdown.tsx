@@ -405,8 +405,8 @@ function DropdownContent({
           onLayout={handleContentLayout}
           className={cn(
             'absolute z-50 overflow-hidden rounded-md border p-1',
-            'bg-white dark:bg-gray-900',
-            'border-gray-200 dark:border-gray-700',
+            'bg-white dark:bg-[#1c1c1e]',
+            'border-gray-200 dark:border-[#2e2e2e]',
             'shadow-md',
             className,
           )}
@@ -488,7 +488,7 @@ function DropdownItem({
 function DropdownSeparator({ className, ...props }: DropdownSeparatorProps) {
   return (
     <View
-      className={cn('-mx-1 my-1 h-px bg-gray-200 dark:bg-gray-700', className)}
+      className={cn('-mx-1 my-1 h-px bg-gray-200 dark:bg-[#2e2e2e]', className)}
       {...props}
     />
   )
@@ -566,10 +566,10 @@ function DropdownSubTrigger({
         'flex-row items-center gap-2 rounded-sm px-2 py-1.5',
         'text-sm outline-none',
         inset && 'pl-8',
-        'active:bg-gray-100 dark:active:bg-gray-800',
+        'active:bg-gray-100 dark:active:bg-[#2e2e2e]',
         disabled && 'opacity-50',
         disabled && 'pointer-events-none',
-        isOpen && 'bg-gray-100 dark:bg-gray-800',
+        isOpen && 'bg-gray-100 dark:bg-[#2e2e2e]',
         className,
       )}
       disabled={disabled}
@@ -602,8 +602,8 @@ function DropdownSubContent({
     <View
       className={cn(
         'z-50 min-w-[8rem] overflow-hidden rounded-md border p-1',
-        'bg-white dark:bg-gray-900',
-        'border-gray-200 dark:border-gray-700',
+        'bg-white dark:bg-[#1c1c1e]',
+        'border-gray-200 dark:border-[#2e2e2e]',
         'shadow-lg',
         className,
       )}

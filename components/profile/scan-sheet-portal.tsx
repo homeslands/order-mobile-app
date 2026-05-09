@@ -62,12 +62,7 @@ const QrContent = memo(function QrContent({
         <View style={[s.corner, s.cornerBL, { borderColor: primary }]} />
         <View style={[s.corner, s.cornerBR, { borderColor: primary }]} />
         {slug ? (
-          <QRCode
-            value={slug}
-            size={QR_SIZE}
-            color="#000000"
-            ecl="H"
-          />
+          <QRCode value={slug} size={QR_SIZE} color="#000000" ecl="H" />
         ) : (
           <View style={s.qrPlaceholder}>
             <Text style={[s.errorText, { color: mutedColor }]}>
@@ -129,6 +124,20 @@ const ScanSheetPortal = memo(function ScanSheetPortal() {
     close()
   }, [close])
 
+  // pressBehavior="close" calls BottomSheet.close() which does NOT call
+  // willUnmountSheet(). This leaves SSP in @gorhom's sheetsQueueRef with
+  // willUnmount=false during the ~1-2 frame window between the close animation
+  // reaching -1 (backdrop becomes non-touchable) and unmountSheet() running.
+  // If a new modal mounts in that window, @gorhom calls minimize(SSP) → SSP
+  // stays in the queue as minimized → gets restored when the new modal closes.
+  // Fix: fire dismiss() first via onPress, which immediately calls
+  // willUnmountSheet() → marks willUnmount=true → new modal skips minimize().
+  // The subsequent close() from pressBehavior is a no-op (isForcedClosing=true).
+  const handleBackdropPress = useCallback(() => {
+    userDismissedRef.current = true
+    sheetRef.current?.dismiss()
+  }, [])
+
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
@@ -137,9 +146,10 @@ const ScanSheetPortal = memo(function ScanSheetPortal() {
         appearsOnIndex={0}
         opacity={0.5}
         pressBehavior="close"
+        onPress={handleBackdropPress}
       />
     ),
-    [],
+    [handleBackdropPress],
   )
 
   return (
@@ -158,10 +168,7 @@ const ScanSheetPortal = memo(function ScanSheetPortal() {
         contentContainerStyle={[s.scroll, { paddingBottom: bottomInset + 16 }]}
         showsVerticalScrollIndicator={false}
       >
-        <QrContent
-          isDark={isDark}
-          onClose={handleClose}
-        />
+        <QrContent isDark={isDark} onClose={handleClose} />
       </BottomSheetScrollView>
     </BottomSheetModal>
   )

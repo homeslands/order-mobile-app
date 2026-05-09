@@ -68,7 +68,10 @@ async function checkAndRefresh(): Promise<void> {
         await setStoredTimestamp(Date.now())
       } else {
         // eslint-disable-next-line no-console
-        console.error('[FCM] Re-registration after token rotation failed:', result.error)
+        console.error(
+          '[FCM] Re-registration after token rotation failed:',
+          result.error,
+        )
       }
       return
     }
@@ -89,7 +92,10 @@ async function checkAndRefresh(): Promise<void> {
       await setStoredTimestamp(Date.now())
     } else {
       // eslint-disable-next-line no-console
-      console.error('[FCM] Re-registration of stale token failed:', result.error)
+      console.error(
+        '[FCM] Re-registration of stale token failed:',
+        result.error,
+      )
     }
   } catch (e) {
     // eslint-disable-next-line no-console
