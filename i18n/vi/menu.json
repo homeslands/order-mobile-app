@@ -402,6 +402,7 @@
     "customerInformation": "Thông tin khách hàng",
     "customerName": "Tên khách hàng",
     "downloadQRCode": "Tải QR code",
+    "qrLoadError": "Không tải được QR\nNhấn để thử lại",
     "exportOrderProvisionalBill": "Xuất hóa đơn tạm thời",
     "exportPayment": "Xuất QR code thanh toán",
     "internalWallet": "Ví nội bộ",
