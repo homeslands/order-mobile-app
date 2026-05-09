@@ -2,7 +2,7 @@
   "expo": {
     "name": "TREND Coffee",
     "slug": "order-mobile-app",
-    "version": "2.2.9",
+    "version": "2.2.10",
     "orientation": "portrait",
     "icon": "./assets/images/trend/logo-icon-padded.png",
     "scheme": "trend",
@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "googleServicesFile": "./ios/GoogleService-Info.plist",
-      "supportsTablet": true,
+      "supportsTablet": false,
       "infoPlist": {
         "NSCameraUsageDescription": "Cho phép ứng dụng sử dụng camera để chụp ảnh đại diện.",
         "NSPhotoLibraryUsageDescription": "Cho phép ứng dụng truy cập thư viện ảnh để chọn ảnh đại diện.",
@@ -36,7 +36,7 @@
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.POST_NOTIFICATIONS"
       ],
-      "versionCode": 48,
+      "versionCode": 49,
       "package": "com.trendcoffee.order",
       "config": {
         "googleMaps": {
