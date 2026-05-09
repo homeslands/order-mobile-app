@@ -10,7 +10,7 @@
 import { Image as ExpoImage } from 'expo-image'
 import { useLocalSearchParams } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { CircleX, Download, Smartphone, Timer } from 'lucide-react-native'
+import { CircleX, Download, Smartphone, Timer, WifiOff } from 'lucide-react-native'
 import React, {
   memo,
   useCallback,
@@ -219,6 +219,13 @@ const QRSection = memo(function QRSection({
   const { t } = useTranslation('giftCard')
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
   const isDownloading = useRef(false)
+  const [imgError, setImgError] = useState(false)
+
+  // Reset error khi URL đổi (QR mới được tạo)
+  useEffect(() => { setImgError(false) }, [qrCode])
+
+  const handleImgError = useCallback(() => setImgError(true), [])
+  const handleImgRetry = useCallback(() => setImgError(false), [])
 
   const handleDownload = useCallback(() => {
     if (isDownloading.current || !qrCode) return
@@ -271,12 +278,20 @@ const QRSection = memo(function QRSection({
               {t('payment.qrExpired')}
             </Text>
           </View>
+        ) : imgError ? (
+          <Pressable style={qs.expiredOverlay} onPress={handleImgRetry}>
+            <WifiOff size={32} color={colors.gray[400]} />
+            <Text style={[qs.expiredText, { color: subColor }]}>
+              {t('payment.qrLoadError')}
+            </Text>
+          </Pressable>
         ) : (
           <ExpoImage
             source={qrCode}
             contentFit="contain"
             cachePolicy="none"
             style={qs.qrImage}
+            onError={handleImgError}
           />
         )}
       </View>
