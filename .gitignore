@@ -60,6 +60,7 @@ modules/*/ios/build/
 # Firebase / Google Services
 google-services.json
 GoogleService-Info.plist
+*.entitlements
 
 # Signing keys
 *.keystore
