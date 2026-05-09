@@ -8,7 +8,9 @@
  */
 import { Audio, type AVPlaybackSource } from 'expo-av'
 import { useEffect } from 'react'
-import messaging, { type FirebaseMessagingTypes } from '@react-native-firebase/messaging'
+import messaging, {
+  type FirebaseMessagingTypes,
+} from '@react-native-firebase/messaging'
 
 import {
   useNotificationStore,
@@ -39,8 +41,10 @@ async function playNotificationSound(): Promise<void> {
     // Unload native audio resource before clearing reference to prevent
     // orphaned buffers in the native Audio engine
     if (cachedSound) {
-      // eslint-disable-next-line no-console
-      await cachedSound.unloadAsync().catch((unloadErr) => console.warn('[Audio] Failed to unload sound:', unloadErr))
+      await cachedSound.unloadAsync().catch((unloadErr) => {
+        // eslint-disable-next-line no-console
+        console.warn('[Audio] Failed to unload sound:', unloadErr)
+      })
     }
     cachedSound = null
   }

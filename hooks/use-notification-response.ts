@@ -65,8 +65,13 @@ export function useNotificationResponse(enabled = true) {
       .then((response) => {
         if (response) handleResponse(response)
       })
-      // eslint-disable-next-line no-console
-      .catch((e) => console.warn('[Notifications] getLastNotificationResponseAsync failed:', e))
+      .catch((e) =>
+        // eslint-disable-next-line no-console
+        console.warn(
+          '[Notifications] getLastNotificationResponseAsync failed:',
+          e,
+        ),
+      )
 
     return () => {
       subscription.remove()
