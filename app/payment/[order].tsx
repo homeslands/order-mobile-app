@@ -175,15 +175,13 @@ const QRSection = React.memo(function QRSection({
 }) {
   const { t } = useTranslation('menu')
   const isDownloading = useRef(false)
-  const [imgError, setImgError] = useState(false)
+  const [errorUrl, setErrorUrl] = useState<string | null>(null)
 
   const activeQrUrl = qrCode || paymentQrCode || ''
+  const imgError = !!activeQrUrl && errorUrl === activeQrUrl
 
-  // Reset error khi URL đổi (QR mới được load)
-  useEffect(() => { setImgError(false) }, [activeQrUrl])
-
-  const handleImgError = useCallback(() => setImgError(true), [])
-  const handleImgRetry = useCallback(() => setImgError(false), [])
+  const handleImgError = useCallback(() => setErrorUrl(activeQrUrl), [activeQrUrl])
+  const handleImgRetry = useCallback(() => setErrorUrl(null), [])
 
   const handleDownload = useCallback(() => {
     if (isDownloading.current || !activeQrUrl) return

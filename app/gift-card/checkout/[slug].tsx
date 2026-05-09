@@ -219,13 +219,11 @@ const QRSection = memo(function QRSection({
   const { t } = useTranslation('giftCard')
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
   const isDownloading = useRef(false)
-  const [imgError, setImgError] = useState(false)
+  const [errorUrl, setErrorUrl] = useState<string | null>(null)
+  const imgError = !!qrCode && errorUrl === qrCode
 
-  // Reset error khi URL đổi (QR mới được tạo)
-  useEffect(() => { setImgError(false) }, [qrCode])
-
-  const handleImgError = useCallback(() => setImgError(true), [])
-  const handleImgRetry = useCallback(() => setImgError(false), [])
+  const handleImgError = useCallback(() => setErrorUrl(qrCode ?? null), [qrCode])
+  const handleImgRetry = useCallback(() => setErrorUrl(null), [])
 
   const handleDownload = useCallback(() => {
     if (isDownloading.current || !qrCode) return
