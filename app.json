@@ -10,7 +10,7 @@
     "newArchEnabled": true,
     "ios": {
       "googleServicesFile": "./ios/GoogleService-Info.plist",
-      "supportsTablet": true,
+      "supportsTablet": false,
       "infoPlist": {
         "NSCameraUsageDescription": "Cho phép ứng dụng sử dụng camera để chụp ảnh đại diện.",
         "NSPhotoLibraryUsageDescription": "Cho phép ứng dụng truy cập thư viện ảnh để chọn ảnh đại diện.",
