@@ -327,12 +327,14 @@ const PaymentMethodSection = React.memo(function PaymentMethodSection({
           value={selectedMethod}
           defaultValue={order.payment?.paymentMethod || null}
           disabledMethods={
-            order.payment?.paymentMethod
+            order.payment?.paymentMethod &&
+            order.payment.statusMessage === OrderStatus.COMPLETED
               ? [order.payment.paymentMethod as PaymentMethod]
               : []
           }
           disabledReasons={
-            order.payment?.paymentMethod
+            order.payment?.paymentMethod &&
+            order.payment.statusMessage === OrderStatus.COMPLETED
               ? ({
                   [order.payment.paymentMethod as PaymentMethod]: t(
                     'paymentMethod.alreadyPaid',
@@ -887,6 +889,9 @@ function PaymentPageContent() {
   const handleMethodChange = useCallback(
     (method: PaymentMethod, transactionId?: string) => {
       dispatchPaymentForm({ type: 'SET_METHOD', method, transactionId })
+      // Reset submitted timestamp so optimisticPaid doesn't fire for a
+      // different method's submission (e.g. bank transfer → coin switch).
+      setPaymentSubmittedAt(null)
     },
     [],
   )
