@@ -339,6 +339,7 @@ export const useGetAddressSuggestions = (address: string) => {
     queryKey: [QUERYKEY.addressSuggestions, address],
     queryFn: () => getAddressSuggestions(address),
     enabled: !!address,
+    staleTime: 60_000,
   })
 }
 
@@ -347,6 +348,7 @@ export const useGetAddressByPlaceId = (placeId: string) => {
     queryKey: [QUERYKEY.addressByPlaceId, placeId],
     queryFn: () => getAddressByPlaceId(placeId),
     enabled: !!placeId,
+    staleTime: 5 * 60_000,
   })
 }
 
@@ -359,6 +361,7 @@ export const useGetAddressDirection = (
     queryKey: [QUERYKEY.addressDirection, branch, lat, lng],
     queryFn: () => getAddressDirection(branch, lat, lng),
     enabled: !!branch && !!lat && !!lng,
+    staleTime: 5 * 60_000,
   })
 }
 
@@ -371,6 +374,7 @@ export const useGetDistanceAndDuration = (
     queryKey: [QUERYKEY.distanceAndDuration, branch, lat, lng],
     queryFn: () => getDistanceAndDuration(branch, lat, lng),
     enabled: !!branch && !!lat && !!lng,
+    staleTime: 5 * 60_000,
   })
 }
 

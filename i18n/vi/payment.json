@@ -13,6 +13,7 @@
     "generating": "Đang tạo QR...",
     "expiresIn": "Hết hạn sau",
     "retry": "Thử lại",
+    "downloadButton": "Lưu QR vào ảnh",
     "step1": "Đưa màn hình QR cho nhân viên tại quầy",
     "step2": "Nhân viên quét mã QR trên máy POS",
     "step3": "Nhận thông báo xác nhận thanh toán thành công"

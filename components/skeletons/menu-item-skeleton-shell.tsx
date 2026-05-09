@@ -61,7 +61,7 @@ export function MenuItemSkeletonShell() {
     <>
       {/* Header — padding 16, justify-between */}
       <View
-        className="flex-row items-center justify-between border-b border-gray-200 dark:border-gray-700"
+        className="flex-row items-center justify-between border-b border-gray-200 dark:border-[#2e2e2e]"
         style={{ paddingHorizontal: PADDING_X, paddingVertical: 12 }}
       >
         <Skeleton style={{ width: 32, height: 32 }} className="rounded-full" />
@@ -221,7 +221,7 @@ export function MenuItemSkeletonShell() {
       </ScrollView>
 
       {/* Fixed Bottom Buttons — padding 16, gap 8 */}
-      <View className="border-t border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-900">
+      <View className="border-t border-gray-200 bg-white dark:border-[#2e2e2e] dark:bg-[#1c1c1e]">
         <View
           style={{
             paddingHorizontal: PADDING_X,
@@ -240,7 +240,7 @@ export function MenuItemSkeletonShell() {
   return (
     <ScreenContainer
       edges={['top']}
-      className="flex-1 bg-white dark:bg-gray-900"
+      className="flex-1 bg-white dark:bg-[#121212]"
     >
       {driver ? (
         <Animated.View style={[{ flex: 1 }, animatedStyle]}>

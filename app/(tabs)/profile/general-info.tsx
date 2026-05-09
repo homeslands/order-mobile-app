@@ -6,12 +6,19 @@ import { colors, publicFileURL } from '@/constants'
 import { ROUTE } from '@/constants/route.contstant'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { navigateNative } from '@/lib/navigation'
+import { cleanupTokenOnLogout } from '@/lib/fcm-token-manager'
 import { useAuthStore, useUserStore } from '@/stores'
 import { useLogoutSheetStore } from '@/stores/logout-sheet.store'
 import { showToast } from '@/utils'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
-import { Mail, MapPin, Phone, Shield, User as UserIcon } from 'lucide-react-native'
+import {
+  Mail,
+  MapPin,
+  Phone,
+  Shield,
+  User as UserIcon,
+} from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -207,6 +214,8 @@ export default function GeneralInfo() {
 
   const handleLogoutConfirm = useCallback(() => {
     isLoggingOutRef.current = true
+    const capturedToken = useUserStore.getState().deviceToken ?? undefined
+    cleanupTokenOnLogout(capturedToken).catch(() => {})
     setLogout()
     removeUserInfo()
     router.replace('/(tabs)/home' as never)
@@ -424,9 +433,7 @@ export default function GeneralInfo() {
             style={[
               hStyles.editPill,
               {
-                backgroundColor: isDark
-                  ? colors.gray[800]
-                  : colors.white.light,
+                backgroundColor: isDark ? colors.gray[800] : colors.white.light,
               },
             ]}
           >

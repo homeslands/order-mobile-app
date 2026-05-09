@@ -49,6 +49,19 @@ export function createUpdatingTableMethods(set: SetFn, get: GetFn) {
       const { updatingData } = get()
       if (!updatingData) return
 
+      const deliveryClear =
+        type !== OrderTypeEnum.DELIVERY
+          ? {
+              deliveryAddress: '',
+              deliveryDistance: 0,
+              deliveryDuration: 0,
+              deliveryPhone: '',
+              deliveryLat: undefined,
+              deliveryLng: undefined,
+              deliveryPlaceId: '',
+            }
+          : {}
+
       set({
         updatingData: {
           ...updatingData,
@@ -62,6 +75,7 @@ export function createUpdatingTableMethods(set: SetFn, get: GetFn) {
             ...(type === OrderTypeEnum.AT_TABLE && {
               timeLeftTakeOut: undefined,
             }),
+            ...deliveryClear,
           },
           hasChanges: true,
         },

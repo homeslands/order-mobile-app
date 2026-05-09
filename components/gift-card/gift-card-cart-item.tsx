@@ -29,10 +29,10 @@ export const GiftCardCartItem = memo(function GiftCardCartItem({
   isDark,
   overrideQty,
 }: GiftCardCartItemProps) {
-  const cardBg = isDark ? colors.gray[800] : colors.white.light
+  const cardBg = isDark ? colors.card.dark : colors.white.light
   const titleColor = isDark ? colors.gray[50] : colors.gray[900]
-  const imgBg = isDark ? colors.gray[700] : colors.gray[100]
-  const qtyBtnBorder = isDark ? colors.gray[600] : colors.gray[300]
+  const imgBg = isDark ? colors.border.dark : colors.gray[100]
+  const qtyBtnBorder = isDark ? colors.border.dark : colors.gray[300]
   const qtyBtnText = isDark ? colors.gray[300] : colors.gray[700]
   const qtyText = isDark ? colors.gray[50] : colors.gray[900]
 

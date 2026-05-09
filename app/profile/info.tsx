@@ -68,12 +68,12 @@ function ProfileInfoScreen() {
         }}
       >
         {/* Thông tin cơ bản */}
-        <View className="mb-6 flex-row items-center rounded-xl border border-gray-100 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+        <View className="mb-6 flex-row items-center rounded-xl border border-gray-100 bg-white p-4 dark:border-[#2e2e2e] dark:bg-[#1c1c1e]">
           {/* Avatar */}
           {userInfo.image ? (
             <Image
               source={{ uri: userInfo.image }}
-              className="mr-3 h-16 w-16 rounded-full bg-gray-200 dark:bg-gray-700"
+              className="mr-3 h-16 w-16 rounded-full bg-gray-200 dark:bg-[#2e2e2e]"
             />
           ) : (
             <View className="mr-3 h-16 w-16 items-center justify-center rounded-full bg-red-100 dark:bg-red-900/30">
@@ -112,14 +112,14 @@ function ProfileInfoScreen() {
         </View>
 
         {/* Thông tin chi tiết */}
-        <View className="mb-4 rounded-xl border border-gray-100 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+        <View className="mb-4 rounded-xl border border-gray-100 bg-white p-4 dark:border-[#2e2e2e] dark:bg-[#1c1c1e]">
           <Text className="mb-6 text-sm font-semibold text-gray-700 dark:text-gray-200">
             {t('profile.contactInfo.title')}
           </Text>
 
           <View className="gap-6">
             <View className="flex-row items-center gap-3">
-              <View className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700">
+              <View className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 dark:bg-[#2e2e2e]">
                 <UserIcon
                   size={18}
                   color={isDark ? colors.gray[200] : colors.gray[600]}
@@ -135,8 +135,8 @@ function ProfileInfoScreen() {
               </View>
             </View>
 
-            <View className="flex-row items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900/40">
-              <View className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700">
+            <View className="flex-row items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-[#2e2e2e] dark:bg-[#121212]/60">
+              <View className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 dark:bg-[#2e2e2e]">
                 <Phone
                   size={18}
                   color={isDark ? colors.gray[200] : colors.gray[600]}
@@ -181,8 +181,8 @@ function ProfileInfoScreen() {
               )}
             </View>
 
-            <View className="flex-row items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-700 dark:bg-gray-900/40">
-              <View className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700">
+            <View className="flex-row items-center gap-3 rounded-lg border border-gray-200 bg-white p-3 dark:border-[#2e2e2e] dark:bg-[#121212]/60">
+              <View className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 dark:bg-[#2e2e2e]">
                 <Mail
                   size={18}
                   color={isDark ? colors.gray[200] : colors.gray[600]}
@@ -229,7 +229,7 @@ function ProfileInfoScreen() {
             </View>
 
             <View className="flex-row items-center gap-3">
-              <View className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-700">
+              <View className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 dark:bg-[#2e2e2e]">
                 <MapPin
                   size={18}
                   color={isDark ? colors.gray[200] : colors.gray[600]}
@@ -249,7 +249,7 @@ function ProfileInfoScreen() {
 
         {/* Chi nhánh yêu thích */}
         {userInfo.branch && (
-          <View className="mb-4 rounded-xl border border-gray-100 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+          <View className="mb-4 rounded-xl border border-gray-100 bg-white p-4 dark:border-[#2e2e2e] dark:bg-[#1c1c1e]">
             <Text className="mb-3 text-sm font-semibold text-gray-700 dark:text-gray-200">
               {t('profile.contactInfo.branch')}
             </Text>
@@ -273,9 +273,7 @@ function ProfileInfoScreen() {
             style={[
               headerRightStyles.circleBtn,
               {
-                backgroundColor: isDark
-                  ? colors.gray[800]
-                  : colors.white.light,
+                backgroundColor: isDark ? colors.card.dark : colors.white.light,
               },
               headerRightStyles.shadow,
             ]}

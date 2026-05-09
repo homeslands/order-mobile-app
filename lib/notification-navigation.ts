@@ -12,6 +12,7 @@ import { isNavigationLocked, navigateNative } from '@/lib/navigation'
 interface NotificationRouteData {
   message?: string
   order?: string
+  cardOrderSlug?: string
   [key: string]: string | undefined
 }
 
@@ -25,15 +26,22 @@ function parseNotificationData(
   if (data.payload && typeof data.payload === 'string') {
     try {
       parsed = JSON.parse(data.payload) as Record<string, string>
-    } catch {
-      // Ignore
+    } catch (e) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[Notifications] Failed to parse notification payload:',
+        data.payload,
+        e,
+      )
     }
   }
 
   return { ...data, ...parsed }
 }
 
-function getRouteForMessage(routeData: NotificationRouteData): string | null {
+export function getRouteForMessage(
+  routeData: NotificationRouteData,
+): string | null {
   const { message, order } = routeData
 
   switch (message) {
@@ -48,8 +56,12 @@ function getRouteForMessage(routeData: NotificationRouteData): string | null {
       return order ? `/payment/${order}` : null
 
     case NotificationMessageCode.ORDER_PAID:
-    case NotificationMessageCode.CARD_ORDER_PAID:
       return order ? `/payment/${order}` : null
+
+    case NotificationMessageCode.CARD_ORDER_PAID: {
+      const slug = routeData.cardOrderSlug ?? order
+      return slug ? `/profile/gift-card-orders?autoOpen=${slug}` : null
+    }
 
     case NotificationMessageCode.ORDER_BILL_FAILED_PRINTING:
     case NotificationMessageCode.ORDER_CHEF_ORDER_FAILED_PRINTING:

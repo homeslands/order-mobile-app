@@ -26,6 +26,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import LogoutSheetPortal from '@/components/profile/logout-sheet-portal'
 import QRSelectionSheet from '@/components/profile/qr-selection-sheet'
 import ScanSheetPortal from '@/components/profile/scan-sheet-portal'
+import { colors } from '@/constants'
 import { applyTheme, useThemeStore } from '@/stores/theme.store'
 import { useBackHandlerForExit } from '@/hooks'
 import {
@@ -207,9 +208,10 @@ function AppContent() {
 }
 
 export default function RootLayout() {
-  useNavigationBarFixed('#FFFFFF', true, true)
-  useBackHandlerForExit()
   const isDark = useColorScheme() === 'dark'
+  const navBarColor = isDark ? colors.card.dark : '#FFFFFF'
+  useNavigationBarFixed(navBarColor, !isDark, true)
+  useBackHandlerForExit()
 
   // Sync TanStack Query focusManager với AppState của React Native
   // Khi app về foreground → các query có refetchOnWindowFocus: true sẽ tự refetch nếu stale
@@ -252,12 +254,14 @@ export default function RootLayout() {
   useEffect(() => {
     let innerTimeout: ReturnType<typeof setTimeout> | null = null
     const task = InteractionManager.runAfterInteractions(() => {
-      SystemUI.setBackgroundColorAsync('#ffffff').catch(() => {})
+      SystemUI.setBackgroundColorAsync(
+        isDark ? colors.background.dark : '#ffffff',
+      ).catch(() => {})
 
       if (Platform.OS === 'android') {
         innerTimeout = setTimeout(() => {
           innerTimeout = null
-          setNavigationBarColorFixed('#FFFFFF', true, true).catch(() => {})
+          setNavigationBarColorFixed(navBarColor, !isDark, true).catch(() => {})
         }, 800)
       }
     })
@@ -265,7 +269,7 @@ export default function RootLayout() {
       task.cancel()
       if (innerTimeout) clearTimeout(innerTimeout)
     }
-  }, [])
+  }, [isDark, navBarColor])
 
   return (
     <>

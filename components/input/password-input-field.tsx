@@ -1,6 +1,7 @@
 import { Eye, EyeOff } from 'lucide-react-native'
 import { useState } from 'react'
 import {
+  Platform,
   Text,
   TextInput,
   TouchableOpacity,
@@ -37,14 +38,18 @@ export function PasswordInputField({
       <View className="relative">
         <TextInput
           className={cn(
-            'h-10 rounded-lg border bg-white px-3 py-2 pr-10 text-base dark:bg-gray-800',
+            'rounded-lg border bg-white px-3 pr-10 text-base dark:bg-[#121212]',
             'text-gray-900 dark:text-white',
             error
               ? 'border-destructive dark:border-destructive'
-              : 'border-gray-200 dark:border-gray-700',
+              : 'border-gray-200 dark:border-[#2e2e2e]',
             disabled && 'opacity-50',
           )}
-          style={{ fontFamily: 'BeVietnamPro_400Regular' }}
+          style={{
+            fontFamily: 'BeVietnamPro_400Regular',
+            height: 48,
+            paddingVertical: Platform.OS === 'ios' ? 0 : 12,
+          }}
           placeholder={placeholder}
           placeholderTextColor={
             isDark ? colors.mutedForeground.dark : colors.mutedForeground.light

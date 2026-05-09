@@ -72,8 +72,9 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
         name="phonenumber"
         label={t('login.phoneNumber')}
         placeholder={t('login.enterPhoneNumber')}
-        keyboardType="phone-pad"
+        keyboardType="number-pad"
         autoCapitalize="none"
+        autoComplete="tel"
         disabled={isLoading}
         useTextInput
         transformOnChange={(v) => v.replace(/\D/g, '')}

@@ -25,6 +25,7 @@ import {
 import { TouchableOpacity as GHTouchable } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
+import { colors } from '@/constants'
 
 export type ConfirmUpdateProfileBottomSheetRef = {
   open: () => void
@@ -80,7 +81,7 @@ const ConfirmUpdateProfileBottomSheetBase = forwardRef<
   )
 
   const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? '#111827' : '#ffffff' }),
+    () => ({ backgroundColor: isDark ? colors.card.dark : '#ffffff' }),
     [isDark],
   )
   const handleIndicator = useMemo(
@@ -106,7 +107,14 @@ const ConfirmUpdateProfileBottomSheetBase = forwardRef<
       <View style={[styles.content, { paddingBottom: insets.bottom + 16 }]}>
         <View style={styles.body}>
           <Text
-            style={[styles.title, { color: isDark ? '#F9FAFB' : '#111827' }]}
+            style={[
+              styles.title,
+              {
+                color: isDark
+                  ? colors.foreground.dark
+                  : colors.foreground.light,
+              },
+            ]}
           >
             {t('profile.updateProfile')}
           </Text>

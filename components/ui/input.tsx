@@ -15,9 +15,9 @@ export const Input = forwardRef<TextInput, InputProps>(
       <TextInput
         ref={ref}
         className={cn(
-          'h-10 rounded-lg border bg-white px-3 py-2 text-base dark:bg-gray-800',
+          'h-10 rounded-lg border bg-white px-3 py-2 text-base dark:bg-[#121212]',
           'text-gray-900 dark:text-white',
-          'border-gray-200 dark:border-gray-700',
+          'border-gray-200 dark:border-[#2e2e2e]',
           error && 'border-destructive',
           'placeholder:text-gray-500 dark:placeholder:text-gray-400',
           className,

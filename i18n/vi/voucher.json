@@ -199,6 +199,21 @@
     "week": "Tuần",
     "month": "Tháng",
     "year": "Năm",
-    "unlimited": "Không giới hạn"
+    "unlimited": "Không giới hạn",
+    "minOrderLabel": "Giá trị đơn hàng tối thiểu: {{value}}",
+    "remainingUsagePercent": "Số lượng còn lại: {{value}}%",
+    "paymentMethodShort": {
+      "cash": "Tiền mặt",
+      "bankTransfer": "CK",
+      "point": "Điểm",
+      "creditCard": "Thẻ"
+    },
+    "conditionModal": {
+      "minOrderCondition": "Giá trị đơn hàng tối thiểu: {{value}}",
+      "hasAccount": "Đã có tài khoản trên hệ thống.",
+      "noAccount": "Không yêu cầu tài khoản.",
+      "usagePerUser": "Số lượng sử dụng tối đa trên 1 tài khoản: {{value}}",
+      "applicableProducts": "Sản phẩm áp dụng: {{products}}"
+    }
   }
 }

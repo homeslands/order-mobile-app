@@ -59,7 +59,7 @@ const OrderCard = memo(
         style={[
           cardStyles.card,
           {
-            backgroundColor: isDark ? colors.gray[800] : colors.white.light,
+            backgroundColor: isDark ? colors.card.dark : colors.white.light,
           },
         ]}
       >
@@ -122,7 +122,9 @@ const OrderCard = memo(
           <View
             style={[
               cardStyles.summarySection,
-              { borderTopColor: isDark ? colors.gray[700] : colors.gray[100] },
+              {
+                borderTopColor: isDark ? colors.border.dark : colors.gray[100],
+              },
             ]}
           >
             {cartTotals && (
@@ -231,7 +233,9 @@ const OrderCard = memo(
               style={[
                 cardStyles.totalRow,
                 {
-                  borderTopColor: isDark ? colors.gray[700] : colors.gray[100],
+                  borderTopColor: isDark
+                    ? colors.border.dark
+                    : colors.gray[100],
                 },
               ]}
             >

@@ -59,9 +59,9 @@ const TYPE_CONFIG: Record<string, TypeConfig> = {
   },
   [LoyaltyPointHistoryType.RESERVE]: {
     iconBgLight: colors.gray[200],
-    iconBgDark: colors.gray[700],
+    iconBgDark: colors.border.dark,
     pillBgLight: colors.gray[200],
-    pillBgDark: colors.gray[700],
+    pillBgDark: colors.border.dark,
     pillTextLight: colors.gray[500],
     pillTextDark: colors.gray[400],
     pointsColorLight: colors.gray[500],
@@ -120,8 +120,8 @@ export const LoyaltyPointTransactionCard = memo(
 
     const textColor = isDark ? colors.gray[50] : colors.gray[900]
     const subColor = isDark ? colors.gray[400] : colors.gray[500]
-    const bg = isDark ? colors.gray[900] : colors.white.light
-    const borderColor = isDark ? colors.gray[700] : colors.gray[100]
+    const bg = isDark ? colors.card.dark : colors.white.light
+    const borderColor = isDark ? colors.border.dark : colors.gray[100]
 
     const iconBg = isDark ? cfg.iconBgDark : cfg.iconBgLight
     const pillBg = isDark ? cfg.pillBgDark : cfg.pillBgLight
@@ -180,7 +180,9 @@ export const LoyaltyPointTransactionCard = memo(
               style={[
                 s.pendingPill,
                 {
-                  backgroundColor: isDark ? colors.gray[700] : colors.gray[200],
+                  backgroundColor: isDark
+                    ? colors.border.dark
+                    : colors.gray[200],
                 },
               ]}
             >

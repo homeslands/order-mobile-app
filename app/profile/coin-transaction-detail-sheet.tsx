@@ -213,11 +213,11 @@ export const CoinTransactionDetailSheet = memo(
 
     const typeColor = isDark ? cfg.darkColor : cfg.color
     const iconBg = isDark ? cfg.bgD : cfg.bgL
-    const bg = isDark ? colors.gray[900] : colors.white.light
+    const bg = isDark ? colors.card.dark : colors.white.light
     const textColor = isDark ? colors.gray[50] : colors.gray[900]
     const subColor = isDark ? colors.gray[400] : colors.gray[500]
-    const borderColor = isDark ? colors.gray[700] : colors.gray[200]
-    const cardBg = isDark ? colors.gray[800] : colors.gray[50]
+    const borderColor = isDark ? colors.border.dark : colors.gray[200]
+    const cardBg = isDark ? colors.background.dark : colors.gray[50]
 
     const ObjectIcon = OBJECT_TYPE_ICON[txObjType] ?? ShoppingCart
 

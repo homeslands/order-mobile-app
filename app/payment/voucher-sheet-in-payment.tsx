@@ -299,7 +299,7 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
 
   // ── Sheet callbacks ───────────────────────────────────────────────────────
   const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
+    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
     [isDark],
   )
   const indicatorStyle = useMemo(
@@ -500,7 +500,9 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
                 s.debugBox,
                 {
                   borderColor: isDark ? colors.gray[600] : colors.gray[300],
-                  backgroundColor: isDark ? colors.gray[800] : colors.gray[50],
+                  backgroundColor: isDark
+                    ? colors.background.dark
+                    : colors.gray[50],
                 },
               ]}
             >

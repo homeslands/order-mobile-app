@@ -329,7 +329,7 @@ function ProductDetailContent() {
     () => ({
       height: 120,
       borderRadius: 12,
-      backgroundColor: isDark ? '#1f2937' : '#f3f4f6',
+      backgroundColor: isDark ? colors.card.dark : '#f3f4f6',
     }),
     [isDark],
   )
@@ -340,7 +340,7 @@ function ProductDetailContent() {
         options={{
           statusBarStyle: 'light',
           contentStyle: {
-            backgroundColor: isDark ? colors.gray[900] : colors.gray[200],
+            backgroundColor: isDark ? colors.background.dark : colors.gray[200],
           },
         }}
       />

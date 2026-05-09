@@ -122,7 +122,7 @@ export const PaymentProductItem = React.memo(function PaymentProductItem({
               {
                 borderColor: primaryColor,
                 backgroundColor: isDark
-                  ? colors.gray[800]
+                  ? colors.background.dark
                   : `${primaryColor}18`,
               },
             ]}
@@ -157,7 +157,11 @@ export const PaymentProductItem = React.memo(function PaymentProductItem({
         <View
           style={[
             pItemStyles.noteWrap,
-            { backgroundColor: isDark ? colors.gray[700] : colors.gray[50] },
+            {
+              backgroundColor: isDark
+                ? colors.background.dark
+                : colors.gray[50],
+            },
           ]}
         >
           <TextInput

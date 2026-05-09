@@ -21,9 +21,9 @@ export const Textarea = forwardRef<TextInput, TextareaProps>(
         multiline
         textAlignVertical="top"
         className={cn(
-          'min-h-[80px] rounded-lg border bg-white px-3 py-2 text-base dark:bg-gray-800',
+          'min-h-[80px] rounded-lg border bg-white px-3 py-2 text-base dark:bg-[#121212]',
           'text-gray-900 dark:text-white',
-          'border-gray-200 dark:border-gray-700',
+          'border-gray-200 dark:border-[#2e2e2e]',
           error && 'border-red-500 dark:border-red-500',
           'placeholder:text-gray-500 dark:placeholder:text-gray-400',
           className,

@@ -21,7 +21,7 @@ export function SheetFooter({
 }: SheetFooterProps) {
   const { t } = useTranslation('voucher')
   return (
-    <View style={[styles.footer, { paddingBottom: bottomInset + 4 }]}>
+    <View style={[styles.footer, { paddingBottom: bottomInset + 16 }]}>
       <Pressable
         onPress={onPress}
         style={[
@@ -32,7 +32,7 @@ export function SheetFooter({
               : isNewSelection
                 ? primaryColor
                 : isDark
-                  ? colors.gray[700]
+                  ? colors.border.dark
                   : colors.gray[200],
           },
         ]}

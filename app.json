@@ -2,21 +2,26 @@
   "expo": {
     "name": "TREND Coffee",
     "slug": "order-mobile-app",
-    "version": "2.2.4",
+    "version": "2.2.5",
     "orientation": "portrait",
     "icon": "./assets/images/trend/logo-icon-padded.png",
     "scheme": "trend",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
+      "googleServicesFile": "./ios/TRENDCoffee/GoogleService-Info.plist",
       "supportsTablet": true,
       "infoPlist": {
         "NSCameraUsageDescription": "Cho phép ứng dụng sử dụng camera để chụp ảnh đại diện.",
         "NSPhotoLibraryUsageDescription": "Cho phép ứng dụng truy cập thư viện ảnh để chọn ảnh đại diện.",
         "NSPhotoLibraryAddUsageDescription": "Cho phép ứng dụng lưu ảnh hoá đơn và mã QR thanh toán vào thư viện ảnh.",
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "UIBackgroundModes": ["remote-notification", "fetch"]
       },
-      "bundleIdentifier": "com.trendcoffee.order"
+      "bundleIdentifier": "com.trendcoffee.order",
+      "config": {
+        "googleMapsApiKey": "GOOGLE_MAPS_IOS_API_KEY_PLACEHOLDER"
+      }
     },
     "android": {
       "googleServicesFile": "./google-services.json",
@@ -26,10 +31,17 @@
       },
       "predictiveBackGestureEnabled": false,
       "permissions": [
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.ACCESS_FINE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION"
       ],
-      "versionCode": 43,
-      "package": "com.trendcoffee.order"
+      "versionCode": 44,
+      "package": "com.trendcoffee.order",
+      "config": {
+        "googleMaps": {
+          "apiKey": "GOOGLE_MAPS_ANDROID_API_KEY_PLACEHOLDER"
+        }
+      }
     },
     "web": {
       "output": "static",
@@ -37,6 +49,12 @@
     },
     "plugins": [
       "expo-router",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Ứng dụng cần quyền truy cập vị trí để giao hàng đến đúng địa chỉ."
+        }
+      ],
       [
         "expo-splash-screen",
         {
@@ -59,6 +77,8 @@
         }
       ],
       "expo-build-properties",
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging",
       [
         "expo-notifications",
         {

@@ -4,12 +4,16 @@
 import { getSystemFeatureFlagsByGroup } from '@/api'
 import {
   colors,
+  PHONE_NUMBER_REGEX,
   QUERYKEY,
   SystemLockFeatureChild,
   SystemLockFeatureGroup,
   SystemLockFeatureType,
 } from '@/constants'
-import { FOOTER_BOTTOM_EXTRA } from '@/constants/status-bar'
+import {
+  FOOTER_BOTTOM_EXTRA,
+  STATIC_BOTTOM_INSET,
+} from '@/constants/status-bar'
 import { useCartValidation } from '@/hooks/use-cart-validation'
 import { useOrderFlowStore, useUserStore } from '@/stores'
 import {
@@ -19,20 +23,19 @@ import {
   useCartVoucher,
   useCartVoucherDiscount,
 } from '@/stores/cart.store'
-import {
-  useOrderFlowOrderType,
-  useOrderFlowTableName,
-} from '@/stores/selectors/order-flow.selectors'
+import { useOrderFlowCartFooterData } from '@/stores/selectors/order-flow.selectors'
+import { useCalculateDeliveryFee } from '@/hooks/use-branch-delivery'
+import { useBranchStore } from '@/stores'
 import type { IFeatureLock, IVoucher } from '@/types'
-import { showErrorToastMessage, showToast } from '@/utils'
+import { parseKm, showErrorToastMessage, showToast } from '@/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { formatCurrencyNative } from 'cart-price-calc'
 import { ChevronRight, ShoppingBag, Ticket } from 'lucide-react-native'
 import React, { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { DeliveryAddressSheet, DeliveryInfoRow } from '@/components/delivery'
 import { ConfirmOrderSheet } from './cart-confirm-order-sheet'
 import { SimpleOrderTypeSheet } from './cart-order-type-sheet'
 import { SimpleTableSheet } from './cart-table-sheet'
@@ -71,20 +74,34 @@ export const CartFooter = memo(function CartFooter({
   isDark: boolean
 }) {
   const { t } = useTranslation('menu')
-  const { bottom: bottomInset } = useSafeAreaInsets()
+  const bottomInset = STATIC_BOTTOM_INSET
   const queryClient = useQueryClient()
   const hasUser = useUserStore((s) => !!s.userInfo)
   const total = useCartTotal()
   const itemCount = useCartItemCount()
   const voucher = useCartVoucher()
-  const orderType = useOrderFlowOrderType()
-  const tableName = useOrderFlowTableName()
   const [orderTypeSheetVisible, setOrderTypeSheetVisible] = useState(false)
   const [tableSheetVisible, setTableSheetVisible] = useState(false)
   const [voucherSheetOpen, setVoucherSheetOpen] = useState(false)
+  const [deliverySheetVisible, setDeliverySheetVisible] = useState(false)
+
+  const {
+    type: orderType,
+    tableName,
+    deliveryDistance,
+    deliveryAddress,
+    deliveryPhone,
+  } = useOrderFlowCartFooterData()
+  const branchSlug = useBranchStore((s) => s.branch?.slug ?? '')
+
+  const { deliveryFee } = useCalculateDeliveryFee(
+    parseKm(deliveryDistance) ?? 0,
+    branchSlug,
+    { enabled: orderType === 'delivery' && (deliveryDistance ?? 0) > 0 },
+  )
 
   const voucherDiscount = useCartVoucherDiscount()
-  const finalTotal = total - voucherDiscount
+  const finalTotal = total - voucherDiscount + (deliveryFee ?? 0)
 
   const [confirmSheetVisible, setConfirmSheetVisible] = useState(false)
   const { validate } = useCartValidation()
@@ -104,6 +121,16 @@ export const CartFooter = memo(function CartFooter({
   )
   const closeTableSheet = useCallback(() => setTableSheetVisible(false), [])
   const closeVoucherSheet = useCallback(() => setVoucherSheetOpen(false), [])
+  const openDeliverySheet = useCallback(() => setDeliverySheetVisible(true), [])
+  const closeDeliverySheet = useCallback(() => {
+    setDeliverySheetVisible(false)
+    const s = useOrderFlowStore.getState()
+    const addr = s.orderingData?.deliveryAddress ?? ''
+    const phone = s.orderingData?.deliveryPhone ?? ''
+    if (addr && !PHONE_NUMBER_REGEX.test(phone)) {
+      s.clearDeliveryInfo()
+    }
+  }, [])
   const handleApplyVoucher = useCallback((v: IVoucher) => {
     cartActions.setVoucher(v)
     showToast(`Áp dụng: ${v.title}`)
@@ -111,7 +138,10 @@ export const CartFooter = memo(function CartFooter({
   }, [])
   const showTableSelect = orderType === 'at-table'
   const tableLabel = tableName || t('menu.selectTable', 'Chọn bàn')
-  const isOrderDisabled = showTableSelect && !tableName
+  const needsDeliveryInfo =
+    orderType === 'delivery' &&
+    (!deliveryAddress || !deliveryPhone || !/^[0-9]{10}$/.test(deliveryPhone))
+  const isOrderDisabled = (showTableSelect && !tableName) || needsDeliveryInfo
   const orderBtnLabel = isOrderDisabled
     ? t('menu.selectTable', 'Chọn bàn')
     : t('cart.placeOrder', 'Đặt hàng')
@@ -165,7 +195,7 @@ export const CartFooter = memo(function CartFooter({
   const ft = useMemo(
     () => ({
       containerBg: {
-        backgroundColor: isDark ? colors.gray[900] : colors.white.light,
+        backgroundColor: isDark ? colors.card.dark : colors.white.light,
       },
       selectBtnBorder: {
         borderColor: isDark ? colors.gray[700] : colors.gray[200],
@@ -279,6 +309,15 @@ export const CartFooter = memo(function CartFooter({
           )}
         </View>
 
+        {orderType === 'delivery' && (
+          <DeliveryInfoRow
+            address={deliveryAddress ?? ''}
+            phone={deliveryPhone ?? ''}
+            onPress={openDeliverySheet}
+            isDark={isDark}
+          />
+        )}
+
         {/* Pickup Time Chips — tự ẩn khi không phải TAKE_OUT */}
         <PickupTimeChips isDark={isDark} primaryColor={primaryColor} />
 
@@ -339,6 +378,11 @@ export const CartFooter = memo(function CartFooter({
               <Text style={[footerStyles.totalValue, ft.primaryColorStyle]}>
                 {formatCurrencyNative(finalTotal)}
               </Text>
+              {orderType === 'delivery' && (deliveryFee ?? 0) > 0 && (
+                <Text style={[footerStyles.deliveryFeeNote, ft.mutedColor]}>
+                  (+{formatCurrencyNative(deliveryFee ?? 0)} ship)
+                </Text>
+              )}
             </View>
           </View>
           <Pressable
@@ -378,6 +422,7 @@ export const CartFooter = memo(function CartFooter({
       <SimpleOrderTypeSheet
         visible={orderTypeSheetVisible}
         onClose={closeOrderTypeSheet}
+        onDeliverySelected={openDeliverySheet}
         isDark={isDark}
         primaryColor={primaryColor}
       />
@@ -395,6 +440,15 @@ export const CartFooter = memo(function CartFooter({
         isDark={isDark}
         primaryColor={primaryColor}
         onApply={handleApplyVoucher}
+      />
+
+      <DeliveryAddressSheet
+        visible={deliverySheetVisible}
+        onClose={closeDeliverySheet}
+        mode="cart"
+        branchSlug={branchSlug}
+        isDark={isDark}
+        primaryColor={primaryColor}
       />
     </>
   )
@@ -492,6 +546,10 @@ const footerStyles = StyleSheet.create({
   totalValue: {
     fontSize: 20,
     fontWeight: '700',
+  },
+  deliveryFeeNote: {
+    fontSize: 10,
+    marginTop: 1,
   },
   checkoutBtn: {
     flexDirection: 'row',

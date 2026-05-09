@@ -117,7 +117,7 @@ function ProductVariantSheet({
 
       return (
         <View className="px-4 py-1.5">
-          <View className="flex-row items-center justify-between rounded-xl border border-gray-100 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
+          <View className="flex-row items-center justify-between rounded-xl border border-gray-100 bg-white px-4 py-3 dark:border-[#2e2e2e] dark:bg-[#1c1c1e]">
             <View className="flex-1">
               <Text
                 className="text-sm font-medium text-gray-900 dark:text-gray-50"
@@ -128,7 +128,7 @@ function ProductVariantSheet({
             </View>
 
             <View className="ml-3">
-              <View className="h-5 w-5 items-center justify-center rounded-full border border-gray-300 dark:border-gray-600">
+              <View className="h-5 w-5 items-center justify-center rounded-full border border-gray-300 dark:border-[#2e2e2e]">
                 {isSelected && (
                   <Text className="text-[11px] font-semibold text-primary">
                     ✓
@@ -154,7 +154,7 @@ function ProductVariantSheet({
       onChange={handleSheetChanges}
       backdropComponent={renderBackdrop}
       backgroundStyle={{
-        backgroundColor: isDark ? '#111827' : '#ffffff',
+        backgroundColor: isDark ? colors.card.dark : '#ffffff',
       }}
       containerStyle={{
         zIndex: 9999,
@@ -164,7 +164,7 @@ function ProductVariantSheet({
         backgroundColor: isDark ? colors.mutedForeground.dark : '#d1d5db',
       }}
     >
-      <View className="border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+      <View className="border-b border-gray-200 px-4 py-3 dark:border-[#2e2e2e]">
         <Text className="text-base font-semibold text-gray-900 dark:text-gray-50">
           {t('product.selectSize', 'Chọn size')}
         </Text>

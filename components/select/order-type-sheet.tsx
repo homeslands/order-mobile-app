@@ -191,14 +191,14 @@ function OrderTypeSheet({
             '',
             isSelected
               ? 'border border-primary/60 bg-primary/5'
-              : 'border-gray-100 bg-white dark:border-gray-800 dark:bg-gray-900',
+              : 'border-gray-100 bg-white dark:border-[#2e2e2e] dark:bg-[#1c1c1e]',
           )}
         >
           {/* Icon đầu option */}
           <View
             className={cn(
-              'h-9 w-9 items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800',
-              isSelected ? 'bg-primary/10' : 'bg-gray-100 dark:bg-gray-800',
+              'h-9 w-9 items-center justify-center rounded-full bg-gray-100 dark:bg-[#2e2e2e]',
+              isSelected ? 'bg-primary/10' : 'bg-gray-100 dark:bg-[#2e2e2e]',
             )}
           >
             <ShoppingBag
@@ -236,7 +236,7 @@ function OrderTypeSheet({
   )
 
   const backgroundStyle = useMemo(
-    () => ({ backgroundColor: isDark ? '#111827' : '#ffffff' }),
+    () => ({ backgroundColor: isDark ? colors.card.dark : '#ffffff' }),
     [isDark],
   )
   const containerStyle = useMemo(() => ({ zIndex: 9999, elevation: 9999 }), [])
@@ -255,7 +255,7 @@ function OrderTypeSheet({
       backgroundStyle={backgroundStyle}
       containerStyle={containerStyle}
     >
-      <View className="border-b border-gray-200 px-4 py-3 dark:border-gray-700">
+      <View className="border-b border-gray-200 px-4 py-3 dark:border-[#2e2e2e]">
         <Text className="text-base font-semibold text-gray-900 dark:text-gray-50">
           {t('menu.selectOrderType', 'Chọn loại đơn')}
         </Text>

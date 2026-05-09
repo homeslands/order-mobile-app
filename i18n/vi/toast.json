@@ -18,6 +18,7 @@
     "authorityUpdateFailed": "Cập nhật quyền hạn thất bại",
     "beneficiaryNameInvalid": "Tên người thụ hưởng không hợp lệ",
     "branchHaveAWorkflow": "Chi nhánh đã có workflow",
+    "branchNotFound": "Không tìm thấy chi nhánh",
     "branchRequired": "Bạn chưa chọn chi nhánh",
     "branchSlugInvalid": "Slug chi nhánh không hợp lệ",
     "branchSlugIsNotEmpty": "Mã chi nhánh không được để trống",

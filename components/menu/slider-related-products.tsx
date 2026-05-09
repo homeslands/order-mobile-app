@@ -93,7 +93,7 @@ const RelatedProductItem = React.memo(
         style={{ width: itemWidth, marginRight: itemSpacing }}
         {...({ unstable_pressDelay: 0 } as object)}
       >
-        <View className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800">
+        <View className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-[#2e2e2e] dark:bg-[#1c1c1e]">
           {/* Image — padded for breathing room */}
           <View className="p-2 pb-0">
             <View
@@ -370,18 +370,18 @@ function SliderRelatedProducts({
             {[0, 1, 2, 3].map((i) => (
               <View
                 key={`skel-${i}`}
-                className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800"
+                className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-[#2e2e2e] dark:bg-[#1c1c1e]"
                 style={{ width: itemWidth, marginRight: itemSpacing }}
               >
                 <View className="p-2 pb-0">
                   <View
-                    className="rounded-xl bg-gray-200 dark:bg-gray-700"
+                    className="rounded-xl bg-gray-200 dark:bg-[#2e2e2e]"
                     style={{ aspectRatio: 4 / 3 }}
                   />
                 </View>
                 <View className="gap-2 px-2.5 pb-2.5 pt-2">
-                  <View className="h-3.5 w-3/4 rounded bg-gray-200 dark:bg-gray-700" />
-                  <View className="h-3 w-1/2 rounded bg-gray-200 dark:bg-gray-700" />
+                  <View className="h-3.5 w-3/4 rounded bg-gray-200 dark:bg-[#2e2e2e]" />
+                  <View className="h-3 w-1/2 rounded bg-gray-200 dark:bg-[#2e2e2e]" />
                 </View>
               </View>
             ))}

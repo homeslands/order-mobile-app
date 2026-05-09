@@ -2,6 +2,7 @@ import { colors } from '@/constants'
 import type { IVoucher } from '@/types'
 import { Ticket } from 'lucide-react-native'
 import { memo, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 
 export const VoucherCard = memo(function VoucherCard({
@@ -30,6 +31,8 @@ export const VoucherCard = memo(function VoucherCard({
   minOrderText?: string
   usagePercent?: number
 }) {
+  const { t } = useTranslation('voucher')
+
   const discount = discountLabel ?? ''
   const expiry = expiryText ?? ''
   const minOrder = minOrderText ?? ''
@@ -49,7 +52,7 @@ export const VoucherCard = memo(function VoucherCard({
           borderColor: isSelected
             ? primaryColor
             : isDark
-              ? colors.gray[700]
+              ? colors.border.dark
               : colors.gray[200],
         },
         isSelected && {
@@ -91,7 +94,7 @@ export const VoucherCard = memo(function VoucherCard({
               { color: isDark ? colors.gray[400] : colors.gray[500] },
             ]}
           >
-            Giá trị đơn hàng tối thiểu: {minOrder}
+            {t('minOrderLabel', { value: minOrder })}
           </Text>
           {errorMessage ? (
             <Text style={vcStyles.errorText}>{errorMessage}</Text>
@@ -113,12 +116,12 @@ export const VoucherCard = memo(function VoucherCard({
                 >
                   <Text style={[vcStyles.pmTagText, { color: primaryColor }]}>
                     {pm.paymentMethod === 'cash'
-                      ? 'Tiền mặt'
+                      ? t('paymentMethodShort.cash')
                       : pm.paymentMethod === 'bank-transfer'
-                        ? 'CK'
+                        ? t('paymentMethodShort.bankTransfer')
                         : pm.paymentMethod === 'point'
-                          ? 'Điểm'
-                          : 'Thẻ'}
+                          ? t('paymentMethodShort.point')
+                          : t('paymentMethodShort.creditCard')}
                   </Text>
                 </View>
               ))}
@@ -134,7 +137,7 @@ export const VoucherCard = memo(function VoucherCard({
                   { color: isDark ? colors.gray[400] : colors.gray[500] },
                 ]}
               >
-                Số lượng còn lại: {Math.round(usage)}%
+                {t('remainingUsagePercent', { value: Math.round(usage) })}
               </Text>
               <View
                 style={[
@@ -170,7 +173,7 @@ export const VoucherCard = memo(function VoucherCard({
                   { color: isDark ? colors.gray[400] : colors.gray[500] },
                 ]}
               >
-                Điều kiện
+                {t('condition')}
               </Text>
             </Pressable>
           </View>

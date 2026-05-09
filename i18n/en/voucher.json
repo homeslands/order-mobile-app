@@ -198,6 +198,21 @@
     "week": "Week",
     "month": "Month",
     "year": "Year",
-    "unlimited": "Unlimited"
+    "unlimited": "Unlimited",
+    "minOrderLabel": "Minimum order value: {{value}}",
+    "remainingUsagePercent": "Remaining: {{value}}%",
+    "paymentMethodShort": {
+      "cash": "Cash",
+      "bankTransfer": "Transfer",
+      "point": "Points",
+      "creditCard": "Card"
+    },
+    "conditionModal": {
+      "minOrderCondition": "Minimum order value: {{value}}",
+      "hasAccount": "Account required.",
+      "noAccount": "No account required.",
+      "usagePerUser": "Max usage per account: {{value}}",
+      "applicableProducts": "Applicable products: {{products}}"
+    }
   }
 }

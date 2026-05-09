@@ -334,7 +334,7 @@ function DrawerContent({
       {/* Drawer - Slide animation */}
       <Animated.View
         className={cn(
-          'absolute bg-white shadow-xl dark:bg-gray-800',
+          'absolute bg-white shadow-xl dark:bg-[#1c1c1e]',
           direction === 'left' && 'rounded-r-3xl',
           direction === 'right' && 'rounded-l-3xl',
           direction === 'top' && 'rounded-b-3xl',

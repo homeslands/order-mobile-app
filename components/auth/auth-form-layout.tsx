@@ -23,7 +23,7 @@ export function AuthFormLayout({
   return (
     <ScreenContainer
       edges={['top', 'bottom']}
-      className="flex-1 bg-white dark:bg-gray-900"
+      className="flex-1 bg-white dark:bg-[#121212]"
     >
       {onBack && (
         <View className="px-4 pb-1 pt-2">

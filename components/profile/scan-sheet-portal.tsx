@@ -10,7 +10,6 @@ import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native'
 import QRCode from 'react-native-qrcode-svg'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-
 import { colors } from '@/constants'
 import { useUserStore } from '@/stores'
 import { useScanSheetStore } from '@/stores/scan-sheet.store'
@@ -29,11 +28,9 @@ const QrContent = memo(function QrContent({
 }) {
   const { t } = useTranslation('profile')
   const userInfo = useUserStore((s) => s.userInfo)
-
   const primary = isDark ? colors.primary.dark : colors.primary.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const mutedColor = isDark ? colors.gray[400] : colors.gray[500]
-  const qrBg = isDark ? colors.gray[800] : colors.white.light
 
   const fullName = [userInfo?.firstName, userInfo?.lastName]
     .filter(Boolean)
@@ -59,19 +56,13 @@ const QrContent = memo(function QrContent({
       </Text>
 
       {/* QR Container */}
-      <View style={[s.qrWrap, { backgroundColor: qrBg }]}>
+      <View style={s.qrWrap}>
         <View style={[s.corner, s.cornerTL, { borderColor: primary }]} />
         <View style={[s.corner, s.cornerTR, { borderColor: primary }]} />
         <View style={[s.corner, s.cornerBL, { borderColor: primary }]} />
         <View style={[s.corner, s.cornerBR, { borderColor: primary }]} />
         {slug ? (
-          <QRCode
-            value={slug}
-            size={QR_SIZE}
-            color="#000000"
-            backgroundColor="#FFFFFF"
-            ecl="H"
-          />
+          <QRCode value={slug} size={QR_SIZE} color="#000000" ecl="H" />
         ) : (
           <View style={s.qrPlaceholder}>
             <Text style={[s.errorText, { color: mutedColor }]}>
@@ -103,16 +94,49 @@ const ScanSheetPortal = memo(function ScanSheetPortal() {
   const sheetRef = useRef<BottomSheetModal>(null)
   const isDark = useColorScheme() === 'dark'
   const { bottom: bottomInset } = useSafeAreaInsets()
+  // Tracks whether the sheet was dismissed by user gesture (backdrop / pan-down).
+  // When true, the useEffect skips calling dismiss() to avoid re-registering
+  // the modal into @gorhom/bottom-sheet's provider stack, which would cause it
+  // to be "restored" when the next modal (QRSelectionSheet) closes.
+  const userDismissedRef = useRef(false)
 
   useEffect(() => {
-    if (visible) sheetRef.current?.present()
-    else sheetRef.current?.dismiss()
+    if (visible) {
+      userDismissedRef.current = false
+      sheetRef.current?.present()
+    } else if (!userDismissedRef.current) {
+      sheetRef.current?.dismiss()
+    }
   }, [visible])
 
   const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
+    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
     [isDark],
   )
+
+  const handleClose = useCallback(() => {
+    userDismissedRef.current = true
+    sheetRef.current?.dismiss()
+  }, [])
+
+  const handleDismiss = useCallback(() => {
+    userDismissedRef.current = true
+    close()
+  }, [close])
+
+  // pressBehavior="close" calls BottomSheet.close() which does NOT call
+  // willUnmountSheet(). This leaves SSP in @gorhom's sheetsQueueRef with
+  // willUnmount=false during the ~1-2 frame window between the close animation
+  // reaching -1 (backdrop becomes non-touchable) and unmountSheet() running.
+  // If a new modal mounts in that window, @gorhom calls minimize(SSP) → SSP
+  // stays in the queue as minimized → gets restored when the new modal closes.
+  // Fix: fire dismiss() first via onPress, which immediately calls
+  // willUnmountSheet() → marks willUnmount=true → new modal skips minimize().
+  // The subsequent close() from pressBehavior is a no-op (isForcedClosing=true).
+  const handleBackdropPress = useCallback(() => {
+    userDismissedRef.current = true
+    sheetRef.current?.dismiss()
+  }, [])
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -122,9 +146,10 @@ const ScanSheetPortal = memo(function ScanSheetPortal() {
         appearsOnIndex={0}
         opacity={0.5}
         pressBehavior="close"
+        onPress={handleBackdropPress}
       />
     ),
-    [],
+    [handleBackdropPress],
   )
 
   return (
@@ -137,16 +162,13 @@ const ScanSheetPortal = memo(function ScanSheetPortal() {
       enableDynamicSizing={false}
       backdropComponent={renderBackdrop}
       backgroundStyle={bgStyle}
-      onDismiss={close}
+      onDismiss={handleDismiss}
     >
       <BottomSheetScrollView
         contentContainerStyle={[s.scroll, { paddingBottom: bottomInset + 16 }]}
         showsVerticalScrollIndicator={false}
       >
-        <QrContent
-          isDark={isDark}
-          onClose={() => sheetRef.current?.dismiss()}
-        />
+        <QrContent isDark={isDark} onClose={handleClose} />
       </BottomSheetScrollView>
     </BottomSheetModal>
   )
@@ -186,6 +208,7 @@ const s = StyleSheet.create({
     width: QR_SIZE + 40,
     height: QR_SIZE + 40,
     borderRadius: 20,
+    backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 20,
@@ -245,7 +268,7 @@ const s = StyleSheet.create({
   userPhone: {
     fontSize: 14,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 12,
   },
 })
 

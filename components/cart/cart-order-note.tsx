@@ -49,7 +49,7 @@ export const CartOrderNote = memo(function CartOrderNote({
       <View
         style={[
           styles.container,
-          { backgroundColor: isDark ? colors.gray[800] : colors.white.light },
+          { backgroundColor: isDark ? colors.card.dark : colors.white.light },
         ]}
       >
         <View style={styles.titleRow}>
@@ -76,7 +76,9 @@ export const CartOrderNote = memo(function CartOrderNote({
             {
               color: isDark ? colors.gray[200] : colors.gray[700],
               borderColor: isDark ? colors.gray[700] : colors.gray[200],
-              backgroundColor: isDark ? colors.gray[900] : colors.gray[50],
+              backgroundColor: isDark
+                ? colors.background.dark
+                : colors.gray[50],
             },
           ]}
           multiline

@@ -134,8 +134,9 @@ export default function RegisterForm() {
         name="phonenumber"
         label={t('register.phoneNumber')}
         placeholder={t('register.enterPhoneNumber')}
-        keyboardType="phone-pad"
+        keyboardType="number-pad"
         autoCapitalize="none"
+        autoComplete="tel"
         disabled={isLoading}
         useTextInput
         transformOnChange={(v) => v.replace(/\D/g, '')}

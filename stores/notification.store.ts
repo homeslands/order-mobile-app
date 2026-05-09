@@ -7,6 +7,7 @@
  * getUnreadCount: derived count
  */
 import { create } from 'zustand'
+import * as Notifications from 'expo-notifications'
 
 import type {
   INotification,
@@ -73,7 +74,7 @@ function transformPayloadToNotification(
   const type = merged.type || data.type || 'system'
 
   const metadata: INotificationMetadata = {
-    order: merged.order || merged.cardOrder || '',
+    order: merged.order || '',
     orderType: merged.orderType || '',
     tableName: merged.tableName || '',
     table: merged.table || '',
@@ -81,6 +82,8 @@ function transformPayloadToNotification(
     branch: merged.branch || '',
     referenceNumber: merged.referenceNumber || '',
     createdAt: merged.createdAt || data.createdAt || createdAt,
+    cardOrder: merged.cardOrder || merged.cardOrderSlug || '',
+    cardOrderCode: merged.cardOrderCode || '',
   }
 
   return {
@@ -93,6 +96,12 @@ function transformPayloadToNotification(
     isRead: markAsRead,
     metadata,
   }
+}
+
+// ─── Helpers (continued) ────────────────────────────────────────────────────
+
+function syncBadge(count: number): void {
+  Notifications.setBadgeCountAsync(count).catch(() => {})
 }
 
 // ─── Store ──────────────────────────────────────────────────────────────────
@@ -109,8 +118,10 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       )
       // Dedup by slug, prepend new, cap at MAX
       const filtered = state.notifications.filter((n) => n.slug !== item.slug)
-      return { notifications: [item, ...filtered].slice(0, MAX_NOTIFICATIONS) }
+      const updated = [item, ...filtered].slice(0, MAX_NOTIFICATIONS)
+      return { notifications: updated }
     })
+    syncBadge(get().notifications.filter((n) => !n.isRead).length)
   },
 
   markAsRead: (slug) => {
@@ -119,6 +130,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
         n.slug === slug ? { ...n, isRead: true } : n,
       ),
     }))
+    syncBadge(get().notifications.filter((n) => !n.isRead).length)
   },
 
   markAllAsRead: () => {
@@ -127,6 +139,7 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       markedAllReadAt: ts,
       notifications: state.notifications.map((n) => ({ ...n, isRead: true })),
     }))
+    syncBadge(0)
   },
 
   setReadStates: (updates) => {
@@ -136,9 +149,13 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
         map.has(n.slug) ? { ...n, isRead: map.get(n.slug)! } : n,
       ),
     }))
+    syncBadge(get().notifications.filter((n) => !n.isRead).length)
   },
 
-  clearAll: () => set({ notifications: [], markedAllReadAt: null }),
+  clearAll: () => {
+    set({ notifications: [], markedAllReadAt: null })
+    syncBadge(0)
+  },
 
   getUnreadCount: () => {
     return get().notifications.filter((n) => !n.isRead).length

@@ -61,7 +61,7 @@ const ProgressBar = memo(function ProgressBar({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const trackBg = isDark ? colors.gray[700] : colors.gray[200]
+  const trackBg = isDark ? colors.border.dark : colors.gray[200]
 
   return (
     <View
@@ -94,7 +94,7 @@ const ActiveQR = memo(function ActiveQR({
   const { mutedColor, cardBg } = useMemo(
     () => ({
       mutedColor: isDark ? colors.gray[400] : colors.gray[500],
-      cardBg: isDark ? colors.gray[800] : colors.white.light,
+      cardBg: isDark ? colors.card.dark : colors.white.light,
     }),
     [isDark],
   )
@@ -164,10 +164,10 @@ const QRCard = memo(function QRCard({
 }) {
   const { t } = useTranslation('payment')
   const { mutedColor, cardBg, skeletonWrapStyle } = useMemo(() => {
-    const skBg = isDark ? colors.gray[700] : colors.gray[100]
+    const skBg = isDark ? colors.border.dark : colors.gray[100]
     return {
       mutedColor: isDark ? colors.gray[400] : colors.gray[500],
-      cardBg: isDark ? colors.gray[800] : colors.white.light,
+      cardBg: isDark ? colors.card.dark : colors.white.light,
       skeletonWrapStyle: [s.qrImageWrap, { backgroundColor: skBg }],
     }
   }, [isDark])
@@ -231,7 +231,7 @@ const Instructions = memo(function Instructions({
     () => ({
       textColor: isDark ? colors.gray[50] : colors.gray[900],
       mutedColor: isDark ? colors.gray[400] : colors.gray[500],
-      cardBg: isDark ? colors.gray[800] : colors.white.light,
+      cardBg: isDark ? colors.card.dark : colors.white.light,
     }),
     [isDark],
   )
@@ -252,6 +252,11 @@ const Instructions = memo(function Instructions({
 
 // ─── Screen ───────────────────────────────────────────────────────────────────
 
+// DEV-only: sample VietQR string used when the bank sandbox is unavailable.
+// Never reaches production — __DEV__ is stripped by the Metro bundler in release builds.
+const DEV_SAMPLE_QR =
+  '00020101021238570010A000000727012700069704520113TRENDCOFFEE0000110499999999530370454051000055020256304ABCD'
+
 export default function QRGenerateScreen() {
   const { t } = useTranslation('payment')
   const isDark = useColorScheme() === 'dark'
@@ -265,8 +270,17 @@ export default function QRGenerateScreen() {
     [isDark],
   )
 
-  const { token, countdown, isLoading, isRefreshing, error, refetch } =
-    useQRPayment()
+  const {
+    token: realToken,
+    countdown,
+    isLoading,
+    isRefreshing,
+    error,
+    refetch,
+  } = useQRPayment()
+
+  // In dev builds, fall back to sample QR when the bank sandbox is down
+  const token = __DEV__ && !realToken ? DEV_SAMPLE_QR : realToken
 
   return (
     <View style={[s.root, { backgroundColor: bg }]}>
@@ -316,10 +330,6 @@ const s = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  // qrImage: {
-  //   width: QR_SIZE,
-  //   height: QR_SIZE,
-  // },
   progressTrack: {
     width: '100%',
     height: 4,

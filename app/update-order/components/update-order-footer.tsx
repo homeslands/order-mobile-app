@@ -3,14 +3,18 @@ import { ChevronRight, ShoppingBag, Ticket } from 'lucide-react-native'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { useShallow } from 'zustand/react/shallow'
 
-import { colors } from '@/constants'
+import { colors, PHONE_NUMBER_REGEX } from '@/constants'
 import { FOOTER_BOTTOM_EXTRA } from '@/constants/status-bar'
 import { useTables } from '@/hooks'
+import { useCalculateDeliveryFee } from '@/hooks/use-branch-delivery'
+import { DeliveryAddressSheet, DeliveryInfoRow } from '@/components/delivery'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import { OrderStatus, OrderTypeEnum } from '@/types'
 import {
   calculateOrderDisplayAndTotals,
+  parseKm,
   showErrorToastMessage,
   transformOrderItemToOrderDetail,
 } from '@/utils'
@@ -39,23 +43,41 @@ export default memo(function UpdateOrderFooter({
   const [orderTypeSheetVisible, setOrderTypeSheetVisible] = useState(false)
   const [tableSheetVisible, setTableSheetVisible] = useState(false)
   const [voucherSheetOpen, setVoucherSheetOpen] = useState(false)
+  const [deliverySheetVisible, setDeliverySheetVisible] = useState(false)
 
-  const updatingData = useOrderFlowStore((s) => s.updatingData)
+  const draft = useOrderFlowStore(
+    useShallow((s) => s.updatingData?.updateDraft),
+  )
+  const originalOrder = useOrderFlowStore(
+    useShallow((s) => s.updatingData?.originalOrder),
+  )
   const removeDraftVoucher = useOrderFlowStore((s) => s.removeDraftVoucher)
-
-  const draft = updatingData?.updateDraft
-  const originalOrder = updatingData?.originalOrder
   const orderType = (draft?.type as OrderTypeEnum) ?? OrderTypeEnum.AT_TABLE
   const selectedTableSlug = draft?.table ?? null
   const voucher = draft?.voucher ?? null
   const orderItems = useMemo(() => draft?.orderItems ?? [], [draft])
-  const deliveryFee = originalOrder?.deliveryFee ?? 0
+  const draftDeliveryAddress = draft?.deliveryAddress ?? ''
+  const draftDeliveryPhone = draft?.deliveryPhone ?? ''
+  const draftDeliveryDistance = draft?.deliveryDistance ?? 0
   const accumulatedPointsToUse = originalOrder?.accumulatedPointsToUse ?? 0
 
   // Resolve table name from slug
   const branchFromStore = useBranchStore((s) => s.branch?.slug)
   const branchFromUser = useUserStore((s) => s.userInfo?.branch?.slug)
   const branchSlug = branchFromStore || branchFromUser
+
+  const { deliveryFee: newDeliveryFee } = useCalculateDeliveryFee(
+    parseKm(draftDeliveryDistance) ?? 0,
+    branchSlug ?? '',
+    {
+      enabled:
+        orderType === OrderTypeEnum.DELIVERY && draftDeliveryDistance > 0,
+    },
+  )
+  const effectiveDeliveryFee =
+    orderType === OrderTypeEnum.DELIVERY && draftDeliveryDistance > 0
+      ? (newDeliveryFee ?? originalOrder?.deliveryFee ?? 0)
+      : (originalOrder?.deliveryFee ?? 0)
   const { data: tablesData } = useTables(branchSlug ?? undefined)
   const tableName = useMemo(() => {
     if (!selectedTableSlug || !tablesData?.result) return null
@@ -80,11 +102,13 @@ export default memo(function UpdateOrderFooter({
   )
   const subtotal =
     (cartTotals?.subTotalBeforeDiscount ?? 0) +
-    deliveryFee -
+    effectiveDeliveryFee -
     accumulatedPointsToUse
   const voucherDiscount = cartTotals?.voucherDiscount ?? 0
   const finalTotal =
-    (cartTotals?.finalTotal ?? 0) + deliveryFee - accumulatedPointsToUse
+    (cartTotals?.finalTotal ?? 0) +
+    effectiveDeliveryFee -
+    accumulatedPointsToUse
 
   // Auto-remove voucher if maxItems exceeded
   const voucherSlug = voucher?.slug
@@ -110,7 +134,10 @@ export default memo(function UpdateOrderFooter({
   const showTableSelect = orderType === OrderTypeEnum.AT_TABLE
   const confirmDisabled =
     (orderType === OrderTypeEnum.AT_TABLE && !selectedTableSlug) ||
-    (orderType === OrderTypeEnum.DELIVERY && !draft?.deliveryAddress)
+    (orderType === OrderTypeEnum.DELIVERY &&
+      (!draftDeliveryAddress ||
+        !draftDeliveryPhone ||
+        !/^[0-9]{10}$/.test(draftDeliveryPhone)))
   const isPending = originalOrder?.status === OrderStatus.PENDING
 
   // Handlers
@@ -126,12 +153,22 @@ export default memo(function UpdateOrderFooter({
   const closeTableSheet = useCallback(() => setTableSheetVisible(false), [])
   const openVoucherSheet = useCallback(() => setVoucherSheetOpen(true), [])
   const closeVoucherSheet = useCallback(() => setVoucherSheetOpen(false), [])
+  const openDeliverySheet = useCallback(() => setDeliverySheetVisible(true), [])
+  const closeDeliverySheet = useCallback(() => {
+    setDeliverySheetVisible(false)
+    const s = useOrderFlowStore.getState()
+    const addr = s.updatingData?.updateDraft?.deliveryAddress ?? ''
+    const phone = s.updatingData?.updateDraft?.deliveryPhone ?? ''
+    if (addr && !PHONE_NUMBER_REGEX.test(phone)) {
+      s.clearDraftDeliveryInfo()
+    }
+  }, [])
 
   // Memoised theme-dependent styles
   const ft = useMemo(
     () => ({
       containerBg: {
-        backgroundColor: isDark ? colors.gray[900] : colors.white.light,
+        backgroundColor: isDark ? colors.card.dark : colors.white.light,
       },
       selectBtnBorder: {
         borderColor: isDark ? colors.gray[700] : colors.gray[200],
@@ -227,6 +264,15 @@ export default memo(function UpdateOrderFooter({
           )}
         </View>
 
+        {orderType === OrderTypeEnum.DELIVERY && (
+          <DeliveryInfoRow
+            address={draftDeliveryAddress}
+            phone={draftDeliveryPhone}
+            onPress={openDeliverySheet}
+            isDark={isDark}
+          />
+        )}
+
         {/* Pickup Time Chips — tự ẩn khi không phải TAKE_OUT */}
         <PickupTimeChipsInUpdateOrder
           isDark={isDark}
@@ -277,6 +323,12 @@ export default memo(function UpdateOrderFooter({
               <Text style={[f.totalValue, ft.primaryColorStyle]}>
                 {formatCurrencyNative(finalTotal)}
               </Text>
+              {orderType === OrderTypeEnum.DELIVERY &&
+                effectiveDeliveryFee > 0 && (
+                  <Text style={[f.deliveryFeeNote, ft.mutedColor]}>
+                    (+{formatCurrencyNative(effectiveDeliveryFee)} ship)
+                  </Text>
+                )}
             </View>
           </View>
           {isPending && (
@@ -291,6 +343,7 @@ export default memo(function UpdateOrderFooter({
       <SimpleOrderTypeSheetInUpdateOrder
         visible={orderTypeSheetVisible}
         onClose={closeOrderTypeSheet}
+        onDeliverySelected={openDeliverySheet}
         isDark={isDark}
         primaryColor={primaryColor}
       />
@@ -303,6 +356,15 @@ export default memo(function UpdateOrderFooter({
       <VoucherSheetInUpdateOrder
         visible={voucherSheetOpen}
         onClose={closeVoucherSheet}
+        isDark={isDark}
+        primaryColor={primaryColor}
+      />
+
+      <DeliveryAddressSheet
+        visible={deliverySheetVisible}
+        onClose={closeDeliverySheet}
+        mode="update-order"
+        branchSlug={branchSlug ?? ''}
         isDark={isDark}
         primaryColor={primaryColor}
       />
@@ -393,5 +455,9 @@ const f = StyleSheet.create({
   totalValue: {
     fontSize: 20,
     fontWeight: '700',
+  },
+  deliveryFeeNote: {
+    fontSize: 10,
+    marginTop: 1,
   },
 })

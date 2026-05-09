@@ -94,7 +94,6 @@ interface InputProps extends TextInput.Props {
 
 ```tsx
 import { Card } from '@/components/ui/card'
-
 ;<Card className="p-4">
   <Text className="text-lg font-semibold">Card Title</Text>
   <Text className="mt-2 text-sm text-muted-foreground">
@@ -130,7 +129,6 @@ Bottom sheet modal for selections:
 
 ```tsx
 import { Sheet } from '@/components/ui/sheet'
-
 ;<Sheet open={open} onOpenChange={setOpen}>
   <SheetContent>
     <SheetHeader>
@@ -152,7 +150,6 @@ import { Sheet } from '@/components/ui/sheet'
 
 ```tsx
 import { Dialog } from '@/components/dialog'
-
 ;<Dialog open={showConfirm} onOpenChange={setShowConfirm}>
   <DialogContent>
     <DialogHeader>
@@ -177,7 +174,6 @@ import { Dialog } from '@/components/dialog'
 
 ```tsx
 import { QuantitySelector } from '@/components/button'
-
 ;<QuantitySelector
   value={quantity}
   onValueChange={setQuantity}
@@ -192,7 +188,6 @@ import { QuantitySelector } from '@/components/button'
 
 ```tsx
 import { PriceTag } from '@/components/menu/price-tag'
-
 ;<PriceTag price={29.99} discountedPrice={19.99} />
 ```
 
@@ -202,7 +197,6 @@ import { PriceTag } from '@/components/menu/price-tag'
 
 ```tsx
 import { FavoriteButton } from '@/components/menu'
-
 ;<FavoriteButton isFavorite={isFav} onPress={toggleFavorite} />
 ```
 
@@ -240,7 +234,6 @@ Integrates with React Hook Form:
 
 ```tsx
 import { FormInput } from '@/components/form'
-
 ;<FormInput
   control={form.control}
   name="email"
@@ -256,7 +249,6 @@ import { FormInput } from '@/components/form'
 
 ```tsx
 import { OtpInput } from '@/components/auth'
-
 ;<OtpInput value={otp} onValueChange={setOtp} length={6} />
 ```
 
@@ -268,7 +260,6 @@ Shows password strength requirements:
 
 ```tsx
 import { PasswordRulesInput } from '@/components/input'
-
 ;<PasswordRulesInput value={password} onChangeText={setPassword} />
 ```
 
@@ -294,7 +285,6 @@ Pressable that handles navigation + prefetch:
 
 ```tsx
 import { NavigatePressable } from '@/components/navigation'
-
 ;<NavigatePressable
   to="/(tabs)/menu"
   params={{ menuId: 123 }}
@@ -314,7 +304,6 @@ Complex table component for web/desktop:
 
 ```tsx
 import { DataTable } from '@/components/ui/data-table'
-
 ;<DataTable columns={columns} data={data} pagination={true} search={true} />
 ```
 
@@ -326,7 +315,6 @@ For image galleries:
 
 ```tsx
 import { Carousel } from '@/components/ui/carousel'
-
 ;<Carousel
   data={images}
   renderItem={({ item }) => <Image source={{ uri: item.url }} />}
@@ -341,7 +329,6 @@ Optimized for product images with zoom:
 
 ```tsx
 import { ProductImageCarousel } from '@/components/menu'
-
 ;<ProductImageCarousel images={product.images} />
 ```
 
@@ -353,7 +340,6 @@ import { ProductImageCarousel } from '@/components/menu'
 
 ```tsx
 import { Select } from '@/components/select'
-
 ;<Select
   options={[
     { label: 'Option 1', value: '1' },
@@ -373,7 +359,6 @@ For size/color/flavor selection:
 
 ```tsx
 import { ProductVariantSelect } from '@/components/select'
-
 ;<ProductVariantSelect
   variants={product.variants}
   onSelect={setSelectedVariant}
@@ -388,7 +373,6 @@ For selecting dine-in tables:
 
 ```tsx
 import { TableSelectSheet } from '@/components/select'
-
 ;<TableSelectSheet tables={availableTables} onSelect={selectTable} />
 ```
 
@@ -400,7 +384,6 @@ import { TableSelectSheet } from '@/components/select'
 
 ```tsx
 import { LoginForm } from '@/components/auth'
-
 ;<LoginForm onSuccess={handleLoginSuccess} />
 ```
 

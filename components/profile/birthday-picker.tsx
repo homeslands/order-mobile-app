@@ -74,7 +74,7 @@ export const BirthdayPicker = forwardRef<BirthdayPickerRef, Props>(
     const theme = themeColors ?? {
       text: isDark ? colors.gray[50] : colors.gray[900],
       textMuted: isDark ? colors.gray[400] : colors.gray[500],
-      editBtn: isDark ? '#3D4F66' : colors.border.light,
+      editBtn: isDark ? colors.border.dark : colors.border.light,
     }
 
     const primaryColor = isDark ? colors.primary.dark : colors.primary.light

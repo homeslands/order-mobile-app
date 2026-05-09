@@ -571,7 +571,6 @@ const handleCheckOrder = (orderId: string) => {
 
 ```tsx
 import { StatusBar } from 'expo-status-bar'
-
 ;<StatusBar barStyle="light-content" backgroundColor="#F7A737" />
 ```
 

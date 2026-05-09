@@ -4,7 +4,7 @@ import {
   type FieldValues,
   type Path,
 } from 'react-hook-form'
-import { Text, TextInput, View, useColorScheme } from 'react-native'
+import { Platform, Text, TextInput, View, useColorScheme } from 'react-native'
 import { useRef, useEffect, useState } from 'react'
 
 import { Input } from '@/components/ui'
@@ -92,50 +92,51 @@ function FormInputField({
   const isDark = colorScheme === 'dark'
   const [localValue, setLocalValue] = useState(value ?? '')
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const pendingValueRef = useRef<string>(value ?? '')
   const prevValueRef = useRef<string | undefined>(value)
 
   // Sync when value changes externally (e.g. form reset)
   useEffect(() => {
     if (value !== prevValueRef.current) {
       prevValueRef.current = value
+      const next = value ?? ''
+      pendingValueRef.current = next
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLocalValue(value ?? '')
+      setLocalValue(next)
     }
   }, [value])
 
   const handleChangeText = (text: string) => {
-    const transformedValue = transformOnChange ? transformOnChange(text) : text
+    const next = transformOnChange ? transformOnChange(text) : text
 
-    // Update local state immediately for UI responsiveness
-    setLocalValue(transformedValue)
+    // Sync prevValueRef before setLocalValue so the useEffect that watches
+    // the RHF `value` prop skips calling setLocalValue again when the
+    // debounced onChange fires 300ms later (value === prevValueRef → no-op).
+    prevValueRef.current = next
+    pendingValueRef.current = next
+    setLocalValue(next)
 
-    // Clear existing timer
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current)
-    }
-
-    // Debounce validation by 300ms
+    // Debounce RHF update to avoid Zod validation on every keystroke
+    // (mode: 'onTouched' triggers validation after first blur)
+    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
     debounceTimerRef.current = setTimeout(() => {
-      onChange(transformedValue)
+      onChange(pendingValueRef.current)
     }, 300)
   }
 
-  // Flush pending value on blur so form always has latest value
+  // Flush on blur so RHF always has latest value before validation
   const handleBlur = () => {
     if (debounceTimerRef.current) {
       clearTimeout(debounceTimerRef.current)
       debounceTimerRef.current = null
     }
-    onChange(localValue)
+    onChange(pendingValueRef.current)
     onBlur()
   }
 
-  // Cleanup timer on unmount
   useEffect(() => {
     return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current)
-      }
+      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
     }
   }, [])
 
@@ -160,13 +161,17 @@ function FormInputField({
       {useTextInput ? (
         <TextInput
           className={cn(
-            'rounded-lg border bg-white px-4 py-3 font-sans text-base text-gray-900 dark:bg-gray-800 dark:text-white',
+            'rounded-lg border bg-white px-4 font-sans text-base text-gray-900 dark:bg-[#121212] dark:text-white',
             showError
               ? 'border-red-500 dark:border-red-400'
-              : 'border-gray-200 dark:border-gray-700',
+              : 'border-gray-200 dark:border-[#2e2e2e]',
             disabled && 'opacity-50',
             className,
           )}
+          style={{
+            height: 48,
+            paddingVertical: Platform.OS === 'ios' ? 0 : 12,
+          }}
           placeholder={placeholder}
           placeholderTextColor={
             isDark ? colors.mutedForeground.dark : colors.mutedForeground.light
@@ -177,6 +182,8 @@ function FormInputField({
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
           autoComplete={autoComplete}
+          autoCorrect={false}
+          spellCheck={false}
           secureTextEntry={secureTextEntry}
           editable={!disabled}
         />

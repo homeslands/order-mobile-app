@@ -29,6 +29,7 @@ export function useRegisterDeviceToken(enabled = true) {
     if (token === storedToken) return
 
     isRegistering.current = true
+    let cancelled = false
 
     const run = async () => {
       try {
@@ -36,12 +37,20 @@ export function useRegisterDeviceToken(enabled = true) {
         if (storedToken && storedToken !== token) {
           await unregisterToken(storedToken)
         }
+        if (cancelled) return
 
         const result = await registerTokenWithRetry(token)
+        if (cancelled) return
 
         if (result.success) {
           // Only save to store AFTER server confirms — this is the gate
           setDeviceToken(token)
+        } else {
+          // eslint-disable-next-line no-console
+          console.error(
+            '[FCM] Token registration failed permanently:',
+            result.error,
+          )
         }
       } finally {
         isRegistering.current = false
@@ -49,6 +58,12 @@ export function useRegisterDeviceToken(enabled = true) {
     }
 
     run()
+
+    return () => {
+      cancelled = true
+    }
+    // setDeviceToken is stable (Zustand); storedToken intentionally omitted —
+    // including it would re-run on server write-back and create a registration loop
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [enabled, token])
 
