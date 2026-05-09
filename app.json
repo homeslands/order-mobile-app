@@ -2,7 +2,7 @@
   "expo": {
     "name": "TREND Coffee",
     "slug": "order-mobile-app",
-    "version": "2.2.6",
+    "version": "2.2.7",
     "orientation": "portrait",
     "icon": "./assets/images/trend/logo-icon-padded.png",
     "scheme": "trend",
@@ -35,7 +35,7 @@
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.ACCESS_COARSE_LOCATION"
       ],
-      "versionCode": 45,
+      "versionCode": 46,
       "package": "com.trendcoffee.order",
       "config": {
         "googleMaps": {
