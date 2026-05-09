@@ -3,7 +3,7 @@ import { FloatingHeader } from '@/components/navigation/floating-header'
 import { useFocusEffect } from '@react-navigation/native'
 import { Image as ExpoImage } from 'expo-image'
 import { useLocalSearchParams } from 'expo-router'
-import { CircleAlert, CircleX, Download, Ticket } from 'lucide-react-native'
+import { CircleAlert, CircleX, Download, Ticket, WifiOff } from 'lucide-react-native'
 import React, {
   memo,
   useCallback,
@@ -175,8 +175,13 @@ const QRSection = React.memo(function QRSection({
 }) {
   const { t } = useTranslation('menu')
   const isDownloading = useRef(false)
+  const [errorUrl, setErrorUrl] = useState<string | null>(null)
 
   const activeQrUrl = qrCode || paymentQrCode || ''
+  const imgError = !!activeQrUrl && errorUrl === activeQrUrl
+
+  const handleImgError = useCallback(() => setErrorUrl(activeQrUrl), [activeQrUrl])
+  const handleImgRetry = useCallback(() => setErrorUrl(null), [])
 
   const handleDownload = useCallback(() => {
     if (isDownloading.current || !activeQrUrl) return
@@ -188,6 +193,9 @@ const QRSection = React.memo(function QRSection({
     )
   }, [activeQrUrl])
 
+  const errorBg = isDark ? colors.border.dark : colors.gray[100]
+  const errorTextColor = isDark ? colors.gray[400] : colors.gray[500]
+
   return (
     <View
       style={[
@@ -196,12 +204,25 @@ const QRSection = React.memo(function QRSection({
       ]}
     >
       <View style={ps.qrCenter}>
-        <ExpoImage
-          source={activeQrUrl}
-          style={ps.qrImage}
-          contentFit="contain"
-          cachePolicy="none"
-        />
+        {imgError ? (
+          <Pressable
+            style={[ps.qrImage, ps.qrErrorWrap, { backgroundColor: errorBg }]}
+            onPress={handleImgRetry}
+          >
+            <WifiOff size={22} color={colors.gray[400]} />
+            <Text style={[ps.qrErrorText, { color: errorTextColor }]}>
+              {t('paymentMethod.qrLoadError')}
+            </Text>
+          </Pressable>
+        ) : (
+          <ExpoImage
+            source={activeQrUrl}
+            style={ps.qrImage}
+            contentFit="contain"
+            cachePolicy="none"
+            onError={handleImgError}
+          />
+        )}
         <View style={ps.qrInfoCol}>
           <View style={ps.qrTotalRow}>
             <Text
@@ -306,12 +327,14 @@ const PaymentMethodSection = React.memo(function PaymentMethodSection({
           value={selectedMethod}
           defaultValue={order.payment?.paymentMethod || null}
           disabledMethods={
-            order.payment?.paymentMethod
+            order.payment?.paymentMethod &&
+            order.payment.statusMessage === OrderStatus.COMPLETED
               ? [order.payment.paymentMethod as PaymentMethod]
               : []
           }
           disabledReasons={
-            order.payment?.paymentMethod
+            order.payment?.paymentMethod &&
+            order.payment.statusMessage === OrderStatus.COMPLETED
               ? ({
                   [order.payment.paymentMethod as PaymentMethod]: t(
                     'paymentMethod.alreadyPaid',
@@ -337,8 +360,9 @@ const PaymentMethodSection = React.memo(function PaymentMethodSection({
           </Text>
         </View>
       )}
-      {(order.payment?.paymentMethod === PaymentMethod.BANK_TRANSFER ||
-        (__DEV__ && selectedMethod === PaymentMethod.BANK_TRANSFER)) &&
+      {(selectedMethod !== null
+          ? selectedMethod === PaymentMethod.BANK_TRANSFER
+          : order.payment?.paymentMethod === PaymentMethod.BANK_TRANSFER) &&
         (qrCode || order.payment?.qrCode || DEV_SAMPLE_QR_URL) && (
           <QRSection
             qrCode={qrCode || DEV_SAMPLE_QR_URL}
@@ -866,6 +890,9 @@ function PaymentPageContent() {
   const handleMethodChange = useCallback(
     (method: PaymentMethod, transactionId?: string) => {
       dispatchPaymentForm({ type: 'SET_METHOD', method, transactionId })
+      // Reset submitted timestamp so optimisticPaid doesn't fire for a
+      // different method's submission (e.g. bank transfer → coin switch).
+      setPaymentSubmittedAt(null)
     },
     [],
   )
@@ -1433,6 +1460,13 @@ const ps = StyleSheet.create({
   },
   qrCenter: { alignItems: 'center' },
   qrImage: { width: '40%', aspectRatio: 1 },
+  qrErrorWrap: {
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+  },
+  qrErrorText: { fontSize: 11, textAlign: 'center', lineHeight: 15 },
   qrInfoCol: { gap: 8, alignItems: 'center', marginTop: 8 },
   qrTotalRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   qrDownloadBtn: {

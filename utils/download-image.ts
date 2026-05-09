@@ -69,40 +69,36 @@ export async function downloadAndSaveImage(
   fileName?: string,
 ): Promise<boolean> {
   try {
-    // Validate URL
     if (!imageUrl || typeof imageUrl !== 'string') {
       showToast(i18n.t('common.invalidImageURL', { ns: 'common' }))
       return false
     }
 
-    // Ensure URL is absolute
+    const isDataUri = imageUrl.startsWith('data:')
     let finalImageUrl = imageUrl.trim()
-    if (
-      !finalImageUrl.startsWith('http://') &&
-      !finalImageUrl.startsWith('https://')
-    ) {
-      // If relative URL, try to prepend publicFileURL
-      const { publicFileURL } = await import('@/constants')
-      if (!publicFileURL) {
-        showToast(i18n.t('common.invalidURLConfig', { ns: 'common' }))
+
+    if (!isDataUri) {
+      if (
+        !finalImageUrl.startsWith('http://') &&
+        !finalImageUrl.startsWith('https://')
+      ) {
+        const { publicFileURL } = await import('@/constants')
+        if (!publicFileURL) {
+          showToast(i18n.t('common.invalidURLConfig', { ns: 'common' }))
+          return false
+        }
+        finalImageUrl = `${publicFileURL}/${finalImageUrl.replace(/^\//, '')}`
+      }
+
+      try {
+        new URL(finalImageUrl)
+      } catch {
+        showToast(i18n.t('common.invalidImageURL', { ns: 'common' }))
         return false
       }
-      finalImageUrl = `${publicFileURL}/${finalImageUrl.replace(/^\//, '')}`
     }
 
-    // Validate URL format
-    try {
-      new URL(finalImageUrl)
-    } catch {
-      // eslint-disable-next-line no-console
-      console.error('Invalid URL format:', finalImageUrl)
-      showToast(i18n.t('common.invalidImageURL', { ns: 'common' }))
-      return false
-    }
-
-    // Check permission first
     const hasPermission = await checkMediaLibraryPermission()
-
     if (!hasPermission) {
       const granted = await requestMediaLibraryPermission()
       if (!granted) {
@@ -113,62 +109,90 @@ export async function downloadAndSaveImage(
 
     showToast(i18n.t('common.downloadingImage', { ns: 'common' }))
 
-    // Generate file name if not provided
     const timestamp = Date.now()
-    const fileExtension =
-      finalImageUrl.split('.').pop()?.split('?')[0]?.split('#')[0] || 'jpg'
     const finalFileName = fileName || `image_${timestamp}`
 
-    const localUri = `${LegacyFS.cacheDirectory}${finalFileName}.${fileExtension}`
+    let fileExtension: string
+    let base64Data: string
 
-    // Check if URL is API endpoint (needs authentication)
-    const urlObj = new URL(finalImageUrl)
-    const isApiEndpoint = urlObj.pathname.includes('/api/')
+    if (isDataUri) {
+      // data:image/png;base64,<data>  — extract directly without network call
+      const mimeMatch = finalImageUrl.match(/^data:image\/([^;]+);base64,/)
+      const mime = mimeMatch?.[1] ?? 'png'
+      fileExtension = mime === 'jpeg' ? 'jpg' : mime
+      base64Data = finalImageUrl.replace(/^data:[^,]+,/, '')
+    } else {
+      fileExtension =
+        finalImageUrl.split('.').pop()?.split('?')[0]?.split('#')[0] || 'jpg'
 
-    const headers: Record<string, string> = { Accept: 'image/*' }
-    if (isApiEndpoint) {
-      const { useAuthStore } = await import('@/stores')
-      const token = useAuthStore.getState().token
-      if (token) headers['Authorization'] = `Bearer ${token}`
-    }
+      // Use fetch() instead of LegacyFS.downloadAsync — LegacyFS uses OkHttp on
+      // Android which behaves differently from ExpoImage (Glide) for certain URLs
+      // (VietQR, external CDNs). fetch() uses the JS-native HTTP stack consistently
+      // across both platforms.
+      const urlObj = new URL(finalImageUrl)
+      const isApiEndpoint = urlObj.pathname.includes('/api/')
+      const headers: Record<string, string> = { Accept: 'image/*' }
+      if (isApiEndpoint) {
+        const { useAuthStore } = await import('@/stores')
+        const token = useAuthStore.getState().token
+        if (token) headers['Authorization'] = `Bearer ${token}`
+      }
 
-    let downloadResult: Awaited<ReturnType<typeof LegacyFS.downloadAsync>>
-    try {
-      downloadResult = await LegacyFS.downloadAsync(finalImageUrl, localUri, {
-        headers,
-      })
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('Download error:', error)
-      if (error instanceof Error) {
-        if (
-          error.message.includes('timeout') ||
-          error.message.includes('ECONNABORTED')
-        ) {
+      let response: Response
+      try {
+        response = await fetch(finalImageUrl, { headers })
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('QR download fetch error:', error)
+        const msg =
+          error instanceof Error ? error.message : ''
+        if (msg.includes('timeout') || msg.includes('ECONNABORTED')) {
           showToast(
             i18n.t('common.errorDownloadImageTimeout', { ns: 'common' }),
           )
         } else {
           showToast(i18n.t('common.errorDownloadImage', { ns: 'common' }))
         }
-      } else {
-        showToast(i18n.t('common.errorDownloadingImage', { ns: 'common' }))
+        return false
       }
-      return false
+
+      if (!response.ok) {
+        showToast(
+          `${i18n.t('common.errorDownloadingImage', { ns: 'common' })}: HTTP ${response.status}`,
+        )
+        return false
+      }
+
+      // fetch() returns an ArrayBuffer; convert to base64 via chunked Uint8Array
+      // to avoid stack-overflow on large images with spread-operator approach.
+      try {
+        const buffer = await response.arrayBuffer()
+        const bytes = new Uint8Array(buffer)
+        let binary = ''
+        const chunk = 8192
+        for (let i = 0; i < bytes.length; i += chunk) {
+          binary += String.fromCharCode(
+            ...(bytes.subarray(i, i + chunk) as unknown as number[]),
+          )
+        }
+        base64Data = btoa(binary)
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error('QR base64 conversion error:', error)
+        showToast(i18n.t('common.errorDownloadImage', { ns: 'common' }))
+        return false
+      }
     }
 
-    if (downloadResult.status !== 200) {
-      showToast(
-        `${i18n.t('common.errorDownloadingImage', { ns: 'common' })}: HTTP ${downloadResult.status}`,
-      )
-      return false
-    }
+    const localUri = `${LegacyFS.cacheDirectory}${finalFileName}.${fileExtension}`
 
     showToast(i18n.t('common.savingImage', { ns: 'common' }))
-    await MediaLibrary.createAssetAsync(downloadResult.uri)
-    LegacyFS.deleteAsync(downloadResult.uri, { idempotent: true }).catch(
-      () => {},
-    )
+    await LegacyFS.writeAsStringAsync(localUri, base64Data, {
+      encoding: LegacyFS.EncodingType.Base64,
+    })
+
+    await MediaLibrary.createAssetAsync(localUri)
+    LegacyFS.deleteAsync(localUri, { idempotent: true }).catch(() => {})
 
     showToast(i18n.t('common.imageSavedSuccess', { ns: 'common' }))
     return true
