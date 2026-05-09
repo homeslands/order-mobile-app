@@ -10,6 +10,7 @@ import {
   BottomSheetModal,
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet'
+import { useLocalSearchParams } from 'expo-router'
 import {
   FlashList,
   type FlashListRef,
@@ -89,12 +90,12 @@ const FilterBar = memo(function FilterBar({
                 backgroundColor: active
                   ? primaryColor
                   : isDark
-                    ? colors.gray[800]
+                    ? colors.border.dark
                     : colors.gray[100],
                 borderColor: active
                   ? primaryColor
                   : isDark
-                    ? colors.gray[700]
+                    ? colors.border.dark
                     : colors.gray[200],
               },
             ]}
@@ -125,21 +126,21 @@ const FilterBar = memo(function FilterBar({
 function StatusBadge({ status, isDark }: { status: string; isDark: boolean }) {
   const { t } = useTranslation('giftCard')
   const upper = (status ?? '').toUpperCase()
-  let bg = isDark ? colors.gray[700] : colors.gray[200]
+  let bg = isDark ? colors.border.dark : colors.gray[200]
   let color = isDark ? colors.gray[400] : colors.gray[500]
-  let label = status
+  let label = status ?? ''
 
   if (upper === 'COMPLETED' || upper === 'PAID') {
-    bg = '#dcfce7'
-    color = '#16a34a'
+    bg = isDark ? '#14532d' : '#dcfce7'
+    color = isDark ? '#86efac' : '#16a34a'
     label = t('orderStatus.completedShort')
   } else if (upper === 'PENDING') {
-    bg = '#fef9c3'
-    color = '#b45309'
+    bg = isDark ? '#713f12' : '#fef9c3'
+    color = isDark ? '#fde68a' : '#b45309'
     label = t('orderStatus.pendingShort')
   } else if (upper === 'CANCELLED') {
-    bg = '#fee2e2'
-    color = '#dc2626'
+    bg = isDark ? '#7f1d1d' : '#fee2e2'
+    color = isDark ? '#fca5a5' : '#dc2626'
     label = t('orderStatus.cancelled')
   }
 
@@ -187,8 +188,8 @@ const OrderListItem = memo(function OrderListItem({
 }) {
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const bg = isDark ? colors.gray[900] : colors.white.light
-  const borderColor = isDark ? colors.gray[700] : colors.gray[100]
+  const bg = isDark ? colors.card.dark : colors.white.light
+  const borderColor = isDark ? colors.border.dark : colors.gray[100]
 
   const { t } = useTranslation('giftCard')
   const handlePress = useCallback(
@@ -274,7 +275,7 @@ interface DateFilter {
   toDate: Date | null
 }
 
-const DATE_SNAP = ['50%']
+const DATE_SNAP = ['75%']
 
 const DateFilterSheet = memo(function DateFilterSheet({
   visible,
@@ -283,6 +284,10 @@ const DateFilterSheet = memo(function DateFilterSheet({
   isDark,
   onClose,
   onApply,
+  selectedType,
+  onTypeChange,
+  selectedSort,
+  onSortChange,
 }: {
   visible: boolean
   value: DateFilter
@@ -290,6 +295,10 @@ const DateFilterSheet = memo(function DateFilterSheet({
   isDark: boolean
   onClose: () => void
   onApply: (v: DateFilter) => void
+  selectedType: string
+  onTypeChange: (v: string) => void
+  selectedSort: 'createdAt:desc' | 'createdAt:asc'
+  onSortChange: (v: 'createdAt:desc' | 'createdAt:asc') => void
 }) {
   const sheetRef = useRef<BottomSheetModal>(null)
   const { bottom } = useSafeAreaInsets()
@@ -301,12 +310,30 @@ const DateFilterSheet = memo(function DateFilterSheet({
   const [fromOpen, setFromOpen] = useState(false)
   const [toOpen, setToOpen] = useState(false)
 
-  const bg = isDark ? colors.gray[900] : colors.white.light
+  const bg = isDark ? colors.card.dark : colors.white.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const chipBg = isDark ? colors.gray[800] : colors.gray[100]
-  const dateBg = isDark ? colors.gray[800] : colors.gray[50]
-  const dateBorder = isDark ? colors.gray[700] : colors.gray[200]
+  const chipBg = isDark ? colors.border.dark : colors.gray[100]
+  const dateBg = isDark ? colors.background.dark : colors.gray[50]
+  const dateBorder = isDark ? colors.border.dark : colors.gray[200]
+
+  const TYPE_FILTER_OPTIONS = useMemo(
+    () => [
+      { label: t('orders.types.all'), value: 'ALL' },
+      { label: t('type.self'), value: GiftCardType.SELF },
+      { label: t('type.gift'), value: GiftCardType.GIFT },
+      { label: t('type.buy'), value: GiftCardType.BUY },
+    ],
+    [t],
+  )
+
+  const SORT_OPTIONS = useMemo(
+    () => [
+      { label: t('orders.sortNewest'), value: 'createdAt:desc' as const },
+      { label: t('orders.sortOldest'), value: 'createdAt:asc' as const },
+    ],
+    [t],
+  )
 
   const defaultNow = useMemo(() => new Date(), [])
 
@@ -330,8 +357,10 @@ const DateFilterSheet = memo(function DateFilterSheet({
 
   const handleReset = useCallback(() => {
     onApply({ fromDate: null, toDate: null })
+    onTypeChange('ALL')
+    onSortChange('createdAt:desc')
     sheetRef.current?.dismiss()
-  }, [onApply])
+  }, [onApply, onTypeChange, onSortChange])
 
   useEffect(() => {
     if (visible) sheetRef.current?.present()
@@ -358,6 +387,83 @@ const DateFilterSheet = memo(function DateFilterSheet({
           <Text style={[ds.title, { color: textColor }]}>
             {t('orders.filterTitle')}
           </Text>
+          {/* Type */}
+          <Text style={[ds.sectionLabel, { color: subColor }]}>
+            {t('orders.typeLabel')}
+          </Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={ds.typeChipScroll}
+          >
+            {TYPE_FILTER_OPTIONS.map((opt) => {
+              const active = selectedType === opt.value
+              return (
+                <Pressable
+                  key={opt.value}
+                  onPress={() => onTypeChange(opt.value)}
+                  style={[
+                    ds.typeChip,
+                    {
+                      backgroundColor: active ? primaryColor : chipBg,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      ds.typeChipText,
+                      {
+                        color: active
+                          ? colors.white.light
+                          : isDark
+                            ? colors.gray[300]
+                            : colors.gray[700],
+                        fontWeight: active ? '700' : '500',
+                      },
+                    ]}
+                  >
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              )
+            })}
+          </ScrollView>
+          {/* Sort */}
+          <Text style={[ds.sectionLabel, { color: subColor }]}>
+            {t('orders.sortLabel')}
+          </Text>
+          <View style={ds.sortRow}>
+            {SORT_OPTIONS.map((opt) => {
+              const active = selectedSort === opt.value
+              return (
+                <Pressable
+                  key={opt.value}
+                  onPress={() => onSortChange(opt.value)}
+                  style={[
+                    ds.sortChip,
+                    { backgroundColor: active ? primaryColor : chipBg },
+                  ]}
+                >
+                  <Text
+                    style={[
+                      ds.sortChipText,
+                      {
+                        color: active
+                          ? colors.white.light
+                          : isDark
+                            ? colors.gray[300]
+                            : colors.gray[700],
+                        fontWeight: active ? '700' : '500',
+                      },
+                    ]}
+                  >
+                    {opt.label}
+                  </Text>
+                </Pressable>
+              )
+            })}
+          </View>
+
           <Text style={[ds.sectionLabel, { color: subColor }]}>
             {t('orders.dateRange')}
           </Text>
@@ -552,6 +658,23 @@ const ds = StyleSheet.create({
     justifyContent: 'center',
   },
   btnText: { fontSize: 15, fontWeight: '700' },
+  typeChipScroll: { flexDirection: 'row', gap: 8, paddingBottom: 14 },
+  typeChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 999,
+  },
+  typeChipText: { fontSize: 13 },
+  sortRow: { flexDirection: 'row', gap: 8, marginBottom: 20 },
+  sortChip: {
+    flex: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  sortChipText: { fontSize: 13 },
 })
 
 // ─── Main screen ─────────────────────────────────────────────────────────────
@@ -581,14 +704,23 @@ export default function GiftCardOrdersScreen() {
     [t],
   )
 
+  const params = useLocalSearchParams<{ autoOpen?: string }>()
+
   const [ready, setReady] = useState(false)
   const [selectedType, setSelectedType] = useState('ALL')
-  const [detailSlug, setDetailSlug] = useState<string | null>(null)
+  // autoOpen param seeds the initial slug; lazy initializer runs only once.
+  // Slugs are alphanumeric+hyphens — no URL-decoding needed.
+  const [detailSlug, setDetailSlug] = useState<string | null>(
+    () => params.autoOpen ?? null,
+  )
   const [dateFilter, setDateFilter] = useState<DateFilter>({
     fromDate: null,
     toDate: null,
   })
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
+  const [sortDir, setSortDir] = useState<'createdAt:desc' | 'createdAt:asc'>(
+    'createdAt:desc',
+  )
 
   const flashListRef = useRef<FlashListRef<ICardOrderResponse>>(null)
 
@@ -597,7 +729,7 @@ export default function GiftCardOrdersScreen() {
   const queryParams = useMemo(
     () => ({
       customerSlug: userSlug,
-      sort: '-createdAt',
+      sort: sortDir,
       ...(dateFilter.fromDate
         ? { fromDate: dayjs(dateFilter.fromDate).format('YYYY-MM-DD') }
         : {}),
@@ -605,7 +737,7 @@ export default function GiftCardOrdersScreen() {
         ? { toDate: dayjs(dateFilter.toDate).format('YYYY-MM-DD') }
         : {}),
     }),
-    [userSlug, dateFilter],
+    [userSlug, dateFilter, sortDir],
   )
 
   const {
@@ -639,6 +771,10 @@ export default function GiftCardOrdersScreen() {
     flashListRef.current?.scrollToOffset({ offset: 0, animated: false })
   }, [dateFilter])
 
+  useEffect(() => {
+    flashListRef.current?.scrollToOffset({ offset: 0, animated: false })
+  }, [sortDir])
+
   const bg = isDark ? colors.background.dark : colors.background.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
@@ -652,8 +788,15 @@ export default function GiftCardOrdersScreen() {
     setFilterSheetOpen(false)
   }, [])
 
+  const handleSortChange = useCallback(
+    (v: 'createdAt:desc' | 'createdAt:asc') => setSortDir(v),
+    [],
+  )
+
   const isDateActive =
-    dateFilter.fromDate !== null || dateFilter.toDate !== null
+    dateFilter.fromDate !== null ||
+    dateFilter.toDate !== null ||
+    sortDir !== 'createdAt:desc'
 
   const handleEndReached = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage()
@@ -680,7 +823,7 @@ export default function GiftCardOrdersScreen() {
     [],
   )
 
-  const borderColor = isDark ? colors.gray[700] : colors.gray[200]
+  const borderColor = isDark ? colors.border.dark : colors.gray[200]
 
   const ListFooter = isFetchingNextPage ? (
     <ActivityIndicator color={primaryColor} style={{ paddingVertical: 16 }} />
@@ -716,7 +859,7 @@ export default function GiftCardOrdersScreen() {
                 backgroundColor: isDateActive
                   ? `${primaryColor}15`
                   : isDark
-                    ? colors.gray[800]
+                    ? colors.border.dark
                     : colors.white.light,
               },
             ]}
@@ -840,10 +983,14 @@ export default function GiftCardOrdersScreen() {
       <DateFilterSheet
         visible={filterSheetOpen}
         value={dateFilter}
+        selectedType={selectedType}
         primaryColor={primaryColor}
         isDark={isDark}
         onClose={handleFilterClose}
         onApply={handleFilterApply}
+        onTypeChange={handleTypeSelect}
+        selectedSort={sortDir}
+        onSortChange={handleSortChange}
       />
     </View>
   )

@@ -27,7 +27,7 @@ function MenuItemImageBase({
   if (!isEnabled) {
     return (
       <View
-        className="bg-gray-100 dark:bg-gray-700"
+        className="bg-gray-100 dark:bg-[#2e2e2e]"
         style={[
           styles.placeholder,
           borderRadius != null ? { borderRadius } : null,

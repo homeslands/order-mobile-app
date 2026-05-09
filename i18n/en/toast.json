@@ -18,6 +18,7 @@
     "authorityUpdateFailed": "Failed to update authority",
     "beneficiaryNameInvalid": "Beneficiary name invalid",
     "branchHaveAWorkflow": "Branch already has a workflow",
+    "branchNotFound": "Branch not found",
     "branchRequired": "You haven't selected a branch",
     "branchSlugInvalid": "Invalid branch slug",
     "branchSlugIsNotEmpty": "Branch slug is not empty",

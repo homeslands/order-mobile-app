@@ -17,7 +17,7 @@ import {
 import dayjs from 'dayjs'
 import { ArrowRight, CalendarDays, X } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import DatePicker from 'react-native-date-picker'
 import { TouchableOpacity as GHTouchable } from 'react-native-gesture-handler'
@@ -54,6 +54,7 @@ interface Props {
   value: GiftCardFilter
   onClose: () => void
   onApply: (v: GiftCardFilter) => void
+  onStatusChange?: (v: GiftCardUsageStatus | null) => void
   primaryColor: string
   isDark: boolean
 }
@@ -63,6 +64,7 @@ export const GiftCardFilterSheet = memo(function GiftCardFilterSheet({
   value,
   onClose,
   onApply,
+  onStatusChange,
   primaryColor,
   isDark,
 }: Props) {
@@ -98,12 +100,12 @@ export const GiftCardFilterSheet = memo(function GiftCardFilterSheet({
   const [fromPickerOpen, setFromPickerOpen] = useState(false)
   const [toPickerOpen, setToPickerOpen] = useState(false)
 
-  const bg = isDark ? colors.gray[900] : colors.white.light
+  const bg = isDark ? colors.card.dark : colors.white.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const chipBg = isDark ? colors.gray[800] : colors.gray[100]
-  const dateBg = isDark ? colors.gray[800] : colors.gray[50]
-  const dateBorder = isDark ? colors.gray[700] : colors.gray[200]
+  const chipBg = isDark ? colors.border.dark : colors.gray[100]
+  const dateBg = isDark ? colors.background.dark : colors.gray[50]
+  const dateBorder = isDark ? colors.border.dark : colors.gray[200]
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -162,32 +164,34 @@ export const GiftCardFilterSheet = memo(function GiftCardFilterSheet({
             {STATUS_OPTIONS.map((opt) => {
               const active = localStatus === opt.value
               return (
-                <View key={String(opt.value)} style={fs.chipWrap}>
-                  <GHTouchable
-                    onPress={() => setLocalStatus(opt.value)}
-                    activeOpacity={0.7}
+                <Pressable
+                  key={String(opt.value)}
+                  onPress={() => {
+                    setLocalStatus(opt.value)
+                    onStatusChange?.(opt.value)
+                  }}
+                  style={[
+                    fs.chip,
+                    fs.chipWrap,
+                    { backgroundColor: active ? primaryColor : chipBg },
+                  ]}
+                >
+                  <Text
                     style={[
-                      fs.chip,
-                      { backgroundColor: active ? primaryColor : chipBg },
+                      fs.chipText,
+                      {
+                        color: active
+                          ? colors.white.light
+                          : isDark
+                            ? colors.gray[300]
+                            : colors.gray[700],
+                        fontWeight: active ? '700' : '500',
+                      },
                     ]}
                   >
-                    <Text
-                      style={[
-                        fs.chipText,
-                        {
-                          color: active
-                            ? colors.white.light
-                            : isDark
-                              ? colors.gray[300]
-                              : colors.gray[700],
-                          fontWeight: active ? '700' : '500',
-                        },
-                      ]}
-                    >
-                      {opt.label}
-                    </Text>
-                  </GHTouchable>
-                </View>
+                    {opt.label}
+                  </Text>
+                </Pressable>
               )
             })}
           </View>
@@ -196,7 +200,9 @@ export const GiftCardFilterSheet = memo(function GiftCardFilterSheet({
           <View
             style={[
               fs.divider,
-              { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] },
+              {
+                backgroundColor: isDark ? colors.border.dark : colors.gray[100],
+              },
             ]}
           />
 
@@ -388,8 +394,9 @@ const fs = StyleSheet.create({
   chipWrap: { flex: 1 },
   chip: {
     flex: 1,
-    paddingVertical: 10,
-    borderRadius: 10,
+    paddingVertical: 7,
+    paddingHorizontal: 14,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -125,7 +125,9 @@ const OrderProductItem = memo(function OrderProductItem({
             productStyles.sizeBadge,
             {
               borderColor: primaryColor,
-              backgroundColor: isDark ? colors.gray[800] : `${primaryColor}18`,
+              backgroundColor: isDark
+                ? colors.background.dark
+                : `${primaryColor}18`,
             },
           ]}
         >

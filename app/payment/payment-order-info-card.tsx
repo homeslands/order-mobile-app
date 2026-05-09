@@ -32,11 +32,11 @@ export const PaymentOrderInfoCard = memo(function PaymentOrderInfoCard({
   const theme = useMemo(
     () => ({
       card: {
-        backgroundColor: isDark ? colors.gray[800] : colors.white.light,
-        borderColor: isDark ? colors.gray[700] : colors.gray[100],
+        backgroundColor: isDark ? colors.card.dark : colors.white.light,
+        borderColor: isDark ? colors.border.dark : colors.gray[100],
       },
       divider: {
-        backgroundColor: isDark ? colors.gray[700] : colors.gray[100],
+        backgroundColor: isDark ? colors.border.dark : colors.gray[100],
       },
       title: { color: isDark ? colors.gray[50] : colors.gray[900] },
       subtle: { color: isDark ? colors.gray[400] : colors.gray[500] },
@@ -139,6 +139,14 @@ export const PaymentOrderInfoCard = memo(function PaymentOrderInfoCard({
               </Text>
             </View>
           )}
+        {order.type === OrderTypeEnum.DELIVERY && order.deliveryPhone && (
+          <View style={s.row}>
+            <Text style={[s.label, theme.subtle]}>
+              {t('order.deliveryPhone', 'SĐT nhận hàng')}
+            </Text>
+            <Text style={[s.value, theme.value]}>{order.deliveryPhone}</Text>
+          </View>
+        )}
         {order.description ? (
           <View style={s.row}>
             <Text style={[s.label, theme.subtle]}>

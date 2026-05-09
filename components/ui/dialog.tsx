@@ -193,7 +193,7 @@ function DialogContent({
       >
         <View
           className={cn(
-            'w-full rounded-lg border border-gray-200 bg-white p-6 shadow-lg dark:border-gray-700 dark:bg-gray-800',
+            'w-full rounded-lg border border-gray-200 bg-white p-6 shadow-lg dark:border-[#2e2e2e] dark:bg-[#1c1c1e]',
             className,
           )}
         >

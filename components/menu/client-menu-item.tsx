@@ -80,7 +80,7 @@ export const ClientMenuItem = React.memo(function ClientMenuItem({
   const hasPromotion = item.promotion && item.promotion.value > 0
 
   return (
-    <View className="min-h-[2rem] flex-row justify-between overflow-hidden rounded-xl border border-gray-200 sm:flex-col dark:border-gray-700 dark:bg-gray-800">
+    <View className="min-h-[2rem] flex-row justify-between overflow-hidden rounded-xl border border-gray-200 sm:flex-col dark:border-[#2e2e2e] dark:bg-[#1c1c1e]">
       {/* Image */}
       <NativeGesturePressable
         navigation={{
@@ -108,7 +108,7 @@ export const ClientMenuItem = React.memo(function ClientMenuItem({
         }`}
       >
         <View
-          className="relative h-full w-full overflow-hidden rounded-xl bg-gray-100 dark:bg-gray-700"
+          className="relative h-full w-full overflow-hidden rounded-xl bg-gray-100 dark:bg-[#2e2e2e]"
           style={{ aspectRatio: 1 }}
         >
           {imageUrl ? (

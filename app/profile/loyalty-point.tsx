@@ -63,8 +63,8 @@ const StatsStrip = memo(function StatsStrip({
 }) {
   const { t } = useTranslation('profile')
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const bg = isDark ? colors.gray[800] : colors.gray[50]
-  const borderColor = isDark ? colors.gray[700] : colors.gray[100]
+  const bg = isDark ? colors.background.dark : colors.gray[50]
+  const borderColor = isDark ? colors.border.dark : colors.gray[100]
 
   const { totalEarned, totalSpent, currentPoints } = useMemo(
     () => calculateTotalPoints(history),
@@ -162,7 +162,7 @@ const TypeFilterBar = memo(function TypeFilterBar({
     [t, tCommon],
   )
 
-  const chipBg = isDark ? colors.gray[800] : colors.white.light
+  const chipBg = isDark ? colors.border.dark : colors.white.light
   const inactiveText = isDark ? colors.gray[400] : colors.gray[500]
 
   return (

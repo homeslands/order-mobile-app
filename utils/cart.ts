@@ -43,7 +43,15 @@ export function transformOrderItemToOrderDetail(
       RUNNING: 0,
     },
     subtotal: (item.originalPrice || 0) * item.quantity,
-    variant: item.variant,
+    // Ensure variant.product.name is populated: the menu API's nested variant
+    // object may omit the product back-reference, but IOrderItem.name always
+    // has the correct product name.
+    variant: item.variant.product?.name
+      ? item.variant
+      : {
+          ...item.variant,
+          product: { ...item.variant.product, name: item.name },
+        },
     size: item.variant.size,
     trackingOrderItems: [],
     promotion: item.promotion

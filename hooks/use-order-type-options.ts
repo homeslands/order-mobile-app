@@ -9,7 +9,6 @@ import {
 import { useGetSystemFeatureFlagsByGroup } from '@/hooks'
 import { useOrderFlowStore, useUserStore } from '@/stores'
 import { OrderTypeEnum } from '@/types'
-import { useShallow } from 'zustand/react/shallow'
 
 export interface OrderTypeOption {
   label: string
@@ -33,10 +32,7 @@ export function useOrderTypeOptions(options?: UseOrderTypeOptionsOptions) {
 
   const cartItems = getCartItems()
   // Check if user is logged in
-  const userInfo = useUserStore(useShallow((s) => s.userInfo))
-  const isUserLoggedIn = useMemo(() => {
-    return !!userInfo
-  }, [userInfo])
+  const isUserLoggedIn = useUserStore((s) => !!s.userInfo)
 
   // Wrap featureFlags in useMemo to avoid changing dependencies
   const featureFlags = useMemo(
@@ -76,6 +72,7 @@ export function useOrderTypeOptions(options?: UseOrderTypeOptionsOptions) {
     const orderTypeToFeatureMap: Record<string, string> = {
       [OrderTypeEnum.AT_TABLE]: SystemLockFeatureChild.AT_TABLE,
       [OrderTypeEnum.TAKE_OUT]: SystemLockFeatureChild.TAKE_OUT,
+      [OrderTypeEnum.DELIVERY]: SystemLockFeatureChild.DELIVERY,
     }
 
     const allTypes: OrderTypeOption[] = [
@@ -89,6 +86,19 @@ export function useOrderTypeOptions(options?: UseOrderTypeOptionsOptions) {
       },
     ]
 
+    // Add DELIVERY for logged-in users
+    if (isUserLoggedIn) {
+      const hasDelivery = relevantParentFeature?.children?.some(
+        (child) => child.name === SystemLockFeatureChild.DELIVERY,
+      )
+      if (hasDelivery) {
+        allTypes.push({
+          value: OrderTypeEnum.DELIVERY,
+          label: t('menu.delivery'),
+        })
+      }
+    }
+
     // Lọc bỏ các order type bị locked (isLocked = true)
     const availableTypes = allTypes.filter((type) => {
       const featureKey = orderTypeToFeatureMap[type.value]
@@ -97,7 +107,7 @@ export function useOrderTypeOptions(options?: UseOrderTypeOptionsOptions) {
     })
 
     return availableTypes
-  }, [t, orderTypeLockStatus])
+  }, [t, orderTypeLockStatus, isUserLoggedIn, relevantParentFeature?.children])
 
   const selectedType = useMemo(() => {
     if (cartItems?.type) {

@@ -34,7 +34,7 @@ export default function QuantitySelector({
           variant="outline"
           size="sm"
           onPress={handleDecrement}
-          className="h-fit w-fit rounded-full border border-gray-300 p-1.5 dark:border-gray-700"
+          className="h-fit w-fit rounded-full border border-gray-300 p-1.5 dark:border-[#2e2e2e]"
           disabled={disabled || value <= min}
         >
           <Minus size={12} color="#6b7280" />
@@ -46,7 +46,7 @@ export default function QuantitySelector({
           variant="outline"
           size="sm"
           onPress={handleIncrement}
-          className="h-fit w-fit rounded-full border border-gray-300 p-1.5 dark:border-gray-700"
+          className="h-fit w-fit rounded-full border border-gray-300 p-1.5 dark:border-[#2e2e2e]"
           disabled={disabled}
         >
           <Plus size={12} color="#6b7280" />

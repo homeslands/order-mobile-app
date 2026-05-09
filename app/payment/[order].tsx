@@ -3,7 +3,7 @@ import { FloatingHeader } from '@/components/navigation/floating-header'
 import { useFocusEffect } from '@react-navigation/native'
 import { Image as ExpoImage } from 'expo-image'
 import { useLocalSearchParams } from 'expo-router'
-import { CircleAlert, CircleX, Ticket } from 'lucide-react-native'
+import { CircleAlert, CircleX, Download, Ticket } from 'lucide-react-native'
 import React, {
   memo,
   useCallback,
@@ -58,6 +58,7 @@ import { useNotificationStore, useUserStore } from '@/stores'
 import { OrderStatus } from '@/types'
 import {
   calculateOrderDisplayAndTotals,
+  downloadAndSaveImage,
   formatCurrency,
   showErrorToast,
   showErrorToastMessage,
@@ -73,26 +74,49 @@ import { PaymentProductItem } from './payment-product-item'
 import { PaymentSummaryCard } from './payment-summary-card'
 import { PointConfirmDialog } from './payment-point-confirm-dialog'
 
+// DEV-only: sample VietQR image for testing download when bank sandbox is unavailable
+const DEV_SAMPLE_QR_URL = __DEV__
+  ? 'https://img.vietqr.io/image/VCB-1234567890-compact2.png?amount=100000&addInfo=TEST%20SAMPLE&accountName=TREND%20COFFEE'
+  : null
+
 function PaymentSkeletonShell() {
+  const isDark = useColorScheme() === 'dark'
+  const cardStyle = {
+    backgroundColor: isDark ? colors.card.dark : colors.white.light,
+    borderColor: isDark ? colors.border.dark : colors.gray[100],
+  }
   return (
     <ScreenContainer
       edges={['top']}
-      style={{ flex: 1, backgroundColor: colors.background.light }}
+      style={{
+        flex: 1,
+        backgroundColor: isDark
+          ? colors.background.dark
+          : colors.background.light,
+      }}
     >
-      <View style={skeletonStyles.header}>
+      <View
+        style={[
+          skeletonStyles.header,
+          {
+            backgroundColor: isDark ? colors.card.dark : colors.white.light,
+            borderBottomColor: isDark ? colors.border.dark : colors.gray[200],
+          },
+        ]}
+      >
         <Skeleton
           style={{ width: 32, height: 32, borderRadius: 16, marginRight: 12 }}
         />
         <Skeleton style={{ height: 20, width: 192, borderRadius: 6 }} />
       </View>
       <ScrollView contentContainerStyle={{ padding: 16 }}>
-        <View style={skeletonStyles.card}>
+        <View style={[skeletonStyles.card, cardStyle]}>
           <Skeleton style={{ height: 16, width: 128, borderRadius: 6 }} />
           <Skeleton style={{ height: 24, width: 160, borderRadius: 6 }} />
           <Skeleton style={{ height: 16, width: 112, borderRadius: 6 }} />
           <Skeleton style={{ height: 16, width: 96, borderRadius: 6 }} />
         </View>
-        <View style={skeletonStyles.card}>
+        <View style={[skeletonStyles.card, cardStyle]}>
           <Skeleton style={{ height: 16, width: 160, borderRadius: 6 }} />
           <Skeleton style={{ height: 40, width: '100%', borderRadius: 8 }} />
           <Skeleton style={{ height: 40, width: '100%', borderRadius: 8 }} />
@@ -150,16 +174,30 @@ const QRSection = React.memo(function QRSection({
   isDark: boolean
 }) {
   const { t } = useTranslation('menu')
+  const isDownloading = useRef(false)
+
+  const activeQrUrl = qrCode || paymentQrCode || ''
+
+  const handleDownload = useCallback(() => {
+    if (isDownloading.current || !activeQrUrl) return
+    isDownloading.current = true
+    void downloadAndSaveImage(activeQrUrl, `payment_qr_${Date.now()}`).finally(
+      () => {
+        isDownloading.current = false
+      },
+    )
+  }, [activeQrUrl])
+
   return (
     <View
       style={[
         ps.qrSection,
-        { borderTopColor: isDark ? colors.gray[700] : colors.gray[100] },
+        { borderTopColor: isDark ? colors.border.dark : colors.gray[100] },
       ]}
     >
       <View style={ps.qrCenter}>
         <ExpoImage
-          source={qrCode || paymentQrCode || ''}
+          source={activeQrUrl}
           style={ps.qrImage}
           contentFit="contain"
           cachePolicy="none"
@@ -192,6 +230,15 @@ const QRSection = React.memo(function QRSection({
               {t('paymentMethod.paymentNote')}
             </Text>
           </View>
+          <Pressable
+            onPress={handleDownload}
+            style={[ps.qrDownloadBtn, { borderColor: primaryColor }]}
+          >
+            <Download size={13} color={primaryColor} />
+            <Text style={[ps.qrDownloadText, { color: primaryColor }]}>
+              {t('paymentMethod.downloadQRCode')}
+            </Text>
+          </Pressable>
         </View>
       </View>
     </View>
@@ -230,8 +277,8 @@ const PaymentMethodSection = React.memo(function PaymentMethodSection({
       style={[
         ps.card,
         {
-          backgroundColor: isDark ? colors.gray[800] : colors.white.light,
-          borderColor: isDark ? colors.gray[700] : colors.gray[100],
+          backgroundColor: isDark ? colors.card.dark : colors.white.light,
+          borderColor: isDark ? colors.border.dark : colors.gray[100],
         },
       ]}
     >
@@ -239,8 +286,8 @@ const PaymentMethodSection = React.memo(function PaymentMethodSection({
         style={[
           pSectionStyles.cardHeader,
           {
-            backgroundColor: isDark ? colors.gray[900] : colors.gray[50],
-            borderBottomColor: isDark ? colors.gray[700] : colors.gray[100],
+            backgroundColor: isDark ? colors.background.dark : colors.gray[50],
+            borderBottomColor: isDark ? colors.border.dark : colors.gray[100],
           },
         ]}
       >
@@ -251,17 +298,6 @@ const PaymentMethodSection = React.memo(function PaymentMethodSection({
           ]}
         >
           {t('paymentMethod.title')}
-        </Text>
-        <Text
-          style={[
-            ps.xsText,
-            {
-              color: isDark ? colors.gray[400] : colors.gray[500],
-              marginTop: 4,
-            },
-          ]}
-        >
-          ({t('paymentMethod.cashMethodNote')})
         </Text>
       </View>
       <View style={pSectionStyles.cardBody}>
@@ -301,10 +337,11 @@ const PaymentMethodSection = React.memo(function PaymentMethodSection({
           </Text>
         </View>
       )}
-      {(qrCode || order.payment?.qrCode) &&
-        order.payment?.paymentMethod === PaymentMethod.BANK_TRANSFER && (
+      {(order.payment?.paymentMethod === PaymentMethod.BANK_TRANSFER ||
+        (__DEV__ && selectedMethod === PaymentMethod.BANK_TRANSFER)) &&
+        (qrCode || order.payment?.qrCode || DEV_SAMPLE_QR_URL) && (
           <QRSection
-            qrCode={qrCode}
+            qrCode={qrCode || DEV_SAMPLE_QR_URL}
             paymentQrCode={order.payment?.qrCode}
             subtotal={order.subtotal || 0}
             primaryColor={primaryColor}
@@ -366,7 +403,7 @@ const PaymentSuccessScreen = React.memo(function PaymentSuccessScreen({
             style={[
               suc.btnSecondary,
               {
-                backgroundColor: isDark ? colors.gray[700] : colors.gray[100],
+                backgroundColor: isDark ? colors.border.dark : colors.gray[100],
                 borderColor: isDark ? colors.gray[500] : colors.gray[300],
                 flex: 1,
               },
@@ -575,8 +612,8 @@ const BottomActionBar = React.memo(function BottomActionBar({
   const barStyle = useMemo(
     () => ({
       paddingBottom: insetBottom + FOOTER_BOTTOM_EXTRA,
-      backgroundColor: isDark ? colors.gray[800] : colors.white.light,
-      borderTopColor: isDark ? colors.gray[700] : colors.gray[200],
+      backgroundColor: isDark ? colors.card.dark : colors.white.light,
+      borderTopColor: isDark ? colors.border.dark : colors.gray[200],
     }),
     [insetBottom, isDark],
   )
@@ -1097,7 +1134,7 @@ function PaymentPageContent() {
             {t('menu.noData')}
           </Text>
           <Pressable
-            onPress={handleBack}
+            onPress={() => navigateNative.replace(TAB_ROUTES.HOME)}
             style={[
               ps.checkoutBtn,
               {
@@ -1107,7 +1144,7 @@ function PaymentPageContent() {
               },
             ]}
           >
-            <Text style={ps.checkoutBtnText}>{tCommon('common.goBack')}</Text>
+            <Text style={ps.checkoutBtnText}>{tCommon('common.goHome')}</Text>
           </Pressable>
         </View>
       </ScreenContainer>
@@ -1181,9 +1218,9 @@ function PaymentPageContent() {
                 ps.card,
                 {
                   backgroundColor: isDark
-                    ? colors.gray[800]
+                    ? colors.card.dark
                     : colors.white.light,
-                  borderColor: isDark ? colors.gray[700] : colors.gray[100],
+                  borderColor: isDark ? colors.border.dark : colors.gray[100],
                   padding: 16,
                 },
               ]}
@@ -1224,9 +1261,9 @@ function PaymentPageContent() {
                   ps.voucherTrigger,
                   {
                     backgroundColor: isDark
-                      ? colors.gray[800]
+                      ? colors.card.dark
                       : colors.white.light,
-                    borderColor: isDark ? colors.gray[700] : colors.gray[100],
+                    borderColor: isDark ? colors.border.dark : colors.gray[100],
                   },
                 ]}
               >
@@ -1398,9 +1435,19 @@ const ps = StyleSheet.create({
   qrImage: { width: '40%', aspectRatio: 1 },
   qrInfoCol: { gap: 8, alignItems: 'center', marginTop: 8 },
   qrTotalRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  qrNoteRow: {
+  qrDownloadBtn: {
     flexDirection: 'row',
     alignItems: 'center',
+    gap: 5,
+    borderWidth: 1.5,
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  qrDownloadText: { fontSize: 13, fontWeight: '600' },
+  qrNoteRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     gap: 4,
     paddingHorizontal: 16,
   },

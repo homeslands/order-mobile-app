@@ -265,7 +265,7 @@ function SheetContent({
         style={[
           {
             position: 'absolute',
-            backgroundColor: isDark ? colors.gray[800] : colors.white.light,
+            backgroundColor: isDark ? colors.card.dark : colors.white.light,
             shadowColor: '#000',
             shadowOffset: {
               width: 0,

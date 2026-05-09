@@ -42,7 +42,7 @@ export const GiftCardExistsWarningDialog = memo(
 
     const textColor = isDark ? colors.gray[50] : colors.gray[900]
     const subColor = isDark ? colors.gray[400] : colors.gray[500]
-    const borderColor = isDark ? colors.gray[700] : colors.gray[200]
+    const borderColor = isDark ? colors.border.dark : colors.gray[200]
     const { t } = useTranslation('giftCard')
 
     useEffect(() => {
@@ -83,7 +83,7 @@ export const GiftCardExistsWarningDialog = memo(
         enableDynamicSizing={false}
         backdropComponent={renderBackdrop}
         backgroundStyle={{
-          backgroundColor: isDark ? colors.gray[900] : colors.white.light,
+          backgroundColor: isDark ? colors.card.dark : colors.white.light,
         }}
         handleIndicatorStyle={{
           backgroundColor: isDark ? colors.gray[600] : colors.gray[300],
@@ -146,7 +146,7 @@ export const GiftCardExistsWarningDialog = memo(
                   s.btn,
                   {
                     backgroundColor: isDark
-                      ? colors.gray[700]
+                      ? colors.border.dark
                       : colors.gray[100],
                   },
                 ]}

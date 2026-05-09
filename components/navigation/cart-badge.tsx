@@ -7,7 +7,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated'
 
-import { SPRING_CONFIGS } from '@/constants'
+import { SPRING_CONFIGS, colors } from '@/constants'
 import { useOrderFlowCartItemCount } from '@/stores/selectors'
 
 /** Badge số lượng giỏ hàng — chỉ subscribe cartItemCount, tránh re-render toàn header khi add item */
@@ -41,7 +41,7 @@ export const CartBadge = React.memo(function CartBadge() {
       style={[
         {
           borderWidth: 2,
-          borderColor: isDark ? '#1f2937' : '#ffffff',
+          borderColor: isDark ? colors.background.dark : '#ffffff',
         },
         animatedStyle,
       ]}

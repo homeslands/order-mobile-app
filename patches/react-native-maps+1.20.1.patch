@@ -1,0 +1,27 @@
+diff --git a/node_modules/react-native-maps/lib/MapView.js b/node_modules/react-native-maps/lib/MapView.js
+index 8783539..d27edb3 100644
+--- a/node_modules/react-native-maps/lib/MapView.js
++++ b/node_modules/react-native-maps/lib/MapView.js
+@@ -349,8 +349,12 @@ class MapView extends React.Component {
+       </decorateMapComponent_1.ProviderContext.Provider>);
+     }
+ }
++// Cache native components globally so HMR re-evaluation does not call
++// requireNativeComponent twice (throws "Tried to register two views
++// with the same name AIRMap").
++const _rnmG = global;
+ const airMaps = {
+-    default: (0, react_native_1.requireNativeComponent)('AIRMap'),
++    default: _rnmG.__RN_MAPS_AIRMap__ || (_rnmG.__RN_MAPS_AIRMap__ = (0, react_native_1.requireNativeComponent)('AIRMap')),
+     google: () => null,
+ };
+ if (react_native_1.Platform.OS === 'android') {
+@@ -358,7 +362,7 @@ if (react_native_1.Platform.OS === 'android') {
+ }
+ else {
+     airMaps.google = decorateMapComponent_1.googleMapIsInstalled
+-        ? (0, react_native_1.requireNativeComponent)('AIRGoogleMap')
++        ? (_rnmG.__RN_MAPS_AIRGoogleMap__ || (_rnmG.__RN_MAPS_AIRGoogleMap__ = (0, react_native_1.requireNativeComponent)('AIRGoogleMap')))
+         : (0, decorateMapComponent_1.createNotSupportedComponent)('react-native-maps: AirGoogleMaps dir must be added to your xCode project to support GoogleMaps on iOS.');
+ }
+ const getNativeMapComponent = (provider) => airMaps[provider || 'default'];

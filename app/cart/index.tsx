@@ -19,8 +19,8 @@ function CartShell({ onBack }: { onBack: () => void }) {
           </Text>
         </TouchableOpacity>
       </View>
-      <View className="h-24 rounded-xl bg-gray-100 dark:bg-gray-800" />
-      <View className="mt-3 h-24 rounded-xl bg-gray-100 dark:bg-gray-800" />
+      <View className="h-24 rounded-xl bg-gray-100 dark:bg-[#2e2e2e]" />
+      <View className="mt-3 h-24 rounded-xl bg-gray-100 dark:bg-[#2e2e2e]" />
     </View>
   )
 }

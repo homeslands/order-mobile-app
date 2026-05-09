@@ -82,7 +82,7 @@ function applyOtpBuffer(expiresAt: string): string {
 
 export default function ForgotPasswordScreen() {
   const isDark = useColorScheme() === 'dark'
-  const bgColor = isDark ? colors.gray[900] : '#ffffff'
+  const bgColor = isDark ? colors.background.dark : '#ffffff'
   const { t } = useTranslation('auth')
   const { t: tToast } = useTranslation('toast')
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated())

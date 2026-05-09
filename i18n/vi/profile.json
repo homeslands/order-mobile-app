@@ -1,6 +1,6 @@
 {
   "profile": {
-    "edit": "Chỉnh sửa",
+    "edit": "Sửa",
     "accountAndSecurity": "Tài khoản và bảo mật",
     "orderHistory": {
       "title": "Lịch sử đơn hàng"
@@ -447,7 +447,8 @@
       "memberId": "Mã định danh",
       "memberIdDesc": "Nhân viên quét mã tại quầy",
       "coinPayment": "Thanh toán Xu",
-      "coinPaymentDesc": "Quét QR để thanh toán bằng xu"
+      "coinPaymentDesc": "Quét QR để thanh toán bằng xu",
+      "downloadButton": "Lưu QR vào ảnh"
     },
     "orderStatus": {
       "completed": "Hoàn thành",

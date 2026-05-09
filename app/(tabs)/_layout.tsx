@@ -11,10 +11,12 @@ import React, {
   useLayoutEffect,
   useMemo,
   useRef,
+  useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { View, useColorScheme } from 'react-native'
+import { Platform, View, useColorScheme } from 'react-native'
 import Animated, {
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withTiming,
@@ -266,8 +268,15 @@ export default function TabsLayout() {
     // để tránh re-render tab bar trong lúc transition đang chạy.
     //
     // targetSdk=35 → Android 15 enforce edge-to-edge → inset đã bao gồm gesture bar.
-    // VISUAL_GAP = 10 đảm bảo khoảng thở rõ ràng giữa pill và cạnh màn trên mọi device.
-    const VISUAL_GAP = 10
+    // iOS home indicator (~34px) dày hơn Android gesture bar (~24px). Nếu cộng
+    // VISUAL_GAP=10 cho cả 2, tab bar iOS sẽ cao hơn Android ~10px → cảm giác
+    // lệch. Trên iPhone notch/Dynamic Island, inset đã đủ breathing room nên
+    // bỏ VISUAL_GAP để match Android. iPhone SE (inset=0) vẫn cần gap.
+    // iPhone notch/Dynamic Island: kéo pill xuống gần home indicator hơn để
+    // đỡ cao so với Android gesture nav — VISUAL_GAP âm cho phép pill overlap
+    // vào vùng safe area (home indicator do system vẽ đè lên, không bị che).
+    const hasHomeIndicator = Platform.OS === 'ios' && STATIC_BOTTOM_INSET > 0
+    const VISUAL_GAP = hasHomeIndicator ? -8 : 10
     const gap = STATIC_BOTTOM_INSET + VISUAL_GAP
     const bgHeight = BAR_HEIGHT + BAR_PADDING + gap
     return {
@@ -277,13 +286,38 @@ export default function TabsLayout() {
   }, [])
 
   const barOpacity = useSharedValue(shouldHideBottomBar ? 0 : 1)
+  // Unmount toàn bộ bar + gradient khi ẩn xong để iOS compositor không phải
+  // blend gradient 8-stop full-width trên Cart/Product/Payment/Auth screens.
+  // Giữ mounted trong lúc fade-out (để animation chạy), chỉ unmount sau khi
+  // opacity đạt 0. Khi hiển thị lại, reset ngay trong render để mount trước,
+  // rồi fade-in trong effect.
+  const [hasFadedOut, setHasFadedOut] = useState(shouldHideBottomBar)
+  // "Adjust state during render" pattern (React docs) — khi user quay lại tab
+  // visible, reset cờ ngay lập tức để mount component cùng render đó, tránh
+  // delay 1 frame nếu làm trong useEffect.
+  if (!shouldHideBottomBar && hasFadedOut) {
+    setHasFadedOut(false)
+  }
+  const isBarMounted = !hasFadedOut
   useEffect(() => {
     // Sync duration với stack transition để tab bar fade đồng bộ với slide —
     // nếu ngắn hơn (trước là 150ms), bar biến mất trước khi slide xong, cảm
     // giác disconnect.
-    barOpacity.value = withTiming(shouldHideBottomBar ? 0 : 1, {
-      duration: MOTION.nativeStack.durationMs,
-    })
+    if (shouldHideBottomBar) {
+      barOpacity.value = withTiming(
+        0,
+        { duration: MOTION.nativeStack.durationMs },
+        (finished) => {
+          // finished=false khi animation bị huỷ bởi lần render mới (user quay
+          // lại tab nhanh) → bỏ qua để không unmount nhầm.
+          if (finished) runOnJS(setHasFadedOut)(true)
+        },
+      )
+    } else {
+      barOpacity.value = withTiming(1, {
+        duration: MOTION.nativeStack.durationMs,
+      })
+    }
   }, [shouldHideBottomBar, barOpacity])
 
   const barAnimatedStyle = useAnimatedStyle(() => ({
@@ -292,59 +326,64 @@ export default function TabsLayout() {
 
   return (
     <View style={{ flex: 1 }}>
-      <Animated.View
-        renderToHardwareTextureAndroid
-        shouldRasterizeIOS
-        style={[
-          {
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            zIndex: 10,
-          },
-          barAnimatedStyle,
-        ]}
-        pointerEvents={shouldHideBottomBar ? 'none' : 'box-none'}
-      >
-        <View
-          style={{
-            height: totalBottomHeight,
-            pointerEvents: 'none',
-          }}
+      {/* Không dùng shouldRasterizeIOS/renderToHardwareTextureAndroid ở đây:
+          indicator trong AnimatedTabBar animate mỗi frame spring, cache bitmap
+          sẽ bị invalidate liên tục → ngược tác dụng. */}
+      {isBarMounted && (
+        <Animated.View
+          style={[
+            {
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              zIndex: 10,
+            },
+            barAnimatedStyle,
+          ]}
+          pointerEvents={shouldHideBottomBar ? 'none' : 'box-none'}
         >
-          <LinearGradient
-            colors={gradientColors as unknown as [string, string, ...string[]]}
-            locations={[0, 0.15, 0.25, 0.35, 0.45, 0.55, 0.7, 1]}
-            style={{ flex: 1 }}
-          />
-        </View>
-        <View
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            paddingBottom: bottomGap,
-            paddingHorizontal: 16,
-            paddingTop: 8,
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: 12,
-          }}
-        >
-          <AnimatedTabBar
-            t={t}
-            colors={tabColors}
-            tabState={resolvedTabState}
-            tabRoutes={tabRoutes}
-            onPressInTabSwitch={onPressInTabSwitch}
-            onBeforeTabSwitch={undefined}
-          />
-          <FloatingCartButton primaryColor={colors.primary} />
-        </View>
-      </Animated.View>
+          <View
+            style={{
+              height: totalBottomHeight,
+              pointerEvents: 'none',
+            }}
+          >
+            <LinearGradient
+              colors={
+                gradientColors as unknown as [string, string, ...string[]]
+              }
+              locations={[0, 0.15, 0.25, 0.35, 0.45, 0.55, 0.7, 1]}
+              style={{ flex: 1 }}
+            />
+          </View>
+          <View
+            style={{
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              paddingBottom: bottomGap,
+              paddingHorizontal: 16,
+              paddingTop: 8,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 12,
+            }}
+          >
+            <AnimatedTabBar
+              t={t}
+              colors={tabColors}
+              tabState={resolvedTabState}
+              tabRoutes={tabRoutes}
+              onPressInTabSwitch={onPressInTabSwitch}
+              onBeforeTabSwitch={undefined}
+            />
+            <FloatingCartButton primaryColor={colors.primary} />
+          </View>
+        </Animated.View>
+      )}
 
       {/* detachInactiveScreens=false — trade RAM ~100MB để fix stuck bug với
           nested CustomStack trong profile tab. Rapid tab switch gây detach queue

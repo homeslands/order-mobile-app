@@ -26,7 +26,8 @@ export function NoteInput({
           value={value}
           defaultValue={value}
           className={
-            className || 'min-h-[60px] text-sm shadow-none dark:border-gray-700'
+            className ||
+            'min-h-[60px] text-sm shadow-none dark:border-[#2e2e2e]'
           }
           placeholder={placeholder}
           onChangeText={onChange}

@@ -213,7 +213,7 @@ export const DateOfBirthWheelPicker = forwardRef<
       enablePanDownToClose
       backdropComponent={renderBackdrop}
       backgroundStyle={{
-        backgroundColor: isDark ? colors.gray[800] : colors.white.light,
+        backgroundColor: isDark ? colors.card.dark : colors.white.light,
       }}
       handleIndicatorStyle={{ backgroundColor: mutedColor }}
       containerStyle={{ zIndex: 99999, elevation: 99999 }}

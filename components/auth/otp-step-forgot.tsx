@@ -14,7 +14,8 @@ import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated'
 
-import { AnimatedCountdownText, OTPInput } from '@/components/auth'
+import { AnimatedCountdownText } from './animated-countdown-text'
+import { OTPInput } from './otp-input'
 import { Button } from '@/components/ui'
 import { useAnimatedCountdown } from '@/hooks'
 

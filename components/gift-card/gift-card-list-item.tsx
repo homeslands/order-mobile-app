@@ -33,10 +33,10 @@ export const GiftCardListItem = memo(
     const imageUrl = getProductImageUrl(item.image)
     const { t } = useTranslation('giftCard')
 
-    const cardBg = isDark ? colors.gray[900] : colors.white.light
+    const cardBg = isDark ? colors.card.dark : colors.white.light
     const titleColor = isDark ? colors.gray[50] : colors.gray[900]
     const priceColor = isDark ? colors.gray[200] : colors.gray[800]
-    const imgBg = isDark ? colors.gray[800] : colors.gray[100]
+    const imgBg = isDark ? colors.border.dark : colors.gray[100]
 
     return (
       <View style={s.wrapper}>
@@ -48,7 +48,7 @@ export const GiftCardListItem = memo(
               borderColor: inCart
                 ? primaryColor
                 : isDark
-                  ? colors.gray[700]
+                  ? colors.border.dark
                   : colors.gray[100],
               borderWidth: inCart ? 1.5 : 1,
             },

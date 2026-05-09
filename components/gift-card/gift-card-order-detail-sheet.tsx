@@ -39,12 +39,31 @@ import { formatCurrency } from '@/utils'
 
 const SNAP_POINTS = ['80%']
 
-const PAYMENT_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  COMPLETED: { bg: '#dcfce7', text: '#16a34a' },
-  PAID: { bg: '#dcfce7', text: '#16a34a' },
-  PENDING: { bg: '#fef9c3', text: '#b45309' },
-  FAILED: { bg: '#fee2e2', text: '#dc2626' },
-  CANCELLED: { bg: '#fee2e2', text: '#dc2626' },
+function getPaymentStatusColors(
+  isDark: boolean,
+): Record<string, { bg: string; text: string }> {
+  return {
+    COMPLETED: {
+      bg: isDark ? '#14532d' : '#dcfce7',
+      text: isDark ? '#86efac' : '#16a34a',
+    },
+    PAID: {
+      bg: isDark ? '#14532d' : '#dcfce7',
+      text: isDark ? '#86efac' : '#16a34a',
+    },
+    PENDING: {
+      bg: isDark ? '#713f12' : '#fef9c3',
+      text: isDark ? '#fde68a' : '#b45309',
+    },
+    FAILED: {
+      bg: isDark ? '#7f1d1d' : '#fee2e2',
+      text: isDark ? '#fca5a5' : '#dc2626',
+    },
+    CANCELLED: {
+      bg: isDark ? '#7f1d1d' : '#fee2e2',
+      text: isDark ? '#fca5a5' : '#dc2626',
+    },
+  }
 }
 
 // ─── CopyableInline ───────────────────────────────────────────────────────────
@@ -161,11 +180,11 @@ export const GiftCardOrderDetailSheet = memo(function GiftCardOrderDetailSheet({
   )
 
   // Derived
-  const bg = isDark ? colors.gray[900] : colors.white.light
+  const bg = isDark ? colors.card.dark : colors.white.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const borderColor = isDark ? colors.gray[700] : colors.gray[200]
-  const cardBg = isDark ? colors.gray[800] : colors.gray[50]
+  const borderColor = isDark ? colors.border.dark : colors.gray[200]
+  const cardBg = isDark ? colors.background.dark : colors.gray[50]
 
   const paymentStatusLabelMap = useMemo(
     () => ({
@@ -192,16 +211,17 @@ export const GiftCardOrderDetailSheet = memo(function GiftCardOrderDetailSheet({
   const statusCfg = useMemo(() => {
     if (!order) return null
     const key = (order.paymentStatus ?? '').toUpperCase()
-    const colors = PAYMENT_STATUS_COLORS[key]
-    return colors
+    const statusColors = getPaymentStatusColors(isDark)
+    const cfg = statusColors[key]
+    return cfg
       ? {
-          ...colors,
+          ...cfg,
           label:
             paymentStatusLabelMap[key as keyof typeof paymentStatusLabelMap] ??
             order.paymentStatus,
         }
       : { bg: cardBg, text: subColor, label: order.paymentStatus }
-  }, [order, paymentStatusLabelMap, cardBg, subColor])
+  }, [order, isDark, paymentStatusLabelMap, cardBg, subColor])
 
   const typeLabel =
     order?.type === GiftCardType.GIFT
@@ -234,6 +254,12 @@ export const GiftCardOrderDetailSheet = memo(function GiftCardOrderDetailSheet({
 
   const giftCards = order?.giftCards ?? []
   const hasGiftCards = giftCards.length > 0 && order?.type === GiftCardType.BUY
+  // "receipients" is a typo in the backend contract — mirrors API field name exactly
+  const recipients = useMemo(
+    () => order?.receipients ?? [],
+    [order?.receipients],
+  )
+  const isGiftType = order?.type === GiftCardType.GIFT
 
   return (
     <BottomSheetModal
@@ -349,6 +375,74 @@ export const GiftCardOrderDetailSheet = memo(function GiftCardOrderDetailSheet({
                 />
               </InfoRow>
             </View>
+
+            {/* ── Sender + Recipients (GIFT type) ──────────────────── */}
+            {isGiftType && (
+              <>
+                <Text style={[s.sectionTitle, { color: subColor }]}>
+                  {t('orderDetail.sender')}
+                </Text>
+                <View
+                  style={[s.card, { backgroundColor: cardBg, borderColor }]}
+                >
+                  <View style={s.personRow}>
+                    <View style={s.personTopLine}>
+                      <Text style={[s.personName, { color: textColor }]}>
+                        {order.customerName}
+                      </Text>
+                      <Text style={[s.personPhone, { color: subColor }]}>
+                        {order.customerPhone}
+                      </Text>
+                    </View>
+                  </View>
+                </View>
+
+                {recipients.length > 0 && (
+                  <>
+                    <Text style={[s.sectionTitle, { color: subColor }]}>
+                      {t('orderDetail.recipientsSection')}
+                    </Text>
+                    <View
+                      style={[s.card, { backgroundColor: cardBg, borderColor }]}
+                    >
+                      {recipients.map((r, i) => (
+                        <View key={r.slug}>
+                          <View style={s.personRow}>
+                            <View style={s.personTopLine}>
+                              <Text
+                                style={[s.personName, { color: textColor }]}
+                              >
+                                {r.name}
+                              </Text>
+                              <Text
+                                style={[s.personPhone, { color: subColor }]}
+                              >
+                                {r.phone}
+                              </Text>
+                            </View>
+                            {!!r.message && (
+                              <Text
+                                style={[s.personMessage, { color: subColor }]}
+                              >
+                                {r.message}
+                              </Text>
+                            )}
+                          </View>
+                          {i < recipients.length - 1 && (
+                            <View
+                              style={[
+                                s.divider,
+                                { backgroundColor: borderColor },
+                              ]}
+                            />
+                          )}
+                        </View>
+                      ))}
+                    </View>
+                  </>
+                )}
+              </>
+            )}
 
             {/* ── Gift cards list ───────────────────────────────────── */}
             {hasGiftCards && (
@@ -473,4 +567,19 @@ const s = StyleSheet.create({
     letterSpacing: 0.3,
   },
   gcVal: { fontSize: 13, fontWeight: '700' },
+
+  // Person rows (sender / recipients)
+  personRow: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 4,
+  },
+  personTopLine: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  personName: { fontSize: 14, fontWeight: '600' },
+  personPhone: { fontSize: 13 },
+  personMessage: { fontSize: 12, fontStyle: 'italic' },
 })

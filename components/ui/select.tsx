@@ -86,8 +86,8 @@ function SelectTrigger({
       onPress={() => ctx.setOpen(true)}
       className={cn(
         'h-10 flex-row items-center justify-between rounded-md border px-3',
-        'bg-white dark:bg-gray-900',
-        'border-gray-200 dark:border-gray-700',
+        'bg-white dark:bg-[#1c1c1e]',
+        'border-gray-200 dark:border-[#2e2e2e]',
         className,
       )}
     >
@@ -221,8 +221,8 @@ function SelectContent({
         style={animatedStyle}
         className={cn(
           'absolute top-20 max-h-[300px] w-[90%] self-center',
-          'bg-white dark:bg-gray-900',
-          'border border-gray-200 dark:border-gray-700',
+          'bg-white dark:bg-[#1c1c1e]',
+          'border border-gray-200 dark:border-[#2e2e2e]',
           'rounded-md shadow-xl',
           className,
         )}
@@ -260,7 +260,7 @@ function SelectItem({
       }}
       className={cn(
         'h-10 flex-row items-center px-3',
-        selected && 'bg-gray-100 dark:bg-gray-800',
+        selected && 'bg-gray-100 dark:bg-[#2e2e2e]',
         className,
       )}
     >

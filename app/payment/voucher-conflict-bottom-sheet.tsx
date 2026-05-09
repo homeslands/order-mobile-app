@@ -53,7 +53,7 @@ const VoucherConflictBottomSheet = memo(function VoucherConflictBottomSheet({
   }, [visible])
 
   const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
+    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
     [isDark],
   )
 
@@ -72,7 +72,7 @@ const VoucherConflictBottomSheet = memo(function VoucherConflictBottomSheet({
 
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const borderColor = isDark ? colors.gray[700] : colors.gray[200]
+  const borderColor = isDark ? colors.border.dark : colors.gray[200]
 
   return (
     <BottomSheetModal
@@ -130,7 +130,9 @@ const VoucherConflictBottomSheet = memo(function VoucherConflictBottomSheet({
             disabled={isRemoving}
             style={[
               s.keepBtn,
-              { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] },
+              {
+                backgroundColor: isDark ? colors.border.dark : colors.gray[100],
+              },
             ]}
           >
             <Text style={[s.keepBtnText, { color: textColor }]}>

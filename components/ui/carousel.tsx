@@ -295,7 +295,7 @@ function CarouselPrevious({
       onPress={scrollPrev}
       disabled={!canScrollPrev}
       className={cn(
-        'absolute z-10 items-center justify-center rounded-full border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800',
+        'absolute z-10 items-center justify-center rounded-full border border-gray-200 bg-white dark:border-[#2e2e2e] dark:bg-[#1c1c1e]',
         orientation === 'horizontal'
           ? 'left-2 top-1/2 -translate-y-1/2'
           : 'left-1/2 top-2 -translate-x-1/2 rotate-90',
@@ -327,7 +327,7 @@ function CarouselNext({
       onPress={scrollNext}
       disabled={!canScrollNext}
       className={cn(
-        'absolute z-10 items-center justify-center rounded-full border border-gray-200 bg-white dark:border-gray-700 dark:bg-gray-800',
+        'absolute z-10 items-center justify-center rounded-full border border-gray-200 bg-white dark:border-[#2e2e2e] dark:bg-[#1c1c1e]',
         orientation === 'horizontal'
           ? 'right-2 top-1/2 -translate-y-1/2'
           : 'bottom-2 left-1/2 -translate-x-1/2 rotate-90',

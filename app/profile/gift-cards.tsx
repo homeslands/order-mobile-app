@@ -73,8 +73,8 @@ const StatsStrip = memo(function StatsStrip({
   ).length
 
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const bg = isDark ? colors.gray[800] : colors.gray[50]
-  const borderColor = isDark ? colors.gray[700] : colors.gray[100]
+  const bg = isDark ? colors.background.dark : colors.gray[50]
+  const borderColor = isDark ? colors.border.dark : colors.gray[100]
 
   const stats = [
     { label: t('status.available'), count: available, color: '#16a34a' },
@@ -130,7 +130,7 @@ const StatusQuickFilter = memo(function StatusQuickFilter({
 }) {
   const { t } = useTranslation('giftCard')
   const { t: tCommon } = useTranslation('common')
-  const chipBg = isDark ? colors.gray[800] : colors.white.light
+  const chipBg = isDark ? colors.border.dark : colors.white.light
   const inactiveText = isDark ? colors.gray[400] : colors.gray[500]
 
   const STATUS_OPTIONS_QUICK = useMemo(
@@ -227,14 +227,22 @@ function StatusPill({ status, isDark }: { status: string; isDark: boolean }) {
   const { t } = useTranslation('giftCard')
   const config =
     status === GiftCardUsageStatus.AVAILABLE
-      ? { bg: '#dcfce7', text: '#16a34a', label: t('status.available') }
+      ? {
+          bg: isDark ? '#14532d' : '#dcfce7',
+          text: isDark ? '#86efac' : '#16a34a',
+          label: t('status.available'),
+        }
       : status === GiftCardUsageStatus.USED
         ? {
-            bg: isDark ? colors.gray[700] : colors.gray[200],
+            bg: isDark ? colors.border.dark : colors.gray[200],
             text: isDark ? colors.gray[400] : colors.gray[500],
             label: t('status.used'),
           }
-        : { bg: '#fee2e2', text: '#dc2626', label: t('status.expired') }
+        : {
+            bg: isDark ? '#7f1d1d' : '#fee2e2',
+            text: isDark ? '#fca5a5' : '#dc2626',
+            label: t('status.expired'),
+          }
 
   return (
     <View style={[pill.wrap, { backgroundColor: config.bg }]}>
@@ -273,8 +281,8 @@ const CardListItem = memo(function CardListItem({
   const [codeCopied, setCodeCopied] = useState(false)
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const bg = isDark ? colors.gray[900] : colors.white.light
-  const borderColor = isDark ? colors.gray[700] : colors.gray[100]
+  const bg = isDark ? colors.card.dark : colors.white.light
+  const borderColor = isDark ? colors.border.dark : colors.gray[100]
 
   const handlePress = useCallback(
     () => onPress(item.slug),
@@ -501,7 +509,7 @@ export default function GiftCardsScreen() {
     </>
   )
 
-  const borderColor = isDark ? colors.gray[700] : colors.gray[200]
+  const borderColor = isDark ? colors.border.dark : colors.gray[200]
 
   const ListEmpty = !isLoading ? (
     <View style={s.emptyWrap}>
@@ -614,6 +622,7 @@ export default function GiftCardsScreen() {
         isDark={isDark}
         onClose={() => setFilterSheetOpen(false)}
         onApply={handleApplyFilter}
+        onStatusChange={handleStatusFilter}
       />
     </View>
   )

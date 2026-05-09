@@ -21,6 +21,8 @@ import {
   useColorScheme,
   View,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { colors } from '@/constants'
 
 let sheetRef: BottomSheet | null = null
 let openCallback: (() => void) | null = null
@@ -37,8 +39,9 @@ const LogoutConfirmBottomSheetContent = memo(
   }) {
     const { t } = useTranslation('auth')
     const { t: tCommon } = useTranslation('common')
+    const { bottom } = useSafeAreaInsets()
     return (
-      <View className="px-4 pb-5 pt-2">
+      <View className="px-4 pt-2" style={{ paddingBottom: bottom + 16 }}>
         <Text className="mb-2 text-base font-semibold text-gray-900 dark:text-gray-50">
           {t('logout.title', 'Đăng xuất')}
         </Text>
@@ -49,7 +52,7 @@ const LogoutConfirmBottomSheetContent = memo(
         <View className="flex-row gap-3">
           <TouchableOpacity
             onPress={onCancel}
-            className="flex-1 items-center justify-center rounded-full border border-gray-300 bg-white py-3 dark:border-gray-600 dark:bg-gray-900"
+            className="flex-1 items-center justify-center rounded-full border border-gray-300 bg-white py-3 dark:border-[#2e2e2e] dark:bg-[#1c1c1e]"
             activeOpacity={0.8}
           >
             <Text className="text-sm font-semibold text-gray-800 dark:text-gray-100">
@@ -213,7 +216,7 @@ const LogoutConfirmBottomSheetBase = ({ onConfirm }: Props) => {
         enableDynamicSizing={false}
         backdropComponent={renderBackdrop}
         backgroundStyle={{
-          backgroundColor: isDark ? '#111827' : '#ffffff',
+          backgroundColor: isDark ? colors.card.dark : '#ffffff',
         }}
         containerStyle={styles.container}
       >

@@ -61,9 +61,17 @@ export function useNotificationResponse(enabled = true) {
       Notifications.addNotificationResponseReceivedListener(handleResponse)
 
     // Cold start: check if app was opened by tapping a notification
-    Notifications.getLastNotificationResponseAsync().then((response) => {
-      if (response) handleResponse(response)
-    })
+    Notifications.getLastNotificationResponseAsync()
+      .then((response) => {
+        if (response) handleResponse(response)
+      })
+      .catch((e) =>
+        // eslint-disable-next-line no-console
+        console.warn(
+          '[Notifications] getLastNotificationResponseAsync failed:',
+          e,
+        ),
+      )
 
     return () => {
       subscription.remove()

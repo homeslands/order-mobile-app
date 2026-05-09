@@ -98,7 +98,7 @@ export const FloatingHeader = memo(function FloatingHeader({
           hitSlop={8}
           style={[
             s.circleBtn,
-            { backgroundColor: isDark ? colors.gray[800] : colors.white.light },
+            { backgroundColor: isDark ? colors.card.dark : colors.white.light },
             s.shadow,
           ]}
         >

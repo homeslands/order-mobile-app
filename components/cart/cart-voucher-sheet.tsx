@@ -264,7 +264,7 @@ export const VoucherSheet = memo(function VoucherSheet({
   }, [processed])
 
   const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
+    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
     [isDark],
   )
   const indicatorStyle = useMemo(
@@ -332,7 +332,7 @@ export const VoucherSheet = memo(function VoucherSheet({
   const handleFooterPress = useCallback(() => {
     if (isCurrentApplied) {
       cartActions.setVoucher(null)
-      showToast(tVoucher('voucher.voucherRemoved'))
+      showToast(tVoucher('voucherRemoved'))
       sheetRef.current?.dismiss()
     } else if (selectedVoucher) {
       // 2.2 — Validate with server before applying
@@ -358,7 +358,7 @@ export const VoucherSheet = memo(function VoucherSheet({
             sheetRef.current?.dismiss()
           },
           onError: () => {
-            showToast(tVoucher('voucher.voucherInvalid'))
+            showToast(tVoucher('voucherInvalid'))
           },
           onSettled: () => setValidating(false),
         },
@@ -392,7 +392,10 @@ export const VoucherSheet = memo(function VoucherSheet({
         <View
           style={[
             voucherSheetStyles.footer,
-            { backgroundColor: isDark ? colors.gray[900] : colors.white.light },
+            {
+              backgroundColor: isDark ? colors.card.dark : colors.white.light,
+              borderTopColor: isDark ? colors.border.dark : colors.gray[200],
+            },
           ]}
         >
           <Pressable
@@ -405,7 +408,7 @@ export const VoucherSheet = memo(function VoucherSheet({
                   : isNewSelection
                     ? primaryColor
                     : isDark
-                      ? colors.gray[700]
+                      ? colors.border.dark
                       : colors.gray[200],
               },
             ]}
@@ -424,10 +427,10 @@ export const VoucherSheet = memo(function VoucherSheet({
               ]}
             >
               {isCurrentApplied
-                ? tVoucher('voucher.removeVoucher')
+                ? tVoucher('removeVoucher')
                 : isNewSelection
-                  ? tVoucher('voucher.apply')
-                  : tVoucher('voucher.close')}
+                  ? tVoucher('apply')
+                  : tVoucher('close')}
             </Text>
           </Pressable>
         </View>
@@ -463,14 +466,21 @@ export const VoucherSheet = memo(function VoucherSheet({
         android_keyboardInputMode="adjustResize"
       >
         {/* Fixed header */}
-        <View style={voucherSheetStyles.fixedHeader}>
+        <View
+          style={[
+            voucherSheetStyles.fixedHeader,
+            {
+              borderBottomColor: isDark ? colors.border.dark : colors.gray[200],
+            },
+          ]}
+        >
           <Text
             style={[
               voucherSheetStyles.title,
               { color: isDark ? colors.gray[50] : colors.gray[900] },
             ]}
           >
-            {tVoucher('voucher.code')}
+            {tVoucher('code')}
           </Text>
 
           <View style={voucherSheetStyles.inputRow}>
@@ -478,7 +488,10 @@ export const VoucherSheet = memo(function VoucherSheet({
               style={[
                 voucherSheetStyles.inputWrap,
                 {
-                  backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
+                  backgroundColor: isDark
+                    ? colors.background.dark
+                    : colors.gray[100],
+                  borderColor: isDark ? colors.border.dark : colors.gray[300],
                 },
               ]}
             >
@@ -489,7 +502,7 @@ export const VoucherSheet = memo(function VoucherSheet({
               <BottomSheetTextInput
                 value={code}
                 onChangeText={setCode}
-                placeholder={tVoucher('voucher.enterCode')}
+                placeholder={tVoucher('enterCode')}
                 placeholderTextColor={
                   isDark ? colors.gray[600] : colors.gray[400]
                 }
@@ -512,7 +525,7 @@ export const VoucherSheet = memo(function VoucherSheet({
                   backgroundColor: code.trim()
                     ? primaryColor
                     : isDark
-                      ? colors.gray[700]
+                      ? colors.border.dark
                       : colors.gray[200],
                 },
               ]}
@@ -539,7 +552,7 @@ export const VoucherSheet = memo(function VoucherSheet({
                 ]}
                 numberOfLines={1}
               >
-                {tVoucher('voucher.currentlyUsing', {
+                {tVoucher('currentlyUsing', {
                   title: currentVoucher.title,
                 })}
               </Text>
@@ -551,7 +564,7 @@ export const VoucherSheet = memo(function VoucherSheet({
                 { color: isDark ? colors.gray[400] : colors.gray[500] },
               ]}
             >
-              {tVoucher('voucher.maxOnePerOrder')}
+              {tVoucher('maxOnePerOrder')}
             </Text>
           )}
         </View>
@@ -571,14 +584,14 @@ export const VoucherSheet = memo(function VoucherSheet({
                   fontSize: 13,
                 }}
               >
-                {tVoucher('voucher.searching')}
+                {tVoucher('searching')}
               </Text>
             </View>
           )}
           {!isFetching && searchCode.length > 0 && !fetchedVoucher && (
             <View style={voucherSheetStyles.resultRow}>
               <Text style={{ color: colors.destructive.light, fontSize: 13 }}>
-                {tVoucher('voucher.codeNotFound', { code: searchCode })}
+                {tVoucher('codeNotFound', { code: searchCode })}
               </Text>
             </View>
           )}
@@ -610,7 +623,7 @@ export const VoucherSheet = memo(function VoucherSheet({
                     color: isDark ? colors.gray[50] : colors.gray[900],
                   }}
                 >
-                  {tVoucher('voucher.availableVouchers')}
+                  {tVoucher('availableVouchers')}
                 </Text>
                 <Text
                   style={{
@@ -618,7 +631,7 @@ export const VoucherSheet = memo(function VoucherSheet({
                     color: isDark ? colors.gray[400] : colors.gray[500],
                   }}
                 >
-                  {tVoucher('voucher.maxOne')}
+                  {tVoucher('maxOne')}
                 </Text>
               </View>
               {validVouchers.map((p) => (
@@ -650,7 +663,7 @@ export const VoucherSheet = memo(function VoucherSheet({
                     color: isDark ? colors.gray[400] : colors.gray[500],
                   }}
                 >
-                  {tVoucher('voucher.unavailable')}
+                  {tVoucher('unavailable')}
                 </Text>
               </View>
               {invalidVouchers.slice(0, 5).map((p) => (
@@ -683,7 +696,7 @@ export const VoucherSheet = memo(function VoucherSheet({
                 color: isDark ? colors.gray[400] : colors.gray[500],
               }}
             >
-              {tVoucher('voucher.loadingVouchers')}
+              {tVoucher('loadingVouchers')}
             </Text>
           )}
           {!isLoadingList && hasMore && (
@@ -694,7 +707,7 @@ export const VoucherSheet = memo(function VoucherSheet({
               <Text
                 style={{ fontSize: 13, fontWeight: '600', color: primaryColor }}
               >
-                {tVoucher('voucher.loadMore')}
+                {tVoucher('loadMore')}
               </Text>
             </Pressable>
           )}

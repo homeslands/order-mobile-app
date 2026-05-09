@@ -50,13 +50,12 @@ function AppToastProvider({ children }: { children: ReactNode }) {
 
       const newToast: ToastData = {
         id,
-        title,
         message,
         type,
         duration,
       }
 
-      setToasts((prev) => [...prev, newToast])
+      setToasts([newToast])
     },
     [],
   )

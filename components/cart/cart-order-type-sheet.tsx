@@ -8,7 +8,7 @@ import {
   type BottomSheetBackdropProps,
   BottomSheetModal,
 } from '@gorhom/bottom-sheet'
-import { PackageCheck, UtensilsCrossed } from 'lucide-react-native'
+import { PackageCheck, Truck, UtensilsCrossed } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { StyleSheet, Text, View } from 'react-native'
@@ -20,11 +20,13 @@ const ORDER_TYPE_SHEET_BASE_HEIGHT = 280
 export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
   visible,
   onClose,
+  onDeliverySelected,
   isDark,
   primaryColor,
 }: {
   visible: boolean
   onClose: () => void
+  onDeliverySelected?: () => void
   isDark: boolean
   primaryColor: string
 }) {
@@ -45,7 +47,7 @@ export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
     [bottomInset],
   )
   const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
+    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
     [isDark],
   )
   const renderBackdrop = useCallback(
@@ -69,8 +71,9 @@ export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
     (value: string) => {
       selectType(value)
       sheetRef.current?.dismiss()
+      if (value === 'delivery') onDeliverySelected?.()
     },
-    [selectType],
+    [selectType, onDeliverySelected],
   )
 
   return (
@@ -115,7 +118,12 @@ export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
             : isDark
               ? colors.gray[400]
               : colors.gray[500]
-          const Icon = opt.value === 'take-out' ? PackageCheck : UtensilsCrossed
+          const Icon =
+            opt.value === 'take-out'
+              ? PackageCheck
+              : opt.value === 'delivery'
+                ? Truck
+                : UtensilsCrossed
           return (
             <TouchableOpacity
               activeOpacity={0.7}

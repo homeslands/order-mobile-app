@@ -42,7 +42,7 @@ export const NotificationPermissionSheet = memo(
 
     const bgStyle = useMemo(
       () => ({
-        backgroundColor: isDark ? colors.gray[900] : colors.white.light,
+        backgroundColor: isDark ? colors.card.dark : colors.white.light,
       }),
       [isDark],
     )
@@ -91,7 +91,9 @@ export const NotificationPermissionSheet = memo(
               style={[
                 s.iconWrap,
                 {
-                  backgroundColor: isDark ? colors.gray[800] : '#fef3c7',
+                  backgroundColor: isDark
+                    ? colors.warning.iconBgDark
+                    : '#fef3c7',
                 },
               ]}
             >
@@ -131,7 +133,9 @@ export const NotificationPermissionSheet = memo(
               style={[
                 s.btn,
                 {
-                  backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
+                  backgroundColor: isDark
+                    ? colors.border.dark
+                    : colors.gray[100],
                 },
               ]}
             >

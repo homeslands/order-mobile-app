@@ -67,7 +67,7 @@ const TYPE_CFG = {
     color: colors.gray[500],
     darkColor: colors.gray[400],
     bgL: colors.gray[200],
-    bgD: colors.gray[700],
+    bgD: colors.border.dark,
     prefix: '-',
     Icon: Clock,
   },
@@ -81,12 +81,31 @@ const TYPE_CFG = {
   },
 } as const
 
-const ORDER_STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  [OrderStatus.PAID]: { bg: '#dcfce7', text: '#16a34a' },
-  [OrderStatus.COMPLETED]: { bg: '#dcfce7', text: '#16a34a' },
-  [OrderStatus.PENDING]: { bg: '#fef9c3', text: '#b45309' },
-  [OrderStatus.SHIPPING]: { bg: '#dbeafe', text: '#1d4ed8' },
-  [OrderStatus.FAILED]: { bg: '#fee2e2', text: '#dc2626' },
+function getOrderStatusColors(
+  isDark: boolean,
+): Record<string, { bg: string; text: string }> {
+  return {
+    [OrderStatus.PAID]: {
+      bg: isDark ? '#14532d' : '#dcfce7',
+      text: isDark ? '#86efac' : '#16a34a',
+    },
+    [OrderStatus.COMPLETED]: {
+      bg: isDark ? '#14532d' : '#dcfce7',
+      text: isDark ? '#86efac' : '#16a34a',
+    },
+    [OrderStatus.PENDING]: {
+      bg: isDark ? '#713f12' : '#fef9c3',
+      text: isDark ? '#fde68a' : '#b45309',
+    },
+    [OrderStatus.SHIPPING]: {
+      bg: isDark ? '#1e3a5f' : '#dbeafe',
+      text: isDark ? '#93c5fd' : '#1d4ed8',
+    },
+    [OrderStatus.FAILED]: {
+      bg: isDark ? '#7f1d1d' : '#fee2e2',
+      text: isDark ? '#fca5a5' : '#dc2626',
+    },
+  }
 }
 
 // ─── Order item row ───────────────────────────────────────────────────────────
@@ -201,11 +220,11 @@ export const LoyaltyPointDetailHistorySheet = memo(
 
     const typeColor = isDark ? cfg.darkColor : cfg.color
     const iconBg = isDark ? cfg.bgD : cfg.bgL
-    const bg = isDark ? colors.gray[900] : colors.white.light
+    const bg = isDark ? colors.card.dark : colors.white.light
     const textColor = isDark ? colors.gray[50] : colors.gray[900]
     const subColor = isDark ? colors.gray[400] : colors.gray[500]
-    const borderColor = isDark ? colors.gray[700] : colors.gray[200]
-    const sectionBg = isDark ? colors.gray[800] : colors.gray[50]
+    const borderColor = isDark ? colors.border.dark : colors.gray[200]
+    const sectionBg = isDark ? colors.background.dark : colors.gray[50]
 
     const TypeIcon = cfg.Icon
 
@@ -232,7 +251,8 @@ export const LoyaltyPointDetailHistorySheet = memo(
 
     const orderStatusCfg = useMemo(() => {
       if (!order) return null
-      const colors = ORDER_STATUS_COLORS[order.status]
+      const statusColors = getOrderStatusColors(isDark)
+      const cfg = statusColors[order.status]
       const labelMap: Record<string, string> = {
         [OrderStatus.PAID]: t('profile.orderStatus.completed'),
         [OrderStatus.COMPLETED]: t('profile.orderStatus.completed'),
@@ -240,10 +260,10 @@ export const LoyaltyPointDetailHistorySheet = memo(
         [OrderStatus.SHIPPING]: t('profile.orderStatus.shipping'),
         [OrderStatus.FAILED]: t('profile.orderStatus.failed'),
       }
-      return colors
-        ? { ...colors, label: labelMap[order.status] ?? order.status }
+      return cfg
+        ? { ...cfg, label: labelMap[order.status] ?? order.status }
         : { bg: sectionBg, text: subColor, label: order.status }
-    }, [order, t, sectionBg, subColor])
+    }, [order, isDark, t, sectionBg, subColor])
 
     const orderTypeLabel = useMemo(() => {
       if (!order) return ''

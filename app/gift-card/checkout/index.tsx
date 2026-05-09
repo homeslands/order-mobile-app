@@ -36,7 +36,6 @@ import {
   View,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { z } from 'zod'
 
 import { GiftCardCartItem } from '@/components/gift-card/gift-card-cart-item'
 import { GiftCardTypeSelector } from '@/components/gift-card/gift-card-type-selector'
@@ -59,32 +58,8 @@ import {
   showErrorToastMessage,
 } from '@/utils'
 
-// ─── Schema ──────────────────────────────────────────────────────────────────
-
-const recipientSchema = z.object({
-  // recipientSlug is set when user selects a suggestion — required for routing
-  recipientSlug: z.string().min(10, 'Vui lòng chọn người nhận từ gợi ý'),
-  phone: z
-    .string()
-    .regex(
-      /^0[0-9]{9,10}$/,
-      'Số điện thoại không hợp lệ (10-11 số, bắt đầu bằng 0)',
-    ),
-  name: z.string().optional(),
-  quantity: z.number({ message: 'Nhập số lượng hợp lệ' }).min(1, 'Tối thiểu 1'),
-  message: z.string().max(200, 'Tối đa 200 ký tự').optional(),
-})
-
-const checkoutSchema = z.object({
-  cardOrderType: z.enum([
-    GiftCardType.SELF,
-    GiftCardType.GIFT,
-    GiftCardType.BUY,
-  ]),
-  recipients: z.array(recipientSchema),
-})
-
-export type CheckoutFormValues = z.infer<typeof checkoutSchema>
+export type { CheckoutFormValues } from './schema'
+import { checkoutSchema, type CheckoutFormValues } from './schema'
 
 // ─── Summary Row ─────────────────────────────────────────────────────────────
 
@@ -328,8 +303,8 @@ export default function GiftCardCheckoutScreen() {
           style={[
             cs.footer,
             {
-              backgroundColor: isDark ? colors.gray[900] : colors.white.light,
-              borderTopColor: isDark ? colors.gray[700] : colors.gray[200],
+              backgroundColor: isDark ? colors.card.dark : colors.white.light,
+              borderTopColor: isDark ? colors.border.dark : colors.gray[200],
             },
           ]}
         >
@@ -339,7 +314,7 @@ export default function GiftCardCheckoutScreen() {
             style={[
               cs.cancelBtn,
               {
-                backgroundColor: isDark ? colors.gray[700] : colors.gray[100],
+                backgroundColor: isDark ? colors.border.dark : colors.gray[100],
                 opacity: isPending ? 0.5 : 1,
               },
             ]}
@@ -388,8 +363,8 @@ export default function GiftCardCheckoutScreen() {
   // ── Colors ────────────────────────────────────────────────────────────────
 
   const bg = isDark ? colors.background.dark : colors.background.light
-  const cardBg = isDark ? colors.gray[900] : colors.white.light
-  const borderColor = isDark ? colors.gray[700] : colors.gray[200]
+  const cardBg = isDark ? colors.card.dark : colors.white.light
+  const borderColor = isDark ? colors.border.dark : colors.gray[200]
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
 
@@ -534,6 +509,11 @@ export default function GiftCardCheckoutScreen() {
                   </View>
                 </View>
               )}
+
+              {/* IAP disclaimer — physical goods clarification for App Store compliance */}
+              <Text style={[s.disclaimer, { color: subColor }]}>
+                {t('checkout.disclaimer')}
+              </Text>
             </>
           )}
         </ScrollView>
@@ -591,7 +571,7 @@ export default function GiftCardCheckoutScreen() {
           enableDynamicSizing={false}
           backdropComponent={renderConfirmBackdrop}
           backgroundStyle={{
-            backgroundColor: isDark ? colors.gray[900] : colors.white.light,
+            backgroundColor: isDark ? colors.card.dark : colors.white.light,
           }}
           handleIndicatorStyle={{
             backgroundColor: isDark ? colors.gray[600] : colors.gray[300],
@@ -604,7 +584,9 @@ export default function GiftCardCheckoutScreen() {
             style={[
               cs.header,
               {
-                borderBottomColor: isDark ? colors.gray[700] : colors.gray[200],
+                borderBottomColor: isDark
+                  ? colors.border.dark
+                  : colors.gray[200],
               },
             ]}
           >
@@ -625,7 +607,7 @@ export default function GiftCardCheckoutScreen() {
                   cs.infoRow,
                   {
                     backgroundColor: isDark
-                      ? colors.gray[800]
+                      ? colors.background.dark
                       : colors.gray[100],
                   },
                 ]}
@@ -646,7 +628,7 @@ export default function GiftCardCheckoutScreen() {
                   cs.infoRow,
                   {
                     backgroundColor: isDark
-                      ? colors.gray[800]
+                      ? colors.background.dark
                       : colors.gray[100],
                   },
                 ]}
@@ -675,7 +657,7 @@ export default function GiftCardCheckoutScreen() {
                 cs.itemsSection,
                 {
                   borderTopColor: isDark
-                    ? colors.gray[700]
+                    ? colors.border.dark
                     : colors.border.light,
                 },
               ]}
@@ -701,7 +683,7 @@ export default function GiftCardCheckoutScreen() {
                 cs.totalsSection,
                 {
                   borderTopColor: isDark
-                    ? colors.gray[700]
+                    ? colors.border.dark
                     : colors.border.light,
                 },
               ]}
@@ -728,7 +710,7 @@ export default function GiftCardCheckoutScreen() {
                   cs.finalRow,
                   {
                     borderTopColor: isDark
-                      ? colors.gray[700]
+                      ? colors.border.dark
                       : colors.border.light,
                   },
                 ]}
@@ -755,6 +737,11 @@ export default function GiftCardCheckoutScreen() {
                 </View>
               )}
             </View>
+
+            {/* IAP disclaimer */}
+            <Text style={[cs.disclaimer, { color: subColor }]}>
+              {t('checkout.disclaimer')}
+            </Text>
           </BottomSheetScrollView>
         </BottomSheetModal>
       )}
@@ -813,6 +800,12 @@ const s = StyleSheet.create({
     fontWeight: '700',
     color: colors.white.light,
   },
+  disclaimer: {
+    fontSize: 11,
+    lineHeight: 16,
+    textAlign: 'center',
+    paddingHorizontal: 8,
+  },
 })
 
 const cs = StyleSheet.create({
@@ -862,7 +855,7 @@ const cs = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 20,
+    paddingBottom: 16,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   cancelBtn: {
@@ -881,4 +874,12 @@ const cs = StyleSheet.create({
     justifyContent: 'center',
   },
   submitText: { fontSize: 15, fontWeight: '700', color: colors.white.light },
+  disclaimer: {
+    fontSize: 11,
+    lineHeight: 16,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 4,
+    paddingBottom: 8,
+  },
 })

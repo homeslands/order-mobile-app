@@ -55,11 +55,15 @@
     "types": {
       "all": "Tất cả"
     },
+    "typeLabel": "Loại",
     "filterTitle": "Bộ lọc",
     "dateRange": "Khoảng thời gian",
     "fromDate": "Từ ngày",
     "toDate": "Đến ngày",
     "apply": "Áp dụng",
+    "sortLabel": "Sắp xếp",
+    "sortNewest": "Mới nhất",
+    "sortOldest": "Cũ nhất",
     "empty": {
       "noOrders": "Chưa có đơn nào",
       "noOwned": "Bạn chưa mua thẻ quà tặng nào",
@@ -134,6 +138,7 @@
       "pointsEarned": "Điểm nhận được",
       "placeOrder": "Đặt hàng"
     },
+    "disclaimer": "Thẻ quà tặng sử dụng để thanh toán đồ uống tại hệ thống cửa hàng Trend Coffee & Tea. Không áp dụng cho giao dịch ngoài hệ thống.",
     "error": {
       "addRecipient": "Vui lòng thêm ít nhất một người nhận",
       "typeLocked": "Loại thẻ này hiện đang bị khoá. Vui lòng chọn loại khác.",
@@ -171,7 +176,9 @@
     "type": "Loại",
     "orderCode": "Mã đơn hàng",
     "giftCardsSection": "Danh sách thẻ ({{count}})",
-    "notFound": "Không tìm thấy đơn hàng"
+    "notFound": "Không tìm thấy đơn hàng",
+    "sender": "Người gửi",
+    "recipientsSection": "Người nhận"
   },
   "orderSuccess": {
     "title": "Chi tiết đơn hàng",

@@ -1,5 +1,5 @@
 import i18n from '@/i18n'
-import { File, Paths } from 'expo-file-system'
+import * as LegacyFS from 'expo-file-system/legacy'
 import * as MediaLibrary from 'expo-media-library'
 import { Alert, Linking, Platform } from 'react-native'
 import { showToast } from './toast'
@@ -9,9 +9,7 @@ import { showToast } from './toast'
  */
 export async function requestMediaLibraryPermission(): Promise<boolean> {
   try {
-    // Request write-only permission to avoid requesting audio permission
-    // writeOnly: true means we only need permission to save photos, not read them
-    const { status } = await MediaLibrary.requestPermissionsAsync(true)
+    const { status } = await MediaLibrary.requestPermissionsAsync()
 
     if (status === 'granted') {
       return true
@@ -51,9 +49,7 @@ export async function requestMediaLibraryPermission(): Promise<boolean> {
  */
 export async function checkMediaLibraryPermission(): Promise<boolean> {
   try {
-    // Check write-only permission to avoid checking audio permission
-    // writeOnly: true means we only need permission to save photos, not read them
-    const { status } = await MediaLibrary.getPermissionsAsync(true)
+    const { status } = await MediaLibrary.getPermissionsAsync()
     return status === 'granted'
   } catch (error) {
     // eslint-disable-next-line no-console
@@ -123,76 +119,34 @@ export async function downloadAndSaveImage(
       finalImageUrl.split('.').pop()?.split('?')[0]?.split('#')[0] || 'jpg'
     const finalFileName = fileName || `image_${timestamp}`
 
-    // Use new File API
-    const targetFile = new File(
-      Paths.cache,
-      `${finalFileName}.${fileExtension}`,
-    )
-
-    // Download the image - check if URL is API endpoint that needs auth
+    const localUri = `${LegacyFS.cacheDirectory}${finalFileName}.${fileExtension}`
 
     // Check if URL is API endpoint (needs authentication)
     const urlObj = new URL(finalImageUrl)
     const isApiEndpoint = urlObj.pathname.includes('/api/')
 
-    let arrayBuffer: ArrayBuffer
+    const headers: Record<string, string> = { Accept: 'image/*' }
+    if (isApiEndpoint) {
+      const { useAuthStore } = await import('@/stores')
+      const token = useAuthStore.getState().token
+      if (token) headers['Authorization'] = `Bearer ${token}`
+    }
+
+    let downloadResult: Awaited<ReturnType<typeof LegacyFS.downloadAsync>>
     try {
-      if (isApiEndpoint) {
-        // For API endpoints, try with auth headers first
-        const { useAuthStore } = await import('@/stores')
-        const authStore = useAuthStore.getState()
-        const token = authStore.token
-
-        const headers: Record<string, string> = {
-          Accept: 'image/*',
-        }
-
-        if (token) {
-          headers['Authorization'] = `Bearer ${token}`
-        }
-
-        const fetchResponse = await fetch(finalImageUrl, { headers })
-
-        if (!fetchResponse.ok) {
-          throw new Error(`Fetch failed with status ${fetchResponse.status}`)
-        }
-
-        const blob = await fetchResponse.blob()
-        arrayBuffer = await blob.arrayBuffer()
-      } else {
-        // Use direct fetch for public image URLs
-        const fetchResponse = await fetch(finalImageUrl, {
-          headers: {
-            Accept: 'image/*',
-          },
-        })
-
-        if (!fetchResponse.ok) {
-          throw new Error(`Fetch failed with status ${fetchResponse.status}`)
-        }
-
-        const blob = await fetchResponse.blob()
-        arrayBuffer = await blob.arrayBuffer()
-      }
+      downloadResult = await LegacyFS.downloadAsync(finalImageUrl, localUri, {
+        headers,
+      })
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error('Download error:', error)
-
-      // Handle errors
       if (error instanceof Error) {
-        if (error.message.includes('status 400')) {
-          // If 400 error, it might be a different issue (invalid URL format, etc.)
-          showToast(i18n.t('common.errorDownloadImageAuth', { ns: 'common' }))
-        } else if (
+        if (
           error.message.includes('timeout') ||
           error.message.includes('ECONNABORTED')
         ) {
           showToast(
             i18n.t('common.errorDownloadImageTimeout', { ns: 'common' }),
-          )
-        } else if (error.message.includes('status')) {
-          showToast(
-            `${i18n.t('common.errorDownloadingImage', { ns: 'common' })}: ${error.message}`,
           )
         } else {
           showToast(i18n.t('common.errorDownloadImage', { ns: 'common' }))
@@ -203,30 +157,18 @@ export async function downloadAndSaveImage(
       return false
     }
 
-    // Convert arrayBuffer to Uint8Array
-    const uint8Array = new Uint8Array(arrayBuffer)
-
-    const writer = targetFile.writableStream().getWriter()
-    try {
-      await writer.write(uint8Array)
-      await writer.close()
-    } catch (writeError) {
-      await writer.abort()
-      // eslint-disable-next-line no-console
-      console.error('Error writing file:', writeError)
-      showToast(i18n.t('common.errorSavingFile', { ns: 'common' }))
+    if (downloadResult.status !== 200) {
+      showToast(
+        `${i18n.t('common.errorDownloadingImage', { ns: 'common' })}: HTTP ${downloadResult.status}`,
+      )
       return false
     }
 
-    // Save to media library
-    // File can be converted to string to get URI
     showToast(i18n.t('common.savingImage', { ns: 'common' }))
-    const fileUri = String(targetFile)
-    await MediaLibrary.createAssetAsync(fileUri)
-
-    // Optionally add to album (you can create a custom album)
-    // const asset = await MediaLibrary.createAssetAsync(downloadResult.uri)
-    // await MediaLibrary.createAlbumAsync('YourAppName', asset, false)
+    await MediaLibrary.createAssetAsync(downloadResult.uri)
+    LegacyFS.deleteAsync(downloadResult.uri, { idempotent: true }).catch(
+      () => {},
+    )
 
     showToast(i18n.t('common.imageSavedSuccess', { ns: 'common' }))
     return true
@@ -239,21 +181,17 @@ export async function downloadAndSaveImage(
 }
 
 /**
- * Download QR code image (for QR code components)
- * Note: This requires capturing the QR code view as an image first
- * You may need to use react-native-view-shot library for this
- * @param _qrCodeData - Data to encode in QR code (usually order slug)
- * @param _fileName - Optional custom file name
- * @returns Promise<boolean> - true if successful, false otherwise
+ * Save a QR code SVG capture to Photos.
+ * Caller must capture the SVG ref via react-native-qrcode-svg's getRef +
+ * toDataURL() before calling this — the base64PngData is the raw PNG bytes
+ * returned by toDataURL (no data-URI prefix).
  */
 export async function downloadQRCodeImage(
-  _qrCodeData: string,
-  _fileName?: string,
+  base64PngData: string,
+  fileName?: string,
 ): Promise<boolean> {
   try {
-    // Check permission first
     const hasPermission = await checkMediaLibraryPermission()
-
     if (!hasPermission) {
       const granted = await requestMediaLibraryPermission()
       if (!granted) {
@@ -262,11 +200,18 @@ export async function downloadQRCodeImage(
       }
     }
 
-    // For QR code, we need to capture it as an image first
-    // This requires using react-native-view-shot or similar library
-    // For now, we'll return false and suggest using downloadAndSaveImage with a QR code image URL
-    showToast(i18n.t('common.useScreenshotForQRCode', { ns: 'common' }))
-    return false
+    const finalFileName = fileName ?? `qr_${Date.now()}`
+    const fileUri = `${LegacyFS.cacheDirectory}${finalFileName}.png`
+
+    await LegacyFS.writeAsStringAsync(fileUri, base64PngData, {
+      encoding: LegacyFS.EncodingType.Base64,
+    })
+
+    await MediaLibrary.createAssetAsync(fileUri)
+    LegacyFS.deleteAsync(fileUri, { idempotent: true }).catch(() => {})
+
+    showToast(i18n.t('common.imageSavedSuccess', { ns: 'common' }))
+    return true
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error downloading QR code:', error)

@@ -36,10 +36,10 @@ function EditProfileScreen() {
   return (
     <ScreenContainer
       edges={['top', 'bottom']}
-      className="flex-1 bg-gray-50 dark:bg-gray-900"
+      className="flex-1 bg-gray-50 dark:bg-[#121212]"
     >
       {/* Header */}
-      <View className="flex-row items-center border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-700 dark:bg-gray-800">
+      <View className="flex-row items-center border-b border-gray-200 bg-white px-4 py-3 dark:border-[#2e2e2e] dark:bg-[#1c1c1e]">
         <Button
           variant="ghost"
           className="mr-2 h-10 min-h-0 w-10 items-center justify-center rounded-full px-0"
@@ -64,7 +64,7 @@ function EditProfileScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
       >
-        <View className="rounded-xl border border-gray-100 bg-white p-4 dark:border-gray-700 dark:bg-gray-800">
+        <View className="rounded-xl border border-gray-100 bg-white p-4 dark:border-[#2e2e2e] dark:bg-[#1c1c1e]">
           <View className="mb-4">
             <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
               {t('lastName')}
@@ -108,7 +108,7 @@ function EditProfileScreen() {
             <Input
               value={userInfo.phonenumber}
               editable={false}
-              className="bg-gray-100 dark:bg-gray-700"
+              className="bg-gray-100 dark:bg-[#2e2e2e]"
             />
           </View>
 
@@ -119,7 +119,7 @@ function EditProfileScreen() {
             <Input
               value={userInfo.email}
               editable={false}
-              className="bg-gray-100 dark:bg-gray-700"
+              className="bg-gray-100 dark:bg-[#2e2e2e]"
             />
           </View>
         </View>

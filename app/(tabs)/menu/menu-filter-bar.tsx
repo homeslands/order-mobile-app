@@ -168,7 +168,7 @@ export const MenuFilterBar = memo(function MenuFilterBar({
   allLabel: string
   specialChipLabels: { isTopSell: string; isNewProduct: string }
 }) {
-  const chipBg = isDark ? colors.gray[800] : colors.gray[100]
+  const chipBg = isDark ? colors.border.dark : colors.gray[100]
   const chipColor = isDark ? colors.gray[300] : colors.gray[600]
   const hasPriceFilter = currentMinPrice > 0 || currentMaxPrice < 300_000
 
@@ -191,7 +191,9 @@ export const MenuFilterBar = memo(function MenuFilterBar({
             style={[
               filterStyles.searchInput,
               {
-                backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
+                backgroundColor: isDark
+                  ? colors.background.dark
+                  : colors.gray[100],
                 color: isDark ? colors.gray[50] : colors.gray[900],
                 paddingRight: searchText ? 36 : 12,
                 fontFamily: 'BeVietnamPro_400Regular',
@@ -219,7 +221,7 @@ export const MenuFilterBar = memo(function MenuFilterBar({
           onPress={onOpenPriceSheet}
           style={[
             filterStyles.filterBtn,
-            { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] },
+            { backgroundColor: isDark ? colors.border.dark : colors.gray[100] },
             hasPriceFilter && { borderColor: primaryColor, borderWidth: 1.5 },
           ]}
         >

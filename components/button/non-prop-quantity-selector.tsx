@@ -54,12 +54,12 @@ export default function NonPropQuantitySelector({
 
   const decrementClassName = `p-2 rounded-full border ${
     isDecrementDisabled
-      ? 'border-gray-300 dark:border-gray-700 opacity-50'
+      ? 'border-gray-300 dark:border-[#2e2e2e] opacity-50'
       : 'border-gray-500 dark:border-gray-400'
   }`
   const incrementClassName = `p-2 rounded-full border ${
     isIncrementDisabled
-      ? 'border-gray-300 dark:border-gray-700 opacity-50'
+      ? 'border-gray-300 dark:border-[#2e2e2e] opacity-50'
       : 'border-gray-500 dark:border-gray-400'
   }`
 
