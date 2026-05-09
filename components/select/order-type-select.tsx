@@ -36,9 +36,9 @@ export default function OrderTypeSelect({
       onPress={handlePress}
       className={cn(
         'h-11 flex-row items-center gap-2 rounded-md px-3 py-2',
-        'bg-white dark:bg-gray-800',
-        'border border-gray-200 dark:border-gray-700',
-        'active:bg-gray-100/50 dark:active:bg-gray-700/50',
+        'bg-white dark:bg-[#1c1c1e]',
+        'border border-gray-200 dark:border-[#2e2e2e]',
+        'active:bg-gray-100/50 dark:active:bg-[#2e2e2e]/50',
         'w-full',
       )}
     >

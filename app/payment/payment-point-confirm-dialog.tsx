@@ -38,7 +38,7 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
   const theme = useMemo(
     () => ({
       card: {
-        backgroundColor: isDark ? colors.gray[800] : colors.white.light,
+        backgroundColor: isDark ? colors.card.dark : colors.white.light,
       },
       title: { color: isDark ? colors.gray[50] : colors.gray[900] },
       label: { color: isDark ? colors.gray[400] : colors.gray[500] },
@@ -47,10 +47,10 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
         color: isDark ? colors.destructive.dark : colors.destructive.light,
       },
       divider: {
-        backgroundColor: isDark ? colors.gray[700] : colors.gray[200],
+        backgroundColor: isDark ? colors.border.dark : colors.gray[200],
       },
       cancelBtn: {
-        backgroundColor: isDark ? colors.gray[700] : colors.gray[100],
+        backgroundColor: isDark ? colors.border.dark : colors.gray[100],
       },
       cancelText: { color: isDark ? colors.gray[200] : colors.gray[700] },
     }),

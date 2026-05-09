@@ -98,7 +98,9 @@ for (const [file, size] of Object.entries(current)) {
   const sizeStr = formatSize(size)
 
   if (delta > WARN_THRESHOLD_BYTES) {
-    console['log'](`   🔴  ${file}: ${sizeStr} (${deltaStr}) ← EXCEEDED threshold`)
+    console['log'](
+      `   🔴  ${file}: ${sizeStr} (${deltaStr}) ← EXCEEDED threshold`,
+    )
     hasError = true
   } else if (delta > 0) {
     console['log'](`   🟡  ${file}: ${sizeStr} (${deltaStr})`)

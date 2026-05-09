@@ -2,28 +2,17 @@
  * useFirebaseToken — request notification permission + get FCM device token.
  *
  * - Only runs on physical device (simulator returns null)
- * - Compares new token vs stored token → skips if unchanged
- * - Saves new token to userStore (persisted AsyncStorage)
+ * - iOS: uses @react-native-firebase/messaging to get FCM token (not raw APNs token)
+ * - Android: same Firebase SDK, already worked before
  * - Returns { token, permissionDenied } for upstream consumers
  */
 import { useEffect, useRef, useState } from 'react'
 import { Platform } from 'react-native'
 import * as Device from 'expo-device'
 import * as Notifications from 'expo-notifications'
+import messaging from '@react-native-firebase/messaging'
 
 import { useUserStore } from '@/stores'
-
-// Foreground: suppress OS notification — app handles via toast + sound instead.
-// Background: OS handles automatically (this handler only applies when app is in foreground).
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: false,
-    shouldPlaySound: false,
-    shouldSetBadge: true,
-    shouldShowBanner: false,
-    shouldShowList: true,
-  }),
-})
 
 async function requestPermissionAndGetToken(): Promise<{
   token: string | null
@@ -31,44 +20,52 @@ async function requestPermissionAndGetToken(): Promise<{
 }> {
   // Only real devices can receive push notifications
   if (!Device.isDevice) {
-    // eslint-disable-next-line no-console
-    console.warn('[FCM] Push notifications are not supported on simulator')
     return { token: null, permissionDenied: false }
   }
 
-  // Android 13+ needs explicit notification channel
   if (Platform.OS === 'android') {
-    await Notifications.setNotificationChannelAsync('default', {
-      name: 'default',
-      importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#F7A737',
-      sound: 'notification.wav',
-    })
-  }
-
-  // Request permission
-  const { status: existing } = await Notifications.getPermissionsAsync()
-  let finalStatus = existing
-
-  if (existing !== 'granted') {
+    // Android 13+ (API 33+): must request POST_NOTIFICATIONS at runtime.
+    // messaging().requestPermission() does NOT trigger the system dialog on Android.
     const { status } = await Notifications.requestPermissionsAsync()
-    finalStatus = status
+    if (status !== 'granted') {
+      return { token: null, permissionDenied: true }
+    }
+  } else {
+    // iOS: Firebase handles the permission dialog + APNs registration
+    const authStatus = await messaging().requestPermission()
+    const granted =
+      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
+      authStatus === messaging.AuthorizationStatus.PROVISIONAL
+    if (!granted) {
+      return { token: null, permissionDenied: true }
+    }
+    try {
+      await messaging().registerDeviceForRemoteMessages()
+    } catch (e) {
+      // APNs registration failure will cause getToken() to fail in the loop below
+      // eslint-disable-next-line no-console
+      console.error('[FCM] registerDeviceForRemoteMessages failed (iOS):', e)
+    }
   }
 
-  if (finalStatus !== 'granted') {
-    return { token: null, permissionDenied: true }
+  // Get FCM token — retry up to 5x with backoff (APNs token may arrive async on iOS)
+  let lastError: unknown
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      const fcmToken = await messaging().getToken()
+      return { token: fcmToken ?? null, permissionDenied: false }
+    } catch (e) {
+      lastError = e
+      if (attempt < 4) {
+        await new Promise<void>((resolve) =>
+          setTimeout(resolve, 1000 * (attempt + 1)),
+        )
+      }
+    }
   }
-
-  // Get FCM token (projectId from app.json > extra > eas > projectId)
-  try {
-    const pushToken = await Notifications.getDevicePushTokenAsync()
-    return { token: pushToken.data as string, permissionDenied: false }
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('[FCM] Failed to get device push token:', error)
-    return { token: null, permissionDenied: false }
-  }
+  // eslint-disable-next-line no-console
+  console.error('[FCM] getToken failed after 5 attempts:', lastError)
+  return { token: null, permissionDenied: false }
 }
 
 export function useFirebaseToken(enabled = true) {
@@ -86,7 +83,10 @@ export function useFirebaseToken(enabled = true) {
 
     requestPermissionAndGetToken()
       .then(({ token: newToken, permissionDenied: denied }) => {
-        if (cancelled) return
+        if (cancelled) {
+          hasRunRef.current = false
+          return
+        }
 
         setPermissionDenied(denied)
 
@@ -96,8 +96,11 @@ export function useFirebaseToken(enabled = true) {
         // NOTE: Don't save to store here — only save AFTER server confirms registration
         // (handled in use-register-device-token.ts)
       })
-      .catch(() => {
-        // Silent fail — will be retried on next auth cycle
+      .catch((e) => {
+        hasRunRef.current = false
+        if (cancelled) return
+        // eslint-disable-next-line no-console
+        console.error('[FCM] requestPermissionAndGetToken rejected:', e)
       })
 
     return () => {
@@ -105,17 +108,16 @@ export function useFirebaseToken(enabled = true) {
     }
   }, [enabled])
 
-  // Listen for Firebase-side token rotation (e.g. token invalidated while app is open)
+  // Listen for FCM token rotation (e.g. token invalidated while app is open)
   useEffect(() => {
     if (!enabled) return
 
-    const subscription = Notifications.addPushTokenListener(({ data }) => {
-      const newToken = data as string
+    const unsubscribe = messaging().onTokenRefresh((newToken: string) => {
       if (!newToken) return
       setToken(newToken)
     })
 
-    return () => subscription.remove()
+    return unsubscribe
   }, [enabled])
 
   return { token, permissionDenied, storedToken }

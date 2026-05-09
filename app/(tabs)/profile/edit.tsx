@@ -55,11 +55,11 @@ const PROFILE_THEME = {
     editBtn: colors.border.light,
   },
   dark: {
-    bg: '#1F2B3E',
-    card: '#2B3B4C',
+    bg: colors.background.dark,
+    card: colors.card.dark,
     text: colors.foreground.dark,
-    textMuted: '#8B9BB2',
-    editBtn: '#3D4F66',
+    textMuted: colors.mutedForeground.dark,
+    editBtn: colors.border.dark,
   },
 } as const
 
@@ -131,7 +131,7 @@ function EditHeader({
   isDark: boolean
 }) {
   const { t } = useTranslation('profile')
-  const pageBg = isDark ? '#1F2B3E' : colors.background.light
+  const pageBg = isDark ? colors.background.dark : colors.background.light
   const gradientColors = useMemo(
     () =>
       [
@@ -174,7 +174,7 @@ function EditHeader({
           hitSlop={8}
           style={[
             ehStyles.cancelBtn,
-            { backgroundColor: isDark ? colors.gray[800] : colors.white.light },
+            { backgroundColor: isDark ? colors.card.dark : colors.white.light },
             ehStyles.shadow,
           ]}
         >
@@ -432,7 +432,7 @@ const ProfileEditForm = React.memo(function ProfileEditForm({
               <Input
                 value={userInfo.phonenumber ?? ''}
                 editable={false}
-                className="bg-gray-100 opacity-90 dark:bg-gray-700"
+                className="bg-gray-100 opacity-90 dark:bg-[#2e2e2e]"
               />
             </View>
             <View style={styles.field}>
@@ -442,7 +442,7 @@ const ProfileEditForm = React.memo(function ProfileEditForm({
               <Input
                 value={userInfo.email ?? ''}
                 editable={false}
-                className="bg-gray-100 opacity-90 dark:bg-gray-700"
+                className="bg-gray-100 opacity-90 dark:bg-[#2e2e2e]"
               />
             </View>
           </View>

@@ -36,7 +36,7 @@ function OrderItemsListInner({
   return (
     <>
       {!pricingSummaryOnly && (
-        <View className="mt-6 flex-col gap-4 border-t border-dashed border-gray-300 px-2 py-4 dark:border-gray-600">
+        <View className="mt-6 flex-col gap-4 border-t border-dashed border-gray-300 px-2 py-4 dark:border-[#2e2e2e]">
           {order?.orderItems.map((item) => (
             <View
               key={item.id}
@@ -127,7 +127,7 @@ function OrderItemsListInner({
             </Text>
           </View>
         )}
-        <View className="mt-4 w-full flex-row items-center justify-between gap-2 border-t border-gray-200 pt-2 dark:border-gray-700">
+        <View className="mt-4 w-full flex-row items-center justify-between gap-2 border-t border-gray-200 pt-2 dark:border-[#2e2e2e]">
           <Text className="text-base font-semibold">
             {t('order.totalPayment')}:{' '}
           </Text>

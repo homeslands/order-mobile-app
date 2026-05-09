@@ -18,7 +18,7 @@ import dayjs from 'dayjs'
 import { ArrowRight, CalendarDays, X } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import DatePicker from 'react-native-date-picker'
 import { TouchableOpacity as GHTouchable } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -92,12 +92,12 @@ export const CoinFilterSheet = memo(function CoinFilterSheet({
   const [fromPickerOpen, setFromPickerOpen] = useState(false)
   const [toPickerOpen, setToPickerOpen] = useState(false)
 
-  const bg = isDark ? colors.gray[900] : colors.white.light
+  const bg = isDark ? colors.card.dark : colors.white.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const chipBg = isDark ? colors.gray[800] : colors.gray[100]
-  const dateBg = isDark ? colors.gray[800] : colors.gray[50]
-  const dateBorder = isDark ? colors.gray[700] : colors.gray[200]
+  const chipBg = isDark ? colors.border.dark : colors.gray[100]
+  const dateBg = isDark ? colors.background.dark : colors.gray[50]
+  const dateBorder = isDark ? colors.border.dark : colors.gray[200]
 
   useEffect(() => {
     if (visible) {
@@ -164,33 +164,32 @@ export const CoinFilterSheet = memo(function CoinFilterSheet({
             {TYPE_OPTIONS.map((opt) => {
               const active = opt.value === localType
               return (
-                <View key={String(opt.value)} style={fs.chipWrap}>
-                  <GHTouchable
-                    onPress={() => handleSelectType(opt.value)}
-                    activeOpacity={0.7}
+                <Pressable
+                  key={String(opt.value)}
+                  onPress={() => handleSelectType(opt.value)}
+                  style={[
+                    fs.chip,
+                    fs.chipWrap,
+                    { backgroundColor: active ? primaryColor : chipBg },
+                  ]}
+                >
+                  <Text
                     style={[
-                      fs.chip,
-                      { backgroundColor: active ? primaryColor : chipBg },
+                      fs.chipText,
+                      {
+                        color: active
+                          ? colors.white.light
+                          : isDark
+                            ? colors.gray[300]
+                            : colors.gray[700],
+                        fontWeight: active ? '700' : '500',
+                      },
                     ]}
+                    numberOfLines={1}
                   >
-                    <Text
-                      style={[
-                        fs.chipText,
-                        {
-                          color: active
-                            ? colors.white.light
-                            : isDark
-                              ? colors.gray[300]
-                              : colors.gray[700],
-                          fontWeight: active ? '700' : '500',
-                        },
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {opt.label}
-                    </Text>
-                  </GHTouchable>
-                </View>
+                    {opt.label}
+                  </Text>
+                </Pressable>
               )
             })}
           </View>
@@ -199,7 +198,9 @@ export const CoinFilterSheet = memo(function CoinFilterSheet({
           <View
             style={[
               fs.divider,
-              { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] },
+              {
+                backgroundColor: isDark ? colors.border.dark : colors.gray[100],
+              },
             ]}
           />
 
@@ -386,9 +387,9 @@ const fs = StyleSheet.create({
   chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
   chipWrap: { minWidth: 60 },
   chip: {
-    paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 10,
+    paddingVertical: 7,
+    paddingHorizontal: 14,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -17,6 +17,7 @@
  * #6 — Replace dialog dùng GiftCardExistsWarningDialog thay Alert.alert
  */
 import { FlashList } from '@shopify/flash-list'
+import type { FlashListRef } from '@shopify/flash-list'
 import { useRouter } from 'expo-router'
 import {
   ArrowDownNarrowWide,
@@ -24,7 +25,14 @@ import {
   Gift,
   ShoppingCart,
 } from 'lucide-react-native'
-import React, { startTransition, useCallback, useMemo, useState } from 'react'
+import React, {
+  startTransition,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import { Image } from 'expo-image'
 import {
@@ -73,10 +81,12 @@ function keyExtractor(item: IGiftCard) {
 // ─── Skeleton ─────────────────────────────────────────────────────────────────
 
 function GiftCardSkeleton() {
+  const isDarkSk = useColorScheme() === 'dark'
+  const skCardBg = isDarkSk ? colors.card.dark : colors.gray[100]
   return (
     <View style={sk.wrapper}>
       {[1, 2, 3].map((i) => (
-        <View key={i} style={sk.card}>
+        <View key={i} style={[sk.card, { backgroundColor: skCardBg }]}>
           {/* imageWrap: 128×128, padding 8 → imageInner 112×112 rounded */}
           <View style={sk.imageWrap}>
             <Skeleton style={sk.imageInner} />
@@ -105,7 +115,6 @@ const sk = StyleSheet.create({
     flexDirection: 'row',
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: colors.gray[100],
   },
   imageWrap: {
     width: GIFT_CARD_IMAGE_SIZE,
@@ -265,13 +274,21 @@ export default function GiftCardScreen() {
   )
 
   // ── Colors ────────────────────────────────────────────────────────────────
-  const headerBg = isDark ? colors.gray[900] : colors.white.light
+  const headerBg = isDark ? colors.card.dark : colors.white.light
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const chipBg = isDark ? colors.gray[800] : colors.gray[100]
-  const borderColor = isDark ? colors.gray[700] : colors.gray[200]
+  const chipBg = isDark ? colors.border.dark : colors.gray[100]
+  const borderColor = isDark ? colors.border.dark : colors.gray[200]
 
   // #3 — badge = qty thẻ quà tặng, không phải food cart
   const cartBadgeCount = giftCardItem?.quantity ?? 0
+
+  const flashListRef = useRef<FlashListRef<IGiftCard>>(null)
+
+  useEffect(() => {
+    if (sortOrder !== null) {
+      flashListRef.current?.scrollToOffset({ offset: 0, animated: true })
+    }
+  }, [sortOrder])
 
   // BAR_HEIGHT(64) + BAR_PADDING(8) + FADE_HEIGHT(120) + insets.bottom
   const listContentStyle = useMemo(
@@ -308,7 +325,9 @@ export default function GiftCardScreen() {
               style={[
                 s.cartBtn,
                 {
-                  backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
+                  backgroundColor: isDark
+                    ? colors.border.dark
+                    : colors.gray[100],
                   opacity: cartBadgeCount > 0 ? 1 : 0.45,
                 },
               ]}
@@ -392,6 +411,7 @@ export default function GiftCardScreen() {
         </View>
       ) : (
         <FlashList
+          ref={flashListRef}
           data={items}
           renderItem={renderItem}
           keyExtractor={keyExtractor}

@@ -310,7 +310,7 @@ export default function PlaceOrderDialog({
               <Dialog.Content className="max-w-md gap-0 rounded-md p-0">
                 <Dialog.Close onPress={() => setIsOpen(false)} />
                 <Dialog.Header className="p-4">
-                  <View className="border-b border-gray-200 pb-2 dark:border-gray-700">
+                  <View className="border-b border-gray-200 pb-2 dark:border-[#2e2e2e]">
                     <View className="flex-row items-center gap-2">
                       <View className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20 p-1">
                         <ShoppingCart size={16} color={primaryColor} />

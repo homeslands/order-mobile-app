@@ -70,15 +70,15 @@ const PROFILE_THEME = {
     logoutText: colors.destructive.light,
   },
   dark: {
-    bg: '#1F2B3E',
-    card: '#2B3B4C',
+    bg: colors.background.dark,
+    card: colors.card.dark,
     text: colors.foreground.dark,
-    textMuted: '#8B9BB2',
-    editBtn: '#3D4F66',
-    divider: 'rgba(255,255,255,0.08)',
-    avatarFallback: '#2B3B4C',
-    logoutBg: 'rgba(232, 93, 93, 0.2)',
-    logoutText: '#E85D5D',
+    textMuted: colors.mutedForeground.dark,
+    editBtn: colors.border.dark,
+    divider: 'rgba(255,255,255,0.07)',
+    avatarFallback: colors.card.dark,
+    logoutBg: 'rgba(239, 68, 68, 0.15)',
+    logoutText: colors.destructive.light,
   },
 } as const
 
@@ -167,7 +167,7 @@ const AvatarPickerSheet = React.memo(function AvatarPickerSheet({
   const { bottom } = useSafeAreaInsets()
 
   const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
+    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
     [isDark],
   )
   const snapPoints = useMemo(() => [220 + bottom], [bottom])
@@ -233,7 +233,9 @@ const AvatarPickerSheet = React.memo(function AvatarPickerSheet({
           <View
             style={[
               apStyles.divider,
-              { backgroundColor: isDark ? colors.gray[800] : colors.gray[100] },
+              {
+                backgroundColor: isDark ? colors.border.dark : colors.gray[100],
+              },
             ]}
           />
           <TouchableOpacity
@@ -338,7 +340,7 @@ const ProfileHeader = React.memo(function ProfileHeader({
           hitSlop={8}
           style={[
             phStyles.circleBtn,
-            { backgroundColor: isDark ? colors.gray[800] : colors.white.light },
+            { backgroundColor: isDark ? colors.card.dark : colors.white.light },
             phStyles.shadow,
           ]}
         >
@@ -352,7 +354,7 @@ const ProfileHeader = React.memo(function ProfileHeader({
           hitSlop={8}
           style={[
             phStyles.editPill,
-            { backgroundColor: isDark ? colors.gray[800] : colors.white.light },
+            { backgroundColor: isDark ? colors.card.dark : colors.white.light },
             phStyles.shadow,
           ]}
         >
@@ -587,7 +589,7 @@ const ProfileTest = () => {
       <View
         style={{
           flex: 1,
-          backgroundColor: isDark ? colors.gray[900] : '#ffffff',
+          backgroundColor: isDark ? colors.background.dark : '#ffffff',
         }}
       >
         <LoginForm />

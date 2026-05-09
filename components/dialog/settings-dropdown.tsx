@@ -91,7 +91,7 @@ export default function SettingsDropdown() {
             {t('setting.title', 'Cài đặt')}
           </Text>
         </View>
-        <View className="h-px bg-gray-200 dark:bg-gray-700" />
+        <View className="h-px bg-gray-200 dark:bg-[#2e2e2e]" />
 
         {/* Language Selection */}
         <View className="px-3 py-3">
@@ -135,7 +135,7 @@ export default function SettingsDropdown() {
           </Select>
         </View>
 
-        <View className="h-px bg-gray-200 dark:bg-gray-700" />
+        <View className="h-px bg-gray-200 dark:bg-[#2e2e2e]" />
 
         {/* Theme Selection */}
         <View className="px-3 py-3">

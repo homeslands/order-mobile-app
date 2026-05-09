@@ -1,5 +1,7 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-return
-jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'))
+jest.mock('react-native-reanimated', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-return
+  require('react-native-reanimated/mock'),
+)
 
 import { renderHook } from '@testing-library/react-native'
 import { useOrderTypeOptions } from '@/hooks/use-order-type-options'
@@ -32,14 +34,16 @@ beforeEach(() => {
   ;(useGetSystemFeatureFlagsByGroup as jest.Mock).mockReturnValue({
     data: { result: mockFeatureFlags },
   })
-  ;(useOrderFlowStore as unknown as jest.Mock).mockImplementation((sel: (s: Record<string, unknown>) => unknown) =>
-    sel({
-      setOrderingType: jest.fn(),
-      getCartItems: () => ({ type: OrderTypeEnum.AT_TABLE }),
-    }),
+  ;(useOrderFlowStore as unknown as jest.Mock).mockImplementation(
+    (sel: (s: Record<string, unknown>) => unknown) =>
+      sel({
+        setOrderingType: jest.fn(),
+        getCartItems: () => ({ type: OrderTypeEnum.AT_TABLE }),
+      }),
   )
-  ;(useUserStore as unknown as jest.Mock).mockImplementation((sel: (s: Record<string, unknown>) => unknown) =>
-    sel({ userInfo: { slug: 'u1', role: { name: 'CUSTOMER' } } }),
+  ;(useUserStore as unknown as jest.Mock).mockImplementation(
+    (sel: (s: Record<string, unknown>) => unknown) =>
+      sel({ userInfo: { slug: 'u1', role: { name: 'CUSTOMER' } } }),
   )
 })
 
@@ -51,8 +55,8 @@ describe('useOrderTypeOptions — DELIVERY', () => {
   })
 
   it('does NOT include DELIVERY when user is not logged in', () => {
-    ;(useUserStore as unknown as jest.Mock).mockImplementation((sel: (s: Record<string, unknown>) => unknown) =>
-      sel({ userInfo: null }),
+    ;(useUserStore as unknown as jest.Mock).mockImplementation(
+      (sel: (s: Record<string, unknown>) => unknown) => sel({ userInfo: null }),
     )
     const { result } = renderHook(() => useOrderTypeOptions({ enabled: true }))
     const values = result.current.orderTypes.map((t) => t.value)
@@ -62,15 +66,17 @@ describe('useOrderTypeOptions — DELIVERY', () => {
   it('does NOT include DELIVERY when feature is locked', () => {
     ;(useGetSystemFeatureFlagsByGroup as jest.Mock).mockReturnValue({
       data: {
-        result: [{
-          name: SystemLockFeatureType.CREATE_PRIVATE,
-          isLocked: false,
-          children: [
-            { name: SystemLockFeatureChild.AT_TABLE, isLocked: false },
-            { name: SystemLockFeatureChild.TAKE_OUT, isLocked: false },
-            { name: SystemLockFeatureChild.DELIVERY, isLocked: true },
-          ],
-        }],
+        result: [
+          {
+            name: SystemLockFeatureType.CREATE_PRIVATE,
+            isLocked: false,
+            children: [
+              { name: SystemLockFeatureChild.AT_TABLE, isLocked: false },
+              { name: SystemLockFeatureChild.TAKE_OUT, isLocked: false },
+              { name: SystemLockFeatureChild.DELIVERY, isLocked: true },
+            ],
+          },
+        ],
       },
     })
     const { result } = renderHook(() => useOrderTypeOptions({ enabled: true }))

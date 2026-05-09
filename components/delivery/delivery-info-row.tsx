@@ -27,12 +27,20 @@ export const DeliveryInfoRow = memo(function DeliveryInfoRow({
         styles.row,
         {
           borderColor: hasAddress
-            ? isDark ? colors.gray[600] : colors.gray[300]
-            : isDark ? colors.primary.dark : colors.primary.light,
+            ? isDark
+              ? colors.gray[600]
+              : colors.gray[300]
+            : isDark
+              ? colors.primary.dark
+              : colors.primary.light,
           borderStyle: hasAddress ? 'solid' : 'dashed',
           backgroundColor: hasAddress
-            ? isDark ? colors.gray[800] : colors.gray[50]
-            : isDark ? 'rgba(214,137,16,0.08)' : 'rgba(247,167,55,0.06)',
+            ? isDark
+              ? colors.gray[800]
+              : colors.gray[50]
+            : isDark
+              ? 'rgba(214,137,16,0.08)'
+              : 'rgba(247,167,55,0.06)',
         },
       ]}
     >
@@ -45,8 +53,12 @@ export const DeliveryInfoRow = memo(function DeliveryInfoRow({
           styles.text,
           {
             color: hasAddress
-              ? isDark ? colors.gray[100] : colors.gray[800]
-              : isDark ? colors.primary.dark : colors.primary.light,
+              ? isDark
+                ? colors.gray[100]
+                : colors.gray[800]
+              : isDark
+                ? colors.primary.dark
+                : colors.primary.light,
           },
         ]}
         numberOfLines={1}

@@ -1,5 +1,7 @@
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-return
-jest.mock('react-native-reanimated', () => require('react-native-reanimated/mock'))
+jest.mock('react-native-reanimated', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-return
+  require('react-native-reanimated/mock'),
+)
 
 import { render, fireEvent } from '@testing-library/react-native'
 import { DeliveryInfoRow } from '@/components/delivery/delivery-info-row'

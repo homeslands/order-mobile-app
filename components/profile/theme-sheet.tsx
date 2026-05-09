@@ -53,7 +53,7 @@ export const ThemeSheet = memo(function ThemeSheet({
 
   const snapPoints = useMemo(() => [220 + bottom], [bottom])
   const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
+    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
     [isDark],
   )
   const renderBackdrop = useCallback(

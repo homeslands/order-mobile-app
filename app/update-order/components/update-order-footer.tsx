@@ -106,7 +106,9 @@ export default memo(function UpdateOrderFooter({
     accumulatedPointsToUse
   const voucherDiscount = cartTotals?.voucherDiscount ?? 0
   const finalTotal =
-    (cartTotals?.finalTotal ?? 0) + effectiveDeliveryFee - accumulatedPointsToUse
+    (cartTotals?.finalTotal ?? 0) +
+    effectiveDeliveryFee -
+    accumulatedPointsToUse
 
   // Auto-remove voucher if maxItems exceeded
   const voucherSlug = voucher?.slug
@@ -166,7 +168,7 @@ export default memo(function UpdateOrderFooter({
   const ft = useMemo(
     () => ({
       containerBg: {
-        backgroundColor: isDark ? colors.gray[900] : colors.white.light,
+        backgroundColor: isDark ? colors.card.dark : colors.white.light,
       },
       selectBtnBorder: {
         borderColor: isDark ? colors.gray[700] : colors.gray[200],

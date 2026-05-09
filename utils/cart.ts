@@ -48,7 +48,10 @@ export function transformOrderItemToOrderDetail(
     // has the correct product name.
     variant: item.variant.product?.name
       ? item.variant
-      : { ...item.variant, product: { ...item.variant.product, name: item.name } },
+      : {
+          ...item.variant,
+          product: { ...item.variant.product, name: item.name },
+        },
     size: item.variant.size,
     trackingOrderItems: [],
     promotion: item.promotion

@@ -104,7 +104,7 @@ const TypeFilterBar = memo(function TypeFilterBar({
     [t, tCommon],
   )
 
-  const chipBg = isDark ? colors.gray[800] : colors.white.light
+  const chipBg = isDark ? colors.border.dark : colors.white.light
   const inactive = isDark ? colors.gray[400] : colors.gray[500]
 
   return (
@@ -197,7 +197,7 @@ export default function LoyaltyPointHubScreen() {
   const bg = isDark ? colors.background.dark : colors.background.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const borderColor = isDark ? colors.gray[700] : colors.gray[200]
+  const borderColor = isDark ? colors.border.dark : colors.gray[200]
 
   const listContentStyle = useMemo(
     () => ({

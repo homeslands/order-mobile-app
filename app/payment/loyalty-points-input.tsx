@@ -79,12 +79,12 @@ const LoyaltyPointsInput = memo(function LoyaltyPointsInput({
   onResetRef,
 }: LoyaltyPointsInputProps) {
   const { t } = useTranslation('payment')
-  const cardBg = isDark ? colors.gray[800] : colors.white.light
-  const borderColor = isDark ? colors.gray[700] : colors.gray[200]
+  const cardBg = isDark ? colors.card.dark : colors.white.light
+  const borderColor = isDark ? colors.border.dark : colors.gray[200]
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const inputBg = isDark ? colors.gray[700] : colors.gray[50]
-  const chipBg = isDark ? colors.gray[700] : colors.gray[100]
+  const inputBg = isDark ? colors.background.dark : colors.gray[50]
+  const chipBg = isDark ? colors.border.dark : colors.gray[100]
   const chipBorderColor = isDark ? colors.gray[600] : colors.gray[200]
 
   const maxUsablePoints = useMemo(
@@ -304,7 +304,9 @@ const LoyaltyPointsInput = memo(function LoyaltyPointsInput({
                 disabled={isCancelling}
                 style={[
                   s.cancelRow,
-                  { borderColor: isDark ? colors.gray[700] : colors.gray[200] },
+                  {
+                    borderColor: isDark ? colors.border.dark : colors.gray[200],
+                  },
                 ]}
               >
                 {isCancelling ? (

@@ -616,7 +616,10 @@ export default function MenuPage() {
         style={[
           styles.header,
           {
-            backgroundColor: isDark ? colors.gray[900] : '#ffffff',
+            backgroundColor: isDark ? colors.card.dark : '#ffffff',
+            borderBottomColor: isDark
+              ? colors.border.dark
+              : colors.border.light,
             paddingTop: STATIC_TOP_INSET + 12,
           },
         ]}
@@ -665,7 +668,12 @@ export default function MenuPage() {
       </View>
 
       {!hasBranch ? (
-        <View style={styles.emptyBox}>
+        <View
+          style={[
+            styles.emptyBox,
+            { backgroundColor: isDark ? colors.card.dark : colors.gray[100] },
+          ]}
+        >
           <Text style={styles.emptyText}>{t('menu.selectBranchPrompt')}</Text>
         </View>
       ) : (
@@ -694,15 +702,42 @@ export default function MenuPage() {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
             ListEmptyComponent={
-              <View style={styles.emptyBox}>
-                <Text style={styles.emptyText}>
-                  {isFetching
-                    ? t('menu.loadingMenu')
-                    : searchKeyword
-                      ? t('menu.searchNotFound', { keyword: searchText })
-                      : t('menu.noMenuData')}
-                </Text>
-              </View>
+              !isFetching && !searchKeyword ? (
+                <View style={styles.catalogEmptyBox}>
+                  <Image
+                    source={Images.Brand.LogoIcon}
+                    contentFit="contain"
+                    style={styles.catalogEmptyLogo}
+                  />
+                  <Text
+                    style={[
+                      styles.catalogEmptyText,
+                      { color: isDark ? colors.gray[400] : colors.gray[500] },
+                    ]}
+                  >
+                    {t('menu.catalogEmpty')}
+                  </Text>
+                </View>
+              ) : (
+                <View
+                  style={[
+                    styles.emptyBox,
+                    {
+                      backgroundColor: isDark
+                        ? colors.card.dark
+                        : colors.gray[100],
+                    },
+                  ]}
+                >
+                  <Text style={styles.emptyText}>
+                    {isFetching
+                      ? t('menu.loadingMenu')
+                      : searchKeyword
+                        ? t('menu.searchNotFound', { keyword: searchText })
+                        : t('menu.noMenuData')}
+                  </Text>
+                </View>
+              )
             }
           />
         </MenuImagePhaseContext.Provider>
@@ -734,7 +769,6 @@ export default function MenuPage() {
 const styles = StyleSheet.create({
   header: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.border.light,
   },
   headerRow: {
     flexDirection: 'row',
@@ -759,12 +793,28 @@ const styles = StyleSheet.create({
   emptyBox: {
     margin: 16,
     borderRadius: 12,
-    backgroundColor: colors.gray[100],
     padding: 16,
   },
   emptyText: {
     fontSize: 14,
     color: colors.gray[500],
+  },
+  catalogEmptyBox: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 80,
+    gap: 16,
+  },
+  catalogEmptyLogo: {
+    width: 120,
+    height: 120,
+    opacity: 0.25,
+  },
+  catalogEmptyText: {
+    fontSize: 14,
+    textAlign: 'center',
+    paddingHorizontal: 32,
   },
   catalogHeader: {
     fontSize: 13,

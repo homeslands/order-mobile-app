@@ -114,7 +114,7 @@ export function SettingsItem({
     <NativeGesturePressable
       navigation={navigation}
       onPress={!navigation ? onPress : undefined}
-      className="bg-white dark:bg-gray-800"
+      className="bg-white dark:bg-[#1c1c1e]"
     >
       {content}
     </NativeGesturePressable>
@@ -142,7 +142,7 @@ export function SettingsSection({ children, header }: SettingsSectionProps) {
           </Text>
         </View>
       )}
-      <View className="overflow-hidden rounded-2xl bg-white dark:bg-gray-800">
+      <View className="overflow-hidden rounded-2xl bg-white dark:bg-[#1c1c1e]">
         {React.Children.map(children, (child, index) => {
           if (!React.isValidElement(child)) return child
 

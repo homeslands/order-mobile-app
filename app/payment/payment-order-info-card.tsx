@@ -32,11 +32,11 @@ export const PaymentOrderInfoCard = memo(function PaymentOrderInfoCard({
   const theme = useMemo(
     () => ({
       card: {
-        backgroundColor: isDark ? colors.gray[800] : colors.white.light,
-        borderColor: isDark ? colors.gray[700] : colors.gray[100],
+        backgroundColor: isDark ? colors.card.dark : colors.white.light,
+        borderColor: isDark ? colors.border.dark : colors.gray[100],
       },
       divider: {
-        backgroundColor: isDark ? colors.gray[700] : colors.gray[100],
+        backgroundColor: isDark ? colors.border.dark : colors.gray[100],
       },
       title: { color: isDark ? colors.gray[50] : colors.gray[900] },
       subtle: { color: isDark ? colors.gray[400] : colors.gray[500] },

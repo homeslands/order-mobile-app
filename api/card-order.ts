@@ -21,8 +21,9 @@ export async function createCardOrder(
 export async function getCardOrders(
   params?: ICardOrderGetRequest,
 ): Promise<IApiResponse<IPaginationResponse<ICardOrderResponse>>> {
-  const { size, ...rest } = params ?? {}
-  const queryParams = size !== undefined ? { ...rest, limit: size } : rest
+  const { size, sort = 'createdAt:desc', ...rest } = params ?? {}
+  const queryParams =
+    size !== undefined ? { sort, ...rest, limit: size } : { sort, ...rest }
   const response = await http.get<
     IApiResponse<IPaginationResponse<ICardOrderResponse>>
   >('/card-order', { params: queryParams })

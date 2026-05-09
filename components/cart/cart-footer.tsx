@@ -10,7 +10,10 @@ import {
   SystemLockFeatureGroup,
   SystemLockFeatureType,
 } from '@/constants'
-import { FOOTER_BOTTOM_EXTRA, STATIC_BOTTOM_INSET } from '@/constants/status-bar'
+import {
+  FOOTER_BOTTOM_EXTRA,
+  STATIC_BOTTOM_INSET,
+} from '@/constants/status-bar'
 import { useCartValidation } from '@/hooks/use-cart-validation'
 import { useOrderFlowStore, useUserStore } from '@/stores'
 import {
@@ -20,9 +23,7 @@ import {
   useCartVoucher,
   useCartVoucherDiscount,
 } from '@/stores/cart.store'
-import {
-  useOrderFlowCartFooterData,
-} from '@/stores/selectors/order-flow.selectors'
+import { useOrderFlowCartFooterData } from '@/stores/selectors/order-flow.selectors'
 import { useCalculateDeliveryFee } from '@/hooks/use-branch-delivery'
 import { useBranchStore } from '@/stores'
 import type { IFeatureLock, IVoucher } from '@/types'
@@ -194,7 +195,7 @@ export const CartFooter = memo(function CartFooter({
   const ft = useMemo(
     () => ({
       containerBg: {
-        backgroundColor: isDark ? colors.gray[900] : colors.white.light,
+        backgroundColor: isDark ? colors.card.dark : colors.white.light,
       },
       selectBtnBorder: {
         borderColor: isDark ? colors.gray[700] : colors.gray[200],

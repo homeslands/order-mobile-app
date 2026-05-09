@@ -266,7 +266,7 @@ function OrderDetailContent() {
                 ds.card,
                 {
                   backgroundColor: isDark
-                    ? colors.gray[800]
+                    ? colors.card.dark
                     : colors.white.light,
                   borderColor: isDark ? colors.gray[700] : colors.gray[100],
                 },
@@ -467,7 +467,7 @@ function OrderDetailContent() {
                 ds.card,
                 {
                   backgroundColor: isDark
-                    ? colors.gray[800]
+                    ? colors.card.dark
                     : colors.white.light,
                   borderColor: isDark ? colors.gray[700] : colors.gray[100],
                   padding: 16,
@@ -503,7 +503,7 @@ function OrderDetailContent() {
                 ds.card,
                 {
                   backgroundColor: isDark
-                    ? colors.gray[800]
+                    ? colors.card.dark
                     : colors.white.light,
                   borderColor: isDark ? colors.gray[700] : colors.gray[100],
                 },
@@ -794,7 +794,7 @@ function OrderDetailContent() {
               ds.bottomBar,
               {
                 paddingBottom: insets.bottom + FOOTER_BOTTOM_EXTRA,
-                backgroundColor: isDark ? colors.gray[800] : colors.white.light,
+                backgroundColor: isDark ? colors.card.dark : colors.white.light,
                 borderTopColor: isDark ? colors.gray[700] : colors.gray[200],
               },
             ]}

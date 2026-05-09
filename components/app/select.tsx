@@ -14,7 +14,7 @@ export function PeriodOfTimeSelect({
   periodOfTime = 'today',
 }: PeriodOfTimeSelectProps) {
   return (
-    <View className="min-h-10 min-w-[100px] justify-center rounded-lg border border-gray-200 px-3 dark:border-gray-700">
+    <View className="min-h-10 min-w-[100px] justify-center rounded-lg border border-gray-200 px-3 dark:border-[#2e2e2e]">
       <Text className="text-sm text-gray-700 dark:text-gray-300">
         {periodOfTime}
       </Text>

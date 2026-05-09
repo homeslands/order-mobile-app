@@ -18,9 +18,10 @@ jest.mock('expo-av', () => ({
   },
 }))
 
-jest.mock('expo-notifications', () => ({
-  addNotificationReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
-}))
+jest.mock('@react-native-firebase/messaging', () => {
+  const onMessage = jest.fn(() => jest.fn()) // returns unsubscribe fn
+  return { __esModule: true, default: jest.fn(() => ({ onMessage })) }
+})
 
 jest.mock('@/stores/notification.store', () => ({
   useNotificationStore: {
@@ -31,7 +32,9 @@ jest.mock('@/stores/notification.store', () => ({
   },
 }))
 
-jest.mock('@/utils', () => ({ showToast: jest.fn() }))
+jest.mock('@/providers/toast-provider', () => ({
+  showToastInternal: jest.fn(),
+}))
 
 import { useNotificationListener } from '@/hooks/use-notification-listener'
 

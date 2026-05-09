@@ -10,7 +10,15 @@ import {
 import * as Location from 'expo-location'
 import { formatCurrencyNative } from 'cart-price-calc'
 import { MapPin, Navigation, Pencil, Phone, X } from 'lucide-react-native'
-import { forwardRef, memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+  forwardRef,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import {
   ActivityIndicator,
   Dimensions,
@@ -32,7 +40,10 @@ import {
   useGetAddressSuggestions,
   useGetDistanceAndDuration,
 } from '@/hooks'
-import { useCalculateDeliveryFee, useGetBranchDeliveryConfig } from '@/hooks/use-branch-delivery'
+import {
+  useCalculateDeliveryFee,
+  useGetBranchDeliveryConfig,
+} from '@/hooks/use-branch-delivery'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import type { IAddressSuggestion } from '@/types'
 import { decodePolyline, showToast } from '@/utils'
@@ -61,7 +72,14 @@ interface DeliveryMapProps {
 
 const DeliveryMap = memo(
   forwardRef<MapView, DeliveryMapProps>(function DeliveryMap(
-    { branchLat, branchLng, hasBranchLocation, pendingSelection, routeCoords, primaryColor },
+    {
+      branchLat,
+      branchLng,
+      hasBranchLocation,
+      pendingSelection,
+      routeCoords,
+      primaryColor,
+    },
     ref,
   ) {
     return (
@@ -89,7 +107,10 @@ const DeliveryMap = memo(
         )}
         {pendingSelection && (
           <Marker
-            coordinate={{ latitude: pendingSelection.lat, longitude: pendingSelection.lng }}
+            coordinate={{
+              latitude: pendingSelection.lat,
+              longitude: pendingSelection.lng,
+            }}
             pinColor="#ef4444"
             title="Điểm giao"
           />
@@ -224,9 +245,13 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   const [inputMountKey, setInputMountKey] = useState(0)
   const mountTextRef = useRef('')
   const addressInputRef = useRef(addressInput)
-  useEffect(() => { addressInputRef.current = addressInput }, [addressInput])
+  useEffect(() => {
+    addressInputRef.current = addressInput
+  }, [addressInput])
   const phoneInputRef = useRef(phoneInput)
-  useEffect(() => { phoneInputRef.current = phoneInput }, [phoneInput])
+  useEffect(() => {
+    phoneInputRef.current = phoneInput
+  }, [phoneInput])
 
   const setAddressText = useCallback((text: string) => {
     mountTextRef.current = text
@@ -291,14 +316,17 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
     [setAddressText],
   )
 
-  const handlePhoneChange = useCallback((text: string) => {
-    setPhoneInput(text)
-    // Only write to store when complete (10 digits) or cleared — prevents
-    // per-keystroke store mutations that trigger CartFooter/UpdateOrderFooter re-renders
-    if (!text || PHONE_NUMBER_REGEX.test(text)) {
-      actions.setDeliveryPhone(text)
-    }
-  }, [actions])
+  const handlePhoneChange = useCallback(
+    (text: string) => {
+      setPhoneInput(text)
+      // Only write to store when complete (10 digits) or cleared — prevents
+      // per-keystroke store mutations that trigger CartFooter/UpdateOrderFooter re-renders
+      if (!text || PHONE_NUMBER_REGEX.test(text)) {
+        actions.setDeliveryPhone(text)
+      }
+    },
+    [actions],
+  )
 
   const handlePhoneBlur = useCallback(() => {
     const value = phoneInputRef.current
@@ -316,8 +344,16 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   const pendingLat = pendingSelection?.lat ?? 0
   const pendingLng = pendingSelection?.lng ?? 0
 
-  const distanceQuery = useGetDistanceAndDuration(branchSlug, pendingLat, pendingLng)
-  const directionQuery = useGetAddressDirection(branchSlug, pendingLat, pendingLng)
+  const distanceQuery = useGetDistanceAndDuration(
+    branchSlug,
+    pendingLat,
+    pendingLng,
+  )
+  const directionQuery = useGetAddressDirection(
+    branchSlug,
+    pendingLat,
+    pendingLng,
+  )
 
   useEffect(() => {
     if (!pendingSelection || !distanceQuery.data?.result || !maxDistance) return
@@ -344,7 +380,13 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
     actions.setDeliveryAddress(address)
     actions.setDeliveryCoords(lat, lng, placeId)
     actions.setDeliveryDistanceDuration(distance, duration)
-  }, [distanceQuery.data, pendingSelection, maxDistance, actions, setAddressText])
+  }, [
+    distanceQuery.data,
+    pendingSelection,
+    maxDistance,
+    actions,
+    setAddressText,
+  ])
 
   // ─── Direction + route polyline ─────────────────────────────────────────────
   const routeCoords = useMemo(() => {
@@ -356,16 +398,23 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
 
   // ─── Delivery fee ────────────────────────────────────────────────────────────
   const confirmedDistance = distanceQuery.data?.result?.distance ?? 0
-  const { deliveryFee } = useCalculateDeliveryFee(confirmedDistance, branchSlug, {
-    enabled: !!actions.currentAddress && confirmedDistance > 0,
-  })
+  const { deliveryFee } = useCalculateDeliveryFee(
+    confirmedDistance,
+    branchSlug,
+    {
+      enabled: !!actions.currentAddress && confirmedDistance > 0,
+    },
+  )
 
   // ─── Map ref + fit to route ───────────────────────────────────────────────────
   const mapRef = useRef<MapView>(null)
   useEffect(() => {
     if (!actions.currentAddress || !branchLocation || !pendingSelection) return
     const coords = [
-      { latitude: parseFloat(String(branchLocation.lat)), longitude: parseFloat(String(branchLocation.lng)) },
+      {
+        latitude: parseFloat(String(branchLocation.lat)),
+        longitude: parseFloat(String(branchLocation.lng)),
+      },
       { latitude: pendingSelection.lat, longitude: pendingSelection.lng },
     ]
     const timer = setTimeout(() => {
@@ -406,7 +455,10 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
         accuracy: Location.Accuracy.High,
       })
       const { latitude, longitude } = position.coords
-      const [geocoded] = await Location.reverseGeocodeAsync({ latitude, longitude })
+      const [geocoded] = await Location.reverseGeocodeAsync({
+        latitude,
+        longitude,
+      })
       if (geocoded) {
         const parts = [
           geocoded.streetNumber,
@@ -478,7 +530,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
   const canConfirm = !!actions.currentAddress && phoneIsValid
 
   const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
+    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
     [isDark],
   )
 
@@ -509,7 +561,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
         <View
           style={[
             f.footer,
-            { backgroundColor: isDark ? colors.gray[900] : colors.white.light },
+            { backgroundColor: isDark ? colors.card.dark : colors.white.light },
           ]}
         >
           <Pressable
@@ -517,11 +569,30 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
             disabled={!canConfirm}
             style={[
               f.confirmBtn,
-              { backgroundColor: canConfirm ? primaryColor : isDark ? colors.gray[700] : colors.gray[300] },
+              {
+                backgroundColor: canConfirm
+                  ? primaryColor
+                  : isDark
+                    ? colors.gray[700]
+                    : colors.gray[300],
+              },
             ]}
           >
-            <Text style={[f.confirmText, { color: canConfirm ? colors.white.light : (isDark ? colors.gray[400] : colors.gray[500]) }]}>
-              {canConfirm ? 'Xác nhận địa chỉ này' : 'Thiếu thông tin giao hàng'}
+            <Text
+              style={[
+                f.confirmText,
+                {
+                  color: canConfirm
+                    ? colors.white.light
+                    : isDark
+                      ? colors.gray[400]
+                      : colors.gray[500],
+                },
+              ]}
+            >
+              {canConfirm
+                ? 'Xác nhận địa chỉ này'
+                : 'Thiếu thông tin giao hàng'}
             </Text>
           </Pressable>
         </View>
@@ -565,7 +636,9 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
       >
         {/* ── Header ── */}
         <View style={f.header}>
-          <Text style={[f.title, { color: textPrimary }]}>Địa chỉ giao hàng</Text>
+          <Text style={[f.title, { color: textPrimary }]}>
+            Địa chỉ giao hàng
+          </Text>
           <Pressable onPress={onClose} hitSlop={8}>
             <X size={20} color={textMuted} />
           </Pressable>
@@ -579,10 +652,18 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
             {/* Confirmed address + edit button */}
             <View style={[f.confirmedRow, { borderColor: borderDefault }]}>
               <MapPin size={14} color="#ef4444" />
-              <Text style={[f.confirmedAddress, { color: textPrimary }]} numberOfLines={1} ellipsizeMode="tail">
+              <Text
+                style={[f.confirmedAddress, { color: textPrimary }]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
                 {actions.currentAddress}
               </Text>
-              <Pressable onPress={handleEditAddress} hitSlop={8} style={[f.editBtn, { backgroundColor: `${primaryColor}0f` }]}>
+              <Pressable
+                onPress={handleEditAddress}
+                hitSlop={8}
+                style={[f.editBtn, { backgroundColor: `${primaryColor}0f` }]}
+              >
                 <Pencil size={14} color={primaryColor} />
               </Pressable>
             </View>
@@ -601,30 +682,58 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
             </View>
 
             {/* Time + distance info */}
-            {(!hasCoords || distanceQuery.isLoading) ? (
-              <View style={[f.infoRow, { backgroundColor: `${primaryColor}0a`, borderColor: primaryColor }]}>
-                <ActivityIndicator size="small" color={primaryColor} style={{ flex: 1, paddingVertical: 12 }} />
+            {!hasCoords || distanceQuery.isLoading ? (
+              <View
+                style={[
+                  f.infoRow,
+                  {
+                    backgroundColor: `${primaryColor}0a`,
+                    borderColor: primaryColor,
+                  },
+                ]}
+              >
+                <ActivityIndicator
+                  size="small"
+                  color={primaryColor}
+                  style={{ flex: 1, paddingVertical: 12 }}
+                />
               </View>
             ) : distanceQuery.data?.result ? (
-              <View style={[f.infoRow, { backgroundColor: `${primaryColor}0a`, borderColor: primaryColor }]}>
+              <View
+                style={[
+                  f.infoRow,
+                  {
+                    backgroundColor: `${primaryColor}0a`,
+                    borderColor: primaryColor,
+                  },
+                ]}
+              >
                 <View style={f.infoItem}>
-                  <Text style={[f.infoLabel, { color: textMuted }]}>Thời gian dự kiến</Text>
+                  <Text style={[f.infoLabel, { color: textMuted }]}>
+                    Thời gian dự kiến
+                  </Text>
                   <Text style={[f.infoValue, { color: textPrimary }]}>
                     ~{Math.round(distanceQuery.data.result.duration)} phút
                   </Text>
                 </View>
                 <View style={[f.infoSep, { backgroundColor: borderDefault }]} />
                 <View style={f.infoItem}>
-                  <Text style={[f.infoLabel, { color: textMuted }]}>Khoảng cách</Text>
+                  <Text style={[f.infoLabel, { color: textMuted }]}>
+                    Khoảng cách
+                  </Text>
                   <Text style={[f.infoValue, { color: textPrimary }]}>
                     {distanceQuery.data.result.distance.toFixed(1)} km
                   </Text>
                 </View>
                 <View style={[f.infoSep, { backgroundColor: borderDefault }]} />
                 <View style={f.infoItem}>
-                  <Text style={[f.infoLabel, { color: textMuted }]}>Phí giao hàng</Text>
+                  <Text style={[f.infoLabel, { color: textMuted }]}>
+                    Phí giao hàng
+                  </Text>
                   <Text style={[f.infoValue, { color: primaryColor }]}>
-                    {deliveryFee != null ? formatCurrencyNative(deliveryFee) : '...'}
+                    {deliveryFee != null
+                      ? formatCurrencyNative(deliveryFee)
+                      : '...'}
                   </Text>
                 </View>
               </View>
@@ -632,20 +741,35 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
 
             {/* Phone input */}
             <View style={f.phoneSection}>
-              <Text style={[f.sectionLabel, { color: textMuted }]}>Số điện thoại nhận hàng</Text>
-              <View style={[f.phoneWrapper, {
-                backgroundColor: phoneIsInvalid
-                  ? (isDark ? `${colors.destructive.dark}15` : `${colors.destructive.light}15`)
-                  : `${primaryColor}0a`,
-                borderColor: phoneIsInvalid
-                  ? (isDark ? colors.destructive.dark : colors.destructive.light)
-                  : primaryColor,
-              }]}>
+              <Text style={[f.sectionLabel, { color: textMuted }]}>
+                Số điện thoại nhận hàng
+              </Text>
+              <View
+                style={[
+                  f.phoneWrapper,
+                  {
+                    backgroundColor: phoneIsInvalid
+                      ? isDark
+                        ? `${colors.destructive.dark}15`
+                        : `${colors.destructive.light}15`
+                      : `${primaryColor}0a`,
+                    borderColor: phoneIsInvalid
+                      ? isDark
+                        ? colors.destructive.dark
+                        : colors.destructive.light
+                      : primaryColor,
+                  },
+                ]}
+              >
                 <Phone
                   size={14}
-                  color={phoneIsInvalid
-                    ? (isDark ? colors.destructive.dark : colors.destructive.light)
-                    : primaryColor}
+                  color={
+                    phoneIsInvalid
+                      ? isDark
+                        ? colors.destructive.dark
+                        : colors.destructive.light
+                      : primaryColor
+                  }
                 />
                 <BottomSheetTextInput
                   value={phoneInput}
@@ -660,7 +784,10 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
                 />
                 {phoneInput.length > 0 && (
                   <Pressable
-                    onPress={() => { setPhoneInput(''); actions.setDeliveryPhone('') }}
+                    onPress={() => {
+                      setPhoneInput('')
+                      actions.setDeliveryPhone('')
+                    }}
                     hitSlop={8}
                   >
                     <X size={14} color={textMuted} />
@@ -668,7 +795,16 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
                 )}
               </View>
               {phoneIsInvalid && (
-                <Text style={[f.phoneError, { color: isDark ? colors.destructive.dark : colors.destructive.light }]}>
+                <Text
+                  style={[
+                    f.phoneError,
+                    {
+                      color: isDark
+                        ? colors.destructive.dark
+                        : colors.destructive.light,
+                    },
+                  ]}
+                >
                   Số điện thoại phải đủ 10 số
                 </Text>
               )}
@@ -688,12 +824,22 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
             <View style={f.routeCard}>
               <View style={f.routeRow}>
                 <View style={f.indicatorCol}>
-                  <View style={[f.fromDot, { backgroundColor: primaryColor }]} />
-                  <View style={[f.connectorLine, { backgroundColor: borderDefault }]} />
+                  <View
+                    style={[f.fromDot, { backgroundColor: primaryColor }]}
+                  />
+                  <View
+                    style={[
+                      f.connectorLine,
+                      { backgroundColor: borderDefault },
+                    ]}
+                  />
                 </View>
                 <View style={f.routeTextCol}>
                   <Text style={[f.routeLabel, { color: textMuted }]}>Từ</Text>
-                  <Text style={[f.routeAddress, { color: textPrimary }]} numberOfLines={2}>
+                  <Text
+                    style={[f.routeAddress, { color: textPrimary }]}
+                    numberOfLines={2}
+                  >
                     {branchLocation?.formattedAddress ?? 'Chi nhánh hiện tại'}
                   </Text>
                 </View>
@@ -706,8 +852,12 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
                   style={[
                     f.inputWrapper,
                     {
-                      backgroundColor: isDark ? colors.gray[900] : colors.white.light,
-                      borderColor: showSuggestions ? primaryColor : borderDefault,
+                      backgroundColor: isDark
+                        ? colors.background.dark
+                        : colors.white.light,
+                      borderColor: showSuggestions
+                        ? primaryColor
+                        : borderDefault,
                     },
                   ]}
                 >
@@ -738,24 +888,48 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
 
             {/* Suggestions */}
             {showSuggestions && (
-              <View style={[f.suggestionsBox, { backgroundColor: isDark ? colors.gray[800] : colors.white.light, borderColor: borderDefault }]}>
+              <View
+                style={[
+                  f.suggestionsBox,
+                  {
+                    backgroundColor: isDark
+                      ? colors.card.dark
+                      : colors.white.light,
+                    borderColor: borderDefault,
+                  },
+                ]}
+              >
                 {suggestionsQuery.isLoading && (
-                  <ActivityIndicator size="small" color={primaryColor} style={{ padding: 12 }} />
-                )}
-                {(suggestionsQuery.data?.result ?? []).map((item: IAddressSuggestion) => (
-                  <SuggestionItem
-                    key={item.placePrediction.placeId}
-                    item={item}
-                    onSelect={handleSelectSuggestion}
-                    isDark={isDark}
+                  <ActivityIndicator
+                    size="small"
+                    color={primaryColor}
+                    style={{ padding: 12 }}
                   />
-                ))}
+                )}
+                {(suggestionsQuery.data?.result ?? []).map(
+                  (item: IAddressSuggestion) => (
+                    <SuggestionItem
+                      key={item.placePrediction.placeId}
+                      item={item}
+                      onSelect={handleSelectSuggestion}
+                      isDark={isDark}
+                    />
+                  ),
+                )}
               </View>
             )}
 
             {/* Loading indicator while resolving suggestion → coords → distance */}
             {isResolvingAddress && (
-              <View style={[f.resolvingRow, { backgroundColor: `${primaryColor}0a`, borderColor: primaryColor }]}>
+              <View
+                style={[
+                  f.resolvingRow,
+                  {
+                    backgroundColor: `${primaryColor}0a`,
+                    borderColor: primaryColor,
+                  },
+                ]}
+              >
                 <ActivityIndicator size="small" color={primaryColor} />
                 <Text style={[f.resolvingText, { color: primaryColor }]}>
                   Đang xác nhận địa chỉ...
@@ -767,7 +941,14 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
             <Pressable
               onPress={handleGPS}
               disabled={isLocating || isResolvingAddress}
-              style={[f.gpsRow, { borderColor: primaryColor, backgroundColor: `${primaryColor}0a`, opacity: isResolvingAddress ? 0.5 : 1 }]}
+              style={[
+                f.gpsRow,
+                {
+                  borderColor: primaryColor,
+                  backgroundColor: `${primaryColor}0a`,
+                  opacity: isResolvingAddress ? 0.5 : 1,
+                },
+              ]}
             >
               {isLocating ? (
                 <ActivityIndicator size="small" color={primaryColor} />
@@ -794,7 +975,7 @@ const f = StyleSheet.create({
   footer: {
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 8,
+    paddingBottom: 16,
   },
   header: {
     flexDirection: 'row',

@@ -16,7 +16,7 @@ function OrderInfoSectionInner({ order }: OrderInfoSectionProps) {
 
   return (
     <View className="flex-col gap-2">
-      <View className="flex-row items-center justify-between rounded-md border bg-gray-100 px-2 py-3 text-sm dark:bg-gray-900">
+      <View className="flex-row items-center justify-between rounded-md border bg-gray-100 px-2 py-3 text-sm dark:bg-[#121212]">
         <View className="flex-row items-center gap-2">
           <Receipt size={16} color="#6b7280" />
           <Text className="text-gray-600 dark:text-gray-400">
@@ -40,7 +40,7 @@ function OrderInfoSectionInner({ order }: OrderInfoSectionProps) {
         </Badge>
       </View>
       {order?.timeLeftTakeOut !== undefined && (
-        <View className="flex-row justify-between rounded-md border bg-gray-100 px-2 py-3 text-sm dark:bg-gray-900">
+        <View className="flex-row justify-between rounded-md border bg-gray-100 px-2 py-3 text-sm dark:bg-[#121212]">
           <View className="flex-row items-center gap-2">
             <Clock size={16} color="#6b7280" />
             <Text className="text-gray-600 dark:text-gray-400">
@@ -57,7 +57,7 @@ function OrderInfoSectionInner({ order }: OrderInfoSectionProps) {
         </View>
       )}
       {order?.tableName && (
-        <View className="flex-row justify-between rounded-md border bg-gray-100 px-2 py-3 text-sm dark:bg-gray-900">
+        <View className="flex-row justify-between rounded-md border bg-gray-100 px-2 py-3 text-sm dark:bg-[#121212]">
           <View className="flex-row items-center gap-2">
             <MapPin size={16} color="#6b7280" />
             <Text className="text-gray-600 dark:text-gray-400">
@@ -68,7 +68,7 @@ function OrderInfoSectionInner({ order }: OrderInfoSectionProps) {
         </View>
       )}
       {order?.type === OrderTypeEnum.DELIVERY && order?.deliveryAddress && (
-        <View className="flex-row justify-between rounded-md border bg-gray-100 px-2 py-3 text-sm dark:bg-gray-900">
+        <View className="flex-row justify-between rounded-md border bg-gray-100 px-2 py-3 text-sm dark:bg-[#121212]">
           <View className="flex-row items-center gap-2">
             <MapPin size={16} color="#6b7280" />
             <Text className="text-gray-600 dark:text-gray-400">
@@ -81,7 +81,7 @@ function OrderInfoSectionInner({ order }: OrderInfoSectionProps) {
         </View>
       )}
       {order?.type === OrderTypeEnum.DELIVERY && order?.deliveryPhone && (
-        <View className="flex-row justify-between rounded-md border bg-gray-100 px-2 py-3 text-sm dark:bg-gray-900">
+        <View className="flex-row justify-between rounded-md border bg-gray-100 px-2 py-3 text-sm dark:bg-[#121212]">
           <View className="flex-row items-center gap-2">
             <Phone size={16} color="#6b7280" />
             <Text className="text-gray-600 dark:text-gray-400">
@@ -92,7 +92,7 @@ function OrderInfoSectionInner({ order }: OrderInfoSectionProps) {
         </View>
       )}
       {order?.description && (
-        <View className="flex-row justify-between rounded-md border bg-gray-100 px-2 py-3 text-sm dark:bg-gray-900">
+        <View className="flex-row justify-between rounded-md border bg-gray-100 px-2 py-3 text-sm dark:bg-[#121212]">
           <View className="flex-row items-center gap-2">
             <Notebook size={16} color="#6b7280" />
             <Text className="text-gray-600 dark:text-gray-400">

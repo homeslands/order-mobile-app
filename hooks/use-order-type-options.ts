@@ -92,7 +92,10 @@ export function useOrderTypeOptions(options?: UseOrderTypeOptionsOptions) {
         (child) => child.name === SystemLockFeatureChild.DELIVERY,
       )
       if (hasDelivery) {
-        allTypes.push({ value: OrderTypeEnum.DELIVERY, label: t('menu.delivery') })
+        allTypes.push({
+          value: OrderTypeEnum.DELIVERY,
+          label: t('menu.delivery'),
+        })
       }
     }
 

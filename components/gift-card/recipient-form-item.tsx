@@ -48,11 +48,11 @@ export const RecipientFormItem = memo(function RecipientFormItem({
   const isDark = useColorScheme() === 'dark'
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const borderColor = isDark ? colors.gray[700] : colors.gray[200]
-  const bgColor = isDark ? colors.gray[900] : colors.white.light
-  const textAreaBg = isDark ? colors.gray[800] : colors.gray[50]
-  const textAreaBorder = isDark ? colors.gray[700] : colors.gray[200]
-  const suggestionBg = isDark ? colors.gray[800] : colors.gray[50]
+  const borderColor = isDark ? colors.border.dark : colors.gray[200]
+  const bgColor = isDark ? colors.card.dark : colors.white.light
+  const textAreaBg = isDark ? colors.background.dark : colors.gray[50]
+  const textAreaBorder = isDark ? colors.border.dark : colors.gray[200]
+  const suggestionBg = isDark ? colors.background.dark : colors.gray[50]
   const qtyBtnBorder = isDark ? colors.gray[600] : colors.gray[300]
   const qtyBtnText = isDark ? colors.gray[300] : colors.gray[700]
   const qtyText = isDark ? colors.gray[50] : colors.gray[900]

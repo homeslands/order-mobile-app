@@ -19,6 +19,8 @@ export interface INotificationMetadata {
   branchName: string
   branch: string // slug of the branch
   createdAt: string
+  cardOrder?: string
+  cardOrderCode?: string
 }
 
 export interface INotification extends IBase {
@@ -65,6 +67,8 @@ export interface INotificationMetadata {
   branchName: string
   branch: string // slug of the branch
   createdAt: string
+  cardOrder?: string
+  cardOrderCode?: string
 }
 
 export interface IRegisterDeviceTokenRequest {

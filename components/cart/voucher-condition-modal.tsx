@@ -35,6 +35,7 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
   indicatorStyle,
   bottomInset,
 }: VoucherConditionModalProps) {
+  const { t } = useTranslation('voucher')
   const { t: tToast } = useTranslation('toast')
   const sheetRef = useRef<BottomSheetModal>(null)
 
@@ -81,7 +82,7 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
             { color: isDark ? colors.gray[50] : colors.gray[900] },
           ]}
         >
-          Điều kiện voucher
+          {t('conditionSheetTitle')}
         </Text>
 
         <View
@@ -99,7 +100,7 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
               { color: isDark ? colors.gray[400] : colors.gray[500] },
             ]}
           >
-            Mã giảm giá
+            {t('code')}
           </Text>
           <View style={condStyles.codeRight}>
             <Text style={[condStyles.codeValue, { color: primaryColor }]}>
@@ -134,7 +135,7 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
               { color: isDark ? colors.gray[400] : colors.gray[500] },
             ]}
           >
-            HSD
+            {t('endDate')}
           </Text>
           <Text
             style={[
@@ -152,7 +153,7 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
             { color: isDark ? colors.gray[50] : colors.gray[900] },
           ]}
         >
-          Điều kiện
+          {t('condition')}
         </Text>
         <View style={condStyles.condList}>
           <Text
@@ -161,8 +162,10 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
               { color: isDark ? colors.gray[300] : colors.gray[700] },
             ]}
           >
-            • Giá trị đơn hàng tối thiểu:{' '}
-            {formatCurrencyNative(voucher.minOrderValue)}
+            {'• '}
+            {t('conditionModal.minOrderCondition', {
+              value: formatCurrencyNative(voucher.minOrderValue),
+            })}
           </Text>
           <Text
             style={[
@@ -170,10 +173,10 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
               { color: isDark ? colors.gray[300] : colors.gray[700] },
             ]}
           >
-            •{' '}
+            {'• '}
             {voucher.isVerificationIdentity
-              ? 'Đã có tài khoản trên hệ thống.'
-              : 'Không yêu cầu tài khoản.'}
+              ? t('conditionModal.hasAccount')
+              : t('conditionModal.noAccount')}
           </Text>
           <Text
             style={[
@@ -181,8 +184,10 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
               { color: isDark ? colors.gray[300] : colors.gray[700] },
             ]}
           >
-            • Số lượng sử dụng tối đa trên 1 tài khoản:{' '}
-            {voucher.numberOfUsagePerUser || 'Không giới hạn'}
+            {'• '}
+            {t('conditionModal.usagePerUser', {
+              value: voucher.numberOfUsagePerUser || t('unlimited'),
+            })}
           </Text>
           {voucher.voucherProducts?.length > 0 && (
             <Text
@@ -191,10 +196,12 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
                 { color: isDark ? colors.gray[300] : colors.gray[700] },
               ]}
             >
-              • Sản phẩm áp dụng:{' '}
-              {voucher.voucherProducts
-                .map((vp) => vp.product?.name || vp.slug)
-                .join(', ')}
+              {'• '}
+              {t('conditionModal.applicableProducts', {
+                products: voucher.voucherProducts
+                  .map((vp) => vp.product?.name || vp.slug)
+                  .join(', '),
+              })}
             </Text>
           )}
         </View>

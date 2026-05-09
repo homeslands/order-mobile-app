@@ -11,7 +11,7 @@ import { colors } from '@/constants'
 
 export default function RegisterScreen() {
   const isDark = useColorScheme() === 'dark'
-  const bgColor = isDark ? colors.gray[900] : '#ffffff'
+  const bgColor = isDark ? colors.background.dark : '#ffffff'
 
   return (
     <ScreenContainer

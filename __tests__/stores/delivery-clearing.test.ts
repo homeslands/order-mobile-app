@@ -7,7 +7,12 @@ import {
   type IUpdateOrderFlowStore,
   type SetFn,
 } from '@/stores/update-order-flow.types'
-import { type IOrder, type IOrderToUpdate, OrderStatus, OrderTypeEnum } from '@/types'
+import {
+  type IOrder,
+  type IOrderToUpdate,
+  OrderStatus,
+  OrderTypeEnum,
+} from '@/types'
 
 const DELIVERY_DRAFT: IOrderToUpdate = {
   id: 'test',
@@ -90,7 +95,11 @@ describe('setDraftType — delivery clearing', () => {
   })
 
   it('clears table/tableName when switching to TAKE_OUT', () => {
-    const { methods, get } = makeStore({ ...DELIVERY_DRAFT, table: 'table-1', tableName: 'T1' })
+    const { methods, get } = makeStore({
+      ...DELIVERY_DRAFT,
+      table: 'table-1',
+      tableName: 'T1',
+    })
     methods.setDraftType(OrderTypeEnum.TAKE_OUT)
     const draft = get().updatingData?.updateDraft
     expect(draft?.table).toBe('')

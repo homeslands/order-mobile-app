@@ -303,8 +303,8 @@ export default function GiftCardCheckoutScreen() {
           style={[
             cs.footer,
             {
-              backgroundColor: isDark ? colors.gray[900] : colors.white.light,
-              borderTopColor: isDark ? colors.gray[700] : colors.gray[200],
+              backgroundColor: isDark ? colors.card.dark : colors.white.light,
+              borderTopColor: isDark ? colors.border.dark : colors.gray[200],
             },
           ]}
         >
@@ -314,7 +314,7 @@ export default function GiftCardCheckoutScreen() {
             style={[
               cs.cancelBtn,
               {
-                backgroundColor: isDark ? colors.gray[700] : colors.gray[100],
+                backgroundColor: isDark ? colors.border.dark : colors.gray[100],
                 opacity: isPending ? 0.5 : 1,
               },
             ]}
@@ -363,8 +363,8 @@ export default function GiftCardCheckoutScreen() {
   // ── Colors ────────────────────────────────────────────────────────────────
 
   const bg = isDark ? colors.background.dark : colors.background.light
-  const cardBg = isDark ? colors.gray[900] : colors.white.light
-  const borderColor = isDark ? colors.gray[700] : colors.gray[200]
+  const cardBg = isDark ? colors.card.dark : colors.white.light
+  const borderColor = isDark ? colors.border.dark : colors.gray[200]
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
 
@@ -509,6 +509,11 @@ export default function GiftCardCheckoutScreen() {
                   </View>
                 </View>
               )}
+
+              {/* IAP disclaimer — physical goods clarification for App Store compliance */}
+              <Text style={[s.disclaimer, { color: subColor }]}>
+                {t('checkout.disclaimer')}
+              </Text>
             </>
           )}
         </ScrollView>
@@ -566,7 +571,7 @@ export default function GiftCardCheckoutScreen() {
           enableDynamicSizing={false}
           backdropComponent={renderConfirmBackdrop}
           backgroundStyle={{
-            backgroundColor: isDark ? colors.gray[900] : colors.white.light,
+            backgroundColor: isDark ? colors.card.dark : colors.white.light,
           }}
           handleIndicatorStyle={{
             backgroundColor: isDark ? colors.gray[600] : colors.gray[300],
@@ -579,7 +584,9 @@ export default function GiftCardCheckoutScreen() {
             style={[
               cs.header,
               {
-                borderBottomColor: isDark ? colors.gray[700] : colors.gray[200],
+                borderBottomColor: isDark
+                  ? colors.border.dark
+                  : colors.gray[200],
               },
             ]}
           >
@@ -600,7 +607,7 @@ export default function GiftCardCheckoutScreen() {
                   cs.infoRow,
                   {
                     backgroundColor: isDark
-                      ? colors.gray[800]
+                      ? colors.background.dark
                       : colors.gray[100],
                   },
                 ]}
@@ -621,7 +628,7 @@ export default function GiftCardCheckoutScreen() {
                   cs.infoRow,
                   {
                     backgroundColor: isDark
-                      ? colors.gray[800]
+                      ? colors.background.dark
                       : colors.gray[100],
                   },
                 ]}
@@ -650,7 +657,7 @@ export default function GiftCardCheckoutScreen() {
                 cs.itemsSection,
                 {
                   borderTopColor: isDark
-                    ? colors.gray[700]
+                    ? colors.border.dark
                     : colors.border.light,
                 },
               ]}
@@ -676,7 +683,7 @@ export default function GiftCardCheckoutScreen() {
                 cs.totalsSection,
                 {
                   borderTopColor: isDark
-                    ? colors.gray[700]
+                    ? colors.border.dark
                     : colors.border.light,
                 },
               ]}
@@ -703,7 +710,7 @@ export default function GiftCardCheckoutScreen() {
                   cs.finalRow,
                   {
                     borderTopColor: isDark
-                      ? colors.gray[700]
+                      ? colors.border.dark
                       : colors.border.light,
                   },
                 ]}
@@ -730,6 +737,11 @@ export default function GiftCardCheckoutScreen() {
                 </View>
               )}
             </View>
+
+            {/* IAP disclaimer */}
+            <Text style={[cs.disclaimer, { color: subColor }]}>
+              {t('checkout.disclaimer')}
+            </Text>
           </BottomSheetScrollView>
         </BottomSheetModal>
       )}
@@ -788,6 +800,12 @@ const s = StyleSheet.create({
     fontWeight: '700',
     color: colors.white.light,
   },
+  disclaimer: {
+    fontSize: 11,
+    lineHeight: 16,
+    textAlign: 'center',
+    paddingHorizontal: 8,
+  },
 })
 
 const cs = StyleSheet.create({
@@ -837,7 +855,7 @@ const cs = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 20,
+    paddingBottom: 16,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   cancelBtn: {
@@ -856,4 +874,12 @@ const cs = StyleSheet.create({
     justifyContent: 'center',
   },
   submitText: { fontSize: 15, fontWeight: '700', color: colors.white.light },
+  disclaimer: {
+    fontSize: 11,
+    lineHeight: 16,
+    textAlign: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 4,
+    paddingBottom: 8,
+  },
 })

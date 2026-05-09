@@ -88,7 +88,7 @@ const TypeFilterBar = memo(function TypeFilterBar({
     [t, tCommon],
   )
 
-  const chipBg = isDark ? colors.gray[800] : colors.white.light
+  const chipBg = isDark ? colors.border.dark : colors.white.light
   const inactive = isDark ? colors.gray[400] : colors.gray[500]
 
   return (
@@ -177,7 +177,7 @@ export default function CoinHubScreen() {
   const bg = isDark ? colors.background.dark : colors.background.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
-  const borderColor = isDark ? colors.gray[700] : colors.gray[200]
+  const borderColor = isDark ? colors.border.dark : colors.gray[200]
 
   const listContentStyle = useMemo(
     () => ({
@@ -300,8 +300,8 @@ export default function CoinHubScreen() {
     </View>
   ) : null
 
-  const cardBg = isDark ? colors.gray[800] : colors.gray[50]
-  const cardBorder = isDark ? colors.gray[700] : colors.gray[200]
+  const cardBg = isDark ? colors.background.dark : colors.gray[50]
+  const cardBorder = isDark ? colors.border.dark : colors.gray[200]
 
   const ListHeader = useMemo(
     () => (

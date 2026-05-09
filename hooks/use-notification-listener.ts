@@ -1,20 +1,22 @@
 /**
  * useNotificationListener — listen foreground notifications → store + toast + sound.
  *
- * - Subscribes to expo-notifications received event (foreground only)
+ * - Subscribes to Firebase onMessage (foreground only)
  * - Parses FCM payload → adds to notification store
  * - Shows toast with title + body
  * - Plays notification sound (volume 0.5)
  */
 import { Audio, type AVPlaybackSource } from 'expo-av'
-import * as Notifications from 'expo-notifications'
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
+import messaging, {
+  type FirebaseMessagingTypes,
+} from '@react-native-firebase/messaging'
 
 import {
   useNotificationStore,
   type NotificationPayload,
 } from '@/stores/notification.store'
-import { showToast } from '@/utils'
+import { showToastInternal } from '@/providers/toast-provider'
 
 const SOUND_VOLUME = 0.5
 
@@ -33,63 +35,53 @@ async function playNotificationSound(): Promise<void> {
     await cachedSound.setPositionAsync(0)
     await cachedSound.setVolumeAsync(SOUND_VOLUME)
     await cachedSound.playAsync()
-  } catch {
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn('[Audio] Notification sound playback failed:', e)
     // Unload native audio resource before clearing reference to prevent
     // orphaned buffers in the native Audio engine
     if (cachedSound) {
-      await cachedSound.unloadAsync().catch(() => {})
+      await cachedSound.unloadAsync().catch((unloadErr) => {
+        // eslint-disable-next-line no-console
+        console.warn('[Audio] Failed to unload sound:', unloadErr)
+      })
     }
     cachedSound = null
   }
 }
 
-function expoToPayload(
-  notification: Notifications.Notification,
+function firebaseToPayload(
+  remoteMessage: FirebaseMessagingTypes.RemoteMessage,
 ): NotificationPayload {
-  const content = notification.request.content
-  const data = (content.data ?? {}) as Record<string, string>
-
+  const data = (remoteMessage.data ?? {}) as Record<string, string>
   return {
     notification: {
-      title: content.title ?? undefined,
-      body: content.body ?? undefined,
+      title: remoteMessage.notification?.title ?? undefined,
+      body: remoteMessage.notification?.body ?? undefined,
     },
     data,
-    messageId: notification.request.identifier,
+    messageId: remoteMessage.messageId ?? undefined,
   }
 }
 
 export function useNotificationListener(enabled = true) {
-  const listenerRef = useRef<Notifications.EventSubscription | null>(null)
-
   useEffect(() => {
     if (!enabled) return
 
-    // Foreground notification received
-    listenerRef.current = Notifications.addNotificationReceivedListener(
-      (notification) => {
-        const payload = expoToPayload(notification)
+    const unsubscribe = messaging().onMessage((remoteMessage) => {
+      const payload = firebaseToPayload(remoteMessage)
 
-        // Add to store
-        useNotificationStore
-          .getState()
-          .addNotification(payload, { markAsRead: false })
+      useNotificationStore
+        .getState()
+        .addNotification(payload, { markAsRead: false })
 
-        // Toast
-        const title = payload.notification?.title || 'Thông báo'
-        const body = payload.notification?.body || ''
-        if (body) {
-          showToast(body, title)
-        }
+      const title = payload.notification?.title || 'Thông báo'
+      const body = payload.notification?.body || ''
+      if (body) showToastInternal(title, body, 'info')
 
-        // Sound
-        playNotificationSound().catch(() => {})
-      },
-    )
+      playNotificationSound().catch(() => {})
+    })
 
-    return () => {
-      listenerRef.current?.remove()
-      listenerRef.current = null
-    }
+    return unsubscribe
   }, [enabled])
 }

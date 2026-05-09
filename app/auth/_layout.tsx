@@ -20,7 +20,7 @@ export default function AuthLayout() {
       screenOptions={{
         ...profileNativeStackScreenOptions,
         contentStyle: {
-          backgroundColor: _authIsDark ? colors.gray[900] : '#ffffff',
+          backgroundColor: _authIsDark ? colors.background.dark : '#ffffff',
         },
       }}
     />

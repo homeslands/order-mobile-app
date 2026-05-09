@@ -17,7 +17,7 @@ export default function PickupTimeSelectInUpdateOrder() {
     <Select onValueChange={handleChange} value={selectedValue}>
       <Select.Trigger
         className={cn(
-          'w-full bg-white dark:bg-gray-900',
+          'w-full bg-white dark:bg-[#1c1c1e]',
           !selectedValue && 'highlight-blink-border',
         )}
       >

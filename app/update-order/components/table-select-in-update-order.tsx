@@ -51,10 +51,10 @@ export default function TableSelectInUpdateOrder({
         onPress={() => TableSelectSheetInUpdateOrder.open()}
         className={cn(
           'h-11 min-w-0 flex-1 flex-row items-center gap-2 rounded-md px-3 py-2',
-          'bg-white dark:bg-gray-800',
-          'border border-gray-200 dark:border-gray-700',
+          'bg-white dark:bg-[#1c1c1e]',
+          'border border-gray-200 dark:border-[#2e2e2e]',
           !selectedTableId && 'border-red-300 dark:border-red-700',
-          'active:bg-gray-100/50 dark:active:bg-gray-700/50',
+          'active:bg-gray-100/50 dark:active:bg-[#2e2e2e]/50',
         )}
       >
         <Text

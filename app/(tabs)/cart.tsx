@@ -54,7 +54,7 @@ function ClearCartSheet({
   const snapPoints = useMemo(() => [220 + insets.bottom], [insets.bottom])
 
   const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.gray[900] : colors.white.light }),
+    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
     [isDark],
   )
   const handleIndicator = useMemo(
@@ -276,14 +276,14 @@ function CartShell({
           style={{
             height: 88,
             borderRadius: 14,
-            backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
+            backgroundColor: isDark ? colors.card.dark : colors.gray[100],
           }}
         />
         <View
           style={{
             height: 88,
             borderRadius: 14,
-            backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
+            backgroundColor: isDark ? colors.card.dark : colors.gray[100],
           }}
         />
       </View>

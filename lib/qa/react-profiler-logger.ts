@@ -70,7 +70,9 @@ export function getReactProfilerStats(): Array<{
 export function printReactProfilerStats(): void {
   if (!isEnabled()) {
     // eslint-disable-next-line no-console
-    console['log']('[ReactProfiler] disabled (__ENABLE_REACT_PROFILER is false)')
+    console['log'](
+      '[ReactProfiler] disabled (__ENABLE_REACT_PROFILER is false)',
+    )
     return
   }
   const rows = getReactProfilerStats()

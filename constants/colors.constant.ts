@@ -100,10 +100,10 @@ export const colors: ColorConstants = {
 
   // Background colors (from --background CSS variable)
   // Light: hsl(210, 15%, 95%) = #F0F2F5
-  // Dark: hsl(220, 12%, 7%) = #0F0F10
+  // Dark: hsl(0, 0%, 7%) = #121212  — pure neutral, Spotify/Notion standard
   background: {
     light: '#F0F2F5',
-    dark: '#0F0F10',
+    dark: '#121212',
   },
 
   // Foreground colors (from --foreground CSS variable)
