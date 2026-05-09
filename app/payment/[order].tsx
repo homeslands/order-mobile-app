@@ -360,8 +360,9 @@ const PaymentMethodSection = React.memo(function PaymentMethodSection({
           </Text>
         </View>
       )}
-      {(order.payment?.paymentMethod === PaymentMethod.BANK_TRANSFER ||
-        (__DEV__ && selectedMethod === PaymentMethod.BANK_TRANSFER)) &&
+      {(selectedMethod !== null
+          ? selectedMethod === PaymentMethod.BANK_TRANSFER
+          : order.payment?.paymentMethod === PaymentMethod.BANK_TRANSFER) &&
         (qrCode || order.payment?.qrCode || DEV_SAMPLE_QR_URL) && (
           <QRSection
             qrCode={qrCode || DEV_SAMPLE_QR_URL}
