@@ -292,6 +292,7 @@ export default function MenuPage() {
     staleTime: 60_000,
     gcTime: 10 * 60_000,
     refetchOnMount: false,
+    meta: { skipGlobalError: true },
   })
   const {
     data: publicData,
@@ -304,6 +305,7 @@ export default function MenuPage() {
     staleTime: 60_000,
     gcTime: 10 * 60_000,
     refetchOnMount: false,
+    meta: { skipGlobalError: true },
   })
   const isFetching = hasUser ? isPrivateFetching : isPublicFetching
   const menuData = hasUser ? privateData : publicData
@@ -638,7 +640,7 @@ export default function MenuPage() {
                   : colors.mutedForeground.light
               }
             />
-            <SelectBranchDropdown />
+            <SelectBranchDropdown autoOpen={allowFetch && !hasBranch} />
           </View>
         </View>
         {hasBranch && (
