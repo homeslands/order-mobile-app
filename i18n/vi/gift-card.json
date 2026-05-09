@@ -178,7 +178,8 @@
     "giftCardsSection": "Danh sách thẻ ({{count}})",
     "notFound": "Không tìm thấy đơn hàng",
     "sender": "Người gửi",
-    "recipientsSection": "Người nhận"
+    "recipientsSection": "Người nhận",
+    "payNow": "Thanh toán ngay"
   },
   "orderSuccess": {
     "title": "Chi tiết đơn hàng",
@@ -244,6 +245,8 @@
     "amountLabel": "Số tiền thanh toán",
     "expiresIn": "Hết hạn sau {{time}}",
     "qrInstructions": "Quét mã QR bằng ứng dụng ngân hàng để hoàn tất thanh toán",
+    "downloadQR": "Tải về mã QR",
+    "qrLoadError": "Không tải được QR\nNhấn để thử lại",
     "successTitle": "Thanh toán thành công!",
     "successSubtitleCard": "Đơn thẻ quà \"{{cardTitle}}\" đã được thanh toán.",
     "successSubtitleOrder": "Đơn hàng #{{slug}} đã được thanh toán.",

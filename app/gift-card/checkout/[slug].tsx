@@ -10,7 +10,7 @@
 import { Image as ExpoImage } from 'expo-image'
 import { useLocalSearchParams } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { CircleX, Smartphone, Timer } from 'lucide-react-native'
+import { CircleX, Download, Smartphone, Timer, WifiOff } from 'lucide-react-native'
 import React, {
   memo,
   useCallback,
@@ -56,7 +56,12 @@ import { useCancelCardOrder } from '@/hooks/use-card-order'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { useGiftCardStore, useNotificationStore } from '@/stores'
 import { navigateNative, scheduleTransitionTask } from '@/lib/navigation'
-import { formatCurrency, formatPoints, showErrorToastMessage } from '@/utils'
+import {
+  downloadAndSaveImage,
+  formatCurrency,
+  formatPoints,
+  showErrorToastMessage,
+} from '@/utils'
 
 // Payment QR expires 15 minutes after initiation
 const QR_EXPIRY_SECONDS = 900
@@ -213,6 +218,22 @@ const QRSection = memo(function QRSection({
 }) {
   const { t } = useTranslation('giftCard')
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
+  const isDownloading = useRef(false)
+  const [errorUrl, setErrorUrl] = useState<string | null>(null)
+  const imgError = !!qrCode && errorUrl === qrCode
+
+  const handleImgError = useCallback(() => setErrorUrl(qrCode ?? null), [qrCode])
+  const handleImgRetry = useCallback(() => setErrorUrl(null), [])
+
+  const handleDownload = useCallback(() => {
+    if (isDownloading.current || !qrCode) return
+    isDownloading.current = true
+    void downloadAndSaveImage(qrCode, `gift_card_qr_${Date.now()}`).finally(
+      () => {
+        isDownloading.current = false
+      },
+    )
+  }, [qrCode])
 
   // Countdown row hides on UI thread when expired or at 0
   const countdownRowStyle = useAnimatedStyle(() => ({
@@ -255,12 +276,20 @@ const QRSection = memo(function QRSection({
               {t('payment.qrExpired')}
             </Text>
           </View>
+        ) : imgError ? (
+          <Pressable style={qs.expiredOverlay} onPress={handleImgRetry}>
+            <WifiOff size={32} color={colors.gray[400]} />
+            <Text style={[qs.expiredText, { color: subColor }]}>
+              {t('payment.qrLoadError')}
+            </Text>
+          </Pressable>
         ) : (
           <ExpoImage
             source={qrCode}
             contentFit="contain"
             cachePolicy="none"
             style={qs.qrImage}
+            onError={handleImgError}
           />
         )}
       </View>
@@ -286,6 +315,18 @@ const QRSection = memo(function QRSection({
           {countdownText}
         </Text>
       </Animated.View>
+
+      {!isExpired && (
+        <Pressable
+          style={[qs.downloadBtn, { borderColor: primaryColor }]}
+          onPress={handleDownload}
+        >
+          <Download size={13} color={primaryColor} />
+          <Text style={[qs.downloadText, { color: primaryColor }]}>
+            {t('payment.downloadQR')}
+          </Text>
+        </Pressable>
+      )}
 
       <View style={qs.noteRow}>
         <Text style={[qs.note, { color: subColor }]}>
@@ -336,6 +377,16 @@ const qs = StyleSheet.create({
     fontWeight: '600',
     padding: 0,
   },
+  downloadBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    borderWidth: 1.5,
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+  },
+  downloadText: { fontSize: 13, fontWeight: '600' },
   noteRow: { paddingHorizontal: 8 },
   note: { fontSize: 12, textAlign: 'center', lineHeight: 18 },
 })
