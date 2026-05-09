@@ -178,7 +178,8 @@
     "giftCardsSection": "Danh sách thẻ ({{count}})",
     "notFound": "Không tìm thấy đơn hàng",
     "sender": "Người gửi",
-    "recipientsSection": "Người nhận"
+    "recipientsSection": "Người nhận",
+    "payNow": "Thanh toán ngay"
   },
   "orderSuccess": {
     "title": "Chi tiết đơn hàng",

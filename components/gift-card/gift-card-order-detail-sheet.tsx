@@ -12,6 +12,7 @@ import dayjs from 'dayjs'
 import {
   Check,
   Clipboard as ClipboardIcon,
+  CreditCard,
   Gift,
   ShoppingBag,
   UserRound,
@@ -30,9 +31,10 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { colors, GiftCardType } from '@/constants'
+import { CardOrderStatus, colors, GiftCardType } from '@/constants'
 import { useCardOrderBySlug } from '@/hooks/use-card-order'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
+import { navigateNative } from '@/lib/navigation'
 import { formatCurrency } from '@/utils'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -165,6 +167,19 @@ export const GiftCardOrderDetailSheet = memo(function GiftCardOrderDetailSheet({
     if (visible) sheetRef.current?.present()
     else sheetRef.current?.dismiss()
   }, [visible])
+
+  const handlePayNow = useCallback(() => {
+    if (!orderSlug) return
+    onClose()
+    // Delay để sheet dismiss animation hoàn tất trước khi push screen mới
+    setTimeout(() => {
+      navigateNative.push(
+        `/gift-card/checkout/${orderSlug}` as Parameters<
+          typeof navigateNative.push
+        >[0],
+      )
+    }, 300)
+  }, [orderSlug, onClose])
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -491,6 +506,16 @@ export const GiftCardOrderDetailSheet = memo(function GiftCardOrderDetailSheet({
                 </View>
               </>
             )}
+            {/* Nút thanh toán — chỉ hiện khi đơn chưa thanh toán */}
+            {order.paymentStatus === CardOrderStatus.PENDING && (
+              <Pressable
+                style={[s.payNowBtn, { backgroundColor: primaryColor }]}
+                onPress={handlePayNow}
+              >
+                <CreditCard size={16} color="#fff" />
+                <Text style={s.payNowBtnText}>{t('orderDetail.payNow')}</Text>
+              </Pressable>
+            )}
           </>
         )}
       </BottomSheetScrollView>
@@ -582,4 +607,16 @@ const s = StyleSheet.create({
   personName: { fontSize: 14, fontWeight: '600' },
   personPhone: { fontSize: 13 },
   personMessage: { fontSize: 12, fontStyle: 'italic' },
+
+  // Pay now button
+  payNowBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    borderRadius: 14,
+    paddingVertical: 14,
+    marginTop: 4,
+  },
+  payNowBtnText: { fontSize: 15, fontWeight: '700', color: '#fff' },
 })
