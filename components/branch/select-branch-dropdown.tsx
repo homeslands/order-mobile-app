@@ -13,7 +13,14 @@ import { useBranch } from '@/hooks'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { useBranchStore } from '@/stores'
 
-function SelectBranchDropdown() {
+interface SelectBranchDropdownProps {
+  /** Khi true: tự mở sheet chọn chi nhánh (lần đầu, chưa có branch).
+   *  Nên truyền từ màn hình sau khi animation và interactions đã hoàn tất
+   *  (vd: sau allowFetch trong menu screen) để tránh conflict với transition. */
+  autoOpen?: boolean
+}
+
+function SelectBranchDropdown({ autoOpen = false }: SelectBranchDropdownProps) {
   const [sheetVisible, setSheetVisible] = useState(false)
   const branch = useBranchStore((s) => s.branch)
   const setBranch = useBranchStore((s) => s.setBranch)
@@ -24,12 +31,26 @@ function SelectBranchDropdown() {
   // Sheet sẽ dùng cache này — không fetch lại.
   const { data: branchRes } = useBranch()
 
-  // Nếu chưa có branch được lưu, tự động chọn branch đầu tiên trong danh sách.
   useEffect(() => {
-    if (branch) return
-    const first = branchRes?.result?.[0]
-    if (first) setBranch(first)
-  }, [branch, branchRes, setBranch])
+    const branches = branchRes?.result
+    if (!branches?.length) return
+
+    if (branch) {
+      // Re-sync stored branch với API mới nhất.
+      // Nếu slug không còn tồn tại (branch đã bị xoá/đổi), silently cập nhật về branch đầu.
+      const stillValid = branches.some((b) => b.slug === branch.slug)
+      if (stillValid) return
+      setBranch(branches[0])
+      return
+    }
+
+    // autoOpen được truyền từ màn hình sau khi interaction/animation hoàn tất.
+    // Đảm bảo present() không conflict với tab transition.
+    if (!autoOpen) return
+    setBranch(branches[0])
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSheetVisible(true)
+  }, [autoOpen, branch, branchRes, setBranch])
 
   const openSheet = useCallback(() => setSheetVisible(true), [])
   const closeSheet = useCallback(() => setSheetVisible(false), [])
