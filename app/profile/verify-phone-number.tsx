@@ -230,7 +230,7 @@ const OTPStepPhone = React.memo(function OTPStepPhone({
       <OTPInput
         value={otpValue}
         onChange={onOtpChange}
-        characterSet="numeric"
+        characterSet="alphanumeric"
         disabled={otpExpired}
       />
 
