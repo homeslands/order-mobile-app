@@ -253,6 +253,7 @@
     "date": "Ngày",
     "description": "Mô tả",
     "dob": "Ngày sinh (Không bắt buộc)",
+    "dobInfo": "Ngày sinh",
     "enterDob": "Chọn ngày sinh",
     "dobInvalid": "Ngày sinh không hợp lệ",
     "dobRequired": "Ngày sinh không được để trống",
@@ -464,9 +465,11 @@
     "dobNudge": {
       "title": "Thêm ngày sinh của bạn",
       "subtitle": "Nhận voucher ưu đãi sinh nhật từ TREND Coffee",
-      "cta": "Thêm ngay"
+      "cta": "Thêm ngay",
+      "dismiss": "Để sau"
     },
     "phoneVerifyNudge": {
+      "title": "Xác minh số điện thoại",
       "subtitle": "Xác minh số điện thoại để bảo vệ tài khoản của bạn",
       "cta": "Xác minh ngay"
     }

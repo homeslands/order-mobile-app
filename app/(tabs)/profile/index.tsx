@@ -1,5 +1,5 @@
 import { LoginForm } from '@/components/auth'
-import { DobNudgeBanner, LanguageSheet, PhoneVerifyNudgeBanner, ThemeSheet } from '@/components/profile'
+import { LanguageSheet, ThemeSheet } from '@/components/profile'
 import { Skeleton } from '@/components/ui'
 import { colors, publicFileURL } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
@@ -674,8 +674,6 @@ const ProfileTest = () => {
                   )}
               </Text>
             </View>
-            <DobNudgeBanner />
-            <PhoneVerifyNudgeBanner />
             {/* Group 1: Profile customization */}
             <View style={[styles.card, { backgroundColor: theme.card }]}>
               <MenuItem

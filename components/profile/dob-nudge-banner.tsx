@@ -1,200 +1,213 @@
-import { BlurView } from 'expo-blur'
+import {
+  BottomSheetBackdrop,
+  type BottomSheetBackdropProps,
+  BottomSheetFooter,
+  type BottomSheetFooterProps,
+  BottomSheetModal,
+} from '@gorhom/bottom-sheet'
 import { Image } from 'expo-image'
-import { useRouter } from 'expo-router'
-import { X } from 'lucide-react-native'
-import { memo, useCallback, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  Modal,
-  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
   useColorScheme,
+  View,
 } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Images } from '@/assets/images'
-import { ROUTE } from '@/constants'
+import { colors, ROUTE } from '@/constants'
 import { navigateNative } from '@/lib/navigation'
 import { useUserStore } from '@/stores'
+import { getSyncItem, setSyncItem } from '@/utils/storage'
 
-// ─── Shared visual shell ─────────────────────────────────────────────────────
+const SNAP_POINTS = ['40%']
+const STORAGE_KEY = '@nudge_dob_dismissed'
 
-interface NudgePopupProps {
-  visible: boolean
-  subtitle: string
-  ctaLabel: string
-  onDismiss: () => void
-  onCTA: () => void
-}
-
-const NudgePopup = memo(function NudgePopup({
-  visible,
-  subtitle,
-  ctaLabel,
-  onDismiss,
-  onCTA,
-}: NudgePopupProps) {
+export const ProfileNudgePopup = memo(function ProfileNudgePopup() {
+  const userInfo = useUserStore((s) => s.userInfo)
+  const { t } = useTranslation('profile')
   const isDark = useColorScheme() === 'dark'
+  const { bottom } = useSafeAreaInsets()
+  const sheetRef = useRef<BottomSheetModal>(null)
+  const hasPresented = useRef(false)
 
-  return (
-    <Modal
-      transparent
-      visible={visible}
-      animationType="fade"
-      statusBarTranslucent
-      onRequestClose={onDismiss}
-    >
-      {/* Backdrop blur tối để nội dung popup nổi bật */}
-      <BlurView intensity={70} tint="dark" style={styles.backdrop}>
-        <Pressable style={styles.backdropPressable} onPress={onDismiss}>
-          <Pressable style={[styles.card, { backgroundColor: isDark ? 'rgba(28,28,30,0.85)' : 'rgba(255,255,255,0.88)' }]} onPress={() => {}}>
-            <TouchableOpacity onPress={onDismiss} hitSlop={16} style={styles.closeBtn}>
-              <X size={20} color={isDark ? '#9ca3af' : '#6b7280'} />
-            </TouchableOpacity>
+  const needsDob = !!userInfo && !userInfo.dob
 
-            <Image
-              source={isDark ? Images.Brand.LogoWhite : Images.Brand.Logo}
-              style={styles.logo}
-              contentFit="contain"
-            />
+  useEffect(() => {
+    if (!needsDob) return
+    if (hasPresented.current) return
+    if (getSyncItem(STORAGE_KEY) !== null) return
+    hasPresented.current = true
+    const timer = setTimeout(() => {
+      sheetRef.current?.present()
+    }, 500)
+    return () => clearTimeout(timer)
+  }, [needsDob])
 
-            <Text style={[styles.subtitle, { color: isDark ? '#e5e7eb' : '#374151' }]}>
-              {subtitle}
-            </Text>
-
-            <TouchableOpacity onPress={onCTA} activeOpacity={0.8} style={styles.ctaBtn}>
-              <Text style={styles.ctaText}>{ctaLabel}</Text>
-            </TouchableOpacity>
-          </Pressable>
-        </Pressable>
-      </BlurView>
-    </Modal>
-  )
-})
-
-// ─── Module-level session flags ───────────────────────────────────────────────
-
-let _dobDismissed = false
-let _dobShown = false
-let _phoneDismissed = false
-let _phoneShown = false
-
-// ─── DOB nudge ────────────────────────────────────────────────────────────────
-
-export const DobNudgeBanner = memo(function DobNudgeBanner() {
-  const userInfo = useUserStore((s) => s.userInfo)
-  const { t } = useTranslation('profile')
-
-  const [visible, setVisible] = useState(() => {
-    if (_dobDismissed || _dobShown || !userInfo || userInfo.dob) return false
-    _dobShown = true
-    return true
-  })
-
-  const handleDismiss = useCallback(() => {
-    _dobDismissed = true
-    setVisible(false)
+  const handleSheetDismiss = useCallback(() => {
+    setSyncItem(STORAGE_KEY, '1')
   }, [])
 
   const handleCTA = useCallback(() => {
-    handleDismiss()
+    sheetRef.current?.dismiss()
     navigateNative.push(ROUTE.CLIENT_PROFILE_EDIT as never)
-  }, [handleDismiss])
-
-  if (!userInfo || userInfo.dob) return null
-
-  return (
-    <NudgePopup
-      visible={visible}
-      subtitle={t('profile.dobNudge.subtitle')}
-      ctaLabel={t('profile.dobNudge.cta')}
-      onDismiss={handleDismiss}
-      onCTA={handleCTA}
-    />
-  )
-})
-
-// ─── Phone verify nudge ───────────────────────────────────────────────────────
-
-export const PhoneVerifyNudgeBanner = memo(function PhoneVerifyNudgeBanner() {
-  const userInfo = useUserStore((s) => s.userInfo)
-  const { t } = useTranslation('profile')
-
-  const [visible, setVisible] = useState(() => {
-    if (_phoneDismissed || _phoneShown || !userInfo || userInfo.isVerifiedPhonenumber) return false
-    _phoneShown = true
-    return true
-  })
-
-  const handleDismiss = useCallback(() => {
-    _phoneDismissed = true
-    setVisible(false)
   }, [])
 
-  const handleCTA = useCallback(() => {
-    handleDismiss()
-    navigateNative.push(ROUTE.CLIENT_PROFILE_VERIFY_PHONE_NUMBER as never)
-  }, [handleDismiss])
+  const renderBackdrop = useCallback(
+    (props: BottomSheetBackdropProps) => (
+      <BottomSheetBackdrop
+        {...props}
+        disappearsOnIndex={-1}
+        appearsOnIndex={0}
+        opacity={0.4}
+        pressBehavior="close"
+      />
+    ),
+    [],
+  )
 
-  if (!userInfo || userInfo.isVerifiedPhonenumber) return null
+  const renderFooter = useCallback(
+    (props: BottomSheetFooterProps) => (
+      <BottomSheetFooter {...props} bottomInset={bottom}>
+        <View
+          style={[
+            styles.footer,
+            {
+              backgroundColor: isDark ? colors.card.dark : '#ffffff',
+              borderTopColor: isDark ? colors.border.dark : colors.border.light,
+            },
+          ]}
+        >
+          <TouchableOpacity
+            onPress={() => sheetRef.current?.dismiss()}
+            activeOpacity={0.7}
+            style={[
+              styles.dismissBtn,
+              {
+                borderColor: isDark ? colors.border.dark : colors.border.light,
+              },
+            ]}
+          >
+            <Text
+              style={[
+                styles.dismissText,
+                { color: isDark ? colors.gray[400] : colors.gray[500] },
+              ]}
+            >
+              {t('profile.dobNudge.dismiss')}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={handleCTA}
+            activeOpacity={0.8}
+            style={styles.ctaBtn}
+          >
+            <Text style={styles.ctaText}>{t('profile.dobNudge.cta')}</Text>
+          </TouchableOpacity>
+        </View>
+      </BottomSheetFooter>
+    ),
+    [bottom, handleCTA, isDark, t],
+  )
+
+  const bgStyle = useMemo(
+    () => ({ backgroundColor: isDark ? colors.card.dark : '#ffffff' }),
+    [isDark],
+  )
 
   return (
-    <NudgePopup
-      visible={visible}
-      subtitle={t('profile.phoneVerifyNudge.subtitle')}
-      ctaLabel={t('profile.phoneVerifyNudge.cta')}
-      onDismiss={handleDismiss}
-      onCTA={handleCTA}
-    />
+    <BottomSheetModal
+      ref={sheetRef}
+      snapPoints={SNAP_POINTS}
+      enablePanDownToClose
+      enableContentPanningGesture={false}
+      enableDynamicSizing={false}
+      backdropComponent={renderBackdrop}
+      footerComponent={renderFooter}
+      backgroundStyle={bgStyle}
+      onDismiss={handleSheetDismiss}
+    >
+      <View style={styles.content}>
+        <Image
+          source={isDark ? Images.Brand.LogoWhite : Images.Brand.Logo}
+          style={styles.logo}
+          contentFit="contain"
+        />
+
+        <Text
+          style={[styles.title, { color: isDark ? colors.gray[50] : colors.gray[900] }]}
+        >
+          {t('profile.dobNudge.title')}
+        </Text>
+
+        <Text
+          style={[styles.subtitle, { color: isDark ? colors.gray[400] : colors.gray[500] }]}
+        >
+          {t('profile.dobNudge.subtitle')}
+        </Text>
+      </View>
+    </BottomSheetModal>
   )
 })
-
-// ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  backdrop: {
-    flex: 1,
-  },
-  backdropPressable: {
-    flex: 1,
+  content: {
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 40,
-  },
-  card: {
-    width: '100%',
-    borderRadius: 24,
     paddingHorizontal: 28,
-    paddingTop: 16,
-    paddingBottom: 28,
-    alignItems: 'center',
-  },
-  closeBtn: {
-    alignSelf: 'flex-end',
-    marginBottom: 12,
-    padding: 4,
+    paddingTop: 8,
+    paddingBottom: 16,
   },
   logo: {
-    width: 120,
-    height: 56,
-    marginBottom: 16,
+    width: 110,
+    height: 48,
+    marginBottom: 14,
+  },
+  title: {
+    fontSize: 16,
+    fontFamily: 'BeVietnamPro_600SemiBold',
+    textAlign: 'center',
+    marginBottom: 8,
   },
   subtitle: {
-    fontSize: 14,
+    fontSize: 13,
     fontFamily: 'BeVietnamPro_400Regular',
     textAlign: 'center',
-    lineHeight: 22,
-    marginBottom: 24,
+    lineHeight: 20,
+  },
+  footer: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 8,
+    borderTopWidth: StyleSheet.hairlineWidth,
+  },
+  dismissBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 100,
+    borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dismissText: {
+    fontSize: 14,
+    fontFamily: 'BeVietnamPro_600SemiBold',
   },
   ctaBtn: {
-    paddingHorizontal: 40,
+    flex: 1,
     paddingVertical: 12,
     borderRadius: 100,
     backgroundColor: '#f59e0b',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   ctaText: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: 'BeVietnamPro_600SemiBold',
     color: '#ffffff',
   },
