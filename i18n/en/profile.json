@@ -464,6 +464,10 @@
       "title": "Add your date of birth",
       "subtitle": "Get birthday vouchers from TREND Coffee",
       "cta": "Add now"
+    },
+    "phoneVerifyNudge": {
+      "subtitle": "Verify your phone number to keep your account secure",
+      "cta": "Verify now"
     }
   }
 }

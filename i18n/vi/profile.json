@@ -465,6 +465,10 @@
       "title": "Thêm ngày sinh của bạn",
       "subtitle": "Nhận voucher ưu đãi sinh nhật từ TREND Coffee",
       "cta": "Thêm ngay"
+    },
+    "phoneVerifyNudge": {
+      "subtitle": "Xác minh số điện thoại để bảo vệ tài khoản của bạn",
+      "cta": "Xác minh ngay"
     }
   }
 }

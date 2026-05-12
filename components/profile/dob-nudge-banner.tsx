@@ -14,34 +14,28 @@ import {
 } from 'react-native'
 
 import { Images } from '@/assets/images'
+import { ROUTE } from '@/constants'
+import { navigateNative } from '@/lib/navigation'
 import { useUserStore } from '@/stores'
 
-let _dismissed = false
-let _shown = false
+// ─── Shared visual shell ─────────────────────────────────────────────────────
 
-export const DobNudgeBanner = memo(function DobNudgeBanner() {
-  const userInfo = useUserStore((s) => s.userInfo)
-  const router = useRouter()
-  const { t } = useTranslation('profile')
+interface NudgePopupProps {
+  visible: boolean
+  subtitle: string
+  ctaLabel: string
+  onDismiss: () => void
+  onCTA: () => void
+}
+
+const NudgePopup = memo(function NudgePopup({
+  visible,
+  subtitle,
+  ctaLabel,
+  onDismiss,
+  onCTA,
+}: NudgePopupProps) {
   const isDark = useColorScheme() === 'dark'
-
-  const [visible, setVisible] = useState(() => {
-    if (_dismissed || _shown || !userInfo || userInfo.dob) return false
-    _shown = true
-    return true
-  })
-
-  const handleDismiss = useCallback(() => {
-    _dismissed = true
-    setVisible(false)
-  }, [])
-
-  const handleCTA = useCallback(() => {
-    handleDismiss()
-    router.push('/(tabs)/profile/edit')
-  }, [handleDismiss, router])
-
-  if (!userInfo || userInfo.dob) return null
 
   return (
     <Modal
@@ -49,53 +43,29 @@ export const DobNudgeBanner = memo(function DobNudgeBanner() {
       visible={visible}
       animationType="fade"
       statusBarTranslucent
-      onRequestClose={handleDismiss}
+      onRequestClose={onDismiss}
     >
-      {/* Backdrop blur toàn màn */}
-      <BlurView
-        intensity={60}
-        tint={isDark ? 'dark' : 'light'}
-        style={styles.blurBackdrop}
-      >
-        <Pressable style={styles.pressableBackdrop} onPress={handleDismiss}>
-          {/* Card blur riêng — intensity cao hơn để nổi lên */}
-          <Pressable onPress={() => {}}>
-            <BlurView
-              intensity={90}
-              tint={isDark ? 'dark' : 'light'}
-              style={styles.card}
-            >
-              <TouchableOpacity
-                onPress={handleDismiss}
-                hitSlop={16}
-                style={styles.closeBtn}
-              >
-                <X size={20} color={isDark ? '#d1d5db' : '#6b7280'} />
-              </TouchableOpacity>
+      {/* Backdrop blur tối để nội dung popup nổi bật */}
+      <BlurView intensity={70} tint="dark" style={styles.backdrop}>
+        <Pressable style={styles.backdropPressable} onPress={onDismiss}>
+          <Pressable style={[styles.card, { backgroundColor: isDark ? 'rgba(28,28,30,0.85)' : 'rgba(255,255,255,0.88)' }]} onPress={() => {}}>
+            <TouchableOpacity onPress={onDismiss} hitSlop={16} style={styles.closeBtn}>
+              <X size={20} color={isDark ? '#9ca3af' : '#6b7280'} />
+            </TouchableOpacity>
 
-              <Image
-                source={isDark ? Images.Brand.LogoWhite : Images.Brand.Logo}
-                style={styles.logo}
-                contentFit="contain"
-              />
+            <Image
+              source={isDark ? Images.Brand.LogoWhite : Images.Brand.Logo}
+              style={styles.logo}
+              contentFit="contain"
+            />
 
-              <Text
-                style={[
-                  styles.description,
-                  { color: isDark ? '#e5e7eb' : '#374151' },
-                ]}
-              >
-                {t('profile.dobNudge.subtitle')}
-              </Text>
+            <Text style={[styles.subtitle, { color: isDark ? '#e5e7eb' : '#374151' }]}>
+              {subtitle}
+            </Text>
 
-              <TouchableOpacity
-                onPress={handleCTA}
-                activeOpacity={0.8}
-                style={styles.ctaBtn}
-              >
-                <Text style={styles.ctaText}>{t('profile.dobNudge.cta')}</Text>
-              </TouchableOpacity>
-            </BlurView>
+            <TouchableOpacity onPress={onCTA} activeOpacity={0.8} style={styles.ctaBtn}>
+              <Text style={styles.ctaText}>{ctaLabel}</Text>
+            </TouchableOpacity>
           </Pressable>
         </Pressable>
       </BlurView>
@@ -103,11 +73,90 @@ export const DobNudgeBanner = memo(function DobNudgeBanner() {
   )
 })
 
+// ─── Module-level session flags ───────────────────────────────────────────────
+
+let _dobDismissed = false
+let _dobShown = false
+let _phoneDismissed = false
+let _phoneShown = false
+
+// ─── DOB nudge ────────────────────────────────────────────────────────────────
+
+export const DobNudgeBanner = memo(function DobNudgeBanner() {
+  const userInfo = useUserStore((s) => s.userInfo)
+  const { t } = useTranslation('profile')
+
+  const [visible, setVisible] = useState(() => {
+    if (_dobDismissed || _dobShown || !userInfo || userInfo.dob) return false
+    _dobShown = true
+    return true
+  })
+
+  const handleDismiss = useCallback(() => {
+    _dobDismissed = true
+    setVisible(false)
+  }, [])
+
+  const handleCTA = useCallback(() => {
+    handleDismiss()
+    navigateNative.push(ROUTE.CLIENT_PROFILE_EDIT as never)
+  }, [handleDismiss])
+
+  if (!userInfo || userInfo.dob) return null
+
+  return (
+    <NudgePopup
+      visible={visible}
+      subtitle={t('profile.dobNudge.subtitle')}
+      ctaLabel={t('profile.dobNudge.cta')}
+      onDismiss={handleDismiss}
+      onCTA={handleCTA}
+    />
+  )
+})
+
+// ─── Phone verify nudge ───────────────────────────────────────────────────────
+
+export const PhoneVerifyNudgeBanner = memo(function PhoneVerifyNudgeBanner() {
+  const userInfo = useUserStore((s) => s.userInfo)
+  const { t } = useTranslation('profile')
+
+  const [visible, setVisible] = useState(() => {
+    if (_phoneDismissed || _phoneShown || !userInfo || userInfo.isVerifiedPhonenumber) return false
+    _phoneShown = true
+    return true
+  })
+
+  const handleDismiss = useCallback(() => {
+    _phoneDismissed = true
+    setVisible(false)
+  }, [])
+
+  const handleCTA = useCallback(() => {
+    handleDismiss()
+    navigateNative.push(ROUTE.CLIENT_PROFILE_VERIFY_PHONE_NUMBER as never)
+  }, [handleDismiss])
+
+  if (!userInfo || userInfo.isVerifiedPhonenumber) return null
+
+  return (
+    <NudgePopup
+      visible={visible}
+      subtitle={t('profile.phoneVerifyNudge.subtitle')}
+      ctaLabel={t('profile.phoneVerifyNudge.cta')}
+      onDismiss={handleDismiss}
+      onCTA={handleCTA}
+    />
+  )
+})
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
 const styles = StyleSheet.create({
-  blurBackdrop: {
+  backdrop: {
     flex: 1,
   },
-  pressableBackdrop: {
+  backdropPressable: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
@@ -116,7 +165,6 @@ const styles = StyleSheet.create({
   card: {
     width: '100%',
     borderRadius: 24,
-    overflow: 'hidden',
     paddingHorizontal: 28,
     paddingTop: 16,
     paddingBottom: 28,
@@ -132,8 +180,8 @@ const styles = StyleSheet.create({
     height: 56,
     marginBottom: 16,
   },
-  description: {
-    fontSize: 15,
+  subtitle: {
+    fontSize: 14,
     fontFamily: 'BeVietnamPro_400Regular',
     textAlign: 'center',
     lineHeight: 22,
