@@ -252,7 +252,7 @@
     "copyEmail": "Sao chép email",
     "date": "Ngày",
     "description": "Mô tả",
-    "dob": "Ngày sinh",
+    "dob": "Ngày sinh (Không bắt buộc)",
     "enterDob": "Chọn ngày sinh",
     "dobInvalid": "Ngày sinh không hợp lệ",
     "dobRequired": "Ngày sinh không được để trống",
