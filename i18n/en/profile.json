@@ -89,7 +89,12 @@
       "confirming": "Processing...",
       "success": "Account deleted",
       "wrongPassword": "Incorrect password, please try again",
-      "error": "Failed to delete account, please try again"
+      "error": "Failed to delete account, please try again",
+      "confirmPhrase": "DELETE",
+      "confirmLabel": "Type DELETE to confirm",
+      "confirmPlaceholder": "Type DELETE",
+      "continue": "Continue",
+      "back": "Back"
     },
     "contactInfo": {
       "title": "Contact Information",

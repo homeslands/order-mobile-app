@@ -39,8 +39,15 @@ export const DeleteAccountSheet = memo(function DeleteAccountSheet({
   const isDark = useColorScheme() === 'dark'
   const { bottom } = useSafeAreaInsets()
   const sheetRef = useRef<BottomSheetModal>(null)
+
+  const [step, setStep] = useState<1 | 2>(1)
+  const [confirmText, setConfirmText] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+
+  const CONFIRM_PHRASE = t('profile.deleteAccount.confirmPhrase')
+  const isConfirmTextValid =
+    confirmText.trim().toUpperCase() === CONFIRM_PHRASE.toUpperCase()
 
   const { mutate: deleteAccount, isPending } = useDeleteAccount()
 
@@ -52,11 +59,27 @@ export const DeleteAccountSheet = memo(function DeleteAccountSheet({
     }
   }, [visible])
 
-  const handleDismiss = useCallback(() => {
+  const resetState = useCallback(() => {
+    setStep(1)
+    setConfirmText('')
     setPassword('')
     setShowPassword(false)
+  }, [])
+
+  const handleDismiss = useCallback(() => {
+    resetState()
     onClose()
-  }, [onClose])
+  }, [onClose, resetState])
+
+  const handleContinue = useCallback(() => {
+    setStep(2)
+  }, [])
+
+  const handleBack = useCallback(() => {
+    setStep(1)
+    setPassword('')
+    setShowPassword(false)
+  }, [])
 
   const handleConfirm = useCallback(() => {
     if (!password.trim()) return
@@ -66,7 +89,8 @@ export const DeleteAccountSheet = memo(function DeleteAccountSheet({
         onSuccess()
       },
       onError: (err: unknown) => {
-        const status = (err as { response?: { status?: number } })?.response?.status
+        const status = (err as { response?: { status?: number } })?.response
+          ?.status
         if (status === 401 || status === 400) {
           showToast(t('profile.deleteAccount.wrongPassword'))
         } else {
@@ -101,47 +125,101 @@ export const DeleteAccountSheet = memo(function DeleteAccountSheet({
             },
           ]}
         >
-          <Pressable
-            onPress={handleDismiss}
-            disabled={isPending}
-            style={[
-              styles.cancelBtn,
-              {
-                borderColor: isDark ? colors.border.dark : colors.border.light,
-                opacity: isPending ? 0.5 : 1,
-              },
-            ]}
-          >
-            <Text
-              style={[
-                styles.cancelText,
-                { color: isDark ? colors.gray[400] : colors.gray[600] },
-              ]}
-            >
-              {t('profile.deleteAccount.cancel')}
-            </Text>
-          </Pressable>
+          {step === 1 ? (
+            <>
+              <Pressable
+                onPress={handleDismiss}
+                style={[
+                  styles.cancelBtn,
+                  {
+                    borderColor: isDark
+                      ? colors.border.dark
+                      : colors.border.light,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.cancelText,
+                    { color: isDark ? colors.gray[400] : colors.gray[600] },
+                  ]}
+                >
+                  {t('profile.deleteAccount.cancel')}
+                </Text>
+              </Pressable>
 
-          <Pressable
-            onPress={handleConfirm}
-            disabled={isPending || !password.trim()}
-            style={[
-              styles.confirmBtn,
-              { opacity: isPending || !password.trim() ? 0.6 : 1 },
-            ]}
-          >
-            {isPending ? (
-              <ActivityIndicator size="small" color="#ffffff" />
-            ) : (
-              <Text style={styles.confirmText}>
-                {t('profile.deleteAccount.confirm')}
-              </Text>
-            )}
-          </Pressable>
+              <Pressable
+                onPress={handleContinue}
+                disabled={!isConfirmTextValid}
+                style={[
+                  styles.confirmBtn,
+                  { opacity: isConfirmTextValid ? 1 : 0.4 },
+                ]}
+              >
+                <Text style={styles.confirmText}>
+                  {t('profile.deleteAccount.continue')}
+                </Text>
+              </Pressable>
+            </>
+          ) : (
+            <>
+              <Pressable
+                onPress={handleBack}
+                disabled={isPending}
+                style={[
+                  styles.cancelBtn,
+                  {
+                    borderColor: isDark
+                      ? colors.border.dark
+                      : colors.border.light,
+                    opacity: isPending ? 0.5 : 1,
+                  },
+                ]}
+              >
+                <Text
+                  style={[
+                    styles.cancelText,
+                    { color: isDark ? colors.gray[400] : colors.gray[600] },
+                  ]}
+                >
+                  {t('profile.deleteAccount.back')}
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={handleConfirm}
+                disabled={isPending || !password.trim()}
+                style={[
+                  styles.confirmBtn,
+                  { opacity: isPending || !password.trim() ? 0.6 : 1 },
+                ]}
+              >
+                {isPending ? (
+                  <ActivityIndicator size="small" color="#ffffff" />
+                ) : (
+                  <Text style={styles.confirmText}>
+                    {t('profile.deleteAccount.confirm')}
+                  </Text>
+                )}
+              </Pressable>
+            </>
+          )}
         </View>
       </BottomSheetFooter>
     ),
-    [bottom, handleConfirm, handleDismiss, isDark, isPending, password, t],
+    [
+      bottom,
+      handleBack,
+      handleContinue,
+      handleConfirm,
+      handleDismiss,
+      isDark,
+      isConfirmTextValid,
+      isPending,
+      password,
+      step,
+      t,
+    ],
   )
 
   const bgStyle = useMemo(
@@ -194,48 +272,79 @@ export const DeleteAccountSheet = memo(function DeleteAccountSheet({
           </Text>
         </View>
 
-        {/* Password input */}
-        <Text
-          style={[
-            styles.inputLabel,
-            { color: isDark ? colors.gray[300] : colors.gray[700] },
-          ]}
-        >
-          {t('profile.deleteAccount.passwordLabel')}
-        </Text>
+        {step === 1 ? (
+          <>
+            {/* Step 1: type confirm phrase */}
+            <Text
+              style={[
+                styles.inputLabel,
+                { color: isDark ? colors.gray[300] : colors.gray[700] },
+              ]}
+            >
+              {t('profile.deleteAccount.confirmLabel')}
+            </Text>
+            <BottomSheetTextInput
+              value={confirmText}
+              onChangeText={setConfirmText}
+              placeholder={t('profile.deleteAccount.confirmPlaceholder')}
+              placeholderTextColor={
+                isDark ? colors.gray[600] : colors.gray[400]
+              }
+              autoCapitalize="characters"
+              autoCorrect={false}
+              returnKeyType="done"
+              onSubmitEditing={isConfirmTextValid ? handleContinue : undefined}
+              style={inputStyle}
+            />
+          </>
+        ) : (
+          <>
+            {/* Step 2: enter password */}
+            <Text
+              style={[
+                styles.inputLabel,
+                { color: isDark ? colors.gray[300] : colors.gray[700] },
+              ]}
+            >
+              {t('profile.deleteAccount.passwordLabel')}
+            </Text>
 
-        <View style={styles.inputWrap}>
-          <BottomSheetTextInput
-            value={password}
-            onChangeText={setPassword}
-            placeholder={t('profile.deleteAccount.passwordPlaceholder')}
-            placeholderTextColor={isDark ? colors.gray[600] : colors.gray[400]}
-            secureTextEntry={!showPassword}
-            autoCapitalize="none"
-            autoCorrect={false}
-            returnKeyType="done"
-            onSubmitEditing={handleConfirm}
-            style={inputStyle}
-            editable={!isPending}
-          />
-          <Pressable
-            onPress={() => setShowPassword((v) => !v)}
-            hitSlop={8}
-            style={styles.eyeBtn}
-          >
-            {showPassword ? (
-              <EyeOff
-                size={18}
-                color={isDark ? colors.gray[500] : colors.gray[400]}
+            <View style={styles.inputWrap}>
+              <BottomSheetTextInput
+                value={password}
+                onChangeText={setPassword}
+                placeholder={t('profile.deleteAccount.passwordPlaceholder')}
+                placeholderTextColor={
+                  isDark ? colors.gray[600] : colors.gray[400]
+                }
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+                returnKeyType="done"
+                onSubmitEditing={handleConfirm}
+                style={inputStyle}
+                editable={!isPending}
               />
-            ) : (
-              <Eye
-                size={18}
-                color={isDark ? colors.gray[500] : colors.gray[400]}
-              />
-            )}
-          </Pressable>
-        </View>
+              <Pressable
+                onPress={() => setShowPassword((v) => !v)}
+                hitSlop={8}
+                style={styles.eyeBtn}
+              >
+                {showPassword ? (
+                  <EyeOff
+                    size={18}
+                    color={isDark ? colors.gray[500] : colors.gray[400]}
+                  />
+                ) : (
+                  <Eye
+                    size={18}
+                    color={isDark ? colors.gray[500] : colors.gray[400]}
+                  />
+                )}
+              </Pressable>
+            </View>
+          </>
+        )}
 
         <View style={{ paddingBottom: bottom + 80 }} />
       </BottomSheetView>

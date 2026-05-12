@@ -89,7 +89,12 @@
       "confirming": "Đang xử lý...",
       "success": "Tài khoản đã được xóa",
       "wrongPassword": "Mật khẩu không đúng, vui lòng thử lại",
-      "error": "Xóa tài khoản thất bại, vui lòng thử lại"
+      "error": "Xóa tài khoản thất bại, vui lòng thử lại",
+      "confirmPhrase": "XÓA",
+      "confirmLabel": "Gõ XÓA để xác nhận",
+      "confirmPlaceholder": "Nhập XÓA",
+      "continue": "Tiếp tục",
+      "back": "Quay lại"
     },
     "contactInfo": {
       "title": "Thông tin liên hệ",
