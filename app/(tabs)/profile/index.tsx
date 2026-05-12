@@ -38,6 +38,7 @@ import {
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
+  Alert,
   AppState,
   Platform,
   Pressable,
@@ -587,6 +588,21 @@ const ProfileTest = () => {
 
   const [showDeleteSheet, setShowDeleteSheet] = useState(false)
 
+  const handleDeletePress = useCallback(() => {
+    Alert.alert(
+      t('profile.deleteAccount.title'),
+      t('profile.deleteAccount.warning'),
+      [
+        { text: t('profile.deleteAccount.cancel'), style: 'cancel' },
+        {
+          text: t('profile.deleteAccount.continue'),
+          style: 'destructive',
+          onPress: () => setShowDeleteSheet(true),
+        },
+      ],
+    )
+  }, [t])
+
   const handleDeleteSuccess = useCallback(() => {
     const capturedToken = useUserStore.getState().deviceToken
     import('@/lib/fcm-token-manager').then((m) => {
@@ -814,7 +830,7 @@ const ProfileTest = () => {
                 icon={Trash2}
                 iconColor={ICON_COLORS.red}
                 title={t('profile.deleteAccount.title', 'Xoá tài khoản')}
-                onPress={() => setShowDeleteSheet(true)}
+                onPress={handleDeletePress}
                 textColor={theme.text}
                 textMuted={theme.textMuted}
               />
