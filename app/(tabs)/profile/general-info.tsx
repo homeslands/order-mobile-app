@@ -10,9 +10,20 @@ import { cleanupTokenOnLogout } from '@/lib/fcm-token-manager'
 import { useAuthStore, useUserStore } from '@/stores'
 import { useLogoutSheetStore } from '@/stores/logout-sheet.store'
 import { showToast } from '@/utils'
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
+
+dayjs.extend(customParseFormat)
+
+function formatDob(dob: string | undefined | null): string | null {
+  if (!dob) return null
+  const d = dayjs(dob, ['DD/MM/YYYY', 'YYYY-MM-DD'], true)
+  return d.isValid() ? d.format('DD/MM/YYYY') : dob
+}
 import {
+  Calendar,
   Mail,
   MapPin,
   Phone,
@@ -387,6 +398,18 @@ export default function GeneralInfo() {
             label={t('profile.contactInfo.address', 'Địa chỉ')}
             value={
               userInfo.address ||
+              t('profile.contactInfo.notUpdated', 'Chưa cập nhật')
+            }
+            theme={theme}
+          />
+          <View style={[styles.divider, { backgroundColor: theme.divider }]} />
+
+          <InfoRow
+            icon={Calendar}
+            iconColor="#a78bfa"
+            label={t('profile.dobInfo', 'Ngày sinh')}
+            value={
+              formatDob(userInfo.dob) ||
               t('profile.contactInfo.notUpdated', 'Chưa cập nhật')
             }
             theme={theme}

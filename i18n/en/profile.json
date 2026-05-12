@@ -253,6 +253,7 @@
     "date": "Date",
     "description": "Description",
     "dob": "Date of Birth (Optional)",
+    "dobInfo": "Date of Birth",
     "enterDob": "Select date of birth",
     "dobInvalid": "Invalid date of birth",
     "dobRequired": "Date of birth is required",
@@ -459,6 +460,17 @@
       "atTable": "At table",
       "takeOut": "Take away",
       "delivery": "Delivery"
+    },
+    "dobNudge": {
+      "title": "Add your date of birth",
+      "subtitle": "Get birthday vouchers from TREND Coffee",
+      "cta": "Add now",
+      "dismiss": "Later"
+    },
+    "phoneVerifyNudge": {
+      "title": "Verify phone number",
+      "subtitle": "Verify your phone number to keep your account secure",
+      "cta": "Verify now"
     }
   }
 }
