@@ -1,5 +1,5 @@
 import { LoginForm } from '@/components/auth'
-import { LanguageSheet, ThemeSheet } from '@/components/profile'
+import { DeleteAccountSheet, LanguageSheet, ThemeSheet } from '@/components/profile'
 import { Skeleton } from '@/components/ui'
 import { colors, publicFileURL } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
@@ -31,6 +31,7 @@ import {
   Languages,
   ScanLine,
   SunMoon,
+  Trash2,
   Trophy,
   User,
 } from 'lucide-react-native'
@@ -584,6 +585,19 @@ const ProfileTest = () => {
     openLogoutSheet(handleLogoutConfirm)
   }, [openLogoutSheet, handleLogoutConfirm])
 
+  const [showDeleteSheet, setShowDeleteSheet] = useState(false)
+
+  const handleDeleteSuccess = useCallback(() => {
+    const capturedToken = useUserStore.getState().deviceToken
+    import('@/lib/fcm-token-manager').then((m) => {
+      m.cleanupTokenOnLogout(capturedToken ?? undefined).catch(() => {})
+    })
+    useNotificationStore.getState().clearAll()
+    setLogout()
+    removeUserInfo()
+    router.replace('/(tabs)/home' as never)
+  }, [removeUserInfo, setLogout, router])
+
   if (needsUserInfo || !userInfo) {
     return (
       <View
@@ -790,6 +804,20 @@ const ProfileTest = () => {
                 textColor={theme.text}
                 textMuted={theme.textMuted}
               />
+              <View
+                style={[
+                  styles.menuItemDivider,
+                  { backgroundColor: theme.divider },
+                ]}
+              />
+              <MenuItem
+                icon={Trash2}
+                iconColor={ICON_COLORS.red}
+                title={t('profile.deleteAccount.title', 'Xoá tài khoản')}
+                onPress={() => setShowDeleteSheet(true)}
+                textColor={theme.text}
+                textMuted={theme.textMuted}
+              />
             </View>
 
             <TouchableOpacity
@@ -835,6 +863,11 @@ const ProfileTest = () => {
         onClose={closeThemeSheet}
         isDark={isDark}
         primaryColor={isDark ? colors.primary.dark : colors.primary.light}
+      />
+      <DeleteAccountSheet
+        visible={showDeleteSheet}
+        onClose={() => setShowDeleteSheet(false)}
+        onSuccess={handleDeleteSuccess}
       />
     </View>
   )
