@@ -84,6 +84,7 @@ export const createSecureStorage = (): StateStorage => {
       try {
         if (value.length > 2000) {
           if (__DEV__) {
+            // eslint-disable-next-line no-console
             console.warn(
               `[SecureStore] value for key "${name}" is ${value.length} bytes — exceeds safe 2000-byte limit, skipping write`,
             )

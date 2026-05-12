@@ -28,6 +28,7 @@ import { useAuthStore } from '@/stores/auth.store'
 describe('useAuthStore', () => {
   beforeEach(() => {
     useAuthStore.setState({
+      _hasHydrated: false,
       slug: undefined,
       token: undefined,
       refreshToken: undefined,
