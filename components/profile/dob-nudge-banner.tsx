@@ -1,9 +1,17 @@
+import { BlurView } from 'expo-blur'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
 import { X } from 'lucide-react-native'
 import { memo, useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import {
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useColorScheme,
+} from 'react-native'
 
 import { Images } from '@/assets/images'
 import { useUserStore } from '@/stores'
@@ -15,6 +23,7 @@ export const DobNudgeBanner = memo(function DobNudgeBanner() {
   const userInfo = useUserStore((s) => s.userInfo)
   const router = useRouter()
   const { t } = useTranslation('profile')
+  const isDark = useColorScheme() === 'dark'
 
   const [visible, setVisible] = useState(() => {
     if (_dismissed || _shown || !userInfo || userInfo.dob) return false
@@ -42,65 +51,90 @@ export const DobNudgeBanner = memo(function DobNudgeBanner() {
       statusBarTranslucent
       onRequestClose={handleDismiss}
     >
-      <Pressable style={styles.backdrop} onPress={handleDismiss}>
-        <Pressable style={styles.container} onPress={() => {}}>
-          <TouchableOpacity
-            onPress={handleDismiss}
-            hitSlop={16}
-            style={styles.closeBtn}
-          >
-            <X size={22} color="#ffffff" />
-          </TouchableOpacity>
+      {/* Backdrop blur toàn màn */}
+      <BlurView
+        intensity={60}
+        tint={isDark ? 'dark' : 'light'}
+        style={styles.blurBackdrop}
+      >
+        <Pressable style={styles.pressableBackdrop} onPress={handleDismiss}>
+          {/* Card blur riêng — intensity cao hơn để nổi lên */}
+          <Pressable onPress={() => {}}>
+            <BlurView
+              intensity={90}
+              tint={isDark ? 'dark' : 'light'}
+              style={styles.card}
+            >
+              <TouchableOpacity
+                onPress={handleDismiss}
+                hitSlop={16}
+                style={styles.closeBtn}
+              >
+                <X size={20} color={isDark ? '#d1d5db' : '#6b7280'} />
+              </TouchableOpacity>
 
-          <Image
-            source={Images.Brand.LogoWhite}
-            style={styles.logo}
-            contentFit="contain"
-          />
+              <Image
+                source={isDark ? Images.Brand.LogoWhite : Images.Brand.Logo}
+                style={styles.logo}
+                contentFit="contain"
+              />
 
-          <Text style={styles.description}>
-            {t('profile.dobNudge.subtitle')}
-          </Text>
+              <Text
+                style={[
+                  styles.description,
+                  { color: isDark ? '#e5e7eb' : '#374151' },
+                ]}
+              >
+                {t('profile.dobNudge.subtitle')}
+              </Text>
 
-          <TouchableOpacity
-            onPress={handleCTA}
-            activeOpacity={0.8}
-            style={styles.ctaBtn}
-          >
-            <Text style={styles.ctaText}>{t('profile.dobNudge.cta')}</Text>
-          </TouchableOpacity>
+              <TouchableOpacity
+                onPress={handleCTA}
+                activeOpacity={0.8}
+                style={styles.ctaBtn}
+              >
+                <Text style={styles.ctaText}>{t('profile.dobNudge.cta')}</Text>
+              </TouchableOpacity>
+            </BlurView>
+          </Pressable>
         </Pressable>
-      </Pressable>
+      </BlurView>
     </Modal>
   )
 })
 
 const styles = StyleSheet.create({
-  backdrop: {
+  blurBackdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+  },
+  pressableBackdrop: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 40,
   },
-  container: {
+  card: {
     width: '100%',
+    borderRadius: 24,
+    overflow: 'hidden',
+    paddingHorizontal: 28,
+    paddingTop: 16,
+    paddingBottom: 28,
     alignItems: 'center',
-    paddingVertical: 8,
   },
   closeBtn: {
     alignSelf: 'flex-end',
-    marginBottom: 16,
+    marginBottom: 12,
+    padding: 4,
   },
   logo: {
     width: 120,
-    height: 60,
-    marginBottom: 20,
+    height: 56,
+    marginBottom: 16,
   },
   description: {
     fontSize: 15,
     fontFamily: 'BeVietnamPro_400Regular',
-    color: '#ffffff',
     textAlign: 'center',
     lineHeight: 22,
     marginBottom: 24,
@@ -109,8 +143,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
     paddingVertical: 12,
     borderRadius: 100,
-    borderWidth: 2,
-    borderColor: '#ffffff',
+    backgroundColor: '#f59e0b',
   },
   ctaText: {
     fontSize: 15,
