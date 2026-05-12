@@ -64,6 +64,7 @@ import { useGiftCards } from '@/hooks/use-gift-cards'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { useGiftCardStore, useUserStore } from '@/stores'
 import type { IGiftCard } from '@/types'
+import { DobNudgeBanner } from '@/components/profile'
 
 const ENTRY_FETCH_DELAY_MS = 120
 const ITEM_PADDING_BOTTOM = 12
@@ -398,6 +399,8 @@ export default function GiftCardScreen() {
           </Pressable>
         </View>
       </View>
+
+      <DobNudgeBanner />
 
       {/* Content */}
       {!allowFetch || isPending ? (

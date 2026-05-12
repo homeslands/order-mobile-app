@@ -459,6 +459,11 @@
       "atTable": "At table",
       "takeOut": "Take away",
       "delivery": "Delivery"
+    },
+    "dobNudge": {
+      "title": "Add your date of birth",
+      "subtitle": "Get birthday vouchers from TREND Coffee",
+      "cta": "Add now"
     }
   }
 }

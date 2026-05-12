@@ -460,6 +460,11 @@
       "atTable": "Tại bàn",
       "takeOut": "Mang về",
       "delivery": "Giao hàng"
+    },
+    "dobNudge": {
+      "title": "Thêm ngày sinh của bạn",
+      "subtitle": "Nhận voucher ưu đãi sinh nhật từ TREND Coffee",
+      "cta": "Thêm ngay"
     }
   }
 }
