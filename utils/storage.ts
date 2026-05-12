@@ -75,14 +75,14 @@ export const createSecureStorage = (): StateStorage => {
   return {
     getItem: async (name: string): Promise<string | null> => {
       try {
-        return await SecureStore.getItemAsync(name)
+        return await SecureStore.getItemAsync(name, { keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK })
       } catch {
         return null
       }
     },
     setItem: async (name: string, value: string): Promise<void> => {
       try {
-        await SecureStore.setItemAsync(name, value)
+        await SecureStore.setItemAsync(name, value, { keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK })
       } catch {
         // If SecureStore fails (e.g. device not enrolled), silently skip.
         // User will be unauthenticated on next launch — acceptable over a crash.
@@ -90,7 +90,7 @@ export const createSecureStorage = (): StateStorage => {
     },
     removeItem: async (name: string): Promise<void> => {
       try {
-        await SecureStore.deleteItemAsync(name)
+        await SecureStore.deleteItemAsync(name, { keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK })
       } catch {
         // no-op
       }
