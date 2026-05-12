@@ -2,7 +2,7 @@ import { AuthState, IAuthStore } from '@/types'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
-import { createSafeStorage } from '@/utils/storage'
+import { createSecureStorage } from '@/utils/storage'
 
 export const useAuthStore = create<IAuthStore>()(
   persist(
@@ -106,7 +106,15 @@ export const useAuthStore = create<IAuthStore>()(
     }),
     {
       name: 'auth-storage',
-      storage: createJSONStorage(() => createSafeStorage()),
+      storage: createJSONStorage(() => createSecureStorage()),
+      // isRefreshing is transient runtime state — never persist it
+      partialize: (state) => ({
+        slug: state.slug,
+        token: state.token,
+        refreshToken: state.refreshToken,
+        expireTime: state.expireTime,
+        expireTimeRefreshToken: state.expireTimeRefreshToken,
+      }),
     },
   ),
 )
