@@ -79,6 +79,18 @@
     "logout": {
       "title": "Đăng xuất"
     },
+    "deleteAccount": {
+      "title": "Xóa tài khoản",
+      "warning": "Thao tác này không thể hoàn tác. Tất cả dữ liệu bao gồm điểm tích lũy, thẻ quà tặng và lịch sử đơn hàng sẽ bị xóa vĩnh viễn.",
+      "passwordLabel": "Nhập mật khẩu để xác nhận",
+      "passwordPlaceholder": "Mật khẩu của bạn",
+      "confirm": "Xóa tài khoản",
+      "cancel": "Huỷ",
+      "confirming": "Đang xử lý...",
+      "success": "Tài khoản đã được xóa",
+      "wrongPassword": "Mật khẩu không đúng, vui lòng thử lại",
+      "error": "Xóa tài khoản thất bại, vui lòng thử lại"
+    },
     "contactInfo": {
       "title": "Thông tin liên hệ",
       "name": "Họ và tên",

@@ -1,6 +1,6 @@
 import { FlashList, type ListRenderItem } from '@shopify/flash-list'
 import { useRouter } from 'expo-router'
-import { Gift, History, Settings, User, Wallet } from 'lucide-react-native'
+import { Gift, History, Settings, Trash2, User, Wallet } from 'lucide-react-native'
 import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -17,6 +17,7 @@ import Animated, {
 
 import { LoginForm } from '@/components/auth'
 import { ScreenContainer } from '@/components/layout'
+import { DeleteAccountSheet } from '@/components/profile'
 import { AnimatedProfileHeader } from '@/components/profile/animated-profile-header'
 import { colors } from '@/constants'
 import { PROFILE_SETTINGS_ITEM_HEIGHT } from '@/constants/list-item-sizes'
@@ -45,6 +46,7 @@ const SETTINGS_ITEM_ICONS = {
   'orders-history': History,
   'account-settings': Settings,
   'gift-cards': Gift,
+  'delete-account': Trash2,
 } as const
 
 // type SettingsItemKey = keyof typeof SETTINGS_ITEM_ICONS
@@ -59,6 +61,7 @@ export default function ProfilePlaceholderScreen() {
   const userInfo = useUserStore((state) => state.userInfo)
   const setLogout = useAuthStore((state) => state.setLogout)
   const removeUserInfo = useUserStore((state) => state.removeUserInfo)
+  const [showDeleteSheet, setShowDeleteSheet] = useState(false)
 
   const settingsItems = useMemo<ProfileSettingItem[]>(
     () => [
@@ -87,6 +90,11 @@ export default function ProfilePlaceholderScreen() {
         key: 'account-settings',
         label: t('accountSettings'),
         icon: SETTINGS_ITEM_ICONS['account-settings'],
+      },
+      {
+        key: 'delete-account',
+        label: t('profile.deleteAccount.title'),
+        icon: SETTINGS_ITEM_ICONS['delete-account'],
       },
     ],
     [t],
@@ -127,7 +135,7 @@ export default function ProfilePlaceholderScreen() {
           router.push('/profile/loyalty-point' as never)
           break
         case 'coins':
-          router.push('/profile/coins-placeholder' as never)
+          router.push('/profile/coin-hub' as never)
           break
         case 'orders-history':
           router.push('/profile/history' as never)
@@ -138,6 +146,9 @@ export default function ProfilePlaceholderScreen() {
         case 'account-settings':
           router.push('/profile/change-password' as never)
           break
+        case 'delete-account':
+          setShowDeleteSheet(true)
+          break
         default:
           break
       }
@@ -146,6 +157,14 @@ export default function ProfilePlaceholderScreen() {
   )
 
   const handleLogout = useCallback(() => {
+    const capturedToken = useUserStore.getState().deviceToken ?? undefined
+    cleanupTokenOnLogout(capturedToken).catch(() => {})
+    setLogout()
+    removeUserInfo()
+    router.replace('/(tabs)/home' as never)
+  }, [router, removeUserInfo, setLogout])
+
+  const handleDeleteSuccess = useCallback(() => {
     const capturedToken = useUserStore.getState().deviceToken ?? undefined
     cleanupTokenOnLogout(capturedToken).catch(() => {})
     setLogout()
@@ -261,6 +280,12 @@ export default function ProfilePlaceholderScreen() {
           onQRPress={handleQRCode}
         />
       </View>
+
+      <DeleteAccountSheet
+        visible={showDeleteSheet}
+        onClose={() => setShowDeleteSheet(false)}
+        onSuccess={handleDeleteSuccess}
+      />
     </ScreenContainer>
   )
 }

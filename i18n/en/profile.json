@@ -79,6 +79,18 @@
     "logout": {
       "title": "Logout"
     },
+    "deleteAccount": {
+      "title": "Delete account",
+      "warning": "This action cannot be undone. All data including loyalty points, gift cards and order history will be permanently deleted.",
+      "passwordLabel": "Enter your password to confirm",
+      "passwordPlaceholder": "Your password",
+      "confirm": "Delete account",
+      "cancel": "Cancel",
+      "confirming": "Processing...",
+      "success": "Account deleted",
+      "wrongPassword": "Incorrect password, please try again",
+      "error": "Failed to delete account, please try again"
+    },
     "contactInfo": {
       "title": "Contact Information",
       "name": "Full Name",
