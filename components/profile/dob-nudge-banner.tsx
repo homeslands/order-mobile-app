@@ -1,38 +1,127 @@
+import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
-import { Cake } from 'lucide-react-native'
-import { memo } from 'react'
+import { X } from 'lucide-react-native'
+import { memo, useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View, useColorScheme } from 'react-native'
 
+import { Images } from '@/assets/images'
 import { useUserStore } from '@/stores'
+
+// Persists dismissal for the session without a store
+let _dismissed = false
 
 export const DobNudgeBanner = memo(function DobNudgeBanner() {
   const userInfo = useUserStore((s) => s.userInfo)
   const router = useRouter()
   const { t } = useTranslation('profile')
+  const isDark = useColorScheme() === 'dark'
+  const [dismissed, setDismissed] = useState(_dismissed)
 
-  if (!userInfo || userInfo.dob) return null
+  const handleDismiss = useCallback(() => {
+    _dismissed = true
+    setDismissed(true)
+  }, [])
+
+  if (!userInfo || userInfo.dob || dismissed) return null
 
   return (
-    <TouchableOpacity
-      onPress={() => router.push('/(tabs)/profile/edit')}
-      activeOpacity={0.8}
-      className="mx-4 mb-3 flex-row items-center gap-3 rounded-[18px] border border-amber-200 bg-amber-50 p-4 dark:border-amber-800/50 dark:bg-amber-950/30"
+    <View
+      style={[
+        styles.card,
+        {
+          backgroundColor: isDark ? '#1c1c1e' : '#ffffff',
+          shadowColor: isDark ? '#000' : '#00000026',
+        },
+      ]}
     >
-      <View className="rounded-full bg-amber-100 p-2 dark:bg-amber-900/50">
-        <Cake size={20} color="#f59e0b" />
-      </View>
-      <View className="flex-1">
-        <Text className="font-sans-semibold text-sm text-gray-900 dark:text-white">
+      <TouchableOpacity
+        onPress={handleDismiss}
+        hitSlop={12}
+        style={styles.closeBtn}
+      >
+        <X size={16} color={isDark ? '#6b7280' : '#9ca3af'} />
+      </TouchableOpacity>
+
+      <View style={styles.content}>
+        <Image
+          source={isDark ? Images.Brand.LogoWhite : Images.Brand.Logo}
+          style={styles.logo}
+          contentFit="contain"
+        />
+        <Text
+          style={[styles.title, { color: isDark ? '#ffffff' : '#111827' }]}
+          numberOfLines={1}
+        >
           {t('profile.dobNudge.title')}
         </Text>
-        <Text className="font-sans text-xs text-gray-500 dark:text-gray-400">
+        <Text
+          style={[styles.subtitle, { color: isDark ? '#9ca3af' : '#6b7280' }]}
+          numberOfLines={2}
+        >
           {t('profile.dobNudge.subtitle')}
         </Text>
+        <TouchableOpacity
+          onPress={() => router.push('/(tabs)/profile/edit')}
+          activeOpacity={0.8}
+          style={styles.ctaBtn}
+        >
+          <Text style={styles.ctaText}>{t('profile.dobNudge.cta')}</Text>
+        </TouchableOpacity>
       </View>
-      <Text className="font-sans-semibold text-xs text-amber-600 dark:text-amber-400">
-        {t('profile.dobNudge.cta')}
-      </Text>
-    </TouchableOpacity>
+    </View>
   )
+})
+
+const styles = StyleSheet.create({
+  card: {
+    marginHorizontal: 16,
+    marginBottom: 12,
+    borderRadius: 18,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 12,
+    elevation: 4,
+  },
+  closeBtn: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    zIndex: 1,
+    padding: 4,
+  },
+  content: {
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 20,
+  },
+  logo: {
+    width: 56,
+    height: 56,
+  },
+  title: {
+    marginTop: 12,
+    fontSize: 15,
+    fontFamily: 'BeVietnamPro_600SemiBold',
+    textAlign: 'center',
+  },
+  subtitle: {
+    marginTop: 4,
+    fontSize: 12,
+    fontFamily: 'BeVietnamPro_400Regular',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
+  ctaBtn: {
+    marginTop: 14,
+    paddingHorizontal: 24,
+    paddingVertical: 9,
+    borderRadius: 100,
+    backgroundColor: '#f59e0b',
+  },
+  ctaText: {
+    fontSize: 13,
+    fontFamily: 'BeVietnamPro_600SemiBold',
+    color: '#ffffff',
+  },
 })
