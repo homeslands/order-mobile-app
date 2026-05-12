@@ -82,6 +82,14 @@ export const createSecureStorage = (): StateStorage => {
     },
     setItem: async (name: string, value: string): Promise<void> => {
       try {
+        if (value.length > 2000) {
+          if (__DEV__) {
+            console.warn(
+              `[SecureStore] value for key "${name}" is ${value.length} bytes — exceeds safe 2000-byte limit, skipping write`,
+            )
+          }
+          return
+        }
         await SecureStore.setItemAsync(name, value, { keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK })
       } catch {
         // If SecureStore fails (e.g. device not enrolled), silently skip.

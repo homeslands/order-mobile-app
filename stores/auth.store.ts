@@ -7,6 +7,7 @@ import { createSecureStorage } from '@/utils/storage'
 export const useAuthStore = create<IAuthStore>()(
   persist(
     (set, get) => ({
+      _hasHydrated: false,
       slug: undefined,
       token: undefined,
       refreshToken: undefined,
@@ -115,6 +116,9 @@ export const useAuthStore = create<IAuthStore>()(
         expireTime: state.expireTime,
         expireTimeRefreshToken: state.expireTimeRefreshToken,
       }),
+      onRehydrateStorage: () => () => {
+        useAuthStore.setState({ _hasHydrated: true })
+      },
     },
   ),
 )
