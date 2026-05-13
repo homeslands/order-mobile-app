@@ -46,9 +46,8 @@ export const DeleteAccountSheet = memo(function DeleteAccountSheet({
   const [showPassword, setShowPassword] = useState(false)
 
   const CONFIRM_PHRASE = t('profile.deleteAccount.confirmPhrase')
-  const upper = confirmText.trim().toUpperCase()
   const isConfirmTextValid =
-    upper === CONFIRM_PHRASE.toUpperCase() || upper === 'DELETE'
+    confirmText.trim().toUpperCase() === CONFIRM_PHRASE.toUpperCase()
 
   const { mutate: deleteAccount, isPending } = useDeleteAccount()
 

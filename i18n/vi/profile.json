@@ -90,9 +90,9 @@
       "success": "Tài khoản đã được xóa",
       "wrongPassword": "Mật khẩu không đúng, vui lòng thử lại",
       "error": "Xóa tài khoản thất bại, vui lòng thử lại",
-      "confirmPhrase": "XOA",
-      "confirmLabel": "Gõ XOA để xác nhận",
-      "confirmPlaceholder": "Nhập XOA",
+      "confirmPhrase": "DELETE",
+      "confirmLabel": "Gõ DELETE để xác nhận",
+      "confirmPlaceholder": "Nhập DELETE",
       "continue": "Tiếp tục",
       "back": "Quay lại"
     },
