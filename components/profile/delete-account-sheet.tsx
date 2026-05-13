@@ -89,7 +89,7 @@ export const DeleteAccountSheet = memo(function DeleteAccountSheet({
         onSuccess()
       },
       onError: (err: unknown) => {
-        const data = (err as { response?: { data?: { statusCode?: number } } })
+const data = (err as { response?: { data?: { statusCode?: number } } })
           ?.response?.data
         if (data?.statusCode) {
           showErrorToast(data.statusCode)
