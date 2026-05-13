@@ -9,6 +9,7 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
+      "icon": "./assets/images/trend/logo-icon.png",
       "googleServicesFile": "./GoogleService-Info.plist",
       "supportsTablet": false,
       "buildNumber": "50",
