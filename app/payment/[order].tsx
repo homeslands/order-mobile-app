@@ -1026,7 +1026,7 @@ function PaymentPageContent() {
             return
           }
         }
-        showToast(t('paymentMethod.paymentError'))
+        showToast(t('paymentMethod.paymentError'), 'error')
       },
     })
   }, [

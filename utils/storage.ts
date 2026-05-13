@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage'
+import * as SecureStore from 'expo-secure-store'
 import { Platform } from 'react-native'
 import type { StateStorage } from 'zustand/middleware'
 
@@ -57,6 +58,53 @@ export const createSafeStorage = (): StateStorage => {
   }
 
   return AsyncStorage
+}
+
+/**
+ * Secure storage adapter for Zustand persist — uses iOS Keychain / Android Keystore
+ * via expo-secure-store. Falls back to noopStorage on web.
+ *
+ * Use this only for sensitive data (auth tokens). Non-sensitive state should
+ * continue using createSafeStorage() (MMKV).
+ *
+ * Size limit: expo-secure-store caps each value at 2048 bytes. Auth store JSON
+ * (tokens + timestamps) is ~1200–1800 bytes for typical JWTs — within limit.
+ */
+export const createSecureStorage = (): StateStorage => {
+  if (Platform.OS === 'web') return noopStorage
+  return {
+    getItem: async (name: string): Promise<string | null> => {
+      try {
+        return await SecureStore.getItemAsync(name, { keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK })
+      } catch {
+        return null
+      }
+    },
+    setItem: async (name: string, value: string): Promise<void> => {
+      try {
+        if (value.length > 2000) {
+          if (__DEV__) {
+            // eslint-disable-next-line no-console
+            console.warn(
+              `[SecureStore] value for key "${name}" is ${value.length} bytes — exceeds safe 2000-byte limit, skipping write`,
+            )
+          }
+          return
+        }
+        await SecureStore.setItemAsync(name, value, { keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK })
+      } catch {
+        // If SecureStore fails (e.g. device not enrolled), silently skip.
+        // User will be unauthenticated on next launch — acceptable over a crash.
+      }
+    },
+    removeItem: async (name: string): Promise<void> => {
+      try {
+        await SecureStore.deleteItemAsync(name, { keychainAccessible: SecureStore.AFTER_FIRST_UNLOCK })
+      } catch {
+        // no-op
+      }
+    },
+  }
 }
 
 /**

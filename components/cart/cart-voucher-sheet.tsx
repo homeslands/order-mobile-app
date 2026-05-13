@@ -358,7 +358,7 @@ export const VoucherSheet = memo(function VoucherSheet({
             sheetRef.current?.dismiss()
           },
           onError: () => {
-            showToast(tVoucher('voucherInvalid'))
+            showToast(tVoucher('voucherInvalid'), 'error')
           },
           onSettled: () => setValidating(false),
         },

@@ -23,12 +23,12 @@ function ChangePasswordScreen() {
 
   const handleSubmit = () => {
     if (!oldPassword || !newPassword || !confirmPassword) {
-      showToast(t('changePassword.fillRequired'))
+      showToast(t('changePassword.fillRequired'), 'error')
       return
     }
 
     if (newPassword !== confirmPassword) {
-      showToast(t('changePassword.passwordMismatch'))
+      showToast(t('changePassword.passwordMismatch'), 'error')
       return
     }
 
@@ -39,7 +39,7 @@ function ChangePasswordScreen() {
         navigateNative.back()
       })
       .catch(() => {
-        showToast(t('changePassword.error'))
+        showToast(t('changePassword.error'), 'error')
       })
       .finally(() => {
         setIsSubmitting(false)

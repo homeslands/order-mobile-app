@@ -70,7 +70,7 @@ export async function downloadAndSaveImage(
 ): Promise<boolean> {
   try {
     if (!imageUrl || typeof imageUrl !== 'string') {
-      showToast(i18n.t('common.invalidImageURL', { ns: 'common' }))
+      showToast(i18n.t('common.invalidImageURL', { ns: 'common' }), 'error')
       return false
     }
 
@@ -84,7 +84,7 @@ export async function downloadAndSaveImage(
       ) {
         const { publicFileURL } = await import('@/constants')
         if (!publicFileURL) {
-          showToast(i18n.t('common.invalidURLConfig', { ns: 'common' }))
+          showToast(i18n.t('common.invalidURLConfig', { ns: 'common' }), 'error')
           return false
         }
         finalImageUrl = `${publicFileURL}/${finalImageUrl.replace(/^\//, '')}`
@@ -93,7 +93,7 @@ export async function downloadAndSaveImage(
       try {
         new URL(finalImageUrl)
       } catch {
-        showToast(i18n.t('common.invalidImageURL', { ns: 'common' }))
+        showToast(i18n.t('common.invalidImageURL', { ns: 'common' }), 'error')
         return false
       }
     }
@@ -102,7 +102,7 @@ export async function downloadAndSaveImage(
     if (!hasPermission) {
       const granted = await requestMediaLibraryPermission()
       if (!granted) {
-        showToast(i18n.t('common.noPhotoLibraryPermission', { ns: 'common' }))
+        showToast(i18n.t('common.noPhotoLibraryPermission', { ns: 'common' }), 'warning')
         return false
       }
     }
@@ -151,7 +151,7 @@ export async function downloadAndSaveImage(
             i18n.t('common.errorDownloadImageTimeout', { ns: 'common' }),
           )
         } else {
-          showToast(i18n.t('common.errorDownloadImage', { ns: 'common' }))
+          showToast(i18n.t('common.errorDownloadImage', { ns: 'common' }), 'error')
         }
         return false
       }
@@ -199,7 +199,7 @@ export async function downloadAndSaveImage(
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error downloading and saving image:', error)
-    showToast(i18n.t('common.errorSavingImage', { ns: 'common' }))
+    showToast(i18n.t('common.errorSavingImage', { ns: 'common' }), 'error')
     return false
   }
 }
@@ -219,7 +219,7 @@ export async function downloadQRCodeImage(
     if (!hasPermission) {
       const granted = await requestMediaLibraryPermission()
       if (!granted) {
-        showToast(i18n.t('common.noPhotoLibraryPermission', { ns: 'common' }))
+        showToast(i18n.t('common.noPhotoLibraryPermission', { ns: 'common' }), 'warning')
         return false
       }
     }
@@ -239,7 +239,7 @@ export async function downloadQRCodeImage(
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error downloading QR code:', error)
-    showToast(i18n.t('common.errorSavingQRCode', { ns: 'common' }))
+    showToast(i18n.t('common.errorSavingQRCode', { ns: 'common' }), 'error')
     return false
   }
 }

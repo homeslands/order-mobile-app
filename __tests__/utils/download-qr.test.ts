@@ -45,7 +45,7 @@ describe('downloadQRCodeImage', () => {
 
     expect(result).toBe(false)
     expect(MediaLibrary.createAssetAsync).not.toHaveBeenCalled()
-    expect(showToast).toHaveBeenCalledWith('common.noPhotoLibraryPermission')
+    expect(showToast).toHaveBeenCalledWith('common.noPhotoLibraryPermission', 'warning')
   })
 
   it('writes base64 PNG to cache and saves to media library when permitted', async () => {
@@ -81,7 +81,7 @@ describe('downloadQRCodeImage', () => {
 
     expect(result).toBe(false)
     expect(MediaLibrary.createAssetAsync).not.toHaveBeenCalled()
-    expect(showToast).toHaveBeenCalledWith('common.errorSavingQRCode')
+    expect(showToast).toHaveBeenCalledWith('common.errorSavingQRCode', 'error')
   })
 
   it('returns false and shows error toast when createAssetAsync fails', async () => {
@@ -95,6 +95,6 @@ describe('downloadQRCodeImage', () => {
     const result = await downloadQRCodeImage(VALID_BASE64)
 
     expect(result).toBe(false)
-    expect(showToast).toHaveBeenCalledWith('common.errorSavingQRCode')
+    expect(showToast).toHaveBeenCalledWith('common.errorSavingQRCode', 'error')
   })
 })

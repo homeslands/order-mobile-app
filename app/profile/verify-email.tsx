@@ -286,7 +286,6 @@ const VerifyEmailSkeleton = React.memo(function VerifyEmailSkeleton() {
 
 function VerifyEmailContent() {
   const { t } = useTranslation('profile')
-  const { t: tCommon } = useTranslation('common')
   const isDark = useColorScheme() === 'dark'
   const insets = useSafeAreaInsets()
   const queryClient = useQueryClient()
@@ -383,10 +382,10 @@ function VerifyEmailContent() {
             }
           )?.response?.data?.statusCode
         if (typeof code === 'number') showErrorToast(code)
-        else showToast(t('profile.verifyEmailFailed'), tCommon('common.error'))
+        else showToast(t('profile.verifyEmailFailed'), 'error')
       },
     })
-  }, [resendOtp, setEmailVerificationStatus, t, tCommon])
+  }, [resendOtp, setEmailVerificationStatus, t])
 
   const handleSendEmail = useCallback(
     ({ email }: TVerifyEmailFormSchema) => {
@@ -446,16 +445,13 @@ function VerifyEmailContent() {
                     )?.response?.data?.statusCode
                   if (typeof resendCode === 'number') showErrorToast(resendCode)
                   else
-                    showToast(
-                      t('profile.verifyEmailFailed'),
-                      tCommon('common.error'),
-                    )
+                    showToast(t('profile.verifyEmailFailed'), 'error')
                 },
               })
             } else if (typeof code === 'number') {
               showErrorToast(code)
             } else {
-              showToast(t('profile.verifyEmailFailed'), tCommon('common.error'))
+              showToast(t('profile.verifyEmailFailed'), 'error')
             }
           },
         },
@@ -468,7 +464,6 @@ function VerifyEmailContent() {
       queryClient,
       setEmailVerificationStatus,
       t,
-      tCommon,
     ],
   )
 

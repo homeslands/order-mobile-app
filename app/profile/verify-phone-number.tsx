@@ -315,7 +315,7 @@ const VerifyPhoneNumberSkeleton = React.memo(
 
 function VerifyPhoneNumberContent() {
   const { t } = useTranslation('profile')
-  const { t: tCommon } = useTranslation('common')
+
   const isDark = useColorScheme() === 'dark'
   const insets = useSafeAreaInsets()
   const queryClient = useQueryClient()
@@ -406,10 +406,7 @@ function VerifyPhoneNumberContent() {
         } else if (typeof code === 'number') {
           showErrorToast(code)
         } else {
-          showToast(
-            t('profile.verifyPhone.sendFailed'),
-            tCommon('common.error'),
-          )
+          showToast(t('profile.verifyPhone.sendFailed'), 'error')
         }
       },
     })
@@ -419,7 +416,6 @@ function VerifyPhoneNumberContent() {
     queryClient,
     setPhoneNumberVerificationStatus,
     t,
-    tCommon,
   ])
 
   const handleVerifyOtp = useCallback(() => {

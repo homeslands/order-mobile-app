@@ -173,7 +173,7 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
         if (code) {
           showErrorToast(code)
         } else {
-          showToast(tToast('toast.createOrderFailed'))
+          showToast(tToast('toast.createOrderFailed'), 'error')
         }
       }, 300)
     }

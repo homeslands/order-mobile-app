@@ -86,6 +86,7 @@ export default function ForgotPasswordScreen() {
   const { t } = useTranslation('auth')
   const { t: tToast } = useTranslation('toast')
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated())
+  const hasHydrated = useAuthStore((s) => s._hasHydrated)
 
   // Store state
   const email = useEmail()
@@ -420,6 +421,10 @@ export default function ForgotPasswordScreen() {
   }, [step, isSuccess, t])
 
   // ── Render ──────────────────────────────────────────────────────
+  if (!hasHydrated) {
+    return null // render nothing while store hydrates (50–200ms)
+  }
+
   if (isAuthenticated) return <Redirect href="/(tabs)/home" />
 
   // Determine current visible step

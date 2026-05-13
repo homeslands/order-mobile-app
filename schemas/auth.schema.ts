@@ -30,13 +30,16 @@ export function useRegisterSchema() {
         .max(100, t('register.lastNameTooLong', { count: 100 }))
         .regex(NAME_REGEX, t('register.lastNameInvalid')),
       dob: z.preprocess(
-        (val) => (typeof val === 'string' ? val.trim() : ''),
+        (val) => {
+          const trimmed = typeof val === 'string' ? val.trim() : ''
+          return trimmed === '' ? undefined : trimmed
+        },
         z
           .string()
-          .min(1, t('register.dobRequired'))
           .refine((val) => dayjs(val, 'DD/MM/YYYY', true).isValid(), {
             message: t('register.dobInvalid'),
-          }),
+          })
+          .optional(),
       ),
       phonenumber: z
         .string()

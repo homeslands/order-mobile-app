@@ -62,7 +62,7 @@ export interface IUpdateUserRequest {
   // phonenumber: string
   firstName: string
   lastName: string
-  dob: string
+  dob?: string
   // email: string
   address: string
   branch?: string
@@ -81,7 +81,7 @@ export interface IUserQuery {
 export interface IUpdateProfileRequest {
   firstName: string
   lastName: string
-  dob: string
+  dob?: string
   address: string
   branch?: string
 }
