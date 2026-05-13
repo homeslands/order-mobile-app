@@ -22,7 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '@/constants'
 import { useDeleteAccount } from '@/hooks/use-auth'
-import { showToast } from '@/utils'
+import { showErrorToast, showToast } from '@/utils'
 
 interface Props {
   visible: boolean
@@ -89,10 +89,10 @@ export const DeleteAccountSheet = memo(function DeleteAccountSheet({
         onSuccess()
       },
       onError: (err: unknown) => {
-        const status = (err as { response?: { status?: number } })?.response
-          ?.status
-        if (status === 401 || status === 400) {
-          showToast(t('profile.deleteAccount.wrongPassword'), 'error')
+        const data = (err as { response?: { data?: { statusCode?: number } } })
+          ?.response?.data
+        if (data?.statusCode) {
+          showErrorToast(data.statusCode)
         } else {
           showToast(t('profile.deleteAccount.error'), 'error')
         }
