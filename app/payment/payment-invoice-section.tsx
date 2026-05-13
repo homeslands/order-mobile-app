@@ -44,7 +44,7 @@ export const InvoiceSection = memo(function InvoiceSection({
           await downloadAndSavePDF(data, name)
           showToast(tCommon('common.downloadSuccess'))
         } catch {
-          showToast(tToast('toast.invoiceExportError'))
+          showToast(tToast('toast.invoiceExportError'), 'error')
         } finally {
           setIsSaving(false)
         }

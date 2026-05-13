@@ -12,8 +12,6 @@ import { navigateNative } from '@/lib/navigation'
 import { TRegisterSchema, useRegisterSchema } from '@/schemas'
 import { showToast } from '@/utils'
 
-const DEFAULT_DOB = dayjs().subtract(18, 'year').format('DD/MM/YYYY')
-
 export default function RegisterForm() {
   const { t } = useTranslation('auth')
   const registerSchema = useRegisterSchema()
@@ -26,7 +24,7 @@ export default function RegisterForm() {
   } = useZodForm(registerSchema, {
     mode: 'onTouched',
     defaultValues: {
-      dob: DEFAULT_DOB,
+      dob: '',
       firstName: '',
       lastName: '',
       phonenumber: '',
@@ -117,7 +115,7 @@ export default function RegisterForm() {
           {t('register.dob')}
         </Text>
         <DobExpandablePicker
-          value={dobValue}
+          value={dobValue ?? ''}
           onSelect={handleDobSelect}
           placeholder={t('register.selectDob')}
         />

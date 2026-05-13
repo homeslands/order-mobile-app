@@ -448,7 +448,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
     try {
       const { status } = await Location.requestForegroundPermissionsAsync()
       if (status !== Location.PermissionStatus.GRANTED) {
-        showToast('Không có quyền truy cập vị trí')
+        showToast('Không có quyền truy cập vị trí', 'error')
         return
       }
       const position = await Location.getCurrentPositionAsync({
@@ -472,7 +472,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
         setShowSuggestions(true)
       }
     } catch {
-      showToast('Không thể xác định vị trí')
+      showToast('Không thể xác định vị trí', 'error')
     } finally {
       setIsLocating(false)
     }

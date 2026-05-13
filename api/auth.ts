@@ -149,3 +149,12 @@ export async function uploadAvatar(
   )
   return response.data
 }
+
+export async function deleteAccount(
+  password: string,
+): Promise<IApiResponse<null>> {
+  const response = await http.delete<IApiResponse<null>>('/auth/delete-account', {
+    data: { password },
+  })
+  return response.data
+}

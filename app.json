@@ -11,17 +11,18 @@
     "ios": {
       "googleServicesFile": "./GoogleService-Info.plist",
       "supportsTablet": false,
+      "buildNumber": "50",
       "infoPlist": {
         "NSCameraUsageDescription": "Cho phép ứng dụng sử dụng camera để chụp ảnh đại diện.",
         "NSPhotoLibraryUsageDescription": "Cho phép ứng dụng truy cập thư viện ảnh để chọn ảnh đại diện.",
         "NSPhotoLibraryAddUsageDescription": "Cho phép ứng dụng lưu ảnh hoá đơn và mã QR thanh toán vào thư viện ảnh.",
         "ITSAppUsesNonExemptEncryption": false,
         "UIBackgroundModes": [
-          "remote-notification",
-          "fetch"
+          "remote-notification"
         ]
       },
       "bundleIdentifier": "com.trendcoffee.order",
+      "developmentTeam": "QMMP2HNM6W",
       "config": {
         "googleMapsApiKey": "GOOGLE_MAPS_IOS_API_KEY_PLACEHOLDER"
       }
@@ -53,6 +54,7 @@
     },
     "plugins": [
       "expo-router",
+      "expo-secure-store",
       [
         "expo-location",
         {

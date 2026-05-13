@@ -38,6 +38,7 @@ import {
   useUserStore,
 } from '@/stores'
 import { useNotificationStore } from '@/stores/notification.store'
+import { ProfileNudgePopup } from '@/components/profile'
 const TAB_ROUTES = {
   HOME: '/(tabs)/home',
   MENU: '/(tabs)/menu',
@@ -455,6 +456,7 @@ export default function TabsLayout() {
           }}
         />
       </Tabs>
+      <ProfileNudgePopup />
     </View>
   )
 }

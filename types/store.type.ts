@@ -12,6 +12,7 @@ export enum AuthState {
 }
 
 export interface IAuthStore {
+  _hasHydrated: boolean
   slug?: string
   token?: string
   refreshToken?: string

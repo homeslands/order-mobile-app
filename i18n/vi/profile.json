@@ -79,6 +79,23 @@
     "logout": {
       "title": "Đăng xuất"
     },
+    "deleteAccount": {
+      "title": "Xóa tài khoản",
+      "warning": "Thao tác này không thể hoàn tác. Tất cả dữ liệu bao gồm điểm tích lũy, thẻ quà tặng và lịch sử đơn hàng sẽ bị xóa vĩnh viễn.",
+      "passwordLabel": "Nhập mật khẩu để xác nhận",
+      "passwordPlaceholder": "Mật khẩu của bạn",
+      "confirm": "Xóa tài khoản",
+      "cancel": "Huỷ",
+      "confirming": "Đang xử lý...",
+      "success": "Tài khoản đã được xóa",
+      "wrongPassword": "Mật khẩu không đúng, vui lòng thử lại",
+      "error": "Xóa tài khoản thất bại, vui lòng thử lại",
+      "confirmPhrase": "DELETE",
+      "confirmLabel": "Gõ DELETE để xác nhận",
+      "confirmPlaceholder": "Nhập DELETE",
+      "continue": "Tiếp tục",
+      "back": "Quay lại"
+    },
     "contactInfo": {
       "title": "Thông tin liên hệ",
       "name": "Họ và tên",
@@ -252,7 +269,8 @@
     "copyEmail": "Sao chép email",
     "date": "Ngày",
     "description": "Mô tả",
-    "dob": "Ngày sinh",
+    "dob": "Ngày sinh (Không bắt buộc)",
+    "dobInfo": "Ngày sinh",
     "enterDob": "Chọn ngày sinh",
     "dobInvalid": "Ngày sinh không hợp lệ",
     "dobRequired": "Ngày sinh không được để trống",
@@ -460,6 +478,17 @@
       "atTable": "Tại bàn",
       "takeOut": "Mang về",
       "delivery": "Giao hàng"
+    },
+    "dobNudge": {
+      "title": "Thêm ngày sinh của bạn",
+      "subtitle": "Nhận voucher ưu đãi sinh nhật từ TREND Coffee",
+      "cta": "Thêm ngay",
+      "dismiss": "Để sau"
+    },
+    "phoneVerifyNudge": {
+      "title": "Xác minh số điện thoại",
+      "subtitle": "Xác minh số điện thoại để bảo vệ tài khoản của bạn",
+      "cta": "Xác minh ngay"
     }
   }
 }

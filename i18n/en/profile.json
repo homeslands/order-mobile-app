@@ -79,6 +79,23 @@
     "logout": {
       "title": "Logout"
     },
+    "deleteAccount": {
+      "title": "Delete account",
+      "warning": "This action cannot be undone. All data including loyalty points, gift cards and order history will be permanently deleted.",
+      "passwordLabel": "Enter your password to confirm",
+      "passwordPlaceholder": "Your password",
+      "confirm": "Delete account",
+      "cancel": "Cancel",
+      "confirming": "Processing...",
+      "success": "Account deleted",
+      "wrongPassword": "Incorrect password, please try again",
+      "error": "Failed to delete account, please try again",
+      "confirmPhrase": "DELETE",
+      "confirmLabel": "Type DELETE to confirm",
+      "confirmPlaceholder": "Type DELETE",
+      "continue": "Continue",
+      "back": "Back"
+    },
     "contactInfo": {
       "title": "Contact Information",
       "name": "Full Name",
@@ -252,7 +269,8 @@
     "copyEmail": "Copy Email",
     "date": "Date",
     "description": "Description",
-    "dob": "Date of Birth",
+    "dob": "Date of Birth (Optional)",
+    "dobInfo": "Date of Birth",
     "enterDob": "Select date of birth",
     "dobInvalid": "Invalid date of birth",
     "dobRequired": "Date of birth is required",
@@ -459,6 +477,17 @@
       "atTable": "At table",
       "takeOut": "Take away",
       "delivery": "Delivery"
+    },
+    "dobNudge": {
+      "title": "Add your date of birth",
+      "subtitle": "Get birthday vouchers from TREND Coffee",
+      "cta": "Add now",
+      "dismiss": "Later"
+    },
+    "phoneVerifyNudge": {
+      "title": "Verify phone number",
+      "subtitle": "Verify your phone number to keep your account secure",
+      "cta": "Verify now"
     }
   }
 }

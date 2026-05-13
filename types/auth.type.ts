@@ -20,7 +20,7 @@ export interface IRegisterRequest {
   password: string
   firstName: string
   lastName: string
-  dob: string
+  dob?: string
 }
 
 export interface IInitiateForgotPasswordRequest {

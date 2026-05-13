@@ -1,5 +1,5 @@
 import { LoginForm } from '@/components/auth'
-import { LanguageSheet, ThemeSheet } from '@/components/profile'
+import { DeleteAccountSheet, LanguageSheet, ThemeSheet } from '@/components/profile'
 import { Skeleton } from '@/components/ui'
 import { colors, publicFileURL } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
@@ -31,12 +31,14 @@ import {
   Languages,
   ScanLine,
   SunMoon,
+  Trash2,
   Trophy,
   User,
 } from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
+  Alert,
   AppState,
   Platform,
   Pressable,
@@ -504,7 +506,7 @@ const ProfileTest = () => {
           showToast(t('profile.avatarUpdated'))
         },
         onError: () => {
-          showToast(t('profile.avatarUpdateFailed'))
+          showToast(t('profile.avatarUpdateFailed'), 'error')
         },
       })
     },
@@ -583,6 +585,34 @@ const ProfileTest = () => {
   const handleLogoutPress = useCallback(() => {
     openLogoutSheet(handleLogoutConfirm)
   }, [openLogoutSheet, handleLogoutConfirm])
+
+  const [showDeleteSheet, setShowDeleteSheet] = useState(false)
+
+  const handleDeletePress = useCallback(() => {
+    Alert.alert(
+      t('profile.deleteAccount.title'),
+      t('profile.deleteAccount.warning'),
+      [
+        { text: t('profile.deleteAccount.cancel'), style: 'cancel' },
+        {
+          text: t('profile.deleteAccount.continue'),
+          style: 'destructive',
+          onPress: () => setShowDeleteSheet(true),
+        },
+      ],
+    )
+  }, [t])
+
+  const handleDeleteSuccess = useCallback(() => {
+    const capturedToken = useUserStore.getState().deviceToken
+    import('@/lib/fcm-token-manager').then((m) => {
+      m.cleanupTokenOnLogout(capturedToken ?? undefined).catch(() => {})
+    })
+    useNotificationStore.getState().clearAll()
+    setLogout()
+    removeUserInfo()
+    router.replace('/(tabs)/home' as never)
+  }, [removeUserInfo, setLogout, router])
 
   if (needsUserInfo || !userInfo) {
     return (
@@ -790,6 +820,20 @@ const ProfileTest = () => {
                 textColor={theme.text}
                 textMuted={theme.textMuted}
               />
+              <View
+                style={[
+                  styles.menuItemDivider,
+                  { backgroundColor: theme.divider },
+                ]}
+              />
+              <MenuItem
+                icon={Trash2}
+                iconColor={ICON_COLORS.red}
+                title={t('profile.deleteAccount.title', 'Xoá tài khoản')}
+                onPress={handleDeletePress}
+                textColor={theme.text}
+                textMuted={theme.textMuted}
+              />
             </View>
 
             <TouchableOpacity
@@ -835,6 +879,11 @@ const ProfileTest = () => {
         onClose={closeThemeSheet}
         isDark={isDark}
         primaryColor={isDark ? colors.primary.dark : colors.primary.light}
+      />
+      <DeleteAccountSheet
+        visible={showDeleteSheet}
+        onClose={() => setShowDeleteSheet(false)}
+        onSuccess={handleDeleteSuccess}
       />
     </View>
   )

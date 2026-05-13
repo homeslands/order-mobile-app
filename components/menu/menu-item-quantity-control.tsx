@@ -131,10 +131,7 @@ const MenuItemQuantityControlWithStore = React.memo(
       const orderItem = buildOrderItem(item)
       try {
         scheduleStoreUpdate(() => addOrderingItem(orderItem))
-        showToast(
-          tToast('toast.addSuccess', 'Đã thêm vào giỏ hàng'),
-          'Thông báo',
-        )
+        showToast(tToast('toast.addSuccess', 'Đã thêm vào giỏ hàng'))
       } catch {
         // Silent fail
       }

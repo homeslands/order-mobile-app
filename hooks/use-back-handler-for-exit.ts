@@ -34,7 +34,7 @@ export function useBackHandlerForExit() {
       }
 
       lastBackPress.current = now
-      showToast(tToast('toast.pressBackToExit'), tCommon('common.notification'))
+      showToast(tToast('toast.pressBackToExit'), 'info')
       return true
     }
 

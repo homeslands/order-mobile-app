@@ -2,6 +2,7 @@ import {
   confirmEmailVerification,
   confirmForgotPassword,
   confirmPhoneNumberVerification,
+  deleteAccount,
   initiateForgotPassword,
   login,
   register,
@@ -147,6 +148,14 @@ export const useUpdateLanguage = () => {
       language: string
     }) => {
       return updateLanguage(userSlug, language)
+    },
+  })
+}
+
+export const useDeleteAccount = () => {
+  return useMutation({
+    mutationFn: async (password: string) => {
+      return deleteAccount(password)
     },
   })
 }
