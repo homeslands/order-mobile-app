@@ -506,7 +506,7 @@ const ProfileTest = () => {
           showToast(t('profile.avatarUpdated'))
         },
         onError: () => {
-          showToast(t('profile.avatarUpdateFailed'))
+          showToast(t('profile.avatarUpdateFailed'), 'error')
         },
       })
     },

@@ -416,7 +416,7 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
             )
           },
           onError: () => {
-            showToast(tVoucher('voucherInvalid'))
+            showToast(tVoucher('voucherInvalid'), 'error')
             setValidating(false)
           },
         },

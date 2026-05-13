@@ -366,7 +366,7 @@ export const VoucherSheetInUpdateOrder = memo(
               sheetRef.current?.dismiss()
             },
             onError: () => {
-              showToast(tVoucher('voucherInvalid'))
+              showToast(tVoucher('voucherInvalid'), 'error')
             },
             onSettled: () => setValidating(false),
           },

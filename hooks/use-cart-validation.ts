@@ -202,7 +202,7 @@ export function useCartValidation() {
               result.removed.length > 3
                 ? ` và ${result.removed.length - 3} món khác`
                 : ''
-            showToast(`${names}${suffix} không còn trong menu, đã xoá`)
+            showToast(`${names}${suffix} không còn trong menu, đã xoá`, 'warning')
           } else if (result.updated.length > 0) {
             showToast(`Đã cập nhật giá mới cho ${result.updated.length} món`)
           }

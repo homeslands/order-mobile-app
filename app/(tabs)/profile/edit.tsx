@@ -354,7 +354,7 @@ const ProfileEditForm = React.memo(function ProfileEditForm({
       showToast(tToast('toast.updateProfileSuccess'))
       router.back()
     } catch {
-      showToast(tToast('toast.updateProfileFailed'))
+      showToast(tToast('toast.updateProfileFailed'), 'error')
     } finally {
       isUpdatingRef.current = false
       setIsUpdating(false)

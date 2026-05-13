@@ -92,9 +92,9 @@ export const DeleteAccountSheet = memo(function DeleteAccountSheet({
         const status = (err as { response?: { status?: number } })?.response
           ?.status
         if (status === 401 || status === 400) {
-          showToast(t('profile.deleteAccount.wrongPassword'))
+          showToast(t('profile.deleteAccount.wrongPassword'), 'error')
         } else {
-          showToast(t('profile.deleteAccount.error'))
+          showToast(t('profile.deleteAccount.error'), 'error')
         }
       },
     })
