@@ -24,6 +24,7 @@
         ]
       },
       "bundleIdentifier": "com.trendcoffee.order",
+      "developmentTeam": "QMMP2HNM6W",
       "config": {
         "googleMapsApiKey": "GOOGLE_MAPS_IOS_API_KEY_PLACEHOLDER"
       }
