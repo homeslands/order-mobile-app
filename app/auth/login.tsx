@@ -20,6 +20,7 @@ export default function LoginScreen() {
   const isDark = useColorScheme() === 'dark'
   const bgColor = isDark ? colors.background.dark : '#ffffff'
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated())
+  const hasHydrated = useAuthStore((state) => state._hasHydrated)
   const masterTransition = useMasterTransitionOptional()
   const queryClient = useQueryClient()
 
@@ -31,6 +32,10 @@ export default function LoginScreen() {
     // đang đóng khi user tap Login) thay vì silent drop như navigateNative.replace.
     navigateWhenUnlocked.replace('/(tabs)/home')
   }, [masterTransition, queryClient])
+
+  if (!hasHydrated) {
+    return null // render nothing while store hydrates (50–200ms)
+  }
 
   if (isAuthenticated) {
     return <Redirect href="/(tabs)/home" />

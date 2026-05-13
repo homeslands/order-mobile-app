@@ -354,7 +354,7 @@ const ProfileEditForm = React.memo(function ProfileEditForm({
       showToast(tToast('toast.updateProfileSuccess'))
       router.back()
     } catch {
-      showToast(tToast('toast.updateProfileFailed'))
+      showToast(tToast('toast.updateProfileFailed'), 'error')
     } finally {
       isUpdatingRef.current = false
       setIsUpdating(false)
@@ -489,7 +489,7 @@ export default function ProfileEditScreen() {
 
   useEffect(() => {
     if (!userInfo) {
-      router.replace('/(tabs)/profile/general-info-placeholder' as never)
+      router.replace('/(tabs)/profile')
       return
     }
     // Lấy dữ liệu mới nhất từ tài khoản để điền mặc định

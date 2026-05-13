@@ -325,13 +325,16 @@ const errorCodes: { [key: number]: string } = {
  * @param title - Optional title (default: 'Thông báo')
  */
 
-export function showToast(message: string, title = 'Thông báo') {
+export function showToast(
+  message: string,
+  type: 'success' | 'error' | 'warning' | 'info' = 'success',
+) {
   const translatedMessage = i18n.t(message, {
     ns: 'toast',
     defaultValue: message,
   })
 
-  showToastInternal(title, translatedMessage, 'success')
+  showToastInternal('', translatedMessage, type)
 }
 
 export function showErrorToast(code: number) {

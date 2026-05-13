@@ -64,7 +64,6 @@ export function useOrderFlowAddToCart() {
           ns: 'toast',
           defaultValue: 'Đã thêm vào giỏ hàng',
         }),
-        'Thông báo',
       )
     } catch {
       // Silent fail
