@@ -397,7 +397,7 @@ function VerifyEmailContent() {
         { email, accessToken: token },
         {
           onSuccess: (res) => {
-            queryClient.invalidateQueries({ queryKey: [QUERYKEY.profile] })
+            queryClient.invalidateQueries({ queryKey: ['profile'] })
             setEmailVerificationStatus({
               expiresAt: applyOtpBuffer(res.result.expiresAt),
               slug: res.result.slug,
@@ -478,7 +478,7 @@ function VerifyEmailContent() {
             if (data?.result) setUserInfo(data.result)
           })
           .catch(() => {
-            queryClient.invalidateQueries({ queryKey: [QUERYKEY.profile] })
+            queryClient.invalidateQueries({ queryKey: ['profile'] })
           })
         showToast(t('profile.verifyEmailSuccessfully'))
         navigateNative.back()

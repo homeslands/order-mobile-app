@@ -14,7 +14,7 @@ import { InteractionManager } from 'react-native'
 
 import { getBanners } from '@/api/banner'
 import { getPublicSpecificMenu, getSpecificMenu } from '@/api/menu'
-import { BannerPage, FILTER_VALUE } from '@/constants'
+import { BannerPage, FILTER_VALUE, QUERYKEY } from '@/constants'
 import { isTransitionLocked } from '@/lib/navigation/transition-lock'
 import {
   useAuthStore,
@@ -77,7 +77,7 @@ export function usePredictivePrefetch() {
 
       if (isOnHome) {
         queryClient.prefetchQuery({
-          queryKey: ['banners', BannerPage.HOME],
+          queryKey: [QUERYKEY.banners, { page: BannerPage.HOME, isActive: true }],
           queryFn: () => getBanners({ page: BannerPage.HOME, isActive: true }),
         })
         // Prefetch menu ngay khi vào Home — user chủ yếu vào Menu, giảm khựng khi chuyển tab

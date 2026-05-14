@@ -117,7 +117,7 @@ export const useSpecificVoucher = (
       ? enabled && Boolean(data?.code || data?.slug)
       : Boolean(data?.code || data?.slug)
   return useQuery({
-    queryKey: [QUERYKEY.specificVoucher, data],
+    queryKey: [QUERYKEY.specificVoucher, 'private', data],
     queryFn: () => getSpecificVoucher(data),
     enabled: isEnabled, // chỉ gọi khi có code hoặc slug và enabled = true (nếu được truyền)
   })
@@ -132,7 +132,7 @@ export const useSpecificPublicVoucher = (
       ? enabled && Boolean(data?.code || data?.slug)
       : Boolean(data?.code || data?.slug)
   return useQuery({
-    queryKey: [QUERYKEY.specificVoucher, data],
+    queryKey: [QUERYKEY.specificVoucher, 'public', data],
     queryFn: () => getSpecificPublicVoucher(data),
     enabled: isEnabled,
   })

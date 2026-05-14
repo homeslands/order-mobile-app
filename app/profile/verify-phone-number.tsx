@@ -380,7 +380,7 @@ function VerifyPhoneNumberContent() {
     verifyPhoneNumber(undefined, {
       onSuccess: (response) => {
         queryClient.invalidateQueries({
-          queryKey: [QUERYKEY.profile],
+          queryKey: ['profile'],
           exact: true,
         })
         setPhoneNumberVerificationStatus({
@@ -423,7 +423,7 @@ function VerifyPhoneNumberContent() {
     confirmPhoneNumberVerification(otpValue, {
       onSuccess: () => {
         queryClient.invalidateQueries({
-          queryKey: [QUERYKEY.profile],
+          queryKey: ['profile'],
           exact: true,
         })
         showToast(t('profile.verifyPhone.success'))
