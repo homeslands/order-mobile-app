@@ -15,6 +15,7 @@ import { useMenuScreenState } from '@/hooks/use-menu-screen-state'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { useOrderFlowStore, useUserStore } from '@/stores'
 import { useSetMenuFilter } from '@/stores/selectors'
+import { useTransientNavStore } from '@/stores/transient-nav.store'
 import type { ISpecificMenuRequest } from '@/types'
 import { IOrderItem } from '@/types'
 import { getProductImageUrl } from '@/utils/product-image-url'
@@ -500,6 +501,12 @@ export default function MenuPage() {
       const selectedItem = itemsMapRef.current.get(itemId)
       if (!selectedItem) return
 
+      // Hand hero image URLs via in-memory store instead of stringifying
+      // through route params — same transition lifetime, zero serialization.
+      useTransientNavStore
+        .getState()
+        .setHeroImageUrls(selectedItem.heroImageUrls ?? [])
+
       router.push({
         pathname: '/(tabs)/menu/product/[id]',
         params: {
@@ -508,7 +515,6 @@ export default function MenuPage() {
           basePrice: String(selectedItem.rawPrice),
           promotionValue: String(selectedItem.promotionValue),
           imageUrl: selectedItem.imageUrl ?? '',
-          imageUrls: JSON.stringify(selectedItem.heroImageUrls),
         },
       })
     },
