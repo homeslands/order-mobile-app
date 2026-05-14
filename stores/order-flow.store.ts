@@ -11,6 +11,7 @@ import {
   OrderTypeEnum,
 } from '@/types'
 import { createSafeStorage } from '@/utils/storage'
+import { throttledStorage } from '@/utils/throttled-storage'
 import dayjs from 'dayjs'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
@@ -764,7 +765,7 @@ export const useOrderFlowStore = create<IOrderFlowStore>()(
     {
       name: 'order-flow-store',
       version: 1,
-      storage: createJSONStorage(() => createSafeStorage()),
+      storage: createJSONStorage(() => throttledStorage(createSafeStorage(), 300)),
       partialize: (state) => ({
         currentStep: state.currentStep,
         orderingData: state.orderingData,
