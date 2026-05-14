@@ -15,10 +15,8 @@ import { scheduleStoreUpdate } from '@/lib/navigation'
 import { useOrderFlowStore } from '@/stores'
 import { IOrderItem } from '@/types'
 import { useUpdateOrderTotals } from '@/hooks'
-import {
-  calculateOrderDisplayAndTotals,
-  capitalizeFirst,
-} from '@/utils'
+import { capitalizeFirst } from '@/utils'
+import type { calculateOrderDisplayAndTotals } from '@/utils'
 import { formatCurrencyNative } from 'cart-price-calc'
 
 import OrderNoteInUpdateOrderInput from './order-note-in-update-order-input'

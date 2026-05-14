@@ -54,9 +54,9 @@ import OrderCard from './order-card'
 import type { OrderDisplayData } from './order-card'
 import { OrderHistorySkeleton } from './order-history-skeleton'
 
-// ─── Module-level LRU cache for order display data ────────────────────────────
+// ─── Module-level FIFO cache for order display data ─────────────────────────
 // Keyed by (slug, status, itemCount, voucher.slug). Lives outside the component
-// so it survives re-renders. Capped at 50 entries.
+// so it survives re-renders. Capped at 50 entries (FIFO eviction).
 const _orderDisplayCache = new Map<string, OrderDisplayData>()
 
 // ─── Filter bar ───────────────────────────────────────────────────────────────
