@@ -13,7 +13,6 @@ export * from './loyalty-point'
 // export * from './map-icons'
 // export * from './notification-navigation'
 export * from './order-api-diff'
-export * from './order-comparison'
 export * from './payment-resolver'
 // export * from './pdf-font'
 // Export download-image functions (excluding duplicates)
