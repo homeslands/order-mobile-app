@@ -58,7 +58,7 @@ export default function PlaceOrderDialog({
   const { t: tCommon } = useTranslation('common')
   const { t: tToast } = useTranslation('toast')
   const orderFields = useOrderFlowCreateOrderDialog()
-  const clearUpdateOrderStore = useOrderFlowStore((s) => s.clearUpdatingData)
+  const clearUpdatingData = useOrderFlowStore((s) => s.clearUpdatingData)
   const { mutate: createOrder, isPending } = useCreateOrder()
   const { mutate: createOrderWithoutLogin, isPending: isPendingWithoutLogin } =
     useCreateOrderWithoutLogin()
@@ -189,7 +189,7 @@ export default function PlaceOrderDialog({
 
           setIsOpen(false)
           onSuccessfulOrder?.()
-          clearUpdateOrderStore()
+          clearUpdatingData()
           showToast(tToast('toast.createOrderSuccess'))
         },
       })
@@ -214,7 +214,7 @@ export default function PlaceOrderDialog({
 
           setIsOpen(false)
           onSuccessfulOrder?.()
-          clearUpdateOrderStore()
+          clearUpdatingData()
           showToast(tToast('toast.createOrderSuccess'))
         },
       })

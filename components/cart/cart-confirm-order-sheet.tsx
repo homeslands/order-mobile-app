@@ -64,7 +64,7 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
   const { mutate: createOrder, isPending } = useCreateOrder()
   const { mutate: createOrderWithoutLogin, isPending: isPendingNoLogin } =
     useCreateOrderWithoutLogin()
-  const clearUpdateOrderStore = useOrderFlowStore((s) => s.clearUpdatingData)
+  const clearUpdatingData = useOrderFlowStore((s) => s.clearUpdatingData)
 
   const { hasUser, roleName, userBranchSlug } = useUserStore(
     useShallow((s) => ({
@@ -156,7 +156,7 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
       scheduleTransitionTask(() => {
         transitionToPayment(orderSlug)
         useOrderFlowStore.getState().clearOrderingData()
-        clearUpdateOrderStore()
+        clearUpdatingData()
         onClose()
         showToast(tToast('toast.createOrderSuccess'))
       })
@@ -189,7 +189,7 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
     roleName,
     getUserInfo,
     transitionToPayment,
-    clearUpdateOrderStore,
+    clearUpdatingData,
     createOrder,
     createOrderWithoutLogin,
     queryClient,
