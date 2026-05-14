@@ -792,22 +792,6 @@ function PaymentPageContent() {
     )
   }, [orderStatus, countdownStartTime, handleExpire])
 
-  // Refetch when screen regains focus — catches background FCM that didn't go through store
-  useFocusEffect(
-    useCallback(() => {
-      void refetchOrder()
-    }, [refetchOrder]),
-  )
-
-  // Clear image memory cache on blur (QR code + product images)
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        queueMicrotask(() => ExpoImage.clearMemoryCache())
-      }
-    }, []),
-  )
-
   // ── Payment method selection + submission ──
   const userInfo = useUserStore((s) => s.userInfo)
   const isLoggedIn = !!userInfo
@@ -825,14 +809,43 @@ function PaymentPageContent() {
   const userTotalPoints = loyaltyData.data?.totalPoints ?? 0
   const refetchLoyalty = loyaltyData.refetch
 
-  // Refetch coin balance + loyalty points on screen focus to get fresh data
+  // ── Merged focus effect ───────────────────────────────────────────────────
+  // Replaces 3 separate useFocusEffect calls. On focus:
+  //   - Refetch order + (if logged in) coin balance + loyalty points, but
+  //     only if last fetch was > 30s ago — prevents refetch storms on
+  //     rapid focus→blur→focus cycles (e.g. half-opened sheets).
+  // On blur:
+  //   - Clear ExpoImage memory cache ONLY when the order is in a terminal
+  //     success state. While PENDING, we want the QR code to stay warm.
+  const lastFocusFetchAtRef = useRef(0)
+  const FOCUS_REFETCH_INTERVAL_MS = 30_000
+
   useFocusEffect(
     useCallback(() => {
-      if (isLoggedIn) {
-        void refetchCoinBalance()
-        void refetchLoyalty()
+      const now = Date.now()
+      if (now - lastFocusFetchAtRef.current > FOCUS_REFETCH_INTERVAL_MS) {
+        lastFocusFetchAtRef.current = now
+        void refetchOrder()
+        if (isLoggedIn) {
+          void refetchCoinBalance()
+          void refetchLoyalty()
+        }
       }
-    }, [isLoggedIn, refetchCoinBalance, refetchLoyalty]),
+      return () => {
+        // Only flush image memory cache when the order is no longer pending —
+        // keeps the QR image hot while the user is mid-payment.
+        const status = order?.status
+        if (status === OrderStatus.COMPLETED) {
+          queueMicrotask(() => ExpoImage.clearMemoryCache())
+        }
+      }
+    }, [
+      refetchOrder,
+      refetchCoinBalance,
+      refetchLoyalty,
+      isLoggedIn,
+      order?.status,
+    ]),
   )
 
   const { mutate: initiatePaymentAuth, isPending: isInitiatingPaymentAuth } =
