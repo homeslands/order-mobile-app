@@ -63,7 +63,7 @@ export const useCartItemVoucherDiscount = (cartKey: string): number =>
   useOrderFlowStore((s) => {
     const voucher = s.orderingData?.voucher
     if (!voucher) return 0
-    const item = s.orderingData?.orderItems?.find((i) => i.id === cartKey)
+    const item = s.orderItemsById?.[cartKey]
     if (!item) return 0
     return calcItemVoucherDiscount(toDisplayItem(item), voucher)
   })
@@ -127,9 +127,7 @@ export const useCartDelivery = () =>
 
 /** Per-item selector — only re-renders when this specific item changes */
 export const useCartItem = (itemId: string) =>
-  useOrderFlowStore((s) =>
-    s.orderingData?.orderItems?.find((i) => i.id === itemId),
-  )
+  useOrderFlowStore((s) => s.orderItemsById?.[itemId])
 
 /** Per-item quantity — most atomic, returns primitive. O(1) via orderItemsById. */
 export const useCartItemQuantity = (itemId: string): number =>
