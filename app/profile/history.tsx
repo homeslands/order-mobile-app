@@ -54,6 +54,11 @@ import OrderCard from './order-card'
 import type { OrderDisplayData } from './order-card'
 import { OrderHistorySkeleton } from './order-history-skeleton'
 
+// ─── Module-level LRU cache for order display data ────────────────────────────
+// Keyed by (slug, status, itemCount, voucher.slug). Lives outside the component
+// so it survives re-renders. Capped at 50 entries.
+const _orderDisplayCache = new Map<string, OrderDisplayData>()
+
 // ─── Filter bar ───────────────────────────────────────────────────────────────
 
 const FilterBar = React.memo(function FilterBar({
@@ -471,21 +476,37 @@ function OrderHistoryPage() {
     [orderResponse?.items],
   )
 
-  // Pre-compute display data once when orders change — O(1) lookup in renderItem
+  // Pre-compute display data once when orders change — O(1) lookup in renderItem.
+  // Cache keyed by (slug, status, itemCount, voucher.slug) so FCM-triggered
+  // refetches do not redo work for unchanged orders.
   const orderDisplayMap = useMemo(() => {
-    const map = new Map<string, OrderDisplayData>()
+    const next = new Map<string, OrderDisplayData>()
     for (const order of orders) {
       const items = order.orderItems || []
       const voucher = order.voucher || null
+      const cacheKey = `${order.slug}:${order.status}:${items.length}:${voucher?.slug ?? ''}`
+      const cached = _orderDisplayCache.get(cacheKey)
+      if (cached) {
+        next.set(order.slug, cached)
+        continue
+      }
       const { displayItems, cartTotals } = calculateOrderDisplayAndTotals(
         items,
         voucher,
       )
       const diMap = new Map<string, (typeof displayItems)[number]>()
       for (const di of displayItems) diMap.set(di.slug, di)
-      map.set(order.slug, { displayItemMap: diMap, cartTotals })
+      const data: OrderDisplayData = { displayItemMap: diMap, cartTotals }
+      next.set(order.slug, data)
+      _orderDisplayCache.set(cacheKey, data)
     }
-    return map
+    if (_orderDisplayCache.size > 50) {
+      const keys = Array.from(_orderDisplayCache.keys())
+      keys
+        .slice(0, keys.length - 50)
+        .forEach((k) => _orderDisplayCache.delete(k))
+    }
+    return next
   }, [orders])
 
   const hasNext = orderResponse?.hasNext || false

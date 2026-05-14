@@ -14,10 +14,10 @@ import {
 import { scheduleStoreUpdate } from '@/lib/navigation'
 import { useOrderFlowStore } from '@/stores'
 import { IOrderItem } from '@/types'
+import { useUpdateOrderTotals } from '@/hooks'
 import {
   calculateOrderDisplayAndTotals,
   capitalizeFirst,
-  transformOrderItemToOrderDetail,
 } from '@/utils'
 import { formatCurrencyNative } from 'cart-price-calc'
 
@@ -321,14 +321,7 @@ export default function UpdateOrderContentNative({
     [updatingData],
   )
 
-  const { displayItems } = useMemo(
-    () =>
-      calculateOrderDisplayAndTotals(
-        transformOrderItemToOrderDetail(orderItems),
-        voucher,
-      ),
-    [orderItems, voucher],
-  )
+  const { displayItems } = useUpdateOrderTotals()
   const displayItemMap = useMemo(() => {
     const m = new Map<string, (typeof displayItems)[number]>()
     for (const di of displayItems) m.set(di.slug, di)
