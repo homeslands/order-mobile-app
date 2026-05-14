@@ -32,7 +32,7 @@ export const useCreateBanner = () => {
 
 export const useSpecificBanner = (slug: string) => {
   return useQuery({
-    queryKey: [QUERYKEY, slug],
+    queryKey: [QUERYKEY.banners, 'specific', slug],
     queryFn: async () => getSpecificBanner(slug),
   })
 }

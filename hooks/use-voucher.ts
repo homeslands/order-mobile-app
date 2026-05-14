@@ -132,7 +132,7 @@ export const useSpecificPublicVoucher = (
       ? enabled && Boolean(data?.code || data?.slug)
       : Boolean(data?.code || data?.slug)
   return useQuery({
-    queryKey: [QUERYKEY.vouchers, data],
+    queryKey: [QUERYKEY.specificVoucher, data],
     queryFn: () => getSpecificPublicVoucher(data),
     enabled: isEnabled,
   })
