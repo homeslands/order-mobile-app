@@ -21,7 +21,6 @@ import {
   IOrderingData,
   useBranchStore,
   useOrderFlowStore,
-  useUpdateOrderStore,
   useUserStore,
 } from '@/stores'
 import { useOrderFlowCreateOrderDialog } from '@/stores/selectors'
@@ -59,7 +58,7 @@ export default function PlaceOrderDialog({
   const { t: tCommon } = useTranslation('common')
   const { t: tToast } = useTranslation('toast')
   const orderFields = useOrderFlowCreateOrderDialog()
-  const clearUpdateOrderStore = useUpdateOrderStore((s) => s.clearStore)
+  const clearUpdateOrderStore = useOrderFlowStore((s) => s.clearUpdatingData)
   const { mutate: createOrder, isPending } = useCreateOrder()
   const { mutate: createOrderWithoutLogin, isPending: isPendingWithoutLogin } =
     useCreateOrderWithoutLogin()

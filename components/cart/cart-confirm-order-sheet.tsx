@@ -10,7 +10,6 @@ import { navigateNative } from '@/lib/navigation/navigation-engine'
 import {
   useBranchStore,
   useOrderFlowStore,
-  useUpdateOrderStore,
   useUserStore,
 } from '@/stores'
 import type { ICreateOrderRequest } from '@/types'
@@ -65,7 +64,7 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
   const { mutate: createOrder, isPending } = useCreateOrder()
   const { mutate: createOrderWithoutLogin, isPending: isPendingNoLogin } =
     useCreateOrderWithoutLogin()
-  const clearUpdateOrderStore = useUpdateOrderStore((s) => s.clearStore)
+  const clearUpdateOrderStore = useOrderFlowStore((s) => s.clearUpdatingData)
 
   const { hasUser, roleName, userBranchSlug } = useUserStore(
     useShallow((s) => ({
