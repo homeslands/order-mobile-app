@@ -582,7 +582,7 @@ const ProfileTest = () => {
     removeUserInfo()
     router.replace('/(tabs)/home' as never)
     showToast(tToast('logoutSuccess', 'Đăng xuất thành công'))
-  }, [removeUserInfo, setLogout, tToast, router])
+  }, [removeUserInfo, setLogout, tToast, router, clearOrderDisplayCache])
 
   const handleLogoutPress = useCallback(() => {
     openLogoutSheet(handleLogoutConfirm)
