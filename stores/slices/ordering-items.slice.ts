@@ -8,6 +8,7 @@ import dayjs from 'dayjs'
 import { useCartDisplayStore } from '../cart-display.store'
 import {
   calcMinOrderValue,
+  calcOrderItemsById,
   calcOrderItemTotalQuantity,
   calcRawSubTotal,
   generateOrderId,
@@ -52,6 +53,7 @@ export function createOrderingItemsMethods(set: SetFn, get: GetFn) {
             newOrderingData.orderItems,
           ),
           minOrderValue: calcMinOrderValue(newOrderingData.orderItems),
+          orderItemsById: calcOrderItemsById(newOrderingData.orderItems),
           orderingData: newOrderingData,
           paymentData: null,
           updatingData: null,
@@ -73,6 +75,7 @@ export function createOrderingItemsMethods(set: SetFn, get: GetFn) {
         currentStep: OrderFlowStep.ORDERING,
         orderItemTotalQuantity: calcOrderItemTotalQuantity(updatedItems),
         minOrderValue: calcMinOrderValue(updatedItems),
+        orderItemsById: calcOrderItemsById(updatedItems),
         orderingData: {
           ...orderingData,
           orderItems: updatedItems,
@@ -95,6 +98,7 @@ export function createOrderingItemsMethods(set: SetFn, get: GetFn) {
       )
 
       set({
+        orderItemsById: calcOrderItemsById(updatedItems),
         orderingData: {
           ...orderingData,
           orderItems: updatedItems,
@@ -120,6 +124,7 @@ export function createOrderingItemsMethods(set: SetFn, get: GetFn) {
 
       set({
         minOrderValue: calcMinOrderValue(updatedItems),
+        orderItemsById: calcOrderItemsById(updatedItems),
         orderingData: {
           ...orderingData,
           orderItems: updatedItems,
@@ -142,6 +147,7 @@ export function createOrderingItemsMethods(set: SetFn, get: GetFn) {
       set({
         orderItemTotalQuantity: calcOrderItemTotalQuantity(updatedItems),
         minOrderValue: calcMinOrderValue(updatedItems),
+        orderItemsById: calcOrderItemsById(updatedItems),
         orderingData: {
           ...orderingData,
           orderItems: updatedItems,
@@ -164,6 +170,7 @@ export function createOrderingItemsMethods(set: SetFn, get: GetFn) {
       set({
         orderItemTotalQuantity: calcOrderItemTotalQuantity(updatedItems),
         minOrderValue: calcMinOrderValue(updatedItems),
+        orderItemsById: calcOrderItemsById(updatedItems),
         orderingData: {
           ...orderingData,
           orderItems: updatedItems,
@@ -207,6 +214,7 @@ export function createOrderingItemsMethods(set: SetFn, get: GetFn) {
       )
 
       set({
+        orderItemsById: calcOrderItemsById(updatedItems),
         orderingData: {
           ...orderingData,
           orderItems: updatedItems,
@@ -219,6 +227,7 @@ export function createOrderingItemsMethods(set: SetFn, get: GetFn) {
       set({
         orderItemTotalQuantity: 0,
         minOrderValue: 0,
+        orderItemsById: {},
         orderingData: null,
         lastModified: dayjs().valueOf(),
       })

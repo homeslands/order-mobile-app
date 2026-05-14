@@ -131,12 +131,9 @@ export const useCartItem = (itemId: string) =>
     s.orderingData?.orderItems?.find((i) => i.id === itemId),
   )
 
-/** Per-item quantity — most atomic, returns primitive */
+/** Per-item quantity — most atomic, returns primitive. O(1) via orderItemsById. */
 export const useCartItemQuantity = (itemId: string): number =>
-  useOrderFlowStore(
-    (s) =>
-      s.orderingData?.orderItems?.find((i) => i.id === itemId)?.quantity ?? 0,
-  )
+  useOrderFlowStore((s) => s.orderItemsById?.[itemId]?.quantity ?? 0)
 
 /** Description / order note */
 export const useCartDescription = () =>

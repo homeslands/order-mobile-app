@@ -65,6 +65,8 @@ export interface IOrderFlowStore {
   lastModified: number
   orderItemTotalQuantity: number
   minOrderValue: number
+  /** O(1) lookup map derived from orderingData.orderItems. Not persisted. */
+  orderItemsById: Record<string, IOrderItem>
 
   orderingData: IOrderingData | null
   paymentData: IPaymentData | null
@@ -205,3 +207,15 @@ export const calcRawSubTotal = (items: IOrderItem[] | undefined): number =>
     (sum, item) => sum + (item.originalPrice ?? 0) * (item.quantity || 0),
     0,
   ) ?? 0
+
+/** Build an id → IOrderItem map. Returns empty object for undefined/empty input. */
+export function calcOrderItemsById(
+  items: IOrderItem[] | undefined,
+): Record<string, IOrderItem> {
+  if (!items || items.length === 0) return {}
+  const out: Record<string, IOrderItem> = {}
+  for (const it of items) {
+    if (it.id) out[it.id] = it
+  }
+  return out
+}

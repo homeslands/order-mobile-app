@@ -18,6 +18,7 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 import { useCartDisplayStore } from './cart-display.store'
 import {
   calcMinOrderValue,
+  calcOrderItemsById,
   calcOrderItemTotalQuantity,
   calcRawSubTotal,
   generateOrderId,
@@ -77,6 +78,7 @@ export const useOrderFlowStore = create<IOrderFlowStore>()(
       lastModified: dayjs().valueOf(),
       orderItemTotalQuantity: 0,
       minOrderValue: 0,
+      orderItemsById: {},
       orderingData: null,
       paymentData: null,
       updatingData: null,
@@ -778,6 +780,7 @@ export const useOrderFlowStore = create<IOrderFlowStore>()(
         state.isHydrated = true
         state.orderItemTotalQuantity = calcOrderItemTotalQuantity(items)
         state.minOrderValue = calcMinOrderValue(items)
+        state.orderItemsById = calcOrderItemsById(items)
 
         // Cross-store sync still goes through setTimeout — payment/update
         // standalone stores may not be hydrated yet on this tick.
