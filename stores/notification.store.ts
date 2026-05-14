@@ -4,7 +4,7 @@
  * addNotification: parse FCM payload → INotification → prepend to list
  * markAsRead / markAllAsRead: optimistic local update
  * hydrateFromApi: merge API data into local store (API takes priority)
- * getUnreadCount: derived count
+ * unreadCount: cached primitive updated atomically in each mutator (O(1) reads)
  */
 import { create } from 'zustand'
 import * as Notifications from 'expo-notifications'
@@ -31,6 +31,8 @@ interface NotificationStore {
   notifications: INotification[]
   /** ISO timestamp — mọi notification có createdAt ≤ giá trị này được coi là đã đọc. */
   markedAllReadAt: string | null
+  /** Cached unread count — updated atomically in each mutator. O(1) to read. */
+  unreadCount: number
   addNotification: (
     payload: NotificationPayload,
     options?: { markAsRead?: boolean },
@@ -39,7 +41,6 @@ interface NotificationStore {
   markAllAsRead: () => void
   setReadStates: (updates: { slug: string; isRead: boolean }[]) => void
   clearAll: () => void
-  getUnreadCount: () => number
   hydrateFromApi: (items: INotification[]) => void
 }
 
@@ -120,6 +121,7 @@ function syncBadge(count: number): void {
 export const useNotificationStore = create<NotificationStore>((set, get) => ({
   notifications: [],
   markedAllReadAt: null,
+  unreadCount: 0,
 
   addNotification: (payload, options) => {
     set((state) => {
@@ -130,18 +132,23 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       // Dedup by slug, prepend new, cap at MAX
       const filtered = state.notifications.filter((n) => n.slug !== item.slug)
       const updated = [item, ...filtered].slice(0, MAX_NOTIFICATIONS)
-      return { notifications: updated }
+      let unreadCount = 0
+      for (const n of updated) if (!n.isRead) unreadCount++
+      return { notifications: updated, unreadCount }
     })
-    syncBadge(get().notifications.filter((n) => !n.isRead).length)
+    syncBadge(get().unreadCount)
   },
 
   markAsRead: (slug) => {
-    set((state) => ({
-      notifications: state.notifications.map((n) =>
+    set((state) => {
+      const notifications = state.notifications.map((n) =>
         n.slug === slug ? { ...n, isRead: true } : n,
-      ),
-    }))
-    syncBadge(get().notifications.filter((n) => !n.isRead).length)
+      )
+      let unreadCount = 0
+      for (const n of notifications) if (!n.isRead) unreadCount++
+      return { notifications, unreadCount }
+    })
+    syncBadge(get().unreadCount)
   },
 
   markAllAsRead: () => {
@@ -149,27 +156,27 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
     set((state) => ({
       markedAllReadAt: ts,
       notifications: state.notifications.map((n) => ({ ...n, isRead: true })),
+      unreadCount: 0,
     }))
     syncBadge(0)
   },
 
   setReadStates: (updates) => {
     const map = new Map(updates.map((u) => [u.slug, u.isRead]))
-    set((state) => ({
-      notifications: state.notifications.map((n) =>
+    set((state) => {
+      const notifications = state.notifications.map((n) =>
         map.has(n.slug) ? { ...n, isRead: map.get(n.slug)! } : n,
-      ),
-    }))
-    syncBadge(get().notifications.filter((n) => !n.isRead).length)
+      )
+      let unreadCount = 0
+      for (const n of notifications) if (!n.isRead) unreadCount++
+      return { notifications, unreadCount }
+    })
+    syncBadge(get().unreadCount)
   },
 
   clearAll: () => {
-    set({ notifications: [], markedAllReadAt: null })
+    set({ notifications: [], markedAllReadAt: null, unreadCount: 0 })
     syncBadge(0)
-  },
-
-  getUnreadCount: () => {
-    return get().notifications.filter((n) => !n.isRead).length
   },
 
   hydrateFromApi: (items) => {
@@ -211,8 +218,11 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
             new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
         )
         .slice(0, MAX_NOTIFICATIONS)
+      let unreadCount = 0
+      for (const n of merged) if (!n.isRead) unreadCount++
       return {
         notifications: merged,
+        unreadCount,
         // Reset markedAllReadAt when switching accounts — the bulk-read
         // timestamp from account A must not bleed into account B's data.
         ...(isDifferentUser ? { markedAllReadAt: null } : {}),
