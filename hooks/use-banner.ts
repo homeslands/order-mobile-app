@@ -19,6 +19,7 @@ export const useBanners = (params?: IBannerRequest) => {
   return useQuery({
     queryKey: [QUERYKEY.banners, params],
     queryFn: async () => getBanners(params),
+    staleTime: 5 * 60_000,
   })
 }
 
