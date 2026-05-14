@@ -86,15 +86,18 @@ export function createOrderingItemsMethods(set: SetFn, get: GetFn) {
     },
 
     addOrderingProductVariant: (id: string) => {
-      const { orderingData } = get()
+      const { orderingData, orderItemsById } = get()
       if (!orderingData) return
 
       const updatedItems = orderingData.orderItems.map((item) =>
         item.id === id ? { ...item, variant: item.variant || [] } : item,
       )
+      const prev = orderItemsById?.[id]
 
       set({
-        orderItemsById: aggregateOrderItems(updatedItems).orderItemsById,
+        orderItemsById: prev
+          ? { ...orderItemsById, [id]: { ...prev, variant: prev.variant || [] } }
+          : orderItemsById,
         orderingData: {
           ...orderingData,
           orderItems: updatedItems,
@@ -199,15 +202,18 @@ export function createOrderingItemsMethods(set: SetFn, get: GetFn) {
     },
 
     addOrderingNote: (itemId: string, note: string) => {
-      const { orderingData } = get()
+      const { orderingData, orderItemsById } = get()
       if (!orderingData) return
 
       const updatedItems = orderingData.orderItems.map((item) =>
         item.id === itemId ? { ...item, note } : item,
       )
+      const prev = orderItemsById?.[itemId]
 
       set({
-        orderItemsById: aggregateOrderItems(updatedItems).orderItemsById,
+        orderItemsById: prev
+          ? { ...orderItemsById, [itemId]: { ...prev, note } }
+          : orderItemsById,
         orderingData: {
           ...orderingData,
           orderItems: updatedItems,
