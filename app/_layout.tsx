@@ -23,6 +23,7 @@ import {
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 
+import { AppErrorBoundary } from '@/components/ui/app-error-boundary'
 import LogoutSheetPortal from '@/components/profile/logout-sheet-portal'
 import QRSelectionSheet from '@/components/profile/qr-selection-sheet'
 import ScanSheetPortal from '@/components/profile/scan-sheet-portal'
@@ -181,29 +182,31 @@ function AppContent() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <BottomSheetModalProvider>
-            <LogoutSheetPortal />
-            <QRSelectionSheet />
-            <ScanSheetPortal />
-            <NotificationProvider />
-            <I18nProvider>
-              <NavigationEngineProvider>
-                <MasterTransitionProvider>
-                  <AppToastProvider>
-                    <SharedElementProvider>
-                      <NativeStackWithMasterTransition />
-                    </SharedElementProvider>
-                  </AppToastProvider>
-                </MasterTransitionProvider>
-              </NavigationEngineProvider>
-            </I18nProvider>
-          </BottomSheetModalProvider>
-        </QueryClientProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <AppErrorBoundary>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <QueryClientProvider client={queryClient}>
+            <BottomSheetModalProvider>
+              <LogoutSheetPortal />
+              <QRSelectionSheet />
+              <ScanSheetPortal />
+              <NotificationProvider />
+              <I18nProvider>
+                <NavigationEngineProvider>
+                  <MasterTransitionProvider>
+                    <AppToastProvider>
+                      <SharedElementProvider>
+                        <NativeStackWithMasterTransition />
+                      </SharedElementProvider>
+                    </AppToastProvider>
+                  </MasterTransitionProvider>
+                </NavigationEngineProvider>
+              </I18nProvider>
+            </BottomSheetModalProvider>
+          </QueryClientProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </AppErrorBoundary>
   )
 }
 
