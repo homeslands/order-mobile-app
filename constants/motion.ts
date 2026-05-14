@@ -74,6 +74,60 @@ export const SPRING_CONFIGS = {
     damping: 25,
     stiffness: 180,
   } as const,
+
+  /** Profile/list item press release — soft return, no overshoot. */
+  pressSoft: {
+    damping: 25,
+    stiffness: 200,
+    mass: 0.5,
+    overshootClamping: true,
+    restDisplacementThreshold: 0.01,
+    restSpeedThreshold: 0.01,
+  } as const,
+
+  /** Profile parallax snap "brake" — fast settle on gesture release. */
+  snapBrake: {
+    damping: 24,
+    stiffness: 400,
+    mass: 0.45,
+    overshootClamping: true,
+    energyThreshold: 0.1,
+  } as const,
+
+  /** Tab bar sliding indicator — snappy, ~100ms settle. */
+  tabIndicator: {
+    stiffness: 500,
+    damping: 32,
+    mass: 0.25,
+    overshootClamping: true,
+  } as const,
+
+  /** Tab button scale/translate active — mild lift, gentle settle. */
+  tabButton: {
+    stiffness: 180,
+    damping: 25,
+    mass: 0.6,
+  } as const,
+
+  /** Shared element fly transition — bounce nhẹ khi đáp cánh. */
+  sharedElement: {
+    stiffness: 150,
+    damping: 20,
+    mass: 1,
+    overshootClamping: false,
+    restDisplacementThreshold: 0.01,
+    restSpeedThreshold: 0.01,
+  } as const,
+
+  /** Native stack close gesture spring — underdamped, velocity-aware. */
+  navClose: {
+    damping: 26,
+    stiffness: 190,
+    mass: 0.7,
+    overshootClamping: true,
+    restDisplacementThreshold: 0.01,
+    restSpeedThreshold: 0.01,
+  } as const,
 } as const
 
 /**

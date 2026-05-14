@@ -5,6 +5,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated'
+import { SPRING_CONFIGS } from '@/constants'
 
 // Định nghĩa Type thay vì any
 interface TabButtonProps {
@@ -13,18 +14,13 @@ interface TabButtonProps {
   children: React.ReactNode
 }
 
-const SPRING_CONFIG = {
-  stiffness: 180,
-  damping: 25,
-  mass: 0.6,
-}
 
 export const TabButton = ({ active, onPress, children }: TabButtonProps) => {
   const animValue = useSharedValue(active ? 1 : 0)
 
   useEffect(() => {
     // Luôn chạy trên UI Thread nhờ Reanimated
-    animValue.value = withSpring(active ? 1 : 0, SPRING_CONFIG)
+    animValue.value = withSpring(active ? 1 : 0, SPRING_CONFIGS.tabButton)
   }, [active, animValue])
 
   const animatedStyle = useAnimatedStyle(() => ({
