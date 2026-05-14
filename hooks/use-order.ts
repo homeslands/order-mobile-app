@@ -135,6 +135,8 @@ export const useGetOrderInvoice = (params: IGetOrderInvoiceRequest) => {
     queryKey: ['order-invoice', params],
     queryFn: () => getOrderInvoice(params),
     placeholderData: keepPreviousData,
+    staleTime: Infinity,
+    gcTime: 10 * 60_000,
   })
 }
 
@@ -142,6 +144,8 @@ export const useGetPublicOrderInvoice = (order: string) => {
   return useQuery({
     queryKey: ['public-order-invoice', order],
     queryFn: () => getPublicOrderInvoice(order),
+    staleTime: Infinity,
+    gcTime: 10 * 60_000,
   })
 }
 

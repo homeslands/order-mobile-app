@@ -363,7 +363,7 @@ export default function NotificationScreen() {
     if (items && items.length > 0) {
       useNotificationStore.getState().hydrateFromApi(items)
     }
-  }, [apiData])
+  }, [apiData?.result?.items])
 
   useEffect(() => {
     Notifications.setBadgeCountAsync(0).catch(() => {})
