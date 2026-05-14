@@ -27,6 +27,11 @@ export const useSelectedChefOrderStore = create<ISelectedChefOrderStore>()(
     {
       name: 'selected-chef-order-store',
       storage: createJSONStorage(() => createSafeStorage()),
+      partialize: (s) => ({
+        chefOrderByChefAreaSlug: s.chefOrderByChefAreaSlug,
+        selectedRow: s.selectedRow,
+        chefOrderStatus: s.chefOrderStatus,
+      }),
     },
   ),
 )
