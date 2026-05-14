@@ -3,6 +3,7 @@ import { DeleteAccountSheet, LanguageSheet, ThemeSheet } from '@/components/prof
 import { Skeleton } from '@/components/ui'
 import { colors, publicFileURL } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
+import { clearOrderDisplayCache } from '@/app/profile/history'
 import {
   useLoyaltyPoints,
   useRunAfterTransition,
@@ -576,6 +577,7 @@ const ProfileTest = () => {
     })
     // Clear notification store so next login starts with a clean slate
     useNotificationStore.getState().clearAll()
+    clearOrderDisplayCache()
     setLogout()
     removeUserInfo()
     router.replace('/(tabs)/home' as never)

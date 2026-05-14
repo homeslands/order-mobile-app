@@ -55,9 +55,18 @@ import type { OrderDisplayData } from './order-card'
 import { OrderHistorySkeleton } from './order-history-skeleton'
 
 // ─── Module-level FIFO cache for order display data ─────────────────────────
-// Keyed by (slug, status, itemCount, voucher.slug). Lives outside the component
-// so it survives re-renders. Capped at 50 entries (FIFO eviction).
+// Keyed by (userSlug, slug, status, itemCount, voucher.slug). Lives outside
+// the component so it survives re-renders. Capped at 50 entries (FIFO).
+// userSlug is in the key to prevent leakage across accounts on the same device.
 const _orderDisplayCache = new Map<string, OrderDisplayData>()
+
+/**
+ * Clear the entire order display cache. Call on logout so cached display data
+ * for the previous account does not leak into the next session.
+ */
+export function clearOrderDisplayCache(): void {
+  _orderDisplayCache.clear()
+}
 
 // ─── Filter bar ───────────────────────────────────────────────────────────────
 
@@ -423,6 +432,7 @@ function OrderHistoryPage() {
   const primaryColor = isDark ? colors.primary.dark : colors.primary.light
 
   const userInfo = useUserStore((s) => s.userInfo)
+  const userSlug = useUserStore((s) => s.userInfo?.slug ?? '')
   const [status, setStatus] = useState<OrderStatus>(OrderStatus.ALL)
   const [page, setPage] = useState(1)
   const pageSize = 10
@@ -477,14 +487,14 @@ function OrderHistoryPage() {
   )
 
   // Pre-compute display data once when orders change — O(1) lookup in renderItem.
-  // Cache keyed by (slug, status, itemCount, voucher.slug) so FCM-triggered
+  // Cache keyed by (userSlug, slug, status, itemCount, voucher.slug) so FCM-triggered
   // refetches do not redo work for unchanged orders.
   const orderDisplayMap = useMemo(() => {
     const next = new Map<string, OrderDisplayData>()
     for (const order of orders) {
       const items = order.orderItems || []
       const voucher = order.voucher || null
-      const cacheKey = `${order.slug}:${order.status}:${items.length}:${voucher?.slug ?? ''}`
+      const cacheKey = `${userSlug}:${order.slug}:${order.status}:${items.length}:${voucher?.slug ?? ''}`
       const cached = _orderDisplayCache.get(cacheKey)
       if (cached) {
         next.set(order.slug, cached)
@@ -507,7 +517,7 @@ function OrderHistoryPage() {
         .forEach((k) => _orderDisplayCache.delete(k))
     }
     return next
-  }, [orders])
+  }, [orders, userSlug])
 
   const hasNext = orderResponse?.hasNext || false
   const hasPrevious = orderResponse?.hasPrevious || false
