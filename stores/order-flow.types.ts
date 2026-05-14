@@ -219,3 +219,43 @@ export function calcOrderItemsById(
   }
   return out
 }
+
+/**
+ * Single-pass aggregation — replaces 4 separate O(N) iterations per cart
+ * mutation with one loop. Call once, spread the result into set() and pass
+ * rawSubTotal to cart-display store.
+ */
+export function aggregateOrderItems(items: IOrderItem[] | undefined): {
+  orderItemTotalQuantity: number
+  minOrderValue: number
+  orderItemsById: Record<string, IOrderItem>
+  rawSubTotal: number
+} {
+  if (!items || items.length === 0) {
+    return {
+      orderItemTotalQuantity: 0,
+      minOrderValue: 0,
+      orderItemsById: {},
+      rawSubTotal: 0,
+    }
+  }
+  let totalQty = 0
+  let minOrder = 0
+  let rawSub = 0
+  const byId: Record<string, IOrderItem> = {}
+  for (const it of items) {
+    const q = it.quantity || 0
+    const orig = it.originalPrice ?? 0
+    const promo = it.promotionDiscount ?? 0
+    totalQty += q
+    minOrder += (orig - promo) * q
+    rawSub += orig * q
+    if (it.id) byId[it.id] = it
+  }
+  return {
+    orderItemTotalQuantity: totalQty,
+    minOrderValue: minOrder,
+    orderItemsById: byId,
+    rawSubTotal: rawSub,
+  }
+}
