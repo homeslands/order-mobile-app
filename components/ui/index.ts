@@ -1,3 +1,4 @@
+export { AppErrorBoundary } from './app-error-boundary'
 export { Badge } from './badge'
 export { GlobalLoadingOverlay } from './global-loading-overlay'
 export { Button } from './button'

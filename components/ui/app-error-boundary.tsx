@@ -1,5 +1,5 @@
 import React from 'react'
-import { Pressable, Text, View } from 'react-native'
+import { Appearance, Pressable, Text, View } from 'react-native'
 
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
@@ -47,6 +47,7 @@ export class AppErrorBoundary extends React.Component<
 
   render(): React.ReactNode {
     if (this.state.hasError) {
+      const isDark = Appearance.getColorScheme() === 'dark'
       return (
         <View
           style={{
@@ -55,7 +56,9 @@ export class AppErrorBoundary extends React.Component<
             paddingHorizontal: 24,
             justifyContent: 'center',
             alignItems: 'center',
-            backgroundColor: colors.background.light,
+            backgroundColor: isDark
+              ? colors.background.dark
+              : colors.background.light,
           }}
         >
           <Text
@@ -63,7 +66,7 @@ export class AppErrorBoundary extends React.Component<
               fontSize: 18,
               fontWeight: '600',
               marginBottom: 8,
-              color: colors.foreground.light,
+              color: isDark ? colors.foreground.dark : colors.foreground.light,
               textAlign: 'center',
             }}
           >
@@ -73,7 +76,9 @@ export class AppErrorBoundary extends React.Component<
             style={{
               fontSize: 14,
               marginBottom: 24,
-              color: colors.mutedForeground.light,
+              color: isDark
+                ? colors.mutedForeground.dark
+                : colors.mutedForeground.light,
               textAlign: 'center',
             }}
           >
@@ -86,7 +91,9 @@ export class AppErrorBoundary extends React.Component<
               paddingVertical: 12,
               paddingHorizontal: 24,
               borderRadius: 8,
-              backgroundColor: colors.primary.light,
+              backgroundColor: isDark
+                ? colors.primary.dark
+                : colors.primary.light,
             }}
           >
             <Text style={{ color: '#fff', fontWeight: '600' }}>Thử lại</Text>

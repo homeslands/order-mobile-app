@@ -182,31 +182,29 @@ function AppContent() {
   }
 
   return (
-    <AppErrorBoundary>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaProvider>
-          <QueryClientProvider client={queryClient}>
-            <BottomSheetModalProvider>
-              <LogoutSheetPortal />
-              <QRSelectionSheet />
-              <ScanSheetPortal />
-              <NotificationProvider />
-              <I18nProvider>
-                <NavigationEngineProvider>
-                  <MasterTransitionProvider>
-                    <AppToastProvider>
-                      <SharedElementProvider>
-                        <NativeStackWithMasterTransition />
-                      </SharedElementProvider>
-                    </AppToastProvider>
-                  </MasterTransitionProvider>
-                </NavigationEngineProvider>
-              </I18nProvider>
-            </BottomSheetModalProvider>
-          </QueryClientProvider>
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
-    </AppErrorBoundary>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <QueryClientProvider client={queryClient}>
+          <BottomSheetModalProvider>
+            <LogoutSheetPortal />
+            <QRSelectionSheet />
+            <ScanSheetPortal />
+            <NotificationProvider />
+            <I18nProvider>
+              <NavigationEngineProvider>
+                <MasterTransitionProvider>
+                  <AppToastProvider>
+                    <SharedElementProvider>
+                      <NativeStackWithMasterTransition />
+                    </SharedElementProvider>
+                  </AppToastProvider>
+                </MasterTransitionProvider>
+              </NavigationEngineProvider>
+            </I18nProvider>
+          </BottomSheetModalProvider>
+        </QueryClientProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
   )
 }
 
@@ -275,17 +273,19 @@ export default function RootLayout() {
   }, [isDark, navBarColor])
 
   return (
-    <>
-      {/* Global edge-to-edge: Android enters translucent mode at app startup,
-          so no screen ever sees a layout shift when statusBarTranslucent toggles.
-          Style reactive theo system theme — khi user đổi Light/Dark mid-session,
-          status bar (giờ, wifi, pin) đổi màu theo content mới. */}
-      <StatusBar
-        style={isDark ? 'light' : 'dark'}
-        translucent
-        backgroundColor="transparent"
-      />
-      <AppContent />
-    </>
+    <AppErrorBoundary>
+      <>
+        {/* Global edge-to-edge: Android enters translucent mode at app startup,
+            so no screen ever sees a layout shift when statusBarTranslucent toggles.
+            Style reactive theo system theme — khi user đổi Light/Dark mid-session,
+            status bar (giờ, wifi, pin) đổi màu theo content mới. */}
+        <StatusBar
+          style={isDark ? 'light' : 'dark'}
+          translucent
+          backgroundColor="transparent"
+        />
+        <AppContent />
+      </>
+    </AppErrorBoundary>
   )
 }
