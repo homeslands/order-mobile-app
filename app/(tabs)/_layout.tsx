@@ -69,12 +69,16 @@ export default function TabsLayout() {
     { receiver: userSlug, page: 1, size: 20 },
     { enabled: isAuthenticated && !!userSlug },
   )
+  // Narrow dep to the actual array reference — React Query produces a new
+  // wrapper object on every refetch even when contents are identical, so
+  // depending on `bootstrapNotifData` would re-run hydrateFromApi on every
+  // poll. structuralSharing keeps items stable when unchanged.
+  const bootstrapNotifItems = bootstrapNotifData?.result?.items
   useEffect(() => {
-    const items = bootstrapNotifData?.result?.items
-    if (items && items.length > 0) {
-      useNotificationStore.getState().hydrateFromApi(items)
+    if (bootstrapNotifItems && bootstrapNotifItems.length > 0) {
+      useNotificationStore.getState().hydrateFromApi(bootstrapNotifItems)
     }
-  }, [bootstrapNotifData])
+  }, [bootstrapNotifItems])
 
   // useLayoutEffect: overlay chỉ khi Home→Menu và chưa cache (chờ data)
   // Đọc menuFilter, branchSlug, userSlug qua getState() — giảm subscriptions
