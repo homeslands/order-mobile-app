@@ -100,8 +100,19 @@ function transformPayloadToNotification(
 
 // ─── Helpers (continued) ────────────────────────────────────────────────────
 
+// Debounced badge sync — collapses bursts (e.g. FCM hydrate + bulk mark-read)
+// into a single native call. 200ms trailing window: imperceptible to the user,
+// eliminates redundant bridge round-trips.
+let _badgeTimer: ReturnType<typeof setTimeout> | null = null
+let _pendingBadgeCount = 0
+
 function syncBadge(count: number): void {
-  Notifications.setBadgeCountAsync(count).catch(() => {})
+  _pendingBadgeCount = count
+  if (_badgeTimer) return
+  _badgeTimer = setTimeout(() => {
+    _badgeTimer = null
+    Notifications.setBadgeCountAsync(_pendingBadgeCount).catch(() => {})
+  }, 200)
 }
 
 // ─── Store ──────────────────────────────────────────────────────────────────
