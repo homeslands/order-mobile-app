@@ -1,9 +1,16 @@
 import { ShoppingBag } from 'lucide-react-native'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { StyleSheet, Text, View } from 'react-native'
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withTiming,
+} from 'react-native-reanimated'
 
-import { Button, Dialog } from '@/components/ui'
-import { colors } from '@/constants'
+import { Button } from '@/components/ui'
+import { colors, SPRING_CONFIGS } from '@/constants'
 
 interface OrderReadyAlertProps {
   visible: boolean
@@ -26,7 +33,32 @@ export function OrderReadyAlert({
 }: OrderReadyAlertProps) {
   const { t } = useTranslation('notification')
 
-  const ref = referenceNumber
+  const scale = useSharedValue(0.92)
+  const opacity = useSharedValue(0)
+  const backdropOpacity = useSharedValue(0)
+
+  useEffect(() => {
+    if (visible) {
+      scale.value = withSpring(1, SPRING_CONFIGS.modal)
+      opacity.value = withTiming(1, { duration: 200 })
+      backdropOpacity.value = withTiming(1, { duration: 200 })
+    } else {
+      scale.value = withSpring(0.92, SPRING_CONFIGS.modal)
+      opacity.value = withTiming(0, { duration: 150 })
+      backdropOpacity.value = withTiming(0, { duration: 150 })
+    }
+  }, [visible, scale, opacity, backdropOpacity])
+
+  const cardStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ scale: scale.value }],
+  }))
+
+  const backdropStyle = useAnimatedStyle(() => ({
+    opacity: backdropOpacity.value,
+  }))
+
+  const ref = referenceNumber !== ''
     ? `#${referenceNumber}`
     : orderSlug !== ''
       ? `#${orderSlug}`
@@ -37,22 +69,29 @@ export function OrderReadyAlert({
 
   const iconColor = isDark ? colors.primary.dark : colors.primary.light
   const bodyColor = isDark ? colors.gray[200] : colors.gray[700]
+  const titleColor = isDark ? colors.foreground.dark : colors.foreground.light
+  const cardBg = isDark ? colors.card.dark : colors.card.light
 
   return (
-    <>
-      {/* Non-dismissable: only Close/ViewOrder buttons can dismiss. */}
-      <Dialog open={visible} onOpenChange={() => {}}>
-        <Dialog.Content className="max-w-[22rem] rounded-2xl sm:max-w-[32rem]">
-          <Dialog.Header>
-            <Dialog.Title className="flex flex-row items-center gap-2">
-              <ShoppingBag size={20} color={iconColor} />
-              <Text style={s.title}>{t('alertOrderReadyTitle')}</Text>
-            </Dialog.Title>
-          </Dialog.Header>
-
+    <View
+      style={StyleSheet.absoluteFill}
+      pointerEvents={visible ? 'auto' : 'none'}
+    >
+      <Animated.View
+        style={[StyleSheet.absoluteFill, s.backdrop, backdropStyle]}
+      />
+      <View style={s.center}>
+        <Animated.View
+          style={[s.card, { backgroundColor: cardBg }, cardStyle]}
+        >
+          <View style={s.header}>
+            <ShoppingBag size={20} color={iconColor} />
+            <Text style={[s.title, { color: titleColor }]}>
+              {t('alertOrderReadyTitle')}
+            </Text>
+          </View>
           <Text style={[s.body, { color: bodyColor }]}>{body}</Text>
-
-          <Dialog.Footer className="mt-4 flex flex-row justify-end gap-2">
+          <View style={s.footer}>
             <Button variant="outline" onPress={onClose}>
               {t('alertOrderReadyClose')}
             </Button>
@@ -61,14 +100,35 @@ export function OrderReadyAlert({
                 {t('alertOrderReadyViewOrder')}
               </Button>
             ) : null}
-          </Dialog.Footer>
-        </Dialog.Content>
-      </Dialog>
-    </>
+          </View>
+        </Animated.View>
+      </View>
+    </View>
   )
 }
 
 const s = StyleSheet.create({
+  backdrop: {
+    backgroundColor: 'rgba(0,0,0,0.55)',
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  card: {
+    width: '100%',
+    maxWidth: 352,
+    borderRadius: 16,
+    padding: 20,
+    gap: 12,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   title: {
     fontSize: 16,
     fontWeight: '700',
@@ -76,5 +136,11 @@ const s = StyleSheet.create({
   body: {
     fontSize: 14,
     lineHeight: 22,
+  },
+  footer: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 8,
+    marginTop: 4,
   },
 })
