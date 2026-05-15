@@ -25,6 +25,7 @@ import {
   useUpdateNoteOrderItem,
   useUpdateOrderItem,
   useUpdateOrderType,
+  useUpdateOrderTotals,
   useUpdateVoucherInOrder,
 } from '@/hooks'
 import { navigateNative, scheduleTransitionTask } from '@/lib/navigation'
@@ -32,12 +33,10 @@ import { useOrderFlowStore } from '@/stores'
 import { OrderTypeEnum } from '@/types'
 import { IOrderItemsParam } from '@/types/voucher.type'
 import {
-  calculateOrderDisplayAndTotals,
   computeOrderApiDiff,
   isTempOrderItem,
   showErrorToastMessage,
   showToast,
-  transformOrderItemToOrderDetail,
 } from '@/utils'
 
 const SNAP_POINTS = ['65%']
@@ -77,19 +76,10 @@ export default memo(function ConfirmUpdateOrderDialog({
   const draft = updatingData?.updateDraft
   const originalOrder = updatingData?.originalOrder
   const orderType = (draft?.type as OrderTypeEnum) ?? OrderTypeEnum.AT_TABLE
-  const orderItems = useMemo(() => draft?.orderItems ?? [], [draft])
-  const voucher = draft?.voucher ?? null
   const deliveryFee = originalOrder?.deliveryFee ?? 0
   const accumulatedPoints = originalOrder?.accumulatedPointsToUse ?? 0
 
-  const { displayItems, cartTotals } = useMemo(
-    () =>
-      calculateOrderDisplayAndTotals(
-        transformOrderItemToOrderDetail(orderItems),
-        voucher,
-      ),
-    [orderItems, voucher],
-  )
+  const { displayItems, cartTotals } = useUpdateOrderTotals()
   const finalTotal =
     (cartTotals?.finalTotal ?? 0) + deliveryFee - accumulatedPoints
 

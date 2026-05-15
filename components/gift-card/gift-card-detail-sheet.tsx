@@ -54,11 +54,21 @@ function CopyRow({
   const rowBg = isDark ? colors.background.dark : colors.gray[50]
   const borderColor = isDark ? colors.border.dark : colors.gray[200]
 
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const handleCopy = useCallback(() => {
     Clipboard.setString(value)
     setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current)
+    copyTimerRef.current = setTimeout(() => {
+      setCopied(false)
+      copyTimerRef.current = null
+    }, 1500)
   }, [value])
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current)
+    }
+  }, [])
 
   return (
     <View style={[cr.row, { backgroundColor: rowBg, borderColor }]}>

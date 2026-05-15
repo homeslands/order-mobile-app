@@ -7,16 +7,14 @@ import { useShallow } from 'zustand/react/shallow'
 
 import { colors, PHONE_NUMBER_REGEX } from '@/constants'
 import { FOOTER_BOTTOM_EXTRA } from '@/constants/status-bar'
-import { useTables } from '@/hooks'
+import { useTables, useUpdateOrderTotals } from '@/hooks'
 import { useCalculateDeliveryFee } from '@/hooks/use-branch-delivery'
 import { DeliveryAddressSheet, DeliveryInfoRow } from '@/components/delivery'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import { OrderStatus, OrderTypeEnum } from '@/types'
 import {
-  calculateOrderDisplayAndTotals,
   parseKm,
   showErrorToastMessage,
-  transformOrderItemToOrderDetail,
 } from '@/utils'
 import { useEffect } from 'react'
 
@@ -92,14 +90,7 @@ export default memo(function UpdateOrderFooter({
     () => orderItems.reduce((acc, i) => acc + (i.quantity ?? 0), 0),
     [orderItems],
   )
-  const { cartTotals } = useMemo(
-    () =>
-      calculateOrderDisplayAndTotals(
-        transformOrderItemToOrderDetail(orderItems),
-        voucher,
-      ),
-    [orderItems, voucher],
-  )
+  const { cartTotals } = useUpdateOrderTotals()
   const subtotal =
     (cartTotals?.subTotalBeforeDiscount ?? 0) +
     effectiveDeliveryFee -

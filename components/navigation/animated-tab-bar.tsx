@@ -11,6 +11,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated'
 
+import { SPRING_CONFIGS } from '@/constants'
 import { AnimatedTabButton } from './animated-tab-button'
 
 const ICON_SIZE = 32
@@ -20,17 +21,6 @@ const CONTENT_HEIGHT = 32 + 14 + 12
 const PILL_RADIUS = (PADDING_V * 2 + CONTENT_HEIGHT) / 2
 const PADDING_H_DEFAULT = 10
 
-// Spring config nhanh — settle trong ~100-120ms.
-// Trước đây stiffness 280/damping 26/mass 0.4 settle ~200-300ms, lag sau
-// content swap (Tabs animation: 'none' → 16-33ms). Khi user tap rapid, indicator
-// chase content với visible lag, trông như tab bar và content desync.
-// Spring nhanh hơn + overshootClamping giữ cảm giác đàn hồi mà không lag.
-const INDICATOR_SPRING = {
-  stiffness: 500,
-  damping: 32,
-  mass: 0.25,
-  overshootClamping: true,
-}
 
 type Colors = {
   primary: string
@@ -96,7 +86,7 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
       indicatorX.value = targetX
       hasAnimatedRef.current = true
     } else {
-      indicatorX.value = withSpring(targetX, INDICATOR_SPRING)
+      indicatorX.value = withSpring(targetX, SPRING_CONFIGS.tabIndicator)
     }
   }, [activeIndex, paddingH, itemWidth, pillWidth, indicatorX])
 

@@ -168,16 +168,11 @@ export const useOrderFlowDeliveryDistance = () =>
  * Lưu ý: Cần item.id. Unchanged items giữ ref (map: ... : item).
  */
 export const useOrderItem = (itemId: string) =>
-  useOrderFlowStore((s) =>
-    s.orderingData?.orderItems?.find((i) => i.id === itemId),
-  )
+  useOrderFlowStore((s) => s.orderItemsById?.[itemId])
 
 /** Chỉ subscribe quantity của 1 item — atomic nhất. */
 export const useOrderItemQuantity = (itemId: string): number =>
-  useOrderFlowStore(
-    (s) =>
-      s.orderingData?.orderItems?.find((i) => i.id === itemId)?.quantity ?? 0,
-  )
+  useOrderFlowStore((s) => s.orderItemsById?.[itemId]?.quantity ?? 0)
 
 /**
  * CartFooter — chỉ subscribe type/table/delivery*, không re-render khi orderItems thay đổi.

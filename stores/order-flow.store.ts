@@ -11,6 +11,7 @@ import {
   OrderTypeEnum,
 } from '@/types'
 import { createSafeStorage } from '@/utils/storage'
+import { throttledStorage } from '@/utils/throttled-storage'
 import dayjs from 'dayjs'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
@@ -18,6 +19,7 @@ import { createJSONStorage, persist } from 'zustand/middleware'
 import { useCartDisplayStore } from './cart-display.store'
 import {
   calcMinOrderValue,
+  calcOrderItemsById,
   calcOrderItemTotalQuantity,
   calcRawSubTotal,
   generateOrderId,
@@ -77,6 +79,7 @@ export const useOrderFlowStore = create<IOrderFlowStore>()(
       lastModified: dayjs().valueOf(),
       orderItemTotalQuantity: 0,
       minOrderValue: 0,
+      orderItemsById: {},
       orderingData: null,
       paymentData: null,
       updatingData: null,
@@ -762,34 +765,34 @@ export const useOrderFlowStore = create<IOrderFlowStore>()(
     {
       name: 'order-flow-store',
       version: 1,
-      storage: createJSONStorage(() => createSafeStorage()),
+      storage: createJSONStorage(() => throttledStorage(createSafeStorage(), 300)),
       partialize: (state) => ({
         currentStep: state.currentStep,
         orderingData: state.orderingData,
         lastModified: state.lastModified,
       }),
       onRehydrateStorage: () => (state) => {
-        if (state) {
-          // Set hydrated flag + derive orderItemTotalQuantity, minOrderValue (khong persist)
-          const items = state.orderingData?.orderItems
-          const total = calcOrderItemTotalQuantity(items)
-          const minVal = calcMinOrderValue(items)
-          setTimeout(() => {
-            // Sync paymentData and updatingData from standalone stores after hydration
-            const paymentData = usePaymentFlowStore.getState().paymentData
-            const updatingData = useUpdateOrderFlowStore.getState().updatingData
-            useOrderFlowStore.setState({
-              isHydrated: true,
-              orderItemTotalQuantity: total,
-              minOrderValue: minVal,
-              paymentData,
-              updatingData,
-            })
-            useCartDisplayStore
-              .getState()
-              .setRawSubTotal(calcRawSubTotal(items ?? []))
-          }, 0)
-        }
+        if (!state) return
+
+        // Derive non-persisted fields INLINE on the rehydrated state object so
+        // they apply before the first paint — eliminates the 1-frame flicker
+        // where badge/min-order render with default 0 values.
+        const items = state.orderingData?.orderItems
+        state.isHydrated = true
+        state.orderItemTotalQuantity = calcOrderItemTotalQuantity(items)
+        state.minOrderValue = calcMinOrderValue(items)
+        state.orderItemsById = calcOrderItemsById(items)
+
+        // Cross-store sync still goes through setTimeout — payment/update
+        // standalone stores may not be hydrated yet on this tick.
+        setTimeout(() => {
+          const paymentData = usePaymentFlowStore.getState().paymentData
+          const updatingData = useUpdateOrderFlowStore.getState().updatingData
+          useOrderFlowStore.setState({ paymentData, updatingData })
+          useCartDisplayStore
+            .getState()
+            .setRawSubTotal(calcRawSubTotal(items ?? []))
+        }, 0)
       },
     },
   ),

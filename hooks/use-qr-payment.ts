@@ -84,6 +84,7 @@ export function useQRPayment(): QRFetchState & {
 
       try {
         const res = await generatePaymentQR()
+        if (r.isStopped) return
         const data: IQRGenerateResponse = res.result
         r.expiresAtMs = new Date(data.expiresAt).getTime()
         setFetchState({
@@ -96,6 +97,7 @@ export function useQRPayment(): QRFetchState & {
         // Guard: skip if stopTimers() was called while fetch was in-flight
         if (!r.isStopped) startCountdown()
       } catch {
+        if (r.isStopped) return
         setFetchState((s) => ({
           ...s,
           error: 'Không thể tạo mã QR. Vui lòng thử lại.',

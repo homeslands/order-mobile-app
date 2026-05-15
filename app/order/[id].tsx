@@ -30,11 +30,7 @@ import {
 import { FOOTER_BOTTOM_EXTRA, STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useOrderBySlug, useRunAfterTransition } from '@/hooks'
 import { navigateNative } from '@/lib/navigation'
-import {
-  useNotificationStore,
-  useUpdateOrderStore,
-  useUserStore,
-} from '@/stores'
+import { useNotificationStore, useUserStore } from '@/stores'
 import { OrderStatus, OrderTypeEnum } from '@/types'
 import {
   calculateOrderDisplayAndTotals,
@@ -136,7 +132,6 @@ function OrderDetailContent() {
   const insets = useSafeAreaInsets()
   const queryClient = useQueryClient()
   const getUserInfo = useUserStore((s) => s.getUserInfo)
-  const setOrderItems = useUpdateOrderStore((s) => s.setOrderItems)
   const isPending_ = order?.status === OrderStatus.PENDING
 
   const handlePayment = useCallback(() => {
@@ -163,13 +158,12 @@ function OrderDetailContent() {
       queryKey: ['order', order.slug],
       queryFn: () => getOrderBySlug(order.slug),
     })
-    setOrderItems(order)
     navigateNative.push(
       `${ROUTE.CLIENT_UPDATE_ORDER.replace('[slug]', order.slug)}` as Parameters<
         typeof navigateNative.push
       >[0],
     )
-  }, [order, queryClient, setOrderItems, getUserInfo])
+  }, [order, queryClient, getUserInfo])
 
   const handleProductPress = useCallback((productSlug: string) => {
     navigateNative.push({

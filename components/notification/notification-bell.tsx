@@ -19,11 +19,7 @@ export const NotificationBell = memo(function NotificationBell({
   color: string
   size?: number
 }) {
-  const unreadCount = useNotificationStore((s) => {
-    let count = 0
-    for (const n of s.notifications) if (!n.isRead) count++
-    return count
-  })
+  const unreadCount = useNotificationStore((s) => s.unreadCount)
 
   const handlePress = useCallback(() => {
     navigateNative.push(

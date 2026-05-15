@@ -41,6 +41,7 @@ import { useSpecificMenuItem } from '@/hooks'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { useOrderFlowStore, useUserStore } from '@/stores'
 import { useProductDetailSelectionStore } from '@/stores/product-detail-selection.store'
+import { useTransientNavStore } from '@/stores/transient-nav.store'
 import {
   useDetailResetForProduct,
   useDetailSetProductPromotion,
@@ -95,14 +96,13 @@ function ProductDetailContent() {
   const isDark = useColorScheme() === 'dark'
   const primaryColor = usePrimaryColor()
   const { t } = useTranslation('menu')
-  const { id, name, basePrice, promotionValue, imageUrl, imageUrls } =
+  const { id, name, basePrice, promotionValue, imageUrl } =
     useLocalSearchParams<{
       id: string
       name?: string
       basePrice?: string
       promotionValue?: string
       imageUrl?: string
-      imageUrls?: string
     }>()
 
   const shouldClearMemoryCacheOnBlurRef = useRef(false)
@@ -118,18 +118,13 @@ function ProductDetailContent() {
   // Params-only product — used for API fetch key and initial display
   const productId = id ?? 'unknown'
 
-  const heroImageUrls = useMemo(() => {
-    if (!imageUrls) return []
-    try {
-      const parsed = JSON.parse(imageUrls) as unknown
-      if (!Array.isArray(parsed)) return []
-      return parsed.filter(
-        (v): v is string => typeof v === 'string' && !!v.trim(),
-      )
-    } catch {
-      return []
-    }
-  }, [imageUrls])
+  // Read once on mount from the transient nav store — set by the menu screen
+  // immediately before router.push. Avoids stringifying a string[] into a
+  // route param and re-parsing on the destination.
+  const heroImageUrls = useMemo(
+    () => useTransientNavStore.getState().heroImageUrls,
+    [],
+  )
 
   // Fetch full product data for variants
   const { data: menuItemRes, refetch: refetchMenuItem } =

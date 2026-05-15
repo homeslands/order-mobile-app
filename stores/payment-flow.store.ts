@@ -105,10 +105,9 @@ export const usePaymentFlowStore = create<IPaymentFlowStore>()(
       version: 1,
       storage: createJSONStorage(() => createSafeStorage()),
       partialize: (state) => ({ paymentData: state.paymentData }),
-      onRehydrateStorage: () => () => {
-        setTimeout(() => {
-          usePaymentFlowStore.setState({ isHydrated: true })
-        }, 0)
+      onRehydrateStorage: () => (state) => {
+        if (!state) return
+        state.isHydrated = true
       },
     },
   ),
