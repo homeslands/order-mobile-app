@@ -140,7 +140,6 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
         onLayout={onPillLayout}
       >
         <Animated.View
-          renderToHardwareTextureAndroid
           style={[
             styles.slidingIndicator,
             {
