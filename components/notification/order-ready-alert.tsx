@@ -35,17 +35,18 @@ export function OrderReadyAlert({
   const bodyColor = isDark ? colors.gray[200] : colors.gray[700]
 
   return (
-    <Dialog open={visible} onOpenChange={() => {}}>
-      <Dialog.Content className="max-w-[22rem] rounded-2xl sm:max-w-[32rem]">
-        <Dialog.Header>
-          <Dialog.Title className="flex flex-row items-center gap-2">
-            <ShoppingBag size={20} color={iconColor} />
-            <Text style={s.title}>{t('alertOrderReadyTitle')}</Text>
-          </Dialog.Title>
-          <Dialog.Description>
-            <Text style={[s.body, { color: bodyColor }]}>{body}</Text>
-          </Dialog.Description>
-        </Dialog.Header>
+    <>
+      {/* Non-dismissable: only Close/ViewOrder buttons can dismiss. */}
+      <Dialog open={visible} onOpenChange={() => {}}>
+        <Dialog.Content className="max-w-[22rem] rounded-2xl sm:max-w-[32rem]">
+          <Dialog.Header>
+            <Dialog.Title className="flex flex-row items-center gap-2">
+              <ShoppingBag size={20} color={iconColor} />
+              <Text style={s.title}>{t('alertOrderReadyTitle')}</Text>
+            </Dialog.Title>
+          </Dialog.Header>
+
+          <Text style={[s.body, { color: bodyColor }]}>{body}</Text>
 
         <Dialog.Footer className="mt-4 flex flex-row gap-2 justify-end">
           <Button variant="outline" onPress={onClose}>
@@ -58,7 +59,8 @@ export function OrderReadyAlert({
           ) : null}
         </Dialog.Footer>
       </Dialog.Content>
-    </Dialog>
+      </Dialog>
+    </>
   )
 }
 
