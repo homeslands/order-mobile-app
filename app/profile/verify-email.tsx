@@ -24,9 +24,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { AnimatedCountdownText, OTPInput } from '@/components/auth'
 import { FormInput } from '@/components/form'
 import { Button, Skeleton } from '@/components/ui'
-import { QUERYKEY, colors } from '@/constants'
+import { colors } from '@/constants'
 import { FOOTER_BOTTOM_EXTRA, STATIC_TOP_INSET } from '@/constants/status-bar'
-import { navigateNative } from '@/lib/navigation'
 import {
   useAnimatedCountdown,
   useConfirmEmailVerification,
@@ -38,6 +37,7 @@ import {
   useVerifyEmail,
   useZodForm,
 } from '@/hooks'
+import { navigateNative } from '@/lib/navigation'
 import { verifyEmailSchema, type TVerifyEmailSchema } from '@/schemas'
 import { useAuthStore, useUserStore } from '@/stores'
 import { showErrorToast, showToast } from '@/utils'

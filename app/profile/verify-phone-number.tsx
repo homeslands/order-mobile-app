@@ -23,7 +23,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { AnimatedCountdownText, OTPInput } from '@/components/auth'
 import { Button, Skeleton } from '@/components/ui'
-import { QUERYKEY, colors } from '@/constants'
+import { colors } from '@/constants'
 import { FOOTER_BOTTOM_EXTRA, STATIC_TOP_INSET } from '@/constants/status-bar'
 import {
   useAnimatedCountdown,

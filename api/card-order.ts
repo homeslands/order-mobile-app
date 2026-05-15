@@ -1,3 +1,4 @@
+import { CardOrderPaymentMethod } from '@/constants'
 import {
   IApiResponse,
   ICardOrderGetRequest,
@@ -5,7 +6,6 @@ import {
   ICardOrderResponse,
   IPaginationResponse,
 } from '@/types'
-import { CardOrderPaymentMethod } from '@/constants'
 import { http } from '@/utils'
 
 export async function createCardOrder(
@@ -21,7 +21,7 @@ export async function createCardOrder(
 export async function getCardOrders(
   params?: ICardOrderGetRequest,
 ): Promise<IApiResponse<IPaginationResponse<ICardOrderResponse>>> {
-  const { size, sort = 'createdAt:desc', ...rest } = params ?? {}
+  const { size, sort = 'createdAt,desc', ...rest } = params ?? {}
   const queryParams =
     size !== undefined ? { sort, ...rest, limit: size } : { sort, ...rest }
   const response = await http.get<
