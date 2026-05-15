@@ -165,11 +165,7 @@ export default function TabsLayout() {
   const gradientColors = useMemo(
     () => [
       'transparent',
-      'transparent',
-      hexToRgba(colors.background, 0.03),
-      hexToRgba(colors.background, 0.08),
-      hexToRgba(colors.background, 0.18),
-      hexToRgba(colors.background, 0.35),
+      hexToRgba(colors.background, 0.15),
       hexToRgba(colors.background, 0.55),
       colors.background,
     ],
@@ -358,7 +354,7 @@ export default function TabsLayout() {
               colors={
                 gradientColors as unknown as [string, string, ...string[]]
               }
-              locations={[0, 0.15, 0.25, 0.35, 0.45, 0.55, 0.7, 1]}
+              locations={[0, 0.3, 0.65, 1]}
               style={{ flex: 1 }}
             />
           </View>
