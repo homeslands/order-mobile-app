@@ -148,6 +148,10 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
             active={isActive[index]}
             mutedColor={colors.mutedForeground}
             onPressIn={onPressInTabSwitch}
+            indicatorX={indicatorX}
+            buttonIndex={index}
+            buttonPaddingH={paddingH}
+            indicatorWidth={itemWidth}
           />
         ))}
       </View>

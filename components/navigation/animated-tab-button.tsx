@@ -3,7 +3,15 @@
  */
 import type { LucideIcon } from 'lucide-react-native'
 import React, { useCallback } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
+import Animated, {
+  Extrapolation,
+  interpolate,
+  interpolateColor,
+  useAnimatedStyle,
+  useDerivedValue,
+} from 'react-native-reanimated'
+import type { SharedValue } from 'react-native-reanimated'
 
 import { NativeGesturePressable } from './native-gesture-pressable'
 
@@ -16,6 +24,11 @@ type AnimatedTabButtonProps = {
   active: boolean
   mutedColor: string
   onPressIn?: (href: string) => void
+  // UI-thread animation — passed from AnimatedTabBar
+  indicatorX: SharedValue<number>
+  buttonIndex: number
+  buttonPaddingH: number
+  indicatorWidth: number
 }
 
 export const AnimatedTabButton = React.memo(function AnimatedTabButton({
@@ -27,10 +40,38 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
   active,
   mutedColor,
   onPressIn,
+  indicatorX,
+  buttonIndex,
+  buttonPaddingH,
+  indicatorWidth,
 }: AnimatedTabButtonProps) {
   const handlePressIn = useCallback(() => {
     onPressIn?.(href)
   }, [href, onPressIn])
+
+  // 1 when indicator covers this button, 0 when ≥1 slot away — all on UI thread
+  const activeFraction = useDerivedValue(() => {
+    const buttonLeft = buttonPaddingH + buttonIndex * indicatorWidth
+    const dist = Math.abs(indicatorX.value - buttonLeft)
+    return interpolate(dist, [0, indicatorWidth], [1, 0], Extrapolation.CLAMP)
+  })
+
+  const liftStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateY: activeFraction.value * -3 },
+      { scale: 1 + activeFraction.value * 0.06 },
+    ],
+  }))
+
+  const labelStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(activeFraction.value, [0, 1], [mutedColor, '#ffffff']),
+  }))
+
+  const activeIconOpacity = useAnimatedStyle(() => ({
+    opacity: activeFraction.value,
+  }))
+
+  const iconPx = iconSize * 0.55
 
   return (
     <NativeGesturePressable
@@ -39,20 +80,23 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
       disabled={active}
       style={styles.container}
     >
-      <View style={[styles.content, { width: itemWidth }]}>
-        <Icon color={active ? '#fff' : mutedColor} size={iconSize * 0.55} />
+      <Animated.View style={[styles.content, { width: itemWidth }, liftStyle]}>
+        {/* Icon: muted layer always present; white layer fades in as indicator arrives */}
+        <View style={{ width: iconPx, height: iconPx }}>
+          <Icon color={mutedColor} size={iconPx} />
+          <Animated.View style={[StyleSheet.absoluteFill, styles.iconOverlay, activeIconOpacity]}>
+            <Icon color="#ffffff" size={iconPx} />
+          </Animated.View>
+        </View>
         {label ? (
-          <Text
-            style={[
-              styles.label,
-              { color: active ? '#fff' : mutedColor, maxWidth: itemWidth - 20 },
-            ]}
+          <Animated.Text
+            style={[styles.label, { maxWidth: itemWidth - 20 }, labelStyle]}
             numberOfLines={1}
           >
             {label}
-          </Text>
+          </Animated.Text>
         ) : null}
-      </View>
+      </Animated.View>
     </NativeGesturePressable>
   )
 })
@@ -73,5 +117,9 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginTop: 2,
     textAlign: 'center',
+  },
+  iconOverlay: {
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 })
