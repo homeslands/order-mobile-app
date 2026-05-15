@@ -13,11 +13,13 @@
  *   does not survive logout / unmount.
  */
 import { Audio, type AVPlaybackSource } from 'expo-av'
-import { useEffect } from 'react'
+import * as Haptics from 'expo-haptics'
+import { useEffect, useRef } from 'react'
 import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging'
 
+import { NotificationMessageCode } from '@/constants/notification.constant'
 import {
   useNotificationStore,
   type NotificationPayload,
@@ -70,6 +72,38 @@ async function playNotificationSound(): Promise<void> {
   }
 }
 
+async function playNotificationSoundTwice(): Promise<void> {
+  await playNotificationSound()
+  await new Promise<void>((r) => setTimeout(r, 1500))
+  await playNotificationSound()
+}
+
+async function playOrderReadyHaptic(): Promise<void> {
+  try {
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
+    await new Promise<void>((r) => setTimeout(r, 400))
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
+    await new Promise<void>((r) => setTimeout(r, 400))
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
+  } catch {
+    // Haptics unavailable on this device — silent fail
+  }
+}
+
+function getMessageCode(payload: NotificationPayload): string {
+  const data = payload.data ?? {}
+  let parsed: Record<string, string> = {}
+  if (data.payload && typeof data.payload === 'string') {
+    try {
+      parsed = JSON.parse(data.payload) as Record<string, string>
+    } catch {
+      // ignore
+    }
+  }
+  const merged = { ...data, ...parsed }
+  return merged.message || data.message || ''
+}
+
 function firebaseToPayload(
   remoteMessage: FirebaseMessagingTypes.RemoteMessage,
 ): NotificationPayload {
@@ -84,7 +118,15 @@ function firebaseToPayload(
   }
 }
 
-export function useNotificationListener(enabled = true) {
+export function useNotificationListener(
+  enabled = true,
+  onOrderReady?: (payload: NotificationPayload) => void,
+) {
+  const onOrderReadyRef = useRef(onOrderReady)
+  useEffect(() => {
+    onOrderReadyRef.current = onOrderReady
+  })
+
   useEffect(() => {
     if (!enabled) return
 
@@ -95,11 +137,19 @@ export function useNotificationListener(enabled = true) {
         .getState()
         .addNotification(payload, { markAsRead: false })
 
-      const title = payload.notification?.title || 'Thông báo'
-      const body = payload.notification?.body || ''
-      if (body) showToastInternal(title, body, 'info')
+      const messageCode = getMessageCode(payload)
 
-      playNotificationSound().catch(() => {})
+      if (messageCode === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET) {
+        // High-priority alert: haptic × 3 + sound × 2 + modal (no toast)
+        playOrderReadyHaptic().catch(() => {})
+        playNotificationSoundTwice().catch(() => {})
+        onOrderReadyRef.current?.(payload)
+      } else {
+        const title = payload.notification?.title || 'Thông báo'
+        const body = payload.notification?.body || ''
+        if (body) showToastInternal(title, body, 'info')
+        playNotificationSound().catch(() => {})
+      }
     })
 
     return () => {
