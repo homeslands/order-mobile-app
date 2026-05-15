@@ -55,8 +55,8 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   tabRoutes,
   onPressInTabSwitch,
 }: AnimatedTabBarProps) {
-  const [paddingH, setPaddingH] = useState(PADDING_H_DEFAULT)
-  const [pillWidth, setPillWidth] = useState(0)
+  const [layout, setLayout] = useState({ pillWidth: 0, paddingH: PADDING_H_DEFAULT })
+  const { pillWidth, paddingH } = layout
   const indicatorX = useSharedValue(0)
   const hasAnimatedRef = useRef(false)
 
@@ -90,9 +90,8 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   const onPillLayout = useCallback((e: LayoutChangeEvent) => {
     const w = e.nativeEvent.layout.width
     if (w > 0) {
-      setPillWidth(w)
-      const ph = (8 * PILL_RADIUS - w) / 6
-      setPaddingH(Math.max(4, Math.min(ph, 20)))
+      const ph = Math.max(4, Math.min((8 * PILL_RADIUS - w) / 6, 20))
+      setLayout({ pillWidth: w, paddingH: ph })
     }
   }, [])
 
