@@ -7,7 +7,7 @@ import { colors } from '@/constants'
 
 interface OrderReadyAlertProps {
   visible: boolean
-  orderSlug: string | null
+  orderSlug: string
   branchName: string
   referenceNumber: string
   isDark: boolean
@@ -26,7 +26,11 @@ export function OrderReadyAlert({
 }: OrderReadyAlertProps) {
   const { t } = useTranslation('notification')
 
-  const ref = referenceNumber ? `#${referenceNumber}` : orderSlug ? `#${orderSlug}` : ''
+  const ref = referenceNumber
+    ? `#${referenceNumber}`
+    : orderSlug !== ''
+      ? `#${orderSlug}`
+      : ''
   const body = branchName
     ? t('alertOrderReadyBody', { ref, branch: branchName })
     : t('alertOrderReadyBodyNoBranch', { ref })
@@ -48,17 +52,17 @@ export function OrderReadyAlert({
 
           <Text style={[s.body, { color: bodyColor }]}>{body}</Text>
 
-        <Dialog.Footer className="mt-4 flex flex-row gap-2 justify-end">
-          <Button variant="outline" onPress={onClose}>
-            {t('alertOrderReadyClose')}
-          </Button>
-          {orderSlug ? (
-            <Button variant="default" onPress={onViewOrder}>
-              {t('alertOrderReadyViewOrder')}
+          <Dialog.Footer className="mt-4 flex flex-row justify-end gap-2">
+            <Button variant="outline" onPress={onClose}>
+              {t('alertOrderReadyClose')}
             </Button>
-          ) : null}
-        </Dialog.Footer>
-      </Dialog.Content>
+            {orderSlug !== '' ? (
+              <Button variant="default" onPress={onViewOrder}>
+                {t('alertOrderReadyViewOrder')}
+              </Button>
+            ) : null}
+          </Dialog.Footer>
+        </Dialog.Content>
       </Dialog>
     </>
   )

@@ -58,6 +58,7 @@ function Dialog({ open, onOpenChange, children }: DialogProps) {
   }, [open])
 
   const handleRequestClose = () => {
+    // Callers can prevent dismissal by passing onOpenChange={() => {}} — this call becomes a no-op
     onOpenChange(false)
   }
 
@@ -139,6 +140,7 @@ function DialogContent({
 
   const handleClose = () => {
     // Đóng khi bấm backdrop: set open=false qua onClose (Dialog root sẽ xử lý unmount)
+    // Callers can prevent dismissal by passing onOpenChange={() => {}} — this call becomes a no-op
     if (onClose) {
       onClose()
     }
