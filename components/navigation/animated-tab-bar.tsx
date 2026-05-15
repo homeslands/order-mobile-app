@@ -100,35 +100,24 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
     transform: [{ translateX: indicatorX.value }],
   }))
 
-  const items = useMemo(
+  // Static config — no tabState dep; rebuilds only when routes/translations change
+  const tabConfigs = useMemo(
     () => [
-      {
-        Icon: Home,
-        active: tabState.isHomeActive,
-        href: tabRoutes.home,
-        label: t('tabs.home', 'Trang chủ'),
-      },
-      {
-        Icon: Menu,
-        active: tabState.isMenuActive,
-        href: tabRoutes.menu,
-        label: t('tabs.menu', 'Thực đơn'),
-      },
-      {
-        Icon: Gift,
-        active: tabState.isGiftCardActive,
-        href: tabRoutes.giftCard,
-        label: t('tabs.giftCard', 'Thẻ quà'),
-      },
-      {
-        Icon: User,
-        active: tabState.isProfileActive,
-        href: tabRoutes.profile,
-        label: t('tabs.profile', 'Tài khoản'),
-      },
+      { Icon: Home, href: tabRoutes.home, label: t('tabs.home', 'Trang chủ') },
+      { Icon: Menu, href: tabRoutes.menu, label: t('tabs.menu', 'Thực đơn') },
+      { Icon: Gift, href: tabRoutes.giftCard, label: t('tabs.giftCard', 'Thẻ quà') },
+      { Icon: User, href: tabRoutes.profile, label: t('tabs.profile', 'Tài khoản') },
     ],
-    [tabState, tabRoutes, t],
+    [tabRoutes, t],
   )
+
+  // Active flags indexed to match tabConfigs order
+  const isActive = [
+    tabState.isHomeActive,
+    tabState.isMenuActive,
+    tabState.isGiftCardActive,
+    tabState.isProfileActive,
+  ]
 
   return (
     <View style={[styles.tabBar, { backgroundColor: 'transparent' }]}>
@@ -149,7 +138,7 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
             slidingIndicatorStyle,
           ]}
         />
-        {items.map(({ Icon, active, href, label }) => (
+        {tabConfigs.map(({ Icon, href, label }, index) => (
           <AnimatedTabButton
             key={href}
             iconSize={ICON_SIZE}
@@ -157,13 +146,9 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
             href={href}
             label={label}
             Icon={Icon}
-            active={active}
+            active={isActive[index]}
             mutedColor={colors.mutedForeground}
-            onPressIn={
-              !active && onPressInTabSwitch
-                ? () => onPressInTabSwitch(href)
-                : undefined
-            }
+            onPressIn={onPressInTabSwitch}
           />
         ))}
       </View>

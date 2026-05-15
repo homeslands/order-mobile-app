@@ -2,7 +2,7 @@
  * AnimatedTabButton — Icon + label, màu đổi theo active (indicator trượt ở parent).
  */
 import type { LucideIcon } from 'lucide-react-native'
-import React from 'react'
+import React, { useCallback } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 
 import { NativeGesturePressable } from './native-gesture-pressable'
@@ -15,7 +15,7 @@ type AnimatedTabButtonProps = {
   Icon: LucideIcon
   active: boolean
   mutedColor: string
-  onPressIn?: () => void
+  onPressIn?: (href: string) => void
 }
 
 export const AnimatedTabButton = React.memo(function AnimatedTabButton({
@@ -28,10 +28,14 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
   mutedColor,
   onPressIn,
 }: AnimatedTabButtonProps) {
+  const handlePressIn = useCallback(() => {
+    onPressIn?.(href)
+  }, [href, onPressIn])
+
   return (
     <NativeGesturePressable
       navigation={{ type: 'navigate', href }}
-      onPressIn={onPressIn}
+      onPressIn={handlePressIn}
       disabled={active}
       style={styles.container}
     >
