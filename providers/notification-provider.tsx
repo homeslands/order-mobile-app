@@ -7,31 +7,81 @@
  * 3. Listen foreground notifications → toast + sound (T5)
  * 4. Handle background tap → navigate (T7+T8)
  * 5. Show permission dialog when denied (T12)
+ * 6. Show order ready modal (T9)
  *
  * Mount once in _layout.tsx, inside QueryClientProvider.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useColorScheme } from 'react-native'
 
+import { OrderReadyAlert } from '@/components/notification/order-ready-alert'
 import { NotificationPermissionSheet } from '@/components/notification/notification-permission-sheet'
 import { useRegisterDeviceToken } from '@/hooks/use-register-device-token'
 import { useNotificationListener } from '@/hooks/use-notification-listener'
 import { useNotificationResponse } from '@/hooks/use-notification-response'
+import { navigateNative } from '@/lib/navigation'
 import {
   startTokenRefreshScheduler,
   stopTokenRefreshScheduler,
 } from '@/lib/fcm-token-manager'
 import { useAuthStore } from '@/stores'
+import type { NotificationPayload } from '@/stores/notification.store'
+
+interface OrderReadyData {
+  orderSlug: string
+  branchName: string
+  referenceNumber: string
+}
+
+function extractOrderReadyData(payload: NotificationPayload): OrderReadyData {
+  const data = payload.data ?? {}
+  let parsed: Record<string, string> = {}
+  if (data.payload && typeof data.payload === 'string') {
+    try {
+      parsed = JSON.parse(data.payload) as Record<string, string>
+    } catch {
+      // ignore
+    }
+  }
+  const merged = { ...data, ...parsed }
+  return {
+    orderSlug: merged.order || '',
+    branchName: merged.branchName || '',
+    referenceNumber: merged.referenceNumber || merged.order || '',
+  }
+}
 
 export function NotificationProvider() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated())
   const schedulerStartedRef = useRef(false)
+  const colorScheme = useColorScheme()
+  const isDark = colorScheme === 'dark'
+
+  const [orderReadyPayload, setOrderReadyPayload] =
+    useState<NotificationPayload | null>(null)
+
+  const handleOrderReady = useCallback((payload: NotificationPayload) => {
+    setOrderReadyPayload(payload)
+  }, [])
+
+  const handleCloseOrderReady = useCallback(() => {
+    setOrderReadyPayload(null)
+  }, [])
+
+  const lastOrderReadyDataRef = useRef<OrderReadyData | null>(null)
+
+  const handleViewOrder = useCallback(() => {
+    const { orderSlug } = lastOrderReadyDataRef.current ?? {}
+    setOrderReadyPayload(null)
+    if (orderSlug) navigateNative.push(`/payment/${orderSlug}`)
+  }, [])
 
   // T2+T3: Get FCM token + register with server (only when authenticated)
   const { permissionDenied } = useRegisterDeviceToken(isAuthenticated)
 
   // T5: Foreground listener — only when authenticated so foreground FCM
   // notifications are never added to the store while no user is logged in.
-  useNotificationListener(isAuthenticated)
+  useNotificationListener(isAuthenticated, handleOrderReady)
 
   // T7+T8: Background tap + cold start — gated on auth so cold-start taps
   // from a previous user's session are not processed under the new user.
@@ -75,10 +125,26 @@ export function NotificationProvider() {
     setShowPermissionSheet(false)
   }, [])
 
+  if (orderReadyPayload) {
+    lastOrderReadyDataRef.current = extractOrderReadyData(orderReadyPayload)
+  }
+  const displayData = lastOrderReadyDataRef.current
+
   return (
-    <NotificationPermissionSheet
-      visible={showPermissionSheet}
-      onClose={handleClosePermission}
-    />
+    <>
+      <NotificationPermissionSheet
+        visible={showPermissionSheet}
+        onClose={handleClosePermission}
+      />
+      <OrderReadyAlert
+        visible={!!orderReadyPayload}
+        orderSlug={displayData?.orderSlug ?? ''}
+        branchName={displayData?.branchName ?? ''}
+        referenceNumber={displayData?.referenceNumber ?? ''}
+        isDark={isDark}
+        onViewOrder={handleViewOrder}
+        onClose={handleCloseOrderReady}
+      />
+    </>
   )
 }
