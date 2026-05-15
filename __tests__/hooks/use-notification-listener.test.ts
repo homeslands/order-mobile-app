@@ -36,6 +36,17 @@ jest.mock('@/providers/toast-provider', () => ({
   showToastInternal: jest.fn(),
 }))
 
+jest.mock('expo-haptics', () => ({
+  notificationAsync: jest.fn().mockResolvedValue(undefined),
+  NotificationFeedbackType: { Warning: 'warning', Success: 'success', Error: 'error' },
+}))
+
+jest.mock('@/constants/notification.constant', () => ({
+  NotificationMessageCode: {
+    ORDER_NEEDS_READY_TO_GET: 'order-needs-ready-to-get',
+  },
+}))
+
 import { useNotificationListener } from '@/hooks/use-notification-listener'
 
 it('exports useNotificationListener hook', () => {
