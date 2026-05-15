@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Button } from '@/components/ui'
 import { colors } from '@/constants'
 
-const SNAP = ['40%']
+const SNAP = ['30%']
 
 interface OrderReadyAlertProps {
   visible: boolean
