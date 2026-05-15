@@ -1,8 +1,7 @@
-import { Portal } from '@gorhom/portal'
 import { ShoppingBag } from 'lucide-react-native'
 import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { StyleSheet, Text, View } from 'react-native'
+import { Modal, StyleSheet, Text, View } from 'react-native'
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -74,39 +73,43 @@ export function OrderReadyAlert({
   const cardBg = isDark ? colors.card.dark : colors.card.light
 
   return (
-    <Portal>
-      <View
-        style={StyleSheet.absoluteFill}
-        pointerEvents={visible ? 'auto' : 'none'}
-      >
+    // RN Modal renders in a native layer above everything — no Portal context needed.
+    // animationType="none" so Reanimated handles the animation on the UI thread.
+    // statusBarTranslucent ensures full-screen coverage on Android.
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      statusBarTranslucent
+      onRequestClose={onClose}
+    >
+      <Animated.View
+        style={[StyleSheet.absoluteFill, s.backdrop, backdropStyle]}
+      />
+      <View style={s.center}>
         <Animated.View
-          style={[StyleSheet.absoluteFill, s.backdrop, backdropStyle]}
-        />
-        <View style={s.center}>
-          <Animated.View
-            style={[s.card, { backgroundColor: cardBg }, cardStyle]}
-          >
-            <View style={s.header}>
-              <ShoppingBag size={20} color={iconColor} />
-              <Text style={[s.title, { color: titleColor }]}>
-                {t('alertOrderReadyTitle')}
-              </Text>
-            </View>
-            <Text style={[s.body, { color: bodyColor }]}>{body}</Text>
-            <View style={s.footer}>
-              <Button variant="outline" onPress={onClose}>
-                {t('alertOrderReadyClose')}
+          style={[s.card, { backgroundColor: cardBg }, cardStyle]}
+        >
+          <View style={s.header}>
+            <ShoppingBag size={20} color={iconColor} />
+            <Text style={[s.title, { color: titleColor }]}>
+              {t('alertOrderReadyTitle')}
+            </Text>
+          </View>
+          <Text style={[s.body, { color: bodyColor }]}>{body}</Text>
+          <View style={s.footer}>
+            <Button variant="outline" onPress={onClose}>
+              {t('alertOrderReadyClose')}
+            </Button>
+            {orderSlug !== '' ? (
+              <Button variant="default" onPress={onViewOrder}>
+                {t('alertOrderReadyViewOrder')}
               </Button>
-              {orderSlug !== '' ? (
-                <Button variant="default" onPress={onViewOrder}>
-                  {t('alertOrderReadyViewOrder')}
-                </Button>
-              ) : null}
-            </View>
-          </Animated.View>
-        </View>
+            ) : null}
+          </View>
+        </Animated.View>
       </View>
-    </Portal>
+    </Modal>
   )
 }
 
