@@ -21,7 +21,6 @@ const CONTENT_HEIGHT = 32 + 14 + 12
 const PILL_RADIUS = (PADDING_V * 2 + CONTENT_HEIGHT) / 2
 const PADDING_H_DEFAULT = 10
 
-
 type Colors = {
   primary: string
   mutedForeground: string

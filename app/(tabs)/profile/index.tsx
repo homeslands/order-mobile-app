@@ -1,5 +1,9 @@
 import { LoginForm } from '@/components/auth'
-import { DeleteAccountSheet, LanguageSheet, ThemeSheet } from '@/components/profile'
+import {
+  DeleteAccountSheet,
+  LanguageSheet,
+  ThemeSheet,
+} from '@/components/profile'
 import { Skeleton } from '@/components/ui'
 import { colors, publicFileURL } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'

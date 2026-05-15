@@ -12,20 +12,21 @@
 
 ## Files to modify
 
-| File | Change |
-|---|---|
-| `app/update-order/components/update-order-content-native.tsx` | Add cleanup useEffect for `qtyDebounceRef` + `noteDebounceRef` (M1) |
-| `hooks/use-qr-payment.ts` | Guard `setFetchState` / `setCountdown` with `r.isStopped` after async fetch (M2) |
-| `app/profile/loyalty-point-detail-dialog.tsx` | Refactor copy `setTimeout` to tracked ref + cleanup (L1) |
-| `app/profile/gift-cards.tsx` | Refactor copy `setTimeout` to tracked ref + cleanup (L1) |
-| `components/gift-card/gift-card-order-detail-sheet.tsx` | Refactor copy `setTimeout` to tracked ref + cleanup (L1) |
-| `components/gift-card/gift-card-detail-sheet.tsx` | Refactor copy `setTimeout` to tracked ref + cleanup (L1) |
+| File                                                          | Change                                                                           |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `app/update-order/components/update-order-content-native.tsx` | Add cleanup useEffect for `qtyDebounceRef` + `noteDebounceRef` (M1)              |
+| `hooks/use-qr-payment.ts`                                     | Guard `setFetchState` / `setCountdown` with `r.isStopped` after async fetch (M2) |
+| `app/profile/loyalty-point-detail-dialog.tsx`                 | Refactor copy `setTimeout` to tracked ref + cleanup (L1)                         |
+| `app/profile/gift-cards.tsx`                                  | Refactor copy `setTimeout` to tracked ref + cleanup (L1)                         |
+| `components/gift-card/gift-card-order-detail-sheet.tsx`       | Refactor copy `setTimeout` to tracked ref + cleanup (L1)                         |
+| `components/gift-card/gift-card-detail-sheet.tsx`             | Refactor copy `setTimeout` to tracked ref + cleanup (L1)                         |
 
 ---
 
 ### Task 1: Fix debounce timer leak in update-order row (M1)
 
 **Files:**
+
 - Modify: `app/update-order/components/update-order-content-native.tsx:148`
 
 **Context:** The `OrderItemRow` component inside this file has `qtyDebounceRef` and `noteDebounceRef` for optimistic qty/note updates. When the row unmounts (FlashList recycling, navigation, draft cancel), both timers keep running and call `onQtyChange`/`onNoteChange` after unmount, causing a stale store mutation. The correct pattern already exists in `components/cart/cart-item-row.tsx:138–151` — mirror it exactly.
@@ -75,6 +76,7 @@ git commit -m "fix(update-order): clear debounce timers on OrderItemRow unmount"
 ### Task 2: Guard post-unmount setState in useQRPayment (M2)
 
 **Files:**
+
 - Modify: `hooks/use-qr-payment.ts:85–104`
 
 **Context:** `fetchQR` is async. `stopTimers()` sets `refs.current.isStopped = true` on unmount. But after `generatePaymentQR()` resolves, `setFetchState(...)` and `setCountdown(QR_TTL_S)` are called unconditionally — even if `isStopped` is already `true`. The fix is to add `if (r.isStopped) return` guards in both the happy path and the catch block, mirroring the existing guard at `if (!r.isStopped) startCountdown()`.
@@ -156,6 +158,7 @@ git commit -m "fix(payment): guard post-unmount setState in useQRPayment.fetchQR
 ### Task 3: Fix copy-to-clipboard timer leaks (L1) — 4 sites
 
 **Files:**
+
 - Modify: `app/profile/loyalty-point-detail-dialog.tsx:125–130`
 - Modify: `app/profile/gift-cards.tsx:292–296`
 - Modify: `components/gift-card/gift-card-order-detail-sheet.tsx:82–87`

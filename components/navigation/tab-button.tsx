@@ -14,7 +14,6 @@ interface TabButtonProps {
   children: React.ReactNode
 }
 
-
 export const TabButton = ({ active, onPress, children }: TabButtonProps) => {
   const animValue = useSharedValue(active ? 1 : 0)
 

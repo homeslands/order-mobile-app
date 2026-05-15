@@ -59,7 +59,7 @@ export const OrderReadyAlert = memo(function OrderReadyAlert({
         disappearsOnIndex={-1}
         appearsOnIndex={0}
         opacity={0.55}
-        pressBehavior="none"
+        pressBehavior="close"
       />
     ),
     [],

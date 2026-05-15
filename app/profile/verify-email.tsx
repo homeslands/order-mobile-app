@@ -444,8 +444,7 @@ function VerifyEmailContent() {
                       }
                     )?.response?.data?.statusCode
                   if (typeof resendCode === 'number') showErrorToast(resendCode)
-                  else
-                    showToast(t('profile.verifyEmailFailed'), 'error')
+                  else showToast(t('profile.verifyEmailFailed'), 'error')
                 },
               })
             } else if (typeof code === 'number') {
@@ -457,14 +456,7 @@ function VerifyEmailContent() {
         },
       )
     },
-    [
-      token,
-      verifyEmail,
-      resendOtp,
-      queryClient,
-      setEmailVerificationStatus,
-      t,
-    ],
+    [token, verifyEmail, resendOtp, queryClient, setEmailVerificationStatus, t],
   )
 
   const handleVerifyOtp = useCallback(() => {

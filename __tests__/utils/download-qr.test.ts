@@ -45,7 +45,10 @@ describe('downloadQRCodeImage', () => {
 
     expect(result).toBe(false)
     expect(MediaLibrary.createAssetAsync).not.toHaveBeenCalled()
-    expect(showToast).toHaveBeenCalledWith('common.noPhotoLibraryPermission', 'warning')
+    expect(showToast).toHaveBeenCalledWith(
+      'common.noPhotoLibraryPermission',
+      'warning',
+    )
   })
 
   it('writes base64 PNG to cache and saves to media library when permitted', async () => {

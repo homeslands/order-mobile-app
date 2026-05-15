@@ -122,7 +122,10 @@ export const LanguageSheet = memo(function LanguageSheet({
               sheetRef.current?.dismiss()
             },
             onError: () => {
-              showToast(t('profile.language.switchFailed', { lng: code }), 'error')
+              showToast(
+                t('profile.language.switchFailed', { lng: code }),
+                'error',
+              )
             },
           },
         )

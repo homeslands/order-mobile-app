@@ -7,11 +7,7 @@ import {
 } from '@/hooks'
 import { scheduleTransitionTask } from '@/lib/navigation'
 import { navigateNative } from '@/lib/navigation/navigation-engine'
-import {
-  useBranchStore,
-  useOrderFlowStore,
-  useUserStore,
-} from '@/stores'
+import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import type { ICreateOrderRequest } from '@/types'
 import {
   calculateCartDisplayAndTotals,

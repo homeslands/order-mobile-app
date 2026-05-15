@@ -10,7 +10,13 @@
 import { Image as ExpoImage } from 'expo-image'
 import { useLocalSearchParams } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { CircleX, Download, Smartphone, Timer, WifiOff } from 'lucide-react-native'
+import {
+  CircleX,
+  Download,
+  Smartphone,
+  Timer,
+  WifiOff,
+} from 'lucide-react-native'
 import React, {
   memo,
   useCallback,
@@ -222,7 +228,10 @@ const QRSection = memo(function QRSection({
   const [errorUrl, setErrorUrl] = useState<string | null>(null)
   const imgError = !!qrCode && errorUrl === qrCode
 
-  const handleImgError = useCallback(() => setErrorUrl(qrCode ?? null), [qrCode])
+  const handleImgError = useCallback(
+    () => setErrorUrl(qrCode ?? null),
+    [qrCode],
+  )
   const handleImgRetry = useCallback(() => setErrorUrl(null), [])
 
   const handleDownload = useCallback(() => {

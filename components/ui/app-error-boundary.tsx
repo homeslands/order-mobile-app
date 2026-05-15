@@ -82,8 +82,8 @@ export class AppErrorBoundary extends React.Component<
               textAlign: 'center',
             }}
           >
-            Vui lòng thử lại. Nếu lỗi tiếp tục xuất hiện, hãy khởi động lại
-            ứng dụng.
+            Vui lòng thử lại. Nếu lỗi tiếp tục xuất hiện, hãy khởi động lại ứng
+            dụng.
           </Text>
           <Pressable
             onPress={this.handleReset}

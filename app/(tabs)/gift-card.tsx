@@ -399,7 +399,6 @@ export default function GiftCardScreen() {
         </View>
       </View>
 
-
       {/* Content */}
       {!allowFetch || isPending ? (
         <GiftCardSkeleton />

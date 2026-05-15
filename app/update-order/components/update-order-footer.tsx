@@ -12,10 +12,7 @@ import { useCalculateDeliveryFee } from '@/hooks/use-branch-delivery'
 import { DeliveryAddressSheet, DeliveryInfoRow } from '@/components/delivery'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import { OrderStatus, OrderTypeEnum } from '@/types'
-import {
-  parseKm,
-  showErrorToastMessage,
-} from '@/utils'
+import { parseKm, showErrorToastMessage } from '@/utils'
 import { useEffect } from 'react'
 
 import ConfirmUpdateOrderDialog from './confirm-update-order-dialog'

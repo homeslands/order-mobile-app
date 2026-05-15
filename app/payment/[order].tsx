@@ -3,7 +3,13 @@ import { FloatingHeader } from '@/components/navigation/floating-header'
 import { useFocusEffect } from '@react-navigation/native'
 import { Image as ExpoImage } from 'expo-image'
 import { useLocalSearchParams } from 'expo-router'
-import { CircleAlert, CircleX, Download, Ticket, WifiOff } from 'lucide-react-native'
+import {
+  CircleAlert,
+  CircleX,
+  Download,
+  Ticket,
+  WifiOff,
+} from 'lucide-react-native'
 import React, {
   memo,
   useCallback,
@@ -180,7 +186,10 @@ const QRSection = React.memo(function QRSection({
   const activeQrUrl = qrCode || paymentQrCode || ''
   const imgError = !!activeQrUrl && errorUrl === activeQrUrl
 
-  const handleImgError = useCallback(() => setErrorUrl(activeQrUrl), [activeQrUrl])
+  const handleImgError = useCallback(
+    () => setErrorUrl(activeQrUrl),
+    [activeQrUrl],
+  )
   const handleImgRetry = useCallback(() => setErrorUrl(null), [])
 
   const handleDownload = useCallback(() => {
@@ -361,8 +370,8 @@ const PaymentMethodSection = React.memo(function PaymentMethodSection({
         </View>
       )}
       {(selectedMethod !== null
-          ? selectedMethod === PaymentMethod.BANK_TRANSFER
-          : order.payment?.paymentMethod === PaymentMethod.BANK_TRANSFER) &&
+        ? selectedMethod === PaymentMethod.BANK_TRANSFER
+        : order.payment?.paymentMethod === PaymentMethod.BANK_TRANSFER) &&
         (qrCode || order.payment?.qrCode || DEV_SAMPLE_QR_URL) && (
           <QRSection
             qrCode={qrCode || DEV_SAMPLE_QR_URL}

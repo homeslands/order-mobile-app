@@ -84,7 +84,10 @@ export async function downloadAndSaveImage(
       ) {
         const { publicFileURL } = await import('@/constants')
         if (!publicFileURL) {
-          showToast(i18n.t('common.invalidURLConfig', { ns: 'common' }), 'error')
+          showToast(
+            i18n.t('common.invalidURLConfig', { ns: 'common' }),
+            'error',
+          )
           return false
         }
         finalImageUrl = `${publicFileURL}/${finalImageUrl.replace(/^\//, '')}`
@@ -102,7 +105,10 @@ export async function downloadAndSaveImage(
     if (!hasPermission) {
       const granted = await requestMediaLibraryPermission()
       if (!granted) {
-        showToast(i18n.t('common.noPhotoLibraryPermission', { ns: 'common' }), 'warning')
+        showToast(
+          i18n.t('common.noPhotoLibraryPermission', { ns: 'common' }),
+          'warning',
+        )
         return false
       }
     }
@@ -144,14 +150,16 @@ export async function downloadAndSaveImage(
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error('QR download fetch error:', error)
-        const msg =
-          error instanceof Error ? error.message : ''
+        const msg = error instanceof Error ? error.message : ''
         if (msg.includes('timeout') || msg.includes('ECONNABORTED')) {
           showToast(
             i18n.t('common.errorDownloadImageTimeout', { ns: 'common' }),
           )
         } else {
-          showToast(i18n.t('common.errorDownloadImage', { ns: 'common' }), 'error')
+          showToast(
+            i18n.t('common.errorDownloadImage', { ns: 'common' }),
+            'error',
+          )
         }
         return false
       }
@@ -219,7 +227,10 @@ export async function downloadQRCodeImage(
     if (!hasPermission) {
       const granted = await requestMediaLibraryPermission()
       if (!granted) {
-        showToast(i18n.t('common.noPhotoLibraryPermission', { ns: 'common' }), 'warning')
+        showToast(
+          i18n.t('common.noPhotoLibraryPermission', { ns: 'common' }),
+          'warning',
+        )
         return false
       }
     }

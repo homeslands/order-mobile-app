@@ -139,13 +139,19 @@ export const ProfileNudgePopup = memo(function ProfileNudgePopup() {
         />
 
         <Text
-          style={[styles.title, { color: isDark ? colors.gray[50] : colors.gray[900] }]}
+          style={[
+            styles.title,
+            { color: isDark ? colors.gray[50] : colors.gray[900] },
+          ]}
         >
           {t('profile.dobNudge.title')}
         </Text>
 
         <Text
-          style={[styles.subtitle, { color: isDark ? colors.gray[400] : colors.gray[500] }]}
+          style={[
+            styles.subtitle,
+            { color: isDark ? colors.gray[400] : colors.gray[500] },
+          ]}
         >
           {t('profile.dobNudge.subtitle')}
         </Text>
