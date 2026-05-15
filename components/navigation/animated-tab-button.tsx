@@ -32,6 +32,7 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
     <NativeGesturePressable
       navigation={{ type: 'navigate', href }}
       onPressIn={onPressIn}
+      disabled={active}
       style={styles.container}
     >
       <View style={[styles.content, { width: itemWidth }]}>
