@@ -30,6 +30,9 @@ const deviceLanguage = normalizeLanguage(
     'profile',
     'giftCard',
     'payment',
+    'notification',
+    'onboarding',
+    'tabs',
   ],
   interpolation: {
     escapeValue: false,

@@ -1,4 +1,5 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
+import { PortalProvider } from '@gorhom/portal'
 import {
   focusManager,
   MutationCache,
@@ -185,23 +186,33 @@ function AppContent() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <SafeAreaProvider>
         <QueryClientProvider client={queryClient}>
-          <BottomSheetModalProvider>
-            <LogoutSheetPortal />
-            <QRSelectionSheet />
-            <ScanSheetPortal />
-            <NotificationProvider />
-            <I18nProvider>
-              <NavigationEngineProvider>
-                <MasterTransitionProvider>
-                  <AppToastProvider>
-                    <SharedElementProvider>
-                      <NativeStackWithMasterTransition />
-                    </SharedElementProvider>
-                  </AppToastProvider>
-                </MasterTransitionProvider>
-              </NavigationEngineProvider>
-            </I18nProvider>
-          </BottomSheetModalProvider>
+          {/* PortalProvider provides a root `name="root"` PortalHost so any
+              <Portal> without an explicit hostName (e.g. OrderReadyAlert) has
+              somewhere to mount. BottomSheetModalProvider creates its own
+              uniquely-named PortalHost which only serves bottom sheets — raw
+              <Portal /> usages need this outer host. */}
+          <PortalProvider>
+            <BottomSheetModalProvider>
+              <LogoutSheetPortal />
+              <QRSelectionSheet />
+              <ScanSheetPortal />
+              <I18nProvider>
+                {/* NotificationProvider must live inside I18nProvider because
+                    OrderReadyAlert + NotificationPermissionSheet use
+                    useTranslation('notification'). */}
+                <NotificationProvider />
+                <NavigationEngineProvider>
+                  <MasterTransitionProvider>
+                    <AppToastProvider>
+                      <SharedElementProvider>
+                        <NativeStackWithMasterTransition />
+                      </SharedElementProvider>
+                    </AppToastProvider>
+                  </MasterTransitionProvider>
+                </NavigationEngineProvider>
+              </I18nProvider>
+            </BottomSheetModalProvider>
+          </PortalProvider>
         </QueryClientProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
