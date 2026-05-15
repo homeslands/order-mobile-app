@@ -1,8 +1,10 @@
 import {
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
+  BottomSheetFooter,
+  type BottomSheetFooterProps,
   BottomSheetModal,
-  BottomSheetView,
+  BottomSheetScrollView,
 } from '@gorhom/bottom-sheet'
 import { ShoppingBag } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
@@ -12,6 +14,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Button } from '@/components/ui'
 import { colors } from '@/constants'
+
+const SNAP = ['40%']
 
 interface OrderReadyAlertProps {
   visible: boolean
@@ -61,6 +65,32 @@ export const OrderReadyAlert = memo(function OrderReadyAlert({
     [],
   )
 
+  const renderFooter = useCallback(
+    (props: BottomSheetFooterProps) => (
+      <BottomSheetFooter {...props} bottomInset={bottomInset}>
+        <View
+          style={[
+            s.footer,
+            {
+              backgroundColor: isDark ? colors.card.dark : colors.card.light,
+              borderTopColor: isDark ? colors.border.dark : colors.border.light,
+            },
+          ]}
+        >
+          <Button variant="outline" onPress={onClose} className="flex-1">
+            {t('alertOrderReadyClose')}
+          </Button>
+          {orderSlug !== '' ? (
+            <Button variant="default" onPress={onViewOrder} className="flex-1">
+              {t('alertOrderReadyViewOrder')}
+            </Button>
+          ) : null}
+        </View>
+      </BottomSheetFooter>
+    ),
+    [isDark, bottomInset, orderSlug, onClose, onViewOrder, t],
+  )
+
   const ref = referenceNumber !== ''
     ? `#${referenceNumber}`
     : orderSlug !== ''
@@ -77,16 +107,19 @@ export const OrderReadyAlert = memo(function OrderReadyAlert({
   return (
     <BottomSheetModal
       ref={sheetRef}
-      enableDynamicSizing
+      snapPoints={SNAP}
       enablePanDownToClose={false}
       enableContentPanningGesture={false}
       enableHandlePanningGesture={false}
+      enableDynamicSizing={false}
       backdropComponent={renderBackdrop}
       backgroundStyle={bgStyle}
+      footerComponent={renderFooter}
       onDismiss={onClose}
     >
-      <BottomSheetView
-        style={[s.content, { paddingBottom: bottomInset + 16 }]}
+      <BottomSheetScrollView
+        contentContainerStyle={s.content}
+        scrollEnabled={false}
       >
         <View style={s.header}>
           <ShoppingBag size={22} color={iconColor} />
@@ -94,28 +127,8 @@ export const OrderReadyAlert = memo(function OrderReadyAlert({
             {t('alertOrderReadyTitle')}
           </Text>
         </View>
-
         <Text style={[s.body, { color: bodyColor }]}>{body}</Text>
-
-        <View style={s.footer}>
-          <Button
-            variant="outline"
-            onPress={onClose}
-            className="flex-1"
-          >
-            {t('alertOrderReadyClose')}
-          </Button>
-          {orderSlug !== '' ? (
-            <Button
-              variant="default"
-              onPress={onViewOrder}
-              className="flex-1"
-            >
-              {t('alertOrderReadyViewOrder')}
-            </Button>
-          ) : null}
-        </View>
-      </BottomSheetView>
+      </BottomSheetScrollView>
     </BottomSheetModal>
   )
 })
@@ -124,7 +137,8 @@ const s = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
     paddingTop: 8,
-    gap: 16,
+    paddingBottom: 88,
+    gap: 12,
   },
   header: {
     flexDirection: 'row',
@@ -143,6 +157,8 @@ const s = StyleSheet.create({
   footer: {
     flexDirection: 'row',
     gap: 10,
-    marginTop: 4,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderTopWidth: StyleSheet.hairlineWidth,
   },
 })
