@@ -83,32 +83,40 @@ export function OrderReadyAlert({
       statusBarTranslucent
       onRequestClose={onClose}
     >
-      <Animated.View
-        style={[StyleSheet.absoluteFill, s.backdrop, backdropStyle]}
-        pointerEvents="none"
-      />
-      <View style={s.center}>
+      <View style={StyleSheet.absoluteFill}>
+        {/* Backdrop — decorative only, never intercepts touches */}
         <Animated.View
-          style={[s.card, { backgroundColor: cardBg }, cardStyle]}
+          style={[StyleSheet.absoluteFill, s.backdrop, backdropStyle]}
+          pointerEvents="none"
+        />
+        {/* Card container — box-none so the container itself passes touches
+            through to the card children below */}
+        <View
+          style={[StyleSheet.absoluteFill, s.center]}
+          pointerEvents="box-none"
         >
-          <View style={s.header}>
-            <ShoppingBag size={20} color={iconColor} />
-            <Text style={[s.title, { color: titleColor }]}>
-              {t('alertOrderReadyTitle')}
-            </Text>
-          </View>
-          <Text style={[s.body, { color: bodyColor }]}>{body}</Text>
-          <View style={s.footer}>
-            <Button variant="outline" onPress={onClose}>
-              {t('alertOrderReadyClose')}
-            </Button>
-            {orderSlug !== '' ? (
-              <Button variant="default" onPress={onViewOrder}>
-                {t('alertOrderReadyViewOrder')}
+          <Animated.View
+            style={[s.card, { backgroundColor: cardBg }, cardStyle]}
+          >
+            <View style={s.header}>
+              <ShoppingBag size={20} color={iconColor} />
+              <Text style={[s.title, { color: titleColor }]}>
+                {t('alertOrderReadyTitle')}
+              </Text>
+            </View>
+            <Text style={[s.body, { color: bodyColor }]}>{body}</Text>
+            <View style={s.footer}>
+              <Button variant="outline" onPress={onClose}>
+                {t('alertOrderReadyClose')}
               </Button>
-            ) : null}
-          </View>
-        </Animated.View>
+              {orderSlug !== '' ? (
+                <Button variant="default" onPress={onViewOrder}>
+                  {t('alertOrderReadyViewOrder')}
+                </Button>
+              ) : null}
+            </View>
+          </Animated.View>
+        </View>
       </View>
     </Modal>
   )
@@ -119,7 +127,6 @@ const s = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.55)',
   },
   center: {
-    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 24,
