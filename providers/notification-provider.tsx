@@ -69,7 +69,7 @@ export function NotificationProvider() {
   const handleViewOrder = useCallback(() => {
     const { orderSlug } = lastOrderReadyDataRef.current ?? {}
     setOrderReadyPayload(null)
-    if (orderSlug) navigateNative.push(`/payment/${orderSlug}`)
+    if (orderSlug) navigateNative.push(`/order/${orderSlug}` as Parameters<typeof navigateNative.push>[0])
   }, [])
 
   // T2+T3: Get FCM token + register with server (only when authenticated)
