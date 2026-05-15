@@ -85,6 +85,7 @@ export function OrderReadyAlert({
     >
       <Animated.View
         style={[StyleSheet.absoluteFill, s.backdrop, backdropStyle]}
+        pointerEvents="none"
       />
       <View style={s.center}>
         <Animated.View
