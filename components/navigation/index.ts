@@ -17,4 +17,3 @@ export type {
   TabState,
 } from './tab-bar-pill'
 export { TabBarWithTransition } from './tab-bar-with-transition'
-export { TabButton } from './tab-button'

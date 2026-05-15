@@ -14,9 +14,7 @@ type AnimatedTabButtonProps = {
   label?: string
   Icon: LucideIcon
   active: boolean
-  primaryColor: string
   mutedColor: string
-  onBeforeTabSwitch?: () => void
   onPressIn?: () => void
 }
 
@@ -28,15 +26,12 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
   Icon,
   active,
   mutedColor,
-  onBeforeTabSwitch,
   onPressIn,
 }: AnimatedTabButtonProps) {
   return (
     <NativeGesturePressable
       navigation={{ type: 'navigate', href }}
-      beforeNavigate={onBeforeTabSwitch}
       onPressIn={onPressIn}
-      hapticStyle="light"
       style={styles.container}
     >
       <View style={[styles.content, { width: itemWidth }]}>

@@ -44,8 +44,6 @@ type AnimatedTabBarProps = {
     giftCard: string
     profile: string
   }
-  /** Gọi TRƯỚC khi chuyển tab — (href) => skip nếu đã cache. */
-  onBeforeTabSwitch?: (href: string) => void
   /** Gọi ngay khi finger down — prefetch không block. */
   onPressInTabSwitch?: (href: string) => void
 }
@@ -55,7 +53,6 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   colors,
   tabState,
   tabRoutes,
-  onBeforeTabSwitch,
   onPressInTabSwitch,
 }: AnimatedTabBarProps) {
   const [paddingH, setPaddingH] = useState(PADDING_H_DEFAULT)
@@ -162,13 +159,7 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
             label={label}
             Icon={Icon}
             active={active}
-            primaryColor={colors.primary}
             mutedColor={colors.mutedForeground}
-            onBeforeTabSwitch={
-              !active && onBeforeTabSwitch
-                ? () => onBeforeTabSwitch(href)
-                : undefined
-            }
             onPressIn={
               !active && onPressInTabSwitch
                 ? () => onPressInTabSwitch(href)

@@ -383,7 +383,6 @@ export default function TabsLayout() {
               tabState={resolvedTabState}
               tabRoutes={tabRoutes}
               onPressInTabSwitch={onPressInTabSwitch}
-              onBeforeTabSwitch={undefined}
             />
             <FloatingCartButton primaryColor={colors.primary} />
           </View>
