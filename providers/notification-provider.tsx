@@ -12,7 +12,6 @@
  * Mount once in _layout.tsx, inside QueryClientProvider.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useColorScheme } from 'react-native'
 
 import { OrderReadyAlert } from '@/components/notification/order-ready-alert'
 import { NotificationPermissionSheet } from '@/components/notification/notification-permission-sheet'
@@ -54,9 +53,6 @@ function extractOrderReadyData(payload: NotificationPayload): OrderReadyData {
 export function NotificationProvider() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated())
   const schedulerStartedRef = useRef(false)
-  const colorScheme = useColorScheme()
-  const isDark = colorScheme === 'dark'
-
   const [orderReadyPayload, setOrderReadyPayload] =
     useState<NotificationPayload | null>(null)
 
@@ -141,7 +137,6 @@ export function NotificationProvider() {
         orderSlug={displayData?.orderSlug ?? ''}
         branchName={displayData?.branchName ?? ''}
         referenceNumber={displayData?.referenceNumber ?? ''}
-        isDark={isDark}
         onViewOrder={handleViewOrder}
         onClose={handleCloseOrderReady}
       />
