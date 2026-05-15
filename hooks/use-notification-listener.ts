@@ -13,8 +13,8 @@
  *   does not survive logout / unmount.
  */
 import { Audio, type AVPlaybackSource } from 'expo-av'
-import * as Haptics from 'expo-haptics'
 import { useEffect, useRef } from 'react'
+import { Platform, Vibration } from 'react-native'
 import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging'
@@ -78,15 +78,32 @@ async function playNotificationSoundTwice(): Promise<void> {
   await playNotificationSound()
 }
 
-async function playOrderReadyHaptic(): Promise<void> {
+/**
+ * Long continuous vibration for ORDER_NEEDS_READY_TO_GET — strong enough to
+ * grab user attention even if the phone is in pocket.
+ *
+ * Android: pattern [delay, vibrate, pause, vibrate, ...] runs natively, total
+ * ~1.4s of vibration over 1.7s window. Second arg `repeat=false`.
+ *
+ * iOS: Vibration.vibrate(pattern) only honors the FIRST vibration duration
+ * (RN limitation), so we trigger Vibration.vibrate() three times spaced apart
+ * to approximate continuous feel. Each iOS call is a system "vibrate" buzz
+ * (~400ms); explicit numeric duration is ignored on iOS.
+ */
+function playOrderReadyVibration(): void {
   try {
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
-    await new Promise<void>((r) => setTimeout(r, 400))
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
-    await new Promise<void>((r) => setTimeout(r, 400))
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning)
+    if (Platform.OS === 'ios') {
+      // iOS — no pattern support; fire 3 buzzes spaced 600ms apart.
+      Vibration.vibrate()
+      setTimeout(() => Vibration.vibrate(), 600)
+      setTimeout(() => Vibration.vibrate(), 1200)
+    } else {
+      // Android — pattern: delay 0ms, vibrate 500ms, pause 150ms,
+      //   vibrate 500ms, pause 150ms, vibrate 500ms
+      Vibration.vibrate([0, 500, 150, 500, 150, 500], false)
+    }
   } catch {
-    // Haptics unavailable on this device — silent fail
+    // Vibrator unavailable on this device — silent fail
   }
 }
 
@@ -140,8 +157,8 @@ export function useNotificationListener(
       const messageCode = getMessageCode(payload)
 
       if (messageCode === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET) {
-        // High-priority alert: haptic × 3 + sound × 2 + modal (no toast)
-        playOrderReadyHaptic().catch(() => {})
+        // High-priority alert: continuous vibration + sound × 2 + modal (no toast)
+        playOrderReadyVibration()
         playNotificationSoundTwice().catch(() => {})
         onOrderReadyRef.current?.(payload)
       } else {
@@ -154,6 +171,7 @@ export function useNotificationListener(
 
     return () => {
       unsubscribe()
+      Vibration.cancel()
       void disposeSound()
     }
   }, [enabled])

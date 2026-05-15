@@ -192,15 +192,32 @@ function AppContent() {
               uniquely-named PortalHost which only serves bottom sheets — raw
               <Portal /> usages need this outer host. */}
           <PortalProvider>
-            <BottomSheetModalProvider>
-              <LogoutSheetPortal />
-              <QRSelectionSheet />
-              <ScanSheetPortal />
-              <I18nProvider>
-                {/* NotificationProvider must live inside I18nProvider because
-                    OrderReadyAlert + NotificationPermissionSheet use
-                    useTranslation('notification'). */}
-                <NotificationProvider />
+            {/*
+              CRITICAL ORDERING — DO NOT NEST NotificationProvider INSIDE
+              BottomSheetModalProvider.
+
+              @gorhom/bottom-sheet's BottomSheetModalProvider internally wraps
+              its children in another <PortalProvider rootHostName="bottom-sheet-portal-XYZ">
+              (see node_modules/@gorhom/bottom-sheet/src/components/
+              bottomSheetModalProvider/BottomSheetModalProvider.tsx).
+
+              That inner PortalProvider SHADOWS the outer one's React context
+              for all descendants. A <Portal /> rendered inside (e.g. the one
+              in OrderReadyAlert) defaults to hostName="root", but the inner
+              PortalProvider only has a host named "bottom-sheet-portal-XYZ" —
+              so the portal content goes into state but is never rendered.
+
+              Keeping NotificationProvider as a SIBLING of BottomSheetModalProvider
+              (still inside I18nProvider for translations + inside the outer
+              PortalProvider for Portal mount) means its <Portal /> resolves to
+              the outer "root" host and OrderReadyAlert actually shows on screen.
+            */}
+            <I18nProvider>
+              <NotificationProvider />
+              <BottomSheetModalProvider>
+                <LogoutSheetPortal />
+                <QRSelectionSheet />
+                <ScanSheetPortal />
                 <NavigationEngineProvider>
                   <MasterTransitionProvider>
                     <AppToastProvider>
@@ -210,8 +227,8 @@ function AppContent() {
                     </AppToastProvider>
                   </MasterTransitionProvider>
                 </NavigationEngineProvider>
-              </I18nProvider>
-            </BottomSheetModalProvider>
+              </BottomSheetModalProvider>
+            </I18nProvider>
           </PortalProvider>
         </QueryClientProvider>
       </SafeAreaProvider>

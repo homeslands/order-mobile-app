@@ -36,9 +36,12 @@ jest.mock('@/providers/toast-provider', () => ({
   showToastInternal: jest.fn(),
 }))
 
-jest.mock('expo-haptics', () => ({
-  notificationAsync: jest.fn().mockResolvedValue(undefined),
-  NotificationFeedbackType: { Warning: 'warning', Success: 'success', Error: 'error' },
+jest.mock('react-native', () => ({
+  Platform: { OS: 'android', select: (obj: { android?: unknown; default?: unknown }) => obj.android ?? obj.default },
+  Vibration: {
+    vibrate: jest.fn(),
+    cancel: jest.fn(),
+  },
 }))
 
 jest.mock('@/constants/notification.constant', () => ({
