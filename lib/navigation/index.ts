@@ -49,3 +49,4 @@ export {
   isTransitionQueueing,
 } from './transition-task-queue'
 export { useGpuWarmup } from './gpu-warmup'
+export { TabScrollProvider, useTabScrollContext } from './tab-scroll-context'
