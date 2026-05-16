@@ -6,7 +6,6 @@ import { Gift, Home, Menu, User } from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { LayoutChangeEvent, StyleSheet, View } from 'react-native'
 import Animated, {
-  interpolate,
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
@@ -25,7 +24,6 @@ const CONTENT_HEIGHT = 32 + 14 + 12
 const PILL_RADIUS = (PADDING_V * 2 + CONTENT_HEIGHT) / 2
 const PADDING_H_DEFAULT = 10
 
-const COLLAPSED_SCALE = 0.75
 
 type Colors = {
   primary: string
@@ -63,14 +61,9 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   const [layout, setLayout] = useState({ pillWidth: 0, paddingH: PADDING_H_DEFAULT })
   const { pillWidth, paddingH } = layout
   const indicatorX = useSharedValue(0)
-  const { scrollY } = useTabScrollContext()
-  const collapseFraction = useSharedValue(0)
+  const { scrollY, collapseFraction } = useTabScrollContext()
 
-  const pillAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [
-      { scale: interpolate(collapseFraction.value, [0, 1], [1, COLLAPSED_SCALE]) },
-    ],
-  }))
+  const pillBgStyle = useAnimatedStyle(() => ({ opacity: 1 - collapseFraction.value }))
 
   useAnimatedReaction(
     () => scrollY.value,
@@ -137,6 +130,7 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
 
   const slidingIndicatorStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: indicatorX.value }],
+    opacity: 1 - collapseFraction.value,
   }))
 
   // Static config — no tabState dep; rebuilds only when routes/translations change
@@ -160,14 +154,18 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
 
   return (
     <View style={[styles.tabBar, { backgroundColor: 'transparent' }]}>
-      <Animated.View
-        style={[
-          styles.pill,
-          { paddingHorizontal: paddingH, backgroundColor: colors.card },
-          pillAnimatedStyle,
-        ]}
+      <View
+        style={[styles.pill, { paddingHorizontal: paddingH }]}
         onLayout={onPillLayout}
       >
+        {/* Pill background fades out when collapsed */}
+        <Animated.View
+          style={[
+            StyleSheet.absoluteFill,
+            { borderRadius: 9999, backgroundColor: colors.card },
+            pillBgStyle,
+          ]}
+        />
         <Animated.View
           style={[
             styles.slidingIndicator,
@@ -187,15 +185,17 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
             label={label}
             Icon={Icon}
             active={isActive[index]}
+            primaryColor={colors.primary}
             mutedColor={colors.mutedForeground}
             onPressIn={onPressInTabSwitch}
             indicatorX={indicatorX}
             buttonIndex={index}
             buttonPaddingH={paddingH}
             indicatorWidth={itemWidth}
+            collapseFraction={collapseFraction}
           />
         ))}
-      </Animated.View>
+      </View>
     </View>
   )
 })

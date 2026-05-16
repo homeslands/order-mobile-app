@@ -10,6 +10,8 @@ import Animated, {
 } from 'react-native-reanimated'
 import type { SharedValue } from 'react-native-reanimated'
 
+const ICON_CIRCLE_SIZE = 36
+
 import { NativeGesturePressable } from './native-gesture-pressable'
 
 type AnimatedTabButtonProps = {
@@ -19,6 +21,7 @@ type AnimatedTabButtonProps = {
   label?: string
   Icon: LucideIcon
   active: boolean
+  primaryColor: string
   mutedColor: string
   onPressIn?: (href: string) => void
   // UI-thread animation — passed from AnimatedTabBar
@@ -26,6 +29,7 @@ type AnimatedTabButtonProps = {
   buttonIndex: number
   buttonPaddingH: number
   indicatorWidth: number
+  collapseFraction: SharedValue<number>
 }
 
 export const AnimatedTabButton = React.memo(function AnimatedTabButton({
@@ -35,12 +39,14 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
   label,
   Icon,
   active,
+  primaryColor,
   mutedColor,
   onPressIn,
   indicatorX,
   buttonIndex,
   buttonPaddingH,
   indicatorWidth,
+  collapseFraction,
 }: AnimatedTabButtonProps) {
   const handlePressIn = useCallback(() => {
     onPressIn?.(href)
@@ -60,8 +66,24 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
     ],
   }))
 
-  const labelStyle = useAnimatedStyle(() => ({
-    color: interpolateColor(activeFraction.value, [0, 1], [mutedColor, '#ffffff']),
+  const labelStyle = useAnimatedStyle(() => {
+    const show = 1 - collapseFraction.value
+    return {
+      color: interpolateColor(activeFraction.value, [0, 1], [mutedColor, '#ffffff']),
+      opacity: show,
+      maxHeight: show * 16,
+      marginTop: show * 2,
+    }
+  })
+
+  // Active circle: fades in when collapsed, primary color
+  const activeCircleStyle = useAnimatedStyle(() => ({
+    opacity: collapseFraction.value * activeFraction.value,
+  }))
+
+  // Inactive circle: fades in when collapsed, muted at 20% opacity
+  const inactiveCircleStyle = useAnimatedStyle(() => ({
+    opacity: collapseFraction.value * (1 - activeFraction.value) * 0.2,
   }))
 
   const activeIconOpacity = useAnimatedStyle(() => ({
@@ -81,6 +103,13 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
       disabled={active}
       style={styles.container}
     >
+      {/* Per-button circular indicator for collapsed state */}
+      <Animated.View
+        style={[styles.circleBackground, { backgroundColor: primaryColor }, activeCircleStyle]}
+      />
+      <Animated.View
+        style={[styles.circleBackground, { backgroundColor: mutedColor }, inactiveCircleStyle]}
+      />
       <Animated.View style={[styles.content, { width: itemWidth }, liftStyle]}>
         {/* Cross-fade two icons so strokes never overlap — avoids dark fringing */}
         <View style={{ width: iconPx, height: iconPx }}>
@@ -122,8 +151,14 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 10,
-    marginTop: 2,
     textAlign: 'center',
+    overflow: 'hidden',
+  },
+  circleBackground: {
+    position: 'absolute',
+    width: ICON_CIRCLE_SIZE,
+    height: ICON_CIRCLE_SIZE,
+    borderRadius: ICON_CIRCLE_SIZE / 2,
   },
   iconOverlay: {
     alignItems: 'center',

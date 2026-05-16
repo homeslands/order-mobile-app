@@ -1,8 +1,10 @@
 import { ShoppingCart } from 'lucide-react-native'
 import React, { useMemo } from 'react'
 import { Text, View } from 'react-native'
+import Animated, { interpolate, useAnimatedStyle } from 'react-native-reanimated'
 
 import { TAB_ROUTES } from '@/constants/navigation.config'
+import { useTabScrollContext } from '@/lib/navigation'
 import { useOrderFlowCartItemCount } from '@/stores/selectors'
 
 import { NativeGesturePressable } from './native-gesture-pressable'
@@ -22,6 +24,13 @@ const FloatingCartButton = React.memo(function FloatingCartButton({
 }: Props) {
   const orderFlowCount = useOrderFlowCartItemCount()
   const cartItemCount = countOverride ?? orderFlowCount
+  const { collapseFraction } = useTabScrollContext()
+
+  // Width goes to 0 so the tab bar expands to fill the freed space
+  const containerStyle = useAnimatedStyle(() => ({
+    width: interpolate(collapseFraction.value, [0, 1], [64, 0]),
+    opacity: 1 - collapseFraction.value,
+  }))
 
   const buttonStyle = useMemo(
     () => ({
@@ -41,6 +50,7 @@ const FloatingCartButton = React.memo(function FloatingCartButton({
   )
 
   return (
+    <Animated.View style={[{ overflow: 'hidden' }, containerStyle]}>
     <NativeGesturePressable
       navigation={{ type: 'push', href: href ?? TAB_ROUTES.CART }}
       style={buttonStyle}
@@ -69,6 +79,7 @@ const FloatingCartButton = React.memo(function FloatingCartButton({
         </View>
       )}
     </NativeGesturePressable>
+    </Animated.View>
   )
 })
 
