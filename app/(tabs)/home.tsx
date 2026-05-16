@@ -1,4 +1,5 @@
 /** Tab Home. */
+import { useFocusEffect } from '@react-navigation/native'
 import { useRouter } from 'expo-router'
 import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -37,6 +38,7 @@ import { BannerPage, colors, youtubeVideoId } from '@/constants'
 import { useRunAfterTransition } from '@/hooks'
 import { useBanners } from '@/hooks/use-banner'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
+import { useTabScrollContext } from '@/lib/navigation'
 import type { IBanner } from '@/types'
 
 const SCREEN_W = Dimensions.get('window').width
@@ -104,9 +106,19 @@ export default function HomeScreen() {
 
   // ─── Scroll tracking ─────────────────────────────────────────────
   const scrollY = useSharedValue(0)
+  const { scrollY: tabScrollY } = useTabScrollContext()
+
+  // Reset tab bar to expanded state when this tab gains focus
+  useFocusEffect(
+    useCallback(() => {
+      tabScrollY.value = 0
+    }, [tabScrollY]),
+  )
+
   const scrollHandler = useAnimatedScrollHandler((e) => {
     'worklet'
-    scrollY.value = e.contentOffset.y
+    scrollY.value = e.contentOffset.y       // local — banner parallax
+    tabScrollY.value = e.contentOffset.y    // context — tab bar collapse
   })
 
   // Fixed banner height — 2:1 aspect ratio
