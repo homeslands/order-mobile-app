@@ -10,8 +10,6 @@ import Animated, {
 } from 'react-native-reanimated'
 import type { SharedValue } from 'react-native-reanimated'
 
-const ICON_CIRCLE_SIZE = 36
-
 import { NativeGesturePressable } from './native-gesture-pressable'
 
 type AnimatedTabButtonProps = {
@@ -21,7 +19,6 @@ type AnimatedTabButtonProps = {
   label?: string
   Icon: LucideIcon
   active: boolean
-  primaryColor: string
   mutedColor: string
   onPressIn?: (href: string) => void
   // UI-thread animation — passed from AnimatedTabBar
@@ -39,7 +36,6 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
   label,
   Icon,
   active,
-  primaryColor,
   mutedColor,
   onPressIn,
   indicatorX,
@@ -76,16 +72,6 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
     }
   })
 
-  // Active circle: fades in when collapsed, primary color
-  const activeCircleStyle = useAnimatedStyle(() => ({
-    opacity: collapseFraction.value * activeFraction.value,
-  }))
-
-  // Inactive circle: fades in when collapsed, muted at 20% opacity
-  const inactiveCircleStyle = useAnimatedStyle(() => ({
-    opacity: collapseFraction.value * (1 - activeFraction.value) * 0.2,
-  }))
-
   const activeIconOpacity = useAnimatedStyle(() => ({
     opacity: activeFraction.value,
   }))
@@ -103,13 +89,6 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
       disabled={active}
       style={styles.container}
     >
-      {/* Per-button circular indicator for collapsed state */}
-      <Animated.View
-        style={[styles.circleBackground, { backgroundColor: primaryColor }, activeCircleStyle]}
-      />
-      <Animated.View
-        style={[styles.circleBackground, { backgroundColor: mutedColor }, inactiveCircleStyle]}
-      />
       <Animated.View style={[styles.content, { width: itemWidth }, liftStyle]}>
         {/* Cross-fade two icons so strokes never overlap — avoids dark fringing */}
         <View style={{ width: iconPx, height: iconPx }}>
@@ -153,12 +132,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     textAlign: 'center',
     overflow: 'hidden',
-  },
-  circleBackground: {
-    position: 'absolute',
-    width: ICON_CIRCLE_SIZE,
-    height: ICON_CIRCLE_SIZE,
-    borderRadius: ICON_CIRCLE_SIZE / 2,
   },
   iconOverlay: {
     alignItems: 'center',

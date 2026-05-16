@@ -26,10 +26,10 @@ const FloatingCartButton = React.memo(function FloatingCartButton({
   const cartItemCount = countOverride ?? orderFlowCount
   const { collapseFraction } = useTabScrollContext()
 
-  // Width goes to 0 so the tab bar expands to fill the freed space
+  // Slides toward the pill (left = toward center) while fading
   const containerStyle = useAnimatedStyle(() => ({
-    width: interpolate(collapseFraction.value, [0, 1], [64, 0]),
     opacity: 1 - collapseFraction.value,
+    transform: [{ translateX: interpolate(collapseFraction.value, [0, 1], [0, -20]) }],
   }))
 
   const buttonStyle = useMemo(
@@ -50,7 +50,7 @@ const FloatingCartButton = React.memo(function FloatingCartButton({
   )
 
   return (
-    <Animated.View style={[{ overflow: 'hidden' }, containerStyle]}>
+    <Animated.View style={containerStyle}>
     <NativeGesturePressable
       navigation={{ type: 'push', href: href ?? TAB_ROUTES.CART }}
       style={buttonStyle}
