@@ -111,12 +111,6 @@ export default function MenuPage() {
   // ── Tab scroll context ──
   const { scrollY } = useTabScrollContext()
 
-  useFocusEffect(
-    useCallback(() => {
-      scrollY.value = 0
-    }, [scrollY]),
-  )
-
   const tabScrollHandler = useAnimatedScrollHandler((e) => {
     'worklet'
     scrollY.value = e.contentOffset.y

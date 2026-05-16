@@ -1,5 +1,4 @@
 /** Tab Home. */
-import { useFocusEffect } from '@react-navigation/native'
 import { useRouter } from 'expo-router'
 import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -107,13 +106,6 @@ export default function HomeScreen() {
   // ─── Scroll tracking ─────────────────────────────────────────────
   const scrollY = useSharedValue(0)
   const { scrollY: tabScrollY } = useTabScrollContext()
-
-  // Reset tab bar to expanded state when this tab gains focus
-  useFocusEffect(
-    useCallback(() => {
-      tabScrollY.value = 0
-    }, [tabScrollY]),
-  )
 
   const scrollHandler = useAnimatedScrollHandler((e) => {
     'worklet'

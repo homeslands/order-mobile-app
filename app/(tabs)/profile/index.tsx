@@ -446,12 +446,6 @@ const ProfileTest = () => {
 
   const { scrollY: tabScrollY } = useTabScrollContext()
 
-  useFocusEffect(
-    useCallback(() => {
-      tabScrollY.value = 0
-    }, [tabScrollY]),
-  )
-
   const tabScrollHandler = useAnimatedScrollHandler((e) => {
     'worklet'
     tabScrollY.value = e.contentOffset.y

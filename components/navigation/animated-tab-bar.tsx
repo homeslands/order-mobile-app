@@ -13,7 +13,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 
-import { SPRING_CONFIGS } from '@/constants'
+import { SPRING_CONFIGS, TIMING_CONFIGS } from '@/constants'
 import { useTabScrollContext } from '@/lib/navigation'
 import { AnimatedTabButton } from './animated-tab-button'
 
@@ -66,17 +66,16 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   useAnimatedReaction(
     () => scrollY.value,
     (current, previous) => {
-      'worklet'
       const prev = previous ?? 0
       if (current < 60) {
         if (collapseFraction.value !== 0)
-          collapseFraction.value = withTiming(0, { duration: 200 })
+          collapseFraction.value = withTiming(0, TIMING_CONFIGS.tabCollapse)
       } else if (current > prev + 4) {
         if (collapseFraction.value !== 1)
-          collapseFraction.value = withTiming(1, { duration: 200 })
+          collapseFraction.value = withTiming(1, TIMING_CONFIGS.tabCollapse)
       } else if (current < prev - 4) {
         if (collapseFraction.value !== 0)
-          collapseFraction.value = withTiming(0, { duration: 200 })
+          collapseFraction.value = withTiming(0, TIMING_CONFIGS.tabCollapse)
       }
     },
   )
@@ -109,6 +108,15 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
       indicatorX.value = withSpring(targetX, SPRING_CONFIGS.tabIndicator)
     }
   }, [activeIndex, paddingH, itemWidth, pillWidth, indicatorX])
+
+  // Snap tab bar to expanded (visible) state immediately when switching tabs —
+  // avoids the flash where scrollY resets to 0 and the bar briefly collapses
+  // before the first real scroll event arrives with the correct offset.
+  useEffect(() => {
+    if (activeIndex >= 0) {
+      collapseFraction.value = 0
+    }
+  }, [activeIndex, collapseFraction])
 
   const onPillLayout = useCallback((e: LayoutChangeEvent) => {
     const w = e.nativeEvent.layout.width

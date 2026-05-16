@@ -139,6 +139,12 @@ export const TIMING_CONFIGS = {
    * Banner dot fade — opacity cross-fade between active/inactive dot states.
    */
   dotFade: { duration: 180 } as const,
+
+  /**
+   * Tab bar collapse/expand — animates collapseFraction between 0 and 1 when
+   * the user scrolls down (collapse) or up / near top (expand).
+   */
+  tabCollapse: { duration: 200 } as const,
 } as const
 
 /** Scale active cho PaginationDot — 1.25 thay vì 2–3 để tránh méo hình */
