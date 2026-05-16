@@ -25,10 +25,7 @@ const CONTENT_HEIGHT = 32 + 14 + 12
 const PILL_RADIUS = (PADDING_V * 2 + CONTENT_HEIGHT) / 2
 const PADDING_H_DEFAULT = 10
 
-const BUTTON_PADDING_V = 6
-const ICON_PX = Math.round(ICON_SIZE * 0.55)
-const PILL_HEIGHT_EXPANDED = PADDING_V * 2 + CONTENT_HEIGHT
-const PILL_HEIGHT_COLLAPSED = PADDING_V * 2 + BUTTON_PADDING_V * 2 + ICON_PX
+const COLLAPSED_SCALE = 0.75
 
 type Colors = {
   primary: string
@@ -70,11 +67,9 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   const collapseFraction = useSharedValue(0)
 
   const pillAnimatedStyle = useAnimatedStyle(() => ({
-    height: interpolate(
-      collapseFraction.value,
-      [0, 1],
-      [PILL_HEIGHT_EXPANDED, PILL_HEIGHT_COLLAPSED],
-    ),
+    transform: [
+      { scale: interpolate(collapseFraction.value, [0, 1], [1, COLLAPSED_SCALE]) },
+    ],
   }))
 
   useAnimatedReaction(
@@ -198,7 +193,6 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
             buttonIndex={index}
             buttonPaddingH={paddingH}
             indicatorWidth={itemWidth}
-            collapseFraction={collapseFraction}
           />
         ))}
       </Animated.View>
