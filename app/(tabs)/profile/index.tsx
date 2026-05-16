@@ -53,9 +53,12 @@ import {
   GestureDetector,
   ScrollView as GestureScrollView,
 } from 'react-native-gesture-handler'
-import Animated from 'react-native-reanimated'
+import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated'
+import { useTabScrollContext } from '@/lib/navigation'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useProfileAnimation } from './use-profile-animation'
+
+const AnimatedGestureScrollView = Animated.createAnimatedComponent(GestureScrollView)
 
 const AVATAR_SIZE = 100
 const AVATAR_TOP = 60
@@ -440,6 +443,20 @@ const ProfileTest = () => {
       resetPosition()
     }, [resetPosition]),
   )
+
+  const { scrollY: tabScrollY } = useTabScrollContext()
+
+  useFocusEffect(
+    useCallback(() => {
+      tabScrollY.value = 0
+    }, [tabScrollY]),
+  )
+
+  const tabScrollHandler = useAnimatedScrollHandler((e) => {
+    'worklet'
+    tabScrollY.value = e.contentOffset.y
+  })
+
   const needsUserInfo = useAuthStore((state) => state.needsUserInfo())
   const userInfo = useUserStore((state) => state.userInfo)
   const setUserInfo = useUserStore((state) => state.setUserInfo)
@@ -640,10 +657,12 @@ const ProfileTest = () => {
           ]}
           renderToHardwareTextureAndroid
         >
-          <GestureScrollView
+          <AnimatedGestureScrollView
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
+            onScroll={tabScrollHandler}
+            scrollEventThrottle={16}
           >
             {/* Avatar + tên + sđt — scroll cùng nội dung */}
             <View
@@ -852,7 +871,7 @@ const ProfileTest = () => {
                 {t('profile.logout.title', 'Đăng xuất')}
               </Text>
             </TouchableOpacity>
-          </GestureScrollView>
+          </AnimatedGestureScrollView>
 
           {/* ProfileHeader — 100% CartHeader structure, LayoutGrid + Pencil buttons */}
           <ProfileHeader
