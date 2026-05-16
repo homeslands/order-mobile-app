@@ -24,7 +24,6 @@ const CONTENT_HEIGHT = 32 + 14 + 12
 const PILL_RADIUS = (PADDING_V * 2 + CONTENT_HEIGHT) / 2
 const PADDING_H_DEFAULT = 10
 
-
 type Colors = {
   primary: string
   mutedForeground: string
@@ -70,14 +69,14 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
       'worklet'
       const prev = previous ?? 0
       if (current < 60) {
-        // Near top: always expand
-        collapseFraction.value = withTiming(0, { duration: 200 })
+        if (collapseFraction.value !== 0)
+          collapseFraction.value = withTiming(0, { duration: 200 })
       } else if (current > prev + 4) {
-        // Scrolling down
-        collapseFraction.value = withTiming(1, { duration: 200 })
+        if (collapseFraction.value !== 1)
+          collapseFraction.value = withTiming(1, { duration: 200 })
       } else if (current < prev - 4) {
-        // Scrolling up
-        collapseFraction.value = withTiming(0, { duration: 200 })
+        if (collapseFraction.value !== 0)
+          collapseFraction.value = withTiming(0, { duration: 200 })
       }
     },
   )

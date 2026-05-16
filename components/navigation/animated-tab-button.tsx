@@ -62,15 +62,10 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
     ],
   }))
 
-  const labelStyle = useAnimatedStyle(() => {
-    const show = 1 - collapseFraction.value
-    return {
-      color: interpolateColor(activeFraction.value, [0, 1], [mutedColor, '#ffffff']),
-      opacity: show,
-      maxHeight: show * 16,
-      marginTop: show * 2,
-    }
-  })
+  const labelStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(activeFraction.value, [0, 1], [mutedColor, '#ffffff']),
+    opacity: 1 - collapseFraction.value,
+  }))
 
   const activeIconOpacity = useAnimatedStyle(() => ({
     opacity: activeFraction.value,
@@ -132,7 +127,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginTop: 2,
     textAlign: 'center',
-    overflow: 'hidden',
   },
   iconOverlay: {
     alignItems: 'center',
