@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo } from 'react'
+import { createContext, useContext, useMemo, type ReactNode } from 'react'
 import { useSharedValue } from 'react-native-reanimated'
 import type { SharedValue } from 'react-native-reanimated'
 
@@ -8,9 +8,9 @@ type TabScrollContextValue = {
 
 const TabScrollContext = createContext<TabScrollContextValue | null>(null)
 
-export function TabScrollProvider({ children }: { children: React.ReactNode }) {
+export function TabScrollProvider({ children }: { children: ReactNode }) {
   const scrollY = useSharedValue(0)
-  // useMemo → stable object reference, context consumers never re-render from this
+  // scrollY is stable from Reanimated — memo never invalidates, consumers never re-render
   const value = useMemo(() => ({ scrollY }), [scrollY])
   return (
     <TabScrollContext.Provider value={value}>
