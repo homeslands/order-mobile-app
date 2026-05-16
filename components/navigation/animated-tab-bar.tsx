@@ -6,6 +6,7 @@ import { Gift, Home, Menu, User } from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { LayoutChangeEvent, StyleSheet, View } from 'react-native'
 import Animated, {
+  interpolate,
   useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
@@ -23,6 +24,11 @@ const PADDING_V = 4
 const CONTENT_HEIGHT = 32 + 14 + 12
 const PILL_RADIUS = (PADDING_V * 2 + CONTENT_HEIGHT) / 2
 const PADDING_H_DEFAULT = 10
+
+const BUTTON_PADDING_V = 6
+const ICON_PX = Math.round(ICON_SIZE * 0.55)
+const PILL_HEIGHT_EXPANDED = PADDING_V * 2 + CONTENT_HEIGHT
+const PILL_HEIGHT_COLLAPSED = PADDING_V * 2 + BUTTON_PADDING_V * 2 + ICON_PX
 
 type Colors = {
   primary: string
@@ -62,6 +68,14 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   const indicatorX = useSharedValue(0)
   const { scrollY } = useTabScrollContext()
   const collapseFraction = useSharedValue(0)
+
+  const pillAnimatedStyle = useAnimatedStyle(() => ({
+    height: interpolate(
+      collapseFraction.value,
+      [0, 1],
+      [PILL_HEIGHT_EXPANDED, PILL_HEIGHT_COLLAPSED],
+    ),
+  }))
 
   useAnimatedReaction(
     () => scrollY.value,
@@ -151,10 +165,11 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
 
   return (
     <View style={[styles.tabBar, { backgroundColor: 'transparent' }]}>
-      <View
+      <Animated.View
         style={[
           styles.pill,
           { paddingHorizontal: paddingH, backgroundColor: colors.card },
+          pillAnimatedStyle,
         ]}
         onLayout={onPillLayout}
       >
@@ -186,7 +201,7 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
             collapseFraction={collapseFraction}
           />
         ))}
-      </View>
+      </Animated.View>
     </View>
   )
 })
