@@ -1,6 +1,3 @@
-/**
- * AnimatedTabButton — Icon + label, màu đổi theo active (indicator trượt ở parent).
- */
 import type { LucideIcon } from 'lucide-react-native'
 import React, { useCallback } from 'react'
 import { StyleSheet, View } from 'react-native'
@@ -29,6 +26,7 @@ type AnimatedTabButtonProps = {
   buttonIndex: number
   buttonPaddingH: number
   indicatorWidth: number
+  collapseFraction: SharedValue<number>
 }
 
 export const AnimatedTabButton = React.memo(function AnimatedTabButton({
@@ -44,6 +42,7 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
   buttonIndex,
   buttonPaddingH,
   indicatorWidth,
+  collapseFraction,
 }: AnimatedTabButtonProps) {
   const handlePressIn = useCallback(() => {
     onPressIn?.(href)
@@ -58,17 +57,27 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
 
   const liftStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateY: activeFraction.value * -3 },
+      { translateY: activeFraction.value * -3 * (1 - collapseFraction.value) },
       { scale: 1 + activeFraction.value * 0.06 },
     ],
   }))
 
-  const labelStyle = useAnimatedStyle(() => ({
-    color: interpolateColor(activeFraction.value, [0, 1], [mutedColor, '#ffffff']),
-  }))
+  const labelStyle = useAnimatedStyle(() => {
+    const show = 1 - collapseFraction.value
+    return {
+      color: interpolateColor(activeFraction.value, [0, 1], [mutedColor, '#ffffff']),
+      opacity: show,
+      maxHeight: show * 16,
+      marginTop: show * 2,
+    }
+  })
 
   const activeIconOpacity = useAnimatedStyle(() => ({
     opacity: activeFraction.value,
+  }))
+
+  const mutedIconOpacity = useAnimatedStyle(() => ({
+    opacity: 1 - activeFraction.value,
   }))
 
   const iconPx = iconSize * 0.55
@@ -81,10 +90,16 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
       style={styles.container}
     >
       <Animated.View style={[styles.content, { width: itemWidth }, liftStyle]}>
-        {/* Icon: muted layer always present; white layer fades in as indicator arrives */}
+        {/* Cross-fade two icons so strokes never overlap — avoids dark fringing */}
         <View style={{ width: iconPx, height: iconPx }}>
-          <Icon color={mutedColor} size={iconPx} />
-          <Animated.View style={[StyleSheet.absoluteFill, styles.iconOverlay, activeIconOpacity]}>
+          <Animated.View
+            style={[StyleSheet.absoluteFill, styles.iconOverlay, mutedIconOpacity]}
+          >
+            <Icon color={mutedColor} size={iconPx} />
+          </Animated.View>
+          <Animated.View
+            style={[StyleSheet.absoluteFill, styles.iconOverlay, activeIconOpacity]}
+          >
             <Icon color="#ffffff" size={iconPx} />
           </Animated.View>
         </View>
@@ -117,6 +132,7 @@ const styles = StyleSheet.create({
     fontSize: 10,
     marginTop: 2,
     textAlign: 'center',
+    overflow: 'hidden',
   },
   iconOverlay: {
     alignItems: 'center',

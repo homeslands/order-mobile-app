@@ -6,12 +6,15 @@ import { Gift, Home, Menu, User } from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { LayoutChangeEvent, StyleSheet, View } from 'react-native'
 import Animated, {
+  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  withTiming,
 } from 'react-native-reanimated'
 
 import { SPRING_CONFIGS } from '@/constants'
+import { useTabScrollContext } from '@/lib/navigation'
 import { AnimatedTabButton } from './animated-tab-button'
 
 const ICON_SIZE = 32
@@ -58,6 +61,27 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   const [layout, setLayout] = useState({ pillWidth: 0, paddingH: PADDING_H_DEFAULT })
   const { pillWidth, paddingH } = layout
   const indicatorX = useSharedValue(0)
+  const { scrollY } = useTabScrollContext()
+  const collapseFraction = useSharedValue(0)
+
+  useAnimatedReaction(
+    () => scrollY.value,
+    (current, previous) => {
+      'worklet'
+      const prev = previous ?? 0
+      if (current < 60) {
+        // Near top: always expand
+        collapseFraction.value = withTiming(0, { duration: 200 })
+      } else if (current > prev + 4) {
+        // Scrolling down
+        collapseFraction.value = withTiming(1, { duration: 200 })
+      } else if (current < prev - 4) {
+        // Scrolling up
+        collapseFraction.value = withTiming(0, { duration: 200 })
+      }
+    },
+  )
+
   const hasAnimatedRef = useRef(false)
 
   // activeIndex = -1 khi user ở route không thuộc tab nào (vd: /cart,
@@ -152,6 +176,7 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
             buttonIndex={index}
             buttonPaddingH={paddingH}
             indicatorWidth={itemWidth}
+            collapseFraction={collapseFraction}
           />
         ))}
       </View>
