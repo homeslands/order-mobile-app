@@ -25,7 +25,6 @@ import {
   Gift,
   ShoppingCart,
 } from 'lucide-react-native'
-import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated'
 import React, {
   startTransition,
   useCallback,
@@ -47,7 +46,6 @@ import {
 } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { useTabScrollContext } from '@/lib/navigation'
 
 import { Images } from '@/assets/images'
 
@@ -71,10 +69,6 @@ const ENTRY_FETCH_DELAY_MS = 120
 const ITEM_PADDING_BOTTOM = 12
 const ITEM_SIZE = GIFT_CARD_ITEM_HEIGHT + ITEM_PADDING_BOTTOM
 type SortOrder = 'asc' | 'desc' | null
-
-const AnimatedFlashList = Animated.createAnimatedComponent(
-  FlashList as React.ComponentType<React.ComponentProps<typeof FlashList<IGiftCard>>>,
-)
 
 function overrideItemLayout(layout: { span?: number; size?: number }) {
   layout.size = ITEM_SIZE
@@ -158,14 +152,6 @@ export default function GiftCardScreen() {
   const giftCardItem = useGiftCardStore((s) => s.giftCardItem)
   const setGiftCardItem = useGiftCardStore((s) => s.setGiftCardItem)
   const clearGiftCard = useGiftCardStore((s) => s.clearGiftCard)
-
-  // ── Tab scroll context ──
-  const { scrollY } = useTabScrollContext()
-
-  const tabScrollHandler = useAnimatedScrollHandler((e) => {
-    'worklet'
-    scrollY.value = e.contentOffset.y
-  })
 
   // ── Defer fetch ──────────────────────────────────────────────────────────
   useFocusEffect(
@@ -425,15 +411,13 @@ export default function GiftCardScreen() {
           </Text>
         </View>
       ) : (
-        <AnimatedFlashList
+        <FlashList
           ref={flashListRef}
           data={items}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
           overrideItemLayout={overrideItemLayout}
           contentContainerStyle={listContentStyle}
-          onScroll={tabScrollHandler}
-          scrollEventThrottle={16}
           refreshControl={
             <RefreshControl
               refreshing={isRefetching}

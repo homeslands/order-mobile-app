@@ -6,16 +6,12 @@ import { Gift, Home, Menu, User } from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { LayoutChangeEvent, StyleSheet, View } from 'react-native'
 import Animated, {
-  interpolate,
-  useAnimatedReaction,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
-  withTiming,
 } from 'react-native-reanimated'
 
-import { SPRING_CONFIGS, TIMING_CONFIGS } from '@/constants'
-import { useTabScrollContext } from '@/lib/navigation'
+import { SPRING_CONFIGS } from '@/constants'
 import { AnimatedTabButton } from './animated-tab-button'
 
 const ICON_SIZE = 32
@@ -24,7 +20,6 @@ const PADDING_V = 4
 const CONTENT_HEIGHT = 32 + 14 + 12
 const PILL_RADIUS = (PADDING_V * 2 + CONTENT_HEIGHT) / 2
 const PADDING_H_DEFAULT = 10
-const COLLAPSED_SCALE = 0.75
 
 type Colors = {
   primary: string
@@ -62,28 +57,6 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   const [layout, setLayout] = useState({ pillWidth: 0, paddingH: PADDING_H_DEFAULT })
   const { pillWidth, paddingH } = layout
   const indicatorX = useSharedValue(0)
-  const { scrollY, collapseFraction } = useTabScrollContext()
-
-  const pillScaleStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: interpolate(collapseFraction.value, [0, 1], [1, COLLAPSED_SCALE]) }],
-  }))
-
-  useAnimatedReaction(
-    () => scrollY.value,
-    (current, previous) => {
-      const prev = previous ?? 0
-      if (current < 60) {
-        if (collapseFraction.value !== 0)
-          collapseFraction.value = withTiming(0, TIMING_CONFIGS.tabCollapse)
-      } else if (current > prev + 4) {
-        if (collapseFraction.value !== 1)
-          collapseFraction.value = withTiming(1, TIMING_CONFIGS.tabCollapse)
-      } else if (current < prev - 4) {
-        if (collapseFraction.value !== 0)
-          collapseFraction.value = withTiming(0, TIMING_CONFIGS.tabCollapse)
-      }
-    },
-  )
 
   const hasAnimatedRef = useRef(false)
 
@@ -113,15 +86,6 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
       indicatorX.value = withSpring(targetX, SPRING_CONFIGS.tabIndicator)
     }
   }, [activeIndex, paddingH, itemWidth, pillWidth, indicatorX])
-
-  // Snap tab bar to expanded (visible) state immediately when switching tabs —
-  // avoids the flash where scrollY resets to 0 and the bar briefly collapses
-  // before the first real scroll event arrives with the correct offset.
-  useEffect(() => {
-    if (activeIndex >= 0) {
-      collapseFraction.value = 0
-    }
-  }, [activeIndex, collapseFraction])
 
   const onPillLayout = useCallback((e: LayoutChangeEvent) => {
     const w = e.nativeEvent.layout.width
@@ -156,11 +120,10 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
 
   return (
     <View style={[styles.tabBar, { backgroundColor: 'transparent' }]}>
-      <Animated.View
+      <View
         style={[
           styles.pill,
           { paddingHorizontal: paddingH, backgroundColor: colors.card },
-          pillScaleStyle,
         ]}
         onLayout={onPillLayout}
       >
@@ -186,10 +149,9 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
             buttonIndex={index}
             buttonPaddingH={paddingH}
             indicatorWidth={itemWidth}
-            collapseFraction={collapseFraction}
           />
         ))}
-      </Animated.View>
+      </View>
     </View>
   )
 })

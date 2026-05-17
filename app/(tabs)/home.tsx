@@ -37,7 +37,6 @@ import { BannerPage, colors, youtubeVideoId } from '@/constants'
 import { useRunAfterTransition } from '@/hooks'
 import { useBanners } from '@/hooks/use-banner'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
-import { useTabScrollContext } from '@/lib/navigation'
 import type { IBanner } from '@/types'
 
 const SCREEN_W = Dimensions.get('window').width
@@ -105,12 +104,10 @@ export default function HomeScreen() {
 
   // ─── Scroll tracking ─────────────────────────────────────────────
   const scrollY = useSharedValue(0)
-  const { scrollY: tabScrollY } = useTabScrollContext()
 
   const scrollHandler = useAnimatedScrollHandler((e) => {
     'worklet'
     scrollY.value = e.contentOffset.y       // local — banner parallax
-    tabScrollY.value = e.contentOffset.y    // context — tab bar collapse
   })
 
   // Fixed banner height — 2:1 aspect ratio

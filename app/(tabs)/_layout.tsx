@@ -29,10 +29,7 @@ import { MOTION, QUERYKEY, tabsScreenOptions } from '@/constants'
 import { STATIC_BOTTOM_INSET } from '@/constants/status-bar'
 import { usePredictivePrefetch } from '@/hooks'
 import { useNotifications } from '@/hooks/use-notification'
-import {
-  TabScrollProvider,
-  useMasterTransitionOptional,
-} from '@/lib/navigation'
+import { useMasterTransitionOptional } from '@/lib/navigation'
 import { getThemeColor, hexToRgba } from '@/lib/utils'
 import {
   useAuthStore,
@@ -329,8 +326,7 @@ export default function TabsLayout() {
   }))
 
   return (
-    <TabScrollProvider>
-      <View style={{ flex: 1 }}>
+    <View style={{ flex: 1 }}>
         {/* Không dùng shouldRasterizeIOS/renderToHardwareTextureAndroid ở đây:
             indicator trong AnimatedTabBar animate mỗi frame spring, cache bitmap
             sẽ bị invalidate liên tục → ngược tác dụng. */}
@@ -460,7 +456,6 @@ export default function TabsLayout() {
         />
       </Tabs>
       <ProfileNudgePopup />
-      </View>
-    </TabScrollProvider>
+    </View>
   )
 }

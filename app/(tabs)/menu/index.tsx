@@ -22,8 +22,6 @@ import { getProductImageUrl } from '@/utils/product-image-url'
 import { showErrorToastMessage, showToast } from '@/utils/toast'
 import { useFocusEffect } from '@react-navigation/native'
 import { FlashList } from '@shopify/flash-list'
-import Animated, { useAnimatedScrollHandler } from 'react-native-reanimated'
-import { useTabScrollContext } from '@/lib/navigation'
 import { useQuery } from '@tanstack/react-query'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
@@ -59,12 +57,6 @@ import {
 type FlatItem =
   | { _kind: 'header'; key: string; name: string }
   | { _kind: 'item'; data: MenuDisplayItem }
-
-const AnimatedFlashList = Animated.createAnimatedComponent(
-  FlashList as React.ComponentType<
-    React.ComponentProps<typeof FlashList<FlatItem>>
-  >,
-)
 
 function overrideItemLayout(
   layout: { span?: number; size?: number },
@@ -107,14 +99,6 @@ export default function MenuPage() {
   const setMenuFilter = useSetMenuFilter()
   const [allowFetch, setAllowFetch] = useState(false)
   const [imagePhaseCount, setImagePhaseCount] = useState(0)
-
-  // ── Tab scroll context ──
-  const { scrollY } = useTabScrollContext()
-
-  const tabScrollHandler = useAnimatedScrollHandler((e) => {
-    'worklet'
-    scrollY.value = e.contentOffset.y
-  })
 
   // ── Order flow store bridge (read via getState to avoid re-render deps) ──
 
@@ -702,7 +686,7 @@ export default function MenuPage() {
         </View>
       ) : (
         <MenuImagePhaseContext.Provider value={imagePhaseCount}>
-          <AnimatedFlashList
+          <FlashList
             data={flatItems}
             renderItem={renderItem}
             keyExtractor={menuKeyExtractor}
@@ -710,8 +694,6 @@ export default function MenuPage() {
             overrideItemLayout={overrideItemLayout}
             drawDistance={300}
             keyboardDismissMode="on-drag"
-            onScroll={tabScrollHandler}
-            scrollEventThrottle={16}
             refreshControl={
               <RefreshControl
                 refreshing={isRefreshing}

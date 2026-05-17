@@ -1,10 +1,8 @@
 import { ShoppingCart } from 'lucide-react-native'
 import React, { useMemo } from 'react'
 import { Text, View } from 'react-native'
-import Animated, { interpolate, useAnimatedStyle } from 'react-native-reanimated'
 
 import { TAB_ROUTES } from '@/constants/navigation.config'
-import { useTabScrollContext } from '@/lib/navigation'
 import { useOrderFlowCartItemCount } from '@/stores/selectors'
 
 import { NativeGesturePressable } from './native-gesture-pressable'
@@ -24,13 +22,6 @@ const FloatingCartButton = React.memo(function FloatingCartButton({
 }: Props) {
   const orderFlowCount = useOrderFlowCartItemCount()
   const cartItemCount = countOverride ?? orderFlowCount
-  const { collapseFraction } = useTabScrollContext()
-
-  // Slides toward the pill (left = toward center) while fading
-  const containerStyle = useAnimatedStyle(() => ({
-    opacity: 1 - collapseFraction.value,
-    transform: [{ translateX: interpolate(collapseFraction.value, [0, 1], [0, -20]) }],
-  }))
 
   const buttonStyle = useMemo(
     () => ({
@@ -50,7 +41,6 @@ const FloatingCartButton = React.memo(function FloatingCartButton({
   )
 
   return (
-    <Animated.View style={containerStyle}>
     <NativeGesturePressable
       navigation={{ type: 'push', href: href ?? TAB_ROUTES.CART }}
       style={buttonStyle}
@@ -79,7 +69,6 @@ const FloatingCartButton = React.memo(function FloatingCartButton({
         </View>
       )}
     </NativeGesturePressable>
-    </Animated.View>
   )
 })
 

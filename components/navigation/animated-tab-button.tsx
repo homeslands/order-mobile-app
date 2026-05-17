@@ -26,7 +26,6 @@ type AnimatedTabButtonProps = {
   buttonIndex: number
   buttonPaddingH: number
   indicatorWidth: number
-  collapseFraction: SharedValue<number>
 }
 
 export const AnimatedTabButton = React.memo(function AnimatedTabButton({
@@ -42,7 +41,6 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
   buttonIndex,
   buttonPaddingH,
   indicatorWidth,
-  collapseFraction,
 }: AnimatedTabButtonProps) {
   const handlePressIn = useCallback(() => {
     onPressIn?.(href)
@@ -62,15 +60,9 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
     ],
   }))
 
-  const labelStyle = useAnimatedStyle(() => {
-    const show = 1 - collapseFraction.value
-    return {
-      color: interpolateColor(activeFraction.value, [0, 1], [mutedColor, '#ffffff']),
-      opacity: show,
-      maxHeight: show * 16,
-      marginTop: show * 2,
-    }
-  })
+  const labelStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(activeFraction.value, [0, 1], [mutedColor, '#ffffff']),
+  }))
 
   const activeIconOpacity = useAnimatedStyle(() => ({
     opacity: activeFraction.value,
@@ -131,7 +123,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 10,
     textAlign: 'center',
-    overflow: 'hidden',
+    marginTop: 2,
   },
   iconOverlay: {
     alignItems: 'center',
