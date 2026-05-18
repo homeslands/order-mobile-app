@@ -318,18 +318,27 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
 
   const handleItemPress = useCallback(
     (catalogSearch: string) => {
-      const cached = queryClient.getQueryData<IApiResponse<ICatalog[]>>([QUERYKEY.catalog])
-      const needle = catalogSearch.toLowerCase()
-      const matched = cached?.result?.find((c) =>
-        c.name.toLowerCase().includes(needle),
-      )
       router.push('/(tabs)/menu' as never)
-      scheduleTransitionTask(() => {
-        setMenuFilter((prev) => ({
-          ...prev,
-          catalog: matched?.slug,
-        }))
-      })
+      // ensureQueryData: resolve sync từ cache (warm) hoặc await network (cold).
+      // .then() là microtask khi warm → setMenuFilter chạy trước menu screen fetch đầu.
+      queryClient
+        .ensureQueryData<IApiResponse<ICatalog[]>>({
+          queryKey: [QUERYKEY.catalog],
+          queryFn: () => getCatalog(),
+        })
+        .then((res) => {
+          const needle = catalogSearch.toLowerCase()
+          const matched = res.result?.find((c) =>
+            c.name.toLowerCase().includes(needle),
+          )
+          setMenuFilter((prev) => ({
+            ...prev,
+            catalog: matched?.slug,
+          }))
+        })
+        .catch(() => {
+          // catalog fetch failed — menu hiển thị không filter
+        })
     },
     [queryClient, setMenuFilter, router],
   )
