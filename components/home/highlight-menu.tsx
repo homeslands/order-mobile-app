@@ -4,18 +4,15 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
 import React, { useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import type { ImageSourcePropType } from 'react-native'
-import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
+import type { ImageSourcePropType, ViewStyle } from 'react-native'
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
 import Animated, {
   interpolate,
-  scrollTo,
-  useAnimatedRef,
-  useAnimatedScrollHandler,
   useAnimatedStyle,
-  useDerivedValue,
   useSharedValue,
   type SharedValue,
 } from 'react-native-reanimated'
+import Carousel, { type CarouselRenderItem } from 'react-native-reanimated-carousel'
 
 import { getCatalog } from '@/api'
 import { Images } from '@/assets/images'
@@ -60,29 +57,25 @@ const DEFAULT_HIGHLIGHT_MENUS: HighlightMenuItem[] = [
 
 const CARD_GAP = 12
 
-// ─── Dot — targetOffset = scrollX value when this dot is "active" ─────────────
+// ─── Dot ─────────────────────────────────────────────────────────────────────
 
 function Dot({
-  targetOffset,
-  scrollX,
-  step,
+  index,
+  count,
+  absoluteProgress,
   primaryColor,
-  cloneOffset,
 }: {
-  targetOffset: number
-  scrollX: SharedValue<number>
-  step: number
+  index: number
+  count: number
+  absoluteProgress: SharedValue<number>
   primaryColor: string
-  cloneOffset?: number
 }) {
   const dotStyle = useAnimatedStyle(() => {
     'worklet'
-    const x = scrollX.value
-    const dist1 = Math.abs(x - targetOffset)
-    const dist = cloneOffset !== undefined
-      ? Math.min(dist1, Math.abs(x - cloneOffset))
-      : dist1
-    const active = interpolate(dist, [0, step], [1, 0], 'clamp')
+    const raw = Math.abs(absoluteProgress.value - index)
+    // wrap-around: shortest circular distance between progress and this dot's index
+    const dist = Math.min(raw, count - raw)
+    const active = interpolate(dist, [0, 1], [1, 0], 'clamp')
     return {
       width: interpolate(active, [0, 1], [6, 18], 'clamp'),
       opacity: interpolate(active, [0, 1], [0.35, 1], 'clamp'),
@@ -96,10 +89,10 @@ function Dot({
   )
 }
 
-// ─── Card — extended index drives centeredAt ──────────────────────────────────
+// ─── Card ─────────────────────────────────────────────────────────────────────
 
 const cardStyles = StyleSheet.create({
-  pressable: { flex: 1, borderRadius: 20, overflow: 'hidden' },
+  pressable: { flex: 1 },
   image: { width: '100%', height: '100%' },
   gradientOverlay: {
     position: 'absolute',
@@ -134,59 +127,31 @@ const cardStyles = StyleSheet.create({
 
 interface HighlightCardProps {
   item: HighlightMenuItem
-  extendedIndex: number
-  scrollX: SharedValue<number>
   cardWidth: number
   cardHeight: number
-  step: number
   onPress: (catalogSearch: string) => void
 }
 
 const HighlightCard = React.memo(function HighlightCard({
   item,
-  extendedIndex,
-  scrollX,
   cardWidth,
   cardHeight,
-  step,
   onPress,
 }: HighlightCardProps) {
   const { t } = useTranslation('home')
-  const centeredAt = extendedIndex * step
-
-  const progress = useDerivedValue(() => {
-    'worklet'
-    return Math.max(0, 1 - Math.abs(scrollX.value - centeredAt) / step)
-  })
-
-  const animStyle = useAnimatedStyle(() => {
-    'worklet'
-    const p = progress.value
-    return {
-      opacity: 0.55 + 0.45 * p,
-      transform: [
-        { scale: 0.86 + 0.14 * p },
-        { translateY: 12 * (1 - p) },
-      ],
-    }
-  })
-
   const handlePress = useCallback(
     () => onPress(item.catalogSearch),
     [onPress, item.catalogSearch],
   )
 
   return (
-    <Animated.View
-      style={[
-        {
-          width: cardWidth,
-          height: cardHeight,
-          marginHorizontal: CARD_GAP / 2,
-          borderRadius: 20,
-        },
-        animStyle,
-      ]}
+    <View
+      style={{
+        width: cardWidth,
+        height: cardHeight,
+        borderRadius: 20,
+        overflow: 'hidden',
+      }}
     >
       <Pressable onPress={handlePress} style={cardStyles.pressable}>
         <Image
@@ -196,7 +161,6 @@ const HighlightCard = React.memo(function HighlightCard({
           cachePolicy="memory-disk"
           accessibilityLabel={t(item.nameKey)}
         />
-
         <LinearGradient
           colors={['transparent', 'rgba(0,0,0,0.78)']}
           locations={[0.38, 1]}
@@ -208,7 +172,7 @@ const HighlightCard = React.memo(function HighlightCard({
           <Text style={cardStyles.subtitle}>Khám phá →</Text>
         </LinearGradient>
       </Pressable>
-    </Animated.View>
+    </View>
   )
 })
 
@@ -219,11 +183,6 @@ interface HighlightMenuCarouselProps {
   primaryColor?: string
 }
 
-/**
- * Focus-card carousel với infinite scroll.
- * Extended data: [cloneOfLast, ...items, cloneOfFirst]
- * Teleport on boundaries so the user never sees an end.
- */
 const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
   items,
   primaryColor = '#000',
@@ -249,57 +208,41 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
   const { cardWidth, cardHeight, sideInset, step } = useMemo(() => {
     const w = screenWidth * 0.72
     const h = w * 1.28
+    const s = w + CARD_GAP
     return {
       cardWidth: w,
       cardHeight: h,
-      // sideInset bù CARD_GAP/2 vì mỗi card có marginHorizontal = CARD_GAP/2.
-      // Đảm bảo card trung tâm luôn căn đúng giữa màn hình.
-      sideInset: (screenWidth - w) / 2 - CARD_GAP / 2,
-      step: w + CARD_GAP,
+      // sideInset: left offset so the centered item's visual center = screenWidth/2
+      sideInset: (screenWidth - s) / 2,
+      step: s,
     }
   }, [screenWidth])
 
-  /**
-   * Infinite data: [lastClone, item0, item1, ..., itemN-1, firstClone]
-   * Real items live at extended indices 1..count.
-   * At scroll offset k*step, item at extended index k is centered.
-   */
-  const extendedMenus = useMemo(() => {
-    if (count <= 1) return highlightMenus
-    return [highlightMenus[count - 1], ...highlightMenus, highlightMenus[0]]
-  }, [highlightMenus, count])
+  // absoluteProgress is driven by the library: 0.0 when item 0 centered, 1.0 when item 1, etc.
+  const absoluteProgress = useSharedValue(0)
 
-  // useAnimatedRef so scrollTo worklet can teleport without a JS-bridge roundtrip.
-  const listRef = useAnimatedRef<React.ComponentRef<typeof Animated.ScrollView>>()
-
-  // scrollX tracks raw scroll content offset.
-  // Real first item lives at offset 1*step, so init there.
-  const scrollX = useSharedValue(count > 1 ? step : 0)
-
-  const scrollHandler = useAnimatedScrollHandler({
-    onScroll: (e) => {
+  // customAnimation runs on UI thread. value = x.value / step (normalized offset from center).
+  // Items are position:absolute — translateX is REQUIRED for layout.
+  // translateX formula: sideInset + value * step centers the item at value=0.
+  const customAnimation = useCallback(
+    (value: number, _index: number): ViewStyle => {
       'worklet'
-      scrollX.value = e.contentOffset.x
-    },
-    onMomentumEnd: (e) => {
-      'worklet'
-      if (count <= 1) return
-      const x = e.contentOffset.x
-      // Epsilon 10% of step guards against double-snap on Android and float drift
-      const EPS = step * 0.1
-      if (Math.abs(x) < EPS) {
-        scrollTo(listRef, count * step, 0, false)
-      } else if (Math.abs(x - (count + 1) * step) < EPS) {
-        scrollTo(listRef, step, 0, false)
+      const p = Math.max(0, 1 - Math.abs(value))
+      return {
+        opacity: 0.55 + 0.45 * p,
+        transform: [
+          { translateX: sideInset + value * step },
+          { scale: 0.86 + 0.14 * p },
+          { translateY: 12 * (1 - p) },
+        ] as ViewStyle['transform'],
       }
     },
-  })
+    [sideInset, step],
+  )
 
   const handleItemPress = useCallback(
     (catalogSearch: string) => {
       router.push('/(tabs)/menu' as never)
-      // ensureQueryData: resolve sync từ cache (warm) hoặc await network (cold).
-      // .then() là microtask khi warm → setMenuFilter chạy trước menu screen fetch đầu.
       queryClient
         .ensureQueryData<IApiResponse<ICatalog[]>>({
           queryKey: [QUERYKEY.catalog],
@@ -316,66 +259,50 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
           }))
         })
         .catch(() => {
-          // catalog fetch failed — menu hiển thị không filter
+          // catalog fetch failed — menu shown without filter
         })
     },
     [queryClient, setMenuFilter, router],
   )
 
-  const listContentStyle = useMemo(
-    () => ({ paddingHorizontal: sideInset, alignItems: 'center' as const }),
-    [sideInset],
+  const renderItem: CarouselRenderItem<HighlightMenuItem> = useCallback(
+    ({ item }) => (
+      <View style={{ flex: 1, alignItems: 'center' }}>
+        <HighlightCard
+          item={item}
+          cardWidth={cardWidth}
+          cardHeight={cardHeight}
+          onPress={handleItemPress}
+        />
+      </View>
+    ),
+    [cardWidth, cardHeight, handleItemPress],
   )
 
   return (
     <View>
       <View style={{ height: cardHeight + 12 }}>
-        <Animated.ScrollView
-          ref={listRef}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          onScroll={scrollHandler}
-          scrollEventThrottle={16}
-          snapToInterval={step}
-          decelerationRate="fast"
-          contentContainerStyle={listContentStyle}
-          contentOffset={{ x: count > 1 ? step : 0, y: 0 }}
-        >
-          {extendedMenus.map((item, index) => (
-            <HighlightCard
-              key={
-                index === 0 ? `hl-clone-last-${item.id}`
-                : index === count + 1 ? `hl-clone-first-${item.id}`
-                : `hl-${item.id}`
-              }
-              item={item}
-              extendedIndex={index}
-              scrollX={scrollX}
-              cardWidth={cardWidth}
-              cardHeight={cardHeight}
-              step={step}
-              onPress={handleItemPress}
-            />
-          ))}
-        </Animated.ScrollView>
+        <Carousel
+          width={step}
+          height={cardHeight + 12}
+          style={{ width: screenWidth }}
+          data={highlightMenus}
+          loop={count > 1}
+          pagingEnabled
+          snapEnabled
+          onProgressChange={absoluteProgress}
+          customAnimation={customAnimation}
+          renderItem={renderItem}
+        />
       </View>
-
-      {/* Dot indicators — indexed against real items only.
-          Each dot's targetOffset = scroll position where that real item is centered.
-          Real item i lives at extended index i+1 → offset (i+1)*step. */}
       <View style={cardStyles.dotRow}>
         {highlightMenus.map((item, index) => (
           <Dot
             key={item.id}
-            targetOffset={(index + 1) * step}
-            scrollX={scrollX}
-            step={step}
+            index={index}
+            count={count}
+            absoluteProgress={absoluteProgress}
             primaryColor={primaryColor}
-            cloneOffset={
-              index === 0 ? (count + 1) * step        // first item → clone-first
-              : index === count - 1 ? 0               // last item → clone-last
-              : undefined
-            }
           />
         ))}
       </View>
