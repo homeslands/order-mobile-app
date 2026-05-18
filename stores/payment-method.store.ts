@@ -47,7 +47,7 @@ export const usePaymentMethodStore = create<IPaymentMethodStore>()(
       },
     }),
     {
-      name: 'payment-storage',
+      name: 'payment-method-storage',
       storage: createJSONStorage(() => createSafeStorage()),
     },
   ),

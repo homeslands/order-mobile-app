@@ -297,8 +297,8 @@ const DateFilterSheet = memo(function DateFilterSheet({
   onApply: (v: DateFilter) => void
   selectedType: string
   onTypeChange: (v: string) => void
-  selectedSort: 'createdAt:desc' | 'createdAt:asc'
-  onSortChange: (v: 'createdAt:desc' | 'createdAt:asc') => void
+  selectedSort: 'createdAt,desc' | 'createdAt,asc'
+  onSortChange: (v: 'createdAt,desc' | 'createdAt,asc') => void
 }) {
   const sheetRef = useRef<BottomSheetModal>(null)
   const { bottom } = useSafeAreaInsets()
@@ -329,8 +329,8 @@ const DateFilterSheet = memo(function DateFilterSheet({
 
   const SORT_OPTIONS = useMemo(
     () => [
-      { label: t('orders.sortNewest'), value: 'createdAt:desc' as const },
-      { label: t('orders.sortOldest'), value: 'createdAt:asc' as const },
+      { label: t('orders.sortNewest'), value: 'createdAt,desc' as const },
+      { label: t('orders.sortOldest'), value: 'createdAt,asc' as const },
     ],
     [t],
   )
@@ -358,7 +358,7 @@ const DateFilterSheet = memo(function DateFilterSheet({
   const handleReset = useCallback(() => {
     onApply({ fromDate: null, toDate: null })
     onTypeChange('ALL')
-    onSortChange('createdAt:desc')
+    onSortChange('createdAt,desc')
     sheetRef.current?.dismiss()
   }, [onApply, onTypeChange, onSortChange])
 
@@ -718,8 +718,8 @@ export default function GiftCardOrdersScreen() {
     toDate: null,
   })
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
-  const [sortDir, setSortDir] = useState<'createdAt:desc' | 'createdAt:asc'>(
-    'createdAt:desc',
+  const [sortDir, setSortDir] = useState<'createdAt,desc' | 'createdAt,asc'>(
+    'createdAt,desc',
   )
 
   const flashListRef = useRef<FlashListRef<ICardOrderResponse>>(null)
@@ -789,14 +789,14 @@ export default function GiftCardOrdersScreen() {
   }, [])
 
   const handleSortChange = useCallback(
-    (v: 'createdAt:desc' | 'createdAt:asc') => setSortDir(v),
+    (v: 'createdAt,desc' | 'createdAt,asc') => setSortDir(v),
     [],
   )
 
   const isDateActive =
     dateFilter.fromDate !== null ||
     dateFilter.toDate !== null ||
-    sortDir !== 'createdAt:desc'
+    sortDir !== 'createdAt,desc'
 
   const handleEndReached = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage()

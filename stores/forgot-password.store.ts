@@ -68,6 +68,7 @@ export const useForgotPasswordStore = create<IForgotPasswordStore>()(
     {
       name: 'forgot-password-store',
       storage: createJSONStorage(() => createSafeStorage()),
+      partialize: () => ({}),
     },
   ),
 )

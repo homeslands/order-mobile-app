@@ -65,6 +65,8 @@ export interface IOrderFlowStore {
   lastModified: number
   orderItemTotalQuantity: number
   minOrderValue: number
+  /** O(1) lookup map derived from orderingData.orderItems. Not persisted. */
+  orderItemsById: Record<string, IOrderItem>
 
   orderingData: IOrderingData | null
   paymentData: IPaymentData | null
@@ -205,3 +207,55 @@ export const calcRawSubTotal = (items: IOrderItem[] | undefined): number =>
     (sum, item) => sum + (item.originalPrice ?? 0) * (item.quantity || 0),
     0,
   ) ?? 0
+
+/** Build an id → IOrderItem map. Returns empty object for undefined/empty input. */
+export function calcOrderItemsById(
+  items: IOrderItem[] | undefined,
+): Record<string, IOrderItem> {
+  if (!items || items.length === 0) return {}
+  const out: Record<string, IOrderItem> = {}
+  for (const it of items) {
+    if (it.id) out[it.id] = it
+  }
+  return out
+}
+
+/**
+ * Single-pass aggregation — replaces 4 separate O(N) iterations per cart
+ * mutation with one loop. Call once, spread the result into set() and pass
+ * rawSubTotal to cart-display store.
+ */
+export function aggregateOrderItems(items: IOrderItem[] | undefined): {
+  orderItemTotalQuantity: number
+  minOrderValue: number
+  orderItemsById: Record<string, IOrderItem>
+  rawSubTotal: number
+} {
+  if (!items || items.length === 0) {
+    return {
+      orderItemTotalQuantity: 0,
+      minOrderValue: 0,
+      orderItemsById: {},
+      rawSubTotal: 0,
+    }
+  }
+  let totalQty = 0
+  let minOrder = 0
+  let rawSub = 0
+  const byId: Record<string, IOrderItem> = {}
+  for (const it of items) {
+    const q = it.quantity || 0
+    const orig = it.originalPrice ?? 0
+    const promo = it.promotionDiscount ?? 0
+    totalQty += q
+    minOrder += (orig - promo) * q
+    rawSub += orig * q
+    if (it.id) byId[it.id] = it
+  }
+  return {
+    orderItemTotalQuantity: totalQty,
+    minOrderValue: minOrder,
+    orderItemsById: byId,
+    rawSubTotal: rawSub,
+  }
+}

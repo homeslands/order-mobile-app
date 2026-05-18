@@ -23,6 +23,7 @@ import {
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 
+import { AppErrorBoundary } from '@/components/ui/app-error-boundary'
 import LogoutSheetPortal from '@/components/profile/logout-sheet-portal'
 import QRSelectionSheet from '@/components/profile/qr-selection-sheet'
 import ScanSheetPortal from '@/components/profile/scan-sheet-portal'
@@ -272,17 +273,19 @@ export default function RootLayout() {
   }, [isDark, navBarColor])
 
   return (
-    <>
-      {/* Global edge-to-edge: Android enters translucent mode at app startup,
-          so no screen ever sees a layout shift when statusBarTranslucent toggles.
-          Style reactive theo system theme — khi user đổi Light/Dark mid-session,
-          status bar (giờ, wifi, pin) đổi màu theo content mới. */}
-      <StatusBar
-        style={isDark ? 'light' : 'dark'}
-        translucent
-        backgroundColor="transparent"
-      />
-      <AppContent />
-    </>
+    <AppErrorBoundary>
+      <>
+        {/* Global edge-to-edge: Android enters translucent mode at app startup,
+            so no screen ever sees a layout shift when statusBarTranslucent toggles.
+            Style reactive theo system theme — khi user đổi Light/Dark mid-session,
+            status bar (giờ, wifi, pin) đổi màu theo content mới. */}
+        <StatusBar
+          style={isDark ? 'light' : 'dark'}
+          translucent
+          backgroundColor="transparent"
+        />
+        <AppContent />
+      </>
+    </AppErrorBoundary>
   )
 }

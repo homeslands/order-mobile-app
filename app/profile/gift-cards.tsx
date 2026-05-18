@@ -289,11 +289,21 @@ const CardListItem = memo(function CardListItem({
     [item.slug, onPress],
   )
 
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const handleCopyCode = useCallback(() => {
     Clipboard.setString(item.code)
     setCodeCopied(true)
-    setTimeout(() => setCodeCopied(false), 1500)
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current)
+    copyTimerRef.current = setTimeout(() => {
+      setCodeCopied(false)
+      copyTimerRef.current = null
+    }, 1500)
   }, [item.code])
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current)
+    }
+  }, [])
 
   const { createdDate, expiryDate } = useMemo(
     () => ({

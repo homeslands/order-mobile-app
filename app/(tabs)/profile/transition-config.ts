@@ -1,9 +1,3 @@
-import { WithSpringConfig } from 'react-native-reanimated'
+import { SPRING_CONFIGS } from '@/constants'
 
-export const SNAP_BRAKE_CONFIG: WithSpringConfig = {
-  damping: 24,
-  stiffness: 400,
-  mass: 0.45,
-  overshootClamping: true,
-  energyThreshold: 0.1,
-}
+export const SNAP_BRAKE_CONFIG = SPRING_CONFIGS.snapBrake

@@ -15,6 +15,7 @@ export const useBranch = (options?: UseBranchOptions) => {
     queryKey: ['branches'],
     queryFn: async () => getAllBranches(),
     enabled,
+    staleTime: 10 * 60_000,
   })
 }
 

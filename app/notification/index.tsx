@@ -313,9 +313,7 @@ export default function NotificationScreen() {
   const screenBg = isDark ? colors.background.dark : colors.background.light
 
   const notifications = useNotificationStore((s) => s.notifications)
-  const unreadCount = useNotificationStore(
-    (s) => s.notifications.filter((n) => !n.isRead).length,
-  )
+  const unreadCount = useNotificationStore((s) => s.unreadCount)
   const userSlug = useUserStore((s) => s.userInfo?.slug)
 
   // ── Tab filter ──────────────────────────────────────────────────────────
@@ -365,7 +363,7 @@ export default function NotificationScreen() {
     if (items && items.length > 0) {
       useNotificationStore.getState().hydrateFromApi(items)
     }
-  }, [apiData])
+  }, [apiData?.result?.items])
 
   useEffect(() => {
     Notifications.setBadgeCountAsync(0).catch(() => {})
