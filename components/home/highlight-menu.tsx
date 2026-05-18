@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { FlashList, type FlashListRef } from '@shopify/flash-list'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
@@ -13,7 +14,6 @@ import Animated, {
   useSharedValue,
   type SharedValue,
 } from 'react-native-reanimated'
-import { useQueryClient } from '@tanstack/react-query'
 
 import { getCatalog } from '@/api'
 import { Images } from '@/assets/images'
@@ -316,7 +316,7 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
       scheduleTransitionTask(() => {
         setMenuFilter((prev) => ({
           ...prev,
-          catalog: matched?.slug ?? undefined,
+          catalog: matched?.slug,
         }))
       })
     },
