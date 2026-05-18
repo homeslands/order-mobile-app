@@ -29,7 +29,7 @@ import { MOTION, QUERYKEY, tabsScreenOptions } from '@/constants'
 import { STATIC_BOTTOM_INSET } from '@/constants/status-bar'
 import { usePredictivePrefetch } from '@/hooks'
 import { useNotifications } from '@/hooks/use-notification'
-import { useMasterTransitionOptional } from '@/lib/navigation/master-transition-provider'
+import { useMasterTransitionOptional } from '@/lib/navigation'
 import { getThemeColor, hexToRgba } from '@/lib/utils'
 import {
   useAuthStore,
@@ -165,11 +165,7 @@ export default function TabsLayout() {
   const gradientColors = useMemo(
     () => [
       'transparent',
-      'transparent',
-      hexToRgba(colors.background, 0.03),
-      hexToRgba(colors.background, 0.08),
-      hexToRgba(colors.background, 0.18),
-      hexToRgba(colors.background, 0.35),
+      hexToRgba(colors.background, 0.15),
       hexToRgba(colors.background, 0.55),
       colors.background,
     ],
@@ -331,10 +327,10 @@ export default function TabsLayout() {
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Không dùng shouldRasterizeIOS/renderToHardwareTextureAndroid ở đây:
-          indicator trong AnimatedTabBar animate mỗi frame spring, cache bitmap
-          sẽ bị invalidate liên tục → ngược tác dụng. */}
-      {isBarMounted && (
+        {/* Không dùng shouldRasterizeIOS/renderToHardwareTextureAndroid ở đây:
+            indicator trong AnimatedTabBar animate mỗi frame spring, cache bitmap
+            sẽ bị invalidate liên tục → ngược tác dụng. */}
+        {isBarMounted && (
         <Animated.View
           style={[
             {
@@ -358,7 +354,7 @@ export default function TabsLayout() {
               colors={
                 gradientColors as unknown as [string, string, ...string[]]
               }
-              locations={[0, 0.15, 0.25, 0.35, 0.45, 0.55, 0.7, 1]}
+              locations={[0, 0.3, 0.65, 1]}
               style={{ flex: 1 }}
             />
           </View>
@@ -383,7 +379,6 @@ export default function TabsLayout() {
               tabState={resolvedTabState}
               tabRoutes={tabRoutes}
               onPressInTabSwitch={onPressInTabSwitch}
-              onBeforeTabSwitch={undefined}
             />
             <FloatingCartButton primaryColor={colors.primary} />
           </View>

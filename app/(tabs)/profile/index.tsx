@@ -440,6 +440,7 @@ const ProfileTest = () => {
       resetPosition()
     }, [resetPosition]),
   )
+
   const needsUserInfo = useAuthStore((state) => state.needsUserInfo())
   const userInfo = useUserStore((state) => state.userInfo)
   const setUserInfo = useUserStore((state) => state.setUserInfo)

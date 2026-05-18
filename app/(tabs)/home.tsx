@@ -104,9 +104,10 @@ export default function HomeScreen() {
 
   // ─── Scroll tracking ─────────────────────────────────────────────
   const scrollY = useSharedValue(0)
+
   const scrollHandler = useAnimatedScrollHandler((e) => {
     'worklet'
-    scrollY.value = e.contentOffset.y
+    scrollY.value = e.contentOffset.y       // local — banner parallax
   })
 
   // Fixed banner height — 2:1 aspect ratio
