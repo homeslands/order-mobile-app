@@ -339,11 +339,16 @@ const ProfileEditForm = React.memo(function ProfileEditForm({
   const handleConfirmUpdate = useCallback(async () => {
     if (isUpdatingRef.current) return
     isUpdatingRef.current = true
+    const rawDob = dobRef.current || userInfo.dob || ''
+    const normalized = rawDob ? normalizeDob(rawDob) : ''
+    const dobPayload = normalized
+      ? dayjs(normalized, 'YYYY-MM-DD').format('DD/MM/YYYY')
+      : undefined
     const payload = {
       firstName: firstNameRef.current,
       lastName: lastNameRef.current,
       address: addressRef.current,
-      dob: dobRef.current || userInfo.dob,
+      ...(dobPayload !== undefined ? { dob: dobPayload } : {}),
     }
     setIsUpdating(true)
     try {
