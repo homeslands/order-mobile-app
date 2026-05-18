@@ -79,11 +79,14 @@ function Dot({
     return {
       width: interpolate(active, [0, 1], [6, 18], 'clamp'),
       opacity: interpolate(active, [0, 1], [0.35, 1], 'clamp'),
-      backgroundColor: primaryColor,
     }
   })
 
-  return <Animated.View style={[dotStyle, { height: 6, borderRadius: 3 }]} />
+  return (
+    <Animated.View
+      style={[{ height: 6, borderRadius: 3, backgroundColor: primaryColor }, dotStyle]}
+    />
+  )
 }
 
 // ─── Card — extended index drives centeredAt ──────────────────────────────────
@@ -95,7 +98,6 @@ interface HighlightCardProps {
   cardWidth: number
   cardHeight: number
   step: number
-  t: (key: string) => string
   onPress: (catalogSearch: string) => void
 }
 
@@ -106,9 +108,9 @@ const HighlightCard = React.memo(function HighlightCard({
   cardWidth,
   cardHeight,
   step,
-  t,
   onPress,
 }: HighlightCardProps) {
+  const { t } = useTranslation('home')
   const centeredAt = extendedIndex * step
 
   const animStyle = useAnimatedStyle(() => {
@@ -337,11 +339,10 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
         cardWidth={cardWidth}
         cardHeight={cardHeight}
         step={step}
-        t={t}
         onPress={handleItemPress}
       />
     ),
-    [scrollX, cardWidth, cardHeight, step, t, handleItemPress],
+    [scrollX, cardWidth, cardHeight, step, handleItemPress],
   )
 
   // Use extended index as key — avoids id collision between clone and original
