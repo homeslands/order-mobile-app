@@ -231,7 +231,10 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
   const { t } = useTranslation('home')
   const router = useRouter()
   const { width: screenWidth } = useWindowDimensions()
-  const highlightMenus = items ?? DEFAULT_HIGHLIGHT_MENUS
+  const highlightMenus = useMemo(
+    () => items ?? DEFAULT_HIGHLIGHT_MENUS,
+    [items],
+  )
   const count = highlightMenus.length
 
   const queryClient = useQueryClient()
@@ -244,12 +247,18 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
     })
   }, [queryClient])
 
-  const cardWidth = screenWidth * 0.72
-  const cardHeight = cardWidth * 1.28
-  // sideInset bù CARD_GAP/2 vì mỗi card có marginHorizontal = CARD_GAP/2.
-  // Đảm bảo card trung tâm luôn căn đúng giữa màn hình.
-  const sideInset = (screenWidth - cardWidth) / 2 - CARD_GAP / 2
-  const step = cardWidth + CARD_GAP
+  const { cardWidth, cardHeight, sideInset, step } = useMemo(() => {
+    const w = screenWidth * 0.72
+    const h = w * 1.28
+    return {
+      cardWidth: w,
+      cardHeight: h,
+      // sideInset bù CARD_GAP/2 vì mỗi card có marginHorizontal = CARD_GAP/2.
+      // Đảm bảo card trung tâm luôn căn đúng giữa màn hình.
+      sideInset: (screenWidth - w) / 2 - CARD_GAP / 2,
+      step: w + CARD_GAP,
+    }
+  }, [screenWidth])
 
   /**
    * Infinite data: [lastClone, item0, item1, ..., itemN-1, firstClone]
