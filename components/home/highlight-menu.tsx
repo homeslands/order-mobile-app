@@ -9,6 +9,7 @@ import type { ImageSourcePropType } from 'react-native'
 import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
 import Animated, {
   interpolate,
+  runOnJS,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
@@ -221,10 +222,6 @@ interface HighlightMenuCarouselProps {
   primaryColor?: string
 }
 
-const AnimatedFlashList = Animated.createAnimatedComponent(
-  FlashList<HighlightMenuItem>,
-)
-
 /**
  * Focus-card carousel với infinite scroll.
  * Extended data: [cloneOfLast, ...items, cloneOfFirst]
@@ -276,44 +273,53 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
   }, [highlightMenus, count])
 
   // Ref for imperative scrollToOffset during teleport.
-  // createAnimatedComponent forwards the ref to the wrapped FlashList.
   const listRef = useRef<FlashListRef<HighlightMenuItem>>(null)
+
+  // Called via runOnJS from worklet — must be a stable JS function.
+  const teleport = useCallback(
+    (offset: number) => {
+      listRef.current?.scrollToOffset({ offset, animated: false })
+    },
+    [],
+  )
+
+  const getItemType = useCallback(
+    (_: HighlightMenuItem, index: number) => {
+      if (index === 0) return 'clone-last'
+      if (index === count + 1) return 'clone-first'
+      return 'real'
+    },
+    [count],
+  )
 
   // scrollX tracks raw FlatList content offset.
   // Real first item lives at offset 1*step, so init there.
   const scrollX = useSharedValue(count > 1 ? step : 0)
 
-  const scrollHandler = useAnimatedScrollHandler((e) => {
-    'worklet'
-    scrollX.value = e.contentOffset.x
-  })
-
-  // On mount: jump to real first item (skip the cloned-last at extended index 0)
-  useEffect(() => {
-    if (count <= 1) return
-    requestAnimationFrame(() => {
-      listRef.current?.scrollToOffset({ offset: step, animated: false })
-    })
-    // run once; step is stable for a given screen width
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [count])
-
-  // Teleport on scroll boundaries (called after momentum ends)
-  const handleScrollEnd = useCallback(
-    (e: { nativeEvent: { contentOffset: { x: number } } }) => {
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: (e) => {
+      'worklet'
+      scrollX.value = e.contentOffset.x
+    },
+    onMomentumEnd: (e) => {
+      'worklet'
       if (count <= 1) return
-      const rawIndex = Math.round(e.nativeEvent.contentOffset.x / step)
-
-      if (rawIndex === 0) {
-        // Swiped past beginning → jump to real last item
-        listRef.current?.scrollToOffset({ offset: count * step, animated: false })
-      } else if (rawIndex === count + 1) {
-        // Swiped past end → jump to real first item
-        listRef.current?.scrollToOffset({ offset: step, animated: false })
+      const x = e.contentOffset.x
+      // Epsilon 10% of step guards against double-snap on Android and float drift
+      const EPS = step * 0.1
+      if (Math.abs(x) < EPS) {
+        // Clone-last centered → teleport to real last item
+        const t = count * step
+        scrollX.value = t          // sync UI thread first to avoid frame mismatch
+        runOnJS(teleport)(t)
+      } else if (Math.abs(x - (count + 1) * step) < EPS) {
+        // Clone-first centered → teleport to real first item
+        const t = step
+        scrollX.value = t
+        runOnJS(teleport)(t)
       }
     },
-    [count, step],
-  )
+  })
 
   const handleItemPress = useCallback(
     (catalogSearch: string) => {
@@ -376,21 +382,22 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
     <View>
       {/* FlashList horizontal cần parent có bounded height để layout đúng. */}
       <View style={{ height: cardHeight + 12 }}>
-        <AnimatedFlashList
-          ref={listRef as React.Ref<FlashListRef<HighlightMenuItem>>}
+        <FlashList
+          ref={listRef}
           data={extendedMenus}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
-          // @ts-expect-error estimatedItemSize is supported at runtime but not typed in Animated.createAnimatedComponent
+          getItemType={getItemType}
+          // @ts-expect-error estimatedItemSize is a required FlashList prop at runtime but missing from v2 type declarations
           estimatedItemSize={step}
+          initialScrollIndex={count > 1 ? 1 : 0}
           horizontal
           showsHorizontalScrollIndicator={false}
-          onScroll={scrollHandler}
-          scrollEventThrottle={1}
+          onScroll={scrollHandler as never}
+          scrollEventThrottle={16}
           snapToInterval={step}
           decelerationRate="fast"
           contentContainerStyle={listContentStyle}
-          onMomentumScrollEnd={handleScrollEnd}
         />
       </View>
 
