@@ -235,7 +235,6 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
   items,
   primaryColor = '#000',
 }: HighlightMenuCarouselProps) {
-  const { t } = useTranslation('home')
   const router = useRouter()
   const { width: screenWidth } = useWindowDimensions()
   const highlightMenus = useMemo(
@@ -374,7 +373,7 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
           data={extendedMenus}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
-          // @ts-ignore estimatedItemSize is supported at runtime but not typed in Animated.createAnimatedComponent
+          // @ts-expect-error estimatedItemSize is supported at runtime but not typed in Animated.createAnimatedComponent
           estimatedItemSize={step}
           horizontal
           showsHorizontalScrollIndicator={false}
