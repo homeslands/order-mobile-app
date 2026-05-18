@@ -272,6 +272,10 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
     return [highlightMenus[count - 1], ...highlightMenus, highlightMenus[0]]
   }, [highlightMenus, count])
 
+  const AnimatedFlashList = Animated.createAnimatedComponent(
+    FlashList<HighlightMenuItem>,
+  )
+
   // Ref for imperative scrollToOffset during teleport.
   const listRef = useRef<FlashListRef<HighlightMenuItem>>(null)
 
@@ -308,12 +312,10 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
       // Epsilon 10% of step guards against double-snap on Android and float drift
       const EPS = step * 0.1
       if (Math.abs(x) < EPS) {
-        // Clone-last centered → teleport to real last item
         const t = count * step
         scrollX.value = t          // sync UI thread first to avoid frame mismatch
         runOnJS(teleport)(t)
       } else if (Math.abs(x - (count + 1) * step) < EPS) {
-        // Clone-first centered → teleport to real first item
         const t = step
         scrollX.value = t
         runOnJS(teleport)(t)
@@ -382,8 +384,8 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
     <View>
       {/* FlashList horizontal cần parent có bounded height để layout đúng. */}
       <View style={{ height: cardHeight + 12 }}>
-        <FlashList
-          ref={listRef}
+        <AnimatedFlashList
+          ref={listRef as React.Ref<FlashListRef<HighlightMenuItem>>}
           data={extendedMenus}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
@@ -393,7 +395,7 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
           initialScrollIndex={count > 1 ? 1 : 0}
           horizontal
           showsHorizontalScrollIndicator={false}
-          onScroll={scrollHandler as never}
+          onScroll={scrollHandler}
           scrollEventThrottle={16}
           snapToInterval={step}
           decelerationRate="fast"
