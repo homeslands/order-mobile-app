@@ -150,30 +150,50 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
 
   return (
     <View style={styles.tabBar}>
-      {/* overflow hidden clips blur + border-radius trên cả hai nền tảng */}
-      <View style={styles.pillContainer} onLayout={onPillLayout}>
-        {/* ── Glass layers ─────────────────────────────────────────────── */}
-        <BlurView intensity={22} tint="default" style={StyleSheet.absoluteFill} />
+      {/* shadowWrapper không có overflow:hidden — iOS clips shadow nếu dùng overflow:hidden.
+          backgroundColor cần thiết để iOS xác định shadow path theo hình pill. */}
+      <View
+        style={[
+          styles.shadowWrapper,
+          {
+            backgroundColor: colors.card,
+            shadowColor: colors.primary,
+          },
+        ]}
+      >
+        {/* pillContainer: overflow hidden clips glass layers vào pill shape */}
+        <View style={styles.pillContainer} onLayout={onPillLayout}>
+          {/* ── Glass layers ─────────────────────────────────────────────── */}
+          <BlurView intensity={22} tint="default" style={StyleSheet.absoluteFill} />
 
-        {/* Tint để pill không bị trong suốt hoàn toàn */}
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: colors.card, opacity: 0.52 },
-          ]}
-        />
+          {/* Tint để pill không bị trong suốt hoàn toàn */}
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: colors.card, opacity: 0.52 },
+            ]}
+          />
 
-        {/* Specular highlight — ánh sáng dọc từ trên xuống */}
-        <LinearGradient
-          colors={['rgba(255,255,255,0.24)', 'rgba(255,255,255,0)']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 0, y: 1 }}
-          style={StyleSheet.absoluteFill}
-          pointerEvents="none"
-        />
+          {/* Specular highlight — ánh sáng từ trên (mặt trên kính sáng hơn) */}
+          <LinearGradient
+            colors={['rgba(255,255,255,0.32)', 'rgba(255,255,255,0)']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 0, y: 0.55 }}
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          />
 
-        {/* Viền kính mỏng */}
-        <View style={styles.glassBorder} pointerEvents="none" />
+          {/* Inner bottom shadow — mặt dưới tối hơn → tạo cảm giác khối nổi */}
+          <LinearGradient
+            colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.13)']}
+            start={{ x: 0, y: 0.4 }}
+            end={{ x: 0, y: 1 }}
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          />
+
+          {/* Viền kính mỏng */}
+          <View style={styles.glassBorder} pointerEvents="none" />
 
         {/* ── Content ──────────────────────────────────────────────────── */}
         <View style={[styles.pillContent, { paddingHorizontal: paddingH }]}>
@@ -186,11 +206,11 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
                 { backgroundColor: colors.primary, borderRadius: 9999 },
               ]}
             />
-            {/* Specular trên indicator — tạo hiệu ứng 3D kính */}
+            {/* Specular trên indicator — top bright, tạo cảm giác khối nổi */}
             <LinearGradient
-              colors={['rgba(255,255,255,0.38)', 'rgba(255,255,255,0)']}
+              colors={['rgba(255,255,255,0.46)', 'rgba(255,255,255,0)']}
               start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 0.55 }}
+              end={{ x: 0, y: 0.5 }}
               style={[StyleSheet.absoluteFill, { borderRadius: 9999 }]}
               pointerEvents="none"
             />
@@ -215,6 +235,7 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
           ))}
         </View>
       </View>
+      </View>
     </View>
   )
 })
@@ -225,6 +246,15 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  // Shadow wrapper tách khỏi overflow:hidden để iOS render drop shadow đúng hình pill
+  shadowWrapper: {
+    flex: 1,
+    borderRadius: PILL_RADIUS,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.28,
+    shadowRadius: 18,
+    elevation: 14,
   },
   pillContainer: {
     flex: 1,
