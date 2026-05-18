@@ -313,7 +313,7 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
       const EPS = step * 0.1
       if (Math.abs(x) < EPS) {
         const t = count * step
-        scrollX.value = t          // sync UI thread first to avoid frame mismatch
+        scrollX.value = t // sync UI thread first to avoid frame mismatch
         runOnJS(teleport)(t)
       } else if (Math.abs(x - (count + 1) * step) < EPS) {
         const t = step
