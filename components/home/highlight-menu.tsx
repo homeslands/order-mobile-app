@@ -341,8 +341,12 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
 
   // Use extended index as key — avoids id collision between clone and original
   const keyExtractor = useCallback(
-    (_item: HighlightMenuItem, index: number) => `hl-${index}`,
-    [],
+    (item: HighlightMenuItem, index: number) => {
+      if (index === 0) return `hl-clone-last-${item.id}`
+      if (index === count + 1) return `hl-clone-first-${item.id}`
+      return `hl-${item.id}`
+    },
+    [count],
   )
 
   const listContentStyle = useMemo(
@@ -359,10 +363,12 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
           data={extendedMenus}
           renderItem={renderItem}
           keyExtractor={keyExtractor}
+          // @ts-ignore estimatedItemSize is supported at runtime but not typed in Animated.createAnimatedComponent
+          estimatedItemSize={step}
           horizontal
           showsHorizontalScrollIndicator={false}
           onScroll={scrollHandler}
-          scrollEventThrottle={16}
+          scrollEventThrottle={1}
           snapToInterval={step}
           decelerationRate="fast"
           contentContainerStyle={listContentStyle}
