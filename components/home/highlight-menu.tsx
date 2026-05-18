@@ -211,6 +211,10 @@ const HighlightCard = React.memo(function HighlightCard({
 
 // ─── Carousel ─────────────────────────────────────────────────────────────────
 
+const AnimatedFlashList = Animated.createAnimatedComponent(
+  FlashList<HighlightMenuItem>,
+)
+
 interface HighlightMenuCarouselProps {
   items?: HighlightMenuItem[]
   primaryColor?: string
@@ -265,10 +269,6 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
     if (count <= 1) return highlightMenus
     return [highlightMenus[count - 1], ...highlightMenus, highlightMenus[0]]
   }, [highlightMenus, count])
-
-  const AnimatedFlashList = Animated.createAnimatedComponent(
-    FlashList<HighlightMenuItem>,
-  )
 
   // Ref for imperative scrollToOffset during teleport.
   const listRef = useRef<FlashListRef<HighlightMenuItem>>(null)
