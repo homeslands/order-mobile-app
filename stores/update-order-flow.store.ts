@@ -162,10 +162,9 @@ export const useUpdateOrderFlowStore = create<IUpdateOrderFlowStore>()(
         updatingData: state.updatingData,
         lastModified: state.lastModified,
       }),
-      onRehydrateStorage: () => () => {
-        setTimeout(() => {
-          useUpdateOrderFlowStore.setState({ isHydrated: true })
-        }, 0)
+      onRehydrateStorage: () => (state) => {
+        if (!state) return
+        state.isHydrated = true
       },
     },
   ),

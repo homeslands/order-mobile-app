@@ -5,6 +5,12 @@
  * - Parses FCM payload → adds to notification store
  * - Shows toast with title + body
  * - Plays notification sound (volume 0.5)
+ *
+ * Cleanup:
+ * - Single in-flight loadPromise prevents 2× createAsync when notifications
+ *   arrive in parallel (otherwise the first Sound instance leaks).
+ * - disposeSound() is called in the effect cleanup so the cached Audio.Sound
+ *   does not survive logout / unmount.
  */
 import { Audio, type AVPlaybackSource } from 'expo-av'
 import { useEffect } from 'react'
@@ -22,31 +28,45 @@ const SOUND_VOLUME = 0.5
 
 // Preloaded sound instance — reuse across notifications, avoid re-loading file
 let cachedSound: Audio.Sound | null = null
+let loadPromise: Promise<Audio.Sound> | null = null
+
+async function getSound(): Promise<Audio.Sound> {
+  if (cachedSound) return cachedSound
+  if (!loadPromise) {
+    loadPromise = Audio.Sound.createAsync(
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      require('@/assets/sound/notification.mp3') as AVPlaybackSource,
+    )
+      .then(({ sound }) => {
+        cachedSound = sound
+        return sound
+      })
+      .finally(() => {
+        loadPromise = null
+      })
+  }
+  return loadPromise
+}
+
+async function disposeSound(): Promise<void> {
+  const s = cachedSound
+  cachedSound = null
+  if (s) {
+    await s.unloadAsync().catch(() => {})
+  }
+}
 
 async function playNotificationSound(): Promise<void> {
   try {
-    if (!cachedSound) {
-      const { sound } = await Audio.Sound.createAsync(
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        require('@/assets/sound/notification.mp3') as AVPlaybackSource,
-      )
-      cachedSound = sound
-    }
-    await cachedSound.setPositionAsync(0)
-    await cachedSound.setVolumeAsync(SOUND_VOLUME)
-    await cachedSound.playAsync()
+    const sound = await getSound()
+    await sound.setPositionAsync(0)
+    await sound.setVolumeAsync(SOUND_VOLUME)
+    await sound.playAsync()
   } catch (e) {
     // eslint-disable-next-line no-console
     console.warn('[Audio] Notification sound playback failed:', e)
-    // Unload native audio resource before clearing reference to prevent
-    // orphaned buffers in the native Audio engine
-    if (cachedSound) {
-      await cachedSound.unloadAsync().catch((unloadErr) => {
-        // eslint-disable-next-line no-console
-        console.warn('[Audio] Failed to unload sound:', unloadErr)
-      })
-    }
-    cachedSound = null
+    // Unload to keep the native Audio engine clean before we lose the ref
+    await disposeSound()
   }
 }
 
@@ -82,6 +102,9 @@ export function useNotificationListener(enabled = true) {
       playNotificationSound().catch(() => {})
     })
 
-    return unsubscribe
+    return () => {
+      unsubscribe()
+      void disposeSound()
+    }
   }, [enabled])
 }

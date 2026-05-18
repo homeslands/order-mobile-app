@@ -1,7 +1,7 @@
 import { FlashList } from '@shopify/flash-list'
 import { Image } from 'expo-image'
 import { NotebookText } from 'lucide-react-native'
-import React, { memo, useCallback, useMemo, useRef, useState } from 'react'
+import React, { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 
@@ -14,11 +14,9 @@ import {
 import { scheduleStoreUpdate } from '@/lib/navigation'
 import { useOrderFlowStore } from '@/stores'
 import { IOrderItem } from '@/types'
-import {
-  calculateOrderDisplayAndTotals,
-  capitalizeFirst,
-  transformOrderItemToOrderDetail,
-} from '@/utils'
+import { useUpdateOrderTotals } from '@/hooks'
+import { capitalizeFirst } from '@/utils'
+import type { calculateOrderDisplayAndTotals } from '@/utils'
 import { formatCurrencyNative } from 'cart-price-calc'
 
 import OrderNoteInUpdateOrderInput from './order-note-in-update-order-input'
@@ -148,6 +146,21 @@ const OrderItemRow = memo(
       },
       [item.id, onNoteChange],
     )
+
+    // Cleanup pending timers on unmount — both qty debounce and note debounce
+    // could fire after the row is unmounted (FlashList recycling or cancel).
+    useEffect(() => {
+      return () => {
+        if (qtyDebounceRef.current) {
+          clearTimeout(qtyDebounceRef.current)
+          qtyDebounceRef.current = null
+        }
+        if (noteDebounceRef.current) {
+          clearTimeout(noteDebounceRef.current)
+          noteDebounceRef.current = null
+        }
+      }
+    }, [])
 
     // ── Price calculation ───────────────────────────────────────────────────
     const original = item.originalPrice ?? 0
@@ -321,14 +334,7 @@ export default function UpdateOrderContentNative({
     [updatingData],
   )
 
-  const { displayItems } = useMemo(
-    () =>
-      calculateOrderDisplayAndTotals(
-        transformOrderItemToOrderDetail(orderItems),
-        voucher,
-      ),
-    [orderItems, voucher],
-  )
+  const { displayItems } = useUpdateOrderTotals()
   const displayItemMap = useMemo(() => {
     const m = new Map<string, (typeof displayItems)[number]>()
     for (const di of displayItems) m.set(di.slug, di)

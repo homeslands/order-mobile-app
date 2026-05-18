@@ -18,7 +18,6 @@ export {
 } from './dob-expandable-picker'
 export { default as InfoCard } from './info-card'
 export { default as InvoiceTemplate } from './invoice-template'
-export { ProfileHeader, type ProfileHeaderProps } from './profile-header'
 export { SettingsItem, SettingsSection } from './settings-item'
 export { LanguageSheet } from './language-sheet'
 export { ThemeSheet } from './theme-sheet'

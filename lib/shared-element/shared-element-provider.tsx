@@ -17,6 +17,7 @@ import React, {
 } from 'react'
 import { StyleSheet } from 'react-native'
 import { Image } from 'expo-image'
+import { SPRING_CONFIGS } from '@/constants'
 import Animated, {
   interpolate,
   runOnJS,
@@ -35,18 +36,6 @@ export type ElementRect = {
 
 const ZERO_RECT: ElementRect = { x: 0, y: 0, w: 0, h: 0 }
 
-/**
- * Spring physics cho shared element fly animation.
- * stiffness 150 + damping 20 + mass 1 → bounce nhẹ khi "đáp cánh".
- */
-const SHARED_SPRING = {
-  stiffness: 150,
-  damping: 20,
-  mass: 1,
-  overshootClamping: false,
-  restDisplacementThreshold: 0.01,
-  restSpeedThreshold: 0.01,
-} as const
 
 export type SharedElementContextValue = {
   triggerTransition: (source: ElementRect, imageUri: string) => void
@@ -125,13 +114,13 @@ function useSharedElementApi(setDisplayUri: (uri: string) => void) {
   const setDest = useCallback(
     (dest: ElementRect) => {
       destRect.value = dest
-      animationProgress.value = withSpring(1, SHARED_SPRING)
+      animationProgress.value = withSpring(1, SPRING_CONFIGS.sharedElement)
     },
     [destRect, animationProgress],
   )
 
   const completeTransition = useCallback(() => {
-    animationProgress.value = withSpring(1, SHARED_SPRING, (finished) => {
+    animationProgress.value = withSpring(1, SPRING_CONFIGS.sharedElement, (finished) => {
       'worklet'
       if (finished) {
         isActive.value = false
@@ -143,7 +132,7 @@ function useSharedElementApi(setDisplayUri: (uri: string) => void) {
   const reverseTransition = useCallback(() => {
     overlayVisible.value = true
     isActive.value = true
-    animationProgress.value = withSpring(0, SHARED_SPRING, (finished) => {
+    animationProgress.value = withSpring(0, SPRING_CONFIGS.sharedElement, (finished) => {
       'worklet'
       if (finished) {
         isActive.value = false

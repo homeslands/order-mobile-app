@@ -5,17 +5,14 @@ import {
   usePublicVouchersForOrder,
   useSpecificPublicVoucher,
   useSpecificVoucher,
+  useUpdateOrderTotals,
   useValidatePublicVoucher,
   useValidateVoucher,
   useVouchersForOrder,
 } from '@/hooks'
 import { useOrderFlowStore, useUserStore } from '@/stores'
 import type { IOrderItem, IVoucher } from '@/types'
-import {
-  calculateOrderDisplayAndTotals,
-  showToast,
-  transformOrderItemToOrderDetail,
-} from '@/utils'
+import { showToast } from '@/utils'
 import {
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
@@ -64,14 +61,7 @@ export const VoucherSheetInUpdateOrder = memo(
     )
     const currentVoucher = updatingData?.updateDraft?.voucher ?? null
 
-    const transformedItems = useMemo(
-      () => transformOrderItemToOrderDetail(orderItems),
-      [orderItems],
-    )
-    const { cartTotals } = useMemo(
-      () => calculateOrderDisplayAndTotals(transformedItems, currentVoucher),
-      [transformedItems, currentVoucher],
-    )
+    const { cartTotals } = useUpdateOrderTotals()
     const subTotal = cartTotals?.subTotalBeforeDiscount ?? 0
 
     // ── Auth ──────────────────────────────────────────────────────────────────

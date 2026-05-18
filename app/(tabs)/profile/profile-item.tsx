@@ -6,7 +6,7 @@ import { ChevronRight, type LucideIcon } from 'lucide-react-native'
 import React, { useMemo } from 'react'
 import { StyleSheet, Text, View } from 'react-native'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
-import { colors } from '@/constants'
+import { colors, SPRING_CONFIGS } from '@/constants'
 import Animated, {
   runOnJS,
   useAnimatedStyle,
@@ -15,14 +15,6 @@ import Animated, {
 } from 'react-native-reanimated'
 
 const PRESS_SCALE = 0.96
-const SPRING_PRESS_OUT = {
-  damping: 25,
-  stiffness: 200,
-  mass: 0.5,
-  overshootClamping: true,
-  restDisplacementThreshold: 0.01,
-  restSpeedThreshold: 0.01,
-}
 
 export interface ProfileItemProps {
   label: string
@@ -52,8 +44,8 @@ export const ProfileItem = React.memo(function ProfileItem({
         })
         .onFinalize(() => {
           'worklet'
-          scale.value = withSpring(1, SPRING_PRESS_OUT)
-          opacity.value = withSpring(1, SPRING_PRESS_OUT)
+          scale.value = withSpring(1, SPRING_CONFIGS.pressSoft)
+          opacity.value = withSpring(1, SPRING_CONFIGS.pressSoft)
         })
         .onEnd((_, success) => {
           'worklet'

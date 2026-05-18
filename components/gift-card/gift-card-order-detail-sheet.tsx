@@ -80,11 +80,21 @@ function CopyableInline({
   textColor: string
 }) {
   const [copied, setCopied] = useState(false)
+  const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const handleCopy = useCallback(() => {
     Clipboard.setString(value)
     setCopied(true)
-    setTimeout(() => setCopied(false), 1500)
+    if (copyTimerRef.current) clearTimeout(copyTimerRef.current)
+    copyTimerRef.current = setTimeout(() => {
+      setCopied(false)
+      copyTimerRef.current = null
+    }, 1500)
   }, [value])
+  useEffect(() => {
+    return () => {
+      if (copyTimerRef.current) clearTimeout(copyTimerRef.current)
+    }
+  }, [])
 
   return (
     <View style={ci.row}>

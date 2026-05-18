@@ -1,8 +1,8 @@
+import { FlashList, type FlashListRef } from '@shopify/flash-list'
 import { Image } from 'expo-image'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   Dimensions,
-  FlatList,
   Linking,
   Pressable,
   StyleSheet,
@@ -139,34 +139,19 @@ const SwiperBanner = React.memo(function SwiperBanner({
   bannerData,
   height: slideHeight,
 }: SwiperBannerProps): React.ReactElement | null {
-  const flatListRef = useRef<FlatList>(null)
+  const listRef = useRef<FlashListRef<IBanner>>(null)
   const count = bannerData.length
-
-  /**
-   * Infinite scroll — clone last at front, first at back:
-   *   [last, item0, item1, ..., itemN, first]
-   */
-  const infiniteData = useMemo(() => {
-    if (count <= 1) return bannerData
-    return [bannerData[count - 1], ...bannerData, bannerData[0]]
-  }, [bannerData, count])
 
   const [activeIndex, setActiveIndex] = useState(0)
   const activeIndexRef = useRef(0)
-  const infiniteIndexRef = useRef(1)
-
-  useEffect(() => {
-    if (count <= 1) return
-    requestAnimationFrame(() => {
-      flatListRef.current?.scrollToIndex({ index: 1, animated: false })
-    })
-  }, [count])
 
   useEffect(() => {
     if (count <= 1) return
     const interval = setInterval(() => {
-      const next = infiniteIndexRef.current + 1
-      flatListRef.current?.scrollToIndex({ index: next, animated: true })
+      const nextIndex = (activeIndexRef.current + 1) % count
+      activeIndexRef.current = nextIndex
+      setActiveIndex(nextIndex)
+      listRef.current?.scrollToIndex({ index: nextIndex, animated: true })
     }, AUTO_SCROLL_INTERVAL)
     return () => clearInterval(interval)
   }, [count])
@@ -175,26 +160,11 @@ const SwiperBanner = React.memo(function SwiperBanner({
     (e: { nativeEvent: { contentOffset: { x: number } } }) => {
       if (count <= 1) return
       const rawIndex = Math.round(e.nativeEvent.contentOffset.x / SCREEN_W)
-
-      if (rawIndex === 0) {
-        flatListRef.current?.scrollToIndex({ index: count, animated: false })
-        infiniteIndexRef.current = count
-        activeIndexRef.current = count - 1
-        setActiveIndex(count - 1)
-        return
-      }
-      if (rawIndex === count + 1) {
-        flatListRef.current?.scrollToIndex({ index: 1, animated: false })
-        infiniteIndexRef.current = 1
-        activeIndexRef.current = 0
-        setActiveIndex(0)
-        return
-      }
-
-      const realIndex = rawIndex - 1
-      infiniteIndexRef.current = rawIndex
-      activeIndexRef.current = realIndex
-      setActiveIndex(realIndex)
+      // Single-array circular paging: index is always in [0, count).
+      // FlashList handles recycling without the triplication trick.
+      const clamped = Math.max(0, Math.min(count - 1, rawIndex))
+      activeIndexRef.current = clamped
+      setActiveIndex(clamped)
     },
     [count],
   )
@@ -227,34 +197,19 @@ const SwiperBanner = React.memo(function SwiperBanner({
     [],
   )
 
-  const getItemLayout = useCallback(
-    (_: unknown, index: number) => ({
-      length: SCREEN_W,
-      offset: SCREEN_W * index,
-      index,
-    }),
-    [],
-  )
-
   if (!count) return null
 
   return (
     <View style={{ width: '100%', height: slideHeight }}>
-      <FlatList
-        ref={flatListRef}
-        data={infiniteData}
+      <FlashList
+        ref={listRef}
+        data={bannerData}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={handleScrollEnd}
-        getItemLayout={getItemLayout}
-        onScrollToIndexFailed={() => {}}
-        removeClippedSubviews
-        initialNumToRender={3}
-        maxToRenderPerBatch={2}
-        windowSize={3}
       />
 
       {count > 1 && (

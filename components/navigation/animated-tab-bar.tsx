@@ -11,6 +11,7 @@ import Animated, {
   withSpring,
 } from 'react-native-reanimated'
 
+import { SPRING_CONFIGS } from '@/constants'
 import { AnimatedTabButton } from './animated-tab-button'
 
 const ICON_SIZE = 32
@@ -19,18 +20,6 @@ const PADDING_V = 4
 const CONTENT_HEIGHT = 32 + 14 + 12
 const PILL_RADIUS = (PADDING_V * 2 + CONTENT_HEIGHT) / 2
 const PADDING_H_DEFAULT = 10
-
-// Spring config nhanh — settle trong ~100-120ms.
-// Trước đây stiffness 280/damping 26/mass 0.4 settle ~200-300ms, lag sau
-// content swap (Tabs animation: 'none' → 16-33ms). Khi user tap rapid, indicator
-// chase content với visible lag, trông như tab bar và content desync.
-// Spring nhanh hơn + overshootClamping giữ cảm giác đàn hồi mà không lag.
-const INDICATOR_SPRING = {
-  stiffness: 500,
-  damping: 32,
-  mass: 0.25,
-  overshootClamping: true,
-}
 
 type Colors = {
   primary: string
@@ -54,8 +43,6 @@ type AnimatedTabBarProps = {
     giftCard: string
     profile: string
   }
-  /** Gọi TRƯỚC khi chuyển tab — (href) => skip nếu đã cache. */
-  onBeforeTabSwitch?: (href: string) => void
   /** Gọi ngay khi finger down — prefetch không block. */
   onPressInTabSwitch?: (href: string) => void
 }
@@ -65,12 +52,12 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   colors,
   tabState,
   tabRoutes,
-  onBeforeTabSwitch,
   onPressInTabSwitch,
 }: AnimatedTabBarProps) {
-  const [paddingH, setPaddingH] = useState(PADDING_H_DEFAULT)
-  const [pillWidth, setPillWidth] = useState(0)
+  const [layout, setLayout] = useState({ pillWidth: 0, paddingH: PADDING_H_DEFAULT })
+  const { pillWidth, paddingH } = layout
   const indicatorX = useSharedValue(0)
+
   const hasAnimatedRef = useRef(false)
 
   // activeIndex = -1 khi user ở route không thuộc tab nào (vd: /cart,
@@ -89,23 +76,21 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   const itemWidth = pillWidth > 0 ? (pillWidth - 2 * paddingH) / 4 : ITEM_WIDTH
 
   useEffect(() => {
-    // Skip nếu chưa layout hoặc không match tab nào (giữ position cũ).
     if (pillWidth <= 0 || activeIndex < 0) return
     const targetX = paddingH + activeIndex * itemWidth
     if (!hasAnimatedRef.current) {
       indicatorX.value = targetX
       hasAnimatedRef.current = true
     } else {
-      indicatorX.value = withSpring(targetX, INDICATOR_SPRING)
+      indicatorX.value = withSpring(targetX, SPRING_CONFIGS.tabIndicator)
     }
   }, [activeIndex, paddingH, itemWidth, pillWidth, indicatorX])
 
   const onPillLayout = useCallback((e: LayoutChangeEvent) => {
     const w = e.nativeEvent.layout.width
     if (w > 0) {
-      setPillWidth(w)
-      const ph = (8 * PILL_RADIUS - w) / 6
-      setPaddingH(Math.max(4, Math.min(ph, 20)))
+      const ph = Math.max(4, Math.min((8 * PILL_RADIUS - w) / 6, 20))
+      setLayout({ pillWidth: w, paddingH: ph })
     }
   }, [])
 
@@ -113,35 +98,24 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
     transform: [{ translateX: indicatorX.value }],
   }))
 
-  const items = useMemo(
+  // Static config — no tabState dep; rebuilds only when routes/translations change
+  const tabConfigs = useMemo(
     () => [
-      {
-        Icon: Home,
-        active: tabState.isHomeActive,
-        href: tabRoutes.home,
-        label: t('tabs.home', 'Trang chủ'),
-      },
-      {
-        Icon: Menu,
-        active: tabState.isMenuActive,
-        href: tabRoutes.menu,
-        label: t('tabs.menu', 'Thực đơn'),
-      },
-      {
-        Icon: Gift,
-        active: tabState.isGiftCardActive,
-        href: tabRoutes.giftCard,
-        label: t('tabs.giftCard', 'Thẻ quà'),
-      },
-      {
-        Icon: User,
-        active: tabState.isProfileActive,
-        href: tabRoutes.profile,
-        label: t('tabs.profile', 'Tài khoản'),
-      },
+      { Icon: Home, href: tabRoutes.home, label: t('tabs.home', 'Trang chủ') },
+      { Icon: Menu, href: tabRoutes.menu, label: t('tabs.menu', 'Thực đơn') },
+      { Icon: Gift, href: tabRoutes.giftCard, label: t('tabs.giftCard', 'Thẻ quà') },
+      { Icon: User, href: tabRoutes.profile, label: t('tabs.profile', 'Tài khoản') },
     ],
-    [tabState, tabRoutes, t],
+    [tabRoutes, t],
   )
+
+  // Active flags indexed to match tabConfigs order
+  const isActive = [
+    tabState.isHomeActive,
+    tabState.isMenuActive,
+    tabState.isGiftCardActive,
+    tabState.isProfileActive,
+  ]
 
   return (
     <View style={[styles.tabBar, { backgroundColor: 'transparent' }]}>
@@ -153,17 +127,13 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
         onLayout={onPillLayout}
       >
         <Animated.View
-          renderToHardwareTextureAndroid
           style={[
             styles.slidingIndicator,
-            {
-              width: itemWidth,
-              backgroundColor: colors.primary,
-            },
+            { width: itemWidth, backgroundColor: colors.primary },
             slidingIndicatorStyle,
           ]}
         />
-        {items.map(({ Icon, active, href, label }) => (
+        {tabConfigs.map(({ Icon, href, label }, index) => (
           <AnimatedTabButton
             key={href}
             iconSize={ICON_SIZE}
@@ -171,19 +141,13 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
             href={href}
             label={label}
             Icon={Icon}
-            active={active}
-            primaryColor={colors.primary}
+            active={isActive[index]}
             mutedColor={colors.mutedForeground}
-            onBeforeTabSwitch={
-              !active && onBeforeTabSwitch
-                ? () => onBeforeTabSwitch(href)
-                : undefined
-            }
-            onPressIn={
-              !active && onPressInTabSwitch
-                ? () => onPressInTabSwitch(href)
-                : undefined
-            }
+            onPressIn={onPressInTabSwitch}
+            indicatorX={indicatorX}
+            buttonIndex={index}
+            buttonPaddingH={paddingH}
+            indicatorWidth={itemWidth}
           />
         ))}
       </View>

@@ -14,6 +14,7 @@
  * CLOSE_SPEC chỉ lái animation AFTER finger release.
  */
 import { Easing } from 'react-native'
+import { SPRING_CONFIGS, MOTION } from '@/constants'
 
 /**
  * Open timing — Ease-out-quint-ish, 380ms.
@@ -27,31 +28,14 @@ export const OPEN_TIMING = {
 }
 
 /**
- * Close spring — Underdamped, mềm hơn.
- *
- * ζ ≈ 0.82, ω₀ ≈ 12.9 → 95% settle ~280ms, full settle ~350ms.
- * Mass cao hơn → phản ứng "nặng" hơn với velocity, deceleration rõ hơn.
+ * Close spring — Underdamped, mềm hơn (alias of SPRING_CONFIGS.navClose).
  */
-export const CLOSE_SPRING = {
-  damping: 26, // Tăng damping để triệt tiêu dao động nhanh hơn
-  stiffness: 190, // Tăng stiffness để bám theo tay tốt hơn
-  mass: 0.7, // Giảm mass để nhẹ hơn
-  overshootClamping: true, // Telegram thường không cho nảy (bounce) khi đóng trang
-  restDisplacementThreshold: 0.01,
-  restSpeedThreshold: 0.01,
-}
+export const CLOSE_SPRING = SPRING_CONFIGS.navClose
 
 /**
- * Reanimated parallax spring — UI thread.
- * Slightly underdamped for organic depth feel.
+ * Reanimated parallax spring — UI thread (alias of MOTION.parallaxSpring).
  */
-export const REANIMATED_PARALLAX_SPRING = {
-  damping: 18,
-  stiffness: 220,
-  mass: 0.9,
-  overshootClamping: false,
-  energyThreshold: 1e-6,
-} as const
+export const REANIMATED_PARALLAX_SPRING = MOTION.parallaxSpring
 
 /** Progress threshold: > 0.45 → complete back (velocity projection) */
 export const COMPLETE_THRESHOLD = 0.45

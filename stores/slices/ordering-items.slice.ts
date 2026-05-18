@@ -7,9 +7,7 @@ import dayjs from 'dayjs'
 
 import { useCartDisplayStore } from '../cart-display.store'
 import {
-  calcMinOrderValue,
-  calcOrderItemTotalQuantity,
-  calcRawSubTotal,
+  aggregateOrderItems,
   generateOrderId,
   generateOrderItemId,
   OrderFlowStep,
@@ -46,17 +44,18 @@ export function createOrderingItemsMethods(set: SetFn, get: GetFn) {
           description: '',
           approvalBy: '',
         }
+        const newAgg = aggregateOrderItems(newOrderingData.orderItems)
         set({
           currentStep: OrderFlowStep.ORDERING,
-          orderItemTotalQuantity: calcOrderItemTotalQuantity(
-            newOrderingData.orderItems,
-          ),
-          minOrderValue: calcMinOrderValue(newOrderingData.orderItems),
+          orderItemTotalQuantity: newAgg.orderItemTotalQuantity,
+          minOrderValue: newAgg.minOrderValue,
+          orderItemsById: newAgg.orderItemsById,
           orderingData: newOrderingData,
           paymentData: null,
           updatingData: null,
           lastModified: dayjs().valueOf(),
         })
+        useCartDisplayStore.getState().resetAfterCartChange(newAgg.rawSubTotal)
         return
       }
 
@@ -69,10 +68,12 @@ export function createOrderingItemsMethods(set: SetFn, get: GetFn) {
         },
       ]
 
+      const agg = aggregateOrderItems(updatedItems)
       set({
         currentStep: OrderFlowStep.ORDERING,
-        orderItemTotalQuantity: calcOrderItemTotalQuantity(updatedItems),
-        minOrderValue: calcMinOrderValue(updatedItems),
+        orderItemTotalQuantity: agg.orderItemTotalQuantity,
+        minOrderValue: agg.minOrderValue,
+        orderItemsById: agg.orderItemsById,
         orderingData: {
           ...orderingData,
           orderItems: updatedItems,
@@ -81,20 +82,22 @@ export function createOrderingItemsMethods(set: SetFn, get: GetFn) {
         updatingData: null,
         lastModified: dayjs().valueOf(),
       })
-      useCartDisplayStore
-        .getState()
-        .resetAfterCartChange(calcRawSubTotal(updatedItems))
+      useCartDisplayStore.getState().resetAfterCartChange(agg.rawSubTotal)
     },
 
     addOrderingProductVariant: (id: string) => {
-      const { orderingData } = get()
+      const { orderingData, orderItemsById } = get()
       if (!orderingData) return
 
       const updatedItems = orderingData.orderItems.map((item) =>
         item.id === id ? { ...item, variant: item.variant || [] } : item,
       )
+      const prev = orderItemsById?.[id]
 
       set({
+        orderItemsById: prev
+          ? { ...orderItemsById, [id]: { ...prev, variant: prev.variant || [] } }
+          : orderItemsById,
         orderingData: {
           ...orderingData,
           orderItems: updatedItems,
@@ -118,17 +121,17 @@ export function createOrderingItemsMethods(set: SetFn, get: GetFn) {
           : item,
       )
 
+      const agg = aggregateOrderItems(updatedItems)
       set({
-        minOrderValue: calcMinOrderValue(updatedItems),
+        minOrderValue: agg.minOrderValue,
+        orderItemsById: agg.orderItemsById,
         orderingData: {
           ...orderingData,
           orderItems: updatedItems,
         },
         lastModified: dayjs().valueOf(),
       })
-      useCartDisplayStore
-        .getState()
-        .resetAfterCartChange(calcRawSubTotal(updatedItems))
+      useCartDisplayStore.getState().resetAfterCartChange(agg.rawSubTotal)
     },
 
     updateOrderingItemQuantity: (itemId: string, quantity: number) => {
@@ -139,18 +142,18 @@ export function createOrderingItemsMethods(set: SetFn, get: GetFn) {
         item.id === itemId ? { ...item, quantity } : item,
       )
 
+      const agg = aggregateOrderItems(updatedItems)
       set({
-        orderItemTotalQuantity: calcOrderItemTotalQuantity(updatedItems),
-        minOrderValue: calcMinOrderValue(updatedItems),
+        orderItemTotalQuantity: agg.orderItemTotalQuantity,
+        minOrderValue: agg.minOrderValue,
+        orderItemsById: agg.orderItemsById,
         orderingData: {
           ...orderingData,
           orderItems: updatedItems,
         },
         lastModified: dayjs().valueOf(),
       })
-      useCartDisplayStore
-        .getState()
-        .resetAfterCartChange(calcRawSubTotal(updatedItems))
+      useCartDisplayStore.getState().resetAfterCartChange(agg.rawSubTotal)
     },
 
     removeOrderingItem: (itemId: string) => {
@@ -161,18 +164,18 @@ export function createOrderingItemsMethods(set: SetFn, get: GetFn) {
         (item) => item.id !== itemId,
       )
 
+      const agg = aggregateOrderItems(updatedItems)
       set({
-        orderItemTotalQuantity: calcOrderItemTotalQuantity(updatedItems),
-        minOrderValue: calcMinOrderValue(updatedItems),
+        orderItemTotalQuantity: agg.orderItemTotalQuantity,
+        minOrderValue: agg.minOrderValue,
+        orderItemsById: agg.orderItemsById,
         orderingData: {
           ...orderingData,
           orderItems: updatedItems,
         },
         lastModified: dayjs().valueOf(),
       })
-      useCartDisplayStore
-        .getState()
-        .resetAfterCartChange(calcRawSubTotal(updatedItems))
+      useCartDisplayStore.getState().resetAfterCartChange(agg.rawSubTotal)
     },
 
     addPickupTime: (time: number) => {
@@ -199,14 +202,18 @@ export function createOrderingItemsMethods(set: SetFn, get: GetFn) {
     },
 
     addOrderingNote: (itemId: string, note: string) => {
-      const { orderingData } = get()
+      const { orderingData, orderItemsById } = get()
       if (!orderingData) return
 
       const updatedItems = orderingData.orderItems.map((item) =>
         item.id === itemId ? { ...item, note } : item,
       )
+      const prev = orderItemsById?.[itemId]
 
       set({
+        orderItemsById: prev
+          ? { ...orderItemsById, [itemId]: { ...prev, note } }
+          : orderItemsById,
         orderingData: {
           ...orderingData,
           orderItems: updatedItems,
@@ -219,6 +226,7 @@ export function createOrderingItemsMethods(set: SetFn, get: GetFn) {
       set({
         orderItemTotalQuantity: 0,
         minOrderValue: 0,
+        orderItemsById: {},
         orderingData: null,
         lastModified: dayjs().valueOf(),
       })
