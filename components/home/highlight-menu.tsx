@@ -19,7 +19,6 @@ import { getCatalog } from '@/api'
 import { Images } from '@/assets/images'
 import { QUERYKEY } from '@/constants'
 import type { IApiResponse, ICatalog } from '@/types'
-import { scheduleTransitionTask } from '@/lib/navigation'
 import { useSetMenuFilter } from '@/stores/selectors/menu-filter.selectors'
 
 interface HighlightMenuItem {
