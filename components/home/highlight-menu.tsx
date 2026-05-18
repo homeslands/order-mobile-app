@@ -13,10 +13,14 @@ import Animated, {
   useSharedValue,
   type SharedValue,
 } from 'react-native-reanimated'
+import { useQueryClient } from '@tanstack/react-query'
 
+import { getCatalog } from '@/api'
 import { Images } from '@/assets/images'
-import { useCatalog } from '@/hooks'
-import { useMenuFilterStore } from '@/stores'
+import { QUERYKEY } from '@/constants'
+import type { IApiResponse, ICatalog } from '@/types'
+import { scheduleTransitionTask } from '@/lib/navigation'
+import { useSetMenuFilter } from '@/stores/selectors/menu-filter.selectors'
 
 interface HighlightMenuItem {
   id: number
@@ -230,8 +234,15 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
   const highlightMenus = items ?? DEFAULT_HIGHLIGHT_MENUS
   const count = highlightMenus.length
 
-  const { data: catalogResponse } = useCatalog()
-  const setMenuFilter = useMenuFilterStore((s) => s.setMenuFilter)
+  const queryClient = useQueryClient()
+  const setMenuFilter = useSetMenuFilter()
+
+  useEffect(() => {
+    queryClient.prefetchQuery({
+      queryKey: [QUERYKEY.catalog],
+      queryFn: () => getCatalog(),
+    })
+  }, [queryClient])
 
   const cardWidth = screenWidth * 0.72
   const cardHeight = cardWidth * 1.28
@@ -296,17 +307,20 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
 
   const handleItemPress = useCallback(
     (catalogSearch: string) => {
-      const catalogs = catalogResponse?.result ?? []
-      const matched = catalogs.find((c) =>
-        c.name.toLowerCase().includes(catalogSearch.toLowerCase()),
+      const cached = queryClient.getQueryData<IApiResponse<ICatalog[]>>([QUERYKEY.catalog])
+      const needle = catalogSearch.toLowerCase()
+      const matched = cached?.result?.find((c) =>
+        c.name.toLowerCase().includes(needle),
       )
-      setMenuFilter((prev) => ({
-        ...prev,
-        catalog: matched?.slug ?? undefined,
-      }))
       router.push('/(tabs)/menu' as never)
+      scheduleTransitionTask(() => {
+        setMenuFilter((prev) => ({
+          ...prev,
+          catalog: matched?.slug ?? undefined,
+        }))
+      })
     },
-    [catalogResponse, setMenuFilter, router],
+    [queryClient, setMenuFilter, router],
   )
 
   const renderItem = useCallback(
