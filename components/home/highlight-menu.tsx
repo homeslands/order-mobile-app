@@ -292,17 +292,13 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
 
       if (rawIndex === 0) {
         // Swiped past beginning → jump to real last item
-        const target = count * step
-        listRef.current?.scrollToOffset({ offset: target, animated: false })
-        scrollX.value = target
+        listRef.current?.scrollToOffset({ offset: count * step, animated: false })
       } else if (rawIndex === count + 1) {
         // Swiped past end → jump to real first item
-        const target = step
-        listRef.current?.scrollToOffset({ offset: target, animated: false })
-        scrollX.value = target
+        listRef.current?.scrollToOffset({ offset: step, animated: false })
       }
     },
-    [count, step, scrollX],
+    [count, step],
   )
 
   const handleItemPress = useCallback(
