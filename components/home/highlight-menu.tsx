@@ -125,7 +125,7 @@ const cardStyles = StyleSheet.create({
   },
   renderItemContainer: {
     flex: 1,
-    alignItems: 'center' as const,
+    alignItems: 'center',
   },
 })
 
