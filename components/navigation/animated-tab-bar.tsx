@@ -1,6 +1,7 @@
 /**
- * AnimatedTabBar — Pill full width, sliding indicator khi chuyển tab.
+ * AnimatedTabBar — Glassmorphism pill, sliding indicator khi chuyển tab.
  */
+import { BlurView } from 'expo-blur'
 import type { TFunction } from 'i18next'
 import { Gift, Home, Menu, User } from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -114,51 +115,51 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
 
   return (
     <View style={styles.tabBar}>
-      <View
-        style={[
-          styles.pill,
-          {
-            paddingHorizontal: paddingH,
-            backgroundColor: colors.card,
-            // Viền per-side: trên sáng, dưới tối → cảm giác nổi khối nhẹ
-            borderTopColor: 'rgba(255,255,255,0.32)',
-            borderBottomColor: 'rgba(0,0,0,0.10)',
-            borderLeftColor: 'rgba(255,255,255,0.16)',
-            borderRightColor: 'rgba(0,0,0,0.05)',
-            // Drop shadow nhẹ để pill nổi trên surface
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 3 },
-            shadowOpacity: 0.13,
-            shadowRadius: 8,
-            elevation: 5,
-          },
-        ]}
-        onLayout={onPillLayout}
-      >
-        <Animated.View
-          style={[
-            styles.slidingIndicator,
-            { width: itemWidth, backgroundColor: colors.primary },
-            slidingIndicatorStyle,
-          ]}
-        />
-        {tabConfigs.map(({ Icon, href, label }, index) => (
-          <AnimatedTabButton
-            key={href}
-            iconSize={ICON_SIZE}
-            itemWidth={ITEM_WIDTH}
-            href={href}
-            label={label}
-            Icon={Icon}
-            active={isActive[index]}
-            mutedColor={colors.mutedForeground}
-            onPressIn={onPressInTabSwitch}
-            indicatorX={indicatorX}
-            buttonIndex={index}
-            buttonPaddingH={paddingH}
-            indicatorWidth={itemWidth}
+      {/* shadowWrapper ngoài overflow:hidden để iOS không clip shadow */}
+      <View style={[styles.shadowWrapper, { backgroundColor: colors.card }]}>
+        {/* glassPill clip blur vào hình pill */}
+        <View style={styles.glassPill} onLayout={onPillLayout}>
+          <BlurView intensity={24} tint="default" style={StyleSheet.absoluteFill} />
+
+          {/* Lớp màu mờ — giữ nhận diện màu theme, không che hết blur */}
+          <View
+            style={[
+              StyleSheet.absoluteFill,
+              { backgroundColor: colors.card, opacity: 0.38 },
+            ]}
           />
-        ))}
+
+          {/* Viền trắng mỏng đều quanh — đặc trưng glassmorphism */}
+          <View style={styles.glassBorder} pointerEvents="none" />
+
+          {/* Content */}
+          <View style={[styles.pillContent, { paddingHorizontal: paddingH }]}>
+            <Animated.View
+              style={[
+                styles.slidingIndicator,
+                { width: itemWidth, backgroundColor: colors.primary },
+                slidingIndicatorStyle,
+              ]}
+            />
+            {tabConfigs.map(({ Icon, href, label }, index) => (
+              <AnimatedTabButton
+                key={href}
+                iconSize={ICON_SIZE}
+                itemWidth={ITEM_WIDTH}
+                href={href}
+                label={label}
+                Icon={Icon}
+                active={isActive[index]}
+                mutedColor={colors.mutedForeground}
+                onPressIn={onPressInTabSwitch}
+                indicatorX={indicatorX}
+                buttonIndex={index}
+                buttonPaddingH={paddingH}
+                indicatorWidth={itemWidth}
+              />
+            ))}
+          </View>
+        </View>
       </View>
     </View>
   )
@@ -171,15 +172,34 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pill: {
+  // Wrapper riêng để cast shadow — overflow:hidden clip mất shadow trên iOS
+  shadowWrapper: {
     flex: 1,
+    borderRadius: PILL_RADIUS,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.14,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  glassPill: {
+    flex: 1,
+    borderRadius: PILL_RADIUS,
+    overflow: 'hidden',
+  },
+  // Viền đều màu trắng mờ — glassmorphism signature
+  glassBorder: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: PILL_RADIUS,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.28)',
+  },
+  pillContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    borderRadius: 9999,
     paddingVertical: PADDING_V,
     position: 'relative',
-    borderWidth: 1,
   },
   slidingIndicator: {
     position: 'absolute',
