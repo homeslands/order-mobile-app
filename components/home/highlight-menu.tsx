@@ -67,16 +67,22 @@ function Dot({
   scrollX,
   step,
   primaryColor,
+  cloneOffset,
 }: {
   targetOffset: number
   scrollX: SharedValue<number>
   step: number
   primaryColor: string
+  cloneOffset?: number
 }) {
   const dotStyle = useAnimatedStyle(() => {
     'worklet'
-    const distance = Math.abs(scrollX.value - targetOffset)
-    const active = interpolate(distance, [0, step], [1, 0], 'clamp')
+    const x = scrollX.value
+    const dist1 = Math.abs(x - targetOffset)
+    const dist = cloneOffset !== undefined
+      ? Math.min(dist1, Math.abs(x - cloneOffset))
+      : dist1
+    const active = interpolate(dist, [0, step], [1, 0], 'clamp')
     return {
       width: interpolate(active, [0, 1], [6, 18], 'clamp'),
       opacity: interpolate(active, [0, 1], [0.35, 1], 'clamp'),
@@ -383,6 +389,7 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
           // @ts-expect-error estimatedItemSize is a required FlashList prop at runtime but missing from v2 type declarations
           estimatedItemSize={step}
           initialScrollIndex={count > 1 ? 1 : 0}
+          drawDistance={step * (count + 2)}
           horizontal
           showsHorizontalScrollIndicator={false}
           onScroll={scrollHandler}
@@ -404,6 +411,11 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
             scrollX={scrollX}
             step={step}
             primaryColor={primaryColor}
+            cloneOffset={
+              index === 0 ? (count + 1) * step        // first item → clone-first
+              : index === count - 1 ? 0               // last item → clone-last
+              : undefined
+            }
           />
         ))}
       </View>
