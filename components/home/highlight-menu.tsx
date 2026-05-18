@@ -1,15 +1,15 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { FlashList, type FlashListRef } from '@shopify/flash-list'
 import { Image } from 'expo-image'
 import { LinearGradient } from 'expo-linear-gradient'
 import { useRouter } from 'expo-router'
-import React, { useCallback, useEffect, useMemo, useRef } from 'react'
+import React, { useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ImageSourcePropType } from 'react-native'
-import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
+import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
 import Animated, {
   interpolate,
-  runOnJS,
+  scrollTo,
+  useAnimatedRef,
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useDerivedValue,
@@ -182,9 +182,6 @@ const HighlightCard = React.memo(function HighlightCard({
         {
           width: cardWidth,
           height: cardHeight,
-          // Gap được chia đều 2 bên mỗi card — tránh conditional margin theo
-          // index vì FlashList recycle cells, nếu layout phụ thuộc index đầu
-          // tiên sẽ gây layout flicker lúc recycle.
           marginHorizontal: CARD_GAP / 2,
           borderRadius: 20,
         },
@@ -216,10 +213,6 @@ const HighlightCard = React.memo(function HighlightCard({
 })
 
 // ─── Carousel ─────────────────────────────────────────────────────────────────
-
-const AnimatedFlashList = Animated.createAnimatedComponent(
-  FlashList<HighlightMenuItem>,
-)
 
 interface HighlightMenuCarouselProps {
   items?: HighlightMenuItem[]
@@ -276,27 +269,10 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
     return [highlightMenus[count - 1], ...highlightMenus, highlightMenus[0]]
   }, [highlightMenus, count])
 
-  // Ref for imperative scrollToOffset during teleport.
-  const listRef = useRef<FlashListRef<HighlightMenuItem>>(null)
+  // useAnimatedRef so scrollTo worklet can teleport without a JS-bridge roundtrip.
+  const listRef = useAnimatedRef<React.ComponentRef<typeof Animated.ScrollView>>()
 
-  // Called via runOnJS from worklet — must be a stable JS function.
-  const teleport = useCallback(
-    (offset: number) => {
-      listRef.current?.scrollToOffset({ offset, animated: false })
-    },
-    [],
-  )
-
-  const getItemType = useCallback(
-    (_: HighlightMenuItem, index: number) => {
-      if (index === 0) return 'clone-last'
-      if (index === count + 1) return 'clone-first'
-      return 'real'
-    },
-    [count],
-  )
-
-  // scrollX tracks raw FlatList content offset.
+  // scrollX tracks raw scroll content offset.
   // Real first item lives at offset 1*step, so init there.
   const scrollX = useSharedValue(count > 1 ? step : 0)
 
@@ -312,9 +288,9 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
       // Epsilon 10% of step guards against double-snap on Android and float drift
       const EPS = step * 0.1
       if (Math.abs(x) < EPS) {
-        runOnJS(teleport)(count * step)
+        scrollTo(listRef, count * step, 0, false)
       } else if (Math.abs(x - (count + 1) * step) < EPS) {
-        runOnJS(teleport)(step)
+        scrollTo(listRef, step, 0, false)
       }
     },
   })
@@ -346,31 +322,6 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
     [queryClient, setMenuFilter, router],
   )
 
-  const renderItem = useCallback(
-    ({ item, index }: { item: HighlightMenuItem; index: number }) => (
-      <HighlightCard
-        item={item}
-        extendedIndex={index}
-        scrollX={scrollX}
-        cardWidth={cardWidth}
-        cardHeight={cardHeight}
-        step={step}
-        onPress={handleItemPress}
-      />
-    ),
-    [scrollX, cardWidth, cardHeight, step, handleItemPress],
-  )
-
-  // Use extended index as key — avoids id collision between clone and original
-  const keyExtractor = useCallback(
-    (item: HighlightMenuItem, index: number) => {
-      if (index === 0) return `hl-clone-last-${item.id}`
-      if (index === count + 1) return `hl-clone-first-${item.id}`
-      return `hl-${item.id}`
-    },
-    [count],
-  )
-
   const listContentStyle = useMemo(
     () => ({ paddingHorizontal: sideInset, alignItems: 'center' as const }),
     [sideInset],
@@ -378,18 +329,9 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
 
   return (
     <View>
-      {/* FlashList horizontal cần parent có bounded height để layout đúng. */}
       <View style={{ height: cardHeight + 12 }}>
-        <AnimatedFlashList
-          ref={listRef as React.Ref<FlashListRef<HighlightMenuItem>>}
-          data={extendedMenus}
-          renderItem={renderItem}
-          keyExtractor={keyExtractor}
-          getItemType={getItemType}
-          // @ts-expect-error estimatedItemSize is a required FlashList prop at runtime but missing from v2 type declarations
-          estimatedItemSize={step}
-          initialScrollIndex={count > 1 ? 1 : 0}
-          drawDistance={step * (count + 2)}
+        <Animated.ScrollView
+          ref={listRef}
           horizontal
           showsHorizontalScrollIndicator={false}
           onScroll={scrollHandler}
@@ -397,7 +339,25 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
           snapToInterval={step}
           decelerationRate="fast"
           contentContainerStyle={listContentStyle}
-        />
+          contentOffset={{ x: count > 1 ? step : 0, y: 0 }}
+        >
+          {extendedMenus.map((item, index) => (
+            <HighlightCard
+              key={
+                index === 0 ? `hl-clone-last-${item.id}`
+                : index === count + 1 ? `hl-clone-first-${item.id}`
+                : `hl-${item.id}`
+              }
+              item={item}
+              extendedIndex={index}
+              scrollX={scrollX}
+              cardWidth={cardWidth}
+              cardHeight={cardHeight}
+              step={step}
+              onPress={handleItemPress}
+            />
+          ))}
+        </Animated.ScrollView>
       </View>
 
       {/* Dot indicators — indexed against real items only.
