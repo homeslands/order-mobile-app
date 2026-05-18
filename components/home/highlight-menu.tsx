@@ -12,6 +12,7 @@ import Animated, {
   runOnJS,
   useAnimatedScrollHandler,
   useAnimatedStyle,
+  useDerivedValue,
   useSharedValue,
   type SharedValue,
 } from 'react-native-reanimated'
@@ -147,28 +148,21 @@ const HighlightCard = React.memo(function HighlightCard({
   const { t } = useTranslation('home')
   const centeredAt = extendedIndex * step
 
+  const progress = useDerivedValue(() => {
+    'worklet'
+    return Math.max(0, 1 - Math.abs(scrollX.value - centeredAt) / step)
+  })
+
   const animStyle = useAnimatedStyle(() => {
     'worklet'
-    const inputRange = [centeredAt - step, centeredAt, centeredAt + step]
-    const scale = interpolate(
-      scrollX.value,
-      inputRange,
-      [0.86, 1, 0.86],
-      'clamp',
-    )
-    const opacity = interpolate(
-      scrollX.value,
-      inputRange,
-      [0.55, 1, 0.55],
-      'clamp',
-    )
-    const translateY = interpolate(
-      scrollX.value,
-      inputRange,
-      [12, 0, 12],
-      'clamp',
-    )
-    return { transform: [{ scale }, { translateY }], opacity }
+    const p = progress.value
+    return {
+      opacity: 0.55 + 0.45 * p,
+      transform: [
+        { scale: 0.86 + 0.14 * p },
+        { translateY: 12 * (1 - p) },
+      ],
+    }
   })
 
   const handlePress = useCallback(
