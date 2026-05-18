@@ -1,6 +1,8 @@
 /**
- * AnimatedTabBar — Pill full width, sliding indicator khi chuyển tab.
+ * AnimatedTabBar — Liquid glass pill, stretchy liquid indicator khi chuyển tab.
  */
+import { BlurView } from 'expo-blur'
+import { LinearGradient } from 'expo-linear-gradient'
 import type { TFunction } from 'i18next'
 import { Gift, Home, Menu, User } from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -8,6 +10,7 @@ import { LayoutChangeEvent, StyleSheet, View } from 'react-native'
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
+  withDelay,
   withSpring,
 } from 'react-native-reanimated'
 
@@ -47,6 +50,9 @@ type AnimatedTabBarProps = {
   onPressInTabSwitch?: (href: string) => void
 }
 
+// Spring cho cạnh dẫn đầu (nhanh, ít bounce)
+const LEAD_SPRING = { damping: 28, stiffness: 420, mass: 0.85 }
+
 export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   t,
   colors,
@@ -56,13 +62,17 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
 }: AnimatedTabBarProps) {
   const [layout, setLayout] = useState({ pillWidth: 0, paddingH: PADDING_H_DEFAULT })
   const { pillWidth, paddingH } = layout
+
+  // Color cross-fade trong AnimatedTabButton: spring ngay đến target
   const indicatorX = useSharedValue(0)
 
-  const hasAnimatedRef = useRef(false)
+  // Visual liquid indicator: leftEdge / rightEdge di chuyển lệch pha
+  const leftEdge = useSharedValue(PADDING_H_DEFAULT)
+  const rightEdge = useSharedValue(PADDING_H_DEFAULT + ITEM_WIDTH)
 
-  // activeIndex = -1 khi user ở route không thuộc tab nào (vd: /cart,
-  // /update-order/xxx, /payment/xxx). Trong trường hợp đó, indicator giữ
-  // position cũ thay vì nhảy về Home (fallback behavior cũ gây desync).
+  const hasAnimatedRef = useRef(false)
+  const prevActiveIndexRef = useRef(-1)
+
   const activeIndex = tabState.isHomeActive
     ? 0
     : tabState.isMenuActive
@@ -76,16 +86,37 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   const itemWidth = pillWidth > 0 ? (pillWidth - 2 * paddingH) / 4 : ITEM_WIDTH
 
   useEffect(() => {
-    // Skip nếu chưa layout hoặc không match tab nào (giữ position cũ).
     if (pillWidth <= 0 || activeIndex < 0) return
-    const targetX = paddingH + activeIndex * itemWidth
+    const toX = paddingH + activeIndex * itemWidth
+    const toRight = toX + itemWidth
+    const prevIndex = prevActiveIndexRef.current
+    prevActiveIndexRef.current = activeIndex
+
+    // Color cross-fade luôn spring ngay — không chờ liquid
+    indicatorX.value = withSpring(toX, SPRING_CONFIGS.tabIndicator)
+
     if (!hasAnimatedRef.current) {
-      indicatorX.value = targetX
+      leftEdge.value = toX
+      rightEdge.value = toRight
       hasAnimatedRef.current = true
-    } else {
-      indicatorX.value = withSpring(targetX, SPRING_CONFIGS.tabIndicator)
+      return
     }
-  }, [activeIndex, paddingH, itemWidth, pillWidth, indicatorX])
+
+    if (prevIndex >= 0 && prevIndex !== activeIndex) {
+      if (activeIndex > prevIndex) {
+        // Di chuyển phải: cạnh phải dẫn, cạnh trái theo sau
+        rightEdge.value = withSpring(toRight, LEAD_SPRING)
+        leftEdge.value = withDelay(85, withSpring(toX, SPRING_CONFIGS.tabIndicator))
+      } else {
+        // Di chuyển trái: cạnh trái dẫn, cạnh phải theo sau
+        leftEdge.value = withSpring(toX, LEAD_SPRING)
+        rightEdge.value = withDelay(85, withSpring(toRight, SPRING_CONFIGS.tabIndicator))
+      }
+    } else {
+      leftEdge.value = withSpring(toX, SPRING_CONFIGS.tabIndicator)
+      rightEdge.value = withSpring(toRight, SPRING_CONFIGS.tabIndicator)
+    }
+  }, [activeIndex, paddingH, itemWidth, pillWidth, indicatorX, leftEdge, rightEdge])
 
   const onPillLayout = useCallback((e: LayoutChangeEvent) => {
     const w = e.nativeEvent.layout.width
@@ -96,10 +127,10 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   }, [])
 
   const slidingIndicatorStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: indicatorX.value }],
+    transform: [{ translateX: leftEdge.value }],
+    width: rightEdge.value - leftEdge.value,
   }))
 
-  // Static config — no tabState dep; rebuilds only when routes/translations change
   const tabConfigs = useMemo(
     () => [
       { Icon: Home, href: tabRoutes.home, label: t('tabs.home', 'Trang chủ') },
@@ -110,7 +141,6 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
     [tabRoutes, t],
   )
 
-  // Active flags indexed to match tabConfigs order
   const isActive = [
     tabState.isHomeActive,
     tabState.isMenuActive,
@@ -119,38 +149,71 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   ]
 
   return (
-    <View style={[styles.tabBar, { backgroundColor: 'transparent' }]}>
-      <View
-        style={[
-          styles.pill,
-          { paddingHorizontal: paddingH, backgroundColor: colors.card },
-        ]}
-        onLayout={onPillLayout}
-      >
-        <Animated.View
+    <View style={styles.tabBar}>
+      {/* overflow hidden clips blur + border-radius trên cả hai nền tảng */}
+      <View style={styles.pillContainer} onLayout={onPillLayout}>
+        {/* ── Glass layers ─────────────────────────────────────────────── */}
+        <BlurView intensity={22} tint="default" style={StyleSheet.absoluteFill} />
+
+        {/* Tint để pill không bị trong suốt hoàn toàn */}
+        <View
           style={[
-            styles.slidingIndicator,
-            { width: itemWidth, backgroundColor: colors.primary },
-            slidingIndicatorStyle,
+            StyleSheet.absoluteFill,
+            { backgroundColor: colors.card, opacity: 0.52 },
           ]}
         />
-        {tabConfigs.map(({ Icon, href, label }, index) => (
-          <AnimatedTabButton
-            key={href}
-            iconSize={ICON_SIZE}
-            itemWidth={ITEM_WIDTH}
-            href={href}
-            label={label}
-            Icon={Icon}
-            active={isActive[index]}
-            mutedColor={colors.mutedForeground}
-            onPressIn={onPressInTabSwitch}
-            indicatorX={indicatorX}
-            buttonIndex={index}
-            buttonPaddingH={paddingH}
-            indicatorWidth={itemWidth}
-          />
-        ))}
+
+        {/* Specular highlight — ánh sáng dọc từ trên xuống */}
+        <LinearGradient
+          colors={['rgba(255,255,255,0.24)', 'rgba(255,255,255,0)']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 0, y: 1 }}
+          style={StyleSheet.absoluteFill}
+          pointerEvents="none"
+        />
+
+        {/* Viền kính mỏng */}
+        <View style={styles.glassBorder} pointerEvents="none" />
+
+        {/* ── Content ──────────────────────────────────────────────────── */}
+        <View style={[styles.pillContent, { paddingHorizontal: paddingH }]}>
+          {/* Liquid sliding indicator */}
+          <Animated.View style={[styles.slidingIndicator, slidingIndicatorStyle]}>
+            {/* Màu chủ đạo */}
+            <View
+              style={[
+                StyleSheet.absoluteFill,
+                { backgroundColor: colors.primary, borderRadius: 9999 },
+              ]}
+            />
+            {/* Specular trên indicator — tạo hiệu ứng 3D kính */}
+            <LinearGradient
+              colors={['rgba(255,255,255,0.38)', 'rgba(255,255,255,0)']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 0, y: 0.55 }}
+              style={[StyleSheet.absoluteFill, { borderRadius: 9999 }]}
+              pointerEvents="none"
+            />
+          </Animated.View>
+
+          {tabConfigs.map(({ Icon, href, label }, index) => (
+            <AnimatedTabButton
+              key={href}
+              iconSize={ICON_SIZE}
+              itemWidth={ITEM_WIDTH}
+              href={href}
+              label={label}
+              Icon={Icon}
+              active={isActive[index]}
+              mutedColor={colors.mutedForeground}
+              onPressIn={onPressInTabSwitch}
+              indicatorX={indicatorX}
+              buttonIndex={index}
+              buttonPaddingH={paddingH}
+              indicatorWidth={itemWidth}
+            />
+          ))}
+        </View>
       </View>
     </View>
   )
@@ -163,12 +226,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pill: {
+  pillContainer: {
     flex: 1,
+    borderRadius: PILL_RADIUS,
+    overflow: 'hidden',
+  },
+  glassBorder: {
+    ...StyleSheet.absoluteFillObject,
+    borderRadius: PILL_RADIUS,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.22)',
+  },
+  pillContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    borderRadius: 9999,
     paddingVertical: PADDING_V,
     position: 'relative',
   },
@@ -178,5 +250,6 @@ const styles = StyleSheet.create({
     top: PADDING_V,
     bottom: PADDING_V,
     borderRadius: 9999,
+    overflow: 'hidden',
   },
 })
