@@ -306,13 +306,9 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
       // Epsilon 10% of step guards against double-snap on Android and float drift
       const EPS = step * 0.1
       if (Math.abs(x) < EPS) {
-        const t = count * step
-        scrollX.value = t // sync UI thread first to avoid frame mismatch
-        runOnJS(teleport)(t)
+        runOnJS(teleport)(count * step)
       } else if (Math.abs(x - (count + 1) * step) < EPS) {
-        const t = step
-        scrollX.value = t
-        runOnJS(teleport)(t)
+        runOnJS(teleport)(step)
       }
     },
   })
