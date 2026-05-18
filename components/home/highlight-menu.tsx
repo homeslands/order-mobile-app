@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router'
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ImageSourcePropType } from 'react-native'
-import { Pressable, Text, View, useWindowDimensions } from 'react-native'
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
 import Animated, {
   interpolate,
   useAnimatedScrollHandler,
@@ -91,6 +91,40 @@ function Dot({
 
 // ─── Card — extended index drives centeredAt ──────────────────────────────────
 
+const cardStyles = StyleSheet.create({
+  pressable: { flex: 1, borderRadius: 20, overflow: 'hidden' },
+  image: { width: '100%', height: '100%' },
+  gradientOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: '60%',
+    justifyContent: 'flex-end',
+    paddingBottom: 18,
+    paddingHorizontal: 16,
+  },
+  title: {
+    color: '#fff',
+    fontSize: 22,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+  },
+  subtitle: {
+    color: 'rgba(255,255,255,0.72)',
+    fontSize: 14,
+    fontWeight: '600',
+    marginTop: 5,
+  },
+  dotRow: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 5,
+    marginTop: 12,
+  },
+})
+
 interface HighlightCardProps {
   item: HighlightMenuItem
   extendedIndex: number
@@ -157,53 +191,24 @@ const HighlightCard = React.memo(function HighlightCard({
         animStyle,
       ]}
     >
-      <Pressable
-        onPress={handlePress}
-        style={{ flex: 1, borderRadius: 20, overflow: 'hidden' }}
-      >
+      <Pressable onPress={handlePress} style={cardStyles.pressable}>
         <Image
           source={item.image}
-          style={{ width: '100%', height: '100%' }}
+          style={cardStyles.image}
           contentFit="cover"
-          cachePolicy="memory"
+          cachePolicy="memory-disk"
           accessibilityLabel={t(item.nameKey)}
         />
 
         <LinearGradient
           colors={['transparent', 'rgba(0,0,0,0.78)']}
           locations={[0.38, 1]}
-          style={{
-            position: 'absolute',
-            bottom: 0,
-            left: 0,
-            right: 0,
-            height: '60%',
-            justifyContent: 'flex-end',
-            paddingBottom: 18,
-            paddingHorizontal: 16,
-          }}
+          style={cardStyles.gradientOverlay}
         >
-          <Text
-            style={{
-              color: '#fff',
-              fontSize: 22,
-              fontWeight: '800',
-              letterSpacing: -0.3,
-            }}
-            numberOfLines={1}
-          >
+          <Text style={cardStyles.title} numberOfLines={1}>
             {t(item.nameKey)}
           </Text>
-          <Text
-            style={{
-              color: 'rgba(255,255,255,0.72)',
-              fontSize: 14,
-              fontWeight: '600',
-              marginTop: 5,
-            }}
-          >
-            Khám phá →
-          </Text>
+          <Text style={cardStyles.subtitle}>Khám phá →</Text>
         </LinearGradient>
       </Pressable>
     </Animated.View>
@@ -385,15 +390,7 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
       {/* Dot indicators — indexed against real items only.
           Each dot's targetOffset = scroll position where that real item is centered.
           Real item i lives at extended index i+1 → offset (i+1)*step. */}
-      <View
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: 5,
-          marginTop: 12,
-        }}
-      >
+      <View style={cardStyles.dotRow}>
         {highlightMenus.map((item, index) => (
           <Dot
             key={item.id}
