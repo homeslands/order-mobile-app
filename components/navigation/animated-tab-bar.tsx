@@ -1,8 +1,6 @@
 /**
- * AnimatedTabBar — Liquid glass pill, stretchy liquid indicator khi chuyển tab.
+ * AnimatedTabBar — Pill full width, sliding indicator khi chuyển tab.
  */
-import { BlurView } from 'expo-blur'
-import { LinearGradient } from 'expo-linear-gradient'
 import type { TFunction } from 'i18next'
 import { Gift, Home, Menu, User } from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -10,7 +8,6 @@ import { LayoutChangeEvent, StyleSheet, View } from 'react-native'
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
-  withDelay,
   withSpring,
 } from 'react-native-reanimated'
 
@@ -50,9 +47,6 @@ type AnimatedTabBarProps = {
   onPressInTabSwitch?: (href: string) => void
 }
 
-// Spring cho cạnh dẫn đầu (nhanh, ít bounce)
-const LEAD_SPRING = { damping: 28, stiffness: 420, mass: 0.85 }
-
 export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   t,
   colors,
@@ -62,16 +56,9 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
 }: AnimatedTabBarProps) {
   const [layout, setLayout] = useState({ pillWidth: 0, paddingH: PADDING_H_DEFAULT })
   const { pillWidth, paddingH } = layout
-
-  // Color cross-fade trong AnimatedTabButton: spring ngay đến target
   const indicatorX = useSharedValue(0)
 
-  // Visual liquid indicator: leftEdge / rightEdge di chuyển lệch pha
-  const leftEdge = useSharedValue(PADDING_H_DEFAULT)
-  const rightEdge = useSharedValue(PADDING_H_DEFAULT + ITEM_WIDTH)
-
   const hasAnimatedRef = useRef(false)
-  const prevActiveIndexRef = useRef(-1)
 
   const activeIndex = tabState.isHomeActive
     ? 0
@@ -87,36 +74,14 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
 
   useEffect(() => {
     if (pillWidth <= 0 || activeIndex < 0) return
-    const toX = paddingH + activeIndex * itemWidth
-    const toRight = toX + itemWidth
-    const prevIndex = prevActiveIndexRef.current
-    prevActiveIndexRef.current = activeIndex
-
-    // Color cross-fade luôn spring ngay — không chờ liquid
-    indicatorX.value = withSpring(toX, SPRING_CONFIGS.tabIndicator)
-
+    const targetX = paddingH + activeIndex * itemWidth
     if (!hasAnimatedRef.current) {
-      leftEdge.value = toX
-      rightEdge.value = toRight
+      indicatorX.value = targetX
       hasAnimatedRef.current = true
-      return
-    }
-
-    if (prevIndex >= 0 && prevIndex !== activeIndex) {
-      if (activeIndex > prevIndex) {
-        // Di chuyển phải: cạnh phải dẫn, cạnh trái theo sau
-        rightEdge.value = withSpring(toRight, LEAD_SPRING)
-        leftEdge.value = withDelay(85, withSpring(toX, SPRING_CONFIGS.tabIndicator))
-      } else {
-        // Di chuyển trái: cạnh trái dẫn, cạnh phải theo sau
-        leftEdge.value = withSpring(toX, LEAD_SPRING)
-        rightEdge.value = withDelay(85, withSpring(toRight, SPRING_CONFIGS.tabIndicator))
-      }
     } else {
-      leftEdge.value = withSpring(toX, SPRING_CONFIGS.tabIndicator)
-      rightEdge.value = withSpring(toRight, SPRING_CONFIGS.tabIndicator)
+      indicatorX.value = withSpring(targetX, SPRING_CONFIGS.tabIndicator)
     }
-  }, [activeIndex, paddingH, itemWidth, pillWidth, indicatorX, leftEdge, rightEdge])
+  }, [activeIndex, paddingH, itemWidth, pillWidth, indicatorX])
 
   const onPillLayout = useCallback((e: LayoutChangeEvent) => {
     const w = e.nativeEvent.layout.width
@@ -127,8 +92,7 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   }, [])
 
   const slidingIndicatorStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: leftEdge.value }],
-    width: rightEdge.value - leftEdge.value,
+    transform: [{ translateX: indicatorX.value }],
   }))
 
   const tabConfigs = useMemo(
@@ -150,91 +114,51 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
 
   return (
     <View style={styles.tabBar}>
-      {/* shadowWrapper không có overflow:hidden — iOS clips shadow nếu dùng overflow:hidden.
-          backgroundColor cần thiết để iOS xác định shadow path theo hình pill. */}
       <View
         style={[
-          styles.shadowWrapper,
+          styles.pill,
           {
+            paddingHorizontal: paddingH,
             backgroundColor: colors.card,
-            shadowColor: colors.primary,
+            // Viền per-side: trên sáng, dưới tối → cảm giác nổi khối nhẹ
+            borderTopColor: 'rgba(255,255,255,0.32)',
+            borderBottomColor: 'rgba(0,0,0,0.10)',
+            borderLeftColor: 'rgba(255,255,255,0.16)',
+            borderRightColor: 'rgba(0,0,0,0.05)',
+            // Drop shadow nhẹ để pill nổi trên surface
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 3 },
+            shadowOpacity: 0.13,
+            shadowRadius: 8,
+            elevation: 5,
           },
         ]}
+        onLayout={onPillLayout}
       >
-        {/* pillContainer: overflow hidden clips glass layers vào pill shape */}
-        <View style={styles.pillContainer} onLayout={onPillLayout}>
-          {/* ── Glass layers ─────────────────────────────────────────────── */}
-          <BlurView intensity={22} tint="default" style={StyleSheet.absoluteFill} />
-
-          {/* Tint để pill không bị trong suốt hoàn toàn */}
-          <View
-            style={[
-              StyleSheet.absoluteFill,
-              { backgroundColor: colors.card, opacity: 0.52 },
-            ]}
+        <Animated.View
+          style={[
+            styles.slidingIndicator,
+            { width: itemWidth, backgroundColor: colors.primary },
+            slidingIndicatorStyle,
+          ]}
+        />
+        {tabConfigs.map(({ Icon, href, label }, index) => (
+          <AnimatedTabButton
+            key={href}
+            iconSize={ICON_SIZE}
+            itemWidth={ITEM_WIDTH}
+            href={href}
+            label={label}
+            Icon={Icon}
+            active={isActive[index]}
+            mutedColor={colors.mutedForeground}
+            onPressIn={onPressInTabSwitch}
+            indicatorX={indicatorX}
+            buttonIndex={index}
+            buttonPaddingH={paddingH}
+            indicatorWidth={itemWidth}
           />
-
-          {/* Specular highlight — ánh sáng từ trên (mặt trên kính sáng hơn) */}
-          <LinearGradient
-            colors={['rgba(255,255,255,0.32)', 'rgba(255,255,255,0)']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 0, y: 0.55 }}
-            style={StyleSheet.absoluteFill}
-            pointerEvents="none"
-          />
-
-          {/* Inner bottom shadow — mặt dưới tối hơn → tạo cảm giác khối nổi */}
-          <LinearGradient
-            colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.13)']}
-            start={{ x: 0, y: 0.4 }}
-            end={{ x: 0, y: 1 }}
-            style={StyleSheet.absoluteFill}
-            pointerEvents="none"
-          />
-
-          {/* Viền kính mỏng */}
-          <View style={styles.glassBorder} pointerEvents="none" />
-
-        {/* ── Content ──────────────────────────────────────────────────── */}
-        <View style={[styles.pillContent, { paddingHorizontal: paddingH }]}>
-          {/* Liquid sliding indicator */}
-          <Animated.View style={[styles.slidingIndicator, slidingIndicatorStyle]}>
-            {/* Màu chủ đạo */}
-            <View
-              style={[
-                StyleSheet.absoluteFill,
-                { backgroundColor: colors.primary, borderRadius: 9999 },
-              ]}
-            />
-            {/* Specular trên indicator — top bright, tạo cảm giác khối nổi */}
-            <LinearGradient
-              colors={['rgba(255,255,255,0.46)', 'rgba(255,255,255,0)']}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 0.5 }}
-              style={[StyleSheet.absoluteFill, { borderRadius: 9999 }]}
-              pointerEvents="none"
-            />
-          </Animated.View>
-
-          {tabConfigs.map(({ Icon, href, label }, index) => (
-            <AnimatedTabButton
-              key={href}
-              iconSize={ICON_SIZE}
-              itemWidth={ITEM_WIDTH}
-              href={href}
-              label={label}
-              Icon={Icon}
-              active={isActive[index]}
-              mutedColor={colors.mutedForeground}
-              onPressIn={onPressInTabSwitch}
-              indicatorX={indicatorX}
-              buttonIndex={index}
-              buttonPaddingH={paddingH}
-              indicatorWidth={itemWidth}
-            />
-          ))}
-        </View>
-      </View>
+        ))}
       </View>
     </View>
   )
@@ -247,32 +171,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // Shadow wrapper tách khỏi overflow:hidden để iOS render drop shadow đúng hình pill
-  shadowWrapper: {
+  pill: {
     flex: 1,
-    borderRadius: PILL_RADIUS,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.28,
-    shadowRadius: 18,
-    elevation: 14,
-  },
-  pillContainer: {
-    flex: 1,
-    borderRadius: PILL_RADIUS,
-    overflow: 'hidden',
-  },
-  glassBorder: {
-    ...StyleSheet.absoluteFillObject,
-    borderRadius: PILL_RADIUS,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.22)',
-  },
-  pillContent: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
+    borderRadius: 9999,
     paddingVertical: PADDING_V,
     position: 'relative',
+    borderWidth: 1,
   },
   slidingIndicator: {
     position: 'absolute',
@@ -280,6 +187,5 @@ const styles = StyleSheet.create({
     top: PADDING_V,
     bottom: PADDING_V,
     borderRadius: 9999,
-    overflow: 'hidden',
   },
 })
