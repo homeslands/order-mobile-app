@@ -123,6 +123,10 @@ const cardStyles = StyleSheet.create({
     gap: 5,
     marginTop: 12,
   },
+  renderItemContainer: {
+    flex: 1,
+    alignItems: 'center' as const,
+  },
 })
 
 interface HighlightCardProps {
@@ -267,7 +271,7 @@ const HighlightMenuCarousel = React.memo(function HighlightMenuCarousel({
 
   const renderItem: CarouselRenderItem<HighlightMenuItem> = useCallback(
     ({ item }) => (
-      <View style={{ flex: 1, alignItems: 'center' }}>
+      <View style={cardStyles.renderItemContainer}>
         <HighlightCard
           item={item}
           cardWidth={cardWidth}
