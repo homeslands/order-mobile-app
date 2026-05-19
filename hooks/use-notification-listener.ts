@@ -5,72 +5,24 @@
  * - Parses FCM payload → adds to notification store
  * - For ORDER_NEEDS_READY_TO_GET: calls onOrderReady (full-screen alert) instead
  *   of regular toast + sound
- * - For all other codes: shows toast + plays notification.mp3
+ * - For all other codes: shows toast + plays notification.mp3 via shared module
  *
- * Cleanup:
- * - Single in-flight loadPromise prevents 2× createAsync when notifications
- *   arrive in parallel (otherwise the first Sound instance leaks).
- * - disposeSound() is called in the effect cleanup so the cached Audio.Sound
- *   does not survive logout / unmount.
+ * Sound lifecycle is managed by lib/notification-sound.ts (preloaded at app
+ * startup, single in-flight playback counter, race-safe dispose). We do NOT
+ * unload the cached sound on effect cleanup — it is process-scoped.
  */
-import { Audio, type AVPlaybackSource } from 'expo-av'
 import { useEffect } from 'react'
 import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging'
 
 import { NotificationMessageCode } from '@/constants/notification.constant'
+import { playNotificationSound } from '@/lib/notification-sound'
 import {
   useNotificationStore,
   type NotificationPayload,
 } from '@/stores/notification.store'
 import { showToastInternal } from '@/providers/toast-provider'
-
-const SOUND_VOLUME = 0.5
-
-// Preloaded sound instance — reuse across notifications, avoid re-loading file
-let cachedSound: Audio.Sound | null = null
-let loadPromise: Promise<Audio.Sound> | null = null
-
-async function getSound(): Promise<Audio.Sound> {
-  if (cachedSound) return cachedSound
-  if (!loadPromise) {
-    loadPromise = Audio.Sound.createAsync(
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require('@/assets/sound/notification.mp3') as AVPlaybackSource,
-    )
-      .then(({ sound }) => {
-        cachedSound = sound
-        return sound
-      })
-      .finally(() => {
-        loadPromise = null
-      })
-  }
-  return loadPromise
-}
-
-async function disposeSound(): Promise<void> {
-  const s = cachedSound
-  cachedSound = null
-  if (s) {
-    await s.unloadAsync().catch(() => {})
-  }
-}
-
-async function playNotificationSound(): Promise<void> {
-  try {
-    const sound = await getSound()
-    await sound.setPositionAsync(0)
-    await sound.setVolumeAsync(SOUND_VOLUME)
-    await sound.playAsync()
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.warn('[Audio] Notification sound playback failed:', e)
-    // Unload to keep the native Audio engine clean before we lose the ref
-    await disposeSound()
-  }
-}
 
 function firebaseToPayload(
   remoteMessage: FirebaseMessagingTypes.RemoteMessage,
@@ -94,6 +46,12 @@ export function useNotificationListener(
     if (!enabled) return
 
     const unsubscribe = messaging().onMessage((remoteMessage) => {
+      // eslint-disable-next-line no-console
+      console.log(
+        '[FCM] foreground message:',
+        JSON.stringify(remoteMessage, null, 2),
+      )
+
       const payload = firebaseToPayload(remoteMessage)
 
       useNotificationStore
@@ -106,11 +64,12 @@ export function useNotificationListener(
         parsedPayload = JSON.parse(
           (remoteMessage.data?.payload as string | undefined) ?? '{}',
         ) as Record<string, string>
-      } catch { /* ignore invalid JSON */ }
+      } catch {
+        /* ignore invalid JSON */
+      }
       const code = parsedPayload.message ?? remoteMessage.data?.message
 
       if (code === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET) {
-        // Full-screen modal handles alert — skip regular toast + sound
         const alertTitle =
           remoteMessage.notification?.title ?? 'Đơn của bạn đã sẵn sàng'
         const alertBody = remoteMessage.notification?.body ?? ''
@@ -127,7 +86,8 @@ export function useNotificationListener(
 
     return () => {
       unsubscribe()
-      void disposeSound()
+      // Intentionally NOT disposing the cached sound — it is process-scoped
+      // (managed by lib/notification-sound.ts) and benefits the next user.
     }
   }, [enabled, onOrderReady])
 }
