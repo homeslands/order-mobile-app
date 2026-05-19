@@ -33,7 +33,7 @@ if (Platform.OS === 'android') {
   Notifications.setNotificationChannelAsync('order-ready', {
     name: 'Thông báo lấy đơn',
     importance: Notifications.AndroidImportance.MAX,
-    vibrationPattern: [0, 1000, 500, 1000, 500, 1000, 500, 1000],
+    vibrationPattern: [0, 1000, 500, 1000, 500, 1000, 500, 1000, 500, 1000, 500, 1000, 500, 1000, 500, 1000, 500, 1000, 500, 1000],
     lightColor: '#F7A737',
     sound: 'order_ready',
   }).catch((e) =>
