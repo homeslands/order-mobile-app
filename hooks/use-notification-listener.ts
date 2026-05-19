@@ -3,8 +3,9 @@
  *
  * - Subscribes to Firebase onMessage (foreground only)
  * - Parses FCM payload → adds to notification store
- * - Shows toast with title + body
- * - Plays notification sound (volume 0.5)
+ * - For ORDER_NEEDS_READY_TO_GET: calls onOrderReady (full-screen alert) instead
+ *   of regular toast + sound
+ * - For all other codes: shows toast + plays notification.mp3
  *
  * Cleanup:
  * - Single in-flight loadPromise prevents 2× createAsync when notifications
@@ -18,6 +19,7 @@ import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging'
 
+import { NotificationMessageCode } from '@/constants/notification.constant'
 import {
   useNotificationStore,
   type NotificationPayload,
@@ -84,7 +86,10 @@ function firebaseToPayload(
   }
 }
 
-export function useNotificationListener(enabled = true) {
+export function useNotificationListener(
+  enabled = true,
+  onOrderReady?: (title: string, body: string) => void,
+) {
   useEffect(() => {
     if (!enabled) return
 
@@ -94,6 +99,17 @@ export function useNotificationListener(enabled = true) {
       useNotificationStore
         .getState()
         .addNotification(payload, { markAsRead: false })
+
+      const code = remoteMessage.data?.message as string | undefined
+
+      if (code === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET) {
+        // Full-screen modal handles alert — skip regular toast + sound
+        const alertTitle =
+          remoteMessage.notification?.title ?? 'Đơn của bạn đã sẵn sàng'
+        const alertBody = remoteMessage.notification?.body ?? ''
+        onOrderReady?.(alertTitle, alertBody)
+        return
+      }
 
       const title = payload.notification?.title || 'Thông báo'
       const body = payload.notification?.body || ''
@@ -106,5 +122,5 @@ export function useNotificationListener(enabled = true) {
       unsubscribe()
       void disposeSound()
     }
-  }, [enabled])
+  }, [enabled, onOrderReady])
 }

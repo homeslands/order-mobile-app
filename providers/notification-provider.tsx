@@ -36,7 +36,6 @@ export function NotificationProvider() {
 
   // T5: Foreground listener — only when authenticated so foreground FCM
   // notifications are never added to the store while no user is logged in.
-  // @ts-expect-error -- onOrderReady added in Task 6
   useNotificationListener(isAuthenticated, showOrderReady)
 
   // T7+T8: Background tap + cold start — gated on auth so cold-start taps
