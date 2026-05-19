@@ -9,7 +9,6 @@ import {
   Text,
   Vibration,
   View,
-  useColorScheme,
 } from 'react-native'
 
 import { colors } from '@/constants'
@@ -33,7 +32,6 @@ export const OrderReadyAlertModal = memo(function OrderReadyAlertModal({
   body,
   onDismiss,
 }: Props) {
-  const isDark = useColorScheme() === 'dark'
   const soundRef = useRef<Audio.Sound | null>(null)
   const lottieRef = useRef<LottieView>(null)
   const onDismissRef = useRef(onDismiss)
@@ -84,8 +82,6 @@ export const OrderReadyAlertModal = memo(function OrderReadyAlertModal({
 
   if (!isVisible) return null
 
-  const overlayBg = isDark ? 'rgba(0,0,0,0.93)' : 'rgba(15,15,15,0.88)'
-
   return (
     <Modal
       visible={isVisible}
@@ -93,34 +89,35 @@ export const OrderReadyAlertModal = memo(function OrderReadyAlertModal({
       animationType="fade"
       statusBarTranslucent
     >
-      <View style={[s.overlay, { backgroundColor: overlayBg }]}>
-        <View style={s.content}>
-          <View style={s.iconWrap}>
-            <LottieView
-              ref={lottieRef}
-              source={LOTTIE_SOURCE}
-              autoPlay
-              loop
-              style={s.lottie}
-              renderMode="HARDWARE"
-              // Fallback to BellRing if Lottie fails to load
-              onAnimationFailure={() => {}}
-            />
-          </View>
-          <Text style={[s.title, { color: colors.white.light }]}>{title}</Text>
-          {!!body && (
-            <Text style={[s.body, { color: colors.gray[300] }]}>{body}</Text>
-          )}
-        </View>
+      <View style={s.overlay}>
+        <View style={s.card}>
+          {/* Lottie illustration */}
+          <LottieView
+            ref={lottieRef}
+            source={LOTTIE_SOURCE}
+            autoPlay
+            loop
+            style={s.lottie}
+            renderMode="HARDWARE"
+            onAnimationFailure={() => {}}
+          />
 
-        <Pressable
-          onPress={onDismiss}
-          accessibilityRole="button"
-          accessibilityLabel="Đã lấy đơn"
-          style={({ pressed }) => [s.btn, pressed && s.btnPressed]}
-        >
-          <Text style={s.btnText}>Đã lấy đơn</Text>
-        </Pressable>
+          {/* Text */}
+          <View style={s.textBlock}>
+            <Text style={s.title}>{title}</Text>
+            {!!body && <Text style={s.body}>{body}</Text>}
+          </View>
+
+          {/* CTA */}
+          <Pressable
+            onPress={onDismiss}
+            accessibilityRole="button"
+            accessibilityLabel="Đã lấy đơn"
+            style={({ pressed }) => [s.btn, pressed && s.btnPressed]}
+          >
+            <Text style={s.btnText}>Đã lấy đơn</Text>
+          </Pressable>
+        </View>
       </View>
     </Modal>
   )
@@ -129,44 +126,50 @@ export const OrderReadyAlertModal = memo(function OrderReadyAlertModal({
 const s = StyleSheet.create({
   overlay: {
     flex: 1,
-    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.75)',
     alignItems: 'center',
-    paddingHorizontal: 32,
-    paddingBottom: 48,
+    justifyContent: 'center',
+    paddingHorizontal: 28,
   },
-  content: {
+  card: {
+    width: '100%',
+    backgroundColor: colors.card.dark,
+    borderRadius: 24,
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    paddingBottom: 24,
     alignItems: 'center',
-    flex: 1,
-    justifyContent: 'center',
-    gap: 12,
-  },
-  iconWrap: {
-    width: 160,
-    height: 160,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 8,
+    gap: 0,
   },
   lottie: {
     width: 160,
     height: 160,
   },
+  textBlock: {
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 16,
+    marginBottom: 28,
+  },
   title: {
-    fontSize: 22,
-    fontFamily: 'BeVietnamPro_600SemiBold',
+    fontSize: 20,
+    fontFamily: 'BeVietnamPro_700Bold',
+    color: colors.white.light,
     textAlign: 'center',
+    lineHeight: 28,
   },
   body: {
-    fontSize: 15,
+    fontSize: 14,
     fontFamily: 'BeVietnamPro_400Regular',
+    color: colors.gray[400],
     textAlign: 'center',
-    lineHeight: 22,
+    lineHeight: 20,
   },
   btn: {
     width: '100%',
-    paddingVertical: 16,
-    borderRadius: 999,
-    backgroundColor: '#F7A737',
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: colors.primary.light,
     alignItems: 'center',
     justifyContent: 'center',
   },
