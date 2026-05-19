@@ -406,7 +406,7 @@ export default function GiftCardScreen() {
       {/* Content */}
       {isPending ? (
         <GiftCardSkeleton />
-      ) : isError ? (
+      ) : isError || data === null ? (
         <View style={s.empty}>
           <Gift size={48} color={colors.gray[300]} />
           <Text style={[s.emptyText, { color: subColor }]}>
@@ -414,9 +414,13 @@ export default function GiftCardScreen() {
           </Text>
           <Pressable
             onPress={() => refetch()}
+            disabled={isRefetching}
             accessibilityRole="button"
             accessibilityLabel={t('menu.retry')}
-            style={[s.retryBtn, { backgroundColor: primaryColor }]}
+            style={[
+              s.retryBtn,
+              { backgroundColor: primaryColor, opacity: isRefetching ? 0.5 : 1 },
+            ]}
           >
             <Text style={s.retryBtnText}>{t('menu.retry')}</Text>
           </Pressable>
