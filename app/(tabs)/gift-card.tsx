@@ -171,9 +171,10 @@ export default function GiftCardScreen() {
     }, []),
   )
 
-  const { data, isPending, refetch, isRefetching } = useGiftCards(undefined, {
-    enabled: allowFetch,
-  })
+  const { data, isPending, isError, refetch, isRefetching } = useGiftCards(
+    undefined,
+    { enabled: allowFetch },
+  )
 
   const items = useMemo(() => {
     const list = data?.items ?? []
@@ -403,8 +404,21 @@ export default function GiftCardScreen() {
 
 
       {/* Content */}
-      {!allowFetch || isPending ? (
+      {isPending ? (
         <GiftCardSkeleton />
+      ) : isError ? (
+        <View style={s.empty}>
+          <Gift size={48} color={colors.gray[300]} />
+          <Text style={[s.emptyText, { color: subColor }]}>
+            Không thể tải thẻ quà tặng
+          </Text>
+          <Pressable
+            onPress={() => refetch()}
+            style={[s.retryBtn, { backgroundColor: primaryColor }]}
+          >
+            <Text style={s.retryBtnText}>Thử lại</Text>
+          </Pressable>
+        </View>
       ) : items.length === 0 ? (
         <View style={s.empty}>
           <Gift size={48} color={colors.gray[300]} />
@@ -540,4 +554,17 @@ const s = StyleSheet.create({
     gap: 12,
   },
   emptyText: { fontSize: 15 },
+  retryBtn: {
+    marginTop: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 999,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  retryBtnText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600' as const,
+  },
 })
