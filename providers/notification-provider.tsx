@@ -7,7 +7,8 @@
  * 3. Listen foreground notifications → toast + sound (T5)
  * 4. Handle background tap → navigate (T7+T8)
  * 5. Show permission dialog when denied (T12)
- * 6. Show order-ready full-screen alert when order is ready for pickup
+ * 6. Show order-ready full-screen alert when order is ready for pickup,
+ *    regardless of foreground / background / cold-start entry path.
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 
@@ -34,15 +35,13 @@ export function NotificationProvider() {
   // T2+T3: Get FCM token + register with server (only when authenticated)
   const { permissionDenied } = useRegisterDeviceToken(isAuthenticated)
 
-  // T5: Foreground listener — only when authenticated so foreground FCM
-  // notifications are never added to the store while no user is logged in.
+  // T5: Foreground listener — show order-ready modal for ORDER_NEEDS_READY_TO_GET,
+  // toast + sound for others.
   useNotificationListener(isAuthenticated, showOrderReady)
 
-  // T7+T8: Background tap + cold start — gated on auth so cold-start taps
-  // from a previous user's session are not processed under the new user.
-  // The effect re-runs when isAuthenticated becomes true, so
-  // getLastNotificationResponseAsync() is still called after login.
-  useNotificationResponse(isAuthenticated)
+  // T7+T8: Background tap + cold start — same order-ready bridge so the modal
+  // appears regardless of entry path (foreground push, background tap, cold start).
+  useNotificationResponse(isAuthenticated, showOrderReady)
 
   // T4: Token refresh scheduler
   useEffect(() => {
