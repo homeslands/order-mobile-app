@@ -172,6 +172,11 @@ const s = StyleSheet.create({
     backgroundColor: colors.white.light,
     alignItems: 'center',
     justifyContent: 'center',
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
   },
   btnPressed: {
     opacity: 0.85,
@@ -179,6 +184,6 @@ const s = StyleSheet.create({
   btnText: {
     fontSize: 16,
     fontFamily: 'BeVietnamPro_700Bold',
-    color: colors.primary.light,
+    color: colors.gray[900],
   },
 })
