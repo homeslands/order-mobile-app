@@ -414,6 +414,8 @@ export default function GiftCardScreen() {
           </Text>
           <Pressable
             onPress={() => refetch()}
+            accessibilityRole="button"
+            accessibilityLabel="Thử lại"
             style={[s.retryBtn, { backgroundColor: primaryColor }]}
           >
             <Text style={s.retryBtnText}>Thử lại</Text>
@@ -559,12 +561,12 @@ const s = StyleSheet.create({
     paddingHorizontal: 24,
     paddingVertical: 10,
     borderRadius: 999,
-    alignItems: 'center' as const,
-    justifyContent: 'center' as const,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   retryBtnText: {
-    color: '#ffffff',
+    color: colors.white.light,
     fontSize: 14,
-    fontWeight: '600' as const,
+    fontWeight: '600',
   },
 })
