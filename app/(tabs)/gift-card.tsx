@@ -156,6 +156,7 @@ export default function GiftCardScreen() {
   // ── Defer fetch ──────────────────────────────────────────────────────────
   useFocusEffect(
     useCallback(() => {
+      setAllowFetch(false)
       let timer: ReturnType<typeof setTimeout> | null = null
       const task = InteractionManager.runAfterInteractions(() => {
         timer = setTimeout(() => {
@@ -165,6 +166,7 @@ export default function GiftCardScreen() {
       return () => {
         task.cancel()
         if (timer) clearTimeout(timer)
+        setAllowFetch(false)
       }
     }, []),
   )
