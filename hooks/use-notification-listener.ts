@@ -100,7 +100,14 @@ export function useNotificationListener(
         .getState()
         .addNotification(payload, { markAsRead: false })
 
-      const code = remoteMessage.data?.message as string | undefined
+      // data.message is inside the stringified data.payload — parse it first
+      let parsedPayload: Record<string, string> = {}
+      try {
+        parsedPayload = JSON.parse(
+          (remoteMessage.data?.payload as string | undefined) ?? '{}',
+        ) as Record<string, string>
+      } catch { /* ignore invalid JSON */ }
+      const code = parsedPayload.message ?? remoteMessage.data?.message
 
       if (code === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET) {
         // Full-screen modal handles alert — skip regular toast + sound
