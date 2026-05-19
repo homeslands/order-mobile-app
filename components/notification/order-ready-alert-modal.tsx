@@ -1,5 +1,6 @@
 import { Audio, type AVPlaybackSource } from 'expo-av'
-import { BellRing } from 'lucide-react-native'
+import LottieView from 'lottie-react-native'
+import type { AnimationObject } from 'lottie-react-native'
 import { memo, useEffect, useRef } from 'react'
 import {
   Modal,
@@ -23,6 +24,9 @@ interface Props {
 const VIBRATION_PATTERN = [0, 1000, 500, 1000, 500, 1000, 500, 1000]
 const AUTO_DISMISS_MS = 60_000
 
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+const LOTTIE_SOURCE: AnimationObject = require('@/assets/animations/order-ready.json')
+
 export const OrderReadyAlertModal = memo(function OrderReadyAlertModal({
   isVisible,
   title,
@@ -31,6 +35,7 @@ export const OrderReadyAlertModal = memo(function OrderReadyAlertModal({
 }: Props) {
   const isDark = useColorScheme() === 'dark'
   const soundRef = useRef<Audio.Sound | null>(null)
+  const lottieRef = useRef<LottieView>(null)
   const onDismissRef = useRef(onDismiss)
   useEffect(() => {
     onDismissRef.current = onDismiss
@@ -40,6 +45,8 @@ export const OrderReadyAlertModal = memo(function OrderReadyAlertModal({
     if (!isVisible) return
 
     Vibration.vibrate(VIBRATION_PATTERN, true)
+    const lottie = lottieRef.current
+    lottie?.play()
 
     let mounted = true
     Audio.Sound.createAsync(
@@ -65,6 +72,7 @@ export const OrderReadyAlertModal = memo(function OrderReadyAlertModal({
       mounted = false
       clearTimeout(timer)
       Vibration.cancel()
+      lottie?.reset()
       const s = soundRef.current
       soundRef.current = null
       if (s) {
@@ -88,7 +96,16 @@ export const OrderReadyAlertModal = memo(function OrderReadyAlertModal({
       <View style={[s.overlay, { backgroundColor: overlayBg }]}>
         <View style={s.content}>
           <View style={s.iconWrap}>
-            <BellRing size={48} color="#F7A737" strokeWidth={1.5} />
+            <LottieView
+              ref={lottieRef}
+              source={LOTTIE_SOURCE}
+              autoPlay
+              loop
+              style={s.lottie}
+              renderMode="HARDWARE"
+              // Fallback to BellRing if Lottie fails to load
+              onAnimationFailure={() => {}}
+            />
           </View>
           <Text style={[s.title, { color: colors.white.light }]}>{title}</Text>
           {!!body && (
@@ -124,13 +141,15 @@ const s = StyleSheet.create({
     gap: 12,
   },
   iconWrap: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: 'rgba(247,167,55,0.15)',
+    width: 160,
+    height: 160,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
+  },
+  lottie: {
+    width: 160,
+    height: 160,
   },
   title: {
     fontSize: 22,
