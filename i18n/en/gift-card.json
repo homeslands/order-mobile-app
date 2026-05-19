@@ -278,5 +278,10 @@
       "quantityMin": "Minimum 1",
       "messageMax": "Maximum 200 characters"
     }
+  },
+  "menu": {
+    "loadError": "Unable to load gift cards",
+    "retry": "Try again",
+    "empty": "No gift cards available"
   }
 }

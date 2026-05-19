@@ -410,22 +410,22 @@ export default function GiftCardScreen() {
         <View style={s.empty}>
           <Gift size={48} color={colors.gray[300]} />
           <Text style={[s.emptyText, { color: subColor }]}>
-            Không thể tải thẻ quà tặng
+            {t('menu.loadError')}
           </Text>
           <Pressable
             onPress={() => refetch()}
             accessibilityRole="button"
-            accessibilityLabel="Thử lại"
+            accessibilityLabel={t('menu.retry')}
             style={[s.retryBtn, { backgroundColor: primaryColor }]}
           >
-            <Text style={s.retryBtnText}>Thử lại</Text>
+            <Text style={s.retryBtnText}>{t('menu.retry')}</Text>
           </Pressable>
         </View>
       ) : items.length === 0 ? (
         <View style={s.empty}>
           <Gift size={48} color={colors.gray[300]} />
           <Text style={[s.emptyText, { color: subColor }]}>
-            Chưa có thẻ quà tặng nào
+            {t('menu.empty')}
           </Text>
         </View>
       ) : (
