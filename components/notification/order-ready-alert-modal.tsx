@@ -133,7 +133,7 @@ const s = StyleSheet.create({
   },
   card: {
     width: '100%',
-    backgroundColor: colors.card.dark,
+    backgroundColor: colors.primary.light,
     borderRadius: 24,
     paddingHorizontal: 24,
     paddingTop: 32,
@@ -161,7 +161,7 @@ const s = StyleSheet.create({
   body: {
     fontSize: 14,
     fontFamily: 'BeVietnamPro_400Regular',
-    color: colors.gray[400],
+    color: 'rgba(255,255,255,0.8)',
     textAlign: 'center',
     lineHeight: 20,
   },
@@ -169,16 +169,16 @@ const s = StyleSheet.create({
     width: '100%',
     height: 52,
     borderRadius: 14,
-    backgroundColor: colors.primary.light,
+    backgroundColor: colors.white.light,
     alignItems: 'center',
     justifyContent: 'center',
   },
   btnPressed: {
-    opacity: 0.8,
+    opacity: 0.85,
   },
   btnText: {
     fontSize: 16,
-    fontFamily: 'BeVietnamPro_600SemiBold',
-    color: colors.white.light,
+    fontFamily: 'BeVietnamPro_700Bold',
+    color: colors.primary.light,
   },
 })
