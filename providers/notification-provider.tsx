@@ -7,12 +7,13 @@
  * 3. Listen foreground notifications → toast + sound (T5)
  * 4. Handle background tap → navigate (T7+T8)
  * 5. Show permission dialog when denied (T12)
- *
- * Mount once in _layout.tsx, inside QueryClientProvider.
+ * 6. Show order-ready full-screen alert when order is ready for pickup
  */
 import { useCallback, useEffect, useRef, useState } from 'react'
 
+import { OrderReadyAlertModal } from '@/components/notification/order-ready-alert-modal'
 import { NotificationPermissionSheet } from '@/components/notification/notification-permission-sheet'
+import { useOrderReadyAlert } from '@/hooks/use-order-ready-alert'
 import { useRegisterDeviceToken } from '@/hooks/use-register-device-token'
 import { useNotificationListener } from '@/hooks/use-notification-listener'
 import { useNotificationResponse } from '@/hooks/use-notification-response'
@@ -26,12 +27,17 @@ export function NotificationProvider() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated())
   const schedulerStartedRef = useRef(false)
 
+  // Order-ready full-screen alert
+  const { isVisible, title, body, show: showOrderReady, hide: hideOrderReady } =
+    useOrderReadyAlert()
+
   // T2+T3: Get FCM token + register with server (only when authenticated)
   const { permissionDenied } = useRegisterDeviceToken(isAuthenticated)
 
   // T5: Foreground listener — only when authenticated so foreground FCM
   // notifications are never added to the store while no user is logged in.
-  useNotificationListener(isAuthenticated)
+  // @ts-expect-error -- onOrderReady added in Task 6
+  useNotificationListener(isAuthenticated, showOrderReady)
 
   // T7+T8: Background tap + cold start — gated on auth so cold-start taps
   // from a previous user's session are not processed under the new user.
@@ -76,9 +82,17 @@ export function NotificationProvider() {
   }, [])
 
   return (
-    <NotificationPermissionSheet
-      visible={showPermissionSheet}
-      onClose={handleClosePermission}
-    />
+    <>
+      <OrderReadyAlertModal
+        isVisible={isVisible}
+        title={title}
+        body={body}
+        onDismiss={hideOrderReady}
+      />
+      <NotificationPermissionSheet
+        visible={showPermissionSheet}
+        onClose={handleClosePermission}
+      />
+    </>
   )
 }
