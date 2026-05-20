@@ -11,6 +11,8 @@
  * - Cold start handler (app opened via notification tap, app killed)
  * - Notification list (user taps item in list — background-tap mode)
  */
+import { Platform } from 'react-native'
+
 import { NotificationMessageCode } from '@/constants'
 import { isNavigationLocked, navigateNative } from '@/lib/navigation'
 
@@ -80,7 +82,8 @@ export function getRouteForMessage(
 let pendingNotificationTimeout: ReturnType<typeof setTimeout> | null = null
 let pendingNotificationRoute: string | null = null
 
-const COLD_START_DELAY_MS = 600
+// Android (Hermes) bootstraps in ~350-450ms; iOS needs 500-700ms.
+const COLD_START_DELAY_MS = Platform.OS === 'android' ? 400 : 600
 const NAV_LOCK_RETRY_MS = 120
 const NAV_LOCK_MAX_RETRIES = 3
 
