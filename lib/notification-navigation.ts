@@ -2,7 +2,7 @@
  * Notification Navigation — map notification data → app route.
  *
  * Two entry modes:
- * - 'cold-start':     app was killed; JS just booted. Defer ~600ms + retry.
+ * - 'cold-start':     app was killed; JS just booted. Defer 400ms (Android) / 600ms (iOS) + retry.
  * - 'background-tap': app was already running. Push immediately (retry once
  *                     if navigation engine is briefly locked).
  *
@@ -128,7 +128,7 @@ function schedulePush(route: string, delayMs: number): void {
  * Navigate to the screen associated with a notification.
  *
  * @param data FCM data payload (raw, including stringified `data.payload`)
- * @param mode 'cold-start' applies a 600ms boot delay; 'background-tap' is immediate.
+ * @param mode 'cold-start' applies a platform-aware boot delay (400ms Android / 600ms iOS); 'background-tap' is immediate.
  *             Defaults to 'background-tap' (app warm) for safety — the caller
  *             that knows it's cold-start MUST pass 'cold-start' explicitly.
  * @returns true if navigation was scheduled.
