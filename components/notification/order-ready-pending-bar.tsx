@@ -35,10 +35,7 @@ export const OrderReadyPendingBar = memo(function OrderReadyPendingBar() {
     markAsRead(pending.slug)
     const orderSlug = pending.metadata?.order
     if (orderSlug) {
-      navigateNative.push({
-        pathname: '/order/[id]',
-        params: { id: orderSlug },
-      })
+      navigateNative.push(`/order/${orderSlug}`)
     }
   }, [pending, markAsRead])
 
