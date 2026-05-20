@@ -12,6 +12,7 @@ export interface PendingOrder {
 
 export interface OrderReadyQueue {
   activeOrder: PendingOrder | null
+  /** Total unread ORDER_NEEDS_READY_TO_GET notifications, including currently snoozed ones. */
   pendingCount: number
   snooze: (orderSlug: string) => void
   markDone: (orderSlug: string) => void
@@ -21,6 +22,7 @@ export interface OrderReadyQueue {
 // Module-level: persists for JS runtime lifetime (cleared only on app kill).
 const snoozeMap = new Map<string, number>() // orderSlug → expireAt ms
 const SNOOZE_MS = 90_000
+const SUPPRESS_BUFFER_MS = 50
 
 /** Exposed only for test isolation — do NOT call in production code. */
 export const _resetSnoozeMapForTests = () => snoozeMap.clear()
@@ -49,11 +51,15 @@ export function useOrderReadyQueue(): OrderReadyQueue {
 
   const [, forceUpdate] = useState(0)
   const suppressUntilRef = useRef(0)
+  const suppressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Re-check snooze expiry every 10s so expired orders re-surface.
   useEffect(() => {
     const id = setInterval(() => forceUpdate((n) => n + 1), 10_000)
-    return () => clearInterval(id)
+    return () => {
+      clearInterval(id)
+      if (suppressTimerRef.current) clearTimeout(suppressTimerRef.current)
+    }
   }, [])
 
   // Sort ASC by createdAt → oldest notification surfaces first (FIFO).
@@ -77,15 +83,12 @@ export function useOrderReadyQueue(): OrderReadyQueue {
 
   const pendingCount = sorted.length
 
-  const snooze = useCallback(
-    (orderSlug: string) => {
-      snoozeMap.set(orderSlug, Date.now() + SNOOZE_MS)
-      // Immediately re-derive activeOrder so the consumer effect sees the
-      // updated value synchronously (prevents re-present flicker).
-      forceUpdate((n) => n + 1)
-    },
-    [forceUpdate],
-  )
+  const snooze = useCallback((orderSlug: string) => {
+    snoozeMap.set(orderSlug, Date.now() + SNOOZE_MS)
+    // Immediately re-derive activeOrder so the consumer effect sees the
+    // updated value synchronously (prevents re-present flicker).
+    forceUpdate((n) => n + 1)
+  }, [])
 
   const markDone = useCallback(
     (orderSlug: string) => {
@@ -95,15 +98,16 @@ export function useOrderReadyQueue(): OrderReadyQueue {
     [markAllReadByOrder],
   )
 
-  const suppressFor = useCallback(
-    (ms: number) => {
-      suppressUntilRef.current = Date.now() + ms
-      // Re-derive activeOrder immediately (suppressed) and again after expiry.
-      forceUpdate((n) => n + 1)
-      setTimeout(() => forceUpdate((n) => n + 1), ms + 50)
-    },
-    [forceUpdate],
-  )
+  const suppressFor = useCallback((ms: number) => {
+    suppressUntilRef.current = Date.now() + ms
+    // Re-derive activeOrder immediately (suppressed) and again after expiry.
+    forceUpdate((n) => n + 1)
+    if (suppressTimerRef.current) clearTimeout(suppressTimerRef.current)
+    suppressTimerRef.current = setTimeout(
+      () => forceUpdate((n) => n + 1),
+      ms + SUPPRESS_BUFFER_MS,
+    )
+  }, [])
 
   return { activeOrder, pendingCount, snooze, markDone, suppressFor }
 }

@@ -30,6 +30,7 @@ jest.mock('zustand/react/shallow', () => ({
 }))
 
 // Import AFTER mocks (Jest hoisting)
+import { NotificationMessageCode } from '@/constants/notification.constant'
 import {
   _resetSnoozeMapForTests,
   useOrderReadyQueue,
@@ -47,7 +48,7 @@ function makeNotif(overrides: {
   return {
     slug: overrides.slug ?? `notif-${Math.random()}`,
     createdAt: overrides.createdAt ?? new Date().toISOString(),
-    message: 'order-needs-ready-to-get',
+    message: NotificationMessageCode.ORDER_NEEDS_READY_TO_GET,
     isRead: false,
     metadata: {
       order: overrides.orderSlug ?? `order-${Math.random()}`,
@@ -122,9 +123,16 @@ describe('useOrderReadyQueue', () => {
   test('markDone calls markAllReadByOrder and removes from active queue', () => {
     const n1 = makeNotif({ orderSlug: 'order-done' })
     mockStoreState.notifications = [n1]
-    const { result } = renderHook(() => useOrderReadyQueue())
-    act(() => { result.current.markDone('order-done') })
+    const { result, rerender } = renderHook(() => useOrderReadyQueue())
+    act(() => {
+      result.current.markDone('order-done')
+      // Simulate what markAllReadByOrder does in the real store
+      mockStoreState.notifications = []
+    })
+    rerender(undefined)
     expect(mockStoreState.markAllReadByOrder).toHaveBeenCalledWith('order-done')
+    expect(result.current.activeOrder).toBeNull()
+    expect(result.current.pendingCount).toBe(0)
   })
 
   test('suppressFor blocks activeOrder for given duration then re-enables', () => {
@@ -142,7 +150,7 @@ describe('useOrderReadyQueue', () => {
     mockStoreState.notifications = [{
       slug: 'read-notif',
       createdAt: new Date().toISOString(),
-      message: 'order-needs-ready-to-get',
+      message: NotificationMessageCode.ORDER_NEEDS_READY_TO_GET,
       isRead: true,
       metadata: { order: 'order-read', referenceNumber: 'REF', branchName: 'Q1' },
     }]
