@@ -3,20 +3,16 @@
  *
  * - Subscribes to Firebase onMessage (foreground only)
  * - Parses FCM payload → adds to notification store
- * - For ORDER_NEEDS_READY_TO_GET: calls onOrderReady (full-screen alert) instead
- *   of regular toast + sound
- * - For all other codes: shows toast + plays notification.mp3 via shared module
+ * - Shows toast + plays notification.mp3 (1s) for all message codes including
+ *   ORDER_NEEDS_READY_TO_GET — no special alarm for customers
  *
- * Sound lifecycle is managed by lib/notification-sound.ts (preloaded at app
- * startup, single in-flight playback counter, race-safe dispose). We do NOT
- * unload the cached sound on effect cleanup — it is process-scoped.
+ * Sound lifecycle managed by lib/notification-sound.ts (preloaded at startup).
  */
 import { useEffect } from 'react'
 import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging'
 
-import { NotificationMessageCode } from '@/constants/notification.constant'
 import { playNotificationSound } from '@/lib/notification-sound'
 import {
   useNotificationStore,
@@ -38,10 +34,7 @@ function firebaseToPayload(
   }
 }
 
-export function useNotificationListener(
-  enabled = true,
-  onOrderReady?: (title: string, body: string) => void,
-) {
+export function useNotificationListener(enabled = true) {
   useEffect(() => {
     if (!enabled) return
 
@@ -58,25 +51,6 @@ export function useNotificationListener(
         .getState()
         .addNotification(payload, { markAsRead: false })
 
-      // data.message is inside the stringified data.payload — parse it first
-      let parsedPayload: Record<string, string> = {}
-      try {
-        parsedPayload = JSON.parse(
-          (remoteMessage.data?.payload as string | undefined) ?? '{}',
-        ) as Record<string, string>
-      } catch {
-        /* ignore invalid JSON */
-      }
-      const code = parsedPayload.message ?? remoteMessage.data?.message
-
-      if (code === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET) {
-        const alertTitle =
-          remoteMessage.notification?.title ?? 'Đơn của bạn đã sẵn sàng'
-        const alertBody = remoteMessage.notification?.body ?? ''
-        onOrderReady?.(alertTitle, alertBody)
-        return
-      }
-
       const title = payload.notification?.title || 'Thông báo'
       const body = payload.notification?.body || ''
       if (body) showToastInternal(title, body, 'info')
@@ -86,8 +60,8 @@ export function useNotificationListener(
 
     return () => {
       unsubscribe()
-      // Intentionally NOT disposing the cached sound — it is process-scoped
-      // (managed by lib/notification-sound.ts) and benefits the next user.
+      // Intentionally NOT disposing the cached sound — process-scoped,
+      // managed by lib/notification-sound.ts.
     }
-  }, [enabled, onOrderReady])
+  }, [enabled])
 }
