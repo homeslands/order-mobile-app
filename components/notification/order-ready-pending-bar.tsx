@@ -1,20 +1,22 @@
 /**
- * OrderReadyPendingBar — persistent ambient bar shown when the customer opens
- * the app via icon and has an unread ORDER_NEEDS_READY_TO_GET notification.
+ * OrderReadyAmbientBar — fallback ambient bar for payment/update-order screens.
  *
- * No push notification tap needed. The bar reads the Zustand notification store
- * directly so it appears / disappears reactively as read-state changes.
+ * On tab screens OrderReadyPickupSheet handles ORDER_NEEDS_READY_TO_GET.
+ * This bar shows only when the user is mid-payment and the sheet is suppressed,
+ * so they still get a non-blocking nudge without the full sheet overlay.
  *
- * Tap bar  → markAsRead + navigate to order detail
- * Tap ✕    → markAsRead + toast hint (not silent dismiss)
+ * Layout: outer Animated.View → inner View (flexRow) → [Pressable tapArea | Pressable X]
+ * Sibling Pressables prevent tap-propagation bug where nested Pressable fired
+ * both handleDismiss and handleBarPress simultaneously.
  *
- * Positioned below TabHeader so bell/logo/search remain visible.
- * Animates in/out with Reanimated withTiming + haptic on appear.
+ * Tap tapArea → markAsRead + navigate to order detail
+ * Tap X       → markAsRead + toast hint (no navigation)
  */
 import * as Haptics from 'expo-haptics'
+import { usePathname } from 'expo-router'
 import { X } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useRef } from 'react'
-import { Pressable, StyleSheet, Text, useColorScheme } from 'react-native'
+import { Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native'
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -33,7 +35,8 @@ import { useNotificationStore } from '@/stores/notification.store'
 
 const BAR_TOP = STATIC_TOP_INSET + TAB_HEADER_CONTENT_HEIGHT
 
-export const OrderReadyPendingBar = memo(function OrderReadyPendingBar() {
+export const OrderReadyAmbientBar = memo(function OrderReadyAmbientBar() {
+  const pathname = usePathname()
   const { pendingSlug, pendingOrderSlug } = useNotificationStore(
     useShallow((s) => {
       const n = s.notifications.find(
@@ -51,7 +54,13 @@ export const OrderReadyPendingBar = memo(function OrderReadyPendingBar() {
   const markAsRead = useNotificationStore((s) => s.markAsRead)
   const isDark = useColorScheme() === 'dark'
 
-  const visible = pendingSlug !== null
+  // Bar is the fallback for payment/update-order screens only.
+  // Tab screens get OrderReadyPickupSheet instead.
+  const isPaymentRoute =
+    pathname?.startsWith('/payment/') || pathname?.startsWith('/update-order/')
+
+  const visible = pendingSlug !== null && isPaymentRoute
+
   const opacity = useSharedValue(0)
   const translateY = useSharedValue(-40)
   const hapticFiredForSlug = useRef<string | null>(null)
@@ -89,7 +98,11 @@ export const OrderReadyPendingBar = memo(function OrderReadyPendingBar() {
   const handleDismiss = useCallback(() => {
     if (!pendingSlug) return
     markAsRead(pendingSlug)
-    showToastInternal('Đã ẩn nhắc nhở', 'Đã ẩn nhắc nhở — Xem lại ở mục Thông báo', 'info')
+    showToastInternal(
+      'Đã ẩn nhắc nhở',
+      'Đã ẩn nhắc nhở — Xem lại ở mục Thông báo',
+      'info',
+    )
   }, [pendingSlug, markAsRead])
 
   const primaryColor = isDark ? colors.primary.dark : colors.primary.light
@@ -100,15 +113,19 @@ export const OrderReadyPendingBar = memo(function OrderReadyPendingBar() {
       pointerEvents={visible ? 'auto' : 'none'}
       style={[s.wrapper, { top: BAR_TOP }, animatedStyle]}
     >
-      <Pressable
-        style={[s.bar, { backgroundColor: primaryColor }]}
-        onPress={handleBarPress}
-        accessibilityRole="button"
-        accessibilityLabel="Đơn hàng đã sẵn sàng — Nhấn để xem chi tiết"
-      >
-        <Text style={[s.message, { color: textColor }]} numberOfLines={1}>
-          Đơn đã sẵn sàng — nhận ngay 🎉
-        </Text>
+      <View style={[s.bar, { backgroundColor: primaryColor }]}>
+        {/* tapArea: full-width minus the close button, no nesting */}
+        <Pressable
+          style={s.tapArea}
+          onPress={handleBarPress}
+          accessibilityRole="button"
+          accessibilityLabel="Đơn hàng đã sẵn sàng — Nhấn để xem chi tiết"
+        >
+          <Text style={[s.message, { color: textColor }]} numberOfLines={1}>
+            Đơn đã sẵn sàng — nhận ngay 🎉
+          </Text>
+        </Pressable>
+        {/* Sibling, not child — prevents propagation to tapArea */}
         <Pressable
           onPress={handleDismiss}
           hitSlop={8}
@@ -118,7 +135,7 @@ export const OrderReadyPendingBar = memo(function OrderReadyPendingBar() {
         >
           <X size={16} color={textColor} />
         </Pressable>
-      </Pressable>
+      </View>
     </Animated.View>
   )
 })
@@ -133,16 +150,20 @@ const s = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
+  },
+  tapArea: {
+    flex: 1,
     paddingVertical: 10,
-    paddingHorizontal: 16,
-    gap: 8,
+    paddingLeft: 16,
+    paddingRight: 4,
   },
   message: {
-    flex: 1,
     fontSize: 13,
     fontFamily: 'BeVietnamPro_600SemiBold',
   },
   closeButton: {
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     alignItems: 'center',
     justifyContent: 'center',
   },
