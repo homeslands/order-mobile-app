@@ -24,6 +24,7 @@ import { CheckCircle2 } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native'
 import Animated, {
+  cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
   withRepeat,
@@ -81,9 +82,10 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
 
   const handleViewOrder = useCallback(() => {
     if (!activeOrder) return
-    markDone(activeOrder.orderSlug)
     suppressFor(600)
+    markDone(activeOrder.orderSlug)
     isProgrammaticRef.current = true
+    shownOrderRef.current = null
     sheetRef.current?.dismiss()
     navigateNative.push(`/order/${activeOrder.orderSlug}`)
   }, [activeOrder, markDone, suppressFor])
@@ -92,6 +94,7 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
     if (!activeOrder) return
     snooze(activeOrder.orderSlug)
     isProgrammaticRef.current = true
+    shownOrderRef.current = null
     sheetRef.current?.dismiss()
     showToastInternal(
       'Đã ẩn nhắc nhở',
@@ -103,6 +106,11 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
   // Pulsing dot for pending badge — runs on UI thread via Reanimated.
   const dotOpacity = useSharedValue(1)
   useEffect(() => {
+    if (pendingCount <= 1) {
+      cancelAnimation(dotOpacity)
+      dotOpacity.value = 1
+      return
+    }
     dotOpacity.value = withRepeat(
       withSequence(
         withTiming(0.3, { duration: 750 }),
@@ -110,7 +118,8 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
       ),
       -1,
     )
-  }, [dotOpacity])
+    return () => cancelAnimation(dotOpacity)
+  }, [dotOpacity, pendingCount])
   const animatedDotStyle = useAnimatedStyle(() => ({
     opacity: dotOpacity.value,
   }))
@@ -135,15 +144,21 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
     [isDark],
   )
 
-  const successColor = isDark ? colors.success.dark : colors.success.light
-  const iconBg = isDark ? colors.success.iconBgDark : colors.success.iconBgLight
-  const titleColor = isDark ? colors.gray[50] : colors.gray[900]
-  const bodyColor = isDark ? colors.gray[400] : colors.gray[500]
-  const primaryBg = isDark ? colors.primary.dark : colors.primary.light
-  const secondaryBg = isDark ? colors.border.dark : colors.gray[100]
-  const secondaryText = isDark ? colors.gray[50] : colors.gray[700]
-  const badgeBg = isDark ? 'rgba(232,184,75,0.12)' : 'rgba(232,184,75,0.10)'
-  const badgeText = isDark ? '#E8B84B' : '#966c00'
+  const theme = useMemo(
+    () => ({
+      successColor: isDark ? colors.success.dark : colors.success.light,
+      iconBg: isDark ? colors.success.iconBgDark : colors.success.iconBgLight,
+      titleColor: isDark ? colors.gray[50] : colors.gray[900],
+      bodyColor: isDark ? colors.gray[400] : colors.gray[500],
+      primaryBg: isDark ? colors.primary.dark : colors.primary.light,
+      secondaryBg: isDark ? colors.border.dark : colors.gray[100],
+      secondaryText: isDark ? colors.gray[50] : colors.gray[700],
+      badgeBg: isDark ? 'rgba(232,184,75,0.12)' : 'rgba(232,184,75,0.10)',
+      badgeBorder: 'rgba(232,184,75,0.35)',
+      badgeText: isDark ? '#E8B84B' : '#966c00',
+    }),
+    [isDark],
+  )
 
   return (
     <BottomSheetModal
@@ -164,34 +179,34 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
               style={[
                 s.pendingBadge,
                 {
-                  backgroundColor: badgeBg,
-                  borderColor: 'rgba(232,184,75,0.35)',
+                  backgroundColor: theme.badgeBg,
+                  borderColor: theme.badgeBorder,
                 },
               ]}
             >
               <Animated.View style={[s.pendingDot, animatedDotStyle]} />
-              <Text style={[s.pendingText, { color: badgeText }]}>
+              <Text style={[s.pendingText, { color: theme.badgeText }]}>
                 Còn {pendingCount - 1} đơn nữa đang chờ
               </Text>
             </View>
           )}
 
-          <View style={[s.iconWrap, { backgroundColor: iconBg }]}>
-            <CheckCircle2 size={32} color={successColor} />
+          <View style={[s.iconWrap, { backgroundColor: theme.iconBg }]}>
+            <CheckCircle2 size={32} color={theme.successColor} />
           </View>
 
-          <Text style={[s.title, { color: titleColor }]}>
+          <Text style={[s.title, { color: theme.titleColor }]}>
             Đơn của bạn đã sẵn sàng!
           </Text>
 
           {!!activeOrder?.referenceNumber && (
-            <Text style={[s.orderInfo, { color: bodyColor }]}>
+            <Text style={[s.orderInfo, { color: theme.bodyColor }]}>
               Đơn #{activeOrder.referenceNumber}
               {activeOrder.branchName ? ` • ${activeOrder.branchName}` : ''}
             </Text>
           )}
 
-          <Text style={[s.hint, { color: bodyColor }]}>
+          <Text style={[s.hint, { color: theme.bodyColor }]}>
             Vui lòng đến quầy để nhận đơn của bạn
           </Text>
         </View>
@@ -199,16 +214,16 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
         <View style={s.footer}>
           <Pressable
             onPress={handleDismissLater}
-            style={[s.btn, { backgroundColor: secondaryBg }]}
+            style={[s.btn, { backgroundColor: theme.secondaryBg }]}
             accessibilityRole="button"
             accessibilityLabel="Ẩn thông báo"
           >
-            <Text style={[s.btnText, { color: secondaryText }]}>Để sau</Text>
+            <Text style={[s.btnText, { color: theme.secondaryText }]}>Để sau</Text>
           </Pressable>
 
           <Pressable
             onPress={handleViewOrder}
-            style={[s.btn, { backgroundColor: primaryBg }]}
+            style={[s.btn, { backgroundColor: theme.primaryBg }]}
             accessibilityRole="button"
             accessibilityLabel="Xem chi tiết đơn"
           >
