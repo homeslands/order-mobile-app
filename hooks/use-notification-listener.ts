@@ -39,12 +39,6 @@ export function useNotificationListener(enabled = true) {
     if (!enabled) return
 
     const unsubscribe = messaging().onMessage((remoteMessage) => {
-      // eslint-disable-next-line no-console
-      console.log(
-        '[FCM] foreground message:',
-        JSON.stringify(remoteMessage, null, 2),
-      )
-
       const payload = firebaseToPayload(remoteMessage)
 
       useNotificationStore

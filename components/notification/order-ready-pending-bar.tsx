@@ -10,7 +10,7 @@
  */
 import { X } from 'lucide-react-native'
 import { memo, useCallback } from 'react'
-import { Pressable, StyleSheet, Text } from 'react-native'
+import { Pressable, StyleSheet, Text, useColorScheme } from 'react-native'
 
 import { colors } from '@/constants'
 import { NotificationMessageCode } from '@/constants/notification.constant'
@@ -49,9 +49,11 @@ export const OrderReadyPendingBar = memo(function OrderReadyPendingBar() {
     markAsRead(pendingSlug)
   }, [pendingSlug, markAsRead])
 
+  const isDark = useColorScheme() === 'dark'
+
   if (!pendingSlug) return null
 
-  const primaryColor = colors.primary.light
+  const primaryColor = isDark ? colors.primary.dark : colors.primary.light
   const textColor = colors.white.light
 
   return (
