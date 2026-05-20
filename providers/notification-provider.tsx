@@ -23,6 +23,7 @@ import { useAuthStore } from '@/stores'
 
 export function NotificationProvider() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated())
+  const hasToken = useAuthStore((s) => !!s.token)
   const schedulerStartedRef = useRef(false)
 
   const { permissionDenied } = useRegisterDeviceToken(isAuthenticated)
@@ -48,10 +49,10 @@ export function NotificationProvider() {
   }, [])
 
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (!hasToken) {
       clearProcessed()
     }
-  }, [isAuthenticated])
+  }, [hasToken])
 
   const [showPermissionSheet, setShowPermissionSheet] = useState(false)
   const hasShownRef = useRef(false)

@@ -21,23 +21,10 @@ import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging'
 
-import { hasProcessed, markProcessed } from '@/lib/notification-dedup'
+import { hasProcessed, markProcessed, fcmMessageId } from '@/lib/notification-dedup'
 import { isResponseFromThisSession } from '@/lib/app-launch-time'
 import { navigateFromNotification } from '@/lib/notification-navigation'
 import { useNotificationStore } from '@/stores/notification.store'
-
-function fcmUnifiedId(
-  remoteMessage: FirebaseMessagingTypes.RemoteMessage,
-): string {
-  const dataMsgId =
-    (remoteMessage.data?.['google.message_id'] as string | undefined) ??
-    (remoteMessage.data?.['gcm.message_id'] as string | undefined)
-  return (
-    remoteMessage.messageId ??
-    dataMsgId ??
-    String(remoteMessage.sentTime ?? Date.now())
-  )
-}
 
 function expoUnifiedId(response: Notifications.NotificationResponse): string {
   const data = response.notification.request.content.data as
@@ -57,7 +44,7 @@ export function useNotificationResponse(enabled = true) {
       remoteMessage: FirebaseMessagingTypes.RemoteMessage,
       mode: 'cold-start' | 'background-tap',
     ) => {
-      const id = fcmUnifiedId(remoteMessage)
+      const id = fcmMessageId(remoteMessage)
       if (hasProcessed(id)) return
       markProcessed(id)
 

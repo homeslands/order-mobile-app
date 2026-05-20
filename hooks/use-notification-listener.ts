@@ -12,7 +12,7 @@ import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging'
 
-import { hasProcessed, markProcessed } from '@/lib/notification-dedup'
+import { hasProcessed, markProcessed, fcmMessageId } from '@/lib/notification-dedup'
 import { playNotificationSound } from '@/lib/notification-sound'
 import {
   useNotificationStore,
@@ -34,25 +34,12 @@ function firebaseToPayload(
   }
 }
 
-function fcmForegroundId(
-  remoteMessage: FirebaseMessagingTypes.RemoteMessage,
-): string {
-  const dataMsgId =
-    (remoteMessage.data?.['google.message_id'] as string | undefined) ??
-    (remoteMessage.data?.['gcm.message_id'] as string | undefined)
-  return (
-    remoteMessage.messageId ??
-    dataMsgId ??
-    String(remoteMessage.sentTime ?? Date.now())
-  )
-}
-
 export function useNotificationListener(enabled = true) {
   useEffect(() => {
     if (!enabled) return
 
     const unsubscribe = messaging().onMessage((remoteMessage) => {
-      const id = fcmForegroundId(remoteMessage)
+      const id = fcmMessageId(remoteMessage)
       if (hasProcessed(id)) return
       markProcessed(id)
 
