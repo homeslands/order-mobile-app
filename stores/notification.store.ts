@@ -228,5 +228,6 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
         ...(isDifferentUser ? { markedAllReadAt: null } : {}),
       }
     })
+    syncBadge(get().unreadCount)
   },
 }))

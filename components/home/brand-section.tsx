@@ -96,7 +96,7 @@ export const BrandSection = React.memo(function BrandSection() {
       </Text>
 
       {/* Description */}
-      <Text className="mb-2 text-center text-base leading-7 text-foreground">
+      <Text className="mb-2 text-center text-base leading-7 text-muted-foreground">
         {t('homeDescription')}
       </Text>
       <Text className="mb-5 text-center text-base leading-7 text-muted-foreground">
