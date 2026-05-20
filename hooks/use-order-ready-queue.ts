@@ -68,6 +68,7 @@ export function useOrderReadyQueue(): OrderReadyQueue {
       new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
   )
 
+  // eslint-disable-next-line react-hooks/purity -- intentional: current time needed to check suppress window
   const isSuppressed = Date.now() < suppressUntilRef.current
   const activeNotif = isSuppressed
     ? null
