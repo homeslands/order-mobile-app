@@ -125,11 +125,15 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
 
   addNotification: (payload, options) => {
     set((state) => {
-      const item = transformPayloadToNotification(
+      const rawItem = transformPayloadToNotification(
         payload,
         options?.markAsRead ?? false,
       )
-      // Dedup by slug, prepend new, cap at MAX
+      const existing = state.notifications.find((n) => n.slug === rawItem.slug)
+      // Preserve read state: a notification already read locally must not be
+      // reset to unread by a duplicate FCM delivery.
+      const item =
+        existing?.isRead === true ? { ...rawItem, isRead: true } : rawItem
       const filtered = state.notifications.filter((n) => n.slug !== item.slug)
       const updated = [item, ...filtered].slice(0, MAX_NOTIFICATIONS)
       let unreadCount = 0
