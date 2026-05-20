@@ -38,6 +38,7 @@ interface NotificationStore {
     options?: { markAsRead?: boolean },
   ) => void
   markAsRead: (slug: string) => void
+  markAllReadByOrder: (orderSlug: string) => void
   markAllAsRead: () => void
   setReadStates: (updates: { slug: string; isRead: boolean }[]) => void
   clearAll: () => void
@@ -147,6 +148,18 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
     set((state) => {
       const notifications = state.notifications.map((n) =>
         n.slug === slug ? { ...n, isRead: true } : n,
+      )
+      let unreadCount = 0
+      for (const n of notifications) if (!n.isRead) unreadCount++
+      return { notifications, unreadCount }
+    })
+    syncBadge(get().unreadCount)
+  },
+
+  markAllReadByOrder: (orderSlug) => {
+    set((state) => {
+      const notifications = state.notifications.map((n) =>
+        n.metadata.order === orderSlug ? { ...n, isRead: true } : n,
       )
       let unreadCount = 0
       for (const n of notifications) if (!n.isRead) unreadCount++

@@ -68,9 +68,23 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
     }),
   )
 
-  const markAsRead = useNotificationStore((s) => s.markAsRead)
+  const markAllReadByOrder = useNotificationStore((s) => s.markAllReadByOrder)
 
   const shouldSuppress = pathname?.startsWith('/order/')
+
+  // Add every notification slug that shares the same orderSlug to
+  // dismissedInSession so sibling duplicates (staff tapped multiple times)
+  // don't re-present the sheet after the user has already interacted.
+  const dismissAllByOrder = useCallback((orderSlug: string) => {
+    useNotificationStore
+      .getState()
+      .notifications.filter(
+        (n) =>
+          n.metadata.order === orderSlug &&
+          n.message === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET,
+      )
+      .forEach((n) => dismissedInSession.add(n.slug))
+  }, [])
 
   const sheetRef = useRef<BottomSheetModal>(null)
   const shownSlugRef = useRef<string | null>(null)
@@ -101,27 +115,26 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
 
   const handleSheetDismiss = useCallback(() => {
     if (!isProgrammaticDismissRef.current && pendingOrderRef.current) {
-      dismissedInSession.add(pendingOrderRef.current.slug)
+      dismissAllByOrder(pendingOrderRef.current.orderSlug)
     }
     isProgrammaticDismissRef.current = false
     shownSlugRef.current = null
-  }, [])
+  }, [dismissAllByOrder])
 
   const handleViewOrder = useCallback(() => {
     if (!pendingOrder) return
-    dismissedInSession.add(pendingOrder.slug)
-    markAsRead(pendingOrder.slug)
+    dismissAllByOrder(pendingOrder.orderSlug)
+    markAllReadByOrder(pendingOrder.orderSlug)
     isProgrammaticDismissRef.current = true
     sheetRef.current?.dismiss()
     if (pendingOrder.orderSlug) {
       navigateNative.push(`/order/${pendingOrder.orderSlug}`)
     }
-  }, [pendingOrder, markAsRead])
+  }, [pendingOrder, dismissAllByOrder, markAllReadByOrder])
 
   const handleDismissLater = useCallback(() => {
     if (!pendingOrder) return
-    dismissedInSession.add(pendingOrder.slug)
-    markAsRead(pendingOrder.slug)
+    dismissAllByOrder(pendingOrder.orderSlug)
     isProgrammaticDismissRef.current = true
     sheetRef.current?.dismiss()
     showToastInternal(
@@ -129,7 +142,7 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
       'Đã ẩn nhắc nhở — Xem lại ở mục Thông báo',
       'info',
     )
-  }, [pendingOrder, markAsRead])
+  }, [pendingOrder, dismissAllByOrder])
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
