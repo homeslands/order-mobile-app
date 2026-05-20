@@ -13,13 +13,14 @@
  */
 import * as Haptics from 'expo-haptics'
 import { X } from 'lucide-react-native'
-import { memo, useCallback, useEffect } from 'react'
+import { memo, useCallback, useEffect, useRef } from 'react'
 import { Pressable, StyleSheet, Text, useColorScheme } from 'react-native'
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated'
+import { useShallow } from 'zustand/react/shallow'
 
 import { TAB_HEADER_CONTENT_HEIGHT } from '@/components/layout/tab-header'
 import { colors } from '@/constants'
@@ -33,19 +34,18 @@ import { useNotificationStore } from '@/stores/notification.store'
 const BAR_TOP = STATIC_TOP_INSET + TAB_HEADER_CONTENT_HEIGHT
 
 export const OrderReadyPendingBar = memo(function OrderReadyPendingBar() {
-  const pendingSlug = useNotificationStore((s) =>
-    s.notifications.find(
-      (n) =>
-        !n.isRead &&
-        n.message === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET,
-    )?.slug ?? null,
-  )
-
-  const pendingOrderSlug = useNotificationStore((s) =>
-    pendingSlug
-      ? (s.notifications.find((n) => n.slug === pendingSlug)?.metadata.order ??
-          null)
-      : null,
+  const { pendingSlug, pendingOrderSlug } = useNotificationStore(
+    useShallow((s) => {
+      const n = s.notifications.find(
+        (n) =>
+          !n.isRead &&
+          n.message === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET,
+      )
+      return {
+        pendingSlug: n?.slug ?? null,
+        pendingOrderSlug: n?.metadata.order ?? null,
+      }
+    }),
   )
 
   const markAsRead = useNotificationStore((s) => s.markAsRead)
@@ -54,19 +54,24 @@ export const OrderReadyPendingBar = memo(function OrderReadyPendingBar() {
   const visible = pendingSlug !== null
   const opacity = useSharedValue(0)
   const translateY = useSharedValue(-40)
+  const hapticFiredForSlug = useRef<string | null>(null)
 
   useEffect(() => {
     if (visible) {
       opacity.value = withTiming(1, TIMING_CONFIGS.bannerSlide)
       translateY.value = withTiming(0, TIMING_CONFIGS.bannerSlide)
-      Haptics.notificationAsync(
-        Haptics.NotificationFeedbackType.Success,
-      ).catch(() => {})
+      if (pendingSlug !== hapticFiredForSlug.current) {
+        hapticFiredForSlug.current = pendingSlug
+        Haptics.notificationAsync(
+          Haptics.NotificationFeedbackType.Success,
+        ).catch(() => {})
+      }
     } else {
+      hapticFiredForSlug.current = null
       opacity.value = withTiming(0, TIMING_CONFIGS.bannerSlide)
       translateY.value = withTiming(-40, TIMING_CONFIGS.bannerSlide)
     }
-  }, [visible, opacity, translateY])
+  }, [visible, pendingSlug, opacity, translateY])
 
   const animatedStyle = useAnimatedStyle(() => ({
     opacity: opacity.value,
@@ -84,7 +89,7 @@ export const OrderReadyPendingBar = memo(function OrderReadyPendingBar() {
   const handleDismiss = useCallback(() => {
     if (!pendingSlug) return
     markAsRead(pendingSlug)
-    showToastInternal('Đã ẩn nhắc nhở', 'Xem lại ở mục Thông báo', 'info')
+    showToastInternal('Đã ẩn nhắc nhở', 'Đã ẩn nhắc nhở — Xem lại ở mục Thông báo', 'info')
   }, [pendingSlug, markAsRead])
 
   const primaryColor = isDark ? colors.primary.dark : colors.primary.light
