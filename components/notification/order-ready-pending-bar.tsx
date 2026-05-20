@@ -10,7 +10,7 @@
  */
 import { X } from 'lucide-react-native'
 import { memo, useCallback } from 'react'
-import { Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { Pressable, StyleSheet, Text } from 'react-native'
 
 import { colors } from '@/constants'
 import { NotificationMessageCode } from '@/constants/notification.constant'
@@ -19,37 +19,40 @@ import { navigateNative } from '@/lib/navigation'
 import { useNotificationStore } from '@/stores/notification.store'
 
 export const OrderReadyPendingBar = memo(function OrderReadyPendingBar() {
-  const isDark = useColorScheme() === 'dark'
-
-  const pending = useNotificationStore((s) =>
+  const pendingSlug = useNotificationStore((s) =>
     s.notifications.find(
       (n) =>
         !n.isRead &&
         n.message === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET,
-    ),
+    )?.slug ?? null,
   )
+
+  const pendingOrderSlug = useNotificationStore((s) =>
+    pendingSlug
+      ? (s.notifications.find((n) => n.slug === pendingSlug)?.metadata.order ??
+          null)
+      : null,
+  )
+
   const markAsRead = useNotificationStore((s) => s.markAsRead)
 
   const handleBarPress = useCallback(() => {
-    if (!pending) return
-    markAsRead(pending.slug)
-    const orderSlug = pending.metadata?.order
-    if (orderSlug) {
-      navigateNative.push(`/order/${orderSlug}`)
+    if (!pendingSlug) return
+    markAsRead(pendingSlug)
+    if (pendingOrderSlug) {
+      navigateNative.push(`/order/${pendingOrderSlug}`)
     }
-  }, [pending, markAsRead])
+  }, [pendingSlug, pendingOrderSlug, markAsRead])
 
   const handleDismiss = useCallback(() => {
-    if (!pending) return
-    markAsRead(pending.slug)
-  }, [pending, markAsRead])
+    if (!pendingSlug) return
+    markAsRead(pendingSlug)
+  }, [pendingSlug, markAsRead])
 
-  if (!pending) return null
+  if (!pendingSlug) return null
 
-  const primaryColor = isDark ? colors.primary.dark : colors.primary.light
-  const foregroundColor = isDark
-    ? colors.foreground.dark
-    : colors.foreground.light
+  const primaryColor = colors.primary.light
+  const textColor = colors.white.light
 
   return (
     <Pressable
@@ -58,7 +61,7 @@ export const OrderReadyPendingBar = memo(function OrderReadyPendingBar() {
       accessibilityRole="button"
       accessibilityLabel="Đơn hàng đã sẵn sàng — Nhấn để xem chi tiết"
     >
-      <Text style={[s.message, { color: foregroundColor }]} numberOfLines={1}>
+      <Text style={[s.message, { color: textColor }]} numberOfLines={1}>
         Đơn hàng của bạn đã sẵn sàng! Đến lấy ngay nhé 🎉
       </Text>
       <Pressable
@@ -68,7 +71,7 @@ export const OrderReadyPendingBar = memo(function OrderReadyPendingBar() {
         accessibilityRole="button"
         accessibilityLabel="Đóng thông báo"
       >
-        <X size={16} color={foregroundColor} />
+        <X size={16} color={textColor} />
       </Pressable>
     </Pressable>
   )
