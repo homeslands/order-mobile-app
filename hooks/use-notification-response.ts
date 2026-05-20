@@ -25,6 +25,7 @@ import { isResponseFromThisSession } from '@/lib/app-launch-time'
 import { navigateFromNotification } from '@/lib/notification-navigation'
 import { useNotificationStore } from '@/stores/notification.store'
 
+// Module-level — survives hook re-mounts / auth toggles; bounded to MAX_PROCESSED_IDS.
 const processedIds = new Set<string>()
 const MAX_PROCESSED_IDS = 100
 
