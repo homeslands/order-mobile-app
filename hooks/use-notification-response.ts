@@ -21,20 +21,10 @@ import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging'
 
+import { hasProcessed, markProcessed } from '@/lib/notification-dedup'
 import { isResponseFromThisSession } from '@/lib/app-launch-time'
 import { navigateFromNotification } from '@/lib/notification-navigation'
 import { useNotificationStore } from '@/stores/notification.store'
-
-// Module-level — survives hook re-mounts / auth toggles; bounded to MAX_PROCESSED_IDS.
-const processedIds = new Set<string>()
-const MAX_PROCESSED_IDS = 100
-
-function trimProcessed() {
-  if (processedIds.size > MAX_PROCESSED_IDS) {
-    const oldest = processedIds.values().next().value
-    if (oldest !== undefined) processedIds.delete(oldest)
-  }
-}
 
 function fcmUnifiedId(
   remoteMessage: FirebaseMessagingTypes.RemoteMessage,
@@ -68,9 +58,8 @@ export function useNotificationResponse(enabled = true) {
       mode: 'cold-start' | 'background-tap',
     ) => {
       const id = fcmUnifiedId(remoteMessage)
-      if (processedIds.has(id)) return
-      processedIds.add(id)
-      trimProcessed()
+      if (hasProcessed(id)) return
+      markProcessed(id)
 
       const rawData = remoteMessage.data as Record<string, string> | undefined
 
@@ -110,9 +99,8 @@ export function useNotificationResponse(enabled = true) {
       mode: 'cold-start' | 'background-tap',
     ) => {
       const id = expoUnifiedId(response)
-      if (processedIds.has(id)) return
-      processedIds.add(id)
-      trimProcessed()
+      if (hasProcessed(id)) return
+      markProcessed(id)
 
       const content = response.notification.request.content
       const data = content.data as Record<string, string> | undefined

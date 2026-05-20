@@ -2,9 +2,8 @@
  * useNotificationListener — listen foreground notifications → store + toast + sound.
  *
  * - Subscribes to Firebase onMessage (foreground only)
- * - Parses FCM payload → adds to notification store
- * - Shows toast + plays notification.mp3 (1s) for all message codes including
- *   ORDER_NEEDS_READY_TO_GET — no special alarm for customers
+ * - Parses FCM payload → adds to notification store (deduped via notification-dedup)
+ * - Shows toast + plays notification sound for all message codes
  *
  * Sound lifecycle managed by lib/notification-sound.ts (preloaded at startup).
  */
@@ -13,6 +12,7 @@ import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging'
 
+import { hasProcessed, markProcessed } from '@/lib/notification-dedup'
 import { playNotificationSound } from '@/lib/notification-sound'
 import {
   useNotificationStore,
@@ -34,11 +34,28 @@ function firebaseToPayload(
   }
 }
 
+function fcmForegroundId(
+  remoteMessage: FirebaseMessagingTypes.RemoteMessage,
+): string {
+  const dataMsgId =
+    (remoteMessage.data?.['google.message_id'] as string | undefined) ??
+    (remoteMessage.data?.['gcm.message_id'] as string | undefined)
+  return (
+    remoteMessage.messageId ??
+    dataMsgId ??
+    String(remoteMessage.sentTime ?? Date.now())
+  )
+}
+
 export function useNotificationListener(enabled = true) {
   useEffect(() => {
     if (!enabled) return
 
     const unsubscribe = messaging().onMessage((remoteMessage) => {
+      const id = fcmForegroundId(remoteMessage)
+      if (hasProcessed(id)) return
+      markProcessed(id)
+
       const payload = firebaseToPayload(remoteMessage)
 
       useNotificationStore

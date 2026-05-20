@@ -11,6 +11,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { NotificationPermissionSheet } from '@/components/notification/notification-permission-sheet'
+import { clearProcessed } from '@/lib/notification-dedup'
 import { useRegisterDeviceToken } from '@/hooks/use-register-device-token'
 import { useNotificationListener } from '@/hooks/use-notification-listener'
 import { useNotificationResponse } from '@/hooks/use-notification-response'
@@ -45,6 +46,12 @@ export function NotificationProvider() {
       stopTokenRefreshScheduler()
     }
   }, [])
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      clearProcessed()
+    }
+  }, [isAuthenticated])
 
   const [showPermissionSheet, setShowPermissionSheet] = useState(false)
   const hasShownRef = useRef(false)
