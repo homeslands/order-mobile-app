@@ -70,10 +70,7 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
 
   const markAsRead = useNotificationStore((s) => s.markAsRead)
 
-  const shouldSuppress =
-    pathname?.startsWith('/payment/') ||
-    pathname?.startsWith('/update-order/') ||
-    pathname?.startsWith('/order/')
+  const shouldSuppress = pathname?.startsWith('/order/')
 
   const sheetRef = useRef<BottomSheetModal>(null)
   const shownSlugRef = useRef<string | null>(null)

@@ -41,7 +41,6 @@ import { SharedElementProvider } from '@/lib/shared-element'
 import '@/lib/store-sync-setup'
 import { AppToastProvider, I18nProvider } from '@/providers'
 import { showErrorToast } from '@/utils/toast'
-import { OrderReadyAmbientBar } from '@/components/notification/order-ready-pending-bar'
 import { NotificationProvider } from '@/providers/notification-provider'
 
 import './global.css'
@@ -197,7 +196,6 @@ function AppContent() {
                   <AppToastProvider>
                     <SharedElementProvider>
                       <NativeStackWithMasterTransition />
-                      <OrderReadyAmbientBar />
                     </SharedElementProvider>
                   </AppToastProvider>
                 </MasterTransitionProvider>
