@@ -13,12 +13,13 @@ import messaging, {
 } from '@react-native-firebase/messaging'
 
 import { hasProcessed, markProcessed, fcmMessageId } from '@/lib/notification-dedup'
-import { playNotificationSound } from '@/lib/notification-sound'
+import { playNotificationSound, playOrderReadySound } from '@/lib/notification-sound'
 import {
   useNotificationStore,
   type NotificationPayload,
 } from '@/stores/notification.store'
 import { showToastInternal } from '@/providers/toast-provider'
+import { NotificationMessageCode } from '@/constants/notification.constant'
 
 function firebaseToPayload(
   remoteMessage: FirebaseMessagingTypes.RemoteMessage,
@@ -53,7 +54,12 @@ export function useNotificationListener(enabled = true) {
       const body = payload.notification?.body || ''
       if (body) showToastInternal(title, body, 'info')
 
-      playNotificationSound().catch(() => {})
+      const isOrderReady = remoteMessage.data?.message === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET
+      if (isOrderReady) {
+        playOrderReadySound().catch(() => {})
+      } else {
+        playNotificationSound().catch(() => {})
+      }
     })
 
     return () => {

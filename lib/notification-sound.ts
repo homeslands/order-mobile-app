@@ -1,80 +1,85 @@
 /**
- * Shared cache for the foreground notification sound (notification.mp3).
+ * Foreground notification sounds.
  *
- * Design:
- * - Singleton Audio.Sound instance — created once, reused for every shot.
- * - In-flight playback counter prevents unloadAsync() during playAsync().
- * - preloadNotificationSound() can be called at app startup to eliminate
- *   first-shot load latency (100-300ms on cold start).
- * - disposeNotificationSound() waits for active playbacks to finish before
- *   unloading, so logout / unmount never races a sound shot.
+ * Each sound is a singleton Audio.Sound — created once, reused per shot.
+ * preload*() at app startup eliminates first-shot load latency (100-300ms).
  */
 import { Audio, type AVPlaybackSource } from 'expo-av'
 
 const SOUND_VOLUME = 0.5
 
-let cachedSound: Audio.Sound | null = null
-let loadPromise: Promise<Audio.Sound> | null = null
-let activePlaybacks = 0
-let pendingDispose = false
+function createSoundPlayer(source: AVPlaybackSource) {
+  let cachedSound: Audio.Sound | null = null
+  let loadPromise: Promise<Audio.Sound> | null = null
+  let activePlaybacks = 0
+  let pendingDispose = false
 
-async function getSound(): Promise<Audio.Sound> {
-  if (cachedSound) return cachedSound
-  if (!loadPromise) {
-    loadPromise = Audio.Sound.createAsync(
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require('@/assets/sound/notification.mp3') as AVPlaybackSource,
-    )
-      .then(({ sound }) => {
-        cachedSound = sound
-        return sound
+  async function getSound(): Promise<Audio.Sound> {
+    if (cachedSound) return cachedSound
+    if (!loadPromise) {
+      loadPromise = Audio.Sound.createAsync(source)
+        .then(({ sound }) => {
+          cachedSound = sound
+          return sound
+        })
+        .finally(() => {
+          loadPromise = null
+        })
+    }
+    return loadPromise
+  }
+
+  return {
+    preload(): void {
+      getSound().catch((e) => {
+        // eslint-disable-next-line no-console
+        console.warn('[Audio] Sound preload failed:', e)
       })
-      .finally(() => {
-        loadPromise = null
-      })
+    },
+
+    async play(): Promise<void> {
+      if (pendingDispose) return
+      activePlaybacks++
+      try {
+        const sound = await getSound()
+        await sound.setPositionAsync(0)
+        await sound.setVolumeAsync(SOUND_VOLUME)
+        await sound.playAsync()
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.warn('[Audio] Sound playback failed:', e)
+      } finally {
+        activePlaybacks--
+      }
+    },
+
+    async dispose(): Promise<void> {
+      pendingDispose = true
+      const deadline = Date.now() + 1500
+      while (activePlaybacks > 0 && Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, 50))
+      }
+      const s = cachedSound
+      cachedSound = null
+      pendingDispose = false
+      if (s) await s.unloadAsync().catch(() => {})
+    },
   }
-  return loadPromise
 }
 
-/** Fire-and-forget preload — call once at app startup. */
-export function preloadNotificationSound(): void {
-  getSound().catch((e) => {
-    // eslint-disable-next-line no-console
-    console.warn('[Audio] Notification sound preload failed:', e)
-  })
-}
+const notificationPlayer = createSoundPlayer(
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require('@/assets/sound/notification.mp3') as AVPlaybackSource,
+)
 
-export async function playNotificationSound(): Promise<void> {
-  // Refuse to play during teardown — otherwise we might increment the counter
-  // *after* dispose started waiting, blocking shutdown.
-  if (pendingDispose) return
-  activePlaybacks++
-  try {
-    const sound = await getSound()
-    await sound.setPositionAsync(0)
-    await sound.setVolumeAsync(SOUND_VOLUME)
-    await sound.playAsync()
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.warn('[Audio] Notification sound playback failed:', e)
-  } finally {
-    activePlaybacks--
-  }
-}
+const orderReadyPlayer = createSoundPlayer(
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require('@/assets/sound/order_ready.mp3') as AVPlaybackSource,
+)
 
-/**
- * Unload the cached sound. Waits up to 1500ms for in-flight playbacks to
- * finish so we never unload while playAsync() is mid-flight. Caller should
- * await this if it cares about completion (logout flow).
- */
-export async function disposeNotificationSound(): Promise<void> {
-  pendingDispose = true
-  const deadline = Date.now() + 1500
-  while (activePlaybacks > 0 && Date.now() < deadline) {
-    await new Promise((r) => setTimeout(r, 50))
-  }
-  const s = cachedSound
-  cachedSound = null
-  pendingDispose = false
-  if (s) await s.unloadAsync().catch(() => {})
-}
+export const preloadNotificationSound = () => notificationPlayer.preload()
+export const playNotificationSound = () => notificationPlayer.play()
+export const disposeNotificationSound = () => notificationPlayer.dispose()
+
+export const preloadOrderReadySound = () => orderReadyPlayer.preload()
+export const playOrderReadySound = () => orderReadyPlayer.play()

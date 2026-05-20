@@ -1,7 +1,7 @@
 import { Platform } from 'react-native'
 import * as Notifications from 'expo-notifications'
 
-import { preloadNotificationSound } from '@/lib/notification-sound'
+import { preloadNotificationSound, preloadOrderReadySound } from '@/lib/notification-sound'
 
 // Foreground: suppress OS banner/sound — app handles via onMessage toast + sound.
 // Background: OS handles automatically (this handler only applies in foreground).
@@ -58,5 +58,6 @@ export function awaitChannelsReady(): Promise<void> {
 // (likely) resolved by the time auth rehydrates.
 void awaitChannelsReady()
 
-// Preload notification.mp3 so the first foreground shot has zero load latency.
+// Preload both sounds so the first foreground shot has zero load latency.
 preloadNotificationSound()
+preloadOrderReadySound()
