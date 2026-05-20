@@ -35,10 +35,7 @@ function createChannels(): Promise<void> {
     Notifications.setNotificationChannelAsync('order-needs-ready-to-get', {
       name: 'Thông báo lấy đơn',
       importance: Notifications.AndroidImportance.MAX,
-      vibrationPattern: [
-        0, 1000, 500, 1000, 500, 1000, 500, 1000, 500, 1000, 500, 1000, 500,
-        1000, 500, 1000, 500, 1000, 500, 1000,
-      ],
+      vibrationPattern: [0, 1000, 250, 1000, 250, 1000, 250, 1250],
       lightColor: '#F7A737',
       sound: 'order_ready',
     }),
