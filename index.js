@@ -2,9 +2,10 @@
  * Custom entry — chạy trước AppRegistry.registerComponent.
  *
  * Thứ tự bắt buộc:
- * 1. firebase-background-handler — dummy anti-warning stub. BE gửi notification
- *    message (FCM SDK render natively), nên handler này chỉ tồn tại để silence
- *    warning của @react-native-firebase/messaging.
+ * 1. firebase-background-handler — increments OS badge when a notification
+ *    arrives while the app is backgrounded or killed (Android). On iOS this
+ *    handler does not fire for FCM notification messages; badge is set by
+ *    apns.payload.aps.badge from the backend.
  * 2. notification-setup — setNotificationHandler + Android channel readiness
  *    Promise + preload notification.mp3. Phải chạy trước khi token registration
  *    bắt đầu (channels phải tồn tại trước khi nhận push trên Android).

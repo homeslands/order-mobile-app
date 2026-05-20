@@ -10,4 +10,7 @@ export async function incrementBadgeForBackgroundMessage(): Promise<void> {
   }
 }
 
+// Android: fires for any background/killed notification — increments OS badge.
+// iOS: only fires for data-only FCM messages (no `notification` field). Standard
+// notification messages set the badge via apns.payload.aps.badge (backend side).
 messaging().setBackgroundMessageHandler(incrementBadgeForBackgroundMessage)
