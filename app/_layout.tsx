@@ -27,7 +27,7 @@ import { AppErrorBoundary } from '@/components/ui/app-error-boundary'
 import LogoutSheetPortal from '@/components/profile/logout-sheet-portal'
 import QRSelectionSheet from '@/components/profile/qr-selection-sheet'
 import ScanSheetPortal from '@/components/profile/scan-sheet-portal'
-import { colors } from '@/constants'
+import { colors, QUERYKEY } from '@/constants'
 import { applyTheme, useThemeStore } from '@/stores/theme.store'
 import { useBackHandlerForExit } from '@/hooks'
 import {
@@ -41,6 +41,7 @@ import { SharedElementProvider } from '@/lib/shared-element'
 import '@/lib/store-sync-setup'
 import { AppToastProvider, I18nProvider } from '@/providers'
 import { showErrorToast } from '@/utils/toast'
+import { OrderReadyAmbientBar } from '@/components/notification/order-ready-pending-bar'
 import { NotificationProvider } from '@/providers/notification-provider'
 
 import './global.css'
@@ -196,6 +197,7 @@ function AppContent() {
                   <AppToastProvider>
                     <SharedElementProvider>
                       <NativeStackWithMasterTransition />
+                      <OrderReadyAmbientBar />
                     </SharedElementProvider>
                   </AppToastProvider>
                 </MasterTransitionProvider>
@@ -225,13 +227,23 @@ export default function RootLayout() {
   //    loading state trên destination screen.
   useEffect(() => {
     let deferFocusTimeout: ReturnType<typeof setTimeout> | null = null
+    let prevState = AppState.currentState
 
     const sub = AppState.addEventListener('change', (state) => {
       const focused = state !== 'background'
+      const comingFromBackground = prevState === 'background' && state === 'active'
+      prevState = state
 
       if (deferFocusTimeout) {
         clearTimeout(deferFocusTimeout)
         deferFocusTimeout = null
+      }
+
+      // When returning from background, force-refresh notifications regardless of
+      // stale time — FCM onMessage only fires in foreground, so any notification
+      // that arrived while backgrounded is only discoverable via API.
+      if (comingFromBackground) {
+        queryClient.invalidateQueries({ queryKey: QUERYKEY.notifications })
       }
 
       if (focused && isNotificationNavigationPending()) {

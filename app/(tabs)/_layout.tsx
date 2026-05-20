@@ -25,7 +25,6 @@ import Animated, {
 import { getPublicSpecificMenu, getSpecificMenu } from '@/api'
 import { getLoyaltyPoints } from '@/api/loyalty-point'
 import { AnimatedTabBar, FloatingCartButton } from '@/components/navigation'
-import { OrderReadyAmbientBar } from '@/components/notification/order-ready-pending-bar'
 import { OrderReadyPickupSheet } from '@/components/notification/order-ready-pickup-sheet'
 import { MOTION, QUERYKEY, tabsScreenOptions } from '@/constants'
 import { STATIC_BOTTOM_INSET } from '@/constants/status-bar'
@@ -458,7 +457,6 @@ export default function TabsLayout() {
         />
       </Tabs>
       <OrderReadyPickupSheet />
-      <OrderReadyAmbientBar />
       <ProfileNudgePopup />
     </View>
   )

@@ -91,7 +91,11 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
 
     if (shouldShow && shownSlugRef.current !== pendingOrder!.slug) {
       shownSlugRef.current = pendingOrder!.slug
-      sheetRef.current?.present()
+      // Defer to next frame — on cold start, BottomSheetModal may not have
+      // finished registering with the provider by the time this effect fires.
+      requestAnimationFrame(() => {
+        sheetRef.current?.present()
+      })
     } else if (!shouldShow && shownSlugRef.current !== null) {
       isProgrammaticDismissRef.current = true
       sheetRef.current?.dismiss()
