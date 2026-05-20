@@ -35,7 +35,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '@/constants'
 import { useOrderReadyQueue, type PendingOrder } from '@/hooks/use-order-ready-queue'
-import { navigateNative } from '@/lib/navigation'
+import { navigateNative, scheduleTransitionTask } from '@/lib/navigation'
 import { showToastInternal } from '@/providers/toast-provider'
 
 const SNAP_POINTS = ['45%']
@@ -64,8 +64,13 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
     const shouldShow = !!activeOrder && !shouldSuppress
 
     if (shouldShow && shownOrderRef.current !== activeOrder.orderSlug) {
+      const wasNotShowing = shownOrderRef.current === null
       shownOrderRef.current = activeOrder.orderSlug
-      requestAnimationFrame(() => sheetRef.current?.present())
+      if (wasNotShowing) {
+        // Only present when transitioning from hidden → shown.
+        // If already shown (different order), content updates via re-render.
+        requestAnimationFrame(() => sheetRef.current?.present())
+      }
     } else if (!shouldShow && shownOrderRef.current !== null) {
       isProgrammaticRef.current = true
       sheetRef.current?.dismiss()
@@ -83,11 +88,13 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
   const handleViewOrder = useCallback(() => {
     if (!activeOrder) return
     suppressFor(600)
-    markDone(activeOrder.orderSlug)
     isProgrammaticRef.current = true
     shownOrderRef.current = null
     sheetRef.current?.dismiss()
     navigateNative.push(`/order/${activeOrder.orderSlug}`)
+    scheduleTransitionTask(() => {
+      markDone(activeOrder.orderSlug)
+    })
   }, [activeOrder, markDone, suppressFor])
 
   const handleDismissLater = useCallback(() => {
