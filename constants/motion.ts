@@ -139,6 +139,8 @@ export const TIMING_CONFIGS = {
    * Banner dot fade — opacity cross-fade between active/inactive dot states.
    */
   dotFade: { duration: 180 } as const,
+  /** Ambient notification bar enter/exit — quick but not jarring. */
+  bannerSlide: { duration: 250 } as const,
 } as const
 
 /** Scale active cho PaginationDot — 1.25 thay vì 2–3 để tránh méo hình */
