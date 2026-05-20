@@ -92,7 +92,7 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
     if (shouldShow && shownSlugRef.current !== pendingOrder!.slug) {
       shownSlugRef.current = pendingOrder!.slug
       sheetRef.current?.present()
-    } else if (!shouldShow) {
+    } else if (!shouldShow && shownSlugRef.current !== null) {
       isProgrammaticDismissRef.current = true
       sheetRef.current?.dismiss()
     }
@@ -199,6 +199,7 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
             onPress={handleDismissLater}
             style={[s.btn, { backgroundColor: secondaryBg }]}
             accessibilityRole="button"
+            accessibilityLabel="Ẩn thông báo"
           >
             <Text style={[s.btnText, { color: secondaryText }]}>Để sau</Text>
           </Pressable>
@@ -207,6 +208,7 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
             onPress={handleViewOrder}
             style={[s.btn, { backgroundColor: primaryBg }]}
             accessibilityRole="button"
+            accessibilityLabel="Xem chi tiết đơn"
           >
             <Text style={[s.btnText, { color: colors.white.light }]}>
               Xem chi tiết đơn
@@ -223,7 +225,6 @@ const s = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingTop: 8,
-    paddingBottom: 20,
   },
   body: {
     flex: 1,
