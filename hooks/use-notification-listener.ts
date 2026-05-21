@@ -67,6 +67,7 @@ export function useNotificationListener(enabled = true) {
       const isOrderReady =
         messageCode === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET
 
+
       const title = payload.notification?.title || 'Thông báo'
       const body = payload.notification?.body || ''
 

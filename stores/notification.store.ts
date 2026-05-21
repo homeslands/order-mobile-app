@@ -140,10 +140,10 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       // 3. Incoming value
       const bulkCovered =
         !!state.markedAllReadAt && rawItem.createdAt <= state.markedAllReadAt
-      const item =
-        existing?.isRead === true || bulkCovered
-          ? { ...rawItem, isRead: true }
-          : rawItem
+      const isRead = existing?.isRead === true || bulkCovered
+      // Preserve receivedAt on duplicate delivery so queue order stays stable
+      const receivedAt = existing?.receivedAt ?? new Date().toISOString()
+      const item = { ...rawItem, isRead, receivedAt }
       const filtered = state.notifications.filter((n) => n.slug !== item.slug)
       const updated = [item, ...filtered].slice(0, MAX_NOTIFICATIONS)
       let unreadCount = 0

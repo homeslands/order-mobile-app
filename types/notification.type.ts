@@ -30,6 +30,8 @@ export interface INotification extends IBase {
   type: string
   isRead: boolean
   metadata: INotificationMetadata
+  /** Device-local timestamp set when FCM arrives. Undefined for API-hydrated items. */
+  receivedAt?: string
 }
 
 export interface IRegisterDeviceTokenRequest {

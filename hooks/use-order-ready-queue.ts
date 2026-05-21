@@ -46,7 +46,9 @@ export function useOrderReadyQueue(): OrderReadyQueue {
       if (n.message !== NotificationMessageCode.ORDER_NEEDS_READY_TO_GET) continue
       if (now - Date.parse(n.createdAt) > ORDER_READY_MAX_AGE_MS) continue
       count++
-      const ts = Date.parse(n.createdAt)
+      // receivedAt = FCM arrival time (staff's call order, device-local).
+      // Fallback to createdAt for API-hydrated items that lack receivedAt.
+      const ts = Date.parse(n.receivedAt ?? n.createdAt)
       if (ts < oldestTs) {
         oldestTs = ts
         oldest = n
