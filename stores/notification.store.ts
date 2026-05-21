@@ -75,6 +75,7 @@ function transformPayloadToNotification(
   const slug = merged.slug || data.slug || payload.messageId || `${Date.now()}`
   const createdAt =
     merged.createdAt || data.createdAt || new Date().toISOString()
+  const sentAt = merged.sentAt || data.sentAt || undefined
   const message = merged.message || data.message || ''
   const type = merged.type || data.type || 'system'
 
@@ -94,6 +95,7 @@ function transformPayloadToNotification(
   return {
     slug,
     createdAt,
+    sentAt,
     message,
     senderId: merged.senderId || '',
     receiverId: merged.receiverId || '',
