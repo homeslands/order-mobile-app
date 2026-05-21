@@ -49,6 +49,7 @@ export function useNotificationResponse(enabled = true) {
       markProcessed(id)
 
 
+
       const rawData = remoteMessage.data as Record<string, string> | undefined
 
       useNotificationStore.getState().addNotification(
