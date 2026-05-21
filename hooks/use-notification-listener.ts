@@ -19,10 +19,7 @@ import {
   type NotificationPayload,
 } from '@/stores/notification.store'
 import { showToastInternal } from '@/providers/toast-provider'
-import {
-  NotificationMessageCode,
-  ORDER_READY_MAX_AGE_MS,
-} from '@/constants/notification.constant'
+import { NotificationMessageCode } from '@/constants/notification.constant'
 
 function firebaseToPayload(
   remoteMessage: FirebaseMessagingTypes.RemoteMessage,
@@ -71,23 +68,8 @@ export function useNotificationListener(enabled = true) {
       const title = payload.notification?.title || 'Thông báo'
       const body = payload.notification?.body || ''
 
-      if (isOrderReady) {
-        // Stale order (>ORDER_READY_MAX_AGE_MS): sheet won't show, degrade to toast.
-        // Fresh order: sheet handles it — skip toast.
-        let parsedCreatedAt = ''
-        try {
-          if (remoteMessage.data?.payload) {
-            const p = JSON.parse(remoteMessage.data.payload as string) as Record<string, string>
-            parsedCreatedAt = p.createdAt ?? ''
-          }
-        } catch { /* ignore */ }
-        const createdAt = parsedCreatedAt || (remoteMessage.data?.createdAt as string) || ''
-        const isStale =
-          !!createdAt && Date.now() - Date.parse(createdAt) > ORDER_READY_MAX_AGE_MS
-        if (isStale && body) showToastInternal(title, body, 'info')
-      } else if (body) {
-        showToastInternal(title, body, 'info')
-      }
+      // ORDER_NEEDS_READY_TO_GET: sheet handles it — skip toast.
+      if (body && !isOrderReady) showToastInternal(title, body, 'info')
 
       if (isOrderReady) {
         playOrderReadySound().catch(() => {})
