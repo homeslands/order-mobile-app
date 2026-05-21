@@ -93,7 +93,8 @@
           "icon": "./assets/images/trend/logo-icon-padded.png",
           "color": "#F7A737",
           "sounds": [
-            "./assets/sound/notification.mp3"
+            "./assets/sound/notification.mp3",
+            "./assets/sound/ding.mp3"
           ],
           "defaultChannel": "default"
         }

@@ -23,12 +23,11 @@ import {
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 
-import { AppErrorBoundary } from '@/components/ui/app-error-boundary'
 import LogoutSheetPortal from '@/components/profile/logout-sheet-portal'
 import QRSelectionSheet from '@/components/profile/qr-selection-sheet'
 import ScanSheetPortal from '@/components/profile/scan-sheet-portal'
-import { colors } from '@/constants'
-import { applyTheme, useThemeStore } from '@/stores/theme.store'
+import { AppErrorBoundary } from '@/components/ui/app-error-boundary'
+import { colors, QUERYKEY } from '@/constants'
 import { useBackHandlerForExit } from '@/hooks'
 import {
   setNavigationBarColorFixed,
@@ -40,40 +39,15 @@ import { isNotificationNavigationPending } from '@/lib/notification-navigation'
 import { SharedElementProvider } from '@/lib/shared-element'
 import '@/lib/store-sync-setup'
 import { AppToastProvider, I18nProvider } from '@/providers'
-import { showErrorToast } from '@/utils/toast'
 import { NotificationProvider } from '@/providers/notification-provider'
+import { applyTheme, useThemeStore } from '@/stores/theme.store'
+import { showErrorToast } from '@/utils/toast'
 
 import './global.css'
 
 import { resetReactProfilerStats } from '@/lib/qa/react-profiler-logger'
 
 SplashScreen.preventAutoHideAsync().catch(() => {})
-
-// Global error handlers (keep awake suppress)
-// Lỗi này đến từ expo-modules-core khi một dependency cố gắng activate keep awake
-// nhưng không thành công (có thể do không có quyền hoặc không được setup đúng)
-
-// Sync errors
-if (__DEV__ && typeof ErrorUtils !== 'undefined') {
-  const originalErrorHandler = ErrorUtils.getGlobalHandler()
-  ErrorUtils.setGlobalHandler((error: Error, isFatal?: boolean) => {
-    const errorMessage = error?.message || String(error)
-
-    // Suppress lỗi keep awake - không ảnh hưởng đến chức năng
-    if (
-      errorMessage.includes('Unable to activate keep awake') ||
-      errorMessage.includes('keep awake')
-    ) {
-      // Silently ignore - không cần thiết cho app này
-      return
-    }
-
-    // Gọi original handler cho các lỗi khác
-    if (originalErrorHandler) {
-      originalErrorHandler(error, isFatal)
-    }
-  })
-}
 
 // Unhandled promise rejections
 if (typeof global !== 'undefined' && !global.onunhandledrejection) {
@@ -225,13 +199,23 @@ export default function RootLayout() {
   //    loading state trên destination screen.
   useEffect(() => {
     let deferFocusTimeout: ReturnType<typeof setTimeout> | null = null
+    let prevState = AppState.currentState
 
     const sub = AppState.addEventListener('change', (state) => {
       const focused = state !== 'background'
+      const comingFromBackground = prevState === 'background' && state === 'active'
+      prevState = state
 
       if (deferFocusTimeout) {
         clearTimeout(deferFocusTimeout)
         deferFocusTimeout = null
+      }
+
+      // When returning from background, force-refresh notifications regardless of
+      // stale time — FCM onMessage only fires in foreground, so any notification
+      // that arrived while backgrounded is only discoverable via API.
+      if (comingFromBackground) {
+        queryClient.invalidateQueries({ queryKey: QUERYKEY.notifications })
       }
 
       if (focused && isNotificationNavigationPending()) {

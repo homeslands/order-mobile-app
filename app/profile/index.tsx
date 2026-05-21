@@ -156,17 +156,23 @@ export default function ProfilePlaceholderScreen() {
     [router],
   )
 
-  const handleLogout = useCallback(() => {
+  const handleLogout = useCallback(async () => {
     const capturedToken = useUserStore.getState().deviceToken ?? undefined
-    cleanupTokenOnLogout(capturedToken).catch(() => {})
+    await Promise.race([
+      cleanupTokenOnLogout(capturedToken),
+      new Promise<void>((r) => setTimeout(r, 3000)),
+    ]).catch(() => {})
     setLogout()
     removeUserInfo()
     router.replace('/(tabs)/home' as never)
   }, [router, removeUserInfo, setLogout])
 
-  const handleDeleteSuccess = useCallback(() => {
+  const handleDeleteSuccess = useCallback(async () => {
     const capturedToken = useUserStore.getState().deviceToken ?? undefined
-    cleanupTokenOnLogout(capturedToken).catch(() => {})
+    await Promise.race([
+      cleanupTokenOnLogout(capturedToken),
+      new Promise<void>((r) => setTimeout(r, 3000)),
+    ]).catch(() => {})
     setLogout()
     removeUserInfo()
     router.replace('/(tabs)/home' as never)

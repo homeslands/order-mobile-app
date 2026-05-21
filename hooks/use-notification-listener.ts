@@ -2,73 +2,25 @@
  * useNotificationListener — listen foreground notifications → store + toast + sound.
  *
  * - Subscribes to Firebase onMessage (foreground only)
- * - Parses FCM payload → adds to notification store
- * - Shows toast with title + body
- * - Plays notification sound (volume 0.5)
+ * - Parses FCM payload → adds to notification store (deduped via notification-dedup)
+ * - Shows toast + plays notification sound (skipped for ORDER_NEEDS_READY_TO_GET — sheet handles it)
  *
- * Cleanup:
- * - Single in-flight loadPromise prevents 2× createAsync when notifications
- *   arrive in parallel (otherwise the first Sound instance leaks).
- * - disposeSound() is called in the effect cleanup so the cached Audio.Sound
- *   does not survive logout / unmount.
+ * Sound lifecycle managed by lib/notification-sound.ts (preloaded at startup).
  */
-import { Audio, type AVPlaybackSource } from 'expo-av'
 import { useEffect } from 'react'
+import { Vibration } from 'react-native'
 import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging'
 
+import { hasProcessed, markProcessed, fcmMessageId } from '@/lib/notification-dedup'
+import { playNotificationSound, playOrderReadySound } from '@/lib/notification-sound'
 import {
   useNotificationStore,
   type NotificationPayload,
 } from '@/stores/notification.store'
 import { showToastInternal } from '@/providers/toast-provider'
-
-const SOUND_VOLUME = 0.5
-
-// Preloaded sound instance — reuse across notifications, avoid re-loading file
-let cachedSound: Audio.Sound | null = null
-let loadPromise: Promise<Audio.Sound> | null = null
-
-async function getSound(): Promise<Audio.Sound> {
-  if (cachedSound) return cachedSound
-  if (!loadPromise) {
-    loadPromise = Audio.Sound.createAsync(
-      // eslint-disable-next-line @typescript-eslint/no-require-imports
-      require('@/assets/sound/notification.mp3') as AVPlaybackSource,
-    )
-      .then(({ sound }) => {
-        cachedSound = sound
-        return sound
-      })
-      .finally(() => {
-        loadPromise = null
-      })
-  }
-  return loadPromise
-}
-
-async function disposeSound(): Promise<void> {
-  const s = cachedSound
-  cachedSound = null
-  if (s) {
-    await s.unloadAsync().catch(() => {})
-  }
-}
-
-async function playNotificationSound(): Promise<void> {
-  try {
-    const sound = await getSound()
-    await sound.setPositionAsync(0)
-    await sound.setVolumeAsync(SOUND_VOLUME)
-    await sound.playAsync()
-  } catch (e) {
-    // eslint-disable-next-line no-console
-    console.warn('[Audio] Notification sound playback failed:', e)
-    // Unload to keep the native Audio engine clean before we lose the ref
-    await disposeSound()
-  }
-}
+import { NotificationMessageCode } from '@/constants/notification.constant'
 
 function firebaseToPayload(
   remoteMessage: FirebaseMessagingTypes.RemoteMessage,
@@ -89,22 +41,49 @@ export function useNotificationListener(enabled = true) {
     if (!enabled) return
 
     const unsubscribe = messaging().onMessage((remoteMessage) => {
+      const id = fcmMessageId(remoteMessage)
+      if (hasProcessed(id)) return
+      markProcessed(id)
+
       const payload = firebaseToPayload(remoteMessage)
 
       useNotificationStore
         .getState()
         .addNotification(payload, { markAsRead: false })
 
+      // Resolve message code from data.message or nested data.payload JSON.
+      // Backend may send the code in either location.
+      let parsedPayloadMsg = ''
+      try {
+        if (remoteMessage.data?.payload) {
+          const p = JSON.parse(remoteMessage.data.payload as string) as Record<string, string>
+          parsedPayloadMsg = p.message ?? ''
+        }
+      } catch { /* ignore malformed payload JSON */ }
+      const messageCode = remoteMessage.data?.message || parsedPayloadMsg
+
+      const isOrderReady =
+        messageCode === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET
+
+
       const title = payload.notification?.title || 'Thông báo'
       const body = payload.notification?.body || ''
-      if (body) showToastInternal(title, body, 'info')
 
-      playNotificationSound().catch(() => {})
+      // ORDER_NEEDS_READY_TO_GET: sheet handles it — skip toast.
+      if (body && !isOrderReady) showToastInternal(title, body, 'info')
+
+      if (isOrderReady) {
+        Vibration.vibrate([0, 1000, 250, 1000, 250, 1000, 250, 1250])
+        playOrderReadySound().catch(() => {})
+      } else {
+        playNotificationSound().catch(() => {})
+      }
     })
 
     return () => {
       unsubscribe()
-      void disposeSound()
+      // Intentionally NOT disposing the cached sound — process-scoped,
+      // managed by lib/notification-sound.ts.
     }
   }, [enabled])
 }
