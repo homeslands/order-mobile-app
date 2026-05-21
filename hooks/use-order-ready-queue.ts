@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { useShallow } from 'zustand/react/shallow'
 
-import { NotificationMessageCode } from '@/constants/notification.constant'
+import { markNotificationAsRead } from '@/api/notification'
+import {
+  NotificationMessageCode,
+  ORDER_READY_MAX_AGE_MS,
+} from '@/constants/notification.constant'
 import { useNotificationStore } from '@/stores/notification.store'
 
 export interface PendingOrder {
@@ -12,79 +15,46 @@ export interface PendingOrder {
 
 export interface OrderReadyQueue {
   activeOrder: PendingOrder | null
-  /** Total unread ORDER_NEEDS_READY_TO_GET notifications, including currently snoozed ones. */
   pendingCount: number
-  snooze: (orderSlug: string) => void
   markDone: (orderSlug: string) => void
   suppressFor: (ms: number) => void
 }
 
-// Module-level: persists for JS runtime lifetime (cleared only on app kill).
-const snoozeMap = new Map<string, number>() // orderSlug → expireAt ms
-const SNOOZE_MS = 90_000
 const SUPPRESS_BUFFER_MS = 50
 
-/** Exposed only for test isolation — do NOT call in production code. */
-export const _resetSnoozeMapForTests = () => snoozeMap.clear()
-
-function isSnoozing(orderSlug: string): boolean {
-  const exp = snoozeMap.get(orderSlug)
-  if (!exp) return false
-  if (Date.now() >= exp) {
-    snoozeMap.delete(orderSlug)
-    return false
-  }
-  return true
-}
-
 export function useOrderReadyQueue(): OrderReadyQueue {
-  const notifications = useNotificationStore(
-    useShallow((s) =>
-      s.notifications.filter(
-        (n) =>
-          !n.isRead &&
-          n.message === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET,
-      ),
-    ),
-  )
+  const allNotifications = useNotificationStore((s) => s.notifications)
   const markAllReadByOrder = useNotificationStore((s) => s.markAllReadByOrder)
 
-  const [snoozeVersion, bumpVersion] = useState(0)
+  const [suppressVersion, bumpVersion] = useState(0)
   const suppressUntilRef = useRef(0)
   const suppressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Re-check snooze expiry every 10s so expired orders re-surface.
   useEffect(() => {
-    const id = setInterval(() => {
-      // GC: remove expired snooze entries
-      for (const [k, v] of snoozeMap) {
-        if (Date.now() >= v) snoozeMap.delete(k)
-      }
-      // Only trigger re-derive if there are active snoozes to check
-      if (snoozeMap.size > 0) bumpVersion((n) => n + 1)
-    }, 10_000)
     return () => {
-      clearInterval(id)
       if (suppressTimerRef.current) clearTimeout(suppressTimerRef.current)
     }
   }, [])
 
   const { activeOrder, pendingCount } = useMemo(() => {
-    const filtered = [...notifications]
-      .filter(
-        (n) =>
-          !n.isRead &&
-          n.message === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET,
-      )
-      .sort(
-        (a, b) =>
-          new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
-      )
+    let oldest: (typeof allNotifications)[number] | null = null
+    let oldestTs = Infinity
+    let count = 0
+    const now = Date.now()
+    for (const n of allNotifications) {
+      if (n.isRead) continue
+      if (n.message !== NotificationMessageCode.ORDER_NEEDS_READY_TO_GET) continue
+      if (now - Date.parse(n.createdAt) > ORDER_READY_MAX_AGE_MS) continue
+      count++
+      const ts = Date.parse(n.createdAt)
+      if (ts < oldestTs) {
+        oldestTs = ts
+        oldest = n
+      }
+    }
 
     const isSuppressed = Date.now() < suppressUntilRef.current
-    const activeNotif = isSuppressed
-      ? null
-      : (filtered.find((n) => !isSnoozing(n.metadata.order)) ?? null)
+    const activeNotif = isSuppressed ? null : oldest
 
     const activeOrder: PendingOrder | null = activeNotif
       ? {
@@ -94,35 +64,40 @@ export function useOrderReadyQueue(): OrderReadyQueue {
         }
       : null
 
-    return { activeOrder, pendingCount: filtered.length }
+    return { activeOrder, pendingCount: count }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [notifications, snoozeVersion])
-
-  const snooze = useCallback((orderSlug: string) => {
-    snoozeMap.set(orderSlug, Date.now() + SNOOZE_MS)
-    // Immediately re-derive activeOrder so the consumer effect sees the
-    // updated value synchronously (prevents re-present flicker).
-    bumpVersion((n) => n + 1)
-  }, [])
+  }, [allNotifications, suppressVersion])
 
   const markDone = useCallback(
     (orderSlug: string) => {
-      snoozeMap.delete(orderSlug)
+      // Capture slugs before marking read — markAllReadByOrder flips isRead
+      // synchronously so the filter below would find nothing if run after.
+      const slugsToSync = useNotificationStore
+        .getState()
+        .notifications.filter(
+          (n) => n.metadata.order === orderSlug && !n.isRead,
+        )
+        .map((n) => n.slug)
+
       markAllReadByOrder(orderSlug)
+
+      for (const slug of slugsToSync) {
+        markNotificationAsRead(slug).catch(() => {})
+      }
     },
     [markAllReadByOrder],
   )
 
+  // Bump version only on expiry so the entry path doesn't trigger a
+  // re-render mid-navigation when the JS thread is already busy.
   const suppressFor = useCallback((ms: number) => {
     suppressUntilRef.current = Date.now() + ms
-    // Re-derive activeOrder immediately (suppressed) and again after expiry.
-    bumpVersion((n) => n + 1)
     if (suppressTimerRef.current) clearTimeout(suppressTimerRef.current)
-    suppressTimerRef.current = setTimeout(
-      () => bumpVersion((n) => n + 1),
-      ms + SUPPRESS_BUFFER_MS,
-    )
+    suppressTimerRef.current = setTimeout(() => {
+      suppressTimerRef.current = null
+      bumpVersion((n) => n + 1)
+    }, ms + SUPPRESS_BUFFER_MS)
   }, [])
 
-  return { activeOrder, pendingCount, snooze, markDone, suppressFor }
+  return { activeOrder, pendingCount, markDone, suppressFor }
 }
