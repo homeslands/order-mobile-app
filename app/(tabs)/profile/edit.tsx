@@ -71,6 +71,7 @@ const FormField = React.memo(function FormField({
   placeholder,
   labelColor,
   editable = true,
+  optional,
   autoCapitalize,
   inputClassName,
   onChange,
@@ -81,6 +82,7 @@ const FormField = React.memo(function FormField({
   placeholder?: string
   labelColor: string
   editable?: boolean
+  optional?: boolean
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
   inputClassName?: string
   onChange?: () => void
@@ -99,6 +101,9 @@ const FormField = React.memo(function FormField({
     <View style={editFieldStyles.field}>
       <Text style={[editFieldStyles.label, { color: labelColor }]}>
         {label}
+        {optional && (
+          <Text style={editFieldStyles.optionalText}> (Không bắt buộc)</Text>
+        )}
       </Text>
       <Input
         value={localValue}
@@ -115,6 +120,7 @@ const FormField = React.memo(function FormField({
 const editFieldStyles = StyleSheet.create({
   field: { marginBottom: 16 },
   label: { fontSize: 12, marginBottom: 6 },
+  optionalText: { fontSize: 12, color: '#9ca3af' },
 })
 
 function EditHeader({
@@ -345,17 +351,24 @@ const ProfileEditForm = React.memo(function ProfileEditForm({
       ? dayjs(normalized, 'YYYY-MM-DD').format('DD/MM/YYYY')
       : undefined
     const payload = {
-      firstName: firstNameRef.current,
-      lastName: lastNameRef.current,
-      address: addressRef.current,
-      ...(dobPayload !== undefined ? { dob: dobPayload } : {}),
+      firstName: firstNameRef.current || null,
+      lastName: lastNameRef.current || null,
+      address: addressRef.current || null,
+      dob: dobPayload ?? null,
     }
     setIsUpdating(true)
     try {
       const res: Awaited<ReturnType<typeof updateProfile>> =
         await updateProfile(payload)
       if (res?.result) setUserInfo?.(res.result)
-      else setUserInfo?.({ ...userInfo, ...payload })
+      else
+        setUserInfo?.({
+          ...userInfo,
+          firstName: payload.firstName ?? '',
+          lastName: payload.lastName ?? '',
+          address: payload.address ?? '',
+          ...(payload.dob !== undefined ? { dob: payload.dob ?? undefined } : {}),
+        })
       showToast(tToast('toast.updateProfileSuccess'))
       router.back()
     } catch {
@@ -396,6 +409,7 @@ const ProfileEditForm = React.memo(function ProfileEditForm({
               placeholder={t('profile.enterLastName')}
               labelColor={theme.textMuted}
               autoCapitalize="words"
+              optional
               onChange={checkDirty}
             />
             <FormField
@@ -405,6 +419,7 @@ const ProfileEditForm = React.memo(function ProfileEditForm({
               placeholder={t('profile.enterFirstName')}
               labelColor={theme.textMuted}
               autoCapitalize="words"
+              optional
               onChange={checkDirty}
             />
             <View style={styles.field}>
@@ -463,6 +478,7 @@ const ProfileEditForm = React.memo(function ProfileEditForm({
               onChangeRef={addressRef}
               placeholder={t('profile.enterAddress')}
               labelColor={theme.textMuted}
+              optional
               onChange={checkDirty}
             />
           </View>

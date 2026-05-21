@@ -16,6 +16,7 @@ interface FormInputProps<T extends FieldValues> {
   name: Path<T>
   label?: string
   required?: boolean
+  optional?: boolean
   placeholder?: string
   keyboardType?: 'default' | 'email-address' | 'number-pad' | 'phone-pad'
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
@@ -45,6 +46,7 @@ interface FormInputFieldProps {
   error?: string
   label?: string
   required?: boolean
+  optional?: boolean
   placeholder?: string
   keyboardType?: 'default' | 'email-address' | 'number-pad' | 'phone-pad'
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
@@ -74,6 +76,7 @@ function FormInputField({
   error,
   label,
   required,
+  optional,
   placeholder,
   keyboardType = 'default',
   autoCapitalize = 'none',
@@ -156,6 +159,12 @@ function FormInputField({
           {required && (
             <Text className="text-red-500 dark:text-red-400"> *</Text>
           )}
+          {optional && (
+            <Text className="text-gray-400 dark:text-gray-500">
+              {' '}
+              (Không bắt buộc)
+            </Text>
+          )}
         </Text>
       )}
       {useTextInput ? (
@@ -225,6 +234,7 @@ export function FormInput<T extends FieldValues>({
   name,
   label,
   required,
+  optional,
   placeholder,
   keyboardType = 'default',
   autoCapitalize = 'none',
@@ -254,6 +264,7 @@ export function FormInput<T extends FieldValues>({
           error={error?.message}
           label={label}
           required={required}
+          optional={optional}
           placeholder={placeholder}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}

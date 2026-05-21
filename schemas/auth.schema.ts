@@ -21,14 +21,18 @@ export function useRegisterSchema() {
     .object({
       firstName: z
         .string()
-        .min(1, t('register.firstNameRequired'))
         .max(100, t('register.firstNameTooLong', { count: 100 }))
-        .regex(NAME_REGEX, t('register.firstNameInvalid')),
+        .refine(
+          (val) => val === '' || NAME_REGEX.test(val),
+          t('register.firstNameInvalid'),
+        ),
       lastName: z
         .string()
-        .min(1, t('register.lastNameRequired'))
         .max(100, t('register.lastNameTooLong', { count: 100 }))
-        .regex(NAME_REGEX, t('register.lastNameInvalid')),
+        .refine(
+          (val) => val === '' || NAME_REGEX.test(val),
+          t('register.lastNameInvalid'),
+        ),
       dob: z.preprocess(
         (val) => {
           const trimmed = typeof val === 'string' ? val.trim() : ''

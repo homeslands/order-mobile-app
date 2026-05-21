@@ -18,9 +18,9 @@ export interface ILoginResponse {
 export interface IRegisterRequest {
   phonenumber: string
   password: string
-  firstName: string
-  lastName: string
-  dob?: string
+  firstName?: string | null
+  lastName?: string | null
+  dob?: string | null
 }
 
 export interface IInitiateForgotPasswordRequest {
