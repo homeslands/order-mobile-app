@@ -13,6 +13,10 @@ import type {
   INotification,
   INotificationMetadata,
 } from '@/types/notification.type'
+import {
+  NotificationMessageCode,
+  ORDER_READY_MAX_AGE_MS,
+} from '@/constants/notification.constant'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -38,6 +42,7 @@ interface NotificationStore {
     options?: { markAsRead?: boolean },
   ) => void
   markAsRead: (slug: string) => void
+  markAllReadByOrder: (orderSlug: string) => void
   markAllAsRead: () => void
   setReadStates: (updates: { slug: string; isRead: boolean }[]) => void
   clearAll: () => void
@@ -70,8 +75,8 @@ function transformPayloadToNotification(
   const slug = merged.slug || data.slug || payload.messageId || `${Date.now()}`
   const createdAt =
     merged.createdAt || data.createdAt || new Date().toISOString()
-  const message =
-    merged.message || data.message || payload.notification?.body || ''
+  const sentAt = merged.sentAt || data.sentAt || undefined
+  const message = merged.message || data.message || ''
   const type = merged.type || data.type || 'system'
 
   const metadata: INotificationMetadata = {
@@ -90,6 +95,7 @@ function transformPayloadToNotification(
   return {
     slug,
     createdAt,
+    sentAt,
     message,
     senderId: merged.senderId || '',
     receiverId: merged.receiverId || '',
@@ -125,11 +131,21 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
 
   addNotification: (payload, options) => {
     set((state) => {
-      const item = transformPayloadToNotification(
+      const rawItem = transformPayloadToNotification(
         payload,
         options?.markAsRead ?? false,
       )
-      // Dedup by slug, prepend new, cap at MAX
+      const existing = state.notifications.find((n) => n.slug === rawItem.slug)
+      // isRead priority (highest → lowest):
+      // 1. Local already marked read (duplicate FCM delivery)
+      // 2. createdAt ≤ markedAllReadAt → bulk-read timestamp covers it
+      // 3. Incoming value
+      const bulkCovered =
+        !!state.markedAllReadAt && rawItem.createdAt <= state.markedAllReadAt
+      const isRead = existing?.isRead === true || bulkCovered
+      // Preserve receivedAt on duplicate delivery so queue order stays stable
+      const receivedAt = existing?.receivedAt ?? new Date().toISOString()
+      const item = { ...rawItem, isRead, receivedAt }
       const filtered = state.notifications.filter((n) => n.slug !== item.slug)
       const updated = [item, ...filtered].slice(0, MAX_NOTIFICATIONS)
       let unreadCount = 0
@@ -141,9 +157,28 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
 
   markAsRead: (slug) => {
     set((state) => {
-      const notifications = state.notifications.map((n) =>
-        n.slug === slug ? { ...n, isRead: true } : n,
-      )
+      let changed = false
+      const notifications = state.notifications.map((n) => {
+        if (n.slug === slug && !n.isRead) { changed = true; return { ...n, isRead: true } }
+        return n
+      })
+      if (!changed) return state
+      let unreadCount = 0
+      for (const n of notifications) if (!n.isRead) unreadCount++
+      return { notifications, unreadCount }
+    })
+    syncBadge(get().unreadCount)
+  },
+
+  markAllReadByOrder: (orderSlug) => {
+    if (!orderSlug) return
+    set((state) => {
+      let changed = false
+      const notifications = state.notifications.map((n) => {
+        if (n.metadata.order === orderSlug && !n.isRead) { changed = true; return { ...n, isRead: true } }
+        return n
+      })
+      if (!changed) return state
       let unreadCount = 0
       for (const n of notifications) if (!n.isRead) unreadCount++
       return { notifications, unreadCount }
@@ -200,15 +235,21 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       if (!isDifferentUser) {
         for (const n of state.notifications) map.set(n.slug, n)
       }
+      const now = Date.now()
       for (const n of items) {
         const local = map.get(n.slug)
 
         // isRead priority (highest → lowest):
         // 1. Local already marked read (optimistic individual/bulk)
         // 2. createdAt ≤ markedAllReadAt → bulk-read timestamp covers it
-        // 3. Server value
+        // 3. ORDER_NEEDS_READY_TO_GET older than ORDER_READY_MAX_AGE_MS → stale
+        // 4. Server value
         const bulkCovered = !!markedAllReadAt && n.createdAt <= markedAllReadAt
-        const isRead = local?.isRead === true || bulkCovered || n.isRead
+        const staleOrderReady =
+          n.message === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET &&
+          now - Date.parse(n.createdAt) > ORDER_READY_MAX_AGE_MS
+        const isRead =
+          local?.isRead === true || bulkCovered || staleOrderReady || n.isRead
 
         map.set(n.slug, { ...n, isRead })
       }
@@ -228,5 +269,6 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
         ...(isDifferentUser ? { markedAllReadAt: null } : {}),
       }
     })
+    syncBadge(get().unreadCount)
   },
 }))

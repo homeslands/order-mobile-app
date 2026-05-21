@@ -79,10 +79,10 @@ export interface IUserQuery {
 }
 
 export interface IUpdateProfileRequest {
-  firstName: string
-  lastName: string
-  dob?: string
-  address: string
+  firstName?: string | null
+  lastName?: string | null
+  dob?: string | null
+  address?: string | null
   branch?: string
 }
 

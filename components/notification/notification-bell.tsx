@@ -33,7 +33,7 @@ export const NotificationBell = memo(function NotificationBell({
       {unreadCount > 0 && (
         <View style={s.badge}>
           <Text style={s.badgeText}>
-            {unreadCount > 99 ? '99+' : unreadCount}
+            {unreadCount > 9 ? '9+' : unreadCount}
           </Text>
         </View>
       )}

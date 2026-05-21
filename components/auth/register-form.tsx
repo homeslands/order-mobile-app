@@ -54,8 +54,8 @@ export default function RegisterForm() {
   const onSubmit = (data: TRegisterSchema) => {
     registerMutation(
       {
-        firstName: data.firstName,
-        lastName: data.lastName,
+        firstName: data.firstName || null,
+        lastName: data.lastName || null,
         dob: data.dob,
         phonenumber: data.phonenumber,
         password: data.password,
@@ -95,6 +95,7 @@ export default function RegisterForm() {
         placeholder={t('register.enterLastName')}
         autoCapitalize="words"
         disabled={isLoading}
+        optional
         useTextInput
       />
 
@@ -106,6 +107,7 @@ export default function RegisterForm() {
         placeholder={t('register.enterFirstName')}
         autoCapitalize="words"
         disabled={isLoading}
+        optional
         useTextInput
       />
 
@@ -136,6 +138,7 @@ export default function RegisterForm() {
         autoCapitalize="none"
         autoComplete="tel"
         disabled={isLoading}
+        required
         useTextInput
         transformOnChange={(v) => v.replace(/\D/g, '')}
       />
@@ -144,6 +147,7 @@ export default function RegisterForm() {
       <View className="mb-4">
         <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
           {t('register.password')}
+          <Text className="text-red-500 dark:text-red-400"> *</Text>
         </Text>
         <Controller
           control={control}
@@ -169,6 +173,7 @@ export default function RegisterForm() {
       <View className="mb-8">
         <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
           {t('register.confirmPassword')}
+          <Text className="text-red-500 dark:text-red-400"> *</Text>
         </Text>
         <Controller
           control={control}

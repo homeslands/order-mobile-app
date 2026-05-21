@@ -32,3 +32,6 @@ export enum PrinterEventType {
   INVOICE = 'invoice',
   CHEF_ORDER = 'chef-order',
 }
+
+/** ORDER_NEEDS_READY_TO_GET notifications older than this are treated as stale. */
+export const ORDER_READY_MAX_AGE_MS = 60 * 60 * 1000 // 60 minutes

@@ -38,6 +38,10 @@ const HEADER_PADDING_H = 16
 const HEADER_PADDING_BOTTOM = 12
 const HEADER_PADDING_TOP = 4
 
+/** Height of the header row (excluding status bar inset) — used to position overlays below the header. */
+export const TAB_HEADER_CONTENT_HEIGHT =
+  HEADER_PADDING_TOP + LOGO_HEIGHT + HEADER_PADDING_BOTTOM // 4 + 32 + 12 = 48
+
 export const TabHeader = memo(function TabHeader({
   variant,
   title,
