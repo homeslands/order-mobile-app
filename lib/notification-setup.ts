@@ -21,10 +21,18 @@ Notifications.setNotificationHandler({
 // immediately because channels are an Android-only concept.
 let _channelsReady: Promise<void> | null = null
 
-function createChannels(): Promise<void> {
-  if (Platform.OS !== 'android') return Promise.resolve()
+async function createChannels(): Promise<void> {
+  if (Platform.OS !== 'android') return
 
-  return Promise.allSettled([
+  // Delete before recreating — Android ignores sound/vibration updates on existing
+  // channels. Deletion + recreation is the only way to change channel properties
+  // on devices that already have the old channel installed.
+  await Promise.allSettled([
+    Notifications.deleteNotificationChannelAsync('default'),
+    Notifications.deleteNotificationChannelAsync('order-needs-ready-to-get'),
+  ])
+
+  await Promise.allSettled([
     Notifications.setNotificationChannelAsync('default', {
       name: 'default',
       importance: Notifications.AndroidImportance.MAX,
@@ -39,14 +47,7 @@ function createChannels(): Promise<void> {
       lightColor: '#F7A737',
       sound: 'railway_ingle',
     }),
-  ]).then((results) => {
-    for (const r of results) {
-      if (r.status === 'rejected') {
-        // eslint-disable-next-line no-console
-        console.error('[Notifications] Channel setup failed:', r.reason)
-      }
-    }
-  })
+  ])
 }
 
 export function awaitChannelsReady(): Promise<void> {
