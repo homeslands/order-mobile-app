@@ -94,7 +94,7 @@
           "color": "#F7A737",
           "sounds": [
             "./assets/sound/notification.mp3",
-            "./assets/sound/railway_ingle.mp3"
+            "./assets/sound/ding.mp3"
           ],
           "defaultChannel": "default"
         }

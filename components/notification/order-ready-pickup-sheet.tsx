@@ -8,8 +8,7 @@
  *
  * Dismiss behaviors:
  * - "Xem chi tiết đơn" → markDone + navigate + suppressFor(600ms)
- * - "Để sau"           → snooze(90s) + toast
- * - Swipe / scrim      → snooze(90s)  [no markAsRead — stays unread in list]
+ * - Swipe / scrim      → markDone + toast (user can revisit via Notifications)
  *
  * Pending badge: if pendingCount > 1, shows "Còn N-1 đơn nữa đang chờ"
  * with a pulsing Reanimated dot between the handle and the icon.
@@ -34,28 +33,36 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '@/constants'
-import { useOrderReadyQueue, type PendingOrder } from '@/hooks/use-order-ready-queue'
+import {
+  useOrderReadyQueue,
+  type PendingOrder,
+} from '@/hooks/use-order-ready-queue'
 import { navigateNative, scheduleTransitionTask } from '@/lib/navigation'
 import { showToastInternal } from '@/providers/toast-provider'
 
 const SNAP_POINTS = ['45%']
+// Pause before re-presenting the next order so the dismiss animation has
+// visual breathing room. Only applied between consecutive orders, not on
+// the initial present.
+const NEXT_ORDER_DELAY_MS = 400
 
 export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
   const pathname = usePathname()
   const isDark = useColorScheme() === 'dark'
   const { bottom: bottomInset } = useSafeAreaInsets()
 
-  const { activeOrder, pendingCount, snooze, markDone, suppressFor } =
+  const { activeOrder, pendingCount, markDone, suppressFor } =
     useOrderReadyQueue()
 
   const shouldSuppress = pathname?.startsWith('/order/')
 
   const sheetRef = useRef<BottomSheetModal>(null)
-  // Tracks by orderSlug — prevents re-present when duplicate FCM arrives.
   const shownOrderRef = useRef<string | null>(null)
   const isProgrammaticRef = useRef(false)
-  // Ref so handleSheetDismiss can read latest activeOrder without stale closure.
   const activeOrderRef = useRef<PendingOrder | null>(null)
+  const hasEverDismissedRef = useRef(false)
+  const presentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   useEffect(() => {
     activeOrderRef.current = activeOrder
   }, [activeOrder])
@@ -67,23 +74,45 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
       const wasNotShowing = shownOrderRef.current === null
       shownOrderRef.current = activeOrder.orderSlug
       if (wasNotShowing) {
-        // Only present when transitioning from hidden → shown.
-        // If already shown (different order), content updates via re-render.
-        requestAnimationFrame(() => sheetRef.current?.present())
+        if (presentTimerRef.current) clearTimeout(presentTimerRef.current)
+        if (hasEverDismissedRef.current) {
+          presentTimerRef.current = setTimeout(() => {
+            presentTimerRef.current = null
+            sheetRef.current?.present()
+          }, NEXT_ORDER_DELAY_MS)
+        } else {
+          requestAnimationFrame(() => sheetRef.current?.present())
+        }
       }
     } else if (!shouldShow && shownOrderRef.current !== null) {
+      if (presentTimerRef.current) {
+        clearTimeout(presentTimerRef.current)
+        presentTimerRef.current = null
+      }
       isProgrammaticRef.current = true
       sheetRef.current?.dismiss()
     }
   }, [activeOrder, shouldSuppress])
 
+  useEffect(() => {
+    return () => {
+      if (presentTimerRef.current) clearTimeout(presentTimerRef.current)
+    }
+  }, [])
+
   const handleSheetDismiss = useCallback(() => {
     if (!isProgrammaticRef.current && activeOrderRef.current) {
-      snooze(activeOrderRef.current.orderSlug)
+      markDone(activeOrderRef.current.orderSlug)
+      showToastInternal(
+        'Thông báo đơn hàng',
+        'Bạn có thể xem lại trong mục Thông báo',
+        'info',
+      )
     }
     isProgrammaticRef.current = false
     shownOrderRef.current = null
-  }, [snooze])
+    hasEverDismissedRef.current = true
+  }, [markDone])
 
   const handleViewOrder = useCallback(() => {
     if (!activeOrder) return
@@ -97,20 +126,6 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
     })
   }, [activeOrder, markDone, suppressFor])
 
-  const handleDismissLater = useCallback(() => {
-    if (!activeOrder) return
-    snooze(activeOrder.orderSlug)
-    isProgrammaticRef.current = true
-    shownOrderRef.current = null
-    sheetRef.current?.dismiss()
-    showToastInternal(
-      'Đã ẩn nhắc nhở',
-      'Sẽ nhắc lại sau 90 giây · Xem ở Thông báo',
-      'info',
-    )
-  }, [activeOrder, snooze])
-
-  // Pulsing dot for pending badge — runs on UI thread via Reanimated.
   const dotOpacity = useSharedValue(1)
   useEffect(() => {
     if (pendingCount <= 1) {
@@ -158,8 +173,6 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
       titleColor: isDark ? colors.gray[50] : colors.gray[900],
       bodyColor: isDark ? colors.gray[400] : colors.gray[500],
       primaryBg: isDark ? colors.primary.dark : colors.primary.light,
-      secondaryBg: isDark ? colors.border.dark : colors.gray[100],
-      secondaryText: isDark ? colors.gray[50] : colors.gray[700],
       badgeBg: isDark ? 'rgba(232,184,75,0.12)' : 'rgba(232,184,75,0.10)',
       badgeBorder: 'rgba(232,184,75,0.35)',
       badgeText: isDark ? '#E8B84B' : '#966c00',
@@ -219,15 +232,6 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
         </View>
 
         <View style={s.footer}>
-          <Pressable
-            onPress={handleDismissLater}
-            style={[s.btn, { backgroundColor: theme.secondaryBg }]}
-            accessibilityRole="button"
-            accessibilityLabel="Ẩn thông báo"
-          >
-            <Text style={[s.btnText, { color: theme.secondaryText }]}>Để sau</Text>
-          </Pressable>
-
           <Pressable
             onPress={handleViewOrder}
             style={[s.btn, { backgroundColor: theme.primaryBg }]}

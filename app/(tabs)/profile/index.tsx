@@ -569,13 +569,16 @@ const ProfileTest = () => {
 
   const { t: tToast } = useTranslation('toast')
 
-  const handleLogoutConfirm = useCallback(() => {
+  const handleLogoutConfirm = useCallback(async () => {
     // Capture token BEFORE removeUserInfo() clears it — avoids race condition
     // where cleanupTokenOnLogout() reads null and skips server unregister
     const capturedToken = useUserStore.getState().deviceToken
-    import('@/lib/fcm-token-manager').then((m) => {
-      m.cleanupTokenOnLogout(capturedToken ?? undefined).catch(() => {})
-    })
+    const { cleanupTokenOnLogout } = await import('@/lib/fcm-token-manager')
+    // Race with 3s timeout so slow network doesn't block logout UX
+    await Promise.race([
+      cleanupTokenOnLogout(capturedToken ?? undefined),
+      new Promise<void>((r) => setTimeout(r, 3000)),
+    ]).catch(() => {})
     // Clear notification store so next login starts with a clean slate
     useNotificationStore.getState().clearAll()
     clearOrderDisplayCache()
@@ -606,11 +609,13 @@ const ProfileTest = () => {
     )
   }, [t])
 
-  const handleDeleteSuccess = useCallback(() => {
+  const handleDeleteSuccess = useCallback(async () => {
     const capturedToken = useUserStore.getState().deviceToken
-    import('@/lib/fcm-token-manager').then((m) => {
-      m.cleanupTokenOnLogout(capturedToken ?? undefined).catch(() => {})
-    })
+    const { cleanupTokenOnLogout } = await import('@/lib/fcm-token-manager')
+    await Promise.race([
+      cleanupTokenOnLogout(capturedToken ?? undefined),
+      new Promise<void>((r) => setTimeout(r, 3000)),
+    ]).catch(() => {})
     useNotificationStore.getState().clearAll()
     setLogout()
     removeUserInfo()

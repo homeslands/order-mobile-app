@@ -76,8 +76,9 @@ export async function unregisterToken(
   try {
     await unregisterDeviceToken({ token })
     return { success: true }
-  } catch {
-    // Silent fail — old token cleanup is best-effort
+  } catch (e) {
+    // eslint-disable-next-line no-console
+    console.warn('[FCM] unregisterToken failed:', e)
     return { success: false }
   }
 }

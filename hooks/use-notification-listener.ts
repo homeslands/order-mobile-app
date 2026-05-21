@@ -8,6 +8,7 @@
  * Sound lifecycle managed by lib/notification-sound.ts (preloaded at startup).
  */
 import { useEffect } from 'react'
+import { Vibration } from 'react-native'
 import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging'
@@ -72,6 +73,7 @@ export function useNotificationListener(enabled = true) {
       if (body && !isOrderReady) showToastInternal(title, body, 'info')
 
       if (isOrderReady) {
+        Vibration.vibrate([0, 1000, 250, 1000, 250, 1000, 250, 1250])
         playOrderReadySound().catch(() => {})
       } else {
         playNotificationSound().catch(() => {})

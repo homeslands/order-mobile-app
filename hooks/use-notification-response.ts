@@ -48,8 +48,6 @@ export function useNotificationResponse(enabled = true) {
       if (hasProcessed(id)) return
       markProcessed(id)
 
-
-
       const rawData = remoteMessage.data as Record<string, string> | undefined
 
       useNotificationStore.getState().addNotification(
@@ -117,14 +115,7 @@ export function useNotificationResponse(enabled = true) {
       .then((response) => {
         if (!response) return
         const dateMs = response.notification.date
-        if (!isResponseFromThisSession(dateMs)) {
-          // eslint-disable-next-line no-console
-          console.log(
-            '[Notifications] Discarding ghost response from previous session:',
-            new Date(dateMs).toISOString(),
-          )
-          return
-        }
+        if (!isResponseFromThisSession(dateMs)) return
         handleExpoResponse(response, 'cold-start')
       })
       .catch((e) =>
