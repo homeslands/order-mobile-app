@@ -21,13 +21,15 @@ const mockStoreState = {
 }
 
 jest.mock('@/stores/notification.store', () => {
-  const mockFn = jest.fn(
-    (selector: (s: typeof mockStoreState) => unknown) =>
-      typeof selector === 'function'
-        ? selector(mockStoreState)
-        : mockStoreState,
+  const mockFn = Object.assign(
+    jest.fn(
+      (selector: (s: typeof mockStoreState) => unknown) =>
+        typeof selector === 'function'
+          ? selector(mockStoreState)
+          : mockStoreState,
+    ),
+    { getState: () => mockStoreState },
   )
-  mockFn.getState = () => mockStoreState
   return { useNotificationStore: mockFn }
 })
 
