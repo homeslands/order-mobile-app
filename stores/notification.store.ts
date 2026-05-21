@@ -13,6 +13,10 @@ import type {
   INotification,
   INotificationMetadata,
 } from '@/types/notification.type'
+import {
+  NotificationMessageCode,
+  ORDER_READY_MAX_AGE_MS,
+} from '@/constants/notification.constant'
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -229,15 +233,21 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
       if (!isDifferentUser) {
         for (const n of state.notifications) map.set(n.slug, n)
       }
+      const now = Date.now()
       for (const n of items) {
         const local = map.get(n.slug)
 
         // isRead priority (highest → lowest):
         // 1. Local already marked read (optimistic individual/bulk)
         // 2. createdAt ≤ markedAllReadAt → bulk-read timestamp covers it
-        // 3. Server value
+        // 3. ORDER_NEEDS_READY_TO_GET older than ORDER_READY_MAX_AGE_MS → stale
+        // 4. Server value
         const bulkCovered = !!markedAllReadAt && n.createdAt <= markedAllReadAt
-        const isRead = local?.isRead === true || bulkCovered || n.isRead
+        const staleOrderReady =
+          n.message === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET &&
+          now - Date.parse(n.createdAt) > ORDER_READY_MAX_AGE_MS
+        const isRead =
+          local?.isRead === true || bulkCovered || staleOrderReady || n.isRead
 
         map.set(n.slug, { ...n, isRead })
       }
