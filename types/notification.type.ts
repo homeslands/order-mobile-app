@@ -30,6 +30,11 @@ export interface INotification extends IBase {
   type: string
   isRead: boolean
   metadata: INotificationMetadata
+  /** Server timestamp of when the notification was sent (= when staff pressed call).
+   *  Present in FCM payload as sentAt. Undefined for API-hydrated items. */
+  sentAt?: string
+  /** Device-local fallback when sentAt is absent (older FCM without sentAt field). */
+  receivedAt?: string
 }
 
 export interface IRegisterDeviceTokenRequest {

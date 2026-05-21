@@ -21,15 +21,22 @@ const LogoutSheetPortal = () => {
   const { visible, onConfirm, close } = useLogoutSheetStore()
   const sheetRef = useRef<BottomSheetModal>(null)
   const isDark = useColorScheme() === 'dark'
+  const isConfirmingRef = useRef(false)
 
   useEffect(() => {
     if (visible) sheetRef.current?.present()
     else sheetRef.current?.dismiss()
   }, [visible])
 
-  const handleConfirm = useCallback(() => {
+  const handleConfirm = useCallback(async () => {
+    if (isConfirmingRef.current) return
+    isConfirmingRef.current = true
     sheetRef.current?.dismiss()
-    onConfirm?.()
+    try {
+      await onConfirm?.()
+    } finally {
+      isConfirmingRef.current = false
+    }
   }, [onConfirm])
 
   const bgStyle = useMemo(

@@ -32,7 +32,7 @@ export type HttpAuthState = {
 }
 
 /** Callback khi logout (401 hoặc refresh fail) — gọi removeUserInfo, v.v. */
-export type HttpOnLogout = () => void
+export type HttpOnLogout = () => void | Promise<void>
 
 /** Provider inject tại bootstrap — tránh circular dependency utils ↔ stores */
 let getAuthState: (() => HttpAuthState) | null = null
@@ -133,7 +133,7 @@ http.interceptors.request.use(
       } catch (error) {
         processQueue(error, null)
         setLogout()
-        onLogout?.()
+        await onLogout?.()
         return Promise.reject(error)
       } finally {
         isRefreshing = false
@@ -164,12 +164,12 @@ http.interceptors.request.use(
 
 http.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (axios.isAxiosError(error)) {
       const statusCode = error.response?.status
       if (statusCode === 401) {
         getAuthState?.().setLogout()
-        onLogout?.()
+        await onLogout?.()
       }
     }
     return Promise.reject(error)

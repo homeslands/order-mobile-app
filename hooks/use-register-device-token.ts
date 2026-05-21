@@ -14,6 +14,7 @@ import {
   registerTokenWithRetry,
   unregisterToken,
 } from '@/lib/fcm-token-registration'
+import { awaitChannelsReady } from '@/lib/notification-setup'
 import { useUserStore } from '@/stores'
 
 import { useFirebaseToken } from './use-firebase-token'
@@ -33,6 +34,11 @@ export function useRegisterDeviceToken(enabled = true) {
 
     const run = async () => {
       try {
+        // Ensure Android notification channels exist before registering the
+        // token — notifications arriving on a missing channel are silently dropped.
+        await awaitChannelsReady()
+        if (cancelled) return
+
         // Unregister old token if different (best-effort)
         if (storedToken && storedToken !== token) {
           await unregisterToken(storedToken)

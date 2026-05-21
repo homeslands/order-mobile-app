@@ -171,5 +171,10 @@ export async function cleanupTokenOnLogout(
   if (token) {
     await unregisterToken(token)
   }
+
+  // Invalidate the FCM token at Firebase level so the old token can no longer
+  // receive messages even if the server still has it (e.g. unregister failed).
+  // Next login triggers use-register-device-token which fetches a fresh token.
+  await messaging().deleteToken().catch(() => {})
   // deviceToken cleared by removeUserInfo() / clearUserData() in the caller
 }

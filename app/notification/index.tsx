@@ -14,7 +14,6 @@ import {
   View,
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import * as Notifications from 'expo-notifications'
 
 import { FloatingHeader } from '@/components/navigation/floating-header'
 import { Skeleton } from '@/components/ui'
@@ -364,10 +363,6 @@ export default function NotificationScreen() {
       useNotificationStore.getState().hydrateFromApi(items)
     }
   }, [apiData?.result?.items])
-
-  useEffect(() => {
-    Notifications.setBadgeCountAsync(0).catch(() => {})
-  }, [])
 
   const handleRefresh = useCallback(() => {
     setPagination({ forSlug: userSlug ?? '', page: 1 })

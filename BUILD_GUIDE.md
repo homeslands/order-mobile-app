@@ -82,7 +82,10 @@ rm -rf android/app/.cxx
 # 4. Chạy codegen (bắt buộc trước khi sync/clean)
 cd android && ./gradlew generateCodegenArtifactsFromSchema
 
-# 5. Clean Gradle build artifacts
+# 5. Sync sound files vào res/raw (bắt buộc nếu thêm/đổi tên file âm trong app.json)
+cd .. && npx expo prebuild --platform android --no-install && cd android
+
+# 6. Clean Gradle build artifacts
 ./gradlew clean && cd ..
 ```
 
@@ -116,6 +119,7 @@ Rồi mới Sync → Clean → Rebuild trong Studio.
 | Bước                                 | Lý do                                                                                             |
 | ------------------------------------ | ------------------------------------------------------------------------------------------------- |
 | Xóa Metro cache                      | Metro cache không tự invalidate khi `.env` thay đổi                                               |
+| `expo prebuild --platform android`   | Copy sound files từ `assets/sound/` vào `res/raw/` — Gradle không tự làm bước này                 |
 | `generateCodegenArtifactsFromSchema` | Sync chạy CMake configure trước khi codegen tạo thư mục JNI — nếu thiếu sẽ lỗi `add_subdirectory` |
 | Build nitro-modules (lần đầu)        | `react-native-mmkv` cần `libNitroModules.so` + headers được build trước mới link được             |
 

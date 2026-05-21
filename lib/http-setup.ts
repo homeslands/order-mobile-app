@@ -22,15 +22,17 @@ configureHttpAuth({
       setLogout: state.setLogout,
     }
   },
-  onLogout: () => {
+  onLogout: async () => {
     // Capture token BEFORE removeUserInfo() clears it
     const capturedToken = useUserStore.getState().deviceToken
+    const { cleanupTokenOnLogout } = await import('@/lib/fcm-token-manager')
+    // Race with 3s timeout so slow network doesn't block auto-logout flow
+    await Promise.race([
+      cleanupTokenOnLogout(capturedToken ?? undefined),
+      new Promise<void>((r) => setTimeout(r, 3000)),
+    ]).catch(() => {})
     // Clear notification store so next login starts with a clean slate
     useNotificationStore.getState().clearAll()
     useUserStore.getState().removeUserInfo()
-    // Fire-and-forget: unregister FCM token so it's not routed to this account
-    import('@/lib/fcm-token-manager').then(({ cleanupTokenOnLogout }) => {
-      cleanupTokenOnLogout(capturedToken ?? undefined).catch(() => {})
-    })
   },
 })
