@@ -37,7 +37,7 @@ function createChannels(): Promise<void> {
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 1000, 250, 1000, 250, 1000, 250, 1250],
       lightColor: '#F7A737',
-      sound: 'order_ready',
+      sound: 'railway_ingle',
     }),
   ]).then((results) => {
     for (const r of results) {

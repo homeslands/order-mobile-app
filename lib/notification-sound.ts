@@ -74,7 +74,7 @@ const notificationPlayer = createSoundPlayer(
 
 const orderReadyPlayer = createSoundPlayer(
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  require('@/assets/sound/order_ready.mp3') as AVPlaybackSource,
+  require('@/assets/sound/railway_ingle.mp3') as AVPlaybackSource,
 )
 
 export const preloadNotificationSound = () => notificationPlayer.preload()
