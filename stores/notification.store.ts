@@ -71,8 +71,7 @@ function transformPayloadToNotification(
   const slug = merged.slug || data.slug || payload.messageId || `${Date.now()}`
   const createdAt =
     merged.createdAt || data.createdAt || new Date().toISOString()
-  const message =
-    merged.message || data.message || payload.notification?.body || ''
+  const message = merged.message || data.message || ''
   const type = merged.type || data.type || 'system'
 
   const metadata: INotificationMetadata = {
@@ -131,10 +130,16 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
         options?.markAsRead ?? false,
       )
       const existing = state.notifications.find((n) => n.slug === rawItem.slug)
-      // Preserve read state: a notification already read locally must not be
-      // reset to unread by a duplicate FCM delivery.
+      // isRead priority (highest → lowest):
+      // 1. Local already marked read (duplicate FCM delivery)
+      // 2. createdAt ≤ markedAllReadAt → bulk-read timestamp covers it
+      // 3. Incoming value
+      const bulkCovered =
+        !!state.markedAllReadAt && rawItem.createdAt <= state.markedAllReadAt
       const item =
-        existing?.isRead === true ? { ...rawItem, isRead: true } : rawItem
+        existing?.isRead === true || bulkCovered
+          ? { ...rawItem, isRead: true }
+          : rawItem
       const filtered = state.notifications.filter((n) => n.slug !== item.slug)
       const updated = [item, ...filtered].slice(0, MAX_NOTIFICATIONS)
       let unreadCount = 0
@@ -146,9 +151,12 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
 
   markAsRead: (slug) => {
     set((state) => {
-      const notifications = state.notifications.map((n) =>
-        n.slug === slug ? { ...n, isRead: true } : n,
-      )
+      let changed = false
+      const notifications = state.notifications.map((n) => {
+        if (n.slug === slug && !n.isRead) { changed = true; return { ...n, isRead: true } }
+        return n
+      })
+      if (!changed) return state
       let unreadCount = 0
       for (const n of notifications) if (!n.isRead) unreadCount++
       return { notifications, unreadCount }
@@ -157,10 +165,14 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
   },
 
   markAllReadByOrder: (orderSlug) => {
+    if (!orderSlug) return
     set((state) => {
-      const notifications = state.notifications.map((n) =>
-        n.metadata.order === orderSlug ? { ...n, isRead: true } : n,
-      )
+      let changed = false
+      const notifications = state.notifications.map((n) => {
+        if (n.metadata.order === orderSlug && !n.isRead) { changed = true; return { ...n, isRead: true } }
+        return n
+      })
+      if (!changed) return state
       let unreadCount = 0
       for (const n of notifications) if (!n.isRead) unreadCount++
       return { notifications, unreadCount }

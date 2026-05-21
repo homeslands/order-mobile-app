@@ -48,4 +48,34 @@ describe('addNotification', () => {
     expect(useNotificationStore.getState().unreadCount).toBe(1)
     expect(useNotificationStore.getState().notifications).toHaveLength(2)
   })
+
+  it('marks incoming notification as read when createdAt is covered by markedAllReadAt', () => {
+    const pastTs = new Date(Date.now() - 10_000).toISOString()
+    useNotificationStore.setState({
+      notifications: [],
+      unreadCount: 0,
+      markedAllReadAt: new Date().toISOString(),
+    })
+    useNotificationStore.getState().addNotification({
+      data: { slug: 'n-delayed', message: 'order-needs-processed', createdAt: pastTs },
+    })
+    const n = useNotificationStore.getState().notifications[0]
+    expect(n.isRead).toBe(true)
+    expect(useNotificationStore.getState().unreadCount).toBe(0)
+  })
+
+  it('does NOT mark as read when createdAt is newer than markedAllReadAt', () => {
+    const futureTs = new Date(Date.now() + 10_000).toISOString()
+    useNotificationStore.setState({
+      notifications: [],
+      unreadCount: 0,
+      markedAllReadAt: new Date(Date.now() - 5_000).toISOString(),
+    })
+    useNotificationStore.getState().addNotification({
+      data: { slug: 'n-new', message: 'order-needs-processed', createdAt: futureTs },
+    })
+    const n = useNotificationStore.getState().notifications[0]
+    expect(n.isRead).toBe(false)
+    expect(useNotificationStore.getState().unreadCount).toBe(1)
+  })
 })
