@@ -8,3 +8,4 @@ export {
 export { OTPStepForgot } from './otp-step-forgot'
 export { ResetStepForgot } from './reset-step-forgot'
 export { SuccessStepForgot } from './success-step-forgot'
+export { RegisterProgressBar } from './register-progress-bar'

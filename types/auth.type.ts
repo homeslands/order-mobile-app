@@ -23,6 +23,16 @@ export interface IRegisterRequest {
   dob?: string | null
 }
 
+export interface ICompleteRegistrationRequest {
+  phonenumber: string
+  otp: string
+  password: string
+  firstName?: string | null
+  lastName?: string | null
+  dob?: string | null
+  email?: string | null
+}
+
 export interface IInitiateForgotPasswordRequest {
   email?: string
   phonenumber?: string

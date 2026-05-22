@@ -46,7 +46,6 @@ export default function RegisterProfileForm() {
   const {
     control,
     handleSubmit,
-    formState: { errors },
   } = useZodForm(schema, {
     defaultValues: { firstName: '', lastName: '' },
   })
