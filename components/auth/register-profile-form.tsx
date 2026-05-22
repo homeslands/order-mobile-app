@@ -10,6 +10,7 @@ import { NAME_REGEX } from '@/constants'
 import { useZodForm } from '@/hooks'
 import { navigateNative } from '@/lib/navigation'
 import { updateProfile } from '@/api/profile'
+import { showToast } from '@/utils'
 
 function useRegisterProfileSchema() {
   const { t } = useTranslation('auth')
@@ -61,7 +62,7 @@ export default function RegisterProfileForm() {
         dob: dob || null,
       })
     } catch {
-      // silent — profile update is best-effort
+      showToast(t('register.profileUpdateFailed'), 'warning')
     } finally {
       setIsLoading(false)
       goHome()
