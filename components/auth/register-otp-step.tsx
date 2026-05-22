@@ -17,6 +17,7 @@ import Animated, {
 import { AnimatedCountdownText } from './animated-countdown-text'
 import { OTPInput } from './otp-input'
 import { RegisterProgressBar } from './register-progress-bar'
+import { ConfirmationDialog } from '@/components/dialog/confirmation-dialog'
 import { Button } from '@/components/ui'
 import {
   useAnimatedCountdown,
@@ -24,6 +25,7 @@ import {
   useShakeAnimation,
 } from '@/hooks'
 import { navigateNative } from '@/lib/navigation'
+import { showToast } from '@/utils'
 
 /**
  * Resend button countdown label — isolated so only this sub-component
@@ -61,10 +63,11 @@ const ResendCountdownLabel = memo(function ResendCountdownLabel({
 
 export default function RegisterOtpStep({ phone }: { phone: string }) {
   const { t } = useTranslation('auth')
+  const { t: tCommon } = useTranslation('common')
   const isDark = useColorScheme() === 'dark'
 
-  // OTP expires in 10 minutes from mount — stored in useState so it never changes
-  const [otpExpiresAt] = useState(
+  // OTP expires in 10 minutes from mount — stateful so resend can reset it
+  const [otpExpiresAt, setOtpExpiresAt] = useState(
     () => new Date(Date.now() + 10 * 60 * 1000).toISOString(),
   )
 
@@ -122,14 +125,32 @@ export default function RegisterOtpStep({ phone }: { phone: string }) {
   const handleResend = useCallback(() => {
     resend(phone, {
       onSuccess: () => {
+        // Server issued a fresh 10-min OTP — reset the expiry window
+        setOtpExpiresAt(new Date(Date.now() + 10 * 60 * 1000).toISOString())
+        setIsOtpExpired(false)
+        // Reset resend cooldown
         setResendAvailableAt(
           new Date(Date.now() + 2 * 60 * 1000).toISOString(),
         )
         setIsResendAvailable(false)
         setOtpValue('')
+        showToast(t('register.otpResent'), 'success')
+      },
+      onError: () => {
+        showToast(t('register.otpResendFailed'), 'error')
       },
     })
-  }, [phone, resend])
+  }, [phone, resend, t])
+
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+
+  const handleBackPress = useCallback(() => {
+    if (otpValue.length > 0) {
+      setIsConfirmOpen(true)
+    } else {
+      navigateNative.back()
+    }
+  }, [otpValue])
 
   const isVerifyDisabled = otpValue.length < 6 || isResending || isOtpExpired
   // Resend available when cooldown done OR OTP expired (need to get new OTP)
@@ -214,7 +235,7 @@ export default function RegisterOtpStep({ phone }: { phone: string }) {
 
         <TouchableOpacity
           className="py-2"
-          onPress={() => navigateNative.back()}
+          onPress={handleBackPress}
           disabled={isResending}
         >
           <Text className="text-center font-sans-medium text-sm text-amber-500 dark:text-amber-400">
@@ -222,6 +243,17 @@ export default function RegisterOtpStep({ phone }: { phone: string }) {
           </Text>
         </TouchableOpacity>
       </View>
+
+      <ConfirmationDialog
+        isOpen={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title={t('register.changePhoneTitle')}
+        description={t('register.changePhoneMessage')}
+        confirmLabel={t('register.changePhoneConfirm')}
+        cancelLabel={tCommon('cancel')}
+        onConfirm={() => navigateNative.back()}
+        variant="destructive"
+      />
     </View>
   )
 }
