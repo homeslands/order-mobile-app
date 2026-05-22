@@ -45,6 +45,8 @@ npm run build:android
 
 ## 3️⃣ Build iOS
 
+### Option A: EAS (CI/CD)
+
 ```bash
 bash scripts/build-production.sh ios
 ```
@@ -54,6 +56,30 @@ Hoặc manual:
 ```bash
 npm run prebuild:clean && npm run typecheck && npm run build:ios
 ```
+
+### Option B: Local — Xcode Product → Archive
+
+Bắt buộc chạy prebuild trước để copy sound files và cập nhật xcodeproj:
+
+```bash
+# 1. Xóa Metro cache
+rm -rf node_modules/.cache/metro
+
+# 2. Regenerate native iOS project (copy sound files, cập nhật xcodeproj)
+npx expo prebuild --platform ios --no-install
+
+# 3. Cài CocoaPods (nếu có thay đổi dependencies)
+cd ios && pod install && cd ..
+```
+
+Sau đó trong Xcode:
+
+1. Mở `ios/TRENDCoffee.xcworkspace`
+2. Chọn scheme **TRENDCoffee** → target **Any iOS Device**
+3. **Product → Archive**
+4. Sau khi archive xong → **Distribute App → App Store Connect**
+
+> **Tại sao cần prebuild?** `ios/` bị gitignore (generated folder). `expo prebuild` copy `ding.mp3`, `notification.mp3` từ `assets/sound/` vào `ios/TRENDCoffee/` và thêm reference vào xcodeproj. Nếu bỏ qua bước này, build sẽ thiếu sound files.
 
 ## 4️⃣ Kiểm tra Build Status
 
