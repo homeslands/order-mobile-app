@@ -1,5 +1,6 @@
 import {
   IApiResponse,
+  ICompleteRegistrationRequest,
   IConfirmForgotPasswordRequest,
   IEmailVerificationResponse,
   IInitiateForgotPasswordRequest,
@@ -27,6 +28,36 @@ export async function register(
 ): Promise<IApiResponse<ILoginResponse>> {
   const response = await http.post<IApiResponse<ILoginResponse>>(
     '/auth/register',
+    params,
+  )
+  return response.data
+}
+
+export async function initiateRegistration(
+  phonenumber: string,
+): Promise<IApiResponse<{ isRegistered: boolean }>> {
+  const response = await http.post<IApiResponse<{ isRegistered: boolean }>>(
+    '/auth/register/initiate',
+    { phonenumber },
+  )
+  return response.data
+}
+
+export async function resendRegistration(
+  phonenumber: string,
+): Promise<IApiResponse<{ isRegistered: boolean }>> {
+  const response = await http.post<IApiResponse<{ isRegistered: boolean }>>(
+    '/auth/register/resend',
+    { phonenumber },
+  )
+  return response.data
+}
+
+export async function completeRegistration(
+  params: ICompleteRegistrationRequest,
+): Promise<IApiResponse<ILoginResponse['result']>> {
+  const response = await http.post<IApiResponse<ILoginResponse['result']>>(
+    '/auth/register/complete',
     params,
   )
   return response.data
