@@ -163,11 +163,42 @@ onExpired():
   OTPInput disabled, nút Xác nhận disabled, nút Gửi lại enabled
 ```
 
-**Countdown:** `initiateRegistration` không trả về `expiresAt`. Tính client-side ngay khi navigate sang màn 2:
+**Hai timer độc lập:**
+
+| Timer | Thời gian | Reset khi resend? |
+|-------|-----------|------------------|
+| Expiry (OTP hết hạn) | 10 phút từ lúc tạo | **Không** — tiếp tục đếm |
+| Resend cooldown | 2 phút từ lúc gửi gần nhất | **Có** — reset 2 phút mỗi lần resend |
+
+`initiateRegistration` không trả về `expiresAt`. Tính client-side khi màn mount:
 ```ts
-const expiresAt = new Date(Date.now() + 10 * 60 * 1000).toISOString() // 10 phút
+// Tính 1 lần lúc mount, không thay đổi khi resend
+const [otpExpiresAt] = useState(() =>
+  new Date(Date.now() + 10 * 60 * 1000).toISOString()
+)
+// Resend cooldown — reset sau mỗi lần resend thành công
+const [resendAvailableAt, setResendAvailableAt] = useState(() =>
+  new Date(Date.now() + 2 * 60 * 1000).toISOString()
+)
 ```
-Truyền qua route param hoặc tính lại khi màn mount. Sau mỗi lần resend thành công, reset về `Date.now() + 600_000`.
+
+**UI states:**
+- OTP input: disabled khi `otpExpiresAt` hết
+- Nút "Xác nhận": disabled khi `otp.length < 6` hoặc OTP expired
+- Nút "Gửi lại":
+  - `now < resendAvailableAt`: disabled, hiện countdown "Gửi lại (1:45)"
+  - `now >= resendAvailableAt` và OTP chưa hết: enabled (primary style)
+  - OTP đã hết hạn: enabled (cần mã mới)
+
+**Logic resend:**
+```ts
+onResend():
+  resendRegistration(phone)
+    onSuccess:
+      setResendAvailableAt(new Date(Date.now() + 2 * 60 * 1000).toISOString())
+      // otpExpiresAt KHÔNG thay đổi
+      resetOtpValue('')
+```
 
 **Lưu ý:** OTP chỉ được validate phía server tại bước 3. Màn này chỉ kiểm tra length = 6.
 
