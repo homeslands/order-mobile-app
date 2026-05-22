@@ -1,8 +1,10 @@
+import { useState } from 'react'
 import { Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 
 import { RegisterProgressBar } from './register-progress-bar'
+import { ConfirmationDialog } from '@/components/dialog/confirmation-dialog'
 import { PasswordInputField } from '@/components/input/password-input-field'
 import { PasswordRulesInput } from '@/components/input/password-rules-input'
 import {
@@ -15,7 +17,7 @@ import {
   useRegisterPasswordSchema,
   type TRegisterPasswordSchema,
 } from '@/schemas'
-import { showErrorToastMessage } from '@/utils'
+import { showErrorToastMessage, showToast } from '@/utils'
 
 interface RegisterPasswordFormProps {
   phone: string
@@ -27,6 +29,7 @@ export default function RegisterPasswordForm({
   otp,
 }: RegisterPasswordFormProps) {
   const { t } = useTranslation('auth')
+  const { t: tCommon } = useTranslation('common')
   const schema = useRegisterPasswordSchema()
 
   const {
@@ -41,6 +44,8 @@ export default function RegisterPasswordForm({
     useCompleteRegistration()
   const { handleAuthSuccess } = usePostAuthActions()
 
+  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+
   const onSubmit = async (data: TRegisterPasswordSchema) => {
     try {
       const res = await completeRegistration({
@@ -49,6 +54,7 @@ export default function RegisterPasswordForm({
         password: data.password,
       })
       await handleAuthSuccess(res.result, () => {
+        showToast(t('register.registerSuccess'), 'success')
         navigateNative.replace('/auth/register/profile')
       })
     } catch (err) {
@@ -132,7 +138,7 @@ export default function RegisterPasswordForm({
 
         <TouchableOpacity
           className="py-2"
-          onPress={() => navigateNative.back()}
+          onPress={() => setIsConfirmOpen(true)}
           disabled={isLoading}
         >
           <Text className="text-center font-sans-medium text-sm text-amber-500 dark:text-amber-400">
@@ -140,6 +146,17 @@ export default function RegisterPasswordForm({
           </Text>
         </TouchableOpacity>
       </View>
+
+      <ConfirmationDialog
+        isOpen={isConfirmOpen}
+        onOpenChange={setIsConfirmOpen}
+        title={t('register.changePhoneTitle')}
+        description={t('register.changePhoneMessage')}
+        confirmLabel={t('register.changePhoneConfirm')}
+        cancelLabel={tCommon('cancel')}
+        onConfirm={() => navigateNative.replace('/auth/register')}
+        variant="destructive"
+      />
     </View>
   )
 }
