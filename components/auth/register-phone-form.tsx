@@ -40,6 +40,10 @@ export default function RegisterPhoneForm() {
           showToast(t('register.phoneAlreadyRegistered'), 'warning')
           navigateNative.replace('/auth/login')
         } else {
+          showToast(
+            t('register.otpSentSuccess', { phone: data.phonenumber }),
+            'success',
+          )
           navigateNative.push(
             `/auth/register/otp?phone=${encodeURIComponent(data.phonenumber)}`,
           )
