@@ -109,10 +109,33 @@ export const verifyEmailSchema = z.object({
   email: z.string().email(),
 })
 
+export function useRegisterPasswordSchema() {
+  const { t } = useTranslation('auth')
+  return z
+    .object({
+      password: z
+        .string()
+        .min(AuthRules.MIN_LENGTH, {
+          message: t('register.minLength', { count: AuthRules.MIN_LENGTH }),
+        })
+        .regex(PASSWORD_REGEX, t('register.passwordInvalid')),
+      confirmPassword: z
+        .string()
+        .min(1, t('register.confirmPasswordRequired')),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: t('register.passwordNotMatch'),
+      path: ['confirmPassword'],
+    })
+}
+
 export type TRegisterSchema = z.infer<ReturnType<typeof useRegisterSchema>>
 export type TLoginSchema = z.infer<typeof loginSchema>
 export type TResetPasswordSchema = z.infer<
   ReturnType<typeof useResetPasswordSchema>
+>
+export type TRegisterPasswordSchema = z.infer<
+  ReturnType<typeof useRegisterPasswordSchema>
 >
 
 export type TVerifyEmailSchema = z.infer<typeof verifyEmailSchema>
