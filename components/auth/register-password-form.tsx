@@ -3,8 +3,8 @@ import { Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
 
+import { ChangePhoneConfirmSheet } from './change-phone-confirm-sheet'
 import { RegisterProgressBar } from './register-progress-bar'
-import { ConfirmationDialog } from '@/components/dialog/confirmation-dialog'
 import { PasswordInputField } from '@/components/input/password-input-field'
 import { PasswordRulesInput } from '@/components/input/password-rules-input'
 import {
@@ -29,7 +29,6 @@ export default function RegisterPasswordForm({
   otp,
 }: RegisterPasswordFormProps) {
   const { t } = useTranslation('auth')
-  const { t: tCommon } = useTranslation('common')
   const schema = useRegisterPasswordSchema()
 
   const {
@@ -147,15 +146,10 @@ export default function RegisterPasswordForm({
         </TouchableOpacity>
       </View>
 
-      <ConfirmationDialog
+      <ChangePhoneConfirmSheet
         isOpen={isConfirmOpen}
         onOpenChange={setIsConfirmOpen}
-        title={t('register.changePhoneTitle')}
-        description={t('register.changePhoneMessage')}
-        confirmLabel={t('register.changePhoneConfirm')}
-        cancelLabel={tCommon('cancel')}
         onConfirm={() => navigateNative.replace('/auth/register')}
-        variant="destructive"
       />
     </View>
   )

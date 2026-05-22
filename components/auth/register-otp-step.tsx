@@ -15,9 +15,9 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { AnimatedCountdownText } from './animated-countdown-text'
+import { ChangePhoneConfirmSheet } from './change-phone-confirm-sheet'
 import { OTPInput } from './otp-input'
 import { RegisterProgressBar } from './register-progress-bar'
-import { ConfirmationDialog } from '@/components/dialog/confirmation-dialog'
 import { Button } from '@/components/ui'
 import {
   useAnimatedCountdown,
@@ -63,7 +63,6 @@ const ResendCountdownLabel = memo(function ResendCountdownLabel({
 
 export default function RegisterOtpStep({ phone }: { phone: string }) {
   const { t } = useTranslation('auth')
-  const { t: tCommon } = useTranslation('common')
   const isDark = useColorScheme() === 'dark'
 
   // OTP expires in 10 minutes from mount — stateful so resend can reset it
@@ -244,15 +243,10 @@ export default function RegisterOtpStep({ phone }: { phone: string }) {
         </TouchableOpacity>
       </View>
 
-      <ConfirmationDialog
+      <ChangePhoneConfirmSheet
         isOpen={isConfirmOpen}
         onOpenChange={setIsConfirmOpen}
-        title={t('register.changePhoneTitle')}
-        description={t('register.changePhoneMessage')}
-        confirmLabel={t('register.changePhoneConfirm')}
-        cancelLabel={tCommon('cancel')}
         onConfirm={() => navigateNative.back()}
-        variant="destructive"
       />
     </View>
   )
