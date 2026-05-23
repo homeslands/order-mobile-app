@@ -1,21 +1,19 @@
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native'
 import * as z from 'zod'
 
 import { FormInput } from '@/components/form/form-input'
 import { PHONE_NUMBER_REGEX } from '@/constants'
 import { useInitiateRegistration, useZodForm } from '@/hooks'
 import { navigateNative } from '@/lib/navigation'
+import { getSyncItem, setSyncItem } from '@/utils/storage'
 import { showToast } from '@/utils'
 
 import { RegisterProgressBar } from './register-progress-bar'
+import { Text } from '@/components/ui/text'
 
 const phoneSchema = z.object({
-  phonenumber: z
-    .string()
-    .min(10)
-    .max(10)
-    .regex(PHONE_NUMBER_REGEX),
+  phonenumber: z.string().min(10).max(10).regex(PHONE_NUMBER_REGEX),
 })
 
 type TPhoneSchema = z.infer<typeof phoneSchema>
@@ -34,8 +32,13 @@ export default function RegisterPhoneForm() {
   const { mutate: initiate, isPending } = useInitiateRegistration()
 
   const onSubmit = (data: TPhoneSchema) => {
+    console.log('[initiateRegistration] REQUEST:', data.phonenumber)
     initiate(data.phonenumber, {
       onSuccess: (res) => {
+        console.log(
+          '[initiateRegistration] RESPONSE:',
+          JSON.stringify(res, null, 2),
+        )
         if (res.result?.isRegistered === true) {
           showToast(t('register.phoneAlreadyRegistered'), 'warning')
           navigateNative.replace('/auth/login')
@@ -44,13 +47,39 @@ export default function RegisterPhoneForm() {
             t('register.otpSentSuccess', { phone: data.phonenumber }),
             'success',
           )
+          const expiresAt = res.result?.expiresAt
+          if (expiresAt) {
+            setSyncItem(`register:otp:${data.phonenumber}`, expiresAt)
+          }
           navigateNative.push(
-            `/auth/register/otp?phone=${encodeURIComponent(data.phonenumber)}`,
+            `/auth/register/otp?phone=${encodeURIComponent(data.phonenumber)}${expiresAt ? `&expiresAt=${encodeURIComponent(expiresAt)}` : ''}`,
           )
         }
       },
-      onError: () => {
-        // Global error handler (QueryCache) sẽ show toast
+      onError: (err) => {
+        console.log(
+          '[initiateRegistration] ERROR status:',
+          (err as any)?.response?.status,
+        )
+        console.log(
+          '[initiateRegistration] ERROR data:',
+          JSON.stringify((err as any)?.response?.data, null, 2),
+        )
+        const serverCode = (err as any)?.response?.data?.statusCode
+        if (serverCode === 119046) {
+          showToast(
+            t('register.otpAlreadySent', { phone: data.phonenumber }),
+            'warning',
+          )
+          const cachedExpiresAt = getSyncItem(
+            `register:otp:${data.phonenumber}`,
+          )
+          navigateNative.push(
+            `/auth/register/otp?phone=${encodeURIComponent(data.phonenumber)}${cachedExpiresAt ? `&expiresAt=${encodeURIComponent(cachedExpiresAt)}` : ''}`,
+          )
+          return
+        }
+        // Global error handler (QueryCache) sẽ show toast cho các lỗi khác
       },
     })
   }

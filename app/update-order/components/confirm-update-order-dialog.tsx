@@ -12,7 +12,6 @@ import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -38,6 +37,7 @@ import {
   showErrorToastMessage,
   showToast,
 } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 const SNAP_POINTS = ['65%']
 

@@ -1,7 +1,7 @@
 import { CircleAlert } from 'lucide-react-native'
 import { useTranslation } from 'react-i18next'
 import { Image } from 'expo-image'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 
 import PaymentMethodRadioGroup from '@/components/radio/payment-method-radio-group'
 import { Label } from '@/components/ui'
@@ -9,6 +9,7 @@ import { PaymentMethod } from '@/constants'
 import { cn } from '@/lib/utils'
 import { IOrder } from '@/types'
 import { formatCurrency } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 interface PaymentMethodSelectProps {
   order?: IOrder

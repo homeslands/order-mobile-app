@@ -8,11 +8,7 @@ export function useFontScale(): number {
   return useContext(FontScaleContext)
 }
 
-export function FontScaleProvider({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export function FontScaleProvider({ children }: { children: React.ReactNode }) {
   const scale = useFontScaleStore((s) => s.scale)
   const value = useMemo(() => scale, [scale])
   return (

@@ -6,11 +6,12 @@
  */
 import { Bell } from 'lucide-react-native'
 import React, { memo, useCallback } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 
 import { colors } from '@/constants'
 import { navigateNative } from '@/lib/navigation'
 import { useNotificationStore } from '@/stores/notification.store'
+import { Text } from '@/components/ui/text'
 
 export const NotificationBell = memo(function NotificationBell({
   color,

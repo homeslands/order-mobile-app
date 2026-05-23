@@ -12,15 +12,16 @@
 
 ## File Map
 
-| File | Action | Trách nhiệm |
-|------|--------|-------------|
-| `components/home/highlight-menu.tsx` | Modify | Cả 2 tasks |
+| File                                 | Action | Trách nhiệm |
+| ------------------------------------ | ------ | ----------- |
+| `components/home/highlight-menu.tsx` | Modify | Cả 2 tasks  |
 
 ---
 
 ### Task 1 (CRITICAL): Chuyển teleport vào onMomentumEnd worklet + bỏ AnimatedFlashList
 
 **Files:**
+
 - Modify: `components/home/highlight-menu.tsx`
 
 **Bối cảnh — 3 vấn đề cần fix cùng lúc:**
@@ -36,6 +37,7 @@
 - [ ] **Step 1: Cập nhật Reanimated imports — thêm `runOnJS`**
 
 Tìm block import reanimated:
+
 ```tsx
 import Animated, {
   interpolate,
@@ -47,6 +49,7 @@ import Animated, {
 ```
 
 Thay thành:
+
 ```tsx
 import Animated, {
   interpolate,
@@ -61,6 +64,7 @@ import Animated, {
 - [ ] **Step 2: Xoá `AnimatedFlashList` constant**
 
 Tìm và xoá 3 dòng này (khoảng line 224–226):
+
 ```tsx
 const AnimatedFlashList = Animated.createAnimatedComponent(
   FlashList<HighlightMenuItem>,
@@ -73,12 +77,9 @@ Thêm 2 callback này ngay TRƯỚC khi khai báo `scrollX` (sau `listRef`):
 
 ```tsx
 // Được gọi từ worklet qua runOnJS — không thể inline trong worklet.
-const teleport = useCallback(
-  (offset: number) => {
-    listRef.current?.scrollToOffset({ offset, animated: false })
-  },
-  [],
-)
+const teleport = useCallback((offset: number) => {
+  listRef.current?.scrollToOffset({ offset, animated: false })
+}, [])
 
 const getItemType = useCallback(
   (_: HighlightMenuItem, index: number) => {
@@ -93,6 +94,7 @@ const getItemType = useCallback(
 - [ ] **Step 4: Rewrite `scrollHandler` với `onMomentumEnd` worklet**
 
 Tìm `scrollHandler` hiện tại:
+
 ```tsx
 const scrollHandler = useAnimatedScrollHandler((e) => {
   'worklet'
@@ -101,6 +103,7 @@ const scrollHandler = useAnimatedScrollHandler((e) => {
 ```
 
 Thay thành (object form với 2 handlers):
+
 ```tsx
 const scrollHandler = useAnimatedScrollHandler({
   onScroll: (e) => {
@@ -116,8 +119,8 @@ const scrollHandler = useAnimatedScrollHandler({
     if (Math.abs(x) < EPS) {
       // Clone-last (index 0) đang centered → teleport về real last item
       const t = count * step
-      scrollX.value = t          // sync UI thread TRƯỚC để tránh frame mismatch
-      runOnJS(teleport)(t)       // rồi mới gọi native scroll
+      scrollX.value = t // sync UI thread TRƯỚC để tránh frame mismatch
+      runOnJS(teleport)(t) // rồi mới gọi native scroll
     } else if (Math.abs(x - (count + 1) * step) < EPS) {
       // Clone-first (index count+1) đang centered → teleport về real first item
       const t = step
@@ -131,6 +134,7 @@ const scrollHandler = useAnimatedScrollHandler({
 - [ ] **Step 5: Xoá `handleScrollEnd` và `useEffect` mount-jump**
 
 Xoá toàn bộ `handleScrollEnd` useCallback (dùng `onMomentumScrollEnd` — không còn cần):
+
 ```tsx
 // XOÁ toàn bộ block này:
 const handleScrollEnd = useCallback(
@@ -151,6 +155,7 @@ const handleScrollEnd = useCallback(
 ```
 
 Xoá `useEffect` mount-jump:
+
 ```tsx
 // XOÁ toàn bộ block này:
 useEffect(() => {
@@ -166,6 +171,7 @@ useEffect(() => {
 - [ ] **Step 6: Cập nhật JSX — thay `AnimatedFlashList` bằng `FlashList`, thêm `initialScrollIndex` và `getItemType`, sửa `scrollEventThrottle`, bỏ `onMomentumScrollEnd`**
 
 Tìm toàn bộ `<AnimatedFlashList ... />` trong JSX:
+
 ```tsx
 <AnimatedFlashList
   ref={listRef as React.Ref<FlashListRef<HighlightMenuItem>>}
@@ -186,6 +192,7 @@ Tìm toàn bộ `<AnimatedFlashList ... />` trong JSX:
 ```
 
 Thay thành (plain `FlashList` — Reanimated 4 pass handler trực tiếp, không cần wrapper):
+
 ```tsx
 <FlashList
   ref={listRef}
@@ -206,6 +213,7 @@ Thay thành (plain `FlashList` — Reanimated 4 pass handler trực tiếp, khô
 ```
 
 Lưu ý:
+
 - `onScroll={scrollHandler as never}` — cast vì Reanimated 4 scroll handler type không khớp với FlashList prop type, nhưng runtime hoạt động đúng.
 - Không còn `onMomentumScrollEnd` — teleport đã handle trong worklet.
 - `@ts-expect-error` không cần nữa — `estimatedItemSize` là prop chính thức của `FlashList`.
@@ -215,6 +223,7 @@ Lưu ý:
 - [ ] **Step 7: Xoá `Animated` wrapper nếu không còn dùng**
 
 Kiểm tra xem `Animated` từ `react-native-reanimated` còn được dùng ở đâu không (ngoài `AnimatedFlashList` đã xoá):
+
 ```bash
 grep -n "Animated\." components/home/highlight-menu.tsx
 ```
@@ -241,6 +250,7 @@ git commit -m "fix(home): teleport via onMomentumEnd worklet, remove AnimatedFla
 ### Task 2 (HIGH): Tối ưu card animation worklet với `useDerivedValue`
 
 **Files:**
+
 - Modify: `components/home/highlight-menu.tsx`
 
 **Bối cảnh:**
@@ -248,6 +258,7 @@ git commit -m "fix(home): teleport via onMomentumEnd worklet, remove AnimatedFla
 `HighlightCard.animStyle` worklet hiện gọi 3 lần `interpolate()` mỗi scroll frame (scale, opacity, translateY). Mỗi `interpolate` call có overhead trên Hermes (tìm range, tính hệ số). Với 6 cards (4 real + 2 clone), đó là 18 interpolate calls mỗi frame. Thay bằng 1 lần tính `progress` (0→1) qua `useDerivedValue`, rồi dùng arithmetic đơn giản trong `useAnimatedStyle`.
 
 **Math xác minh:**
+
 - `progress = 1 - |scrollX - centeredAt| / step` ∈ [0, 1]
 - `opacity = 0.55 + 0.45 * p` → p=1: 1.0 ✓, p=0: 0.55 ✓
 - `scale = 0.86 + 0.14 * p` → p=1: 1.0 ✓, p=0: 0.86 ✓
@@ -256,6 +267,7 @@ git commit -m "fix(home): teleport via onMomentumEnd worklet, remove AnimatedFla
 - [ ] **Step 1: Thêm `useDerivedValue` vào Reanimated imports**
 
 Tìm block reanimated imports (đã có `runOnJS` từ Task 1):
+
 ```tsx
 import Animated, {
   interpolate,
@@ -268,6 +280,7 @@ import Animated, {
 ```
 
 Thay thành:
+
 ```tsx
 import Animated, {
   interpolate,
@@ -283,16 +296,12 @@ import Animated, {
 - [ ] **Step 2: Thay thế `animStyle` worklet trong `HighlightCard`**
 
 Tìm trong `HighlightCard`:
+
 ```tsx
 const animStyle = useAnimatedStyle(() => {
   'worklet'
   const inputRange = [centeredAt - step, centeredAt, centeredAt + step]
-  const scale = interpolate(
-    scrollX.value,
-    inputRange,
-    [0.86, 1, 0.86],
-    'clamp',
-  )
+  const scale = interpolate(scrollX.value, inputRange, [0.86, 1, 0.86], 'clamp')
   const opacity = interpolate(
     scrollX.value,
     inputRange,
@@ -310,6 +319,7 @@ const animStyle = useAnimatedStyle(() => {
 ```
 
 Thay thành:
+
 ```tsx
 const progress = useDerivedValue(() => {
   'worklet'
@@ -321,10 +331,7 @@ const animStyle = useAnimatedStyle(() => {
   const p = progress.value
   return {
     opacity: 0.55 + 0.45 * p,
-    transform: [
-      { scale: 0.86 + 0.14 * p },
-      { translateY: 12 * (1 - p) },
-    ],
+    transform: [{ scale: 0.86 + 0.14 * p }, { translateY: 12 * (1 - p) }],
   }
 })
 ```
@@ -359,6 +366,7 @@ git commit -m "perf(home): replace 3x interpolate in card worklet with useDerive
 ## Self-Review
 
 **Spec coverage:**
+
 - ✅ CRITICAL 1 (scrollX race): `scrollX.value = t` trước `runOnJS(teleport)(t)` trong worklet (Task 1 Step 4)
 - ✅ CRITICAL 2 (chain fling miss): `onMomentumEnd` worklet thay `onMomentumScrollEnd` JS callback (Task 1 Step 4)
 - ✅ CRITICAL 3 (AnimatedFlashList risk): Dùng plain `FlashList`, không `createAnimatedComponent` (Task 1 Step 2 + 6)
@@ -371,6 +379,7 @@ git commit -m "perf(home): replace 3x interpolate in card worklet with useDerive
 **Placeholder scan:** Không có TBD/TODO. Tất cả code đầy đủ.
 
 **Type consistency:**
+
 - `teleport: (offset: number) => void` — dùng trong `runOnJS(teleport)(t)` ✓
 - `getItemType: (_: HighlightMenuItem, index: number) => string` — match FlashList `getItemType` prop ✓
 - `progress: SharedValue<number>` (return của `useDerivedValue`) — `.value` dùng trong `useAnimatedStyle` ✓

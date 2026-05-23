@@ -14,11 +14,11 @@
 
 ### Badge sync flow (current)
 
-| State | OS App Icon Badge | In-App Bell Badge |
-|---|---|---|
-| App foreground, notification arrives | ✅ `onMessage` → `addNotification` → `syncBadge(N)` | ✅ Zustand `unreadCount` |
+| State                                       | OS App Icon Badge                                         | In-App Bell Badge              |
+| ------------------------------------------- | --------------------------------------------------------- | ------------------------------ |
+| App foreground, notification arrives        | ✅ `onMessage` → `addNotification` → `syncBadge(N)`       | ✅ Zustand `unreadCount`       |
 | App background/killed, notification arrives | ❌ Background handler = empty → badge stays at last value | ❌ JS not running → stays at 0 |
-| App opens (any case) | ✅ `hydrateFromApi` → `syncBadge(actual)` corrects | ✅ `hydrateFromApi` corrects |
+| App opens (any case)                        | ✅ `hydrateFromApi` → `syncBadge(actual)` corrects        | ✅ `hydrateFromApi` corrects   |
 
 ### Why badge shows `1` but never increments to `2`
 
@@ -32,16 +32,17 @@ On iOS, `setBackgroundMessageHandler` does **not** run for FCM notification mess
 
 ## File Map
 
-| File | Change |
-|---|---|
-| `lib/firebase-background-handler.ts` | Export `incrementBadgeForBackgroundMessage` function; register it as the handler |
-| `__tests__/lib/firebase-background-handler.test.ts` | New — 4 unit tests for the exported function |
+| File                                                | Change                                                                           |
+| --------------------------------------------------- | -------------------------------------------------------------------------------- |
+| `lib/firebase-background-handler.ts`                | Export `incrementBadgeForBackgroundMessage` function; register it as the handler |
+| `__tests__/lib/firebase-background-handler.test.ts` | New — 4 unit tests for the exported function                                     |
 
 ---
 
 ### Task 1: Write failing tests for badge increment
 
 **Files:**
+
 - Create: `__tests__/lib/firebase-background-handler.test.ts`
 
 - [ ] **Step 1: Create the test file**
@@ -104,6 +105,7 @@ npx jest __tests__/lib/firebase-background-handler.test.ts --no-coverage
 ```
 
 Expected output:
+
 ```
 FAIL __tests__/lib/firebase-background-handler.test.ts
   ● Test suite failed to run
@@ -115,6 +117,7 @@ FAIL __tests__/lib/firebase-background-handler.test.ts
 ### Task 2: Implement badge increment in the background handler
 
 **Files:**
+
 - Modify: `lib/firebase-background-handler.ts`
 
 - [ ] **Step 1: Read the current file**
@@ -124,6 +127,7 @@ cat lib/firebase-background-handler.ts
 ```
 
 Current content:
+
 ```ts
 import messaging from '@react-native-firebase/messaging'
 
@@ -175,6 +179,7 @@ npx jest __tests__/lib/firebase-background-handler.test.ts --no-coverage
 ```
 
 Expected output:
+
 ```
 PASS __tests__/lib/firebase-background-handler.test.ts
   incrementBadgeForBackgroundMessage
@@ -211,7 +216,7 @@ After implementing, verify on a physical Android device:
    - Clear all notifications → ensure app icon badge = 0
    - Kill the app completely
    - Send 1st notification → badge shows 1 ✓
-   - Send 2nd notification → badge shows 2 ✓ *(was stuck at 1 before)*
+   - Send 2nd notification → badge shows 2 ✓ _(was stuck at 1 before)_
    - Send 3rd notification → badge shows 3 ✓
    - Open app → `hydrateFromApi` runs → badge = actual unread count (may differ from 3 if any were already read on server) ✓
 
@@ -227,6 +232,7 @@ After implementing, verify on a physical Android device:
 ## iOS note for backend
 
 For iOS badge accuracy in background, the backend FCM message must include:
+
 ```json
 {
   "apns": {

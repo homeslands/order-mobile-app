@@ -9,13 +9,14 @@
  */
 import { memo, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 
 import { colors, PaymentMethod } from '@/constants'
 import type { useOrderBySlug } from '@/hooks'
 import type { CartTotals } from '@/stores/cart-display.store'
 import { OrderStatus, OrderTypeEnum } from '@/types'
 import { formatCurrency, getPaymentStatusLabel } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 type Order = NonNullable<ReturnType<typeof useOrderBySlug>['data']>['result']
 

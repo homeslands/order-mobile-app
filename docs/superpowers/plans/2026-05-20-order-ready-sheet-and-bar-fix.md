@@ -12,19 +12,20 @@
 
 ## File Map
 
-| Action | File |
-|--------|------|
-| Modify | `stores/notification.store.ts` — harden `addNotification` |
-| Create | `__tests__/stores/notification-store-add.test.ts` — unit tests for addNotification |
+| Action | File                                                                                                                    |
+| ------ | ----------------------------------------------------------------------------------------------------------------------- |
+| Modify | `stores/notification.store.ts` — harden `addNotification`                                                               |
+| Create | `__tests__/stores/notification-store-add.test.ts` — unit tests for addNotification                                      |
 | Modify | `components/notification/order-ready-pending-bar.tsx` — full rewrite (rename component, fix Pressable, add suppression) |
-| Create | `components/notification/order-ready-pickup-sheet.tsx` — new BottomSheetModal |
-| Modify | `app/(tabs)/_layout.tsx` — import new sheet, update bar import |
+| Create | `components/notification/order-ready-pickup-sheet.tsx` — new BottomSheetModal                                           |
+| Modify | `app/(tabs)/_layout.tsx` — import new sheet, update bar import                                                          |
 
 ---
 
 ### Task 1: Harden `addNotification` to preserve `isRead` on duplicate delivery
 
 **Files:**
+
 - Create: `__tests__/stores/notification-store-add.test.ts`
 - Modify: `stores/notification.store.ts:126-140`
 
@@ -145,6 +146,7 @@ git commit -m "fix(notification): preserve isRead when re-adding duplicate FCM n
 ### Task 2: Rename and fix `OrderReadyAmbientBar`
 
 **Files:**
+
 - Modify: `components/notification/order-ready-pending-bar.tsx` — full replacement (rename component + fix Pressable + add pathname suppression)
 
 The bug: the X `<Pressable>` is nested inside the bar `<Pressable>`, causing both `handleDismiss` AND `handleBarPress` to fire when the user taps X on some React Native versions/platforms. The fix: make the X Pressable a **sibling**, not a child.
@@ -338,7 +340,7 @@ npm run typecheck
 
 Expected: error on `app/(tabs)/_layout.tsx` — `OrderReadyPendingBar` no longer exported. We'll fix that in Task 4.
 
-- [ ] **Step 3: Commit (staged only — _layout.tsx fix comes in Task 4)**
+- [ ] **Step 3: Commit (staged only — \_layout.tsx fix comes in Task 4)**
 
 ```bash
 git add components/notification/order-ready-pending-bar.tsx
@@ -350,14 +352,17 @@ git commit -m "fix(notification): rename bar to AmbientBar, fix Pressable siblin
 ### Task 3: Create `OrderReadyPickupSheet`
 
 **Files:**
+
 - Create: `components/notification/order-ready-pickup-sheet.tsx`
 
 The sheet presents when:
+
 - Store has an unread `ORDER_NEEDS_READY_TO_GET` notification
 - Current pathname is NOT `/payment/`, `/update-order/`, or `/order/`
 - The notification slug has NOT been dismissed in this app session
 
 Dismiss behaviors:
+
 - "Xem chi tiết đơn" → `markAsRead` + `navigateNative.push` + add to `dismissedInSession`
 - "Để sau" → `markAsRead` + toast + add to `dismissedInSession`
 - Swipe down or scrim tap → soft-dismiss (add to `dismissedInSession`, no `markAsRead`, bell badge stays)
@@ -529,9 +534,7 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
   )
 
   const successColor = isDark ? colors.success.dark : colors.success.light
-  const iconBg = isDark
-    ? colors.success.iconBgDark
-    : colors.success.iconBgLight
+  const iconBg = isDark ? colors.success.iconBgDark : colors.success.iconBgLight
   const titleColor = isDark ? colors.gray[50] : colors.gray[900]
   const bodyColor = isDark ? colors.gray[400] : colors.gray[500]
   const primaryBg = isDark ? colors.primary.dark : colors.primary.light
@@ -672,6 +675,7 @@ git commit -m "feat(notification): add OrderReadyPickupSheet bottom sheet for or
 ### Task 4: Wire up in `(tabs)/_layout.tsx`
 
 **Files:**
+
 - Modify: `app/(tabs)/_layout.tsx`
 
 Update the import from `OrderReadyPendingBar` → `OrderReadyAmbientBar` and add `OrderReadyPickupSheet`.
@@ -679,11 +683,13 @@ Update the import from `OrderReadyPendingBar` → `OrderReadyAmbientBar` and add
 - [ ] **Step 1: Update the import line**
 
 Locate line 28 in `app/(tabs)/_layout.tsx`:
+
 ```ts
 import { OrderReadyPendingBar } from '@/components/notification/order-ready-pending-bar'
 ```
 
 Replace with:
+
 ```ts
 import { OrderReadyAmbientBar } from '@/components/notification/order-ready-pending-bar'
 import { OrderReadyPickupSheet } from '@/components/notification/order-ready-pickup-sheet'
@@ -692,12 +698,14 @@ import { OrderReadyPickupSheet } from '@/components/notification/order-ready-pic
 - [ ] **Step 2: Update the JSX — add sheet, rename bar**
 
 Locate lines 459-460 in `app/(tabs)/_layout.tsx`:
+
 ```tsx
       <OrderReadyPendingBar />
       <ProfileNudgePopup />
 ```
 
 Replace with:
+
 ```tsx
       <OrderReadyPickupSheet />
       <OrderReadyAmbientBar />
@@ -732,6 +740,7 @@ git commit -m "feat(notification): wire up OrderReadyPickupSheet and OrderReadyA
 ## Self-Review
 
 **Spec coverage check:**
+
 - ✅ Bug fix: nested Pressable → sibling layout in `OrderReadyAmbientBar` (Task 2)
 - ✅ Store hardening: `addNotification` preserves `isRead` (Task 1)
 - ✅ Bottom sheet: `OrderReadyPickupSheet` with `BottomSheetModal` (Task 3)
@@ -745,6 +754,7 @@ git commit -m "feat(notification): wire up OrderReadyPickupSheet and OrderReadyA
 **Placeholder scan:** None found.
 
 **Type consistency:**
+
 - `OrderReadyAmbientBar` exported from `order-ready-pending-bar.tsx` (keeping filename to minimize git diff noise)
 - `OrderReadyPickupSheet` exported from `order-ready-pickup-sheet.tsx`
 - `PendingOrder` interface defined and used only in Task 3

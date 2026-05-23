@@ -12,14 +12,14 @@
 
 ## File Map
 
-| Action | Path |
-|--------|------|
-| **Modify** | `i18n/vi/auth.json` — add 9 new register keys |
-| **Modify** | `i18n/en/auth.json` — add 9 new register keys |
-| **Modify** | `components/auth/register-otp-step.tsx` — fix `otpExpiresAt` bug, resend feedback, back confirm dialog |
-| **Modify** | `components/auth/register-phone-form.tsx` — add OTP-sent success toast |
+| Action     | Path                                                                                                     |
+| ---------- | -------------------------------------------------------------------------------------------------------- |
+| **Modify** | `i18n/vi/auth.json` — add 9 new register keys                                                            |
+| **Modify** | `i18n/en/auth.json` — add 9 new register keys                                                            |
+| **Modify** | `components/auth/register-otp-step.tsx` — fix `otpExpiresAt` bug, resend feedback, back confirm dialog   |
+| **Modify** | `components/auth/register-phone-form.tsx` — add OTP-sent success toast                                   |
 | **Modify** | `components/auth/register-password-form.tsx` — add confirm dialog for "Đổi SĐT" + register success toast |
-| **Modify** | `components/auth/register-profile-form.tsx` — add warning toast on silent catch |
+| **Modify** | `components/auth/register-profile-form.tsx` — add warning toast on silent catch                          |
 
 ---
 
@@ -28,6 +28,7 @@
 Add 9 new keys to the `"register"` object in both locale files. All existing keys stay untouched.
 
 **Files:**
+
 - Modify: `i18n/vi/auth.json`
 - Modify: `i18n/en/auth.json`
 
@@ -91,6 +92,7 @@ Three fixes in one file:
 3. **Missing confirm**: tapping "← Đổi số điện thoại" when OTP has been partially entered gives no warning.
 
 **Files:**
+
 - Modify: `components/auth/register-otp-step.tsx`
 
 - [ ] **Step 1: Read the current file**
@@ -139,91 +141,89 @@ import { showToast } from '@/utils'
 Find the block starting with `// OTP expires in 10 minutes from mount` and replace everything through the `handleResend` function with:
 
 ```tsx
-  // OTP expiry — starts at 10 min from mount, resets to 10 min on successful resend
-  const [otpExpiresAt, setOtpExpiresAt] = useState(
-    () => new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-  )
+// OTP expiry — starts at 10 min from mount, resets to 10 min on successful resend
+const [otpExpiresAt, setOtpExpiresAt] = useState(() =>
+  new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+)
 
-  // Resend cooldown: 2 minutes, resets after each successful resend
-  const [resendAvailableAt, setResendAvailableAt] = useState(
-    () => new Date(Date.now() + 2 * 60 * 1000).toISOString(),
-  )
+// Resend cooldown: 2 minutes, resets after each successful resend
+const [resendAvailableAt, setResendAvailableAt] = useState(() =>
+  new Date(Date.now() + 2 * 60 * 1000).toISOString(),
+)
 
-  // UI thread countdown shared values — no JS re-renders during tick
-  const otpExpiryShared = useAnimatedCountdown({ expiresAt: otpExpiresAt })
-  const resendCooldownShared = useAnimatedCountdown({
-    expiresAt: resendAvailableAt,
+// UI thread countdown shared values — no JS re-renders during tick
+const otpExpiryShared = useAnimatedCountdown({ expiresAt: otpExpiresAt })
+const resendCooldownShared = useAnimatedCountdown({
+  expiresAt: resendAvailableAt,
+})
+
+// JS-thread states updated once when countdowns hit 0
+const [isOtpExpired, setIsOtpExpired] = useState(false)
+const [isResendAvailable, setIsResendAvailable] = useState(false)
+
+const [otpValue, setOtpValue] = useState('')
+const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+
+const { mutate: resend, isPending: isResending } = useResendRegistration()
+
+const { translateX, shake } = useShakeAnimation()
+
+// Bridge OTP expiry from UI thread → JS (fires once per expiry window)
+useAnimatedReaction(
+  () => otpExpiryShared.value,
+  (current, previous) => {
+    if (current === 0 && previous !== null && previous > 0) {
+      runOnJS(setIsOtpExpired)(true)
+    }
+  },
+)
+
+// Bridge resend cooldown from UI thread → JS (fires on each cooldown end)
+useAnimatedReaction(
+  () => resendCooldownShared.value,
+  (current, previous) => {
+    if (current === 0 && previous !== null && previous > 0) {
+      runOnJS(setIsResendAvailable)(true)
+    }
+  },
+)
+
+const handleVerify = useCallback(() => {
+  if (otpValue.length < 6 || isOtpExpired) {
+    shake()
+    return
+  }
+  navigateNative.push(
+    `/auth/register/password?phone=${encodeURIComponent(phone)}&otp=${encodeURIComponent(otpValue)}`,
+  )
+}, [otpValue, isOtpExpired, phone, shake])
+
+const handleResend = useCallback(() => {
+  resend(phone, {
+    onSuccess: () => {
+      // Reset expiry window — server issued a fresh 10-min OTP
+      setOtpExpiresAt(new Date(Date.now() + 10 * 60 * 1000).toISOString())
+      setIsOtpExpired(false)
+      // Reset resend cooldown
+      setResendAvailableAt(new Date(Date.now() + 2 * 60 * 1000).toISOString())
+      setIsResendAvailable(false)
+      setOtpValue('')
+      showToast(t('register.otpResent'), 'success')
+    },
+    onError: () => {
+      showToast(t('register.otpResendFailed'), 'error')
+    },
   })
+}, [phone, resend, t])
 
-  // JS-thread states updated once when countdowns hit 0
-  const [isOtpExpired, setIsOtpExpired] = useState(false)
-  const [isResendAvailable, setIsResendAvailable] = useState(false)
-
-  const [otpValue, setOtpValue] = useState('')
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
-
-  const { mutate: resend, isPending: isResending } = useResendRegistration()
-
-  const { translateX, shake } = useShakeAnimation()
-
-  // Bridge OTP expiry from UI thread → JS (fires once per expiry window)
-  useAnimatedReaction(
-    () => otpExpiryShared.value,
-    (current, previous) => {
-      if (current === 0 && previous !== null && previous > 0) {
-        runOnJS(setIsOtpExpired)(true)
-      }
-    },
-  )
-
-  // Bridge resend cooldown from UI thread → JS (fires on each cooldown end)
-  useAnimatedReaction(
-    () => resendCooldownShared.value,
-    (current, previous) => {
-      if (current === 0 && previous !== null && previous > 0) {
-        runOnJS(setIsResendAvailable)(true)
-      }
-    },
-  )
-
-  const handleVerify = useCallback(() => {
-    if (otpValue.length < 6 || isOtpExpired) {
-      shake()
-      return
-    }
-    navigateNative.push(
-      `/auth/register/password?phone=${encodeURIComponent(phone)}&otp=${encodeURIComponent(otpValue)}`,
-    )
-  }, [otpValue, isOtpExpired, phone, shake])
-
-  const handleResend = useCallback(() => {
-    resend(phone, {
-      onSuccess: () => {
-        // Reset expiry window — server issued a fresh 10-min OTP
-        setOtpExpiresAt(new Date(Date.now() + 10 * 60 * 1000).toISOString())
-        setIsOtpExpired(false)
-        // Reset resend cooldown
-        setResendAvailableAt(
-          new Date(Date.now() + 2 * 60 * 1000).toISOString(),
-        )
-        setIsResendAvailable(false)
-        setOtpValue('')
-        showToast(t('register.otpResent'), 'success')
-      },
-      onError: () => {
-        showToast(t('register.otpResendFailed'), 'error')
-      },
-    })
-  }, [phone, resend, t])
-
-  const handleBackPress = useCallback(() => {
-    // Only confirm if user has started typing (avoid annoying dialog on empty state)
-    if (otpValue.length > 0) {
-      setIsConfirmOpen(true)
-    } else {
-      navigateNative.back()
-    }
-  }, [otpValue])
+const handleBackPress = useCallback(() => {
+  // Only confirm if user has started typing (avoid annoying dialog on empty state)
+  if (otpValue.length > 0) {
+    setIsConfirmOpen(true)
+  } else {
+    navigateNative.back()
+  }
+}, [otpValue])
 ```
 
 - [ ] **Step 4: Add the ConfirmationDialog to the JSX return**
@@ -231,16 +231,16 @@ Find the block starting with `// OTP expires in 10 minutes from mount` and repla
 At the end of the returned `<View>`, just before the closing `</View>`, add:
 
 ```tsx
-      <ConfirmationDialog
-        isOpen={isConfirmOpen}
-        onOpenChange={setIsConfirmOpen}
-        title={t('register.changePhoneTitle')}
-        description={t('register.changePhoneMessage')}
-        confirmLabel={t('register.changePhoneConfirm')}
-        cancelLabel={t('common.cancel')}
-        onConfirm={() => navigateNative.back()}
-        variant="destructive"
-      />
+<ConfirmationDialog
+  isOpen={isConfirmOpen}
+  onOpenChange={setIsConfirmOpen}
+  title={t('register.changePhoneTitle')}
+  description={t('register.changePhoneMessage')}
+  confirmLabel={t('register.changePhoneConfirm')}
+  cancelLabel={t('common.cancel')}
+  onConfirm={() => navigateNative.back()}
+  variant="destructive"
+/>
 ```
 
 - [ ] **Step 5: Update the "← Đổi số điện thoại" TouchableOpacity to use `handleBackPress`**
@@ -248,15 +248,15 @@ At the end of the returned `<View>`, just before the closing `</View>`, add:
 Find the TouchableOpacity with `onPress={() => navigateNative.back()}` at the bottom of the JSX and change its `onPress`:
 
 ```tsx
-      <TouchableOpacity
-        className="py-2"
-        onPress={handleBackPress}
-        disabled={isResending}
-      >
-        <Text className="text-center font-sans-medium text-sm text-amber-500 dark:text-amber-400">
-          {t('register.changePhone')}
-        </Text>
-      </TouchableOpacity>
+<TouchableOpacity
+  className="py-2"
+  onPress={handleBackPress}
+  disabled={isResending}
+>
+  <Text className="text-center font-sans-medium text-sm text-amber-500 dark:text-amber-400">
+    {t('register.changePhone')}
+  </Text>
+</TouchableOpacity>
 ```
 
 - [ ] **Step 6: Typecheck**
@@ -281,6 +281,7 @@ git commit -m "fix(auth): fix OTP expiry countdown bug, add resend feedback, add
 When the user submits their phone number and `initiateRegistration` succeeds with `isRegistered: false`, the screen silently pushes to the OTP screen with no confirmation. Add a success toast so the user knows the SMS was sent.
 
 **Files:**
+
 - Modify: `components/auth/register-phone-form.tsx`
 
 - [ ] **Step 1: Read the current file**
@@ -344,6 +345,7 @@ Two changes:
 2. After `handleAuthSuccess` completes successfully, there is no feedback that registration worked. Add a success toast.
 
 **Files:**
+
 - Modify: `components/auth/register-password-form.tsx`
 
 - [ ] **Step 1: Read the current file**
@@ -382,30 +384,29 @@ import { showErrorToastMessage, showToast } from '@/utils'
 Add state after the hook declarations, and update `onSubmit`:
 
 ```tsx
-  const [isConfirmOpen, setIsConfirmOpen] = useState(false)
+const [isConfirmOpen, setIsConfirmOpen] = useState(false)
 
-  const onSubmit = async (data: TRegisterPasswordSchema) => {
-    try {
-      const res = await completeRegistration({
-        phonenumber: phone,
-        otp,
-        password: data.password,
-      })
-      await handleAuthSuccess(res.result, () => {
-        showToast(t('register.registerSuccess'), 'success')
-        navigateNative.replace('/auth/register/profile')
-      })
-    } catch (err) {
-      const status = (err as { response?: { status?: number } })?.response
-        ?.status
-      if (status === 400 || status === 422) {
-        showErrorToastMessage(t('register.otpInvalid'))
-        navigateNative.replace(
-          `/auth/register/otp?phone=${encodeURIComponent(phone)}`,
-        )
-      }
+const onSubmit = async (data: TRegisterPasswordSchema) => {
+  try {
+    const res = await completeRegistration({
+      phonenumber: phone,
+      otp,
+      password: data.password,
+    })
+    await handleAuthSuccess(res.result, () => {
+      showToast(t('register.registerSuccess'), 'success')
+      navigateNative.replace('/auth/register/profile')
+    })
+  } catch (err) {
+    const status = (err as { response?: { status?: number } })?.response?.status
+    if (status === 400 || status === 422) {
+      showErrorToastMessage(t('register.otpInvalid'))
+      navigateNative.replace(
+        `/auth/register/otp?phone=${encodeURIComponent(phone)}`,
+      )
     }
   }
+}
 ```
 
 - [ ] **Step 4: Update the "← Đổi số điện thoại" TouchableOpacity to open the confirm dialog**
@@ -413,30 +414,30 @@ Add state after the hook declarations, and update `onSubmit`:
 Find the `TouchableOpacity` that calls `navigateNative.back()` and change its `onPress`:
 
 ```tsx
-        <TouchableOpacity
-          className="py-2"
-          onPress={() => setIsConfirmOpen(true)}
-          disabled={isLoading}
-        >
-          <Text className="text-center font-sans-medium text-sm text-amber-500 dark:text-amber-400">
-            {t('register.changePhone')}
-          </Text>
-        </TouchableOpacity>
+<TouchableOpacity
+  className="py-2"
+  onPress={() => setIsConfirmOpen(true)}
+  disabled={isLoading}
+>
+  <Text className="text-center font-sans-medium text-sm text-amber-500 dark:text-amber-400">
+    {t('register.changePhone')}
+  </Text>
+</TouchableOpacity>
 ```
 
 - [ ] **Step 5: Add ConfirmationDialog before the closing `</View>` of the return**
 
 ```tsx
-      <ConfirmationDialog
-        isOpen={isConfirmOpen}
-        onOpenChange={setIsConfirmOpen}
-        title={t('register.changePhoneTitle')}
-        description={t('register.changePhoneMessage')}
-        confirmLabel={t('register.changePhoneConfirm')}
-        cancelLabel={t('common.cancel')}
-        onConfirm={() => navigateNative.replace('/auth/register')}
-        variant="destructive"
-      />
+<ConfirmationDialog
+  isOpen={isConfirmOpen}
+  onOpenChange={setIsConfirmOpen}
+  title={t('register.changePhoneTitle')}
+  description={t('register.changePhoneMessage')}
+  confirmLabel={t('register.changePhoneConfirm')}
+  cancelLabel={t('common.cancel')}
+  onConfirm={() => navigateNative.replace('/auth/register')}
+  variant="destructive"
+/>
 ```
 
 Note: `navigateNative.replace('/auth/register')` replaces the password screen with the phone form. The old OTP screen remains in the stack history but is not reachable via normal navigation.
@@ -465,6 +466,7 @@ The `catch` block currently discards errors silently. The user thinks their prof
 Add a `warning` toast in the `catch` block. Keep the `finally → goHome()` pattern so the user always lands on home.
 
 **Files:**
+
 - Modify: `components/auth/register-profile-form.tsx`
 
 - [ ] **Step 1: Read the current file**

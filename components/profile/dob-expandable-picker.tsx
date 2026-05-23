@@ -16,7 +16,6 @@ import { useTranslation } from 'react-i18next'
 import {
   Platform,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   useColorScheme,
@@ -27,6 +26,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated'
+import { Text } from '@/components/ui/text'
 
 dayjs.extend(customParseFormat)
 

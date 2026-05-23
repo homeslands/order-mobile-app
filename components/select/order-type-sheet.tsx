@@ -6,11 +6,12 @@ import BottomSheet, {
 import { ShoppingBag } from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Text, TouchableOpacity, useColorScheme, View } from 'react-native'
+import { TouchableOpacity, useColorScheme, View } from 'react-native'
 
 import { colors } from '@/constants/colors.constant'
 import { useOrderTypeOptions } from '@/hooks'
 import { cn } from '@/lib/utils'
+import { Text } from '@/components/ui/text'
 
 let sheetRef: BottomSheet | null = null
 let openCallback: (() => void) | null = null

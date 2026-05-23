@@ -11,7 +11,6 @@ import {
 } from '@expo-google-fonts/be-vietnam-pro'
 import { useEffect } from 'react'
 import type { TextInputProps, TextProps } from 'react-native'
-// eslint-disable-next-line no-restricted-imports -- intentional: manipulating RN Text.defaultProps directly
 import { Text, TextInput } from 'react-native'
 
 const FONT_REGULAR = 'BeVietnamPro_400Regular'

@@ -20,6 +20,7 @@
 ```
 
 **State truyền qua route params:**
+
 - `[1] → [2]`: `?phone=0901234567`
 - `[2] → [3]`: `?phone=0901234567&otp=AB1234`
 - `[3] → [4]`: không cần param (đã login, dùng token)
@@ -101,6 +102,7 @@ schemas/auth.schema.ts        ← Thêm useRegisterPasswordSchema
 ```
 
 **Xoá:**
+
 - `app/auth/register.tsx` (thay bằng `register/index.tsx`)
 - `components/auth/register-form.tsx` (thay bằng 4 form components)
 
@@ -113,6 +115,7 @@ schemas/auth.schema.ts        ← Thêm useRegisterPasswordSchema
 **Component:** `RegisterPhoneForm`
 
 **UI:**
+
 - Progress bar: 4 đoạn, đoạn 1 active
 - Title: "Tạo tài khoản"
 - Subtitle: "Nhập số điện thoại để bắt đầu"
@@ -121,6 +124,7 @@ schemas/auth.schema.ts        ← Thêm useRegisterPasswordSchema
 - Link "Đã có tài khoản? Đăng nhập"
 
 **Logic:**
+
 ```
 onSubmit(phonenumber):
   initiateRegistration(phonenumber)
@@ -140,6 +144,7 @@ onSubmit(phonenumber):
 **Component:** `RegisterOtpStep`
 
 **UI:**
+
 - Progress bar: đoạn 1-2 active
 - Title: "Xác nhận OTP"
 - Subtitle: "Mã 6 ký tự đã gửi đến **{phone}**"
@@ -150,6 +155,7 @@ onSubmit(phonenumber):
 - Link "← Đổi số điện thoại" → `router.back()`
 
 **Logic:**
+
 ```
 onVerify(otp):
   → router.push(`/auth/register/password?phone=${phone}&otp=${otp}`)
@@ -165,24 +171,26 @@ onExpired():
 
 **Hai timer độc lập:**
 
-| Timer | Thời gian | Reset khi resend? |
-|-------|-----------|------------------|
-| Expiry (OTP hết hạn) | 10 phút từ lúc tạo | **Không** — tiếp tục đếm |
-| Resend cooldown | 2 phút từ lúc gửi gần nhất | **Có** — reset 2 phút mỗi lần resend |
+| Timer                | Thời gian                  | Reset khi resend?                    |
+| -------------------- | -------------------------- | ------------------------------------ |
+| Expiry (OTP hết hạn) | 10 phút từ lúc tạo         | **Không** — tiếp tục đếm             |
+| Resend cooldown      | 2 phút từ lúc gửi gần nhất | **Có** — reset 2 phút mỗi lần resend |
 
 `initiateRegistration` không trả về `expiresAt`. Tính client-side khi màn mount:
+
 ```ts
 // Tính 1 lần lúc mount, không thay đổi khi resend
 const [otpExpiresAt] = useState(() =>
-  new Date(Date.now() + 10 * 60 * 1000).toISOString()
+  new Date(Date.now() + 10 * 60 * 1000).toISOString(),
 )
 // Resend cooldown — reset sau mỗi lần resend thành công
 const [resendAvailableAt, setResendAvailableAt] = useState(() =>
-  new Date(Date.now() + 2 * 60 * 1000).toISOString()
+  new Date(Date.now() + 2 * 60 * 1000).toISOString(),
 )
 ```
 
 **UI states:**
+
 - OTP input: disabled khi `otpExpiresAt` hết
 - Nút "Xác nhận": disabled khi `otp.length < 6` hoặc OTP expired
 - Nút "Gửi lại":
@@ -191,6 +199,7 @@ const [resendAvailableAt, setResendAvailableAt] = useState(() =>
   - OTP đã hết hạn: enabled (cần mã mới)
 
 **Logic resend:**
+
 ```ts
 onResend():
   resendRegistration(phone)
@@ -211,6 +220,7 @@ onResend():
 **Component:** `RegisterPasswordForm`
 
 **UI:**
+
 - Progress bar: đoạn 1-3 active
 - Title: "Đặt mật khẩu"
 - Subtitle: "Tối thiểu 8 ký tự, bao gồm chữ và số"
@@ -219,24 +229,32 @@ onResend():
 - Nút "Tạo tài khoản"
 
 **Schema** (thêm vào `schemas/auth.schema.ts`):
+
 ```ts
 export function useRegisterPasswordSchema() {
   const { t } = useTranslation('auth')
-  return z.object({
-    password: z
-      .string()
-      .min(AuthRules.MIN_LENGTH, { message: t('register.minLength', { count: AuthRules.MIN_LENGTH }) })
-      .regex(PASSWORD_REGEX, t('register.passwordInvalid')),
-    confirmPassword: z.string().min(1, t('register.confirmPasswordRequired')),
-  }).refine(data => data.password === data.confirmPassword, {
-    message: t('register.passwordNotMatch'),
-    path: ['confirmPassword'],
-  })
+  return z
+    .object({
+      password: z
+        .string()
+        .min(AuthRules.MIN_LENGTH, {
+          message: t('register.minLength', { count: AuthRules.MIN_LENGTH }),
+        })
+        .regex(PASSWORD_REGEX, t('register.passwordInvalid')),
+      confirmPassword: z.string().min(1, t('register.confirmPasswordRequired')),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: t('register.passwordNotMatch'),
+      path: ['confirmPassword'],
+    })
 }
-export type TRegisterPasswordSchema = z.infer<ReturnType<typeof useRegisterPasswordSchema>>
+export type TRegisterPasswordSchema = z.infer<
+  ReturnType<typeof useRegisterPasswordSchema>
+>
 ```
 
 **Logic:**
+
 ```
 onSubmit({ password }):
   completeRegistration({ phonenumber: phone, otp, password })
@@ -257,6 +275,7 @@ onSubmit({ password }):
 **Component:** `RegisterProfileForm`
 
 **UI:**
+
 - Progress bar: cả 4 đoạn active
 - Title: "Hoàn thiện hồ sơ 🎉"
 - Subtitle: "Bạn có thể bỏ qua và điền sau trong Cài đặt"
@@ -266,6 +285,7 @@ onSubmit({ password }):
 - Nút "Bỏ qua" (text, amber color) → `router.replace('/(tabs)/home')`
 
 **Logic:**
+
 ```
 onSubmit({ firstName, lastName, dob }):
   try {
@@ -292,7 +312,10 @@ function RegisterProgressBar({ step }: { step: 1 | 2 | 3 | 4 }) {
       {[1, 2, 3, 4].map((s) => (
         <View
           key={s}
-          className={cn('h-1 flex-1 rounded-full', s <= step ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700')}
+          className={cn(
+            'h-1 flex-1 rounded-full',
+            s <= step ? 'bg-primary' : 'bg-gray-200 dark:bg-gray-700',
+          )}
         />
       ))}
     </View>
@@ -304,14 +327,14 @@ function RegisterProgressBar({ step }: { step: 1 | 2 | 3 | 4 }) {
 
 ## Error handling
 
-| Lỗi | Nơi xảy ra | Xử lý |
-|-----|-----------|-------|
-| SĐT đã đăng ký | Màn 1 | Toast + redirect login |
-| Gửi OTP thất bại | Màn 1 | Global error toast |
-| Gửi lại OTP thất bại | Màn 2 | Global error toast |
-| OTP sai/hết hạn | Màn 3 (server trả về) | Toast + redirect về màn 2 |
-| Lỗi server khác | Màn 3 | Global error toast |
-| updateProfile fail | Màn 4 | Im lặng, vẫn vào home |
+| Lỗi                  | Nơi xảy ra            | Xử lý                     |
+| -------------------- | --------------------- | ------------------------- |
+| SĐT đã đăng ký       | Màn 1                 | Toast + redirect login    |
+| Gửi OTP thất bại     | Màn 1                 | Global error toast        |
+| Gửi lại OTP thất bại | Màn 2                 | Global error toast        |
+| OTP sai/hết hạn      | Màn 3 (server trả về) | Toast + redirect về màn 2 |
+| Lỗi server khác      | Màn 3                 | Global error toast        |
+| updateProfile fail   | Màn 4                 | Im lặng, vẫn vào home     |
 
 ---
 

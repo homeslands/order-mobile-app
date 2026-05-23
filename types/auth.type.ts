@@ -23,6 +23,19 @@ export interface IRegisterRequest {
   dob?: string | null
 }
 
+export interface IOtpResult {
+  expiresAt: string
+  createdAt: string
+  slug: string
+}
+
+export interface IInitiateRegistrationResult {
+  isRegistered: boolean
+  expiresAt?: string
+  createdAt?: string
+  slug?: string
+}
+
 export interface ICompleteRegistrationRequest {
   phonenumber: string
   otp: string

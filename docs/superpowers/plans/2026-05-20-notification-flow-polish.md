@@ -39,6 +39,7 @@ __tests__/lib/
 **Why:** `use-notification-listener.ts` (foreground) has no dedup — if FCM redelivers the same `messageId` when the app returns to foreground, toast + sound fire twice and a duplicate entry lands in the store. `processedIds` lives only in `use-notification-response.ts`, so foreground can't share it. Extracting to a module fixes both the sharing and the logout bleed (user A's processed IDs leaking to user B after re-login).
 
 **Files:**
+
 - Create: `lib/notification-dedup.ts`
 - Create: `__tests__/lib/notification-dedup.test.ts`
 - Modify: `hooks/use-notification-listener.ts`
@@ -50,7 +51,11 @@ __tests__/lib/
 Create `__tests__/lib/notification-dedup.test.ts`:
 
 ```ts
-import { hasProcessed, markProcessed, clearProcessed } from '@/lib/notification-dedup'
+import {
+  hasProcessed,
+  markProcessed,
+  clearProcessed,
+} from '@/lib/notification-dedup'
 
 describe('notification-dedup', () => {
   beforeEach(() => {
@@ -228,6 +233,7 @@ Replace the module-level block (lines 28–37, the `processedIds` Set + `MAX_PRO
 The file after changes — only the **changed sections** (rest stays identical):
 
 At the top, replace:
+
 ```ts
 // Module-level — survives hook re-mounts / auth toggles; bounded to MAX_PROCESSED_IDS.
 const processedIds = new Set<string>()
@@ -242,6 +248,7 @@ function trimProcessed() {
 ```
 
 With:
+
 ```ts
 import { hasProcessed, markProcessed } from '@/lib/notification-dedup'
 ```
@@ -249,43 +256,49 @@ import { hasProcessed, markProcessed } from '@/lib/notification-dedup'
 (Place after the existing `@/lib/...` imports.)
 
 Inside `handleFcmMessage`, replace:
+
 ```ts
-      const id = fcmUnifiedId(remoteMessage)
-      if (processedIds.has(id)) return
-      processedIds.add(id)
-      trimProcessed()
+const id = fcmUnifiedId(remoteMessage)
+if (processedIds.has(id)) return
+processedIds.add(id)
+trimProcessed()
 ```
 
 With:
+
 ```ts
-      const id = fcmUnifiedId(remoteMessage)
-      if (hasProcessed(id)) return
-      markProcessed(id)
+const id = fcmUnifiedId(remoteMessage)
+if (hasProcessed(id)) return
+markProcessed(id)
 ```
 
 Inside `handleExpoResponse`, replace:
+
 ```ts
-      const id = expoUnifiedId(response)
-      if (processedIds.has(id)) return
-      processedIds.add(id)
-      trimProcessed()
+const id = expoUnifiedId(response)
+if (processedIds.has(id)) return
+processedIds.add(id)
+trimProcessed()
 ```
 
 With:
+
 ```ts
-      const id = expoUnifiedId(response)
-      if (hasProcessed(id)) return
-      markProcessed(id)
+const id = expoUnifiedId(response)
+if (hasProcessed(id)) return
+markProcessed(id)
 ```
 
 - [ ] **Step 7: Clear processed IDs on logout in `notification-provider.tsx`**
 
 Add import after existing `@/lib/...` imports:
+
 ```ts
 import { clearProcessed } from '@/lib/notification-dedup'
 ```
 
 Add a new `useEffect` after the existing `useEffect` blocks (before the `useState` for permission sheet):
+
 ```tsx
 useEffect(() => {
   if (!isAuthenticated) {
@@ -317,6 +330,7 @@ git commit -m "refactor(notification): extract shared dedup module, wire foregro
 **Why:** The bar's `top: STATIC_TOP_INSET` places it at exactly the same offset as the TabHeader's content, so the bar overlays the logo/bell/search icons. Moving it to `STATIC_TOP_INSET + TAB_HEADER_CONTENT_HEIGHT` puts it immediately below the header. Tap-X gives no feedback — user doesn't know where to find the order again. No animation makes the bar feel abrupt. No haptic misses a key "attention" cue.
 
 **Files:**
+
 - Modify: `constants/motion.ts` (add `bannerSlide` timing preset)
 - Modify: `components/layout/tab-header.tsx` (export `TAB_HEADER_CONTENT_HEIGHT`)
 - Modify: `components/notification/order-ready-pending-bar.tsx` (positioning, animation, haptic, text, dismiss toast)
@@ -324,6 +338,7 @@ git commit -m "refactor(notification): extract shared dedup module, wire foregro
 - [ ] **Step 1: Add `bannerSlide` timing preset to `constants/motion.ts`**
 
 Current `TIMING_CONFIGS` (around line 137):
+
 ```ts
 export const TIMING_CONFIGS = {
   dotFade: { duration: 180 } as const,
@@ -331,6 +346,7 @@ export const TIMING_CONFIGS = {
 ```
 
 Replace with:
+
 ```ts
 export const TIMING_CONFIGS = {
   dotFade: { duration: 180 } as const,
@@ -342,6 +358,7 @@ export const TIMING_CONFIGS = {
 - [ ] **Step 2: Export `TAB_HEADER_CONTENT_HEIGHT` from `components/layout/tab-header.tsx`**
 
 The constants at the top of `tab-header.tsx` are:
+
 ```ts
 const LOGO_WIDTH = 120
 const LOGO_HEIGHT = 32
@@ -351,6 +368,7 @@ const HEADER_PADDING_TOP = 4
 ```
 
 Add this export immediately after those constants (before `TabHeader` component definition):
+
 ```ts
 /** Height of the header row (excluding status bar inset) — used to position overlays below the header. */
 export const TAB_HEADER_CONTENT_HEIGHT =
@@ -397,18 +415,19 @@ import { useNotificationStore } from '@/stores/notification.store'
 const BAR_TOP = STATIC_TOP_INSET + TAB_HEADER_CONTENT_HEIGHT
 
 export const OrderReadyPendingBar = memo(function OrderReadyPendingBar() {
-  const pendingSlug = useNotificationStore((s) =>
-    s.notifications.find(
-      (n) =>
-        !n.isRead &&
-        n.message === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET,
-    )?.slug ?? null,
+  const pendingSlug = useNotificationStore(
+    (s) =>
+      s.notifications.find(
+        (n) =>
+          !n.isRead &&
+          n.message === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET,
+      )?.slug ?? null,
   )
 
   const pendingOrderSlug = useNotificationStore((s) =>
     pendingSlug
       ? (s.notifications.find((n) => n.slug === pendingSlug)?.metadata.order ??
-          null)
+        null)
       : null,
   )
 
@@ -423,9 +442,9 @@ export const OrderReadyPendingBar = memo(function OrderReadyPendingBar() {
     if (visible) {
       opacity.value = withTiming(1, TIMING_CONFIGS.bannerSlide)
       translateY.value = withTiming(0, TIMING_CONFIGS.bannerSlide)
-      Haptics.notificationAsync(
-        Haptics.NotificationFeedbackType.Success,
-      ).catch(() => {})
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(
+        () => {},
+      )
     } else {
       opacity.value = withTiming(0, TIMING_CONFIGS.bannerSlide)
       translateY.value = withTiming(-40, TIMING_CONFIGS.bannerSlide)
@@ -515,6 +534,7 @@ npm run check
 ```
 
 Expected: no errors. Common issues:
+
 - If `Animated` from `react-native-reanimated` isn't found, check import — it should be `import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated'`.
 - If `TAB_HEADER_CONTENT_HEIGHT` import fails, verify step 2 exported it correctly.
 - If `TIMING_CONFIGS.bannerSlide` errors, verify step 1 added it.
@@ -533,17 +553,20 @@ git commit -m "fix(notification): position bar below tab header, add slide anima
 **Why:** Cold-start delay is fixed at 600ms for both iOS and Android. Android's JS engine (Hermes) initialises faster — typically 350-450ms vs 500-700ms on iOS. A platform-specific value removes the extra 200ms lag on Android without risking navigation-before-router-ready on iOS.
 
 **Files:**
+
 - Modify: `lib/notification-navigation.ts`
 
 - [ ] **Step 1: Add `Platform` import and replace the constant**
 
 In `lib/notification-navigation.ts`, the current import block ends with:
+
 ```ts
 import { NotificationMessageCode } from '@/constants'
 import { isNavigationLocked, navigateNative } from '@/lib/navigation'
 ```
 
 Add `Platform` to the react-native import:
+
 ```ts
 import { Platform } from 'react-native'
 import { NotificationMessageCode } from '@/constants'
@@ -551,11 +574,13 @@ import { isNavigationLocked, navigateNative } from '@/lib/navigation'
 ```
 
 Replace:
+
 ```ts
 const COLD_START_DELAY_MS = 600
 ```
 
 With:
+
 ```ts
 // Android (Hermes) bootstraps in ~350-450ms; iOS needs 500-700ms.
 const COLD_START_DELAY_MS = Platform.OS === 'android' ? 400 : 600
@@ -580,13 +605,13 @@ git commit -m "perf(notification): reduce cold-start nav delay to 400ms on Andro
 
 ## Summary
 
-| Issue (from code review) | Fix | Task |
-|---|---|---|
+| Issue (from code review)                          | Fix                                                   | Task   |
+| ------------------------------------------------- | ----------------------------------------------------- | ------ |
 | Foreground listener double-fires on FCM redeliver | Shared `processedIds` via `lib/notification-dedup.ts` | Task 1 |
-| `processedIds` bleeds across user re-login | `clearProcessed()` on `isAuthenticated → false` | Task 1 |
-| Bar overlays TabHeader — bell/logo hidden | `top: STATIC_TOP_INSET + TAB_HEADER_CONTENT_HEIGHT` | Task 2 |
-| Dismiss X gives no feedback | Toast "Đã ẩn nhắc nhở — Xem lại ở mục Thông báo" | Task 2 |
-| Bar pops in without animation | `withTiming` slide-down + opacity enter/exit | Task 2 |
-| No haptic when bar appears | `Haptics.notificationAsync(Success)` on visible | Task 2 |
-| Text too long for iPhone SE | "Đơn đã sẵn sàng — nhận ngay 🎉" | Task 2 |
-| Cold-start 600ms fixed on Android (too slow) | `Platform.OS === 'android' ? 400 : 600` | Task 3 |
+| `processedIds` bleeds across user re-login        | `clearProcessed()` on `isAuthenticated → false`       | Task 1 |
+| Bar overlays TabHeader — bell/logo hidden         | `top: STATIC_TOP_INSET + TAB_HEADER_CONTENT_HEIGHT`   | Task 2 |
+| Dismiss X gives no feedback                       | Toast "Đã ẩn nhắc nhở — Xem lại ở mục Thông báo"      | Task 2 |
+| Bar pops in without animation                     | `withTiming` slide-down + opacity enter/exit          | Task 2 |
+| No haptic when bar appears                        | `Haptics.notificationAsync(Success)` on visible       | Task 2 |
+| Text too long for iPhone SE                       | "Đơn đã sẵn sàng — nhận ngay 🎉"                      | Task 2 |
+| Cold-start 600ms fixed on Android (too slow)      | `Platform.OS === 'android' ? 400 : 600`               | Task 3 |

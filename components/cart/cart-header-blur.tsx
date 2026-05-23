@@ -7,14 +7,9 @@ import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { ChevronLeft, Trash2 } from 'lucide-react-native'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native'
+import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { BlurView } from 'expo-blur'
+import { Text } from '@/components/ui/text'
 
 export type CartHeaderBlurProps = {
   onBack: () => void

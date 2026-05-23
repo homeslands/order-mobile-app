@@ -4,12 +4,13 @@ import {
   type FieldValues,
   type Path,
 } from 'react-hook-form'
-import { Platform, Text, TextInput, View, useColorScheme } from 'react-native'
+import { Platform, TextInput, View, useColorScheme } from 'react-native'
 import { useRef, useEffect, useState } from 'react'
 
 import { Input } from '@/components/ui'
 import { colors } from '@/constants'
 import { cn } from '@/lib/utils'
+import { Text } from '@/components/ui/text'
 
 interface FormInputProps<T extends FieldValues> {
   control: Control<T>

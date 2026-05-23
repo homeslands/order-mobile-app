@@ -22,8 +22,7 @@ export const useFontScaleStore = create<FontScaleState>()(
     (set) => ({
       preset: 'normal',
       scale: 1.0,
-      setPreset: (preset) =>
-        set({ preset, scale: PRESET_SCALE[preset] }),
+      setPreset: (preset) => set({ preset, scale: PRESET_SCALE[preset] }),
     }),
     {
       name: 'font-scale-storage',

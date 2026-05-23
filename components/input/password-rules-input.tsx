@@ -1,16 +1,11 @@
 import { Eye, EyeOff } from 'lucide-react-native'
 import { memo, useState } from 'react'
-import {
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  useColorScheme,
-} from 'react-native'
+import { TextInput, TouchableOpacity, View, useColorScheme } from 'react-native'
 
 import { colors } from '@/constants'
 import { usePasswordRules, type PasswordRules } from '@/hooks'
 import { cn } from '@/lib/utils'
+import { Text } from '@/components/ui/text'
 
 export interface PasswordRulesInputProps {
   value: string | undefined

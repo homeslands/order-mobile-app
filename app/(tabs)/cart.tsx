@@ -19,7 +19,7 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import { Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native'
+import { Pressable, StyleSheet, View, useColorScheme } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { TouchableOpacity as GHTouchable } from 'react-native-gesture-handler'
 import { useSharedValue } from 'react-native-reanimated'
@@ -32,6 +32,7 @@ import { FloatingHeader } from '@/components/navigation/floating-header'
 import { useRunAfterTransition } from '@/hooks'
 import { useOrderFlowStore } from '@/stores'
 import { useOrderFlowCartItemCount } from '@/stores/selectors'
+import { Text } from '@/components/ui/text'
 
 const CartContent = lazy(() => import('@/components/cart/cart-content'))
 

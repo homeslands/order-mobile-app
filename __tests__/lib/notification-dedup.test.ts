@@ -1,4 +1,8 @@
-import { hasProcessed, markProcessed, clearProcessed } from '@/lib/notification-dedup'
+import {
+  hasProcessed,
+  markProcessed,
+  clearProcessed,
+} from '@/lib/notification-dedup'
 
 describe('notification-dedup', () => {
   beforeEach(() => {

@@ -6,12 +6,13 @@ import {
 import { Check, Monitor, Moon, Sun } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '@/constants'
 import { applyTheme, type ThemeMode, useThemeStore } from '@/stores/theme.store'
+import { Text } from '@/components/ui/text'
 
 const THEME_OPTIONS: {
   mode: ThemeMode

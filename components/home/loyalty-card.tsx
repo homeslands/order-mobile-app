@@ -5,13 +5,14 @@
 import { Coins, ChevronRight, LogIn } from 'lucide-react-native'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, Text, View, useColorScheme } from 'react-native'
+import { Pressable, View, useColorScheme } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import { Skeleton } from '@/components/ui'
 import { colors } from '@/constants'
 import { useCoinBalance } from '@/hooks'
 import { useAuthStore } from '@/stores'
+import { Text } from '@/components/ui/text'
 
 function formatPoints(n: number): string {
   return n.toLocaleString('vi-VN')

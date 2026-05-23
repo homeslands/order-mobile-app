@@ -1,9 +1,10 @@
 import { Minus, Plus } from 'lucide-react-native'
 import React from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 
 import { PressableWithFeedback } from '@/components/navigation'
 import { HIT_SLOP_SMALL } from '@/lib/navigation/constants'
+import { Text } from '@/components/ui/text'
 
 interface NonPropQuantitySelectorProps {
   quantity: number

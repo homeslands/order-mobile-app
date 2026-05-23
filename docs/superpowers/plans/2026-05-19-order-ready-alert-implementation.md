@@ -12,22 +12,23 @@
 
 ## File Map
 
-| File | Change |
-|------|--------|
-| `assets/sound/order_ready.mp3` | Create: placeholder sound (copy of notification.mp3 — replace with real 15s file later) |
-| `android/app/src/main/res/raw/order_ready.mp3` | Create: same file for Android channel |
-| `app.json` | Modify: add `order_ready.mp3` to `expo-notifications.sounds` array |
-| `lib/notification-setup.ts` | Modify: add `order-ready` channel creation for Android |
-| `hooks/use-order-ready-alert.ts` | Create: visibility + message state hook |
-| `components/notification/order-ready-alert-modal.tsx` | Create: full-screen modal with loop sound + continuous vibration |
-| `providers/notification-provider.tsx` | Modify: call `useOrderReadyAlert`, pass `show` to listener, mount modal |
-| `hooks/use-notification-listener.ts` | Modify: detect `ORDER_NEEDS_READY_TO_GET`, call `onOrderReady` instead of toast |
+| File                                                  | Change                                                                                  |
+| ----------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `assets/sound/order_ready.mp3`                        | Create: placeholder sound (copy of notification.mp3 — replace with real 15s file later) |
+| `android/app/src/main/res/raw/order_ready.mp3`        | Create: same file for Android channel                                                   |
+| `app.json`                                            | Modify: add `order_ready.mp3` to `expo-notifications.sounds` array                      |
+| `lib/notification-setup.ts`                           | Modify: add `order-ready` channel creation for Android                                  |
+| `hooks/use-order-ready-alert.ts`                      | Create: visibility + message state hook                                                 |
+| `components/notification/order-ready-alert-modal.tsx` | Create: full-screen modal with loop sound + continuous vibration                        |
+| `providers/notification-provider.tsx`                 | Modify: call `useOrderReadyAlert`, pass `show` to listener, mount modal                 |
+| `hooks/use-notification-listener.ts`                  | Modify: detect `ORDER_NEEDS_READY_TO_GET`, call `onOrderReady` instead of toast         |
 
 ---
 
 ### Task 1: Add placeholder sound file and register it in app.json
 
 **Files:**
+
 - Create: `assets/sound/order_ready.mp3`
 - Create: `android/app/src/main/res/raw/order_ready.mp3`
 - Modify: `app.json:95-97`
@@ -44,6 +45,7 @@ cp android/app/src/main/res/raw/notification.mp3 android/app/src/main/res/raw/or
 - [ ] **Step 2: Register in app.json**
 
 In `app.json`, find the `expo-notifications` plugin config (around line 91-100). The current `sounds` array is:
+
 ```json
 "sounds": [
   "./assets/sound/notification.mp3"
@@ -51,6 +53,7 @@ In `app.json`, find the `expo-notifications` plugin config (around line 91-100).
 ```
 
 Replace with:
+
 ```json
 "sounds": [
   "./assets/sound/notification.mp3",
@@ -70,6 +73,7 @@ git commit -m "feat(order-alert): add order_ready sound placeholder + app.json r
 ### Task 2: Create `order-ready` Android notification channel
 
 **Files:**
+
 - Modify: `lib/notification-setup.ts`
 
 Context: This channel is used by Firebase when the app is in background/killed state. Android channel properties (vibrationPattern, sound, importance) are **locked after first creation** on a device — this is a new `channelId` so creation is safe. The `vibrationPattern` array alternates [delay, vibrate, pause, vibrate, ...] in milliseconds. The `sound` value is the filename without extension, matching `android/app/src/main/res/raw/order_ready.mp3`.
@@ -143,6 +147,7 @@ git commit -m "feat(order-alert): add order-ready Android notification channel"
 ### Task 3: Create `useOrderReadyAlert` hook
 
 **Files:**
+
 - Create: `hooks/use-order-ready-alert.ts`
 
 Context: This hook owns the alert's visibility state and the message text. It is called once in `NotificationProvider` and exposes `show(title, body)` and `hide()`. The `show` function is passed as a callback to `useNotificationListener`.
@@ -195,6 +200,7 @@ git commit -m "feat(order-alert): add useOrderReadyAlert hook"
 ### Task 4: Create `OrderReadyAlertModal` component
 
 **Files:**
+
 - Create: `components/notification/order-ready-alert-modal.tsx`
 
 Context: This component is responsible for all audio and vibration side effects. It uses a `useEffect` keyed on `isVisible` — when `isVisible` becomes `true`, it starts the sound loop and vibration; the cleanup function stops both. A `useRef` for the `onDismiss` callback prevents the effect from restarting when the parent re-renders. `Audio.Sound.createAsync` with `{ isLooping: true }` handles the loop on both iOS and Android. `Vibration.vibrate(pattern, true)` repeats the pattern on both platforms. Auto-dismiss fires after 60 seconds via `setTimeout`.
@@ -389,6 +395,7 @@ git commit -m "feat(order-alert): add OrderReadyAlertModal full-screen component
 ### Task 5: Wire `OrderReadyAlertModal` into `NotificationProvider`
 
 **Files:**
+
 - Modify: `providers/notification-provider.tsx`
 
 Context: `useOrderReadyAlert` is called here; `show` is passed as a new optional `onOrderReady` prop to `useNotificationListener`; the modal is rendered in the JSX return. The `hide` function is wrapped in `useCallback` before being passed as `onDismiss` to keep the modal's ref stable.
@@ -517,6 +524,7 @@ git commit -m "feat(order-alert): mount OrderReadyAlertModal in NotificationProv
 ### Task 6: Detect `ORDER_NEEDS_READY_TO_GET` in `useNotificationListener`
 
 **Files:**
+
 - Modify: `hooks/use-notification-listener.ts`
 
 Context: The listener currently treats every message the same (store + toast + sound). For `ORDER_NEEDS_READY_TO_GET`, we still add to the notification store (so it appears in notification history), but skip the regular toast and regular sound — instead calling `onOrderReady(title, body)` which triggers the full-screen modal. The new optional `onOrderReady` parameter defaults to `undefined` so all existing call sites stay valid.

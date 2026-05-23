@@ -1,10 +1,11 @@
 import { CircleCheck } from 'lucide-react-native'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { Text, View, useColorScheme } from 'react-native'
+import { View, useColorScheme } from 'react-native'
 
 import { Button } from '@/components/ui'
 import { colors } from '@/constants'
+import { Text } from '@/components/ui/text'
 
 export const SuccessStepForgot = React.memo(function SuccessStepForgot({
   onGoToLogin,

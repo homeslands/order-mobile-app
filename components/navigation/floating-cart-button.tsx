@@ -1,11 +1,12 @@
 import { ShoppingCart } from 'lucide-react-native'
 import React, { useMemo } from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 
 import { TAB_ROUTES } from '@/constants/navigation.config'
 import { useOrderFlowCartItemCount } from '@/stores/selectors'
 
 import { NativeGesturePressable } from './native-gesture-pressable'
+import { Text } from '@/components/ui/text'
 
 type Props = {
   primaryColor: string

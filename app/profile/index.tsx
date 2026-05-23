@@ -1,11 +1,17 @@
 import { FlashList, type ListRenderItem } from '@shopify/flash-list'
 import { useRouter } from 'expo-router'
-import { Gift, History, Settings, Trash2, User, Wallet } from 'lucide-react-native'
+import {
+  Gift,
+  History,
+  Settings,
+  Trash2,
+  User,
+  Wallet,
+} from 'lucide-react-native'
 import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   useColorScheme,
@@ -28,6 +34,7 @@ import {
   ProfileItem,
   type ProfileItemProps,
 } from '../(tabs)/profile/profile-item'
+import { Text } from '@/components/ui/text'
 
 interface ProfileSettingItem {
   key: string

@@ -9,7 +9,6 @@ import {
   Pressable,
   RefreshControl,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -29,6 +28,7 @@ import { navigateNative } from '@/lib/navigation'
 import { useUserStore } from '@/stores'
 import { useNotificationStore } from '@/stores/notification.store'
 import type { INotification } from '@/types/notification.type'
+import { Text } from '@/components/ui/text'
 
 // ─── Notification helpers ────────────────────────────────────────────────────
 

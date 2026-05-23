@@ -5,6 +5,7 @@
 **Goal:** Thay thế full-screen alarm modal (thiết kế cho nhân viên) bằng UX phù hợp với khách hàng — toast nhẹ khi foreground, navigate thẳng khi tap thông báo, và persistent bar nhắc nhở khi mở app qua icon.
 
 **Architecture:**
+
 - Xóa `OrderReadyAlertModal` và `useOrderReadyAlert` — không cần nữa với khách hàng
 - Đơn giản hoá `useNotificationListener` và `useNotificationResponse` — ORDER_READY xử lý như thông báo thường, không còn callback `onOrderReady`
 - Thêm `OrderReadyPendingBar` — component đọc store, hiện sticky bar phía trên nếu có ORDER_READY chưa đọc, tự ẩn khi mark-as-read
@@ -36,6 +37,7 @@ app/(tabs)/
 **Why:** Hai file này implement full-screen alarm — UX sai hoàn toàn cho khách hàng. Xóa trước để compiler enforce việc clean up tất cả consumers.
 
 **Files:**
+
 - Delete: `components/notification/order-ready-alert-modal.tsx`
 - Delete: `hooks/use-order-ready-alert.ts`
 - Modify: `providers/notification-provider.tsx`
@@ -148,6 +150,7 @@ git commit -m "refactor(notification): remove order-ready alarm modal and hook"
 **Why:** Hook hiện check message code rồi gọi `onOrderReady?.()` và `return` sớm — ORDER_READY không qua path toast + sound. Với khách hàng, ORDER_READY chỉ cần toast + âm như mọi thông báo khác. Xóa toàn bộ nhánh đặc biệt.
 
 **Files:**
+
 - Modify: `hooks/use-notification-listener.ts`
 
 - [ ] **Step 1: Replace content**
@@ -236,11 +239,13 @@ git commit -m "refactor(notification): treat ORDER_READY as regular toast for cu
 **Why:** Hook hiện có nhánh đặc biệt cho ORDER_READY → gọi `onOrderReady` callback và bỏ qua navigation. Sau khi xóa modal, ORDER_READY phải navigate thẳng đến `/order/:id` như mọi notification khác. `getRouteForMessage` đã handle `ORDER_NEEDS_READY_TO_GET` → `/order/${order}` — chỉ cần xóa nhánh đặc biệt.
 
 **Files:**
+
 - Modify: `hooks/use-notification-response.ts`
 
 - [ ] **Step 1: Xóa onOrderReady param + ORDER_READY special path**
 
 Xóa:
+
 - Import `NotificationMessageCode`
 - Hàm `parsePayloadMessage`
 - Param `onOrderReady`
@@ -400,7 +405,10 @@ export function useNotificationResponse(enabled = true) {
       })
       .catch((e) =>
         // eslint-disable-next-line no-console
-        console.warn('[Notifications] getLastNotificationResponseAsync failed:', e),
+        console.warn(
+          '[Notifications] getLastNotificationResponseAsync failed:',
+          e,
+        ),
       )
 
     return () => {
@@ -425,6 +433,7 @@ git commit -m "refactor(notification): remove onOrderReady modal path, ORDER_REA
 **Why:** Khi khách mở app qua icon (không tap thông báo), không có `onNotificationOpenedApp` hay `getInitialNotification` nào fire — app vào trang chủ bình thường. Không có gì nhắc khách rằng đồ đã sẵn sàng. Component này đọc store realtime, tự xuất hiện khi có ORDER_NEEDS_READY_TO_GET chưa đọc, tự ẩn khi đã đọc.
 
 **Files:**
+
 - Create: `components/notification/order-ready-pending-bar.tsx`
 
 - [ ] **Step 1: Tạo component**
@@ -543,11 +552,13 @@ git commit -m "feat(notification): add order-ready pending bar for open-via-icon
 **Why:** Bar chỉ cần xuất hiện trên tab screens (Home, Menu, Cart, Gift Card, Profile). Không cần trên stack screens vì user đang thao tác với đơn hàng rồi. Tab layout là nơi duy nhất wrap tất cả tab screens.
 
 **Files:**
+
 - Modify: `app/(tabs)/_layout.tsx`
 
 - [ ] **Step 1: Import và thêm bar vào return**
 
 Tìm phần import ở đầu file, thêm:
+
 ```ts
 import { OrderReadyPendingBar } from '@/components/notification/order-ready-pending-bar'
 ```
@@ -589,6 +600,7 @@ npm run check
 ```
 
 Fix issues thường gặp:
+
 - `colors.primary.light` — nếu TypeScript báo không tồn tại, kiểm tra `constants/colors.ts` và dùng đúng key. Thay bằng `colors.primary[500]` hoặc `colors.brand.primary` tùy codebase.
 - `BeVietnamPro_600SemiBold` — nếu font không tồn tại, dùng `BeVietnamPro_700Bold` thay thế.
 - Import path `@/constants/notification.constant` vs `@/constants` — dùng đúng theo codebase hiện tại.
@@ -610,9 +622,9 @@ git commit -m "chore(notification): typecheck cleanup after customer notificatio
 
 ## Summary
 
-| Vấn đề | Fix |
-|---|---|
-| Modal full-screen alarm khi foreground | Task 1+2 — toast nhẹ thay thế |
-| Modal xuất hiện khi tap thông báo (background/cold-start) | Task 1+3 — navigate thẳng vào /order/:id |
-| Không có nhắc nhở khi mở app qua icon | Task 4+5 — persistent bar tự hiện/ẩn theo store |
-| `onOrderReady` callback rải rác 3 file | Task 1+2+3 — xóa hoàn toàn |
+| Vấn đề                                                    | Fix                                             |
+| --------------------------------------------------------- | ----------------------------------------------- |
+| Modal full-screen alarm khi foreground                    | Task 1+2 — toast nhẹ thay thế                   |
+| Modal xuất hiện khi tap thông báo (background/cold-start) | Task 1+3 — navigate thẳng vào /order/:id        |
+| Không có nhắc nhở khi mở app qua icon                     | Task 4+5 — persistent bar tự hiện/ẩn theo store |
+| `onOrderReady` callback rải rác 3 file                    | Task 1+2+3 — xóa hoàn toàn                      |

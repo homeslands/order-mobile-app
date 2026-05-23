@@ -1,7 +1,7 @@
 import { Trash2, TriangleAlert } from 'lucide-react-native'
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Text, useColorScheme, View } from 'react-native'
+import { useColorScheme, View } from 'react-native'
 
 import { Button, Label } from '@/components/ui'
 import { colors, VOUCHER_TYPE } from '@/constants'
@@ -11,6 +11,7 @@ import { IOrderItem } from '@/types'
 import { showErrorToast } from '@/utils'
 
 import { ConfirmationDialog } from './confirmation-dialog'
+import { Text } from '@/components/ui/text'
 
 interface DialogDeleteCartItemProps {
   cartItem: IOrderItem

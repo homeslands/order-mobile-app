@@ -5,8 +5,9 @@ import Animated, {
   runOnJS,
   type SharedValue,
 } from 'react-native-reanimated'
-import { Text } from 'react-native'
+
 import { colors } from '@/constants'
+import { Text } from '@/components/ui/text'
 
 interface AnimatedCountdownTextProps {
   countdownShared: SharedValue<number>

@@ -1,6 +1,6 @@
 import { Image as ExpoImage } from 'expo-image'
 import React, { useMemo } from 'react'
-import { StyleSheet, Text, TextInput, View } from 'react-native'
+import { StyleSheet, TextInput, View } from 'react-native'
 
 import { Images } from '@/assets/images'
 import {
@@ -15,6 +15,7 @@ import {
   capitalizeFirstLetter,
   formatCurrency,
 } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 export type DisplayItemData = ReturnType<
   typeof calculateOrderDisplayAndTotals

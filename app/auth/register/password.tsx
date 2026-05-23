@@ -1,4 +1,9 @@
-import { KeyboardAvoidingView, Platform, ScrollView, useColorScheme } from 'react-native'
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  useColorScheme,
+} from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
 import { ScreenContainer } from '@/components/layout'
 import { colors } from '@/constants'
@@ -7,7 +12,11 @@ import RegisterPasswordForm from '@/components/auth/register-password-form'
 export default function RegisterPasswordScreen() {
   const isDark = useColorScheme() === 'dark'
   const bgColor = isDark ? colors.background.dark : '#ffffff'
-  const { phone, otp } = useLocalSearchParams<{ phone: string; otp: string }>()
+  const { phone, otp, expiresAt } = useLocalSearchParams<{
+    phone: string
+    otp: string
+    expiresAt: string
+  }>()
 
   return (
     <ScreenContainer
@@ -24,7 +33,11 @@ export default function RegisterPasswordScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <RegisterPasswordForm phone={phone ?? ''} otp={otp ?? ''} />
+          <RegisterPasswordForm
+            phone={phone ?? ''}
+            otp={otp ?? ''}
+            otpExpiresAt={expiresAt}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </ScreenContainer>

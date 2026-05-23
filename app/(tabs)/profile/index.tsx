@@ -1,5 +1,9 @@
 import { LoginForm } from '@/components/auth'
-import { DeleteAccountSheet, LanguageSheet, ThemeSheet } from '@/components/profile'
+import {
+  DeleteAccountSheet,
+  LanguageSheet,
+  ThemeSheet,
+} from '@/components/profile'
 import { Skeleton } from '@/components/ui'
 import { colors, publicFileURL } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
@@ -44,7 +48,6 @@ import {
   Platform,
   Pressable,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   useColorScheme,
@@ -56,6 +59,7 @@ import {
 import Animated from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useProfileAnimation } from './use-profile-animation'
+import { Text } from '@/components/ui/text'
 
 const AVATAR_SIZE = 100
 const AVATAR_TOP = 60

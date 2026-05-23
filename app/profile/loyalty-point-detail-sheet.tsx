@@ -23,7 +23,6 @@ import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -41,6 +40,7 @@ import { navigateNative } from '@/lib/navigation'
 import type { ILoyaltyPointHistory } from '@/types'
 import { OrderStatus, OrderTypeEnum, type IOrderDetail } from '@/types'
 import { formatCurrency, formatPoints } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

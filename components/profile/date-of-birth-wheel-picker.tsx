@@ -22,13 +22,13 @@ import {
   NativeScrollEvent,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   useColorScheme,
 } from 'react-native'
 
 import { colors } from '@/constants'
+import { Text } from '@/components/ui/text'
 
 const ITEM_HEIGHT = 44
 const VISIBLE_ITEMS = 5

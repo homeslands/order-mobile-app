@@ -8,7 +8,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   useColorScheme,
@@ -37,6 +36,7 @@ import {
 import { navigateNative } from '@/lib/navigation'
 import { useUserStore } from '@/stores'
 import { showErrorToast, showToast } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 function applyOtpBuffer(expiresAt: string): string {
   const expiresMs = new Date(expiresAt).getTime()

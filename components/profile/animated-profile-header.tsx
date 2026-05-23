@@ -1,6 +1,6 @@
 import { BlurView } from 'expo-blur'
 import { Edit, QrCode } from 'lucide-react-native'
-import { Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { Pressable, StyleSheet, useColorScheme, View } from 'react-native'
 import Animated, {
   Extrapolation,
   interpolate,
@@ -10,6 +10,7 @@ import type { SharedValue } from 'react-native-reanimated'
 
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
+import { Text } from '@/components/ui/text'
 
 interface AnimatedProfileHeaderProps {
   firstName: string

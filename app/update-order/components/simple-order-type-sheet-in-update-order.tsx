@@ -6,11 +6,12 @@ import {
 import { Bike, PackageCheck, UtensilsCrossed } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 
 import { colors } from '@/constants'
 import { useOrderFlowStore } from '@/stores'
 import { OrderTypeEnum } from '@/types'
+import { Text } from '@/components/ui/text'
 
 const SNAP_POINTS = [300]
 

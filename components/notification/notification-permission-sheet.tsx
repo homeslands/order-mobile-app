@@ -17,7 +17,6 @@ import {
   Platform,
   Pressable,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -25,6 +24,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 
 import { colors } from '@/constants'
+import { Text } from '@/components/ui/text'
 
 const SNAP = ['38%']
 

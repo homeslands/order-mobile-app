@@ -12,11 +12,11 @@
 
 ## File Structure
 
-| File | Action | Responsibility |
-|------|--------|----------------|
-| `hooks/use-order-ready-queue.ts` | **Create** | All queue/snooze logic — FIFO sort, snoozeMap, forceUpdate, suppressFor |
-| `components/notification/order-ready-pickup-sheet.tsx` | **Rewrite** | Pure renderer — consume hook, show pending badge, handle button/swipe |
-| `__tests__/hooks/use-order-ready-queue.test.ts` | **Create** | Unit tests for hook (FIFO, snooze, markDone, suppress, pendingCount) |
+| File                                                   | Action      | Responsibility                                                          |
+| ------------------------------------------------------ | ----------- | ----------------------------------------------------------------------- |
+| `hooks/use-order-ready-queue.ts`                       | **Create**  | All queue/snooze logic — FIFO sort, snoozeMap, forceUpdate, suppressFor |
+| `components/notification/order-ready-pickup-sheet.tsx` | **Rewrite** | Pure renderer — consume hook, show pending badge, handle button/swipe   |
+| `__tests__/hooks/use-order-ready-queue.test.ts`        | **Create**  | Unit tests for hook (FIFO, snooze, markDone, suppress, pendingCount)    |
 
 No other files change. `stores/notification.store.ts` already has `markAllReadByOrder`.
 
@@ -25,6 +25,7 @@ No other files change. `stores/notification.store.ts` already has `markAllReadBy
 ## Task 1: `useOrderReadyQueue` hook
 
 **Files:**
+
 - Create: `hooks/use-order-ready-queue.ts`
 - Create: `__tests__/hooks/use-order-ready-queue.test.ts`
 
@@ -33,14 +34,15 @@ No other files change. `stores/notification.store.ts` already has `markAllReadBy
 The existing `OrderReadyPickupSheet` stores dismissed notification slugs in a module-level `Set` (`dismissedInSession`) — once dismissed, they never re-appear. We need snooze-and-re-show behavior instead.
 
 Key types (from `@/types/notification.type.ts`):
+
 ```ts
 interface INotification {
-  slug: string           // unique notification id
-  createdAt: string      // ISO timestamp
-  message: string        // e.g. 'order-needs-ready-to-get'
+  slug: string // unique notification id
+  createdAt: string // ISO timestamp
+  message: string // e.g. 'order-needs-ready-to-get'
   isRead: boolean
   metadata: {
-    order: string          // order slug (shared across duplicate FCMs for same order)
+    order: string // order slug (shared across duplicate FCMs for same order)
     referenceNumber?: string
     branchName: string
     // ... other fields we don't use here
@@ -51,6 +53,7 @@ interface INotification {
 `NotificationMessageCode.ORDER_NEEDS_READY_TO_GET = 'order-needs-ready-to-get'` (from `@/constants/notification.constant`).
 
 `useNotificationStore` is a Zustand store. Usage:
+
 ```ts
 // Subscribe to a slice:
 const value = useNotificationStore(selector)
@@ -84,8 +87,9 @@ const storeState = {
 }
 
 jest.mock('@/stores/notification.store', () => ({
-  useNotificationStore: jest.fn((selector: (s: typeof storeState) => unknown) =>
-    typeof selector === 'function' ? selector(storeState) : storeState,
+  useNotificationStore: jest.fn(
+    (selector: (s: typeof storeState) => unknown) =>
+      typeof selector === 'function' ? selector(storeState) : storeState,
   ),
 }))
 
@@ -138,8 +142,14 @@ describe('useOrderReadyQueue', () => {
   })
 
   test('returns oldest notification first (FIFO)', () => {
-    const older = makeNotif({ orderSlug: 'order-old', createdAt: '2026-01-01T10:00:00.000Z' })
-    const newer = makeNotif({ orderSlug: 'order-new', createdAt: '2026-01-01T11:00:00.000Z' })
+    const older = makeNotif({
+      orderSlug: 'order-old',
+      createdAt: '2026-01-01T10:00:00.000Z',
+    })
+    const newer = makeNotif({
+      orderSlug: 'order-new',
+      createdAt: '2026-01-01T11:00:00.000Z',
+    })
     storeState.notifications = [newer, older] // store prepends newest first
     const { result } = renderHook(() => useOrderReadyQueue())
     expect(result.current.activeOrder?.orderSlug).toBe('order-old')
@@ -151,7 +161,9 @@ describe('useOrderReadyQueue', () => {
     storeState.notifications = [n1, n2]
     const { result } = renderHook(() => useOrderReadyQueue())
     expect(result.current.pendingCount).toBe(2)
-    act(() => { result.current.snooze('order-1') })
+    act(() => {
+      result.current.snooze('order-1')
+    })
     // pendingCount stays 2 — snoozed is still "pending"
     expect(result.current.pendingCount).toBe(2)
     // but activeOrder shifts to order-2
@@ -159,12 +171,20 @@ describe('useOrderReadyQueue', () => {
   })
 
   test('snooze hides the active order and promotes the next one', () => {
-    const n1 = makeNotif({ orderSlug: 'order-1', createdAt: '2026-01-01T10:00:00.000Z' })
-    const n2 = makeNotif({ orderSlug: 'order-2', createdAt: '2026-01-01T11:00:00.000Z' })
+    const n1 = makeNotif({
+      orderSlug: 'order-1',
+      createdAt: '2026-01-01T10:00:00.000Z',
+    })
+    const n2 = makeNotif({
+      orderSlug: 'order-2',
+      createdAt: '2026-01-01T11:00:00.000Z',
+    })
     storeState.notifications = [n1, n2]
     const { result } = renderHook(() => useOrderReadyQueue())
     expect(result.current.activeOrder?.orderSlug).toBe('order-1')
-    act(() => { result.current.snooze('order-1') })
+    act(() => {
+      result.current.snooze('order-1')
+    })
     expect(result.current.activeOrder?.orderSlug).toBe('order-2')
   })
 
@@ -172,10 +192,14 @@ describe('useOrderReadyQueue', () => {
     const n1 = makeNotif({ orderSlug: 'order-solo' })
     storeState.notifications = [n1]
     const { result } = renderHook(() => useOrderReadyQueue())
-    act(() => { result.current.snooze('order-solo') })
+    act(() => {
+      result.current.snooze('order-solo')
+    })
     expect(result.current.activeOrder).toBeNull()
     // Advance past 90s snooze + 10s interval tick
-    act(() => { jest.advanceTimersByTime(100_000) })
+    act(() => {
+      jest.advanceTimersByTime(100_000)
+    })
     expect(result.current.activeOrder?.orderSlug).toBe('order-solo')
   })
 
@@ -183,7 +207,9 @@ describe('useOrderReadyQueue', () => {
     const n1 = makeNotif({ orderSlug: 'order-done' })
     storeState.notifications = [n1]
     const { result } = renderHook(() => useOrderReadyQueue())
-    act(() => { result.current.markDone('order-done') })
+    act(() => {
+      result.current.markDone('order-done')
+    })
     expect(storeState.markAllReadByOrder).toHaveBeenCalledWith('order-done')
   })
 
@@ -192,33 +218,49 @@ describe('useOrderReadyQueue', () => {
     storeState.notifications = [n1]
     const { result } = renderHook(() => useOrderReadyQueue())
     expect(result.current.activeOrder?.orderSlug).toBe('order-suppressed')
-    act(() => { result.current.suppressFor(600) })
+    act(() => {
+      result.current.suppressFor(600)
+    })
     expect(result.current.activeOrder).toBeNull()
-    act(() => { jest.advanceTimersByTime(700) })
+    act(() => {
+      jest.advanceTimersByTime(700)
+    })
     expect(result.current.activeOrder?.orderSlug).toBe('order-suppressed')
   })
 
   test('ignores isRead notifications', () => {
-    storeState.notifications = [{
-      slug: 'read-notif',
-      createdAt: new Date().toISOString(),
-      message: 'order-needs-ready-to-get',
-      isRead: true,
-      metadata: { order: 'order-read', referenceNumber: 'REF', branchName: 'Q1' },
-    }]
+    storeState.notifications = [
+      {
+        slug: 'read-notif',
+        createdAt: new Date().toISOString(),
+        message: 'order-needs-ready-to-get',
+        isRead: true,
+        metadata: {
+          order: 'order-read',
+          referenceNumber: 'REF',
+          branchName: 'Q1',
+        },
+      },
+    ]
     const { result } = renderHook(() => useOrderReadyQueue())
     expect(result.current.activeOrder).toBeNull()
     expect(result.current.pendingCount).toBe(0)
   })
 
   test('ignores non-ORDER_NEEDS_READY_TO_GET notifications', () => {
-    storeState.notifications = [{
-      slug: 'other-notif',
-      createdAt: new Date().toISOString(),
-      message: 'order-paid',
-      isRead: false,
-      metadata: { order: 'order-other', referenceNumber: 'REF', branchName: 'Q1' },
-    }]
+    storeState.notifications = [
+      {
+        slug: 'other-notif',
+        createdAt: new Date().toISOString(),
+        message: 'order-paid',
+        isRead: false,
+        metadata: {
+          order: 'order-other',
+          referenceNumber: 'REF',
+          branchName: 'Q1',
+        },
+      },
+    ]
     const { result } = renderHook(() => useOrderReadyQueue())
     expect(result.current.activeOrder).toBeNull()
     expect(result.current.pendingCount).toBe(0)
@@ -296,8 +338,7 @@ export function useOrderReadyQueue(): OrderReadyQueue {
 
   // Sort ASC by createdAt → oldest notification surfaces first (FIFO).
   const sorted = [...notifications].sort(
-    (a, b) =>
-      new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
   )
 
   const isSuppressed = Date.now() < suppressUntilRef.current
@@ -367,6 +408,7 @@ git commit -m "feat(notification): add useOrderReadyQueue hook with FIFO + snooz
 ## Task 2: Rewrite `OrderReadyPickupSheet`
 
 **Files:**
+
 - Modify: `components/notification/order-ready-pickup-sheet.tsx` (full rewrite)
 
 ### Background for the implementer
@@ -374,6 +416,7 @@ git commit -m "feat(notification): add useOrderReadyQueue hook with FIFO + snooz
 The current component manages queue state inline (module-level `dismissedInSession` Set, refs, `dismissAllByOrder` helper). All of that moves to `useOrderReadyQueue` (Task 1). The component becomes a thin renderer.
 
 Key changes from current:
+
 - `dismissedInSession` Set → removed (handled by `snoozeMap` in hook)
 - `isProgrammaticDismissRef` → renamed `isProgrammaticRef`, same role
 - `pendingOrderRef` → `activeOrderRef` (synced from hook's `activeOrder`)
@@ -387,6 +430,7 @@ Key changes from current:
 `PendingOrder` type is now imported from `@/hooks/use-order-ready-queue` (defined there in Task 1).
 
 Colors available in `@/constants`:
+
 - `colors.success.dark` / `colors.success.light` — green checkmark color
 - `colors.success.iconBgDark` / `colors.success.iconBgLight` — icon background
 - `colors.gray[50]`, `colors.gray[400]`, `colors.gray[500]`, `colors.gray[900]`
@@ -434,7 +478,10 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '@/constants'
-import { useOrderReadyQueue, type PendingOrder } from '@/hooks/use-order-ready-queue'
+import {
+  useOrderReadyQueue,
+  type PendingOrder,
+} from '@/hooks/use-order-ready-queue'
 import { navigateNative } from '@/lib/navigation'
 import { showToastInternal } from '@/providers/toast-provider'
 
@@ -564,7 +611,10 @@ export const OrderReadyPickupSheet = memo(function OrderReadyPickupSheet() {
             <View
               style={[
                 s.pendingBadge,
-                { backgroundColor: badgeBg, borderColor: 'rgba(232,184,75,0.35)' },
+                {
+                  backgroundColor: badgeBg,
+                  borderColor: 'rgba(232,184,75,0.35)',
+                },
               ]}
             >
               <Animated.View style={[s.pendingDot, animatedDotStyle]} />
@@ -725,13 +775,22 @@ In Metro/Flipper console, trigger test notifications:
 
 ```js
 // Single order
-global.__devTriggerOrderReady({ referenceNumber: 'A001', orderSlug: 'order-a', branchName: 'Q1' })
+global.__devTriggerOrderReady({
+  referenceNumber: 'A001',
+  orderSlug: 'order-a',
+  branchName: 'Q1',
+})
 
 // Second order (wait 2s then run)
-global.__devTriggerOrderReady({ referenceNumber: 'B002', orderSlug: 'order-b', branchName: 'Q1' })
+global.__devTriggerOrderReady({
+  referenceNumber: 'B002',
+  orderSlug: 'order-b',
+  branchName: 'Q1',
+})
 ```
 
 Verify:
+
 - [ ] Sheet for A001 appears, badge "Còn 1 đơn nữa đang chờ" with pulsing dot
 - [ ] Pressing "Để sau" → sheet closes, toast "Sẽ nhắc lại sau 90 giây", notification stays unread
 - [ ] After ~90s, A001 sheet re-appears

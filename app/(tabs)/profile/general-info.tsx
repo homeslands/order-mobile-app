@@ -36,13 +36,13 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   useColorScheme,
   useWindowDimensions,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Text } from '@/components/ui/text'
 
 const AVATAR_SIZE = 100
 const HEADER_HEIGHT = 240

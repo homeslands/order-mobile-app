@@ -5,7 +5,7 @@ import {
 } from '@gorhom/bottom-sheet'
 import { TriangleAlert } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useRef } from 'react'
-import { StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { StyleSheet, useColorScheme, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { TouchableOpacity as GHTouchable } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '@/constants'
 import { IGiftCard } from '@/types'
 import { formatCurrency, formatPoints } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 interface GiftCardExistsWarningDialogProps {
   open: boolean

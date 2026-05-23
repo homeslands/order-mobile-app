@@ -6,7 +6,6 @@ import React, { ComponentProps, useEffect, useMemo, useRef } from 'react'
 import {
   Modal,
   Pressable,
-  Text,
   TouchableOpacity,
   useColorScheme,
   useWindowDimensions,
@@ -18,6 +17,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated'
+import { Text } from '@/components/ui/text'
 
 interface TriggerLayout {
   x: number

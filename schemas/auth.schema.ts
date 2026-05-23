@@ -119,9 +119,7 @@ export function useRegisterPasswordSchema() {
           message: t('register.minLength', { count: AuthRules.MIN_LENGTH }),
         })
         .regex(PASSWORD_REGEX, t('register.passwordInvalid')),
-      confirmPassword: z
-        .string()
-        .min(1, t('register.confirmPasswordRequired')),
+      confirmPassword: z.string().min(1, t('register.confirmPasswordRequired')),
     })
     .refine((data) => data.password === data.confirmPassword, {
       message: t('register.passwordNotMatch'),

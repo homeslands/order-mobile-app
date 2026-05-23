@@ -8,7 +8,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   useColorScheme,
@@ -41,6 +40,7 @@ import { navigateNative } from '@/lib/navigation'
 import { verifyEmailSchema, type TVerifyEmailSchema } from '@/schemas'
 import { useAuthStore, useUserStore } from '@/stores'
 import { showErrorToast, showToast } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 function applyOtpBuffer(expiresAt: string): string {
   const expiresMs = new Date(expiresAt).getTime()
@@ -444,8 +444,7 @@ function VerifyEmailContent() {
                       }
                     )?.response?.data?.statusCode
                   if (typeof resendCode === 'number') showErrorToast(resendCode)
-                  else
-                    showToast(t('profile.verifyEmailFailed'), 'error')
+                  else showToast(t('profile.verifyEmailFailed'), 'error')
                 },
               })
             } else if (typeof code === 'number') {
@@ -457,14 +456,7 @@ function VerifyEmailContent() {
         },
       )
     },
-    [
-      token,
-      verifyEmail,
-      resendOtp,
-      queryClient,
-      setEmailVerificationStatus,
-      t,
-    ],
+    [token, verifyEmail, resendOtp, queryClient, setEmailVerificationStatus, t],
   )
 
   const handleVerifyOtp = useCallback(() => {

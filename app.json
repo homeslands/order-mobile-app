@@ -18,9 +18,7 @@
         "NSPhotoLibraryUsageDescription": "Cho phép ứng dụng truy cập thư viện ảnh để chọn ảnh đại diện.",
         "NSPhotoLibraryAddUsageDescription": "Cho phép ứng dụng lưu ảnh hoá đơn và mã QR thanh toán vào thư viện ảnh.",
         "ITSAppUsesNonExemptEncryption": false,
-        "UIBackgroundModes": [
-          "remote-notification"
-        ]
+        "UIBackgroundModes": ["remote-notification"]
       },
       "bundleIdentifier": "com.trendcoffee.order",
       "developmentTeam": "QMMP2HNM6W",
@@ -83,7 +81,7 @@
           "granularPermissions": []
         }
       ],
-      ["expo-build-properties", {"ios": {"useFrameworks": "static"}}],
+      ["expo-build-properties", { "ios": { "useFrameworks": "static" } }],
       "./plugins/firebase-manifest-merge",
       "@react-native-firebase/app",
       "@react-native-firebase/messaging",

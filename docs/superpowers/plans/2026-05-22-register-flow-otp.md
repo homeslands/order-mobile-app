@@ -12,26 +12,26 @@
 
 ## File Map
 
-| Action | Path |
-|--------|------|
-| **Modify** | `types/user.type.ts` — rename conflicting type |
-| **Modify** | `api/user.ts` — update type import |
-| **Modify** | `api/auth.ts` — fix `completeRegistration` response type |
+| Action     | Path                                                        |
+| ---------- | ----------------------------------------------------------- |
+| **Modify** | `types/user.type.ts` — rename conflicting type              |
+| **Modify** | `api/user.ts` — update type import                          |
+| **Modify** | `api/auth.ts` — fix `completeRegistration` response type    |
 | **Modify** | `hooks/use-auth.ts` — remove `useRegister`, add 3 new hooks |
-| **Modify** | `schemas/auth.schema.ts` — add `useRegisterPasswordSchema` |
-| **Modify** | `i18n/vi/auth.json` — add new register keys |
-| **Modify** | `i18n/en/auth.json` — add new register keys |
-| **Delete** | `app/auth/register.tsx` |
-| **Delete** | `components/auth/register-form.tsx` |
-| **Create** | `components/auth/register-progress-bar.tsx` |
-| **Create** | `app/auth/register/index.tsx` |
-| **Create** | `components/auth/register-phone-form.tsx` |
-| **Create** | `app/auth/register/otp.tsx` |
-| **Create** | `components/auth/register-otp-step.tsx` |
-| **Create** | `app/auth/register/password.tsx` |
-| **Create** | `components/auth/register-password-form.tsx` |
-| **Create** | `app/auth/register/profile.tsx` |
-| **Create** | `components/auth/register-profile-form.tsx` |
+| **Modify** | `schemas/auth.schema.ts` — add `useRegisterPasswordSchema`  |
+| **Modify** | `i18n/vi/auth.json` — add new register keys                 |
+| **Modify** | `i18n/en/auth.json` — add new register keys                 |
+| **Delete** | `app/auth/register.tsx`                                     |
+| **Delete** | `components/auth/register-form.tsx`                         |
+| **Create** | `components/auth/register-progress-bar.tsx`                 |
+| **Create** | `app/auth/register/index.tsx`                               |
+| **Create** | `components/auth/register-phone-form.tsx`                   |
+| **Create** | `app/auth/register/otp.tsx`                                 |
+| **Create** | `components/auth/register-otp-step.tsx`                     |
+| **Create** | `app/auth/register/password.tsx`                            |
+| **Create** | `components/auth/register-password-form.tsx`                |
+| **Create** | `app/auth/register/profile.tsx`                             |
+| **Create** | `components/auth/register-profile-form.tsx`                 |
 
 ---
 
@@ -40,6 +40,7 @@
 `ICompleteRegistrationRequest` is exported from both `types/user.type.ts` and `types/auth.type.ts` — this causes a silent TypeScript ambiguity. The `user.type.ts` version (`slug + firstName + lastName + dob + address`) is used by `api/user.ts` for `PATCH /user/:slug/complete-registration` (a different endpoint). Rename it.
 
 **Files:**
+
 - Modify: `types/user.type.ts:188`
 - Modify: `api/user.ts:5,251`
 
@@ -96,6 +97,7 @@ git commit -m "refactor(auth): rename ICompleteRegistrationRequest in user.type 
 `api/auth.ts` currently declares `completeRegistration` returning `IApiResponse<{ isRegistered: boolean }>` but the actual API returns login tokens.
 
 **Files:**
+
 - Modify: `api/auth.ts:56-64`
 
 - [ ] **Step 1: Update the function signature**
@@ -138,6 +140,7 @@ git commit -m "fix(auth): correct completeRegistration response type to return l
 Remove `useRegister` (only used in `register-form.tsx` which we delete). Add three new hooks for the OTP registration flow.
 
 **Files:**
+
 - Modify: `hooks/use-auth.ts`
 
 - [ ] **Step 1: Update imports**
@@ -221,6 +224,7 @@ git commit -m "feat(auth): add useInitiateRegistration, useResendRegistration, u
 ## Task 4: Add password schema
 
 **Files:**
+
 - Modify: `schemas/auth.schema.ts`
 
 - [ ] **Step 1: Add the schema and export type**
@@ -238,9 +242,7 @@ export function useRegisterPasswordSchema() {
           message: t('register.minLength', { count: AuthRules.MIN_LENGTH }),
         })
         .regex(PASSWORD_REGEX, t('register.passwordInvalid')),
-      confirmPassword: z
-        .string()
-        .min(1, t('register.confirmPasswordRequired')),
+      confirmPassword: z.string().min(1, t('register.confirmPasswordRequired')),
     })
     .refine((data) => data.password === data.confirmPassword, {
       message: t('register.passwordNotMatch'),
@@ -275,6 +277,7 @@ git commit -m "feat(auth): add useRegisterPasswordSchema for OTP register flow"
 New screens need new translation keys. Add them to both locale files.
 
 **Files:**
+
 - Modify: `i18n/vi/auth.json`
 - Modify: `i18n/en/auth.json`
 
@@ -342,6 +345,7 @@ git commit -m "feat(i18n): add register OTP flow translation keys"
 Delete the old single-screen register files and create the new folder structure. The progress bar is used by all 4 screens so it lives in its own file.
 
 **Files:**
+
 - Delete: `app/auth/register.tsx`
 - Delete: `components/auth/register-form.tsx`
 - Create: `components/auth/register-progress-bar.tsx`
@@ -380,7 +384,12 @@ export function RegisterProgressBar({ step }: { step: 1 | 2 | 3 | 4 }) {
 - [ ] **Step 3: Create `app/auth/register/index.tsx`**
 
 ```tsx
-import { KeyboardAvoidingView, Platform, ScrollView, useColorScheme } from 'react-native'
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  useColorScheme,
+} from 'react-native'
 import { ScreenContainer } from '@/components/layout'
 import { colors } from '@/constants'
 import RegisterPhoneForm from '@/components/auth/register-phone-form'
@@ -426,11 +435,7 @@ import { navigateNative } from '@/lib/navigation'
 import { showToast } from '@/utils'
 
 const phoneSchema = z.object({
-  phonenumber: z
-    .string()
-    .min(10)
-    .max(10)
-    .regex(PHONE_NUMBER_REGEX),
+  phonenumber: z.string().min(10).max(10).regex(PHONE_NUMBER_REGEX),
 })
 
 export default function RegisterPhoneForm() {
@@ -540,10 +545,12 @@ git commit -m "feat(auth): add register phone screen (step 1/4)"
 ## Task 7: Screen 2 — OTP
 
 **Files:**
+
 - Create: `app/auth/register/otp.tsx`
 - Create: `components/auth/register-otp-step.tsx`
 
 The OTP step has **two independent timers:**
+
 - `otpExpiresAt`: 10 min from mount, never resets on resend
 - `resendAvailableAt`: 2 min from last send/resend, resets after each successful resend
 
@@ -552,7 +559,12 @@ Both use `useAnimatedCountdown` (Reanimated-based, runs on UI thread, no re-rend
 - [ ] **Step 1: Create `app/auth/register/otp.tsx`**
 
 ```tsx
-import { KeyboardAvoidingView, Platform, ScrollView, useColorScheme } from 'react-native'
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  useColorScheme,
+} from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
 import { ScreenContainer } from '@/components/layout'
 import { colors } from '@/constants'
@@ -652,13 +664,13 @@ export default function RegisterOtpStep({ phone }: { phone: string }) {
   const [isResendAvailable, setIsResendAvailable] = useState(false)
 
   // OTP expiry — 10 min, never resets
-  const [otpExpiresAt] = useState(
-    () => new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+  const [otpExpiresAt] = useState(() =>
+    new Date(Date.now() + 10 * 60 * 1000).toISOString(),
   )
 
   // Resend cooldown — 2 min, resets after each resend
-  const [resendAvailableAt, setResendAvailableAt] = useState(
-    () => new Date(Date.now() + 2 * 60 * 1000).toISOString(),
+  const [resendAvailableAt, setResendAvailableAt] = useState(() =>
+    new Date(Date.now() + 2 * 60 * 1000).toISOString(),
   )
 
   const otpExpiryShared = useAnimatedCountdown({ expiresAt: otpExpiresAt })
@@ -694,9 +706,7 @@ export default function RegisterOtpStep({ phone }: { phone: string }) {
   const handleResend = useCallback(() => {
     resendMutate(phone, {
       onSuccess: () => {
-        setResendAvailableAt(
-          new Date(Date.now() + 2 * 60 * 1000).toISOString(),
-        )
+        setResendAvailableAt(new Date(Date.now() + 2 * 60 * 1000).toISOString())
         setIsResendAvailable(false)
         setOtpValue('')
       },
@@ -822,6 +832,7 @@ git commit -m "feat(auth): add register OTP screen (step 2/4)"
 ## Task 8: Screen 3 — Password
 
 **Files:**
+
 - Create: `app/auth/register/password.tsx`
 - Create: `components/auth/register-password-form.tsx`
 
@@ -832,7 +843,12 @@ On OTP error (server rejects the OTP code), show a toast and navigate back to th
 - [ ] **Step 1: Create `app/auth/register/password.tsx`**
 
 ```tsx
-import { KeyboardAvoidingView, Platform, ScrollView, useColorScheme } from 'react-native'
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  useColorScheme,
+} from 'react-native'
 import { useLocalSearchParams } from 'expo-router'
 import { ScreenContainer } from '@/components/layout'
 import { colors } from '@/constants'
@@ -925,9 +941,8 @@ export default function RegisterPasswordForm({
             }
           },
           onError: (err: unknown) => {
-            const status = (
-              err as { response?: { status?: number } }
-            )?.response?.status
+            const status = (err as { response?: { status?: number } })?.response
+              ?.status
             if (status === 400 || status === 422) {
               showErrorToastMessage(t('register.otpInvalid'))
               navigateNative.replace(
@@ -1036,6 +1051,7 @@ git commit -m "feat(auth): add register password screen (step 3/4)"
 ## Task 9: Screen 4 — Optional Profile
 
 **Files:**
+
 - Create: `app/auth/register/profile.tsx`
 - Create: `components/auth/register-profile-form.tsx`
 
@@ -1044,7 +1060,12 @@ The user is already logged in when they reach this screen (tokens stored in step
 - [ ] **Step 1: Create `app/auth/register/profile.tsx`**
 
 ```tsx
-import { KeyboardAvoidingView, Platform, ScrollView, useColorScheme } from 'react-native'
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  useColorScheme,
+} from 'react-native'
 import { ScreenContainer } from '@/components/layout'
 import { colors } from '@/constants'
 import RegisterProfileForm from '@/components/auth/register-profile-form'
@@ -1114,10 +1135,7 @@ export default function RegisterProfileForm() {
     defaultValues: { firstName: '', lastName: '', dob: '' },
   })
 
-  const goHome = useCallback(
-    () => navigateNative.replace('/(tabs)/home'),
-    [],
-  )
+  const goHome = useCallback(() => navigateNative.replace('/(tabs)/home'), [])
 
   const onSubmit = useCallback(
     async ({ firstName, lastName }: z.infer<typeof profileSchema>) => {

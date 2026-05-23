@@ -1,4 +1,9 @@
-import { KeyboardAvoidingView, Platform, ScrollView, useColorScheme } from 'react-native'
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  useColorScheme,
+} from 'react-native'
 import { ScreenContainer } from '@/components/layout'
 import { colors } from '@/constants'
 import RegisterPhoneForm from '@/components/auth/register-phone-form'

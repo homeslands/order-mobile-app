@@ -2,7 +2,6 @@ import React, { memo, useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   ActivityIndicator,
-  Text,
   TouchableOpacity,
   View,
   useColorScheme,
@@ -25,23 +24,34 @@ import {
   useShakeAnimation,
 } from '@/hooks'
 import { navigateNative } from '@/lib/navigation'
+import { setSyncItem } from '@/utils/storage'
 import { showToast } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 /**
  * Resend button countdown label — isolated so only this sub-component
  * re-renders every second via runOnJS, not the entire RegisterOtpStep.
+ *
+ * Receives `expiresAt` (ISO string) to compute the initial display directly,
+ * avoiding a "0:00" flash caused by reading countdownShared before
+ * useAnimatedCountdown's effect fires with the new expiresAt.
  */
 const ResendCountdownLabel = memo(function ResendCountdownLabel({
   countdownShared,
+  expiresAt,
   label,
   className,
 }: {
   countdownShared: SharedValue<number>
+  expiresAt: string
   label: string
   className: string
 }) {
   const [displayTime, setDisplayTime] = useState(() => {
-    const s = Math.max(0, Math.floor(countdownShared.value))
+    const s = Math.max(
+      0,
+      Math.floor((new Date(expiresAt).getTime() - Date.now()) / 1000),
+    )
     const m = Math.floor(s / 60)
     const sec = s % 60
     return `${m}:${String(sec).padStart(2, '0')}`
@@ -61,18 +71,25 @@ const ResendCountdownLabel = memo(function ResendCountdownLabel({
   return <Text className={className}>{`${label} (${displayTime})`}</Text>
 })
 
-export default function RegisterOtpStep({ phone }: { phone: string }) {
+export default function RegisterOtpStep({
+  phone,
+  serverOtpExpiresAt,
+}: {
+  phone: string
+  serverOtpExpiresAt?: string
+}) {
   const { t } = useTranslation('auth')
   const isDark = useColorScheme() === 'dark'
 
-  // OTP expires in 10 minutes from mount — stateful so resend can reset it
+  // OTP expires — use server-provided time when available, fallback to +10min
   const [otpExpiresAt, setOtpExpiresAt] = useState(
-    () => new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+    () =>
+      serverOtpExpiresAt ?? new Date(Date.now() + 10 * 60 * 1000).toISOString(),
   )
 
   // Resend cooldown: 2 minutes, resets after each successful resend
-  const [resendAvailableAt, setResendAvailableAt] = useState(
-    () => new Date(Date.now() + 2 * 60 * 1000).toISOString(),
+  const [resendAvailableAt, setResendAvailableAt] = useState(() =>
+    new Date(Date.now() + 2 * 60 * 1000).toISOString(),
   )
 
   // UI thread countdown shared values — no JS re-renders during tick
@@ -81,9 +98,14 @@ export default function RegisterOtpStep({ phone }: { phone: string }) {
     expiresAt: resendAvailableAt,
   })
 
-  // JS-thread states updated once when countdowns hit 0
-  const [isOtpExpired, setIsOtpExpired] = useState(false)
-  const [isResendAvailable, setIsResendAvailable] = useState(false)
+  // JS-thread states — derived from timestamp on mount so edge cases
+  // (e.g. navigating back to an OTP screen with a stale expiresAt) are handled.
+  const [isOtpExpired, setIsOtpExpired] = useState(
+    () => new Date(otpExpiresAt).getTime() <= Date.now(),
+  )
+  const [isResendAvailable, setIsResendAvailable] = useState(
+    () => new Date(resendAvailableAt).getTime() <= Date.now(),
+  )
 
   const [otpValue, setOtpValue] = useState('')
 
@@ -117,25 +139,40 @@ export default function RegisterOtpStep({ phone }: { phone: string }) {
       return
     }
     navigateNative.push(
-      `/auth/register/password?phone=${encodeURIComponent(phone)}&otp=${encodeURIComponent(otpValue)}`,
+      `/auth/register/password?phone=${encodeURIComponent(phone)}&otp=${encodeURIComponent(otpValue)}&expiresAt=${encodeURIComponent(otpExpiresAt)}`,
     )
   }, [otpValue, isOtpExpired, phone, shake])
 
   const handleResend = useCallback(() => {
+    console.log('[resendRegistration] REQUEST:', phone)
     resend(phone, {
-      onSuccess: () => {
-        // Server issued a fresh 10-min OTP — reset the expiry window
-        setOtpExpiresAt(new Date(Date.now() + 10 * 60 * 1000).toISOString())
+      onSuccess: (res) => {
+        console.log(
+          '[resendRegistration] RESPONSE:',
+          JSON.stringify(res, null, 2),
+        )
+        // Use server-provided expiry time for accuracy, persist for 119046 recovery
+        const newExpiresAt =
+          res.result?.expiresAt ??
+          new Date(Date.now() + 10 * 60 * 1000).toISOString()
+        setOtpExpiresAt(newExpiresAt)
+        setSyncItem(`register:otp:${phone}`, newExpiresAt)
         setIsOtpExpired(false)
         // Reset resend cooldown
-        setResendAvailableAt(
-          new Date(Date.now() + 2 * 60 * 1000).toISOString(),
-        )
+        setResendAvailableAt(new Date(Date.now() + 2 * 60 * 1000).toISOString())
         setIsResendAvailable(false)
         setOtpValue('')
         showToast(t('register.otpResent'), 'success')
       },
-      onError: () => {
+      onError: (err) => {
+        console.log(
+          '[resendRegistration] ERROR status:',
+          (err as any)?.response?.status,
+        )
+        console.log(
+          '[resendRegistration] ERROR data:',
+          JSON.stringify((err as any)?.response?.data, null, 2),
+        )
         showToast(t('register.otpResendFailed'), 'error')
       },
     })
@@ -182,18 +219,42 @@ export default function RegisterOtpStep({ phone }: { phone: string }) {
           />
         </Animated.View>
 
-        {!isOtpExpired ? (
-          <AnimatedCountdownText
-            countdownShared={otpExpiryShared}
-            label={t('register.otpExpiresIn')}
-            className="text-center font-sans text-sm"
-            isDark={isDark}
-          />
-        ) : (
-          <Text className="text-center font-sans text-sm text-red-500 dark:text-red-400">
-            {t('register.otpExpired')}
-          </Text>
-        )}
+        <View className="flex-row items-center justify-between">
+          {!isOtpExpired ? (
+            <AnimatedCountdownText
+              countdownShared={otpExpiryShared}
+              label={t('register.otpExpiresIn')}
+              className="font-sans text-sm"
+              isDark={isDark}
+            />
+          ) : (
+            <Text className="font-sans text-sm text-red-500 dark:text-red-400">
+              {t('register.otpExpired')}
+            </Text>
+          )}
+
+          <TouchableOpacity
+            disabled={isResendDisabled}
+            onPress={handleResend}
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          >
+            {isResending ? (
+              <ActivityIndicator size="small" color="#f59e0b" />
+            ) : !canResend ? (
+              // Cooldown active — isolated sub-component so only it re-renders per second
+              <ResendCountdownLabel
+                countdownShared={resendCooldownShared}
+                expiresAt={resendAvailableAt}
+                label={t('register.resend')}
+                className="font-sans-semibold text-sm text-gray-400 dark:text-gray-500"
+              />
+            ) : (
+              <Text className="font-sans-semibold text-sm text-amber-500 dark:text-amber-400">
+                {t('register.resend')}
+              </Text>
+            )}
+          </TouchableOpacity>
+        </View>
 
         <Button
           variant="primary"
@@ -206,28 +267,6 @@ export default function RegisterOtpStep({ phone }: { phone: string }) {
           ) : (
             <Text className="font-sans-semibold text-sm text-white">
               {t('register.verify')}
-            </Text>
-          )}
-        </Button>
-
-        <Button
-          variant={canResend ? 'primary' : 'secondary'}
-          className="h-11 rounded-lg"
-          disabled={isResendDisabled}
-          onPress={handleResend}
-        >
-          {isResending ? (
-            <ActivityIndicator color={canResend ? '#fff' : undefined} />
-          ) : !canResend ? (
-            // Cooldown active — isolated sub-component so only it re-renders per second
-            <ResendCountdownLabel
-              countdownShared={resendCooldownShared}
-              label={t('register.resend')}
-              className="font-sans-semibold text-sm text-gray-500 dark:text-gray-400"
-            />
-          ) : (
-            <Text className="font-sans-semibold text-sm text-white">
-              {t('register.resend')}
             </Text>
           )}
         </Button>
@@ -246,7 +285,7 @@ export default function RegisterOtpStep({ phone }: { phone: string }) {
       <ChangePhoneConfirmSheet
         isOpen={isConfirmOpen}
         onOpenChange={setIsConfirmOpen}
-        onConfirm={() => navigateNative.back()}
+        onConfirm={() => navigateNative.replace('/auth/register')}
       />
     </View>
   )

@@ -9,11 +9,13 @@
 **Service:** `notification.service.ts:184-215` → `registerDeviceToken()`
 
 **Logic:**
+
 1. Kiểm tra token đã tồn tại trong `firebase_device_token_tbl` chưa
 2. Nếu tồn tại → update `userId`, `platform`, `userAgent` (xử lý đổi tài khoản trên cùng thiết bị)
 3. Nếu chưa → tạo mới record
 
 **DTO request:**
+
 ```
 token     (string, required)  — FCM token từ Firebase client SDK
 platform  (enum: ios | android | web, required)
@@ -30,7 +32,7 @@ userAgent (string, optional)
 **Service:** `notification.service.ts:222-224` → `unregisterDeviceToken()`
 
 ```typescript
-await this.firebaseDeviceTokenRepository.delete({ token });
+await this.firebaseDeviceTokenRepository.delete({ token })
 ```
 
 Xóa theo **giá trị token**, không theo userId → logout một thiết bị không ảnh hưởng thiết bị khác. `auth.service.ts` không có logout() method, việc hủy token hoàn toàn do FE tự quản lý.
@@ -39,14 +41,14 @@ Xóa theo **giá trị token**, không theo userId → logout một thiết bị
 
 ### Schema bảng `firebase_device_token_tbl`
 
-| Column | Type | Ghi chú |
-|--------|------|---------|
-| `id_column` | UUID PK | |
-| `token_column` | VARCHAR UNIQUE | FCM token |
-| `platform_column` | VARCHAR | ios / android / web |
-| `user_agent_column` | VARCHAR | optional |
-| `user_id_column` | VARCHAR INDEX | user slug/id |
-| `user_column` | UUID FK | → `user_tbl`, CASCADE DELETE |
+| Column              | Type           | Ghi chú                      |
+| ------------------- | -------------- | ---------------------------- |
+| `id_column`         | UUID PK        |                              |
+| `token_column`      | VARCHAR UNIQUE | FCM token                    |
+| `platform_column`   | VARCHAR        | ios / android / web          |
+| `user_agent_column` | VARCHAR        | optional                     |
+| `user_id_column`    | VARCHAR INDEX  | user slug/id                 |
+| `user_column`       | UUID FK        | → `user_tbl`, CASCADE DELETE |
 
 ---
 
@@ -59,11 +61,11 @@ Xóa theo **giá trị token**, không theo userId → logout một thiết bị
 ```typescript
 admin.initializeApp({
   credential: admin.credential.cert({
-    projectId:   FIREBASE_PROJECT_ID,
+    projectId: FIREBASE_PROJECT_ID,
     clientEmail: FIREBASE_CLIENT_EMAIL,
-    privateKey:  FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    privateKey: FIREBASE_PRIVATE_KEY.replace(/\\n/g, '\n'),
   }),
-});
+})
 ```
 
 **Env vars cần có:** `FIREBASE_PROJECT_ID`, `FIREBASE_CLIENT_EMAIL`, `FIREBASE_PRIVATE_KEY`
@@ -119,6 +121,7 @@ admin.initializeApp({
 ### Config theo platform
 
 **Web** (`firebase.service.ts:78-88`)
+
 ```typescript
 webpush: {
   notification: {
@@ -131,6 +134,7 @@ webpush: {
 ```
 
 **Android** (`firebase.service.ts:90-99`)
+
 ```typescript
 android: {
   priority: 'high',
@@ -141,6 +145,7 @@ android: {
 ```
 
 **iOS** (`firebase.service.ts:101-117`)
+
 ```typescript
 apns: {
   payload: {
@@ -169,32 +174,32 @@ User nhiều thiết bị = tất cả thiết bị cùng nhận.
 
 Định nghĩa tại `notification/notification.constants.ts`:
 
-| Code | Mô tả | Gửi đến | iOS Sound |
-|------|-------|---------|-----------|
-| `ORDER_NEEDS_PROCESSED` | Đơn mới cần xử lý | Chef/Staff | default |
-| `ORDER_NEEDS_DELIVERED` | Đơn cần giao | Staff | default |
-| `ORDER_NEEDS_CANCELLED` | Đơn bị hủy | Staff | default |
-| `ORDER_NEEDS_READY_TO_GET` | Đơn sẵn sàng lấy | Customer | **ding.mp3** |
-| `ORDER_PAID` | Đơn đã thanh toán | Customer | default |
-| `CARD_ORDER_PAID` | Đơn thẻ quà tặng đã TT | Customer | default |
-| `VOUCHER_BIRTHDAY_RECEIVED` | Nhận voucher sinh nhật | Customer | default |
-| `VOUCHER_NEW_USER_RECEIVED` | Nhận voucher tân thủ | Customer | default |
-| `ORDER_BILL_FAILED_PRINTING` | In hóa đơn thất bại | Staff | default |
-| `ORDER_CHEF_ORDER_FAILED_PRINTING` | In phiếu bếp thất bại | Staff | default |
-| `ORDER_LABEL_TICKET_FAILED_PRINTING` | In nhãn thất bại | Staff | default |
+| Code                                 | Mô tả                  | Gửi đến    | iOS Sound    |
+| ------------------------------------ | ---------------------- | ---------- | ------------ |
+| `ORDER_NEEDS_PROCESSED`              | Đơn mới cần xử lý      | Chef/Staff | default      |
+| `ORDER_NEEDS_DELIVERED`              | Đơn cần giao           | Staff      | default      |
+| `ORDER_NEEDS_CANCELLED`              | Đơn bị hủy             | Staff      | default      |
+| `ORDER_NEEDS_READY_TO_GET`           | Đơn sẵn sàng lấy       | Customer   | **ding.mp3** |
+| `ORDER_PAID`                         | Đơn đã thanh toán      | Customer   | default      |
+| `CARD_ORDER_PAID`                    | Đơn thẻ quà tặng đã TT | Customer   | default      |
+| `VOUCHER_BIRTHDAY_RECEIVED`          | Nhận voucher sinh nhật | Customer   | default      |
+| `VOUCHER_NEW_USER_RECEIVED`          | Nhận voucher tân thủ   | Customer   | default      |
+| `ORDER_BILL_FAILED_PRINTING`         | In hóa đơn thất bại    | Staff      | default      |
+| `ORDER_CHEF_ORDER_FAILED_PRINTING`   | In phiếu bếp thất bại  | Staff      | default      |
+| `ORDER_LABEL_TICKET_FAILED_PRINTING` | In nhãn thất bại       | Staff      | default      |
 
 ---
 
 ## 4. Files quan trọng (BE)
 
-| File | Vai trò |
-|------|---------|
-| `notification/firebase/firebase.service.ts` | Init SDK, `sendToAllPlatforms()`, `sendToDevice()` |
-| `notification/firebase/firebase-device-token.entity.ts` | Entity bảng token |
-| `notification/notification.service.ts` | `create()`, `registerDeviceToken()`, `unregisterDeviceToken()` |
-| `notification/notification.controller.ts` | REST endpoints |
-| `notification/notification.producer.ts` | Đẩy job vào BullMQ |
-| `notification/notification.consumer.ts` | Xử lý job từ BullMQ |
-| `notification/notification.constants.ts` | Enum type & message code |
-| `notification/language/notification-language.service.ts` | Nội dung thông báo VI/EN |
-| `campaign/campaign.listener.ts` | Lắng nghe event, trigger campaign notification |
+| File                                                     | Vai trò                                                        |
+| -------------------------------------------------------- | -------------------------------------------------------------- |
+| `notification/firebase/firebase.service.ts`              | Init SDK, `sendToAllPlatforms()`, `sendToDevice()`             |
+| `notification/firebase/firebase-device-token.entity.ts`  | Entity bảng token                                              |
+| `notification/notification.service.ts`                   | `create()`, `registerDeviceToken()`, `unregisterDeviceToken()` |
+| `notification/notification.controller.ts`                | REST endpoints                                                 |
+| `notification/notification.producer.ts`                  | Đẩy job vào BullMQ                                             |
+| `notification/notification.consumer.ts`                  | Xử lý job từ BullMQ                                            |
+| `notification/notification.constants.ts`                 | Enum type & message code                                       |
+| `notification/language/notification-language.service.ts` | Nội dung thông báo VI/EN                                       |
+| `campaign/campaign.listener.ts`                          | Lắng nghe event, trigger campaign notification                 |

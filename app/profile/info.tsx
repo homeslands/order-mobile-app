@@ -12,7 +12,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
   useColorScheme,
 } from 'react-native'
@@ -25,6 +24,7 @@ import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { navigateNative } from '@/lib/navigation'
 import { useUserStore } from '@/stores'
 import { useTranslation } from 'react-i18next'
+import { Text } from '@/components/ui/text'
 
 function ProfileInfoScreen() {
   const { t } = useTranslation('profile')

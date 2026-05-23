@@ -3,7 +3,8 @@ import type { ProcessedVoucher } from '@/components/sheet/voucher-validation'
 import { colors } from '@/constants'
 import type { IVoucher } from '@/types'
 import { useTranslation } from 'react-i18next'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
+import { Text } from '@/components/ui/text'
 
 type ValidListProps = {
   vouchers: ProcessedVoucher[]

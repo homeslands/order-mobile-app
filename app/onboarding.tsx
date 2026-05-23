@@ -9,7 +9,6 @@ import {
   Linking,
   Pressable,
   StyleSheet,
-  Text,
   View,
   useColorScheme,
 } from 'react-native'
@@ -25,6 +24,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Images } from '@/assets/images'
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
+import { Text } from '@/components/ui/text'
 
 const { width: W } = Dimensions.get('window')
 const SLIDE_COUNT = 3

@@ -8,7 +8,8 @@ import { showToast } from '@/utils'
 import { ArrowLeft } from 'lucide-react-native'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Text, View, useColorScheme } from 'react-native'
+import { View, useColorScheme } from 'react-native'
+import { Text } from '@/components/ui/text'
 
 function ChangePasswordScreen() {
   const { t } = useTranslation('profile')

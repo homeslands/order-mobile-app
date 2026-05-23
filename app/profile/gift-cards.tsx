@@ -27,7 +27,6 @@ import {
   Pressable,
   RefreshControl,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -53,6 +52,7 @@ import { navigateNative } from '@/lib/navigation'
 import { useUserStore } from '@/stores'
 import type { IGiftCardDetail } from '@/types'
 import { formatPoints } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 // ─── Stats strip ──────────────────────────────────────────────────────────────
 

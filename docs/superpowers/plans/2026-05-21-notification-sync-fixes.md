@@ -12,15 +12,15 @@
 
 ## Files Modified
 
-| File | Change |
-|------|--------|
-| `components/notification/notification-bell.tsx` | Cap badge display at 9+ |
-| `constants/notification.constant.ts` | Export `ORDER_READY_MAX_AGE_MS` |
-| `hooks/use-order-ready-queue.ts` | Import constant instead of defining locally |
-| `stores/notification.store.ts` | `addNotification` respects `markedAllReadAt`; `hydrateFromApi` auto-marks stale order-ready |
-| `app/notification/index.tsx` | Remove `setBadgeCountAsync(0)` and its import |
-| `__tests__/stores/notification-store-add.test.ts` | New test for `markedAllReadAt` in `addNotification` |
-| `__tests__/stores/notification-store-hydrate.test.ts` | New test for stale order-ready in `hydrateFromApi` |
+| File                                                  | Change                                                                                      |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| `components/notification/notification-bell.tsx`       | Cap badge display at 9+                                                                     |
+| `constants/notification.constant.ts`                  | Export `ORDER_READY_MAX_AGE_MS`                                                             |
+| `hooks/use-order-ready-queue.ts`                      | Import constant instead of defining locally                                                 |
+| `stores/notification.store.ts`                        | `addNotification` respects `markedAllReadAt`; `hydrateFromApi` auto-marks stale order-ready |
+| `app/notification/index.tsx`                          | Remove `setBadgeCountAsync(0)` and its import                                               |
+| `__tests__/stores/notification-store-add.test.ts`     | New test for `markedAllReadAt` in `addNotification`                                         |
+| `__tests__/stores/notification-store-hydrate.test.ts` | New test for stale order-ready in `hydrateFromApi`                                          |
 
 ---
 
@@ -29,6 +29,7 @@
 **Why:** `unreadCount` in the store is derived from the in-memory list (max 50 items). The notification screen paginates: page 1 loads on bootstrap, pages 2+ load as the user scrolls. Each `hydrateFromApi` call can add more unread items, making `unreadCount` jump upward mid-session. Showing the exact number creates a confusing counter that changes when the user browses the list. Capping at 9+ hides the noise while still communicating "you have unread notifications."
 
 **Files:**
+
 - Modify: `components/notification/notification-bell.tsx:36`
 
 - [ ] **Step 1: Change the threshold from 99 to 9**
@@ -37,10 +38,14 @@ In `components/notification/notification-bell.tsx`, replace line 36:
 
 ```tsx
 // before
-{unreadCount > 99 ? '99+' : unreadCount}
+{
+  unreadCount > 99 ? '99+' : unreadCount
+}
 
 // after
-{unreadCount > 9 ? '9+' : unreadCount}
+{
+  unreadCount > 9 ? '9+' : unreadCount
+}
 ```
 
 - [ ] **Step 2: Run quality checks**
@@ -65,6 +70,7 @@ git commit -m "feat(notification): cap bell badge display at 9+"
 **Why:** The 60-minute staleness window is currently hardcoded in `hooks/use-order-ready-queue.ts`. The next task needs the same value in `stores/notification.store.ts`. Define it once in `constants/notification.constant.ts` so both files import from the same source.
 
 **Files:**
+
 - Modify: `constants/notification.constant.ts`
 - Modify: `hooks/use-order-ready-queue.ts`
 
@@ -141,6 +147,7 @@ git commit -m "refactor(notification): extract ORDER_READY_MAX_AGE_MS to shared 
 **Why:** If the user bulk-marks all notifications as read (via `markAllAsRead`), then an FCM arrives with a `createdAt` older than the bulk-read timestamp (common with server delivery delays), it is inserted as `isRead: false` — incorrectly incrementing `unreadCount`. The same guard already exists in `hydrateFromApi` but not in `addNotification`.
 
 **Files:**
+
 - Modify: `stores/notification.store.ts:126-144`
 - Test: `__tests__/stores/notification-store-add.test.ts`
 
@@ -157,7 +164,11 @@ it('marks incoming notification as read when createdAt is covered by markedAllRe
     markedAllReadAt: new Date().toISOString(),
   })
   useNotificationStore.getState().addNotification({
-    data: { slug: 'n-delayed', message: 'order-needs-processed', createdAt: pastTs },
+    data: {
+      slug: 'n-delayed',
+      message: 'order-needs-processed',
+      createdAt: pastTs,
+    },
   })
   const n = useNotificationStore.getState().notifications[0]
   expect(n.isRead).toBe(true)
@@ -172,7 +183,11 @@ it('does NOT mark as read when createdAt is newer than markedAllReadAt', () => {
     markedAllReadAt: new Date(Date.now() - 5_000).toISOString(),
   })
   useNotificationStore.getState().addNotification({
-    data: { slug: 'n-new', message: 'order-needs-processed', createdAt: futureTs },
+    data: {
+      slug: 'n-new',
+      message: 'order-needs-processed',
+      createdAt: futureTs,
+    },
   })
   const n = useNotificationStore.getState().notifications[0]
   expect(n.isRead).toBe(false)
@@ -250,6 +265,7 @@ git commit -m "fix(notification): addNotification respects markedAllReadAt for d
 **Why:** When the app is killed without the customer interacting with the order-ready sheet, `markDone` never runs. On reopen, `hydrateFromApi` fetches all historical unread `ORDER_NEEDS_READY_TO_GET` from the server and presents a sheet for each one — even for orders from hours ago. Any notification older than `ORDER_READY_MAX_AGE_MS` (60 min) is no longer actionable: the food is gone or the order is resolved. Treat them as auto-read during hydration.
 
 **Files:**
+
 - Modify: `stores/notification.store.ts` — `hydrateFromApi` and add import
 - Create: `__tests__/stores/notification-store-hydrate.test.ts`
 
@@ -266,7 +282,9 @@ import { NotificationMessageCode } from '@/constants/notification.constant'
 import { useNotificationStore } from '@/stores/notification.store'
 import type { INotification } from '@/types/notification.type'
 
-const makeNotif = (overrides: Partial<INotification> & { slug: string }): INotification => ({
+const makeNotif = (
+  overrides: Partial<INotification> & { slug: string },
+): INotification => ({
   slug: overrides.slug,
   createdAt: overrides.createdAt ?? new Date().toISOString(),
   message: overrides.message ?? NotificationMessageCode.ORDER_NEEDS_PROCESSED,
@@ -366,41 +384,41 @@ import {
 Inside the `for (const n of items)` loop in `hydrateFromApi`, replace:
 
 ```ts
-      for (const n of items) {
-        const local = map.get(n.slug)
+for (const n of items) {
+  const local = map.get(n.slug)
 
-        // isRead priority (highest → lowest):
-        // 1. Local already marked read (optimistic individual/bulk)
-        // 2. createdAt ≤ markedAllReadAt → bulk-read timestamp covers it
-        // 3. Server value
-        const bulkCovered = !!markedAllReadAt && n.createdAt <= markedAllReadAt
-        const isRead = local?.isRead === true || bulkCovered || n.isRead
+  // isRead priority (highest → lowest):
+  // 1. Local already marked read (optimistic individual/bulk)
+  // 2. createdAt ≤ markedAllReadAt → bulk-read timestamp covers it
+  // 3. Server value
+  const bulkCovered = !!markedAllReadAt && n.createdAt <= markedAllReadAt
+  const isRead = local?.isRead === true || bulkCovered || n.isRead
 
-        map.set(n.slug, { ...n, isRead })
-      }
+  map.set(n.slug, { ...n, isRead })
+}
 ```
 
 with:
 
 ```ts
-      const now = Date.now()
-      for (const n of items) {
-        const local = map.get(n.slug)
+const now = Date.now()
+for (const n of items) {
+  const local = map.get(n.slug)
 
-        // isRead priority (highest → lowest):
-        // 1. Local already marked read (optimistic individual/bulk)
-        // 2. createdAt ≤ markedAllReadAt → bulk-read timestamp covers it
-        // 3. ORDER_NEEDS_READY_TO_GET older than ORDER_READY_MAX_AGE_MS → stale
-        // 4. Server value
-        const bulkCovered = !!markedAllReadAt && n.createdAt <= markedAllReadAt
-        const staleOrderReady =
-          n.message === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET &&
-          now - Date.parse(n.createdAt) > ORDER_READY_MAX_AGE_MS
-        const isRead =
-          local?.isRead === true || bulkCovered || staleOrderReady || n.isRead
+  // isRead priority (highest → lowest):
+  // 1. Local already marked read (optimistic individual/bulk)
+  // 2. createdAt ≤ markedAllReadAt → bulk-read timestamp covers it
+  // 3. ORDER_NEEDS_READY_TO_GET older than ORDER_READY_MAX_AGE_MS → stale
+  // 4. Server value
+  const bulkCovered = !!markedAllReadAt && n.createdAt <= markedAllReadAt
+  const staleOrderReady =
+    n.message === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET &&
+    now - Date.parse(n.createdAt) > ORDER_READY_MAX_AGE_MS
+  const isRead =
+    local?.isRead === true || bulkCovered || staleOrderReady || n.isRead
 
-        map.set(n.slug, { ...n, isRead })
-      }
+  map.set(n.slug, { ...n, isRead })
+}
 ```
 
 - [ ] **Step 5: Run tests**
@@ -441,6 +459,7 @@ git commit -m "fix(notification): auto-mark stale ORDER_NEEDS_READY_TO_GET as re
 **Why:** The notification screen unconditionally resets the OS app badge to 0 on mount. The store's `syncBadge` already keeps the OS badge in sync with `unreadCount` via every mutator. This one-shot reset creates a mismatch: OS badge goes to 0, in-app bell still shows `unreadCount > 0`, then the next store mutation restores the OS badge — causing it to oscillate. Removing the override lets `syncBadge` be the single source of truth.
 
 **Files:**
+
 - Modify: `app/notification/index.tsx:17,368-370`
 
 - [ ] **Step 1: Remove the `setBadgeCountAsync(0)` effect**
@@ -483,6 +502,7 @@ git commit -m "fix(notification): remove setBadgeCountAsync(0) that overrode sto
 ## Self-Review
 
 **Spec coverage:**
+
 - ✅ Bell badge 9+: Task 1
 - ✅ `addNotification` markedAllReadAt: Task 3
 - ✅ Stale ORDER_NEEDS_READY_TO_GET on hydrate: Task 4 (uses constant from Task 2)
@@ -492,6 +512,7 @@ git commit -m "fix(notification): remove setBadgeCountAsync(0) that overrode sto
 **Placeholder scan:** No TBD, no "add appropriate error handling", no "similar to Task N". All code blocks are complete.
 
 **Type consistency:**
+
 - `ORDER_READY_MAX_AGE_MS` defined in Task 2, used in Task 4's store code and already imported in the hook.
 - `makeNotif` helper in Task 4 test matches `INotification` shape (slug, createdAt, message, senderId, receiverId, type, isRead, metadata with all required fields).
 - `bulkCovered`, `staleOrderReady` variable names match between test description and implementation.

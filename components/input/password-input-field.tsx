@@ -2,7 +2,6 @@ import { Eye, EyeOff } from 'lucide-react-native'
 import { useState } from 'react'
 import {
   Platform,
-  Text,
   TextInput,
   TouchableOpacity,
   View,
@@ -11,6 +10,7 @@ import {
 
 import { colors } from '@/constants'
 import { cn } from '@/lib/utils'
+import { Text } from '@/components/ui/text'
 
 export interface PasswordInputFieldProps {
   value: string | undefined

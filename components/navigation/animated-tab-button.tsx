@@ -61,7 +61,11 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
   }))
 
   const labelStyle = useAnimatedStyle(() => ({
-    color: interpolateColor(activeFraction.value, [0, 1], [mutedColor, '#ffffff']),
+    color: interpolateColor(
+      activeFraction.value,
+      [0, 1],
+      [mutedColor, '#ffffff'],
+    ),
   }))
 
   const activeIconOpacity = useAnimatedStyle(() => ({
@@ -85,12 +89,20 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
         {/* Cross-fade two icons so strokes never overlap — avoids dark fringing */}
         <View style={{ width: iconPx, height: iconPx }}>
           <Animated.View
-            style={[StyleSheet.absoluteFill, styles.iconOverlay, mutedIconOpacity]}
+            style={[
+              StyleSheet.absoluteFill,
+              styles.iconOverlay,
+              mutedIconOpacity,
+            ]}
           >
             <Icon color={mutedColor} size={iconPx} />
           </Animated.View>
           <Animated.View
-            style={[StyleSheet.absoluteFill, styles.iconOverlay, activeIconOpacity]}
+            style={[
+              StyleSheet.absoluteFill,
+              styles.iconOverlay,
+              activeIconOpacity,
+            ]}
           >
             <Icon color="#ffffff" size={iconPx} />
           </Animated.View>

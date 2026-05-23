@@ -206,7 +206,8 @@ export default function RootLayout() {
 
     const sub = AppState.addEventListener('change', (state) => {
       const focused = state !== 'background'
-      const comingFromBackground = prevState === 'background' && state === 'active'
+      const comingFromBackground =
+        prevState === 'background' && state === 'active'
       prevState = state
 
       if (deferFocusTimeout) {

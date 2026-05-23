@@ -3,7 +3,8 @@ import { cn } from '@/utils/cn'
 import { colors } from '@/constants'
 import { cva, type VariantProps } from 'class-variance-authority'
 import * as React from 'react'
-import { ActivityIndicator, Text } from 'react-native'
+import { ActivityIndicator } from 'react-native'
+import { Text } from '@/components/ui/text'
 
 const buttonVariants = cva(
   'flex-row items-center justify-center rounded-full',

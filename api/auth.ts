@@ -5,8 +5,10 @@ import {
   IEmailVerificationResponse,
   IInitiateForgotPasswordRequest,
   IInitiateForgotPasswordResponse,
+  IInitiateRegistrationResult,
   ILoginRequest,
   ILoginResponse,
+  IOtpResult,
   IRefreshTokenResponse,
   IRegisterRequest,
   IResendOTPForgotPasswordRequest,
@@ -35,8 +37,8 @@ export async function register(
 
 export async function initiateRegistration(
   phonenumber: string,
-): Promise<IApiResponse<{ isRegistered: boolean }>> {
-  const response = await http.post<IApiResponse<{ isRegistered: boolean }>>(
+): Promise<IApiResponse<IInitiateRegistrationResult>> {
+  const response = await http.post<IApiResponse<IInitiateRegistrationResult>>(
     '/auth/register/initiate',
     { phonenumber },
   )
@@ -45,8 +47,8 @@ export async function initiateRegistration(
 
 export async function resendRegistration(
   phonenumber: string,
-): Promise<IApiResponse<{ isRegistered: boolean }>> {
-  const response = await http.post<IApiResponse<{ isRegistered: boolean }>>(
+): Promise<IApiResponse<IOtpResult>> {
+  const response = await http.post<IApiResponse<IOtpResult>>(
     '/auth/register/resend',
     { phonenumber },
   )
@@ -184,8 +186,11 @@ export async function uploadAvatar(
 export async function deleteAccount(
   password: string,
 ): Promise<IApiResponse<null>> {
-  const response = await http.delete<IApiResponse<null>>('/auth/delete-account', {
-    data: { password },
-  })
+  const response = await http.delete<IApiResponse<null>>(
+    '/auth/delete-account',
+    {
+      data: { password },
+    },
+  )
   return response.data
 }

@@ -24,7 +24,6 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -53,6 +52,7 @@ import { calculateOrderDisplayAndTotals } from '@/utils'
 import OrderCard from './order-card'
 import type { OrderDisplayData } from './order-card'
 import { OrderHistorySkeleton } from './order-history-skeleton'
+import { Text } from '@/components/ui/text'
 
 // ─── Module-level FIFO cache for order display data ─────────────────────────
 // Keyed by (userSlug, slug, status, itemCount, voucher.slug). Lives outside

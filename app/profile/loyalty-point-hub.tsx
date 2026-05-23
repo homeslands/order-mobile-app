@@ -30,7 +30,6 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -58,6 +57,7 @@ import { navigateNative } from '@/lib/navigation'
 import { useUserStore } from '@/stores'
 import type { ILoyaltyPointHistory } from '@/types'
 import { formatPoints } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

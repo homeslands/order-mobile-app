@@ -7,11 +7,7 @@ import {
 } from '@/hooks'
 import { scheduleTransitionTask } from '@/lib/navigation'
 import { navigateNative } from '@/lib/navigation/navigation-engine'
-import {
-  useBranchStore,
-  useOrderFlowStore,
-  useUserStore,
-} from '@/stores'
+import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import type { ICreateOrderRequest } from '@/types'
 import {
   calculateCartDisplayAndTotals,
@@ -31,15 +27,10 @@ import {
 import { useQueryClient } from '@tanstack/react-query'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useShallow } from 'zustand/react/shallow'
+import { Text } from '@/components/ui/text'
 
 const CONFIRM_ORDER_SNAP = ['65%']
 

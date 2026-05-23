@@ -1,7 +1,7 @@
 import { useCallback } from 'react'
 import { Controller } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, Text, View } from 'react-native'
+import { ActivityIndicator, View } from 'react-native'
 
 import { PasswordInputField, PasswordRulesInput } from '@/components/input'
 import { Button } from '@/components/ui'
@@ -9,6 +9,7 @@ import { ROUTE } from '@/constants'
 import { useZodForm } from '@/hooks'
 import { navigateNative } from '@/lib/navigation'
 import { TResetPasswordSchema, useResetPasswordSchema } from '@/schemas'
+import { Text } from '@/components/ui/text'
 
 interface ResetPasswordFormProps {
   onSubmit: (data: TResetPasswordSchema) => void

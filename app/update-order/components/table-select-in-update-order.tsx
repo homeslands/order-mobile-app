@@ -1,7 +1,7 @@
 import { ChevronDown } from 'lucide-react-native'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Text, TouchableOpacity, useColorScheme } from 'react-native'
+import { TouchableOpacity, useColorScheme } from 'react-native'
 
 import { useTables } from '@/hooks'
 import { cn } from '@/lib/utils'
@@ -9,6 +9,7 @@ import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import { ITable, OrderTypeEnum } from '@/types'
 
 import TableSelectSheetInUpdateOrder from './table-select-sheet-in-update-order'
+import { Text } from '@/components/ui/text'
 
 interface TableSelectInUpdateOrderProps {
   tableOrder?: ITable | null

@@ -7,11 +7,12 @@
  */
 import { memo, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 
 import { LightweightDialog } from '@/components/ui/lightweight-dialog'
 import { colors } from '@/constants'
 import { formatCurrency } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 type Props = {
   visible: boolean
