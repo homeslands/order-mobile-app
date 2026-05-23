@@ -1,6 +1,7 @@
 import { LoginForm } from '@/components/auth'
 import {
   DeleteAccountSheet,
+  FontSizeSheet,
   LanguageSheet,
   ThemeSheet,
 } from '@/components/profile'
@@ -38,6 +39,7 @@ import {
   SunMoon,
   Trash2,
   Trophy,
+  Type,
   User,
 } from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -484,6 +486,16 @@ const ProfileTest = () => {
   const openThemeSheet = useCallback(() => setIsThemeSheetOpen(true), [])
   const closeThemeSheet = useCallback(() => setIsThemeSheetOpen(false), [])
 
+  const [isFontSizeSheetOpen, setIsFontSizeSheetOpen] = useState(false)
+  const openFontSizeSheet = useCallback(
+    () => setIsFontSizeSheetOpen(true),
+    [],
+  )
+  const closeFontSizeSheet = useCallback(
+    () => setIsFontSizeSheetOpen(false),
+    [],
+  )
+
   const openQRSelection = useQRSelectionSheetStore((s) => s.open)
 
   const openEdit = useCallback(() => {
@@ -839,6 +851,20 @@ const ProfileTest = () => {
                 ]}
               />
               <MenuItem
+                icon={Type}
+                iconColor={ICON_COLORS.teal}
+                title={t('profile.fontSize.title', 'Cỡ chữ')}
+                onPress={openFontSizeSheet}
+                textColor={theme.text}
+                textMuted={theme.textMuted}
+              />
+              <View
+                style={[
+                  styles.menuItemDivider,
+                  { backgroundColor: theme.divider },
+                ]}
+              />
+              <MenuItem
                 icon={Trash2}
                 iconColor={ICON_COLORS.red}
                 title={t('profile.deleteAccount.title', 'Xoá tài khoản')}
@@ -889,6 +915,12 @@ const ProfileTest = () => {
       <ThemeSheet
         visible={isThemeSheetOpen}
         onClose={closeThemeSheet}
+        isDark={isDark}
+        primaryColor={isDark ? colors.primary.dark : colors.primary.light}
+      />
+      <FontSizeSheet
+        visible={isFontSizeSheetOpen}
+        onClose={closeFontSizeSheet}
         isDark={isDark}
         primaryColor={isDark ? colors.primary.dark : colors.primary.light}
       />
