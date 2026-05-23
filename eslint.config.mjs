@@ -74,6 +74,12 @@ export default tseslint.config(
               message:
                 'Use expo-image instead: import { Image } from "expo-image". See CLAUDE.md performance rules.',
             },
+            {
+              name: 'react-native',
+              importNames: ['Text'],
+              message:
+                "Use '@/components/ui/text' instead of Text from react-native.",
+            },
             // Note: FlatList is intentionally not restricted — it is acceptable for small
             // carousels, data-tables, and horizontal lists where FlashList overhead is not needed.
             // For vertical scrolling lists > 20 items, prefer FlashList (see CLAUDE.md).
