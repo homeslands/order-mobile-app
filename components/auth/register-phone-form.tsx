@@ -32,13 +32,8 @@ export default function RegisterPhoneForm() {
   const { mutate: initiate, isPending } = useInitiateRegistration()
 
   const onSubmit = (data: TPhoneSchema) => {
-    console.log('[initiateRegistration] REQUEST:', data.phonenumber)
     initiate(data.phonenumber, {
       onSuccess: (res) => {
-        console.log(
-          '[initiateRegistration] RESPONSE:',
-          JSON.stringify(res, null, 2),
-        )
         if (res.result?.isRegistered === true) {
           showToast(t('register.phoneAlreadyRegistered'), 'warning')
           navigateNative.replace('/auth/login')
@@ -57,14 +52,6 @@ export default function RegisterPhoneForm() {
         }
       },
       onError: (err) => {
-        console.log(
-          '[initiateRegistration] ERROR status:',
-          (err as any)?.response?.status,
-        )
-        console.log(
-          '[initiateRegistration] ERROR data:',
-          JSON.stringify((err as any)?.response?.data, null, 2),
-        )
         const serverCode = (err as any)?.response?.data?.statusCode
         if (serverCode === 119046) {
           showToast(

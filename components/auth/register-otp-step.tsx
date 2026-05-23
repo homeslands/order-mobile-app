@@ -144,13 +144,8 @@ export default function RegisterOtpStep({
   }, [otpValue, isOtpExpired, phone, shake])
 
   const handleResend = useCallback(() => {
-    console.log('[resendRegistration] REQUEST:', phone)
     resend(phone, {
       onSuccess: (res) => {
-        console.log(
-          '[resendRegistration] RESPONSE:',
-          JSON.stringify(res, null, 2),
-        )
         // Use server-provided expiry time for accuracy, persist for 119046 recovery
         const newExpiresAt =
           res.result?.expiresAt ??
@@ -164,15 +159,7 @@ export default function RegisterOtpStep({
         setOtpValue('')
         showToast(t('register.otpResent'), 'success')
       },
-      onError: (err) => {
-        console.log(
-          '[resendRegistration] ERROR status:',
-          (err as any)?.response?.status,
-        )
-        console.log(
-          '[resendRegistration] ERROR data:',
-          JSON.stringify((err as any)?.response?.data, null, 2),
-        )
+      onError: () => {
         showToast(t('register.otpResendFailed'), 'error')
       },
     })

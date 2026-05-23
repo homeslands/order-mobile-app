@@ -88,30 +88,14 @@ export default function RegisterPasswordForm({
       return
     }
     const requestPayload = { phonenumber: phone, otp, password: data.password }
-    console.log(
-      '[completeRegistration] REQUEST:',
-      JSON.stringify(requestPayload, null, 2),
-    )
     try {
       const res = await completeRegistration(requestPayload)
-      console.log(
-        '[completeRegistration] RESPONSE:',
-        JSON.stringify(res, null, 2),
-      )
       await handleAuthSuccess(res.result, () => {
         asyncStorage.removeItem(`register:otp:${phone}`)
         showToast(t('register.registerSuccess'), 'success')
         navigateNative.replace('/auth/register/profile')
       })
     } catch (err) {
-      console.log(
-        '[completeRegistration] ERROR status:',
-        (err as any)?.response?.status,
-      )
-      console.log(
-        '[completeRegistration] ERROR data:',
-        JSON.stringify((err as any)?.response?.data, null, 2),
-      )
       const serverCode = (err as any)?.response?.data?.statusCode
       const status = (err as any)?.response?.status
       if (serverCode === 119048) {
