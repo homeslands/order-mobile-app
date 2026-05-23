@@ -18,6 +18,7 @@ export const Textarea = forwardRef<TextInput, TextareaProps>(
     return (
       <TextInput
         ref={ref}
+        maxFontSizeMultiplier={1.2}
         multiline
         textAlignVertical="top"
         className={cn(

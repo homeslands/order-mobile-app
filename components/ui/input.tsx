@@ -14,6 +14,7 @@ export const Input = forwardRef<TextInput, InputProps>(
     return (
       <TextInput
         ref={ref}
+        maxFontSizeMultiplier={1.2}
         className={cn(
           'h-10 rounded-lg border bg-white px-3 py-2 text-base dark:bg-[#121212]',
           'text-gray-900 dark:text-white',
