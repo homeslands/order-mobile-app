@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import Animated, {
+import {
   useAnimatedStyle,
   useAnimatedReaction,
   runOnJS,
@@ -7,6 +7,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { colors } from '@/constants'
+import { AnimatedText } from '@/components/ui/animated-text'
 import { Text } from '@/components/ui/text'
 
 interface AnimatedCountdownTextProps {
@@ -71,13 +72,13 @@ export const AnimatedCountdownText = React.memo(
     }, [label])
 
     return (
-      <Animated.Text
+      <AnimatedText
         style={[animatedStyle]}
         className={`text-center font-sans text-sm ${className}`}
       >
         <Text>{labelText}</Text>
         <AnimatedTime countdownShared={countdownShared} />
-      </Animated.Text>
+      </AnimatedText>
     )
   },
 )
@@ -153,9 +154,9 @@ export const AnimatedCountdownColor = React.memo(
     }, [isDark, warningThreshold])
 
     return (
-      <Animated.Text style={[animatedStyle]} className={className}>
+      <AnimatedText style={[animatedStyle]} className={className}>
         {children}
-      </Animated.Text>
+      </AnimatedText>
     )
   },
 )

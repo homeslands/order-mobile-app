@@ -141,7 +141,7 @@ export default function RegisterOtpStep({
     navigateNative.push(
       `/auth/register/password?phone=${encodeURIComponent(phone)}&otp=${encodeURIComponent(otpValue)}&expiresAt=${encodeURIComponent(otpExpiresAt)}`,
     )
-  }, [otpValue, isOtpExpired, phone, shake])
+  }, [otpValue, isOtpExpired, phone, shake, otpExpiresAt])
 
   const handleResend = useCallback(() => {
     resend(phone, {

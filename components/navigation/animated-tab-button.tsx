@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import type { SharedValue } from 'react-native-reanimated'
 
+import { AnimatedText } from '@/components/ui/animated-text'
 import { NativeGesturePressable } from './native-gesture-pressable'
 
 type AnimatedTabButtonProps = {
@@ -108,12 +109,12 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
           </Animated.View>
         </View>
         {label ? (
-          <Animated.Text
+          <AnimatedText
             style={[styles.label, { maxWidth: itemWidth - 20 }, labelStyle]}
             numberOfLines={1}
           >
             {label}
-          </Animated.Text>
+          </AnimatedText>
         ) : null}
       </Animated.View>
     </NativeGesturePressable>

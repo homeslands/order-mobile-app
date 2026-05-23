@@ -96,8 +96,9 @@ export default function RegisterPasswordForm({
         navigateNative.replace('/auth/register/profile')
       })
     } catch (err) {
-      const serverCode = (err as any)?.response?.data?.statusCode
-      const status = (err as any)?.response?.status
+      const apiErr = err as { response?: { data?: { statusCode?: number }; status?: number } }
+      const serverCode = apiErr?.response?.data?.statusCode
+      const status = apiErr?.response?.status
       if (serverCode === 119048) {
         showToast(t('register.otpExpiredResend'), 'warning')
         navigateNative.replace(

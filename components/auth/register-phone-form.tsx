@@ -52,7 +52,7 @@ export default function RegisterPhoneForm() {
         }
       },
       onError: (err) => {
-        const serverCode = (err as any)?.response?.data?.statusCode
+        const serverCode = (err as { response?: { data?: { statusCode?: number } } })?.response?.data?.statusCode
         if (serverCode === 119046) {
           showToast(
             t('register.otpAlreadySent', { phone: data.phonenumber }),

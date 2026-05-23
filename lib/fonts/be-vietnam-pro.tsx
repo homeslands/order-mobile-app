@@ -29,7 +29,7 @@ export function useBeVietnamProFont() {
       RNText.defaultProps = {
         ...(RNText.defaultProps ?? {}),
         style: { fontFamily: FONT_REGULAR },
-        maxFontSizeMultiplier: 1.2,
+        maxFontSizeMultiplier: 1.0,
       }
 
       const RNTextInput = TextInput as typeof TextInput & {
@@ -37,7 +37,7 @@ export function useBeVietnamProFont() {
       }
       RNTextInput.defaultProps = {
         ...(RNTextInput.defaultProps ?? {}),
-        maxFontSizeMultiplier: 1.2,
+        maxFontSizeMultiplier: 1.0,
       }
     }
   }, [loaded, error])

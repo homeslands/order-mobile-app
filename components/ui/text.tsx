@@ -35,10 +35,6 @@ function fontSizeFromClassName(className: string | undefined): number | undefine
 export const Text = forwardRef<RNText, AppTextProps>(function Text(props, ref) {
   const scale = useFontScale()
 
-  if (scale === 1) {
-    return <RNText maxFontSizeMultiplier={1.2} {...props} ref={ref} />
-  }
-
   const flat = StyleSheet.flatten(props.style) as { fontSize?: number } | null
   const baseFontSize =
     flat?.fontSize ?? fontSizeFromClassName(props.className) ?? 14
@@ -46,8 +42,8 @@ export const Text = forwardRef<RNText, AppTextProps>(function Text(props, ref) {
 
   return (
     <RNText
-      maxFontSizeMultiplier={1.2}
       {...props}
+      allowFontScaling={false}
       style={scaledStyle}
       ref={ref}
     />

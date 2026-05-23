@@ -12,7 +12,7 @@ import {
   View,
   useColorScheme,
 } from 'react-native'
-import Animated, {
+import {
   interpolate,
   useAnimatedStyle,
   useSharedValue,
@@ -40,6 +40,7 @@ import { navigateNative } from '@/lib/navigation'
 import { verifyEmailSchema, type TVerifyEmailSchema } from '@/schemas'
 import { useAuthStore, useUserStore } from '@/stores'
 import { showErrorToast, showToast } from '@/utils'
+import { AnimatedText } from '@/components/ui/animated-text'
 import { Text } from '@/components/ui/text'
 
 function applyOtpBuffer(expiresAt: string): string {
@@ -104,7 +105,7 @@ const VerifyEmailHeader = React.memo(function VerifyEmailHeader({
             color={isDark ? colors.gray[50] : colors.gray[900]}
           />
         </Pressable>
-        <Animated.Text
+        <AnimatedText
           style={[
             headerStyles.title,
             { color: isDark ? colors.gray[50] : colors.gray[900] },
@@ -113,7 +114,7 @@ const VerifyEmailHeader = React.memo(function VerifyEmailHeader({
           numberOfLines={1}
         >
           {title}
-        </Animated.Text>
+        </AnimatedText>
         <View style={headerStyles.circleBtn} />
       </View>
     </View>

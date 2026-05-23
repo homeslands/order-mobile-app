@@ -10,6 +10,7 @@ import type { SharedValue } from 'react-native-reanimated'
 
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
+import { AnimatedText } from '@/components/ui/animated-text'
 import { Text } from '@/components/ui/text'
 
 interface AnimatedProfileHeaderProps {
@@ -205,7 +206,7 @@ export const AnimatedProfileHeader = ({
             {firstName} {lastName}
           </Text>
 
-          <Animated.Text
+          <AnimatedText
             style={[
               styles.phone,
               phoneStyle,
@@ -216,7 +217,7 @@ export const AnimatedProfileHeader = ({
             numberOfLines={1}
           >
             {phoneNumber || 'Chưa cập nhật'}
-          </Animated.Text>
+          </AnimatedText>
         </Animated.View>
       </Animated.View>
 
