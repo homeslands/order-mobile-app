@@ -95,7 +95,11 @@ export default tseslint.config(
   },
   // Allow direct react-native Text import in the wrapper itself and the font patch
   {
-    files: ['components/ui/text.tsx', 'lib/fonts/be-vietnam-pro.tsx'],
+    files: [
+      'components/ui/text.tsx',
+      'lib/fonts/be-vietnam-pro.tsx',
+      'components/profile/font-size-sheet.tsx',
+    ],
     rules: {
       'no-restricted-imports': 'off',
     },
