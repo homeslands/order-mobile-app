@@ -29,8 +29,10 @@ export const useGiftCards = (
     queryFn: () => getGiftCards(params),
     placeholderData: keepPreviousData,
     select: (data) => data.result,
-    staleTime: 30_000,
-    gcTime: 5 * 60_000,
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
+    refetchOnMount: false,
+    meta: { skipGlobalError: true },
     enabled: options?.enabled !== false,
   })
 }

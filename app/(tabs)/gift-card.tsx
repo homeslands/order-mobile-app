@@ -156,6 +156,7 @@ export default function GiftCardScreen() {
   // ── Defer fetch ──────────────────────────────────────────────────────────
   useFocusEffect(
     useCallback(() => {
+      setAllowFetch(false)
       let timer: ReturnType<typeof setTimeout> | null = null
       const task = InteractionManager.runAfterInteractions(() => {
         timer = setTimeout(() => {
@@ -165,13 +166,15 @@ export default function GiftCardScreen() {
       return () => {
         task.cancel()
         if (timer) clearTimeout(timer)
+        setAllowFetch(false)
       }
     }, []),
   )
 
-  const { data, isPending, refetch, isRefetching } = useGiftCards(undefined, {
-    enabled: allowFetch,
-  })
+  const { data, isPending, isError, refetch, isRefetching } = useGiftCards(
+    undefined,
+    { enabled: allowFetch },
+  )
 
   const items = useMemo(() => {
     const list = data?.items ?? []
@@ -400,13 +403,32 @@ export default function GiftCardScreen() {
       </View>
 
       {/* Content */}
-      {!allowFetch || isPending ? (
+      {isPending ? (
         <GiftCardSkeleton />
+      ) : isError || data === null ? (
+        <View style={s.empty}>
+          <Gift size={48} color={colors.gray[300]} />
+          <Text style={[s.emptyText, { color: subColor }]}>
+            {t('menu.loadError')}
+          </Text>
+          <Pressable
+            onPress={() => refetch()}
+            disabled={isRefetching}
+            accessibilityRole="button"
+            accessibilityLabel={t('menu.retry')}
+            style={[
+              s.retryBtn,
+              { backgroundColor: primaryColor, opacity: isRefetching ? 0.5 : 1 },
+            ]}
+          >
+            <Text style={s.retryBtnText}>{t('menu.retry')}</Text>
+          </Pressable>
+        </View>
       ) : items.length === 0 ? (
         <View style={s.empty}>
           <Gift size={48} color={colors.gray[300]} />
           <Text style={[s.emptyText, { color: subColor }]}>
-            Chưa có thẻ quà tặng nào
+            {t('menu.empty')}
           </Text>
         </View>
       ) : (
@@ -537,4 +559,17 @@ const s = StyleSheet.create({
     gap: 12,
   },
   emptyText: { fontSize: 15 },
+  retryBtn: {
+    marginTop: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 10,
+    borderRadius: 999,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  retryBtnText: {
+    color: colors.white.light,
+    fontSize: 14,
+    fontWeight: '600',
+  },
 })
