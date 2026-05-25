@@ -4,7 +4,6 @@ import {
   Dimensions,
   Modal,
   Pressable,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native'
@@ -16,6 +15,7 @@ import Animated, {
 
 import { SPRING_CONFIGS } from '@/constants'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Text } from '@/components/ui/text'
 
 interface DrawerContextType {
   open: boolean

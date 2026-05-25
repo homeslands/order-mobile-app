@@ -1,45 +1,101 @@
 /**
  * useNotificationResponse — handle user tapping a notification (background + cold start).
  *
- * expo-notifications fires this for:
- * - Background: user taps system notification while app is in background
- * - Cold start: user taps notification that opens the app from killed state
+ * Two parallel paths — both needed because FCM notifications from
+ * @react-native-firebase/messaging are NOT visible to expo-notifications on Android:
  *
- * Both cases are handled by the same listener + getLastNotificationResponseAsync.
+ * Path A — RNFirebase:
+ *   - getInitialNotification()  → cold start
+ *   - onNotificationOpenedApp() → background tap
+ *
+ * Path B — expo-notifications (iOS local / in-app alerts):
+ *   - addNotificationResponseReceivedListener → background tap
+ *   - getLastNotificationResponseAsync        → cold start, guarded by launch-time check
+ *
+ * All message codes including ORDER_NEEDS_READY_TO_GET navigate via
+ * navigateFromNotification — no special modal path for customers.
  */
-import { useEffect, useRef } from 'react'
+import { useEffect } from 'react'
 import * as Notifications from 'expo-notifications'
+import messaging, {
+  type FirebaseMessagingTypes,
+} from '@react-native-firebase/messaging'
 
+import {
+  hasProcessed,
+  markProcessed,
+  fcmMessageId,
+} from '@/lib/notification-dedup'
+import { isResponseFromThisSession } from '@/lib/app-launch-time'
 import { navigateFromNotification } from '@/lib/notification-navigation'
 import { useNotificationStore } from '@/stores/notification.store'
 
-// Giới hạn số notification ID đã xử lý — tránh Set tăng vô hạn trong session dài.
-// 100 ID gần nhất là đủ để dedup; notification cũ hơn 100 lần không thể bị fire lại.
-const MAX_PROCESSED_IDS = 100
+function expoUnifiedId(response: Notifications.NotificationResponse): string {
+  const data = response.notification.request.content.data as
+    | Record<string, string>
+    | undefined
+  const dataMsgId = data?.['google.message_id'] ?? data?.['gcm.message_id']
+  return dataMsgId ?? response.notification.request.identifier
+}
 
 export function useNotificationResponse(enabled = true) {
-  const processedRef = useRef<Set<string>>(new Set())
-
   useEffect(() => {
     if (!enabled) return
 
-    const handleResponse = (response: Notifications.NotificationResponse) => {
-      const id = response.notification.request.identifier
-      // Dedup — avoid processing same notification twice
-      if (processedRef.current.has(id)) return
-      processedRef.current.add(id)
-      // Trim oldest entries khi vượt giới hạn
-      if (processedRef.current.size > MAX_PROCESSED_IDS) {
-        const oldest = processedRef.current.values().next().value
-        if (oldest !== undefined) processedRef.current.delete(oldest)
-      }
+    // ── Path A: RNFirebase ────────────────────────────────────────────────────
+
+    const handleFcmMessage = (
+      remoteMessage: FirebaseMessagingTypes.RemoteMessage,
+      mode: 'cold-start' | 'background-tap',
+    ) => {
+      const id = fcmMessageId(remoteMessage)
+      if (hasProcessed(id)) return
+      markProcessed(id)
+
+      const rawData = remoteMessage.data as Record<string, string> | undefined
+
+      useNotificationStore.getState().addNotification(
+        {
+          notification: {
+            title: remoteMessage.notification?.title ?? undefined,
+            body: remoteMessage.notification?.body ?? undefined,
+          },
+          data: rawData ?? {},
+          messageId: id,
+        },
+        { markAsRead: false },
+      )
+
+      navigateFromNotification(rawData, mode)
+    }
+
+    messaging()
+      .getInitialNotification()
+      .then((remoteMessage) => {
+        if (remoteMessage) handleFcmMessage(remoteMessage, 'cold-start')
+      })
+      .catch((e) =>
+        // eslint-disable-next-line no-console
+        console.warn('[FCM] getInitialNotification failed:', e),
+      )
+
+    const unsubOpened = messaging().onNotificationOpenedApp((rm) =>
+      handleFcmMessage(rm, 'background-tap'),
+    )
+
+    // ── Path B: expo-notifications ───────────────────────────────────────────
+
+    const handleExpoResponse = (
+      response: Notifications.NotificationResponse,
+      mode: 'cold-start' | 'background-tap',
+    ) => {
+      const id = expoUnifiedId(response)
+      if (hasProcessed(id)) return
+      markProcessed(id)
 
       const content = response.notification.request.content
       const data = content.data as Record<string, string> | undefined
 
-      // Add notification to store (background FCM never goes through foreground
-      // listener, so it won't be in the store yet). This allows screens like the
-      // payment screen to detect ORDER_PAID via hasOrderPaidNotification.
       useNotificationStore.getState().addNotification(
         {
           notification: {
@@ -52,18 +108,19 @@ export function useNotificationResponse(enabled = true) {
         { markAsRead: false },
       )
 
-      // Navigate to relevant screen
-      navigateFromNotification(data)
+      navigateFromNotification(data, mode)
     }
 
-    // Background tap listener
-    const subscription =
-      Notifications.addNotificationResponseReceivedListener(handleResponse)
+    const subscription = Notifications.addNotificationResponseReceivedListener(
+      (response) => handleExpoResponse(response, 'background-tap'),
+    )
 
-    // Cold start: check if app was opened by tapping a notification
     Notifications.getLastNotificationResponseAsync()
       .then((response) => {
-        if (response) handleResponse(response)
+        if (!response) return
+        const dateMs = response.notification.date
+        if (!isResponseFromThisSession(dateMs)) return
+        handleExpoResponse(response, 'cold-start')
       })
       .catch((e) =>
         // eslint-disable-next-line no-console
@@ -74,6 +131,7 @@ export function useNotificationResponse(enabled = true) {
       )
 
     return () => {
+      unsubOpened()
       subscription.remove()
     }
   }, [enabled])

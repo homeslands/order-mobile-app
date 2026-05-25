@@ -13,7 +13,6 @@ import {
   Platform,
   Pressable,
   StyleSheet,
-  Text,
   View,
   useColorScheme,
 } from 'react-native'
@@ -21,6 +20,7 @@ import {
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { navigateNative } from '@/lib/navigation'
+import { Text } from '@/components/ui/text'
 
 interface FloatingHeaderProps {
   title: string

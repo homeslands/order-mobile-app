@@ -1,6 +1,6 @@
 import { Image } from 'expo-image'
 import React, { memo } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 
 import { Images } from '@/assets/images'
 import {
@@ -16,6 +16,7 @@ import {
   capitalizeFirstLetter,
   formatCurrency,
 } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 // ─── Shared types ──────────────────────────────────────────────────────────
 

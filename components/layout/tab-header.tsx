@@ -11,7 +11,7 @@
  */
 import { Image } from 'expo-image'
 import React, { memo } from 'react'
-import { StyleSheet, Text, View, useColorScheme } from 'react-native'
+import { StyleSheet, View, useColorScheme } from 'react-native'
 import Animated from 'react-native-reanimated'
 import type { AnimatedStyle } from 'react-native-reanimated'
 import type { StyleProp, ViewStyle } from 'react-native'
@@ -19,6 +19,7 @@ import type { StyleProp, ViewStyle } from 'react-native'
 import { Images } from '@/assets/images'
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
+import { Text } from '@/components/ui/text'
 
 export interface TabHeaderProps {
   /** 'logo' = brand logo (Home), 'title' = text title (Menu, Cart...) */
@@ -37,6 +38,10 @@ const LOGO_HEIGHT = 32
 const HEADER_PADDING_H = 16
 const HEADER_PADDING_BOTTOM = 12
 const HEADER_PADDING_TOP = 4
+
+/** Height of the header row (excluding status bar inset) — used to position overlays below the header. */
+export const TAB_HEADER_CONTENT_HEIGHT =
+  HEADER_PADDING_TOP + LOGO_HEIGHT + HEADER_PADDING_BOTTOM // 4 + 32 + 12 = 48
 
 export const TabHeader = memo(function TabHeader({
   variant,

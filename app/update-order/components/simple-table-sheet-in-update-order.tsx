@@ -8,19 +8,14 @@ import type { ListRenderItem } from '@shopify/flash-list'
 import { CheckCircle } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native'
 
 import { colors } from '@/constants'
 import { TABLE_SELECT_ITEM_HEIGHT } from '@/constants/list-item-sizes'
 import { useTables } from '@/hooks'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import type { ITable } from '@/types'
+import { Text } from '@/components/ui/text'
 
 const SNAP_POINTS = ['50%']
 // item height (48) + separator (8)

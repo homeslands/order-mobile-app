@@ -23,7 +23,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   useColorScheme,
   View,
@@ -37,6 +36,7 @@ import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { useRunAfterTransition } from '@/hooks/use-run-after-transition'
 import { navigateNative } from '@/lib/navigation'
 import { formatPoints } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 // ─── Gradient height (header zone) ───────────────────────────────────────────
 

@@ -10,7 +10,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
   useColorScheme,
 } from 'react-native'
@@ -21,6 +20,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated'
+import { Text } from '@/components/ui/text'
 
 const QR_FADE_IN_MS = 250
 const QR_FADE_OUT_MS = 150

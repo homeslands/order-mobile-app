@@ -7,12 +7,13 @@ import {
 import { X } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, StyleSheet, Text, View, useColorScheme } from 'react-native'
+import { Pressable, StyleSheet, View, useColorScheme } from 'react-native'
 import QRCode from 'react-native-qrcode-svg'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '@/constants'
 import { useUserStore } from '@/stores'
 import { useScanSheetStore } from '@/stores/scan-sheet.store'
+import { Text } from '@/components/ui/text'
 
 const QR_SIZE = 220
 const SNAP_POINTS = ['62%']

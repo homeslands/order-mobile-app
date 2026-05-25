@@ -36,7 +36,8 @@
     "testEnvironment": "node",
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/$1",
-      "^expo/src/winter.*$": "<rootDir>/__mocks__/expo-winter.js"
+      "^expo/src/winter.*$": "<rootDir>/__mocks__/expo-winter.js",
+      "^@react-native-async-storage/async-storage$": "@react-native-async-storage/async-storage/jest/async-storage-mock"
     },
     "transformIgnorePatterns": [
       "node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|use-debounce)"
@@ -93,6 +94,7 @@
     "expo-web-browser": "~15.0.10",
     "i18next": "^25.7.3",
     "lodash": "^4.17.21",
+    "lottie-react-native": "~7.3.1",
     "lucide-react-native": "^0.561.0",
     "nativewind": "^4.2.1",
     "navigation-bar-color": "file:./modules/navigation-bar-color",

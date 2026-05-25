@@ -15,7 +15,6 @@ import {
   InteractionManager,
   Pressable,
   ScrollView,
-  Text,
   View,
 } from 'react-native'
 
@@ -31,6 +30,7 @@ import { navigateNative } from '@/lib/navigation'
 import { useOrderFlowStore, useBranchStore, useUserStore } from '@/stores'
 import type { IMenuItem, IOrderItem } from '@/types'
 import { formatCurrency, showToast } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 /** Ngày cố định trong session — thay useRef vì linter cấm đọc ref trong render */
 const SESSION_DATE_STR = new Date().toISOString().split('T')[0]

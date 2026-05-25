@@ -7,10 +7,10 @@ export async function getProfile(): Promise<IApiResponse<IUserInfo>> {
 }
 
 export type UpdateProfilePayload = {
-  firstName?: string
-  lastName?: string
-  address?: string
-  dob?: string
+  firstName?: string | null
+  lastName?: string | null
+  address?: string | null
+  dob?: string | null
 }
 
 export async function updateProfile(

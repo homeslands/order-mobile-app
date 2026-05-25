@@ -84,6 +84,12 @@ export function usePostAuthActions() {
       const profileResult = profile.data?.result
 
       if (!profileResult) {
+        const capturedToken = useUserStore.getState().deviceToken ?? undefined
+        const { cleanupTokenOnLogout } = await import('@/lib/fcm-token-manager')
+        await Promise.race([
+          cleanupTokenOnLogout(capturedToken),
+          new Promise<void>((r) => setTimeout(r, 3000)),
+        ]).catch(() => {})
         setLogout()
         removeUserInfo()
         throw new Error('Failed to fetch user profile')
@@ -91,6 +97,12 @@ export function usePostAuthActions() {
 
       // 3. Chặn tài khoản không phải CUSTOMER
       if (profileResult.role?.name !== Role.CUSTOMER) {
+        const capturedToken = useUserStore.getState().deviceToken ?? undefined
+        const { cleanupTokenOnLogout } = await import('@/lib/fcm-token-manager')
+        await Promise.race([
+          cleanupTokenOnLogout(capturedToken),
+          new Promise<void>((r) => setTimeout(r, 3000)),
+        ]).catch(() => {})
         setLogout()
         removeUserInfo()
         throw new Error('Tài khoản không có quyền truy cập ứng dụng này')

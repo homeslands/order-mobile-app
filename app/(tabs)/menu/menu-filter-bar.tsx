@@ -4,12 +4,12 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   View,
 } from 'react-native'
 
 import { colors } from '@/constants/colors.constant'
+import { Text } from '@/components/ui/text'
 
 export type CatalogChipData = { slug: string; name: string }
 

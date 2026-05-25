@@ -9,11 +9,12 @@ import {
 } from '@gorhom/bottom-sheet'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { Pressable, StyleSheet, useColorScheme, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '@/constants'
 import { useLogoutSheetStore } from '@/stores/logout-sheet.store'
+import { Text } from '@/components/ui/text'
 
 const LOGOUT_SHEET_SNAP = ['30%']
 
@@ -21,15 +22,22 @@ const LogoutSheetPortal = () => {
   const { visible, onConfirm, close } = useLogoutSheetStore()
   const sheetRef = useRef<BottomSheetModal>(null)
   const isDark = useColorScheme() === 'dark'
+  const isConfirmingRef = useRef(false)
 
   useEffect(() => {
     if (visible) sheetRef.current?.present()
     else sheetRef.current?.dismiss()
   }, [visible])
 
-  const handleConfirm = useCallback(() => {
+  const handleConfirm = useCallback(async () => {
+    if (isConfirmingRef.current) return
+    isConfirmingRef.current = true
     sheetRef.current?.dismiss()
-    onConfirm?.()
+    try {
+      await onConfirm?.()
+    } finally {
+      isConfirmingRef.current = false
+    }
   }, [onConfirm])
 
   const bgStyle = useMemo(

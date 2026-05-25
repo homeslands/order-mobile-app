@@ -24,9 +24,9 @@ export function useUpdateOrderTotals() {
         displayItems: [] as ReturnType<
           typeof calculateOrderDisplayAndTotals
         >['displayItems'],
-        cartTotals: null as ReturnType<
-          typeof calculateOrderDisplayAndTotals
-        >['cartTotals'] | null,
+        cartTotals: null as
+          | ReturnType<typeof calculateOrderDisplayAndTotals>['cartTotals']
+          | null,
         transformedItems: [] as ReturnType<
           typeof transformOrderItemToOrderDetail
         >,

@@ -7,7 +7,7 @@ import {
 } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Text, useColorScheme, View } from 'react-native'
+import { useColorScheme, View } from 'react-native'
 
 import { RadioGroup } from '@/components/ui'
 import { PaymentMethod, Role } from '@/constants'
@@ -17,6 +17,7 @@ import { IOrder, IUserInfo } from '@/types'
 import { formatCurrency } from '@/utils'
 
 import { PaymentMethodOption } from './payment-method-option'
+import { Text } from '@/components/ui/text'
 
 // ─── Pure helpers (no React deps) ────────────────────────────────────────────
 

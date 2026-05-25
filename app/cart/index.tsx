@@ -1,8 +1,9 @@
 import { useRouter } from 'expo-router'
 import React, { Suspense, lazy, useCallback, useState } from 'react'
-import { InteractionManager, Text, TouchableOpacity, View } from 'react-native'
+import { InteractionManager, TouchableOpacity, View } from 'react-native'
 
 import { useRunAfterTransition } from '@/hooks'
+import { Text } from '@/components/ui/text'
 
 const CartContent = lazy(() => import('@/components/cart/cart-content'))
 

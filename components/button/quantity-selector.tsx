@@ -1,8 +1,9 @@
 import { Minus, Plus } from 'lucide-react-native'
 import React from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 
 import { Button } from '@/components/ui'
+import { Text } from '@/components/ui/text'
 
 interface QuantitySelectorProps {
   value: number

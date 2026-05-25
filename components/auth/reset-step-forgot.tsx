@@ -1,12 +1,13 @@
 import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Text, TouchableOpacity, View, useColorScheme } from 'react-native'
+import { TouchableOpacity, View, useColorScheme } from 'react-native'
 
 import { AnimatedCountdownText } from './animated-countdown-text'
 import { ResetPasswordForm } from '@/components/form'
 import { Button } from '@/components/ui'
 import { useAnimatedCountdown, useCountdown } from '@/hooks'
 import { type TResetPasswordSchema } from '@/schemas'
+import { Text } from '@/components/ui/text'
 
 export const ResetStepForgot = React.memo(function ResetStepForgot({
   token,

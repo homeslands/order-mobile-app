@@ -4,11 +4,12 @@
  */
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { Text, View, useColorScheme } from 'react-native'
+import { View, useColorScheme } from 'react-native'
 
 import { Images } from '@/assets/images'
 import { colors } from '@/constants'
 import StoreCarousel from './store-carousel'
+import { Text } from '@/components/ui/text'
 
 const STORE_IMAGES = [
   Images.News.Article1_1,
@@ -96,7 +97,7 @@ export const BrandSection = React.memo(function BrandSection() {
       </Text>
 
       {/* Description */}
-      <Text className="mb-2 text-center text-base leading-7 text-foreground">
+      <Text className="mb-2 text-center text-base leading-7 text-muted-foreground">
         {t('homeDescription')}
       </Text>
       <Text className="mb-5 text-center text-base leading-7 text-muted-foreground">

@@ -1,11 +1,12 @@
 import React from 'react'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
-import { Pressable, Text, View } from 'react-native'
+import { Pressable, View } from 'react-native'
 import Animated from 'react-native-reanimated'
 
 import { ScreenContainer } from '@/components/layout'
 import { useSharedElementSource } from '@/lib/shared-element'
+import { Text } from '@/components/ui/text'
 
 const TEST_IMAGE_URI =
   'https://images.pexels.com/photos/2396220/pexels-photo-2396220.jpeg?auto=compress&cs=tinysrgb&w=800'

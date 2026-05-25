@@ -1,5 +1,10 @@
 import { LoginForm } from '@/components/auth'
-import { DeleteAccountSheet, LanguageSheet, ThemeSheet } from '@/components/profile'
+import {
+  DeleteAccountSheet,
+  FontSizeSheet,
+  LanguageSheet,
+  ThemeSheet,
+} from '@/components/profile'
 import { Skeleton } from '@/components/ui'
 import { colors, publicFileURL } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
@@ -34,6 +39,7 @@ import {
   SunMoon,
   Trash2,
   Trophy,
+  Type,
   User,
 } from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -44,7 +50,6 @@ import {
   Platform,
   Pressable,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   useColorScheme,
@@ -56,6 +61,7 @@ import {
 import Animated from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useProfileAnimation } from './use-profile-animation'
+import { Text } from '@/components/ui/text'
 
 const AVATAR_SIZE = 100
 const AVATAR_TOP = 60
@@ -480,6 +486,16 @@ const ProfileTest = () => {
   const openThemeSheet = useCallback(() => setIsThemeSheetOpen(true), [])
   const closeThemeSheet = useCallback(() => setIsThemeSheetOpen(false), [])
 
+  const [isFontSizeSheetOpen, setIsFontSizeSheetOpen] = useState(false)
+  const openFontSizeSheet = useCallback(
+    () => setIsFontSizeSheetOpen(true),
+    [],
+  )
+  const closeFontSizeSheet = useCallback(
+    () => setIsFontSizeSheetOpen(false),
+    [],
+  )
+
   const openQRSelection = useQRSelectionSheetStore((s) => s.open)
 
   const openEdit = useCallback(() => {
@@ -569,13 +585,16 @@ const ProfileTest = () => {
 
   const { t: tToast } = useTranslation('toast')
 
-  const handleLogoutConfirm = useCallback(() => {
+  const handleLogoutConfirm = useCallback(async () => {
     // Capture token BEFORE removeUserInfo() clears it — avoids race condition
     // where cleanupTokenOnLogout() reads null and skips server unregister
     const capturedToken = useUserStore.getState().deviceToken
-    import('@/lib/fcm-token-manager').then((m) => {
-      m.cleanupTokenOnLogout(capturedToken ?? undefined).catch(() => {})
-    })
+    const { cleanupTokenOnLogout } = await import('@/lib/fcm-token-manager')
+    // Race with 3s timeout so slow network doesn't block logout UX
+    await Promise.race([
+      cleanupTokenOnLogout(capturedToken ?? undefined),
+      new Promise<void>((r) => setTimeout(r, 3000)),
+    ]).catch(() => {})
     // Clear notification store so next login starts with a clean slate
     useNotificationStore.getState().clearAll()
     clearOrderDisplayCache()
@@ -607,14 +626,18 @@ const ProfileTest = () => {
   }, [t])
 
   const handleDeleteSuccess = useCallback(() => {
-    const capturedToken = useUserStore.getState().deviceToken
-    import('@/lib/fcm-token-manager').then((m) => {
-      m.cleanupTokenOnLogout(capturedToken ?? undefined).catch(() => {})
-    })
-    useNotificationStore.getState().clearAll()
     setLogout()
     removeUserInfo()
+    useNotificationStore.getState().clearAll()
     router.replace('/(tabs)/home' as never)
+    // FCM cleanup runs in background — không block navigation
+    const capturedToken = useUserStore.getState().deviceToken
+    void import('@/lib/fcm-token-manager').then(({ cleanupTokenOnLogout }) =>
+      Promise.race([
+        cleanupTokenOnLogout(capturedToken ?? undefined),
+        new Promise<void>((r) => setTimeout(r, 3000)),
+      ]).catch(() => {}),
+    )
   }, [removeUserInfo, setLogout, router])
 
   if (needsUserInfo || !userInfo) {
@@ -830,6 +853,20 @@ const ProfileTest = () => {
                 ]}
               />
               <MenuItem
+                icon={Type}
+                iconColor={ICON_COLORS.teal}
+                title={t('profile.fontSize.title', 'Cỡ chữ')}
+                onPress={openFontSizeSheet}
+                textColor={theme.text}
+                textMuted={theme.textMuted}
+              />
+              <View
+                style={[
+                  styles.menuItemDivider,
+                  { backgroundColor: theme.divider },
+                ]}
+              />
+              <MenuItem
                 icon={Trash2}
                 iconColor={ICON_COLORS.red}
                 title={t('profile.deleteAccount.title', 'Xoá tài khoản')}
@@ -880,6 +917,12 @@ const ProfileTest = () => {
       <ThemeSheet
         visible={isThemeSheetOpen}
         onClose={closeThemeSheet}
+        isDark={isDark}
+        primaryColor={isDark ? colors.primary.dark : colors.primary.light}
+      />
+      <FontSizeSheet
+        visible={isFontSizeSheetOpen}
+        onClose={closeFontSizeSheet}
         isDark={isDark}
         primaryColor={isDark ? colors.primary.dark : colors.primary.light}
       />

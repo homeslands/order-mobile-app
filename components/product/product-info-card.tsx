@@ -1,9 +1,10 @@
 import { formatCurrencyNative } from 'cart-price-calc'
 import React from 'react'
-import { StyleSheet, Text, View, useColorScheme } from 'react-native'
+import { StyleSheet, View, useColorScheme } from 'react-native'
 
 import { colors } from '@/constants'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
+import { Text } from '@/components/ui/text'
 
 type ProductInfoCardProps = {
   name: string

@@ -12,9 +12,10 @@ import {
 import { CheckCircle } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, StyleSheet, View } from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import type { ListRenderItem } from '@shopify/flash-list'
+import { Text } from '@/components/ui/text'
 
 const TABLE_SHEET_SNAP = ['50%']
 // item height (48) + separator (8)

@@ -4,15 +4,13 @@ import {
   ScrollView,
   useColorScheme,
 } from 'react-native'
-
 import { ScreenContainer } from '@/components/layout'
-import RegisterForm from '@/components/auth/register-form'
 import { colors } from '@/constants'
+import RegisterPhoneForm from '@/components/auth/register-phone-form'
 
-export default function RegisterScreen() {
+export default function RegisterPhoneScreen() {
   const isDark = useColorScheme() === 'dark'
   const bgColor = isDark ? colors.background.dark : '#ffffff'
-
   return (
     <ScreenContainer
       edges={['top']}
@@ -28,7 +26,7 @@ export default function RegisterScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <RegisterForm />
+          <RegisterPhoneForm />
         </ScrollView>
       </KeyboardAvoidingView>
     </ScreenContainer>

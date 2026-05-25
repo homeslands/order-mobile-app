@@ -5,11 +5,12 @@ import BottomSheet, {
 } from '@gorhom/bottom-sheet'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Text, useColorScheme, View } from 'react-native'
+import { useColorScheme, View } from 'react-native'
 
 import { colors } from '@/constants'
 import { useOrderFlowStore } from '@/stores'
 import { IProductVariant } from '@/types'
+import { Text } from '@/components/ui/text'
 
 let sheetRef: BottomSheet | null = null
 let openCallback: ((itemId: string) => void) | null = null

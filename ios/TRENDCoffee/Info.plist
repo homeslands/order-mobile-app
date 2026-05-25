@@ -19,7 +19,7 @@
     <key>CFBundlePackageType</key>
     <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
     <key>CFBundleShortVersionString</key>
-    <string>2.2.11</string>
+    <string>2.3.1</string>
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleURLTypes</key>
@@ -33,7 +33,7 @@
       </dict>
     </array>
     <key>CFBundleVersion</key>
-    <string>50</string>
+    <string>53</string>
     <key>GMSApiKey</key>
     <string>AIzaSyDWHm2jppI3-aSTsRORXr5R6sFeqRhY9XQ</string>
     <key>ITSAppUsesNonExemptEncryption</key>
@@ -51,8 +51,16 @@
     </dict>
     <key>NSCameraUsageDescription</key>
     <string>Cho phép ứng dụng sử dụng camera để chụp ảnh đại diện.</string>
+    <key>NSFaceIDUsageDescription</key>
+    <string>Allow $(PRODUCT_NAME) to access your Face ID biometric data.</string>
+    <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>Allow $(PRODUCT_NAME) to access your location</string>
+    <key>NSLocationAlwaysUsageDescription</key>
+    <string>Allow $(PRODUCT_NAME) to access your location</string>
     <key>NSLocationWhenInUseUsageDescription</key>
     <string>Ứng dụng cần quyền truy cập vị trí để giao hàng đến đúng địa chỉ.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Allow $(PRODUCT_NAME) to access your microphone</string>
     <key>NSPhotoLibraryAddUsageDescription</key>
     <string>Cho phép ứng dụng lưu ảnh hoá đơn và mã QR thanh toán vào thư viện ảnh.</string>
     <key>NSPhotoLibraryUsageDescription</key>

@@ -5,13 +5,14 @@ import BottomSheet, {
 } from '@gorhom/bottom-sheet'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, Text, useColorScheme, View } from 'react-native'
+import { ActivityIndicator, useColorScheme, View } from 'react-native'
 
 import TableRow from '@/components/select/table-row'
 import { colors, TableStatus } from '@/constants'
 import { useTables } from '@/hooks'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import { ITable } from '@/types'
+import { Text } from '@/components/ui/text'
 
 let sheetRef: BottomSheet | null = null
 

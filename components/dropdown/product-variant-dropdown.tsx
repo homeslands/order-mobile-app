@@ -1,7 +1,7 @@
 import { Check, ChevronDown } from 'lucide-react-native'
 import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Text, TouchableOpacity, useColorScheme, View } from 'react-native'
+import { TouchableOpacity, useColorScheme, View } from 'react-native'
 
 import {
   DropdownMenu,
@@ -10,6 +10,7 @@ import {
 } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import { IProductVariant } from '@/types'
+import { Text } from '@/components/ui/text'
 
 interface ProductVariantDropdownProps {
   defaultValue?: string

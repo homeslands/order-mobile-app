@@ -6,11 +6,12 @@
  */
 import { Bell } from 'lucide-react-native'
 import React, { memo, useCallback } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 
 import { colors } from '@/constants'
 import { navigateNative } from '@/lib/navigation'
 import { useNotificationStore } from '@/stores/notification.store'
+import { Text } from '@/components/ui/text'
 
 export const NotificationBell = memo(function NotificationBell({
   color,
@@ -33,7 +34,7 @@ export const NotificationBell = memo(function NotificationBell({
       {unreadCount > 0 && (
         <View style={s.badge}>
           <Text style={s.badgeText}>
-            {unreadCount > 99 ? '99+' : unreadCount}
+            {unreadCount > 9 ? '9+' : unreadCount}
           </Text>
         </View>
       )}

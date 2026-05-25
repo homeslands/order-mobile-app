@@ -1,7 +1,7 @@
 import { Trash2, TriangleAlert } from 'lucide-react-native'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Text, useColorScheme, View } from 'react-native'
+import { useColorScheme, View } from 'react-native'
 
 import { Button } from '@/components/ui'
 import { colors } from '@/constants'
@@ -10,6 +10,7 @@ import { useOrderFlowStore } from '@/stores'
 import { IOrderItem } from '@/types'
 
 import { ConfirmationDialog } from '@/components/dialog/confirmation-dialog'
+import { Text } from '@/components/ui/text'
 
 interface RemoveOrderItemInUpdateOrderDialogProps {
   orderItem: IOrderItem

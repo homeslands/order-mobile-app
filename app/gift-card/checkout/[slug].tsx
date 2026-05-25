@@ -10,7 +10,13 @@
 import { Image as ExpoImage } from 'expo-image'
 import { useLocalSearchParams } from 'expo-router'
 import { useTranslation } from 'react-i18next'
-import { CircleX, Download, Smartphone, Timer, WifiOff } from 'lucide-react-native'
+import {
+  CircleX,
+  Download,
+  Smartphone,
+  Timer,
+  WifiOff,
+} from 'lucide-react-native'
 import React, {
   memo,
   useCallback,
@@ -25,7 +31,6 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -62,6 +67,7 @@ import {
   formatPoints,
   showErrorToastMessage,
 } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 // Payment QR expires 15 minutes after initiation
 const QR_EXPIRY_SECONDS = 900
@@ -222,7 +228,10 @@ const QRSection = memo(function QRSection({
   const [errorUrl, setErrorUrl] = useState<string | null>(null)
   const imgError = !!qrCode && errorUrl === qrCode
 
-  const handleImgError = useCallback(() => setErrorUrl(qrCode ?? null), [qrCode])
+  const handleImgError = useCallback(
+    () => setErrorUrl(qrCode ?? null),
+    [qrCode],
+  )
   const handleImgRetry = useCallback(() => setErrorUrl(null), [])
 
   const handleDownload = useCallback(() => {

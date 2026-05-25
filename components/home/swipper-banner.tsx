@@ -1,13 +1,7 @@
 import { FlashList, type FlashListRef } from '@shopify/flash-list'
 import { Image } from 'expo-image'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import {
-  Dimensions,
-  Linking,
-  Pressable,
-  StyleSheet,
-  View,
-} from 'react-native'
+import { Dimensions, Linking, Pressable, StyleSheet, View } from 'react-native'
 import Animated, {
   useAnimatedStyle,
   useDerivedValue,

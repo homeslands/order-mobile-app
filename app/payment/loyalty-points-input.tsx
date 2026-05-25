@@ -4,7 +4,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   View,
 } from 'react-native'
@@ -16,6 +15,7 @@ import {
   useCancelReservationForOrder,
 } from '@/hooks/use-loyalty-point'
 import { formatCurrency, showErrorToastMessage } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 interface LoyaltyPointsInputProps {
   orderSlug: string

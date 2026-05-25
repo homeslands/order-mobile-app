@@ -1,5 +1,5 @@
 import React, { memo, useCallback } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 
 import { colors } from '@/constants'
 import type { IOrder } from '@/types'
@@ -10,6 +10,7 @@ import OrderProductItem, {
   getStatusBadgeColors,
   type OrderDisplayData,
 } from './order-product-item'
+import { Text } from '@/components/ui/text'
 
 // Re-export shared types for consumers
 export { getStatusBadgeColors } from './order-product-item'

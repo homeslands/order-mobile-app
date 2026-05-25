@@ -1,14 +1,16 @@
 import {
+  completeRegistration,
   confirmEmailVerification,
   confirmForgotPassword,
   confirmPhoneNumberVerification,
   deleteAccount,
   initiateForgotPassword,
+  initiateRegistration,
   login,
-  register,
   resendEmailVerification,
   resendOTPForgotPassword,
   resendPhoneNumberVerification,
+  resendRegistration,
   updateLanguage,
   uploadAvatar,
   verifyEmail,
@@ -16,10 +18,10 @@ import {
   verifyPhoneNumber,
 } from '@/api'
 import {
+  ICompleteRegistrationRequest,
   IConfirmForgotPasswordRequest,
   IInitiateForgotPasswordRequest,
   ILoginRequest,
-  IRegisterRequest,
   IResendOTPForgotPasswordRequest,
   IVerifyEmailRequest,
   IVerifyOTPForgotPasswordRequest,
@@ -35,13 +37,24 @@ export const useLogin = () => {
   })
 }
 
-export const useRegister = () => {
-  return useMutation({
-    mutationFn: async (data: IRegisterRequest) => {
-      return register(data)
-    },
+export const useInitiateRegistration = () =>
+  useMutation({
+    mutationFn: (phonenumber: string) => initiateRegistration(phonenumber),
+    meta: { skipGlobalError: true },
   })
-}
+
+export const useResendRegistration = () =>
+  useMutation({
+    mutationFn: (phonenumber: string) => resendRegistration(phonenumber),
+    meta: { skipGlobalError: true },
+  })
+
+export const useCompleteRegistration = () =>
+  useMutation({
+    mutationFn: (params: ICompleteRegistrationRequest) =>
+      completeRegistration(params),
+    meta: { skipGlobalError: true },
+  })
 
 export const useInitiateForgotPassword = () => {
   return useMutation({

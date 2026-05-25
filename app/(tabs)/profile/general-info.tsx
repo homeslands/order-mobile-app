@@ -36,13 +36,13 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   useColorScheme,
   useWindowDimensions,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Text } from '@/components/ui/text'
 
 const AVATAR_SIZE = 100
 const HEADER_HEIGHT = 240
@@ -223,10 +223,13 @@ export default function GeneralInfo() {
   const isLoggingOutRef = useRef(false)
   const openLogoutSheet = useLogoutSheetStore((s) => s.open)
 
-  const handleLogoutConfirm = useCallback(() => {
+  const handleLogoutConfirm = useCallback(async () => {
     isLoggingOutRef.current = true
     const capturedToken = useUserStore.getState().deviceToken ?? undefined
-    cleanupTokenOnLogout(capturedToken).catch(() => {})
+    await Promise.race([
+      cleanupTokenOnLogout(capturedToken),
+      new Promise<void>((r) => setTimeout(r, 3000)),
+    ]).catch(() => {})
     setLogout()
     removeUserInfo()
     router.replace('/(tabs)/home' as never)

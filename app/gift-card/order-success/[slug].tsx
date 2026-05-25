@@ -24,7 +24,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -44,6 +43,7 @@ import { formatCurrency, formatPoints } from '@/utils'
 import { showToast, showErrorToastMessage } from '@/utils/toast'
 import type { IGiftCardDetail } from '@/types'
 import type { IReceiverGiftCardResponse } from '@/types'
+import { Text } from '@/components/ui/text'
 
 // ─── Gift Card Code Item ───────────────────────────────────────────────────────
 

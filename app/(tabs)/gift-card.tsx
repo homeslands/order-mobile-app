@@ -40,7 +40,6 @@ import {
   Pressable,
   RefreshControl,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -64,6 +63,7 @@ import { useGiftCards } from '@/hooks/use-gift-cards'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { useGiftCardStore, useUserStore } from '@/stores'
 import type { IGiftCard } from '@/types'
+import { Text } from '@/components/ui/text'
 
 const ENTRY_FETCH_DELAY_MS = 120
 const ITEM_PADDING_BOTTOM = 12
@@ -401,7 +401,6 @@ export default function GiftCardScreen() {
           </Pressable>
         </View>
       </View>
-
 
       {/* Content */}
       {isPending ? (

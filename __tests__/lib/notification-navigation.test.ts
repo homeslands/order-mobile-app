@@ -44,11 +44,11 @@ describe('getRouteForMessage', () => {
     expect(route).toBeNull()
   })
 
-  it('still routes ORDER_PAID to payment screen', () => {
+  it('routes ORDER_PAID to order detail screen', () => {
     const route = getRouteForMessage({
       message: NotificationMessageCode.ORDER_PAID,
       order: 'order-xyz',
     })
-    expect(route).toBe('/payment/order-xyz')
+    expect(route).toBe('/order/order-xyz')
   })
 })

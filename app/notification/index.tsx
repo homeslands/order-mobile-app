@@ -9,12 +9,10 @@ import {
   Pressable,
   RefreshControl,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
-import * as Notifications from 'expo-notifications'
 
 import { FloatingHeader } from '@/components/navigation/floating-header'
 import { Skeleton } from '@/components/ui'
@@ -30,6 +28,7 @@ import { navigateNative } from '@/lib/navigation'
 import { useUserStore } from '@/stores'
 import { useNotificationStore } from '@/stores/notification.store'
 import type { INotification } from '@/types/notification.type'
+import { Text } from '@/components/ui/text'
 
 // ─── Notification helpers ────────────────────────────────────────────────────
 
@@ -364,10 +363,6 @@ export default function NotificationScreen() {
       useNotificationStore.getState().hydrateFromApi(items)
     }
   }, [apiData?.result?.items])
-
-  useEffect(() => {
-    Notifications.setBadgeCountAsync(0).catch(() => {})
-  }, [])
 
   const handleRefresh = useCallback(() => {
     setPagination({ forSlug: userSlug ?? '', page: 1 })

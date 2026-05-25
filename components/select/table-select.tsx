@@ -1,10 +1,11 @@
 import { ChevronDown } from 'lucide-react-native'
 import { useTranslation } from 'react-i18next'
-import { Text, TouchableOpacity, useColorScheme } from 'react-native'
+import { TouchableOpacity, useColorScheme } from 'react-native'
 
 import { cn } from '@/lib/utils'
 import { useOrderFlowStore } from '@/stores'
 import { OrderTypeEnum } from '@/types'
+import { Text } from '@/components/ui/text'
 
 interface TableSelectProps {
   /** Gọi trước open() — hook phụ (analytics, v.v.) */

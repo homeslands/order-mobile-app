@@ -4,18 +4,21 @@ import {
   type FieldValues,
   type Path,
 } from 'react-hook-form'
-import { Platform, Text, TextInput, View, useColorScheme } from 'react-native'
+import { Platform, TextInput, View, useColorScheme } from 'react-native'
 import { useRef, useEffect, useState } from 'react'
 
 import { Input } from '@/components/ui'
 import { colors } from '@/constants'
 import { cn } from '@/lib/utils'
+import { Text } from '@/components/ui/text'
+import { useFontScale } from '@/providers/font-scale-provider'
 
 interface FormInputProps<T extends FieldValues> {
   control: Control<T>
   name: Path<T>
   label?: string
   required?: boolean
+  optional?: boolean
   placeholder?: string
   keyboardType?: 'default' | 'email-address' | 'number-pad' | 'phone-pad'
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
@@ -45,6 +48,7 @@ interface FormInputFieldProps {
   error?: string
   label?: string
   required?: boolean
+  optional?: boolean
   placeholder?: string
   keyboardType?: 'default' | 'email-address' | 'number-pad' | 'phone-pad'
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
@@ -74,6 +78,7 @@ function FormInputField({
   error,
   label,
   required,
+  optional,
   placeholder,
   keyboardType = 'default',
   autoCapitalize = 'none',
@@ -90,6 +95,7 @@ function FormInputField({
 }: FormInputFieldProps) {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
+  const scale = useFontScale()
   const [localValue, setLocalValue] = useState(value ?? '')
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingValueRef = useRef<string>(value ?? '')
@@ -156,6 +162,12 @@ function FormInputField({
           {required && (
             <Text className="text-red-500 dark:text-red-400"> *</Text>
           )}
+          {optional && (
+            <Text className="text-gray-400 dark:text-gray-500">
+              {' '}
+              (Không bắt buộc)
+            </Text>
+          )}
         </Text>
       )}
       {useTextInput ? (
@@ -171,6 +183,8 @@ function FormInputField({
           style={{
             height: 48,
             paddingVertical: Platform.OS === 'ios' ? 0 : 12,
+            fontFamily: 'BeVietnamPro_400Regular',
+            fontSize: 16 * scale,
           }}
           placeholder={placeholder}
           placeholderTextColor={
@@ -186,6 +200,7 @@ function FormInputField({
           spellCheck={false}
           secureTextEntry={secureTextEntry}
           editable={!disabled}
+          allowFontScaling={false}
         />
       ) : (
         <Input
@@ -225,6 +240,7 @@ export function FormInput<T extends FieldValues>({
   name,
   label,
   required,
+  optional,
   placeholder,
   keyboardType = 'default',
   autoCapitalize = 'none',
@@ -254,6 +270,7 @@ export function FormInput<T extends FieldValues>({
           error={error?.message}
           label={label}
           required={required}
+          optional={optional}
           placeholder={placeholder}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}

@@ -1,6 +1,16 @@
 import messaging from '@react-native-firebase/messaging'
+import * as Notifications from 'expo-notifications'
 
-// Must be registered at module level outside React for background/killed state.
-// Firebase displays the notification automatically (notification field in payload).
-// This handler keeps the background task alive so the delivery completes.
-messaging().setBackgroundMessageHandler(async () => {})
+export async function incrementBadgeForBackgroundMessage(): Promise<void> {
+  try {
+    const current = await Notifications.getBadgeCountAsync()
+    await Notifications.setBadgeCountAsync(current + 1)
+  } catch {
+    // Badge update is best-effort — hydrateFromApi corrects on next app open.
+  }
+}
+
+// Android: fires for any background/killed notification — increments OS badge.
+// iOS: only fires for data-only FCM messages (no `notification` field). Standard
+// notification messages set the badge via apns.payload.aps.badge (backend side).
+messaging().setBackgroundMessageHandler(incrementBadgeForBackgroundMessage)

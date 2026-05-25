@@ -15,7 +15,7 @@ import { StaticText } from '@/components/ui'
 import { colors } from '@/constants'
 import type { IProductVariant } from '@/types'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { Pressable, StyleSheet, useColorScheme, View } from 'react-native'
 import { HIT_SLOP_ICON } from '@/lib/navigation'
 import {
   useDetailQuantity,
@@ -23,6 +23,7 @@ import {
   useDetailSetSelection,
   useDetailSize,
 } from '@/stores/selectors'
+import { Text } from '@/components/ui/text'
 
 const styles = StyleSheet.create({
   variantRow: {

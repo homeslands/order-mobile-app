@@ -7,7 +7,6 @@ import {
   InteractionManager,
   ScrollView,
   StyleSheet,
-  Text,
   View,
   useColorScheme,
 } from 'react-native'
@@ -32,6 +31,7 @@ import { colors } from '@/constants'
 import { getThemeColor } from '@/lib/utils'
 import type { IMenuItem } from '@/types'
 import { formatCurrency } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 export default function MenuItemDetailPlaceholder() {
   const { slug } = useLocalSearchParams<{ slug: string }>()

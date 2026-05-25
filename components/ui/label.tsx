@@ -1,6 +1,6 @@
 import { cn } from '@/lib/utils'
-import { ComponentProps, forwardRef } from 'react'
-import { Text } from 'react-native'
+import { ComponentProps, ComponentRef, forwardRef } from 'react'
+import { Text } from '@/components/ui/text'
 
 interface LabelProps extends ComponentProps<typeof Text> {
   /**
@@ -26,7 +26,7 @@ interface LabelProps extends ComponentProps<typeof Text> {
  * <Label disabled>Disabled Label</Label>
  * ```
  */
-export const Label = forwardRef<Text, LabelProps>(
+export const Label = forwardRef<ComponentRef<typeof Text>, LabelProps>(
   (
     { className, required = false, disabled = false, children, ...props },
     ref,

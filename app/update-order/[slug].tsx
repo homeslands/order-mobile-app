@@ -10,7 +10,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -28,6 +27,7 @@ import UpdateOrderContentNative from './components/update-order-content-native'
 import UpdateOrderFooter from './components/update-order-footer'
 import UpdateOrderMenus from './components/update-order-menus'
 import UpdateOrderSkeleton from './components/update-order-skeleton'
+import { Text } from '@/components/ui/text'
 
 export default function UpdateOrderScreen() {
   useGpuWarmup()
