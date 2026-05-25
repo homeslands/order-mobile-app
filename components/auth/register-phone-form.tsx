@@ -8,18 +8,24 @@ import { useInitiateRegistration, useZodForm } from '@/hooks'
 import { navigateNative } from '@/lib/navigation'
 import { getSyncItem, setSyncItem } from '@/utils/storage'
 import { showToast } from '@/utils'
+import { showErrorToast } from '@/utils/toast'
 
 import { RegisterProgressBar } from './register-progress-bar'
 import { Text } from '@/components/ui/text'
 
-const phoneSchema = z.object({
-  phonenumber: z.string().min(10).max(10).regex(PHONE_NUMBER_REGEX),
-})
-
-type TPhoneSchema = z.infer<typeof phoneSchema>
+type TPhoneSchema = { phonenumber: string }
 
 export default function RegisterPhoneForm() {
   const { t } = useTranslation('auth')
+
+  const phoneSchema = z.object({
+    phonenumber: z
+      .string()
+      .min(1, t('register.phoneNumberRequired'))
+      .min(10, t('register.phoneNumberMaxLength'))
+      .max(10, t('register.phoneNumberMaxLength'))
+      .regex(PHONE_NUMBER_REGEX, t('register.phoneNumberInvalid')),
+  })
 
   const {
     control,
@@ -52,7 +58,11 @@ export default function RegisterPhoneForm() {
         }
       },
       onError: (err) => {
-        const serverCode = (err as { response?: { data?: { statusCode?: number } } })?.response?.data?.statusCode
+        const e = err as {
+          response?: { status?: number; data?: { statusCode?: number } }
+        }
+        const serverCode =
+          e?.response?.data?.statusCode ?? e?.response?.status
         if (serverCode === 119046) {
           showToast(
             t('register.otpAlreadySent', { phone: data.phonenumber }),
@@ -66,7 +76,16 @@ export default function RegisterPhoneForm() {
           )
           return
         }
-        // Global error handler (QueryCache) sẽ show toast cho các lỗi khác
+        if (serverCode === 119041) {
+          showToast(t('register.phoneAlreadyRegistered'), 'warning')
+          navigateNative.replace('/auth/login')
+          return
+        }
+        if (serverCode) {
+          showErrorToast(serverCode)
+        } else {
+          showToast(t('register.profileUpdateFailed'), 'warning')
+        }
       },
     })
   }

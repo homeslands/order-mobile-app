@@ -15,8 +15,10 @@ import { DobExpandablePicker } from '@/components/profile'
 import { NAME_REGEX } from '@/constants'
 import { useZodForm } from '@/hooks'
 import { navigateNative } from '@/lib/navigation'
+import dayjs from 'dayjs'
 import { updateProfile } from '@/api/profile'
 import { showToast } from '@/utils'
+import { useUserStore } from '@/stores'
 import { Text } from '@/components/ui/text'
 
 function useRegisterProfileSchema() {
@@ -58,6 +60,7 @@ interface Props {
 const RegisterProfileForm = forwardRef<RegisterProfileFormHandle, Props>(
   function RegisterProfileForm({ onLoadingChange }, ref) {
     const { t } = useTranslation('auth')
+    const setUserInfo = useUserStore((s) => s.setUserInfo)
     const [dob, setDob] = useState('')
     const [isLoading, setIsLoading] = useState(false)
 
@@ -71,16 +74,21 @@ const RegisterProfileForm = forwardRef<RegisterProfileFormHandle, Props>(
     const onSubmit = async (data: TRegisterProfileSchema) => {
       setIsLoading(true)
       try {
-        await updateProfile({
+        const dobPayload = dob
+          ? dayjs(dob, 'YYYY-MM-DD').format('DD/MM/YYYY')
+          : null
+        const res = await updateProfile({
           firstName: data.firstName || null,
           lastName: data.lastName || null,
-          dob: dob || null,
+          dob: dobPayload,
         })
+        if (res?.result) setUserInfo(res.result)
+        showToast('toast.updateProfileSuccess', 'success')
+        goHome()
       } catch {
         showToast(t('register.profileUpdateFailed'), 'warning')
       } finally {
         setIsLoading(false)
-        goHome()
       }
     }
 
@@ -102,7 +110,7 @@ const RegisterProfileForm = forwardRef<RegisterProfileFormHandle, Props>(
 
     return (
       <View className="px-6 pt-12">
-        <RegisterProgressBar step={4} />
+        <RegisterProgressBar step={3} />
 
         <Text className="mb-2 font-sans-bold text-3xl text-gray-900 dark:text-white">
           {t('register.profileTitle')}
@@ -142,6 +150,7 @@ const RegisterProfileForm = forwardRef<RegisterProfileFormHandle, Props>(
               value={dob}
               onSelect={setDob}
               placeholder={t('register.enterDob')}
+              disabled={isLoading}
             />
           </View>
         </View>

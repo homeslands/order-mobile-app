@@ -174,15 +174,16 @@ export default function ProfilePlaceholderScreen() {
     router.replace('/(tabs)/home' as never)
   }, [router, removeUserInfo, setLogout])
 
-  const handleDeleteSuccess = useCallback(async () => {
-    const capturedToken = useUserStore.getState().deviceToken ?? undefined
-    await Promise.race([
-      cleanupTokenOnLogout(capturedToken),
-      new Promise<void>((r) => setTimeout(r, 3000)),
-    ]).catch(() => {})
+  const handleDeleteSuccess = useCallback(() => {
     setLogout()
     removeUserInfo()
     router.replace('/(tabs)/home' as never)
+    // FCM cleanup runs in background — không block navigation
+    const capturedToken = useUserStore.getState().deviceToken ?? undefined
+    void Promise.race([
+      cleanupTokenOnLogout(capturedToken),
+      new Promise<void>((r) => setTimeout(r, 3000)),
+    ]).catch(() => {})
   }, [router, removeUserInfo, setLogout])
 
   const overrideItemLayout = useCallback(

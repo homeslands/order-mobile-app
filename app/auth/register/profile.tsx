@@ -1,6 +1,7 @@
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import {
   ActivityIndicator,
+  BackHandler,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -11,6 +12,7 @@ import {
 } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Stack } from 'expo-router'
 import { ScreenContainer } from '@/components/layout'
 import { colors } from '@/constants'
 import { navigateNative } from '@/lib/navigation'
@@ -28,74 +30,85 @@ export default function RegisterProfileScreen() {
   const formRef = useRef<RegisterProfileFormHandle>(null)
   const [isLoading, setIsLoading] = useState(false)
 
+  // Block Android hardware back button
+  useEffect(() => {
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => true)
+    return () => sub.remove()
+  }, [])
+
   const footerHeight = bottom + 140
 
   return (
-    <ScreenContainer
-      edges={['top']}
-      className="flex-1"
-      style={{ backgroundColor: bgColor }}
-    >
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      >
-        <ScrollView
-          style={{ backgroundColor: bgColor }}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingBottom: footerHeight }}
-        >
-          <RegisterProfileForm ref={formRef} onLoadingChange={setIsLoading} />
-        </ScrollView>
-      </KeyboardAvoidingView>
+    <>
+      {/* Disable swipe-back gesture on iOS */}
+      <Stack.Screen options={{ gestureEnabled: false }} />
 
-      <View
-        style={[
-          styles.footer,
-          {
-            paddingBottom: bottom + 16,
-            backgroundColor: bgColor,
-            borderTopColor: isDark ? colors.border.dark : colors.border.light,
-          },
-        ]}
+      <ScreenContainer
+        edges={['top']}
+        className="flex-1"
+        style={{ backgroundColor: bgColor }}
       >
-        <TouchableOpacity
-          style={[styles.completeBtn]}
-          onPress={() => formRef.current?.submit()}
-          disabled={isLoading}
-          activeOpacity={0.8}
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         >
-          {isLoading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.completeBtnText}>{t('register.complete')}</Text>
-          )}
-        </TouchableOpacity>
+          <ScrollView
+            style={{ backgroundColor: bgColor }}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            contentContainerStyle={{ paddingBottom: footerHeight }}
+          >
+            <RegisterProfileForm ref={formRef} onLoadingChange={setIsLoading} />
+          </ScrollView>
+        </KeyboardAvoidingView>
 
-        <TouchableOpacity
+        <View
           style={[
-            styles.skipBtn,
+            styles.footer,
             {
-              borderColor: isDark ? '#d97706' : '#f59e0b',
-              opacity: isLoading ? 0.5 : 1,
+              paddingBottom: bottom + 16,
+              backgroundColor: bgColor,
+              borderTopColor: isDark ? colors.border.dark : colors.border.light,
             },
           ]}
-          onPress={() => navigateNative.replace('/(tabs)/home')}
-          disabled={isLoading}
-          activeOpacity={0.7}
         >
-          <Text
-            style={[
-              styles.skipBtnText,
-              { color: isDark ? '#d97706' : '#f59e0b' },
-            ]}
+          <TouchableOpacity
+            style={[styles.completeBtn]}
+            onPress={() => formRef.current?.submit()}
+            disabled={isLoading}
+            activeOpacity={0.8}
           >
-            {t('register.skip')}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </ScreenContainer>
+            {isLoading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text style={styles.completeBtnText}>{t('register.complete')}</Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.skipBtn,
+              {
+                borderColor: isDark ? '#d97706' : '#f59e0b',
+                opacity: isLoading ? 0.5 : 1,
+              },
+            ]}
+            onPress={() => navigateNative.replace('/(tabs)/home')}
+            disabled={isLoading}
+            activeOpacity={0.7}
+          >
+            <Text
+              style={[
+                styles.skipBtnText,
+                { color: isDark ? '#d97706' : '#f59e0b' },
+              ]}
+            >
+              {t('register.skip')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </ScreenContainer>
+    </>
   )
 }
 

@@ -6,6 +6,7 @@ import { colors } from '@/constants'
 import { usePasswordRules, type PasswordRules } from '@/hooks'
 import { cn } from '@/lib/utils'
 import { Text } from '@/components/ui/text'
+import { useFontScale } from '@/providers/font-scale-provider'
 
 export interface PasswordRulesInputProps {
   value: string | undefined
@@ -84,6 +85,7 @@ export function PasswordRulesInput({
   const [touched, setTouched] = useState(false)
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
+  const scale = useFontScale()
 
   const hookResult = usePasswordRules(value)
   const rules = rulesProp ?? hookResult.rules
@@ -120,7 +122,8 @@ export function PasswordRulesInput({
           secureTextEntry={!showPassword}
           autoCapitalize="none"
           editable={!disabled}
-          style={{ fontFamily: 'BeVietnamPro_400Regular' }}
+          allowFontScaling={false}
+          style={{ fontFamily: 'BeVietnamPro_400Regular', fontSize: 16 * scale }}
         />
         <TouchableOpacity
           className="absolute bottom-0 right-4 top-0 justify-center"

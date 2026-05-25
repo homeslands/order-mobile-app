@@ -11,6 +11,7 @@ import {
 import { colors } from '@/constants'
 import { cn } from '@/lib/utils'
 import { Text } from '@/components/ui/text'
+import { useFontScale } from '@/providers/font-scale-provider'
 
 export interface PasswordInputFieldProps {
   value: string | undefined
@@ -32,6 +33,7 @@ export function PasswordInputField({
   const [showPassword, setShowPassword] = useState(false)
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
+  const scale = useFontScale()
 
   return (
     <View>
@@ -47,9 +49,11 @@ export function PasswordInputField({
           )}
           style={{
             fontFamily: 'BeVietnamPro_400Regular',
+            fontSize: 16 * scale,
             height: 48,
             paddingVertical: Platform.OS === 'ios' ? 0 : 12,
           }}
+          allowFontScaling={false}
           placeholder={placeholder}
           placeholderTextColor={
             isDark ? colors.mutedForeground.dark : colors.mutedForeground.light

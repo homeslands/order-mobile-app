@@ -625,17 +625,19 @@ const ProfileTest = () => {
     )
   }, [t])
 
-  const handleDeleteSuccess = useCallback(async () => {
-    const capturedToken = useUserStore.getState().deviceToken
-    const { cleanupTokenOnLogout } = await import('@/lib/fcm-token-manager')
-    await Promise.race([
-      cleanupTokenOnLogout(capturedToken ?? undefined),
-      new Promise<void>((r) => setTimeout(r, 3000)),
-    ]).catch(() => {})
-    useNotificationStore.getState().clearAll()
+  const handleDeleteSuccess = useCallback(() => {
     setLogout()
     removeUserInfo()
+    useNotificationStore.getState().clearAll()
     router.replace('/(tabs)/home' as never)
+    // FCM cleanup runs in background — không block navigation
+    const capturedToken = useUserStore.getState().deviceToken
+    void import('@/lib/fcm-token-manager').then(({ cleanupTokenOnLogout }) =>
+      Promise.race([
+        cleanupTokenOnLogout(capturedToken ?? undefined),
+        new Promise<void>((r) => setTimeout(r, 3000)),
+      ]).catch(() => {}),
+    )
   }, [removeUserInfo, setLogout, router])
 
   if (needsUserInfo || !userInfo) {

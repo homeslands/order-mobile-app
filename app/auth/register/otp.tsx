@@ -7,7 +7,7 @@ import {
 import { useLocalSearchParams } from 'expo-router'
 import { ScreenContainer } from '@/components/layout'
 import { colors } from '@/constants'
-import RegisterOtpStep from '@/components/auth/register-otp-step'
+import RegisterOtpPasswordStep from '@/components/auth/register-otp-password-step'
 
 export default function RegisterOtpScreen() {
   const isDark = useColorScheme() === 'dark'
@@ -32,7 +32,10 @@ export default function RegisterOtpScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <RegisterOtpStep phone={phone ?? ''} serverOtpExpiresAt={expiresAt} />
+          <RegisterOtpPasswordStep
+            phone={phone ?? ''}
+            serverOtpExpiresAt={expiresAt}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </ScreenContainer>
