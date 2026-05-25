@@ -54,7 +54,10 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   tabRoutes,
   onPressInTabSwitch,
 }: AnimatedTabBarProps) {
-  const [layout, setLayout] = useState({ pillWidth: 0, paddingH: PADDING_H_DEFAULT })
+  const [layout, setLayout] = useState({
+    pillWidth: 0,
+    paddingH: PADDING_H_DEFAULT,
+  })
   const { pillWidth, paddingH } = layout
   const indicatorX = useSharedValue(0)
 
@@ -103,8 +106,16 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
     () => [
       { Icon: Home, href: tabRoutes.home, label: t('tabs.home', 'Trang chủ') },
       { Icon: Menu, href: tabRoutes.menu, label: t('tabs.menu', 'Thực đơn') },
-      { Icon: Gift, href: tabRoutes.giftCard, label: t('tabs.giftCard', 'Thẻ quà') },
-      { Icon: User, href: tabRoutes.profile, label: t('tabs.profile', 'Tài khoản') },
+      {
+        Icon: Gift,
+        href: tabRoutes.giftCard,
+        label: t('tabs.giftCard', 'Thẻ quà'),
+      },
+      {
+        Icon: User,
+        href: tabRoutes.profile,
+        label: t('tabs.profile', 'Tài khoản'),
+      },
     ],
     [tabRoutes, t],
   )

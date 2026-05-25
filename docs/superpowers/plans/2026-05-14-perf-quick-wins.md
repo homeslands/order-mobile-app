@@ -15,6 +15,7 @@
 **Why:** The app has no top-level React error boundary. Any uncaught render error in a child tree (e.g. malformed API response, divide-by-zero in a selector) currently crashes the entire JS surface to a white/black screen. Wrapping the root in a class-based boundary catches the error, shows a fallback UI, and lets the user retry without re-launching the app.
 
 **Files:**
+
 - Create: `components/ui/app-error-boundary.tsx`
 - Modify: `app/_layout.tsx`
 
@@ -102,8 +103,8 @@ export class AppErrorBoundary extends React.Component<
               textAlign: 'center',
             }}
           >
-            Vui lòng thử lại. Nếu lỗi tiếp tục xuất hiện, hãy khởi động lại
-            ứng dụng.
+            Vui lòng thử lại. Nếu lỗi tiếp tục xuất hiện, hãy khởi động lại ứng
+            dụng.
           </Text>
           <Pressable
             onPress={this.handleReset}
@@ -133,33 +134,33 @@ import { AppErrorBoundary } from '@/components/ui/app-error-boundary'
 - [ ] **1.3** In the same file, wrap the existing provider tree. Find the JSX returned by the inner layout component (the `<GestureHandlerRootView>` … `</GestureHandlerRootView>` block) and wrap it with `<AppErrorBoundary>`:
 
 ```tsx
-  return (
-    <AppErrorBoundary>
-      <GestureHandlerRootView style={{ flex: 1 }}>
-        <SafeAreaProvider>
-          <QueryClientProvider client={queryClient}>
-            <BottomSheetModalProvider>
-              <LogoutSheetPortal />
-              <QRSelectionSheet />
-              <ScanSheetPortal />
-              <NotificationProvider />
-              <I18nProvider>
-                <NavigationEngineProvider>
-                  <MasterTransitionProvider>
-                    <AppToastProvider>
-                      <SharedElementProvider>
-                        <NativeStackWithMasterTransition />
-                      </SharedElementProvider>
-                    </AppToastProvider>
-                  </MasterTransitionProvider>
-                </NavigationEngineProvider>
-              </I18nProvider>
-            </BottomSheetModalProvider>
-          </QueryClientProvider>
-        </SafeAreaProvider>
-      </GestureHandlerRootView>
-    </AppErrorBoundary>
-  )
+return (
+  <AppErrorBoundary>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <SafeAreaProvider>
+        <QueryClientProvider client={queryClient}>
+          <BottomSheetModalProvider>
+            <LogoutSheetPortal />
+            <QRSelectionSheet />
+            <ScanSheetPortal />
+            <NotificationProvider />
+            <I18nProvider>
+              <NavigationEngineProvider>
+                <MasterTransitionProvider>
+                  <AppToastProvider>
+                    <SharedElementProvider>
+                      <NativeStackWithMasterTransition />
+                    </SharedElementProvider>
+                  </AppToastProvider>
+                </MasterTransitionProvider>
+              </NavigationEngineProvider>
+            </I18nProvider>
+          </BottomSheetModalProvider>
+        </QueryClientProvider>
+      </SafeAreaProvider>
+    </GestureHandlerRootView>
+  </AppErrorBoundary>
+)
 ```
 
 - [ ] **1.4** Verify:
@@ -181,6 +182,7 @@ cd /Users/phanquyetthang/mobile-movie-app && git add components/ui/app-error-bou
 **Why:** `useOrderFlowStore`'s `onRehydrateStorage` currently schedules `setState` via `setTimeout(..., 0)`. On cold start, this means `isHydrated`, `orderItemTotalQuantity`, and `minOrderValue` are read as default `false / 0 / 0` for one paint, then flip on the next macrotask — visible as a 1-frame flicker on the cart badge and "minimum order" UI. Zustand's `onRehydrateStorage` callback receives a mutable `state` object; mutating it inline applies before the first render and removes the flicker. We still defer the cross-store sync (`paymentData`, `updatingData`) to `setTimeout` because those reads can hit unhydrated standalone stores.
 
 **Files:**
+
 - Modify: `stores/order-flow.store.ts`
 
 ### Steps
@@ -259,6 +261,7 @@ cd /Users/phanquyetthang/mobile-movie-app && git add stores/order-flow.store.ts 
 **Why:** `app/profile/history.tsx` keeps a module-level `_orderDisplayCache` keyed by `(orderSlug, status, itemCount, voucher.slug)`. If User A logs out and User B logs in, B's orders that happen to share an `orderSlug` would hit A's cached display data (different totals after voucher recalc, etc.). Two fixes: namespace the cache key with `userSlug`, and clear the cache on logout so the module-level Map doesn't retain another account's data across sessions.
 
 **Files:**
+
 - Modify: `app/profile/history.tsx`
 - Modify: `app/(tabs)/profile/index.tsx`
 
@@ -294,80 +297,76 @@ export function clearOrderDisplayCache(): void {
 - [ ] **3.2** In the same file, locate the `useMemo` at lines ~480–510. Inside the component (search for the existing `const userInfo = useUserStore(...)` reference, or add a fresh subscription if missing). Add a `userSlug` selector before the `useMemo` if not already present:
 
 ```ts
-  const userSlug = useUserStore((s) => s.userInfo?.slug ?? '')
+const userSlug = useUserStore((s) => s.userInfo?.slug ?? '')
 ```
 
 Then update the `useMemo` to include `userSlug` in the cache key and dependency array. Current code:
 
 ```ts
-  // Cache keyed by (slug, status, itemCount, voucher.slug) so FCM-triggered
-  // refetches do not redo work for unchanged orders.
-  const orderDisplayMap = useMemo(() => {
-    const next = new Map<string, OrderDisplayData>()
-    for (const order of orders) {
-      const items = order.orderItems || []
-      const voucher = order.voucher || null
-      const cacheKey = `${order.slug}:${order.status}:${items.length}:${voucher?.slug ?? ''}`
-      const cached = _orderDisplayCache.get(cacheKey)
-      if (cached) {
-        next.set(order.slug, cached)
-        continue
-      }
-      const { displayItems, cartTotals } = calculateOrderDisplayAndTotals(
-        items,
-        voucher,
-      )
-      const diMap = new Map<string, (typeof displayItems)[number]>()
-      for (const di of displayItems) diMap.set(di.slug, di)
-      const data: OrderDisplayData = { displayItemMap: diMap, cartTotals }
-      next.set(order.slug, data)
-      _orderDisplayCache.set(cacheKey, data)
+// Cache keyed by (slug, status, itemCount, voucher.slug) so FCM-triggered
+// refetches do not redo work for unchanged orders.
+const orderDisplayMap = useMemo(() => {
+  const next = new Map<string, OrderDisplayData>()
+  for (const order of orders) {
+    const items = order.orderItems || []
+    const voucher = order.voucher || null
+    const cacheKey = `${order.slug}:${order.status}:${items.length}:${voucher?.slug ?? ''}`
+    const cached = _orderDisplayCache.get(cacheKey)
+    if (cached) {
+      next.set(order.slug, cached)
+      continue
     }
-    if (_orderDisplayCache.size > 50) {
-      const keys = Array.from(_orderDisplayCache.keys())
-      keys
-        .slice(0, keys.length - 50)
-        .forEach((k) => _orderDisplayCache.delete(k))
-    }
-    return next
-  }, [orders])
+    const { displayItems, cartTotals } = calculateOrderDisplayAndTotals(
+      items,
+      voucher,
+    )
+    const diMap = new Map<string, (typeof displayItems)[number]>()
+    for (const di of displayItems) diMap.set(di.slug, di)
+    const data: OrderDisplayData = { displayItemMap: diMap, cartTotals }
+    next.set(order.slug, data)
+    _orderDisplayCache.set(cacheKey, data)
+  }
+  if (_orderDisplayCache.size > 50) {
+    const keys = Array.from(_orderDisplayCache.keys())
+    keys.slice(0, keys.length - 50).forEach((k) => _orderDisplayCache.delete(k))
+  }
+  return next
+}, [orders])
 ```
 
 Replace with:
 
 ```ts
-  // Cache keyed by (userSlug, slug, status, itemCount, voucher.slug) so
-  // FCM-triggered refetches do not redo work AND data from a previous
-  // account on the same device cannot leak into the current session.
-  const orderDisplayMap = useMemo(() => {
-    const next = new Map<string, OrderDisplayData>()
-    for (const order of orders) {
-      const items = order.orderItems || []
-      const voucher = order.voucher || null
-      const cacheKey = `${userSlug}:${order.slug}:${order.status}:${items.length}:${voucher?.slug ?? ''}`
-      const cached = _orderDisplayCache.get(cacheKey)
-      if (cached) {
-        next.set(order.slug, cached)
-        continue
-      }
-      const { displayItems, cartTotals } = calculateOrderDisplayAndTotals(
-        items,
-        voucher,
-      )
-      const diMap = new Map<string, (typeof displayItems)[number]>()
-      for (const di of displayItems) diMap.set(di.slug, di)
-      const data: OrderDisplayData = { displayItemMap: diMap, cartTotals }
-      next.set(order.slug, data)
-      _orderDisplayCache.set(cacheKey, data)
+// Cache keyed by (userSlug, slug, status, itemCount, voucher.slug) so
+// FCM-triggered refetches do not redo work AND data from a previous
+// account on the same device cannot leak into the current session.
+const orderDisplayMap = useMemo(() => {
+  const next = new Map<string, OrderDisplayData>()
+  for (const order of orders) {
+    const items = order.orderItems || []
+    const voucher = order.voucher || null
+    const cacheKey = `${userSlug}:${order.slug}:${order.status}:${items.length}:${voucher?.slug ?? ''}`
+    const cached = _orderDisplayCache.get(cacheKey)
+    if (cached) {
+      next.set(order.slug, cached)
+      continue
     }
-    if (_orderDisplayCache.size > 50) {
-      const keys = Array.from(_orderDisplayCache.keys())
-      keys
-        .slice(0, keys.length - 50)
-        .forEach((k) => _orderDisplayCache.delete(k))
-    }
-    return next
-  }, [orders, userSlug])
+    const { displayItems, cartTotals } = calculateOrderDisplayAndTotals(
+      items,
+      voucher,
+    )
+    const diMap = new Map<string, (typeof displayItems)[number]>()
+    for (const di of displayItems) diMap.set(di.slug, di)
+    const data: OrderDisplayData = { displayItemMap: diMap, cartTotals }
+    next.set(order.slug, data)
+    _orderDisplayCache.set(cacheKey, data)
+  }
+  if (_orderDisplayCache.size > 50) {
+    const keys = Array.from(_orderDisplayCache.keys())
+    keys.slice(0, keys.length - 50).forEach((k) => _orderDisplayCache.delete(k))
+  }
+  return next
+}, [orders, userSlug])
 ```
 
 - [ ] **3.3** In `/Users/phanquyetthang/mobile-movie-app/app/(tabs)/profile/index.tsx`, add the import near the other `@/...` imports:
@@ -379,41 +378,41 @@ import { clearOrderDisplayCache } from '@/app/profile/history'
 - [ ] **3.4** In the same file, locate `handleLogoutConfirm` (around line 570) and call `clearOrderDisplayCache()` right before `clearAll()`. Current code:
 
 ```ts
-  const handleLogoutConfirm = useCallback(() => {
-    // Capture token BEFORE removeUserInfo() clears it — avoids race condition
-    // where cleanupTokenOnLogout() reads null and skips server unregister
-    const capturedToken = useUserStore.getState().deviceToken
-    import('@/lib/fcm-token-manager').then((m) => {
-      m.cleanupTokenOnLogout(capturedToken ?? undefined).catch(() => {})
-    })
-    // Clear notification store so next login starts with a clean slate
-    useNotificationStore.getState().clearAll()
-    setLogout()
-    removeUserInfo()
-    router.replace('/(tabs)/home' as never)
-    showToast(tToast('logoutSuccess', 'Đăng xuất thành công'))
-  }, [removeUserInfo, setLogout, tToast, router])
+const handleLogoutConfirm = useCallback(() => {
+  // Capture token BEFORE removeUserInfo() clears it — avoids race condition
+  // where cleanupTokenOnLogout() reads null and skips server unregister
+  const capturedToken = useUserStore.getState().deviceToken
+  import('@/lib/fcm-token-manager').then((m) => {
+    m.cleanupTokenOnLogout(capturedToken ?? undefined).catch(() => {})
+  })
+  // Clear notification store so next login starts with a clean slate
+  useNotificationStore.getState().clearAll()
+  setLogout()
+  removeUserInfo()
+  router.replace('/(tabs)/home' as never)
+  showToast(tToast('logoutSuccess', 'Đăng xuất thành công'))
+}, [removeUserInfo, setLogout, tToast, router])
 ```
 
 Replace with:
 
 ```ts
-  const handleLogoutConfirm = useCallback(() => {
-    // Capture token BEFORE removeUserInfo() clears it — avoids race condition
-    // where cleanupTokenOnLogout() reads null and skips server unregister
-    const capturedToken = useUserStore.getState().deviceToken
-    import('@/lib/fcm-token-manager').then((m) => {
-      m.cleanupTokenOnLogout(capturedToken ?? undefined).catch(() => {})
-    })
-    // Clear notification store and module-level history cache so the next
-    // login starts with a clean slate (no cross-account data leakage).
-    useNotificationStore.getState().clearAll()
-    clearOrderDisplayCache()
-    setLogout()
-    removeUserInfo()
-    router.replace('/(tabs)/home' as never)
-    showToast(tToast('logoutSuccess', 'Đăng xuất thành công'))
-  }, [removeUserInfo, setLogout, tToast, router])
+const handleLogoutConfirm = useCallback(() => {
+  // Capture token BEFORE removeUserInfo() clears it — avoids race condition
+  // where cleanupTokenOnLogout() reads null and skips server unregister
+  const capturedToken = useUserStore.getState().deviceToken
+  import('@/lib/fcm-token-manager').then((m) => {
+    m.cleanupTokenOnLogout(capturedToken ?? undefined).catch(() => {})
+  })
+  // Clear notification store and module-level history cache so the next
+  // login starts with a clean slate (no cross-account data leakage).
+  useNotificationStore.getState().clearAll()
+  clearOrderDisplayCache()
+  setLogout()
+  removeUserInfo()
+  router.replace('/(tabs)/home' as never)
+  showToast(tToast('logoutSuccess', 'Đăng xuất thành công'))
+}, [removeUserInfo, setLogout, tToast, router])
 ```
 
 - [ ] **3.5** Verify:
@@ -435,6 +434,7 @@ cd /Users/phanquyetthang/mobile-movie-app && git add app/profile/history.tsx "ap
 **Why:** `syncBadge` is called inside almost every mutating action (`addNotification`, `markAsRead`, `markAllAsRead`, `setReadStates`, `clearAll`). When FCM delivers a burst (`hydrateFromApi` followed by bulk read updates), `Notifications.setBadgeCountAsync` fires several times in <50ms. Each call is a native bridge round-trip. Debouncing to a 200ms trailing window collapses the burst into a single native call while keeping the visible badge eventually-consistent.
 
 **Files:**
+
 - Modify: `stores/notification.store.ts`
 
 ### Steps
@@ -489,6 +489,7 @@ cd /Users/phanquyetthang/mobile-movie-app && git add stores/notification.store.t
 **Why:** In `app/(tabs)/_layout.tsx`, the bootstrap-notifications effect depends on `[bootstrapNotifData]`. React Query produces a new wrapper object on every refetch even when `result.items` is identical, so this effect (which calls `useNotificationStore.getState().hydrateFromApi`) re-runs on every poll and causes redundant Map rebuilds inside `hydrateFromApi`. Narrowing the dep to `[bootstrapNotifData?.result?.items]` ties re-runs to actual list-reference changes (React Query keeps the inner array stable when contents are unchanged via `structuralSharing`).
 
 **Files:**
+
 - Modify: `app/(tabs)/_layout.tsx`
 
 ### Steps
@@ -496,27 +497,27 @@ cd /Users/phanquyetthang/mobile-movie-app && git add stores/notification.store.t
 - [ ] **5.1** In `/Users/phanquyetthang/mobile-movie-app/app/(tabs)/_layout.tsx`, locate the effect at lines ~71–77. Current code:
 
 ```ts
-  useEffect(() => {
-    const items = bootstrapNotifData?.result?.items
-    if (items && items.length > 0) {
-      useNotificationStore.getState().hydrateFromApi(items)
-    }
-  }, [bootstrapNotifData])
+useEffect(() => {
+  const items = bootstrapNotifData?.result?.items
+  if (items && items.length > 0) {
+    useNotificationStore.getState().hydrateFromApi(items)
+  }
+}, [bootstrapNotifData])
 ```
 
 Replace with:
 
 ```ts
-  // Narrow dep to the actual array reference — React Query produces a new
-  // wrapper object on every refetch even when contents are identical, so
-  // depending on `bootstrapNotifData` would re-run hydrateFromApi on every
-  // poll. structuralSharing keeps items stable when unchanged.
-  const bootstrapNotifItems = bootstrapNotifData?.result?.items
-  useEffect(() => {
-    if (bootstrapNotifItems && bootstrapNotifItems.length > 0) {
-      useNotificationStore.getState().hydrateFromApi(bootstrapNotifItems)
-    }
-  }, [bootstrapNotifItems])
+// Narrow dep to the actual array reference — React Query produces a new
+// wrapper object on every refetch even when contents are identical, so
+// depending on `bootstrapNotifData` would re-run hydrateFromApi on every
+// poll. structuralSharing keeps items stable when unchanged.
+const bootstrapNotifItems = bootstrapNotifData?.result?.items
+useEffect(() => {
+  if (bootstrapNotifItems && bootstrapNotifItems.length > 0) {
+    useNotificationStore.getState().hydrateFromApi(bootstrapNotifItems)
+  }
+}, [bootstrapNotifItems])
 ```
 
 - [ ] **5.2** Verify:
@@ -538,6 +539,7 @@ cd /Users/phanquyetthang/mobile-movie-app && git add "app/(tabs)/_layout.tsx" &&
 **Why:** When navigating from menu → product detail, the menu currently stringifies `selectedItem.heroImageUrls` into a route param, and the product detail re-parses it with `JSON.parse` inside a `useMemo`. Stringify cost is O(images) and the parsed array allocates a fresh array reference on every mount, which is wasted work for a piece of data already in memory. Replace with a tiny in-memory Zustand store that the menu writes before `router.push` and the detail reads via `getState()`. Same lifetime as the route param (single transition) but zero serialization.
 
 **Files:**
+
 - Create: `stores/transient-nav.store.ts`
 - Modify: `app/(tabs)/menu/index.tsx`
 - Modify: `app/(tabs)/menu/product/[id].tsx`
@@ -581,54 +583,54 @@ import { useTransientNavStore } from '@/stores/transient-nav.store'
 - [ ] **6.3** In the same file, locate `handleOpenDetail` at lines ~498–516. Current code:
 
 ```ts
-  const handleOpenDetail = useCallback(
-    (itemId: string) => {
-      const selectedItem = itemsMapRef.current.get(itemId)
-      if (!selectedItem) return
+const handleOpenDetail = useCallback(
+  (itemId: string) => {
+    const selectedItem = itemsMapRef.current.get(itemId)
+    if (!selectedItem) return
 
-      router.push({
-        pathname: '/(tabs)/menu/product/[id]',
-        params: {
-          id: selectedItem.id,
-          name: selectedItem.name,
-          basePrice: String(selectedItem.rawPrice),
-          promotionValue: String(selectedItem.promotionValue),
-          imageUrl: selectedItem.imageUrl ?? '',
-          imageUrls: JSON.stringify(selectedItem.heroImageUrls),
-        },
-      })
-    },
-    [router],
-  )
+    router.push({
+      pathname: '/(tabs)/menu/product/[id]',
+      params: {
+        id: selectedItem.id,
+        name: selectedItem.name,
+        basePrice: String(selectedItem.rawPrice),
+        promotionValue: String(selectedItem.promotionValue),
+        imageUrl: selectedItem.imageUrl ?? '',
+        imageUrls: JSON.stringify(selectedItem.heroImageUrls),
+      },
+    })
+  },
+  [router],
+)
 ```
 
 Replace with:
 
 ```ts
-  const handleOpenDetail = useCallback(
-    (itemId: string) => {
-      const selectedItem = itemsMapRef.current.get(itemId)
-      if (!selectedItem) return
+const handleOpenDetail = useCallback(
+  (itemId: string) => {
+    const selectedItem = itemsMapRef.current.get(itemId)
+    if (!selectedItem) return
 
-      // Hand hero image URLs via in-memory store instead of stringifying
-      // through route params — same transition lifetime, zero serialization.
-      useTransientNavStore
-        .getState()
-        .setHeroImageUrls(selectedItem.heroImageUrls ?? [])
+    // Hand hero image URLs via in-memory store instead of stringifying
+    // through route params — same transition lifetime, zero serialization.
+    useTransientNavStore
+      .getState()
+      .setHeroImageUrls(selectedItem.heroImageUrls ?? [])
 
-      router.push({
-        pathname: '/(tabs)/menu/product/[id]',
-        params: {
-          id: selectedItem.id,
-          name: selectedItem.name,
-          basePrice: String(selectedItem.rawPrice),
-          promotionValue: String(selectedItem.promotionValue),
-          imageUrl: selectedItem.imageUrl ?? '',
-        },
-      })
-    },
-    [router],
-  )
+    router.push({
+      pathname: '/(tabs)/menu/product/[id]',
+      params: {
+        id: selectedItem.id,
+        name: selectedItem.name,
+        basePrice: String(selectedItem.rawPrice),
+        promotionValue: String(selectedItem.promotionValue),
+        imageUrl: selectedItem.imageUrl ?? '',
+      },
+    })
+  },
+  [router],
+)
 ```
 
 - [ ] **6.4** In `/Users/phanquyetthang/mobile-movie-app/app/(tabs)/menu/product/[id].tsx`, add the import near the other `@/stores/...` imports:
@@ -640,57 +642,56 @@ import { useTransientNavStore } from '@/stores/transient-nav.store'
 - [ ] **6.5** In the same file, locate the params destructure and the `heroImageUrls` `useMemo` at lines ~98–132. Current code:
 
 ```ts
-  const { id, name, basePrice, promotionValue, imageUrl, imageUrls } =
-    useLocalSearchParams<{
-      id: string
-      name?: string
-      basePrice?: string
-      promotionValue?: string
-      imageUrl?: string
-      imageUrls?: string
-    }>()
+const { id, name, basePrice, promotionValue, imageUrl, imageUrls } =
+  useLocalSearchParams<{
+    id: string
+    name?: string
+    basePrice?: string
+    promotionValue?: string
+    imageUrl?: string
+    imageUrls?: string
+  }>()
 ```
 
 Replace with:
 
 ```ts
-  const { id, name, basePrice, promotionValue, imageUrl } =
-    useLocalSearchParams<{
-      id: string
-      name?: string
-      basePrice?: string
-      promotionValue?: string
-      imageUrl?: string
-    }>()
+const { id, name, basePrice, promotionValue, imageUrl } = useLocalSearchParams<{
+  id: string
+  name?: string
+  basePrice?: string
+  promotionValue?: string
+  imageUrl?: string
+}>()
 ```
 
 - [ ] **6.6** In the same file, replace the `useMemo` block that parses `imageUrls`. Current code:
 
 ```ts
-  const heroImageUrls = useMemo(() => {
-    if (!imageUrls) return []
-    try {
-      const parsed = JSON.parse(imageUrls) as unknown
-      if (!Array.isArray(parsed)) return []
-      return parsed.filter(
-        (v): v is string => typeof v === 'string' && !!v.trim(),
-      )
-    } catch {
-      return []
-    }
-  }, [imageUrls])
+const heroImageUrls = useMemo(() => {
+  if (!imageUrls) return []
+  try {
+    const parsed = JSON.parse(imageUrls) as unknown
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter(
+      (v): v is string => typeof v === 'string' && !!v.trim(),
+    )
+  } catch {
+    return []
+  }
+}, [imageUrls])
 ```
 
 Replace with:
 
 ```ts
-  // Read once on mount from the transient nav store — set by the menu screen
-  // immediately before router.push. Avoids stringifying a string[] into a
-  // route param and re-parsing on the destination.
-  const heroImageUrls = useMemo(
-    () => useTransientNavStore.getState().heroImageUrls,
-    [],
-  )
+// Read once on mount from the transient nav store — set by the menu screen
+// immediately before router.push. Avoids stringifying a string[] into a
+// route param and re-parsing on the destination.
+const heroImageUrls = useMemo(
+  () => useTransientNavStore.getState().heroImageUrls,
+  [],
+)
 ```
 
 - [ ] **6.7** Verify:
@@ -712,6 +713,7 @@ cd /Users/phanquyetthang/mobile-movie-app && git add stores/transient-nav.store.
 **Why:** `app/payment/[order].tsx` has three separate `useFocusEffect` calls (lines ~796, ~803, ~829) that fire on every focus event: one refetches order, one clears `ExpoImage` memory cache on blur, one refetches coin balance + loyalty. On a focus→blur→focus storm (e.g. swiping back from a half-opened sheet) this triggers 3 network calls and a memory-cache flush per cycle. Merge into a single effect that (a) tracks the last fetch timestamp via a ref, (b) skips refetch if <30s have elapsed, (c) only clears `ExpoImage` memory cache on blur when the order is in a terminal success state (PAID / COMPLETED — keeping the QR image cached while PENDING).
 
 **Files:**
+
 - Modify: `app/payment/[order].tsx`
 
 ### Steps
@@ -719,111 +721,108 @@ cd /Users/phanquyetthang/mobile-movie-app && git add stores/transient-nav.store.
 - [ ] **7.1** In `/Users/phanquyetthang/mobile-movie-app/app/payment/[order].tsx`, locate the three `useFocusEffect` calls at lines ~793–840. Current code:
 
 ```ts
-  // Refetch when screen regains focus — catches background FCM that didn't go through store
-  useFocusEffect(
-    useCallback(() => {
-      void refetchOrder()
-    }, [refetchOrder]),
-  )
+// Refetch when screen regains focus — catches background FCM that didn't go through store
+useFocusEffect(
+  useCallback(() => {
+    void refetchOrder()
+  }, [refetchOrder]),
+)
 
-  // Clear image memory cache on blur (QR code + product images)
-  useFocusEffect(
-    useCallback(() => {
-      return () => {
-        queueMicrotask(() => ExpoImage.clearMemoryCache())
-      }
-    }, []),
-  )
+// Clear image memory cache on blur (QR code + product images)
+useFocusEffect(
+  useCallback(() => {
+    return () => {
+      queueMicrotask(() => ExpoImage.clearMemoryCache())
+    }
+  }, []),
+)
 
-  // ── Payment method selection + submission ──
-  const userInfo = useUserStore((s) => s.userInfo)
-  const isLoggedIn = !!userInfo
+// ── Payment method selection + submission ──
+const userInfo = useUserStore((s) => s.userInfo)
+const isLoggedIn = !!userInfo
 
-  // Coin balance — chỉ fetch khi logged in + order PENDING
-  const { balance: coinBalance, refetch: refetchCoinBalance } =
-    useCoinBalance(isLoggedIn)
+// Coin balance — chỉ fetch khi logged in + order PENDING
+const { balance: coinBalance, refetch: refetchCoinBalance } =
+  useCoinBalance(isLoggedIn)
 
-  // Loyalty points — chỉ fetch khi logged in + order PENDING
-  const loyaltyData = useLoyaltyPoints(
-    order?.status === OrderStatus.PENDING && isLoggedIn
-      ? (userInfo?.slug ?? undefined)
-      : undefined,
-  )
-  const userTotalPoints = loyaltyData.data?.totalPoints ?? 0
-  const refetchLoyalty = loyaltyData.refetch
+// Loyalty points — chỉ fetch khi logged in + order PENDING
+const loyaltyData = useLoyaltyPoints(
+  order?.status === OrderStatus.PENDING && isLoggedIn
+    ? (userInfo?.slug ?? undefined)
+    : undefined,
+)
+const userTotalPoints = loyaltyData.data?.totalPoints ?? 0
+const refetchLoyalty = loyaltyData.refetch
 
-  // Refetch coin balance + loyalty points on screen focus to get fresh data
-  useFocusEffect(
-    useCallback(() => {
-      if (isLoggedIn) {
-        void refetchCoinBalance()
-        void refetchLoyalty()
-      }
-    }, [isLoggedIn, refetchCoinBalance, refetchLoyalty]),
-  )
+// Refetch coin balance + loyalty points on screen focus to get fresh data
+useFocusEffect(
+  useCallback(() => {
+    if (isLoggedIn) {
+      void refetchCoinBalance()
+      void refetchLoyalty()
+    }
+  }, [isLoggedIn, refetchCoinBalance, refetchLoyalty]),
+)
 ```
 
 Replace with (keeping the `userInfo`/`isLoggedIn`/coin/loyalty hook declarations in the same order — only the three `useFocusEffect` calls are merged):
 
 ```ts
-  // ── Payment method selection + submission ──
-  const userInfo = useUserStore((s) => s.userInfo)
-  const isLoggedIn = !!userInfo
+// ── Payment method selection + submission ──
+const userInfo = useUserStore((s) => s.userInfo)
+const isLoggedIn = !!userInfo
 
-  // Coin balance — chỉ fetch khi logged in + order PENDING
-  const { balance: coinBalance, refetch: refetchCoinBalance } =
-    useCoinBalance(isLoggedIn)
+// Coin balance — chỉ fetch khi logged in + order PENDING
+const { balance: coinBalance, refetch: refetchCoinBalance } =
+  useCoinBalance(isLoggedIn)
 
-  // Loyalty points — chỉ fetch khi logged in + order PENDING
-  const loyaltyData = useLoyaltyPoints(
-    order?.status === OrderStatus.PENDING && isLoggedIn
-      ? (userInfo?.slug ?? undefined)
-      : undefined,
-  )
-  const userTotalPoints = loyaltyData.data?.totalPoints ?? 0
-  const refetchLoyalty = loyaltyData.refetch
+// Loyalty points — chỉ fetch khi logged in + order PENDING
+const loyaltyData = useLoyaltyPoints(
+  order?.status === OrderStatus.PENDING && isLoggedIn
+    ? (userInfo?.slug ?? undefined)
+    : undefined,
+)
+const userTotalPoints = loyaltyData.data?.totalPoints ?? 0
+const refetchLoyalty = loyaltyData.refetch
 
-  // ── Merged focus effect ───────────────────────────────────────────────────
-  // Replaces 3 separate useFocusEffect calls. On focus:
-  //   - Refetch order + (if logged in) coin balance + loyalty points, but
-  //     only if last fetch was > 30s ago — prevents refetch storms on
-  //     rapid focus→blur→focus cycles (e.g. half-opened sheets).
-  // On blur:
-  //   - Clear ExpoImage memory cache ONLY when the order is in a terminal
-  //     success state. While PENDING, we want the QR code to stay warm.
-  const lastFocusFetchAtRef = useRef(0)
-  const FOCUS_REFETCH_INTERVAL_MS = 30_000
+// ── Merged focus effect ───────────────────────────────────────────────────
+// Replaces 3 separate useFocusEffect calls. On focus:
+//   - Refetch order + (if logged in) coin balance + loyalty points, but
+//     only if last fetch was > 30s ago — prevents refetch storms on
+//     rapid focus→blur→focus cycles (e.g. half-opened sheets).
+// On blur:
+//   - Clear ExpoImage memory cache ONLY when the order is in a terminal
+//     success state. While PENDING, we want the QR code to stay warm.
+const lastFocusFetchAtRef = useRef(0)
+const FOCUS_REFETCH_INTERVAL_MS = 30_000
 
-  useFocusEffect(
-    useCallback(() => {
-      const now = Date.now()
-      if (now - lastFocusFetchAtRef.current > FOCUS_REFETCH_INTERVAL_MS) {
-        lastFocusFetchAtRef.current = now
-        void refetchOrder()
-        if (isLoggedIn) {
-          void refetchCoinBalance()
-          void refetchLoyalty()
-        }
+useFocusEffect(
+  useCallback(() => {
+    const now = Date.now()
+    if (now - lastFocusFetchAtRef.current > FOCUS_REFETCH_INTERVAL_MS) {
+      lastFocusFetchAtRef.current = now
+      void refetchOrder()
+      if (isLoggedIn) {
+        void refetchCoinBalance()
+        void refetchLoyalty()
       }
-      return () => {
-        // Only flush image memory cache when the order is no longer pending —
-        // keeps the QR image hot while the user is mid-payment.
-        const status = order?.status
-        if (
-          status === OrderStatus.COMPLETED ||
-          status === OrderStatus.PAID
-        ) {
-          queueMicrotask(() => ExpoImage.clearMemoryCache())
-        }
+    }
+    return () => {
+      // Only flush image memory cache when the order is no longer pending —
+      // keeps the QR image hot while the user is mid-payment.
+      const status = order?.status
+      if (status === OrderStatus.COMPLETED || status === OrderStatus.PAID) {
+        queueMicrotask(() => ExpoImage.clearMemoryCache())
       }
-    }, [
-      refetchOrder,
-      refetchCoinBalance,
-      refetchLoyalty,
-      isLoggedIn,
-      order?.status,
-    ]),
-  )
+    }
+  }, [
+    refetchOrder,
+    refetchCoinBalance,
+    refetchLoyalty,
+    isLoggedIn,
+    order?.status,
+  ]),
+)
 ```
 
 Note: If `OrderStatus.PAID` does not exist in the enum, drop that arm and use only `OrderStatus.COMPLETED`. Verify by grepping `constants/...` or `types/...` for `OrderStatus` definition before the verify step. If neither PAID nor SUCCESS exists, keep just `=== OrderStatus.COMPLETED`.
@@ -837,9 +836,9 @@ cd /Users/phanquyetthang/mobile-movie-app && grep -n "PAID\|COMPLETED\|SUCCESS" 
 - [ ] **7.3** If the previous grep showed PAID is not present, simplify the blur arm to:
 
 ```ts
-        if (status === OrderStatus.COMPLETED) {
-          queueMicrotask(() => ExpoImage.clearMemoryCache())
-        }
+if (status === OrderStatus.COMPLETED) {
+  queueMicrotask(() => ExpoImage.clearMemoryCache())
+}
 ```
 
 - [ ] **7.4** Verify:
@@ -861,6 +860,7 @@ cd /Users/phanquyetthang/mobile-movie-app && git add "app/payment/[order].tsx" &
 **Why:** The home banner (`components/home/swipper-banner.tsx`) uses `FlatList` with a manually triplicated array `[last, ...bannerData, first]` to fake infinite scroll. The triplication doubles memory for image refs and makes `getItemLayout` brittle (renders depend on synthetic indices). FlashList v2 (already in `package.json`) recycles views correctly with no `getItemLayout` and is faster on horizontal paged content. We can also drop the triplication: the snap-back-to-real-index approach works with a single array as long as we let the user reach the visual edge and snap back on `onMomentumScrollEnd`. The dot indicator stays mapped to the real index. Net win: half the rendered cells, FlashList's native recycling, no `infiniteIndexRef`.
 
 **Files:**
+
 - Modify: `components/home/swipper-banner.tsx`
 
 ### Steps
@@ -886,13 +886,7 @@ Replace with:
 import { FlashList, type FlashListRef } from '@shopify/flash-list'
 import { Image } from 'expo-image'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import {
-  Dimensions,
-  Linking,
-  Pressable,
-  StyleSheet,
-  View,
-} from 'react-native'
+import { Dimensions, Linking, Pressable, StyleSheet, View } from 'react-native'
 ```
 
 (Note: `useMemo` is no longer needed once `infiniteData` is removed. If other call sites in the file still use `useMemo`, keep it.)
@@ -951,65 +945,65 @@ Replace with:
 The full auto-scroll `useEffect` (find by `AUTO_SCROLL_INTERVAL`) should be replaced with:
 
 ```ts
-  useEffect(() => {
-    if (count <= 1) return
-    const interval = setInterval(() => {
-      const nextIndex = (activeIndexRef.current + 1) % count
-      activeIndexRef.current = nextIndex
-      setActiveIndex(nextIndex)
-      listRef.current?.scrollToIndex({ index: nextIndex, animated: true })
-    }, AUTO_SCROLL_INTERVAL)
-    return () => clearInterval(interval)
-  }, [count])
+useEffect(() => {
+  if (count <= 1) return
+  const interval = setInterval(() => {
+    const nextIndex = (activeIndexRef.current + 1) % count
+    activeIndexRef.current = nextIndex
+    setActiveIndex(nextIndex)
+    listRef.current?.scrollToIndex({ index: nextIndex, animated: true })
+  }, AUTO_SCROLL_INTERVAL)
+  return () => clearInterval(interval)
+}, [count])
 ```
 
 - [ ] **8.4** Replace `handleScrollEnd` with the FlashList-friendly handler that does NOT rely on triplication. Current code:
 
 ```ts
-  const handleScrollEnd = useCallback(
-    (e: { nativeEvent: { contentOffset: { x: number } } }) => {
-      if (count <= 1) return
-      const rawIndex = Math.round(e.nativeEvent.contentOffset.x / SCREEN_W)
+const handleScrollEnd = useCallback(
+  (e: { nativeEvent: { contentOffset: { x: number } } }) => {
+    if (count <= 1) return
+    const rawIndex = Math.round(e.nativeEvent.contentOffset.x / SCREEN_W)
 
-      if (rawIndex === 0) {
-        flatListRef.current?.scrollToIndex({ index: count, animated: false })
-        infiniteIndexRef.current = count
-        activeIndexRef.current = count - 1
-        setActiveIndex(count - 1)
-        return
-      }
-      if (rawIndex === count + 1) {
-        flatListRef.current?.scrollToIndex({ index: 1, animated: false })
-        infiniteIndexRef.current = 1
-        activeIndexRef.current = 0
-        setActiveIndex(0)
-        return
-      }
+    if (rawIndex === 0) {
+      flatListRef.current?.scrollToIndex({ index: count, animated: false })
+      infiniteIndexRef.current = count
+      activeIndexRef.current = count - 1
+      setActiveIndex(count - 1)
+      return
+    }
+    if (rawIndex === count + 1) {
+      flatListRef.current?.scrollToIndex({ index: 1, animated: false })
+      infiniteIndexRef.current = 1
+      activeIndexRef.current = 0
+      setActiveIndex(0)
+      return
+    }
 
-      const realIndex = rawIndex - 1
-      infiniteIndexRef.current = rawIndex
-      activeIndexRef.current = realIndex
-      setActiveIndex(realIndex)
-    },
-    [count],
-  )
+    const realIndex = rawIndex - 1
+    infiniteIndexRef.current = rawIndex
+    activeIndexRef.current = realIndex
+    setActiveIndex(realIndex)
+  },
+  [count],
+)
 ```
 
 Replace with:
 
 ```ts
-  const handleScrollEnd = useCallback(
-    (e: { nativeEvent: { contentOffset: { x: number } } }) => {
-      if (count <= 1) return
-      const rawIndex = Math.round(e.nativeEvent.contentOffset.x / SCREEN_W)
-      // Single-array circular paging: index is always in [0, count).
-      // FlashList handles recycling without the triplication trick.
-      const clamped = Math.max(0, Math.min(count - 1, rawIndex))
-      activeIndexRef.current = clamped
-      setActiveIndex(clamped)
-    },
-    [count],
-  )
+const handleScrollEnd = useCallback(
+  (e: { nativeEvent: { contentOffset: { x: number } } }) => {
+    if (count <= 1) return
+    const rawIndex = Math.round(e.nativeEvent.contentOffset.x / SCREEN_W)
+    // Single-array circular paging: index is always in [0, count).
+    // FlashList handles recycling without the triplication trick.
+    const clamped = Math.max(0, Math.min(count - 1, rawIndex))
+    activeIndexRef.current = clamped
+    setActiveIndex(clamped)
+  },
+  [count],
+)
 ```
 
 - [ ] **8.5** Remove the obsolete `getItemLayout` callback (FlashList does not use it) and update the render. Current code (lines ~238–267):
@@ -1078,14 +1072,14 @@ Replace with:
 - [ ] **8.6** Delete the now-unused `getItemLayout` callback in the file (search for `const getItemLayout` and remove the block):
 
 ```ts
-  const getItemLayout = useCallback(
-    (_: unknown, index: number) => ({
-      length: SCREEN_W,
-      offset: SCREEN_W * index,
-      index,
-    }),
-    [],
-  )
+const getItemLayout = useCallback(
+  (_: unknown, index: number) => ({
+    length: SCREEN_W,
+    offset: SCREEN_W * index,
+    index,
+  }),
+  [],
+)
 ```
 
 (Remove entirely. No replacement.)
@@ -1109,6 +1103,7 @@ cd /Users/phanquyetthang/mobile-movie-app && git add components/home/swipper-ban
 **Why:** `useCartItemQuantity(itemId)` currently does `orderItems.find(i => i.id === itemId)` — O(n) per selector call, and it runs once per cell in the cart list on every store change. For a cart of 20 items this is 400 comparisons per re-render. Maintain a derived `orderItemsById: Record<string, IOrderItem>` updated in lockstep with `orderItems`, and switch the selector to `s.orderItemsById[itemId]?.quantity ?? 0` — O(1) lookup, zero allocation per cell.
 
 **Files:**
+
 - Modify: `stores/order-flow.types.ts`
 - Modify: `stores/order-flow.store.ts`
 - Modify: `stores/slices/ordering-items.slice.ts`
@@ -1128,10 +1123,10 @@ export interface IOrderFlowStore {
 Add a new field right after `minOrderValue: number`:
 
 ```ts
-  orderItemTotalQuantity: number
-  minOrderValue: number
-  /** O(1) lookup map derived from orderingData.orderItems. Not persisted. */
-  orderItemsById: Record<string, IOrderItem>
+orderItemTotalQuantity: number
+minOrderValue: number
+/** O(1) lookup map derived from orderingData.orderItems. Not persisted. */
+orderItemsById: Record<string, IOrderItem>
 ```
 
 (Ensure `IOrderItem` is imported in this file — it should already be since the file references `orderItems: IOrderItem[]`. If not, add to imports.)
@@ -1180,20 +1175,20 @@ import {
 - [ ] **9.5** In the same file, locate `onRehydrateStorage` (already touched by Task 2). Add `orderItemsById` to the inline derivation. After Task 2 the block reads:
 
 ```ts
-        const items = state.orderingData?.orderItems
-        state.isHydrated = true
-        state.orderItemTotalQuantity = calcOrderItemTotalQuantity(items)
-        state.minOrderValue = calcMinOrderValue(items)
+const items = state.orderingData?.orderItems
+state.isHydrated = true
+state.orderItemTotalQuantity = calcOrderItemTotalQuantity(items)
+state.minOrderValue = calcMinOrderValue(items)
 ```
 
 Add one line:
 
 ```ts
-        const items = state.orderingData?.orderItems
-        state.isHydrated = true
-        state.orderItemTotalQuantity = calcOrderItemTotalQuantity(items)
-        state.minOrderValue = calcMinOrderValue(items)
-        state.orderItemsById = calcOrderItemsById(items)
+const items = state.orderingData?.orderItems
+state.isHydrated = true
+state.orderItemTotalQuantity = calcOrderItemTotalQuantity(items)
+state.minOrderValue = calcMinOrderValue(items)
+state.orderItemsById = calcOrderItemsById(items)
 ```
 
 - [ ] **9.6** In `/Users/phanquyetthang/mobile-movie-app/stores/slices/ordering-items.slice.ts`, update the import block at line ~8 to include `calcOrderItemsById`:
@@ -1217,209 +1212,224 @@ import {
 **In `addOrderingItem` first branch** (around line 50, where `newOrderingData` is created):
 
 Current:
+
 ```ts
-        set({
-          currentStep: OrderFlowStep.ORDERING,
-          orderItemTotalQuantity: calcOrderItemTotalQuantity(
-            newOrderingData.orderItems,
-          ),
-          minOrderValue: calcMinOrderValue(newOrderingData.orderItems),
-          orderingData: newOrderingData,
-          paymentData: null,
-          updatingData: null,
-          lastModified: dayjs().valueOf(),
-        })
+set({
+  currentStep: OrderFlowStep.ORDERING,
+  orderItemTotalQuantity: calcOrderItemTotalQuantity(
+    newOrderingData.orderItems,
+  ),
+  minOrderValue: calcMinOrderValue(newOrderingData.orderItems),
+  orderingData: newOrderingData,
+  paymentData: null,
+  updatingData: null,
+  lastModified: dayjs().valueOf(),
+})
 ```
 
 Replace with:
+
 ```ts
-        set({
-          currentStep: OrderFlowStep.ORDERING,
-          orderItemTotalQuantity: calcOrderItemTotalQuantity(
-            newOrderingData.orderItems,
-          ),
-          minOrderValue: calcMinOrderValue(newOrderingData.orderItems),
-          orderItemsById: calcOrderItemsById(newOrderingData.orderItems),
-          orderingData: newOrderingData,
-          paymentData: null,
-          updatingData: null,
-          lastModified: dayjs().valueOf(),
-        })
+set({
+  currentStep: OrderFlowStep.ORDERING,
+  orderItemTotalQuantity: calcOrderItemTotalQuantity(
+    newOrderingData.orderItems,
+  ),
+  minOrderValue: calcMinOrderValue(newOrderingData.orderItems),
+  orderItemsById: calcOrderItemsById(newOrderingData.orderItems),
+  orderingData: newOrderingData,
+  paymentData: null,
+  updatingData: null,
+  lastModified: dayjs().valueOf(),
+})
 ```
 
 **In `addOrderingItem` second branch** (around line 72):
 
 Current:
+
 ```ts
-      set({
-        currentStep: OrderFlowStep.ORDERING,
-        orderItemTotalQuantity: calcOrderItemTotalQuantity(updatedItems),
-        minOrderValue: calcMinOrderValue(updatedItems),
-        orderingData: {
-          ...orderingData,
-          orderItems: updatedItems,
-        },
-        paymentData: null,
-        updatingData: null,
-        lastModified: dayjs().valueOf(),
-      })
+set({
+  currentStep: OrderFlowStep.ORDERING,
+  orderItemTotalQuantity: calcOrderItemTotalQuantity(updatedItems),
+  minOrderValue: calcMinOrderValue(updatedItems),
+  orderingData: {
+    ...orderingData,
+    orderItems: updatedItems,
+  },
+  paymentData: null,
+  updatingData: null,
+  lastModified: dayjs().valueOf(),
+})
 ```
 
 Replace with:
+
 ```ts
-      set({
-        currentStep: OrderFlowStep.ORDERING,
-        orderItemTotalQuantity: calcOrderItemTotalQuantity(updatedItems),
-        minOrderValue: calcMinOrderValue(updatedItems),
-        orderItemsById: calcOrderItemsById(updatedItems),
-        orderingData: {
-          ...orderingData,
-          orderItems: updatedItems,
-        },
-        paymentData: null,
-        updatingData: null,
-        lastModified: dayjs().valueOf(),
-      })
+set({
+  currentStep: OrderFlowStep.ORDERING,
+  orderItemTotalQuantity: calcOrderItemTotalQuantity(updatedItems),
+  minOrderValue: calcMinOrderValue(updatedItems),
+  orderItemsById: calcOrderItemsById(updatedItems),
+  orderingData: {
+    ...orderingData,
+    orderItems: updatedItems,
+  },
+  paymentData: null,
+  updatingData: null,
+  lastModified: dayjs().valueOf(),
+})
 ```
 
 **In `addOrderingProductVariant`** (around line 95):
 
 Current:
+
 ```ts
-      set({
-        orderingData: {
-          ...orderingData,
-          orderItems: updatedItems,
-        },
-        lastModified: dayjs().valueOf(),
-      })
+set({
+  orderingData: {
+    ...orderingData,
+    orderItems: updatedItems,
+  },
+  lastModified: dayjs().valueOf(),
+})
 ```
 
 Replace with:
+
 ```ts
-      set({
-        orderItemsById: calcOrderItemsById(updatedItems),
-        orderingData: {
-          ...orderingData,
-          orderItems: updatedItems,
-        },
-        lastModified: dayjs().valueOf(),
-      })
+set({
+  orderItemsById: calcOrderItemsById(updatedItems),
+  orderingData: {
+    ...orderingData,
+    orderItems: updatedItems,
+  },
+  lastModified: dayjs().valueOf(),
+})
 ```
 
 **In `updateOrderingItemVariant`** (around line 119):
 
 Current:
+
 ```ts
-      set({
-        minOrderValue: calcMinOrderValue(updatedItems),
-        orderingData: {
-          ...orderingData,
-          orderItems: updatedItems,
-        },
-        lastModified: dayjs().valueOf(),
-      })
+set({
+  minOrderValue: calcMinOrderValue(updatedItems),
+  orderingData: {
+    ...orderingData,
+    orderItems: updatedItems,
+  },
+  lastModified: dayjs().valueOf(),
+})
 ```
 
 Replace with:
+
 ```ts
-      set({
-        minOrderValue: calcMinOrderValue(updatedItems),
-        orderItemsById: calcOrderItemsById(updatedItems),
-        orderingData: {
-          ...orderingData,
-          orderItems: updatedItems,
-        },
-        lastModified: dayjs().valueOf(),
-      })
+set({
+  minOrderValue: calcMinOrderValue(updatedItems),
+  orderItemsById: calcOrderItemsById(updatedItems),
+  orderingData: {
+    ...orderingData,
+    orderItems: updatedItems,
+  },
+  lastModified: dayjs().valueOf(),
+})
 ```
 
 **In `updateOrderingItemQuantity`** (around line 142):
 
 Current:
+
 ```ts
-      set({
-        orderItemTotalQuantity: calcOrderItemTotalQuantity(updatedItems),
-        minOrderValue: calcMinOrderValue(updatedItems),
-        orderingData: {
-          ...orderingData,
-          orderItems: updatedItems,
-        },
-        lastModified: dayjs().valueOf(),
-      })
+set({
+  orderItemTotalQuantity: calcOrderItemTotalQuantity(updatedItems),
+  minOrderValue: calcMinOrderValue(updatedItems),
+  orderingData: {
+    ...orderingData,
+    orderItems: updatedItems,
+  },
+  lastModified: dayjs().valueOf(),
+})
 ```
 
 Replace with:
+
 ```ts
-      set({
-        orderItemTotalQuantity: calcOrderItemTotalQuantity(updatedItems),
-        minOrderValue: calcMinOrderValue(updatedItems),
-        orderItemsById: calcOrderItemsById(updatedItems),
-        orderingData: {
-          ...orderingData,
-          orderItems: updatedItems,
-        },
-        lastModified: dayjs().valueOf(),
-      })
+set({
+  orderItemTotalQuantity: calcOrderItemTotalQuantity(updatedItems),
+  minOrderValue: calcMinOrderValue(updatedItems),
+  orderItemsById: calcOrderItemsById(updatedItems),
+  orderingData: {
+    ...orderingData,
+    orderItems: updatedItems,
+  },
+  lastModified: dayjs().valueOf(),
+})
 ```
 
 **In `removeOrderingItem`** (around line 164):
 
 Current:
+
 ```ts
-      set({
-        orderItemTotalQuantity: calcOrderItemTotalQuantity(updatedItems),
-        minOrderValue: calcMinOrderValue(updatedItems),
-        orderingData: {
-          ...orderingData,
-          orderItems: updatedItems,
-        },
-        lastModified: dayjs().valueOf(),
-      })
+set({
+  orderItemTotalQuantity: calcOrderItemTotalQuantity(updatedItems),
+  minOrderValue: calcMinOrderValue(updatedItems),
+  orderingData: {
+    ...orderingData,
+    orderItems: updatedItems,
+  },
+  lastModified: dayjs().valueOf(),
+})
 ```
 
 Replace with:
+
 ```ts
-      set({
-        orderItemTotalQuantity: calcOrderItemTotalQuantity(updatedItems),
-        minOrderValue: calcMinOrderValue(updatedItems),
-        orderItemsById: calcOrderItemsById(updatedItems),
-        orderingData: {
-          ...orderingData,
-          orderItems: updatedItems,
-        },
-        lastModified: dayjs().valueOf(),
-      })
+set({
+  orderItemTotalQuantity: calcOrderItemTotalQuantity(updatedItems),
+  minOrderValue: calcMinOrderValue(updatedItems),
+  orderItemsById: calcOrderItemsById(updatedItems),
+  orderingData: {
+    ...orderingData,
+    orderItems: updatedItems,
+  },
+  lastModified: dayjs().valueOf(),
+})
 ```
 
 **In `addOrderingNote`** (around line 207):
 
 Current:
+
 ```ts
-      set({
-        orderingData: {
-          ...orderingData,
-          orderItems: updatedItems,
-        },
-        lastModified: dayjs().valueOf(),
-      })
+set({
+  orderingData: {
+    ...orderingData,
+    orderItems: updatedItems,
+  },
+  lastModified: dayjs().valueOf(),
+})
 ```
 
 Replace with:
+
 ```ts
-      set({
-        orderItemsById: calcOrderItemsById(updatedItems),
-        orderingData: {
-          ...orderingData,
-          orderItems: updatedItems,
-        },
-        lastModified: dayjs().valueOf(),
-      })
+set({
+  orderItemsById: calcOrderItemsById(updatedItems),
+  orderingData: {
+    ...orderingData,
+    orderItems: updatedItems,
+  },
+  lastModified: dayjs().valueOf(),
+})
 ```
 
 **In `clearOrderingData`** (around line 218):
 
 Current:
+
 ```ts
     clearOrderingData: () => {
       set({
@@ -1433,6 +1443,7 @@ Current:
 ```
 
 Replace with:
+
 ```ts
     clearOrderingData: () => {
       set({

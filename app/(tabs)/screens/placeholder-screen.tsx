@@ -1,5 +1,6 @@
 // screens/PlaceholderScreens.tsx
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
+import { Text } from '@/components/ui/text'
 
 const Screen = ({ name }: { name: string }) => (
   <View style={styles.container}>

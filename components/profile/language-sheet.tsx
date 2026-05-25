@@ -7,7 +7,7 @@ import i18n from 'i18next'
 import { Check } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import Svg, { ClipPath, Defs, G, Path, Rect } from 'react-native-svg'
@@ -16,6 +16,7 @@ import { colors } from '@/constants'
 import { useUpdateLanguage } from '@/hooks'
 import { useUserStore } from '@/stores'
 import { showToast } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 const FLAG_W = 36
 const FLAG_H = 24
@@ -122,7 +123,10 @@ export const LanguageSheet = memo(function LanguageSheet({
               sheetRef.current?.dismiss()
             },
             onError: () => {
-              showToast(t('profile.language.switchFailed', { lng: code }), 'error')
+              showToast(
+                t('profile.language.switchFailed', { lng: code }),
+                'error',
+              )
             },
           },
         )

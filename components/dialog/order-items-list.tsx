@@ -1,11 +1,12 @@
 import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 
 import { Badge } from '@/components/ui'
 import { IOrderingData } from '@/stores'
 import { OrderTypeEnum } from '@/types'
 import { calculateCartDisplayAndTotals, formatCurrency } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 interface OrderItemsListProps {
   order: IOrderingData | null

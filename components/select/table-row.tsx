@@ -1,10 +1,11 @@
 import { Check } from 'lucide-react-native'
 import { memo } from 'react'
-import { Text, TouchableOpacity, View, useColorScheme } from 'react-native'
+import { TouchableOpacity, View, useColorScheme } from 'react-native'
 
 import { TableStatus } from '@/constants'
 import { cn } from '@/lib/utils'
 import { ITable } from '@/types'
+import { Text } from '@/components/ui/text'
 
 interface Props {
   table: ITable

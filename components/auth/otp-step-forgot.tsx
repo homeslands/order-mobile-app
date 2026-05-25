@@ -2,7 +2,6 @@ import React, { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   ActivityIndicator,
-  Text,
   TouchableOpacity,
   View,
   useColorScheme,
@@ -18,6 +17,7 @@ import { AnimatedCountdownText } from './animated-countdown-text'
 import { OTPInput } from './otp-input'
 import { Button } from '@/components/ui'
 import { useAnimatedCountdown } from '@/hooks'
+import { Text } from '@/components/ui/text'
 
 /**
  * Resend button countdown text — isolated so only this sub-component

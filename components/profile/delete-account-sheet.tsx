@@ -7,22 +7,23 @@ import {
   BottomSheetTextInput,
   BottomSheetView,
 } from '@gorhom/bottom-sheet'
-import { Eye, EyeOff, TriangleAlert } from 'lucide-react-native'
+import { TriangleAlert } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { PasswordInputField } from '@/components/input/password-input-field'
 import { colors } from '@/constants'
 import { useDeleteAccount } from '@/hooks/use-auth'
 import { showErrorToast, showToast } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 interface Props {
   visible: boolean
@@ -43,7 +44,6 @@ export const DeleteAccountSheet = memo(function DeleteAccountSheet({
   const [step, setStep] = useState<1 | 2>(1)
   const [confirmText, setConfirmText] = useState('')
   const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
 
   const CONFIRM_PHRASE = t('profile.deleteAccount.confirmPhrase')
   const isConfirmTextValid =
@@ -63,7 +63,6 @@ export const DeleteAccountSheet = memo(function DeleteAccountSheet({
     setStep(1)
     setConfirmText('')
     setPassword('')
-    setShowPassword(false)
   }, [])
 
   const handleDismiss = useCallback(() => {
@@ -78,7 +77,6 @@ export const DeleteAccountSheet = memo(function DeleteAccountSheet({
   const handleBack = useCallback(() => {
     setStep(1)
     setPassword('')
-    setShowPassword(false)
   }, [])
 
   const handleConfirm = useCallback(() => {
@@ -89,7 +87,7 @@ export const DeleteAccountSheet = memo(function DeleteAccountSheet({
         onSuccess()
       },
       onError: (err: unknown) => {
-const data = (err as { response?: { data?: { statusCode?: number } } })
+        const data = (err as { response?: { data?: { statusCode?: number } } })
           ?.response?.data
         if (data?.statusCode) {
           showErrorToast(data.statusCode)
@@ -227,18 +225,6 @@ const data = (err as { response?: { data?: { statusCode?: number } } })
     [isDark],
   )
 
-  const inputStyle = useMemo(
-    () => [
-      styles.input,
-      {
-        backgroundColor: isDark ? colors.background.dark : colors.gray[50],
-        borderColor: isDark ? colors.border.dark : colors.border.light,
-        color: isDark ? colors.gray[50] : colors.gray[900],
-      },
-    ],
-    [isDark],
-  )
-
   return (
     <BottomSheetModal
       ref={sheetRef}
@@ -294,7 +280,18 @@ const data = (err as { response?: { data?: { statusCode?: number } } })
               autoCorrect={false}
               returnKeyType="done"
               onSubmitEditing={isConfirmTextValid ? handleContinue : undefined}
-              style={inputStyle}
+              style={[
+                styles.input,
+                {
+                  backgroundColor: isDark
+                    ? colors.background.dark
+                    : colors.gray[50],
+                  borderColor: isDark
+                    ? colors.border.dark
+                    : colors.border.light,
+                  color: isDark ? colors.gray[50] : colors.gray[900],
+                },
+              ]}
             />
           </>
         ) : (
@@ -309,40 +306,12 @@ const data = (err as { response?: { data?: { statusCode?: number } } })
               {t('profile.deleteAccount.passwordLabel')}
             </Text>
 
-            <View style={styles.inputWrap}>
-              <BottomSheetTextInput
-                value={password}
-                onChangeText={setPassword}
-                placeholder={t('profile.deleteAccount.passwordPlaceholder')}
-                placeholderTextColor={
-                  isDark ? colors.gray[600] : colors.gray[400]
-                }
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-                autoCorrect={false}
-                returnKeyType="done"
-                onSubmitEditing={handleConfirm}
-                style={inputStyle}
-                editable={!isPending}
-              />
-              <Pressable
-                onPress={() => setShowPassword((v) => !v)}
-                hitSlop={8}
-                style={styles.eyeBtn}
-              >
-                {showPassword ? (
-                  <EyeOff
-                    size={18}
-                    color={isDark ? colors.gray[500] : colors.gray[400]}
-                  />
-                ) : (
-                  <Eye
-                    size={18}
-                    color={isDark ? colors.gray[500] : colors.gray[400]}
-                  />
-                )}
-              </Pressable>
-            </View>
+            <PasswordInputField
+              value={password}
+              onChange={setPassword}
+              placeholder={t('profile.deleteAccount.passwordPlaceholder')}
+              disabled={isPending}
+            />
           </>
         )}
 
@@ -383,24 +352,13 @@ const styles = StyleSheet.create({
     fontFamily: 'BeVietnamPro_400Regular',
     marginBottom: 8,
   },
-  inputWrap: {
-    position: 'relative',
-  },
   input: {
     height: 48,
     borderWidth: 1,
     borderRadius: 10,
     paddingHorizontal: 14,
-    paddingRight: 44,
     fontSize: 15,
     fontFamily: 'BeVietnamPro_400Regular',
-  },
-  eyeBtn: {
-    position: 'absolute',
-    right: 14,
-    top: 0,
-    bottom: 0,
-    justifyContent: 'center',
   },
   footer: {
     flexDirection: 'row',

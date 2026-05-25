@@ -2,7 +2,7 @@ import { Moon, Settings, Sun } from 'lucide-react-native'
 import React, { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Image } from 'expo-image'
-import { Text, TouchableOpacity, useColorScheme, View } from 'react-native'
+import { TouchableOpacity, useColorScheme, View } from 'react-native'
 
 import { Images } from '@/assets/images'
 import {
@@ -13,6 +13,7 @@ import {
 } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import { useThemeStore, useUserStore } from '@/stores'
+import { Text } from '@/components/ui/text'
 
 /**
  * SettingsDropdown Component

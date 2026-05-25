@@ -40,6 +40,7 @@ import { SharedElementProvider } from '@/lib/shared-element'
 import '@/lib/store-sync-setup'
 import { AppToastProvider, I18nProvider } from '@/providers'
 import { NotificationProvider } from '@/providers/notification-provider'
+import { FontScaleProvider } from '@/providers/font-scale-provider'
 import { applyTheme, useThemeStore } from '@/stores/theme.store'
 import { showErrorToast } from '@/utils/toast'
 
@@ -156,29 +157,31 @@ function AppContent() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <BottomSheetModalProvider>
-            <LogoutSheetPortal />
-            <QRSelectionSheet />
-            <ScanSheetPortal />
-            <NotificationProvider />
-            <I18nProvider>
-              <NavigationEngineProvider>
-                <MasterTransitionProvider>
-                  <AppToastProvider>
-                    <SharedElementProvider>
-                      <NativeStackWithMasterTransition />
-                    </SharedElementProvider>
-                  </AppToastProvider>
-                </MasterTransitionProvider>
-              </NavigationEngineProvider>
-            </I18nProvider>
-          </BottomSheetModalProvider>
-        </QueryClientProvider>
-      </SafeAreaProvider>
-    </GestureHandlerRootView>
+    <FontScaleProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <SafeAreaProvider>
+          <QueryClientProvider client={queryClient}>
+            <BottomSheetModalProvider>
+              <LogoutSheetPortal />
+              <QRSelectionSheet />
+              <ScanSheetPortal />
+              <NotificationProvider />
+              <I18nProvider>
+                <NavigationEngineProvider>
+                  <MasterTransitionProvider>
+                    <AppToastProvider>
+                      <SharedElementProvider>
+                        <NativeStackWithMasterTransition />
+                      </SharedElementProvider>
+                    </AppToastProvider>
+                  </MasterTransitionProvider>
+                </NavigationEngineProvider>
+              </I18nProvider>
+            </BottomSheetModalProvider>
+          </QueryClientProvider>
+        </SafeAreaProvider>
+      </GestureHandlerRootView>
+    </FontScaleProvider>
   )
 }
 
@@ -203,7 +206,8 @@ export default function RootLayout() {
 
     const sub = AppState.addEventListener('change', (state) => {
       const focused = state !== 'background'
-      const comingFromBackground = prevState === 'background' && state === 'active'
+      const comingFromBackground =
+        prevState === 'background' && state === 'active'
       prevState = state
 
       if (deferFocusTimeout) {

@@ -5,7 +5,8 @@ import { capitalizeFirst } from '@/utils'
 import { formatCurrencyNative } from 'cart-price-calc'
 import { Plus } from 'lucide-react-native'
 import React, { createContext, memo, useCallback, useContext } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
+import { Text } from '@/components/ui/text'
 
 /** Number of items allowed to show images (listIndex < value). 0 = none. */
 export const MenuImagePhaseContext = createContext(0)

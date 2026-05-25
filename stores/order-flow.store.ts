@@ -765,7 +765,9 @@ export const useOrderFlowStore = create<IOrderFlowStore>()(
     {
       name: 'order-flow-store',
       version: 1,
-      storage: createJSONStorage(() => throttledStorage(createSafeStorage(), 300)),
+      storage: createJSONStorage(() =>
+        throttledStorage(createSafeStorage(), 300),
+      ),
       partialize: (state) => ({
         currentStep: state.currentStep,
         orderingData: state.orderingData,

@@ -15,6 +15,7 @@
 **Why:** ~1 000 lines of unreachable code bloating the bundle and confusing future readers. Each deletion is verified: no import outside the file itself or its barrel.
 
 **Files:**
+
 - Delete: `components/ui/data-table/` (entire folder — 12 files)
 - Delete: `hooks/use-data-table.ts`
 - Delete: `components/home/news-carousel.tsx`
@@ -69,22 +70,28 @@ rm components/profile/profile-header.tsx
 ```
 
 - [ ] **1.4** Remove `ProductImageCarousel` from `components/menu/index.ts`. Current line 7:
+
 ```ts
 export { default as ProductImageCarousel } from './product-image-carousel'
 ```
+
 Delete that line entirely.
 
 - [ ] **1.5** Remove `ProfileHeader` from `components/profile/index.ts`. Current line 21:
+
 ```ts
 export { ProfileHeader, type ProfileHeaderProps } from './profile-header'
 ```
+
 Delete that line entirely.
 
 - [ ] **1.6** Remove carousel exports from `components/ui/index.ts`. Current lines 13–14:
+
 ```ts
 } from './carousel'
 export type { CarouselApi } from './carousel'
 ```
+
 Delete both lines. Also remove any `Carousel, CarouselContent, CarouselItem` from the export on the line ending at 13 — read the file first to see the full block.
 
 - [ ] **1.7** Verify:
@@ -106,12 +113,14 @@ cd /Users/phanquyetthang/mobile-movie-app && git add -A && git commit -m "chore:
 ## Task 2 — Remove unnecessary `persist` from transient stores
 
 **Why:** Four stores persist purely transient/session-scoped state to AsyncStorage, causing unnecessary IO on every mutation and ghost-state on cold start:
+
 - `current-url.store.ts` — URL tracking for session debounce; stale after app kill
 - `overview-filter.store.ts` — `onRehydrateStorage` immediately resets to default — persist does nothing
 - `forgot-password.store.ts` — OTP tokens/steps persist plaintext; expired on relaunch
 - `selected-chef-order.store.ts` — persists `isSheetOpen` UI flag
 
 **Files:**
+
 - Modify: `stores/current-url.store.ts`
 - Modify: `stores/overview-filter.store.ts`
 - Modify: `stores/forgot-password.store.ts`
@@ -187,6 +196,7 @@ export const useOverviewFilterStore = create<IOverviewFilterStore>()((set) => ({
 - [ ] **2.3** In `stores/forgot-password.store.ts`, add `partialize: () => ({})` so the persist wrapper stays (preserving `isHydrated` semantics if any consumer checks it) but nothing writes to AsyncStorage:
 
 Current lines 68–72:
+
 ```ts
     {
       name: 'forgot-password-store',
@@ -195,6 +205,7 @@ Current lines 68–72:
 ```
 
 Replace with:
+
 ```ts
     {
       name: 'forgot-password-store',
@@ -206,6 +217,7 @@ Replace with:
 - [ ] **2.4** In `stores/selected-chef-order.store.ts`, add `partialize` to exclude `isSheetOpen` (transient UI flag):
 
 Current lines 27–30:
+
 ```ts
     {
       name: 'selected-chef-order-store',
@@ -214,6 +226,7 @@ Current lines 27–30:
 ```
 
 Replace with:
+
 ```ts
     {
       name: 'selected-chef-order-store',
@@ -243,12 +256,14 @@ cd /Users/phanquyetthang/mobile-movie-app && git add stores/current-url.store.ts
 ## Task 3 — Fix P0 data bugs: payment key collision + query key bugs
 
 **Why:**
+
 - `payment.store.ts` and `payment-method.store.ts` share `name: 'payment-storage'` → AsyncStorage last-write-wins data corruption.
 - `payment.store.ts` has zero consumers outside the barrel export → dead store, delete it.
 - `useSpecificBanner` uses `[QUERYKEY, slug]` (entire QUERYKEY object) instead of `[QUERYKEY.banners, 'specific', slug]` — wrong cache namespace.
 - `useSpecificPublicVoucher` uses `[QUERYKEY.vouchers, data]` which collides with `useVouchers` (same prefix, different shape) — should use `[QUERYKEY.specificVoucher, data]` which already exists.
 
 **Files:**
+
 - Delete: `stores/payment.store.ts`
 - Modify: `stores/index.ts`
 - Modify: `stores/payment-method.store.ts`
@@ -270,6 +285,7 @@ cd /Users/phanquyetthang/mobile-movie-app && rm stores/payment.store.ts
 ```
 
 - [ ] **3.3** Remove from `stores/index.ts`. Find and delete the line:
+
 ```ts
 export * from './payment.store'
 ```
@@ -283,28 +299,37 @@ cd /Users/phanquyetthang/mobile-movie-app && grep -rn "IPaymentStore" --include=
 If only in `types/payment.type.ts` or similar and no longer referenced, delete that interface too (after confirming).
 
 - [ ] **3.5** In `stores/payment-method.store.ts`, fix the key collision. Change line 50:
+
 ```ts
       name: 'payment-storage',
 ```
+
 To:
+
 ```ts
       name: 'payment-method-storage',
 ```
 
 - [ ] **3.6** In `hooks/use-banner.ts`, fix line 35. Change:
+
 ```ts
     queryKey: [QUERYKEY, slug],
 ```
+
 To:
+
 ```ts
     queryKey: [QUERYKEY.banners, 'specific', slug],
 ```
 
 - [ ] **3.7** In `hooks/use-voucher.ts`, fix line 135. Change:
+
 ```ts
     queryKey: [QUERYKEY.vouchers, data],
 ```
+
 To:
+
 ```ts
     queryKey: [QUERYKEY.specificVoucher, data],
 ```
@@ -330,6 +355,7 @@ cd /Users/phanquyetthang/mobile-movie-app && git add stores/payment.store.ts sto
 **Why:** `useCartItemVoucherDiscount`, `useCartItem`, `useOrderItem`, `useOrderItemQuantity` all use O(N) `Array.find()`. The store already maintains `orderItemsById: Record<string, IOrderItem>` as an O(1) map (added in the previous plan). With 20 cart items, each cart mutation triggers 80 unnecessary iterations from these 4 selectors × N rows = O(N²) total. Switching to direct object lookup reduces this to O(1) × N = O(N).
 
 **Files:**
+
 - Modify: `stores/cart.store.ts` (lines 62–74 and 129–132)
 - Modify: `stores/selectors/order-flow.selectors.ts` (lines 170–180)
 
@@ -342,6 +368,7 @@ cd /Users/phanquyetthang/mobile-movie-app && sed -n '60,135p' stores/cart.store.
 - [ ] **4.2** In `stores/cart.store.ts`, replace `useCartItemVoucherDiscount` (lines ~62–74):
 
 Current:
+
 ```ts
 export const useCartItemVoucherDiscount = (cartKey: string): number =>
   useOrderFlowStore((s) => {
@@ -354,6 +381,7 @@ export const useCartItemVoucherDiscount = (cartKey: string): number =>
 ```
 
 Replace with:
+
 ```ts
 export const useCartItemVoucherDiscount = (cartKey: string): number =>
   useOrderFlowStore((s) => {
@@ -368,6 +396,7 @@ export const useCartItemVoucherDiscount = (cartKey: string): number =>
 - [ ] **4.3** In `stores/cart.store.ts`, replace `useCartItem` (lines ~129–132):
 
 Current:
+
 ```ts
 export const useCartItem = (itemId: string) =>
   useOrderFlowStore((s) =>
@@ -376,6 +405,7 @@ export const useCartItem = (itemId: string) =>
 ```
 
 Replace with:
+
 ```ts
 export const useCartItem = (itemId: string) =>
   useOrderFlowStore((s) => s.orderItemsById?.[itemId])
@@ -390,6 +420,7 @@ cd /Users/phanquyetthang/mobile-movie-app && sed -n '165,185p' stores/selectors/
 - [ ] **4.5** In `stores/selectors/order-flow.selectors.ts`, replace `useOrderItem` (lines ~170–174):
 
 Current:
+
 ```ts
 export const useOrderItem = (itemId: string) =>
   useOrderFlowStore((s) =>
@@ -398,6 +429,7 @@ export const useOrderItem = (itemId: string) =>
 ```
 
 Replace with:
+
 ```ts
 export const useOrderItem = (itemId: string) =>
   useOrderFlowStore((s) => s.orderItemsById?.[itemId])
@@ -406,6 +438,7 @@ export const useOrderItem = (itemId: string) =>
 - [ ] **4.6** In `stores/selectors/order-flow.selectors.ts`, replace `useOrderItemQuantity` (lines ~176–180):
 
 Current:
+
 ```ts
 export const useOrderItemQuantity = (itemId: string): number =>
   useOrderFlowStore(
@@ -415,6 +448,7 @@ export const useOrderItemQuantity = (itemId: string): number =>
 ```
 
 Replace with:
+
 ```ts
 export const useOrderItemQuantity = (itemId: string): number =>
   useOrderFlowStore((s) => s.orderItemsById?.[itemId]?.quantity ?? 0)
@@ -439,12 +473,14 @@ cd /Users/phanquyetthang/mobile-movie-app && git add stores/cart.store.ts stores
 **Why:** `useBanners` and `useBranch` have no `staleTime` (default 0), so every screen mount and every focus event triggers a refetch even though banners change at most daily and branches change weekly. Each unnecessary refetch allocates a new response object, busts React Query's structural sharing, and causes all subscribers to re-render.
 
 **Files:**
+
 - Modify: `hooks/use-banner.ts`
 - Modify: `hooks/use-branch.ts`
 
 - [ ] **5.1** In `hooks/use-banner.ts`, add `staleTime` to `useBanners` (lines ~18–23):
 
 Current:
+
 ```ts
 export const useBanners = (params?: IBannerRequest) => {
   return useQuery({
@@ -455,6 +491,7 @@ export const useBanners = (params?: IBannerRequest) => {
 ```
 
 Replace with:
+
 ```ts
 export const useBanners = (params?: IBannerRequest) => {
   return useQuery({
@@ -474,6 +511,7 @@ cd /Users/phanquyetthang/mobile-movie-app && cat hooks/use-branch.ts
 - [ ] **5.3** Add `staleTime` to `useBranch` only (not `useBranchInfoForDelivery`):
 
 Current:
+
 ```ts
 export const useBranch = (options?: UseBranchOptions) => {
   const enabled = options?.enabled ?? true
@@ -486,6 +524,7 @@ export const useBranch = (options?: UseBranchOptions) => {
 ```
 
 Replace with:
+
 ```ts
 export const useBranch = (options?: UseBranchOptions) => {
   const enabled = options?.enabled ?? true
@@ -515,6 +554,7 @@ cd /Users/phanquyetthang/mobile-movie-app && git add hooks/use-banner.ts hooks/u
 ## Task 6 — Single-pass aggregator for `ordering-items.slice.ts`
 
 **Why:** Every cart mutation (`addOrderingItem`, `updateOrderingItemQuantity`, `removeOrderingItem`, `updateOrderingItemVariant`, `addOrderingNote`, `addOrderingProductVariant`) currently calls four separate functions that each iterate the full `updatedItems` array:
+
 1. `calcOrderItemTotalQuantity(updatedItems)` — O(N)
 2. `calcMinOrderValue(updatedItems)` — O(N)
 3. `calcOrderItemsById(updatedItems)` — O(N)
@@ -523,6 +563,7 @@ cd /Users/phanquyetthang/mobile-movie-app && git add hooks/use-banner.ts hooks/u
 That's 4 × O(N) = 200 iterations for a 50-item cart, per every quantity tap. Replacing with a single pass cuts this to O(N) — 75% reduction.
 
 **Files:**
+
 - Modify: `stores/order-flow.types.ts` (add `aggregateOrderItems` helper)
 - Modify: `stores/slices/ordering-items.slice.ts` (use single-pass in all 7 mutating actions)
 
@@ -547,7 +588,12 @@ export function aggregateOrderItems(items: IOrderItem[] | undefined): {
   rawSubTotal: number
 } {
   if (!items || items.length === 0) {
-    return { orderItemTotalQuantity: 0, minOrderValue: 0, orderItemsById: {}, rawSubTotal: 0 }
+    return {
+      orderItemTotalQuantity: 0,
+      minOrderValue: 0,
+      orderItemsById: {},
+      rawSubTotal: 0,
+    }
   }
   let totalQty = 0
   let minOrder = 0
@@ -586,39 +632,42 @@ Actually: verify which of the four helpers are still needed in the slice after t
 - [ ] **6.6** Refactor all mutating actions to use `aggregateOrderItems`. For each action that currently calls `calcOrderItemTotalQuantity`, `calcMinOrderValue`, `calcOrderItemsById` separately and then calls `useCartDisplayStore.getState().resetAfterCartChange(calcRawSubTotal(updatedItems))`:
 
 Pattern before (example from `updateOrderingItemQuantity`):
+
 ```ts
-      set({
-        orderItemTotalQuantity: calcOrderItemTotalQuantity(updatedItems),
-        minOrderValue: calcMinOrderValue(updatedItems),
-        orderItemsById: calcOrderItemsById(updatedItems),
-        orderingData: {
-          ...orderingData,
-          orderItems: updatedItems,
-        },
-        lastModified: dayjs().valueOf(),
-      })
-      useCartDisplayStore
-        .getState()
-        .resetAfterCartChange(calcRawSubTotal(updatedItems))
+set({
+  orderItemTotalQuantity: calcOrderItemTotalQuantity(updatedItems),
+  minOrderValue: calcMinOrderValue(updatedItems),
+  orderItemsById: calcOrderItemsById(updatedItems),
+  orderingData: {
+    ...orderingData,
+    orderItems: updatedItems,
+  },
+  lastModified: dayjs().valueOf(),
+})
+useCartDisplayStore
+  .getState()
+  .resetAfterCartChange(calcRawSubTotal(updatedItems))
 ```
 
 Pattern after:
+
 ```ts
-      const agg = aggregateOrderItems(updatedItems)
-      set({
-        orderItemTotalQuantity: agg.orderItemTotalQuantity,
-        minOrderValue: agg.minOrderValue,
-        orderItemsById: agg.orderItemsById,
-        orderingData: {
-          ...orderingData,
-          orderItems: updatedItems,
-        },
-        lastModified: dayjs().valueOf(),
-      })
-      useCartDisplayStore.getState().resetAfterCartChange(agg.rawSubTotal)
+const agg = aggregateOrderItems(updatedItems)
+set({
+  orderItemTotalQuantity: agg.orderItemTotalQuantity,
+  minOrderValue: agg.minOrderValue,
+  orderItemsById: agg.orderItemsById,
+  orderingData: {
+    ...orderingData,
+    orderItems: updatedItems,
+  },
+  lastModified: dayjs().valueOf(),
+})
+useCartDisplayStore.getState().resetAfterCartChange(agg.rawSubTotal)
 ```
 
 Apply this pattern to all actions that use any of `calcOrderItemTotalQuantity`, `calcMinOrderValue`, `calcOrderItemsById`, `calcRawSubTotal`. The affected actions are:
+
 - Both branches of `addOrderingItem`
 - `addOrderingProductVariant`
 - `updateOrderingItemVariant`
@@ -655,6 +704,7 @@ cd /Users/phanquyetthang/mobile-movie-app && git add stores/order-flow.types.ts 
 **Why:** Every cart action (qty+/−, note keystroke after debounce, voucher add/remove) serializes the full `orderingData` to AsyncStorage. On Android, AsyncStorage.setItem is synchronous and blocks the JS thread ~5–15 ms per call. During rapid qty taps, this can fire 5–10 times/second. Wrapping the persist storage with a 300 ms trailing debounce collapses bursts into one write; reads remain immediate since they don't go through the throttle.
 
 **Files:**
+
 - Create: `utils/throttled-storage.ts`
 - Modify: `stores/order-flow.store.ts`
 
@@ -701,6 +751,7 @@ import { createSafeStorage } from '@/utils/storage'
 ```
 
 Add below it:
+
 ```ts
 import { throttledStorage } from '@/utils/throttled-storage'
 ```
@@ -715,6 +766,7 @@ import { throttledStorage } from '@/utils/throttled-storage'
 ```
 
 Change the `storage` line to:
+
 ```ts
       storage: createJSONStorage(() => throttledStorage(createSafeStorage(), 300)),
 ```

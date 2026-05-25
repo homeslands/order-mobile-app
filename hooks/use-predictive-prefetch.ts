@@ -77,7 +77,10 @@ export function usePredictivePrefetch() {
 
       if (isOnHome) {
         queryClient.prefetchQuery({
-          queryKey: [QUERYKEY.banners, { page: BannerPage.HOME, isActive: true }],
+          queryKey: [
+            QUERYKEY.banners,
+            { page: BannerPage.HOME, isActive: true },
+          ],
           queryFn: () => getBanners({ page: BannerPage.HOME, isActive: true }),
         })
         // Prefetch menu ngay khi vào Home — user chủ yếu vào Menu, giảm khựng khi chuyển tab

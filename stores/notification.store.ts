@@ -159,7 +159,10 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
     set((state) => {
       let changed = false
       const notifications = state.notifications.map((n) => {
-        if (n.slug === slug && !n.isRead) { changed = true; return { ...n, isRead: true } }
+        if (n.slug === slug && !n.isRead) {
+          changed = true
+          return { ...n, isRead: true }
+        }
         return n
       })
       if (!changed) return state
@@ -175,7 +178,10 @@ export const useNotificationStore = create<NotificationStore>((set, get) => ({
     set((state) => {
       let changed = false
       const notifications = state.notifications.map((n) => {
-        if (n.metadata.order === orderSlug && !n.isRead) { changed = true; return { ...n, isRead: true } }
+        if (n.metadata.order === orderSlug && !n.isRead) {
+          changed = true
+          return { ...n, isRead: true }
+        }
         return n
       })
       if (!changed) return state

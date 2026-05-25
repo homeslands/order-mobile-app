@@ -11,7 +11,6 @@ import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   useColorScheme,
@@ -21,6 +20,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '@/constants'
 import { useQRSelectionSheetStore } from '@/stores/qr-selection-sheet.store'
 import { useScanSheetStore } from '@/stores/scan-sheet.store'
+import { Text } from '@/components/ui/text'
 
 const SNAP_POINTS = ['38%']
 

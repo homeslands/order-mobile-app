@@ -1,7 +1,7 @@
 import { Image } from 'expo-image'
 import { Coins, Gift } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 
 import { CartSwipeable } from '@/components/cart/cart-swipeable'
 import { colors } from '@/constants'
@@ -9,6 +9,7 @@ import { useGiftCardStore } from '@/stores'
 import { capitalizeFirst, formatCurrency, formatPoints } from '@/utils'
 import { getProductImageUrl } from '@/utils/product-image-url'
 import type { IGiftCardCartItem } from '@/types'
+import { Text } from '@/components/ui/text'
 
 const MIN_QTY = 1
 const MAX_QTY = 10

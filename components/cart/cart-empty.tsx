@@ -1,6 +1,7 @@
 import { colors } from '@/constants'
 import { ShoppingCart } from 'lucide-react-native'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
+import { Text } from '@/components/ui/text'
 
 export function CartEmpty({
   isDark,

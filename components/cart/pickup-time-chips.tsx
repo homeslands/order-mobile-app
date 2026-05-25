@@ -1,9 +1,10 @@
 import { memo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, ScrollView, StyleSheet, Text } from 'react-native'
+import { Pressable, ScrollView, StyleSheet } from 'react-native'
 
 import { colors } from '@/constants'
 import { usePickupTime } from '@/hooks'
+import { Text } from '@/components/ui/text'
 
 const PICKUP_TIME_OPTIONS = [0, 5, 10, 15, 30, 45, 60] as const
 

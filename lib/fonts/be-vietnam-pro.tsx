@@ -10,8 +10,8 @@ import {
   BeVietnamPro_700Bold,
 } from '@expo-google-fonts/be-vietnam-pro'
 import { useEffect } from 'react'
-import type { TextProps } from 'react-native'
-import { Text } from 'react-native'
+import type { TextInputProps, TextProps } from 'react-native'
+import { Text, TextInput } from 'react-native'
 
 const FONT_REGULAR = 'BeVietnamPro_400Regular'
 
@@ -25,11 +25,20 @@ export function useBeVietnamProFont() {
 
   useEffect(() => {
     if (loaded && !error) {
-      const defaultProps: Partial<TextProps> = {
-        style: { fontFamily: FONT_REGULAR },
-      }
       const RNText = Text as typeof Text & { defaultProps?: Partial<TextProps> }
-      RNText.defaultProps = defaultProps
+      RNText.defaultProps = {
+        ...(RNText.defaultProps ?? {}),
+        style: { fontFamily: FONT_REGULAR },
+        maxFontSizeMultiplier: 1.0,
+      }
+
+      const RNTextInput = TextInput as typeof TextInput & {
+        defaultProps?: Partial<TextInputProps>
+      }
+      RNTextInput.defaultProps = {
+        ...(RNTextInput.defaultProps ?? {}),
+        maxFontSizeMultiplier: 1.0,
+      }
     }
   }, [loaded, error])
 

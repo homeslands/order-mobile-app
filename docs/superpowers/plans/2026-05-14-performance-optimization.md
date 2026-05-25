@@ -11,6 +11,7 @@
 ## Task 1: NHÓM 1 — Xóa dead code
 
 **Files:**
+
 - Delete: `stores/current-order.store.ts`
 - Delete: `stores/selected-order.store.ts`
 - Delete: `stores/menu.store.ts`
@@ -27,18 +28,22 @@
 > **Note:** `stores/update-order.store.ts` is NOT deleted here — Group 2 migrates its 3 callsites before deletion. The `IOriginalOrderStore` block + slice imports live there and stay through Group 1 to keep typecheck green.
 
 - [ ] **Step 1: Verify the targets really have zero consumers (outside themselves)**
+
 ```bash
 cd /Users/phanquyetthang/mobile-movie-app
 grep -rn "useCurrentOrderStore\|useSelectedOrderStore\|useMenuItemStore\|menuItemStore" --include="*.ts" --include="*.tsx" . | grep -v node_modules | grep -v "stores/current-order.store.ts" | grep -v "stores/selected-order.store.ts" | grep -v "stores/menu.store.ts" | grep -v "stores/menu-item.store.ts"
 ```
+
 Expected output: empty (no consumers).
 
 ```bash
 grep -rn "order-comparison\|getChangesSummary\|IOrderComparison" --include="*.ts" --include="*.tsx" . | grep -v node_modules | grep -v "utils/order-comparison.ts" | grep -v "utils/index.ts"
 ```
+
 Expected output: empty.
 
 - [ ] **Step 2: Delete the five dead stores**
+
 ```bash
 rm /Users/phanquyetthang/mobile-movie-app/stores/current-order.store.ts
 rm /Users/phanquyetthang/mobile-movie-app/stores/selected-order.store.ts
@@ -47,6 +52,7 @@ rm /Users/phanquyetthang/mobile-movie-app/stores/menu-item.store.ts
 ```
 
 - [ ] **Step 3: Delete the dead 673-line utility**
+
 ```bash
 rm /Users/phanquyetthang/mobile-movie-app/utils/order-comparison.ts
 ```
@@ -74,12 +80,7 @@ import { persist } from 'zustand/middleware'
 
 import { PaymentMethod } from '@/constants'
 import { requestClearStoresExcept } from '@/lib/store-sync'
-import {
-  IOrder,
-  IOrderToUpdate,
-  IUpdateOrderStore,
-  OrderStatus,
-} from '@/types'
+import { IOrder, IOrderToUpdate, IUpdateOrderStore, OrderStatus } from '@/types'
 
 // ─── ID generators ────────────────────────────────────────────────────────────
 
@@ -331,18 +332,22 @@ export * from './decode-polyline'
 ```
 
 - [ ] **Step 9: Verify the project compiles and lints clean**
+
 ```bash
 cd /Users/phanquyetthang/mobile-movie-app
 npm run typecheck
 ```
+
 Expected: exit code 0.
 
 ```bash
 npm run lint
 ```
+
 Expected: exit code 0.
 
 - [ ] **Step 10: Commit**
+
 ```bash
 cd /Users/phanquyetthang/mobile-movie-app
 git add stores/index.ts utils/index.ts types/update-order.type.ts stores/update-order.store.ts
@@ -367,6 +372,7 @@ git status
 ## Task 2: NHÓM 2 — Migrate `useUpdateOrderStore` + `useCartItemStore` consumers
 
 **Files:**
+
 - Modify: `app/order/[id].tsx:35,139,166`
 - Modify: `components/dialog/create-order-dialog.tsx:24,62,193,218`
 - Modify: `components/cart/cart-confirm-order-sheet.tsx:13,68,160`
@@ -384,6 +390,7 @@ git status
 Edit `/Users/phanquyetthang/mobile-movie-app/app/order/[id].tsx`:
 
 Replace lines 33-37:
+
 ```ts
 import {
   useNotificationStore,
@@ -391,57 +398,64 @@ import {
   useUserStore,
 } from '@/stores'
 ```
+
 with:
+
 ```ts
 import { useNotificationStore, useUserStore } from '@/stores'
 ```
 
 Replace line 139:
+
 ```ts
-  const setOrderItems = useUpdateOrderStore((s) => s.setOrderItems)
+const setOrderItems = useUpdateOrderStore((s) => s.setOrderItems)
 ```
+
 with: (delete the line entirely — no replacement)
 
 Replace lines 155-172:
+
 ```ts
-  const handleUpdateOrder = useCallback(() => {
-    if (!getUserInfo()?.slug) {
-      showErrorToast(1042)
-      navigateNative.push(ROUTE.LOGIN)
-      return
-    }
-    if (!order?.slug) return
-    queryClient.prefetchQuery({
-      queryKey: ['order', order.slug],
-      queryFn: () => getOrderBySlug(order.slug),
-    })
-    setOrderItems(order)
-    navigateNative.push(
-      `${ROUTE.CLIENT_UPDATE_ORDER.replace('[slug]', order.slug)}` as Parameters<
-        typeof navigateNative.push
-      >[0],
-    )
-  }, [order, queryClient, setOrderItems, getUserInfo])
+const handleUpdateOrder = useCallback(() => {
+  if (!getUserInfo()?.slug) {
+    showErrorToast(1042)
+    navigateNative.push(ROUTE.LOGIN)
+    return
+  }
+  if (!order?.slug) return
+  queryClient.prefetchQuery({
+    queryKey: ['order', order.slug],
+    queryFn: () => getOrderBySlug(order.slug),
+  })
+  setOrderItems(order)
+  navigateNative.push(
+    `${ROUTE.CLIENT_UPDATE_ORDER.replace('[slug]', order.slug)}` as Parameters<
+      typeof navigateNative.push
+    >[0],
+  )
+}, [order, queryClient, setOrderItems, getUserInfo])
 ```
+
 with:
+
 ```ts
-  const handleUpdateOrder = useCallback(() => {
-    if (!getUserInfo()?.slug) {
-      showErrorToast(1042)
-      navigateNative.push(ROUTE.LOGIN)
-      return
-    }
-    if (!order?.slug) return
-    queryClient.prefetchQuery({
-      queryKey: ['order', order.slug],
-      queryFn: () => getOrderBySlug(order.slug),
-    })
-    navigateNative.push(
-      `${ROUTE.CLIENT_UPDATE_ORDER.replace('[slug]', order.slug)}` as Parameters<
-        typeof navigateNative.push
-      >[0],
-    )
-  }, [order, queryClient, getUserInfo])
+const handleUpdateOrder = useCallback(() => {
+  if (!getUserInfo()?.slug) {
+    showErrorToast(1042)
+    navigateNative.push(ROUTE.LOGIN)
+    return
+  }
+  if (!order?.slug) return
+  queryClient.prefetchQuery({
+    queryKey: ['order', order.slug],
+    queryFn: () => getOrderBySlug(order.slug),
+  })
+  navigateNative.push(
+    `${ROUTE.CLIENT_UPDATE_ORDER.replace('[slug]', order.slug)}` as Parameters<
+      typeof navigateNative.push
+    >[0],
+  )
+}, [order, queryClient, getUserInfo])
 ```
 
 - [ ] **Step 2: Migrate `components/dialog/create-order-dialog.tsx`**
@@ -449,6 +463,7 @@ with:
 Edit `/Users/phanquyetthang/mobile-movie-app/components/dialog/create-order-dialog.tsx`:
 
 Replace lines 20-26:
+
 ```ts
 import {
   IOrderingData,
@@ -458,7 +473,9 @@ import {
   useUserStore,
 } from '@/stores'
 ```
+
 with:
+
 ```ts
 import {
   IOrderingData,
@@ -469,12 +486,15 @@ import {
 ```
 
 Replace line 62:
+
 ```ts
-  const clearUpdateOrderStore = useUpdateOrderStore((s) => s.clearStore)
+const clearUpdateOrderStore = useUpdateOrderStore((s) => s.clearStore)
 ```
+
 with:
+
 ```ts
-  const clearUpdateOrderStore = useOrderFlowStore((s) => s.clearUpdatingData)
+const clearUpdateOrderStore = useOrderFlowStore((s) => s.clearUpdatingData)
 ```
 
 (Lines 193 and 218 already call `clearUpdateOrderStore()` — local name kept, no further edits needed at those lines.)
@@ -484,6 +504,7 @@ with:
 Edit `/Users/phanquyetthang/mobile-movie-app/components/cart/cart-confirm-order-sheet.tsx`:
 
 Replace lines 10-15:
+
 ```ts
 import {
   useBranchStore,
@@ -492,18 +513,23 @@ import {
   useUserStore,
 } from '@/stores'
 ```
+
 with:
+
 ```ts
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 ```
 
 Replace line 68:
+
 ```ts
-  const clearUpdateOrderStore = useUpdateOrderStore((s) => s.clearStore)
+const clearUpdateOrderStore = useUpdateOrderStore((s) => s.clearStore)
 ```
+
 with:
+
 ```ts
-  const clearUpdateOrderStore = useOrderFlowStore((s) => s.clearUpdatingData)
+const clearUpdateOrderStore = useOrderFlowStore((s) => s.clearUpdatingData)
 ```
 
 (Line 160 inside `onSuccess` already calls `clearUpdateOrderStore()` — no changes.)
@@ -537,13 +563,16 @@ initStoreSync({
 ```
 
 - [ ] **Step 5: Verify no remaining consumers of `useUpdateOrderStore` / `useCartItemStore` / `IUpdateOrderStore` / `ICartItemStore`**
+
 ```bash
 cd /Users/phanquyetthang/mobile-movie-app
 grep -rn "useUpdateOrderStore\|useCartItemStore\|IUpdateOrderStore\|ICartItemStore" --include="*.ts" --include="*.tsx" . | grep -v node_modules
 ```
+
 Expected output: only matches inside `stores/update-order.store.ts`, `stores/cart-legacy.store.ts`, `types/update-order.type.ts`, and `types/cart.type.ts` (the files we're about to delete or trim).
 
 - [ ] **Step 6: Delete the two now-orphan stores**
+
 ```bash
 rm /Users/phanquyetthang/mobile-movie-app/stores/update-order.store.ts
 rm /Users/phanquyetthang/mobile-movie-app/stores/cart-legacy.store.ts
@@ -599,6 +628,7 @@ export {}
 - [ ] **Step 9: Trim `types/cart.type.ts` — drop `ICartItemStore`**
 
 Read first to find the interface block:
+
 ```bash
 grep -n "ICartItemStore" /Users/phanquyetthang/mobile-movie-app/types/cart.type.ts
 ```
@@ -606,23 +636,28 @@ grep -n "ICartItemStore" /Users/phanquyetthang/mobile-movie-app/types/cart.type.
 Delete the entire `export interface ICartItemStore { ... }` block from `/Users/phanquyetthang/mobile-movie-app/types/cart.type.ts`. (Use Edit tool with the exact block contents pulled from a fresh Read; the rest of the file stays unchanged.)
 
 - [ ] **Step 10: Run final checks**
+
 ```bash
 cd /Users/phanquyetthang/mobile-movie-app
 npm run typecheck
 ```
+
 Expected: exit code 0.
 
 ```bash
 npm run lint
 ```
+
 Expected: exit code 0.
 
 ```bash
 grep -rn "useUpdateOrderStore\|useCartItemStore" --include="*.ts" --include="*.tsx" . | grep -v node_modules
 ```
+
 Expected: empty.
 
 - [ ] **Step 11: Commit**
+
 ```bash
 cd /Users/phanquyetthang/mobile-movie-app
 git add app/order/\[id\].tsx components/dialog/create-order-dialog.tsx components/cart/cart-confirm-order-sheet.tsx lib/store-sync-setup.ts stores/index.ts types/update-order.type.ts types/cart.type.ts
@@ -653,6 +688,7 @@ git status
 ## Task 3: NHÓM 3 — Memory-leak hook fixes
 
 **Files:**
+
 - Modify: `hooks/use-notification-listener.ts`
 - Modify: `hooks/use-firebase-token.ts`
 - Modify: `hooks/use-back-handler-for-exit.ts`
@@ -915,9 +951,11 @@ export function useFirebaseToken(enabled = true) {
 ```
 
 > **Note on `void useRef`:** Remove the trailing `void useRef` and the `useRef` import if lint complains about unused imports. The cleanest version drops the import entirely. After writing the file, run:
+>
 > ```bash
 > npm run lint -- hooks/use-firebase-token.ts
 > ```
+>
 > If `useRef` is flagged as unused, edit the file to remove `useRef` from the import on line 9 and delete the `void useRef` line near the end.
 
 - [ ] **Step 3: Fix `use-back-handler-for-exit.ts` — stable deps with refs**
@@ -980,18 +1018,22 @@ export function useBackHandlerForExit() {
 ```
 
 - [ ] **Step 4: Verify**
+
 ```bash
 cd /Users/phanquyetthang/mobile-movie-app
 npm run typecheck
 ```
+
 Expected: exit code 0.
 
 ```bash
 npm run lint
 ```
+
 Expected: exit code 0. If `useRef` in `use-firebase-token.ts` is flagged as unused, remove the import + the `void useRef` line and re-run.
 
 - [ ] **Step 5: Commit**
+
 ```bash
 cd /Users/phanquyetthang/mobile-movie-app
 git add hooks/use-notification-listener.ts hooks/use-firebase-token.ts hooks/use-back-handler-for-exit.ts
@@ -1018,6 +1060,7 @@ git status
 ## Task 4: NHÓM 4 — Spring config consolidation
 
 **Files:**
+
 - Modify: `constants/motion.ts` — add 6 new presets to `SPRING_CONFIGS`
 - Modify: `app/(tabs)/profile/profile-item.tsx:18-25,55,56`
 - Modify: `app/(tabs)/profile/transition-config.ts`
@@ -1031,6 +1074,7 @@ git status
 Edit `/Users/phanquyetthang/mobile-movie-app/constants/motion.ts` — inside the existing `SPRING_CONFIGS` block, append after the `swipe` entry (line 76), before the closing `} as const` on line 77:
 
 Replace:
+
 ```ts
   /**
    * Swipeable row snap — gesture-driven pan snap to open/closed position.
@@ -1042,7 +1086,9 @@ Replace:
   } as const,
 } as const
 ```
+
 with:
+
 ```ts
   /**
    * Swipeable row snap — gesture-driven pan snap to open/closed position.
@@ -1114,6 +1160,7 @@ with:
 Edit `/Users/phanquyetthang/mobile-movie-app/app/(tabs)/profile/profile-item.tsx`:
 
 Replace lines 9-25:
+
 ```ts
 import { colors } from '@/constants'
 import Animated, {
@@ -1133,7 +1180,9 @@ const SPRING_PRESS_OUT = {
   restSpeedThreshold: 0.01,
 }
 ```
+
 with:
+
 ```ts
 import { colors, SPRING_CONFIGS } from '@/constants'
 import Animated, {
@@ -1147,20 +1196,25 @@ const PRESS_SCALE = 0.96
 ```
 
 Replace lines 55-56:
+
 ```ts
-          scale.value = withSpring(1, SPRING_PRESS_OUT)
-          opacity.value = withSpring(1, SPRING_PRESS_OUT)
+scale.value = withSpring(1, SPRING_PRESS_OUT)
+opacity.value = withSpring(1, SPRING_PRESS_OUT)
 ```
+
 with:
+
 ```ts
-          scale.value = withSpring(1, SPRING_CONFIGS.pressSoft)
-          opacity.value = withSpring(1, SPRING_CONFIGS.pressSoft)
+scale.value = withSpring(1, SPRING_CONFIGS.pressSoft)
+opacity.value = withSpring(1, SPRING_CONFIGS.pressSoft)
 ```
 
 > **Note on `SPRING_CONFIGS` export:** verify `SPRING_CONFIGS` is re-exported from `@/constants`:
+>
 > ```bash
 > grep -n "SPRING_CONFIGS\|motion" /Users/phanquyetthang/mobile-movie-app/constants/index.ts
 > ```
+>
 > Expected: a re-export of `./motion`. If missing, edit `constants/index.ts` and append `export * from './motion'`.
 
 - [ ] **Step 3: Migrate `app/(tabs)/profile/transition-config.ts`**
@@ -1180,11 +1234,13 @@ export const SNAP_BRAKE_CONFIG = SPRING_CONFIGS.snapBrake
 Edit `/Users/phanquyetthang/mobile-movie-app/components/navigation/animated-tab-bar.tsx`:
 
 Add to the imports block (after the existing `import Animated, ...` block on line 12). Read the existing import block first to find the exact location, then add:
+
 ```ts
 import { SPRING_CONFIGS } from '@/constants'
 ```
 
 Replace lines 22-33:
+
 ```ts
 // Spring config nhanh — settle trong ~100-120ms.
 // Trước đây stiffness 280/damping 26/mass 0.4 settle ~200-300ms, lag sau
@@ -1198,18 +1254,23 @@ const INDICATOR_SPRING = {
   overshootClamping: true,
 }
 ```
+
 with:
+
 ```ts
 // Spring config nhanh — settle trong ~100-120ms (SPRING_CONFIGS.tabIndicator).
 ```
 
 Replace line 99:
+
 ```ts
-      indicatorX.value = withSpring(targetX, INDICATOR_SPRING)
+indicatorX.value = withSpring(targetX, INDICATOR_SPRING)
 ```
+
 with:
+
 ```ts
-      indicatorX.value = withSpring(targetX, SPRING_CONFIGS.tabIndicator)
+indicatorX.value = withSpring(targetX, SPRING_CONFIGS.tabIndicator)
 ```
 
 - [ ] **Step 5: Migrate `components/navigation/tab-button.tsx`**
@@ -1217,11 +1278,13 @@ with:
 Edit `/Users/phanquyetthang/mobile-movie-app/components/navigation/tab-button.tsx`:
 
 Add to imports (after the existing react-native-reanimated import on line 7):
+
 ```ts
 import { SPRING_CONFIGS } from '@/constants'
 ```
 
 Replace lines 16-20:
+
 ```ts
 const SPRING_CONFIG = {
   stiffness: 180,
@@ -1229,15 +1292,19 @@ const SPRING_CONFIG = {
   mass: 0.6,
 }
 ```
+
 with: (delete the block entirely — no replacement)
 
 Replace line 27 (was at line 27 before deletion; will shift up):
+
 ```ts
-    animValue.value = withSpring(active ? 1 : 0, SPRING_CONFIG)
+animValue.value = withSpring(active ? 1 : 0, SPRING_CONFIG)
 ```
+
 with:
+
 ```ts
-    animValue.value = withSpring(active ? 1 : 0, SPRING_CONFIGS.tabButton)
+animValue.value = withSpring(active ? 1 : 0, SPRING_CONFIGS.tabButton)
 ```
 
 - [ ] **Step 6: Migrate `lib/shared-element/shared-element-provider.tsx`**
@@ -1245,11 +1312,13 @@ with:
 Edit `/Users/phanquyetthang/mobile-movie-app/lib/shared-element/shared-element-provider.tsx`:
 
 Add to imports (after `import Animated, ...` block ending line 27):
+
 ```ts
 import { SPRING_CONFIGS } from '@/constants'
 ```
 
 Replace lines 38-49:
+
 ```ts
 /**
  * Spring physics cho shared element fly animation.
@@ -1264,14 +1333,18 @@ const SHARED_SPRING = {
   restSpeedThreshold: 0.01,
 } as const
 ```
+
 with: (delete the block — replaced by direct usage of `SPRING_CONFIGS.sharedElement`)
 
 Replace `SHARED_SPRING` at lines 128, 134, 146 (3 occurrences):
+
 ```bash
 cd /Users/phanquyetthang/mobile-movie-app
 grep -n "SHARED_SPRING" lib/shared-element/shared-element-provider.tsx
 ```
+
 Expected: 3 hits at the usage sites. For each, edit:
+
 - `withSpring(1, SHARED_SPRING)` → `withSpring(1, SPRING_CONFIGS.sharedElement)`
 - `withSpring(1, SHARED_SPRING, (finished) => {` → `withSpring(1, SPRING_CONFIGS.sharedElement, (finished) => {`
 - `withSpring(0, SHARED_SPRING, (finished) => {` → `withSpring(0, SPRING_CONFIGS.sharedElement, (finished) => {`
@@ -1283,11 +1356,13 @@ Use `Edit` with `replace_all: true` and `old_string: "SHARED_SPRING"`, `new_stri
 Edit `/Users/phanquyetthang/mobile-movie-app/lib/navigation/interactive-transition.ts`:
 
 Add to imports near the top (after the existing `import { Easing } from 'react-native'` on line 16):
+
 ```ts
 import { SPRING_CONFIGS, MOTION } from '@/constants'
 ```
 
 Replace lines 29-54:
+
 ```ts
 /**
  * Close spring — Underdamped, mềm hơn.
@@ -1316,7 +1391,9 @@ export const REANIMATED_PARALLAX_SPRING = {
   energyThreshold: 1e-6,
 } as const
 ```
+
 with:
+
 ```ts
 /**
  * Close spring — Underdamped, mềm hơn (alias of SPRING_CONFIGS.navClose).
@@ -1332,29 +1409,37 @@ export const REANIMATED_PARALLAX_SPRING = MOTION.parallaxSpring
 > **Note:** Line 85 already references `CLOSE_SPRING` indirectly via `CLOSE_SPEC.config = CLOSE_SPRING`. The alias preserves the export contract, so consumers of `CLOSE_SPEC` need no changes.
 
 - [ ] **Step 8: Verify all old spring local names are gone**
+
 ```bash
 cd /Users/phanquyetthang/mobile-movie-app
 grep -rn "SPRING_PRESS_OUT\|SNAP_BRAKE_CONFIG\b" --include="*.ts" --include="*.tsx" . | grep -v node_modules | grep -v "transition-config.ts"
 grep -rn "INDICATOR_SPRING\|SHARED_SPRING\b" --include="*.ts" --include="*.tsx" . | grep -v node_modules
 grep -n "^const SPRING_CONFIG\b" /Users/phanquyetthang/mobile-movie-app/components/navigation/tab-button.tsx
 ```
+
 Expected:
+
 - First grep: empty (or only the alias in `transition-config.ts`).
 - Second grep: empty.
 - Third grep: empty.
 
 - [ ] **Step 9: Typecheck + lint**
+
 ```bash
 cd /Users/phanquyetthang/mobile-movie-app
 npm run typecheck
 ```
+
 Expected: exit code 0.
+
 ```bash
 npm run lint
 ```
+
 Expected: exit code 0.
 
 - [ ] **Step 10: Commit**
+
 ```bash
 cd /Users/phanquyetthang/mobile-movie-app
 git add constants/motion.ts app/\(tabs\)/profile/profile-item.tsx app/\(tabs\)/profile/transition-config.ts components/navigation/animated-tab-bar.tsx components/navigation/tab-button.tsx lib/shared-element/shared-element-provider.tsx lib/navigation/interactive-transition.ts
@@ -1379,6 +1464,7 @@ git status
 ## Task 5: NHÓM 5 — Performance hotspots
 
 **Files:**
+
 - Modify: `app/profile/history.tsx:475-489`
 - Create: `hooks/use-update-order-totals.ts`
 - Modify: `hooks/index.ts` — re-export the new hook
@@ -1392,65 +1478,70 @@ git status
 Edit `/Users/phanquyetthang/mobile-movie-app/app/profile/history.tsx`:
 
 Replace lines 474-489:
+
 ```ts
-  // Pre-compute display data once when orders change — O(1) lookup in renderItem
-  const orderDisplayMap = useMemo(() => {
-    const map = new Map<string, OrderDisplayData>()
-    for (const order of orders) {
-      const items = order.orderItems || []
-      const voucher = order.voucher || null
-      const { displayItems, cartTotals } = calculateOrderDisplayAndTotals(
-        items,
-        voucher,
-      )
-      const diMap = new Map<string, (typeof displayItems)[number]>()
-      for (const di of displayItems) diMap.set(di.slug, di)
-      map.set(order.slug, { displayItemMap: diMap, cartTotals })
-    }
-    return map
-  }, [orders])
+// Pre-compute display data once when orders change — O(1) lookup in renderItem
+const orderDisplayMap = useMemo(() => {
+  const map = new Map<string, OrderDisplayData>()
+  for (const order of orders) {
+    const items = order.orderItems || []
+    const voucher = order.voucher || null
+    const { displayItems, cartTotals } = calculateOrderDisplayAndTotals(
+      items,
+      voucher,
+    )
+    const diMap = new Map<string, (typeof displayItems)[number]>()
+    for (const di of displayItems) diMap.set(di.slug, di)
+    map.set(order.slug, { displayItemMap: diMap, cartTotals })
+  }
+  return map
+}, [orders])
 ```
+
 with:
+
 ```ts
-  // Pre-compute display data once when orders change — O(1) lookup in renderItem.
-  // Cache keyed by (slug, updatedAt, voucher.slug) so FCM-triggered refetches do
-  // not redo work for unchanged orders. Capped at 50 entries (LRU-ish).
-  const orderDisplayCacheRef = useRef(new Map<string, OrderDisplayData>())
-  const orderDisplayMap = useMemo(() => {
-    const next = new Map<string, OrderDisplayData>()
-    for (const order of orders) {
-      const items = order.orderItems || []
-      const voucher = order.voucher || null
-      const cacheKey = `${order.slug}:${order.updatedAt}:${voucher?.slug ?? ''}`
-      const cached = orderDisplayCacheRef.current.get(cacheKey)
-      if (cached) {
-        next.set(order.slug, cached)
-        continue
-      }
-      const { displayItems, cartTotals } = calculateOrderDisplayAndTotals(
-        items,
-        voucher,
-      )
-      const diMap = new Map<string, (typeof displayItems)[number]>()
-      for (const di of displayItems) diMap.set(di.slug, di)
-      const data: OrderDisplayData = { displayItemMap: diMap, cartTotals }
-      next.set(order.slug, data)
-      orderDisplayCacheRef.current.set(cacheKey, data)
+// Pre-compute display data once when orders change — O(1) lookup in renderItem.
+// Cache keyed by (slug, updatedAt, voucher.slug) so FCM-triggered refetches do
+// not redo work for unchanged orders. Capped at 50 entries (LRU-ish).
+const orderDisplayCacheRef = useRef(new Map<string, OrderDisplayData>())
+const orderDisplayMap = useMemo(() => {
+  const next = new Map<string, OrderDisplayData>()
+  for (const order of orders) {
+    const items = order.orderItems || []
+    const voucher = order.voucher || null
+    const cacheKey = `${order.slug}:${order.updatedAt}:${voucher?.slug ?? ''}`
+    const cached = orderDisplayCacheRef.current.get(cacheKey)
+    if (cached) {
+      next.set(order.slug, cached)
+      continue
     }
-    if (orderDisplayCacheRef.current.size > 50) {
-      const keys = Array.from(orderDisplayCacheRef.current.keys())
-      keys
-        .slice(0, keys.length - 50)
-        .forEach((k) => orderDisplayCacheRef.current.delete(k))
-    }
-    return next
-  }, [orders])
+    const { displayItems, cartTotals } = calculateOrderDisplayAndTotals(
+      items,
+      voucher,
+    )
+    const diMap = new Map<string, (typeof displayItems)[number]>()
+    for (const di of displayItems) diMap.set(di.slug, di)
+    const data: OrderDisplayData = { displayItemMap: diMap, cartTotals }
+    next.set(order.slug, data)
+    orderDisplayCacheRef.current.set(cacheKey, data)
+  }
+  if (orderDisplayCacheRef.current.size > 50) {
+    const keys = Array.from(orderDisplayCacheRef.current.keys())
+    keys
+      .slice(0, keys.length - 50)
+      .forEach((k) => orderDisplayCacheRef.current.delete(k))
+  }
+  return next
+}, [orders])
 ```
 
 > **Note:** `useRef` is already imported in `history.tsx` (line 18). `OrderDisplayData` is already imported as `type` on line 54. `IOrder` (which has `updatedAt`) is imported on line 48 — verify with:
+>
 > ```bash
 > grep -n "updatedAt" /Users/phanquyetthang/mobile-movie-app/types/order.type.ts | head -3
 > ```
+>
 > If `updatedAt` is not on `IOrder`, change the cache key to `${order.slug}:${order.status}:${(order.orderItems?.length ?? 0)}:${voucher?.slug ?? ''}` instead.
 
 - [ ] **Step 2: Create `hooks/use-update-order-totals.ts` to dedupe the 4× duplicate compute**
@@ -1484,9 +1575,9 @@ export function useUpdateOrderTotals() {
         displayItems: [] as ReturnType<
           typeof calculateOrderDisplayAndTotals
         >['displayItems'],
-        cartTotals: null as ReturnType<
-          typeof calculateOrderDisplayAndTotals
-        >['cartTotals'] | null,
+        cartTotals: null as
+          | ReturnType<typeof calculateOrderDisplayAndTotals>['cartTotals']
+          | null,
         transformedItems: [] as ReturnType<
           typeof transformOrderItemToOrderDetail
         >,
@@ -1509,7 +1600,9 @@ export function useUpdateOrderTotals() {
 ```bash
 grep -n "use-update-order\|use-cart-totals" /Users/phanquyetthang/mobile-movie-app/hooks/index.ts
 ```
+
 Read `/Users/phanquyetthang/mobile-movie-app/hooks/index.ts` and append:
+
 ```ts
 export * from './use-update-order-totals'
 ```
@@ -1529,46 +1622,50 @@ grep -n "calculateOrderDisplayAndTotals\|transformOrderItemToOrderDetail" /Users
 The only usage is in the `useMemo` we are about to delete + a `ReturnType<typeof calculateOrderDisplayAndTotals>['displayItems'][number]` annotation on line 74 of the existing file. Keep `calculateOrderDisplayAndTotals` imported (still needed for the type annotation) and drop `transformOrderItemToOrderDetail` from the named imports.
 
 Add to imports:
+
 ```ts
 import { useUpdateOrderTotals } from '@/hooks'
 ```
 
 Replace lines 318-336 (the `voucher`, `orderItems`, and two `useMemo` blocks):
-```ts
-  const voucher = updatingData?.updateDraft?.voucher ?? null
-  const orderItems = useMemo(
-    () => updatingData?.updateDraft?.orderItems ?? [],
-    [updatingData],
-  )
 
-  const { displayItems } = useMemo(
-    () =>
-      calculateOrderDisplayAndTotals(
-        transformOrderItemToOrderDetail(orderItems),
-        voucher,
-      ),
-    [orderItems, voucher],
-  )
-  const displayItemMap = useMemo(() => {
-    const m = new Map<string, (typeof displayItems)[number]>()
-    for (const di of displayItems) m.set(di.slug, di)
-    return m
-  }, [displayItems])
+```ts
+const voucher = updatingData?.updateDraft?.voucher ?? null
+const orderItems = useMemo(
+  () => updatingData?.updateDraft?.orderItems ?? [],
+  [updatingData],
+)
+
+const { displayItems } = useMemo(
+  () =>
+    calculateOrderDisplayAndTotals(
+      transformOrderItemToOrderDetail(orderItems),
+      voucher,
+    ),
+  [orderItems, voucher],
+)
+const displayItemMap = useMemo(() => {
+  const m = new Map<string, (typeof displayItems)[number]>()
+  for (const di of displayItems) m.set(di.slug, di)
+  return m
+}, [displayItems])
 ```
-with:
-```ts
-  const voucher = updatingData?.updateDraft?.voucher ?? null
-  const orderItems = useMemo(
-    () => updatingData?.updateDraft?.orderItems ?? [],
-    [updatingData],
-  )
 
-  const { displayItems } = useUpdateOrderTotals()
-  const displayItemMap = useMemo(() => {
-    const m = new Map<string, (typeof displayItems)[number]>()
-    for (const di of displayItems) m.set(di.slug, di)
-    return m
-  }, [displayItems])
+with:
+
+```ts
+const voucher = updatingData?.updateDraft?.voucher ?? null
+const orderItems = useMemo(
+  () => updatingData?.updateDraft?.orderItems ?? [],
+  [updatingData],
+)
+
+const { displayItems } = useUpdateOrderTotals()
+const displayItemMap = useMemo(() => {
+  const m = new Map<string, (typeof displayItems)[number]>()
+  for (const di of displayItems) m.set(di.slug, di)
+  return m
+}, [displayItems])
 ```
 
 - [ ] **Step 5: Migrate `update-order-footer.tsx`**
@@ -1576,6 +1673,7 @@ with:
 Edit `/Users/phanquyetthang/mobile-movie-app/app/update-order/components/update-order-footer.tsx`:
 
 Replace lines 15-20:
+
 ```ts
 import {
   calculateOrderDisplayAndTotals,
@@ -1584,32 +1682,39 @@ import {
   transformOrderItemToOrderDetail,
 } from '@/utils'
 ```
+
 with:
+
 ```ts
 import { parseKm, showErrorToastMessage } from '@/utils'
 import { useUpdateOrderTotals } from '@/hooks'
 ```
 
 Replace lines 95-102:
+
 ```ts
-  const { cartTotals } = useMemo(
-    () =>
-      calculateOrderDisplayAndTotals(
-        transformOrderItemToOrderDetail(orderItems),
-        voucher,
-      ),
-    [orderItems, voucher],
-  )
+const { cartTotals } = useMemo(
+  () =>
+    calculateOrderDisplayAndTotals(
+      transformOrderItemToOrderDetail(orderItems),
+      voucher,
+    ),
+  [orderItems, voucher],
+)
 ```
+
 with:
+
 ```ts
-  const { cartTotals } = useUpdateOrderTotals()
+const { cartTotals } = useUpdateOrderTotals()
 ```
 
 Then verify `orderItems` and `voucher` are still used elsewhere in the file:
+
 ```bash
 grep -n "\borderItems\b\|\bvoucher\b" /Users/phanquyetthang/mobile-movie-app/app/update-order/components/update-order-footer.tsx
 ```
+
 They remain used (e.g. `cartItemQuantity` derived from `orderItems`, voucher gates in the useEffect at lines 116-122). Keep their declarations on lines 57-58.
 
 - [ ] **Step 6: Migrate `confirm-update-order-dialog.tsx`**
@@ -1617,6 +1722,7 @@ They remain used (e.g. `cartItemQuantity` derived from `orderItems`, voucher gat
 Edit `/Users/phanquyetthang/mobile-movie-app/app/update-order/components/confirm-update-order-dialog.tsx`:
 
 Replace lines 34-41:
+
 ```ts
 import {
   calculateOrderDisplayAndTotals,
@@ -1627,7 +1733,9 @@ import {
   transformOrderItemToOrderDetail,
 } from '@/utils'
 ```
+
 with:
+
 ```ts
 import {
   computeOrderApiDiff,
@@ -1639,19 +1747,22 @@ import { useUpdateOrderTotals } from '@/hooks'
 ```
 
 Replace lines 85-92:
+
 ```ts
-  const { displayItems, cartTotals } = useMemo(
-    () =>
-      calculateOrderDisplayAndTotals(
-        transformOrderItemToOrderDetail(orderItems),
-        voucher,
-      ),
-    [orderItems, voucher],
-  )
+const { displayItems, cartTotals } = useMemo(
+  () =>
+    calculateOrderDisplayAndTotals(
+      transformOrderItemToOrderDetail(orderItems),
+      voucher,
+    ),
+  [orderItems, voucher],
+)
 ```
+
 with:
+
 ```ts
-  const { displayItems, cartTotals } = useUpdateOrderTotals()
+const { displayItems, cartTotals } = useUpdateOrderTotals()
 ```
 
 After this edit, verify `orderItems`, `voucher`, and the `useMemo` import remain used downstream. `useMemo` is still used at line 80 for `orderItems`. `voucher` is used on line 81. Both stay declared but the redundant compute is gone.
@@ -1661,6 +1772,7 @@ After this edit, verify `orderItems`, `voucher`, and the `useMemo` import remain
 Edit `/Users/phanquyetthang/mobile-movie-app/app/update-order/components/voucher-sheet-in-update-order/index.tsx`:
 
 Replace lines 14-18:
+
 ```ts
 import {
   calculateOrderDisplayAndTotals,
@@ -1668,60 +1780,72 @@ import {
   transformOrderItemToOrderDetail,
 } from '@/utils'
 ```
+
 with:
+
 ```ts
 import { showToast } from '@/utils'
 import { useUpdateOrderTotals } from '@/hooks'
 ```
 
 Replace lines 61-75:
-```ts
-    const orderItems = useMemo(
-      () => updatingData?.updateDraft?.orderItems ?? [],
-      [updatingData],
-    )
-    const currentVoucher = updatingData?.updateDraft?.voucher ?? null
 
-    const transformedItems = useMemo(
-      () => transformOrderItemToOrderDetail(orderItems),
-      [orderItems],
-    )
-    const { cartTotals } = useMemo(
-      () => calculateOrderDisplayAndTotals(transformedItems, currentVoucher),
-      [transformedItems, currentVoucher],
-    )
-    const subTotal = cartTotals?.subTotalBeforeDiscount ?? 0
+```ts
+const orderItems = useMemo(
+  () => updatingData?.updateDraft?.orderItems ?? [],
+  [updatingData],
+)
+const currentVoucher = updatingData?.updateDraft?.voucher ?? null
+
+const transformedItems = useMemo(
+  () => transformOrderItemToOrderDetail(orderItems),
+  [orderItems],
+)
+const { cartTotals } = useMemo(
+  () => calculateOrderDisplayAndTotals(transformedItems, currentVoucher),
+  [transformedItems, currentVoucher],
+)
+const subTotal = cartTotals?.subTotalBeforeDiscount ?? 0
 ```
-with:
-```ts
-    const orderItems = useMemo(
-      () => updatingData?.updateDraft?.orderItems ?? [],
-      [updatingData],
-    )
-    const currentVoucher = updatingData?.updateDraft?.voucher ?? null
 
-    const { cartTotals, transformedItems } = useUpdateOrderTotals()
-    const subTotal = cartTotals?.subTotalBeforeDiscount ?? 0
+with:
+
+```ts
+const orderItems = useMemo(
+  () => updatingData?.updateDraft?.orderItems ?? [],
+  [updatingData],
+)
+const currentVoucher = updatingData?.updateDraft?.voucher ?? null
+
+const { cartTotals, transformedItems } = useUpdateOrderTotals()
+const subTotal = cartTotals?.subTotalBeforeDiscount ?? 0
 ```
 
 Then verify `orderItems`, `currentVoucher`, and `transformedItems` are still referenced downstream in the file:
+
 ```bash
 grep -n "\borderItems\b\|\bcurrentVoucher\b\|\btransformedItems\b" /Users/phanquyetthang/mobile-movie-app/app/update-order/components/voucher-sheet-in-update-order/index.tsx
 ```
+
 Each should still appear in later usage (e.g. voucher validation, list rendering). If not, drop the unused locals later — typecheck + lint catches it.
 
 - [ ] **Step 8: Verify**
+
 ```bash
 cd /Users/phanquyetthang/mobile-movie-app
 npm run typecheck
 ```
+
 Expected: exit code 0.
+
 ```bash
 npm run lint
 ```
+
 Expected: exit code 0.
 
 - [ ] **Step 9: Commit**
+
 ```bash
 cd /Users/phanquyetthang/mobile-movie-app
 git add app/profile/history.tsx hooks/use-update-order-totals.ts hooks/index.ts app/update-order/components/update-order-content-native.tsx app/update-order/components/update-order-footer.tsx app/update-order/components/confirm-update-order-dialog.tsx app/update-order/components/voucher-sheet-in-update-order/index.tsx
@@ -1746,23 +1870,30 @@ git status
 ## Final verification
 
 - [ ] **Step 1: Full project check**
+
 ```bash
 cd /Users/phanquyetthang/mobile-movie-app
 npm run check
 ```
+
 Expected: typecheck + lint both pass.
 
 - [ ] **Step 2: Circular dep sanity**
+
 ```bash
 npm run check-circular
 ```
+
 Expected: no new cycles introduced (compare against pre-plan baseline).
 
 - [ ] **Step 3: Git log review**
+
 ```bash
 git log --oneline -n 6
 ```
+
 Expected: 5 new commits in this order (newest first):
+
 1. `perf(orders): cache history display totals + dedupe update-order compute`
 2. `refactor(motion): consolidate spring configs into SPRING_CONFIGS`
 3. `fix(hooks): plug memory leaks in notification, FCM token, and back-handler`

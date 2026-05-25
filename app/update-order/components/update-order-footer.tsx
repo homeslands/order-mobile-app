@@ -2,7 +2,7 @@ import { formatCurrencyNative } from 'cart-price-calc'
 import { ChevronRight, ShoppingBag, Ticket } from 'lucide-react-native'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 import { useShallow } from 'zustand/react/shallow'
 
 import { colors, PHONE_NUMBER_REGEX } from '@/constants'
@@ -12,10 +12,7 @@ import { useCalculateDeliveryFee } from '@/hooks/use-branch-delivery'
 import { DeliveryAddressSheet, DeliveryInfoRow } from '@/components/delivery'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import { OrderStatus, OrderTypeEnum } from '@/types'
-import {
-  parseKm,
-  showErrorToastMessage,
-} from '@/utils'
+import { parseKm, showErrorToastMessage } from '@/utils'
 import { useEffect } from 'react'
 
 import ConfirmUpdateOrderDialog from './confirm-update-order-dialog'
@@ -23,6 +20,7 @@ import { PickupTimeChipsInUpdateOrder } from './pickup-time-chips-in-update-orde
 import { SimpleOrderTypeSheetInUpdateOrder } from './simple-order-type-sheet-in-update-order'
 import { SimpleTableSheetInUpdateOrder } from './simple-table-sheet-in-update-order'
 import { VoucherSheetInUpdateOrder } from './voucher-sheet-in-update-order'
+import { Text } from '@/components/ui/text'
 
 interface UpdateOrderFooterProps {
   orderSlug: string

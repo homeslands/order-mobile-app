@@ -3,7 +3,6 @@ import React, { memo } from 'react'
 import type { StyleProp, ViewStyle } from 'react-native'
 import {
   StyleSheet,
-  Text,
   View,
   useColorScheme,
   useWindowDimensions,
@@ -14,6 +13,7 @@ import Carousel, {
 } from 'react-native-reanimated-carousel'
 
 import { colors } from '@/constants'
+import { Text } from '@/components/ui/text'
 
 const AnimatedExpoImage = Animated.createAnimatedComponent(Image)
 const HERO_IMAGE_BLURHASH = '|rF?hV%2WCj[ayj[a}ayfQfQfQfQj[j[fQfQfQfQfQfQfQfQfQ'

@@ -2,7 +2,7 @@ import {
   IAddMultipleUserGroupMemberRequest,
   IAddUserGroupMemberRequest,
   IApiResponse,
-  ICompleteRegistrationRequest,
+  ICompleteUserProfileRequest,
   ICreateMembershipCardRequest,
   ICreateMultipleMembershipCardRequest,
   ICreateUserGroupRequest,
@@ -247,8 +247,8 @@ export async function deleteMembershipCard(
   return response.data
 }
 
-export async function completeRegistration(
-  data: ICompleteRegistrationRequest,
+export async function completeUserProfile(
+  data: ICompleteUserProfileRequest,
 ): Promise<IApiResponse<IUserInfo>> {
   const response = await http.patch<IApiResponse<IUserInfo>>(
     `/user/${data.slug}/complete-registration`,

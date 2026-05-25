@@ -10,7 +10,6 @@ import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   StyleSheet,
-  Text,
   TouchableOpacity,
   useColorScheme,
   View,
@@ -22,6 +21,7 @@ import { colors, ROUTE } from '@/constants'
 import { navigateNative } from '@/lib/navigation'
 import { useUserStore } from '@/stores'
 import { getSyncItem, setSyncItem } from '@/utils/storage'
+import { Text } from '@/components/ui/text'
 
 const SNAP_POINTS = ['40%']
 const STORAGE_KEY = '@nudge_dob_dismissed'
@@ -139,13 +139,19 @@ export const ProfileNudgePopup = memo(function ProfileNudgePopup() {
         />
 
         <Text
-          style={[styles.title, { color: isDark ? colors.gray[50] : colors.gray[900] }]}
+          style={[
+            styles.title,
+            { color: isDark ? colors.gray[50] : colors.gray[900] },
+          ]}
         >
           {t('profile.dobNudge.title')}
         </Text>
 
         <Text
-          style={[styles.subtitle, { color: isDark ? colors.gray[400] : colors.gray[500] }]}
+          style={[
+            styles.subtitle,
+            { color: isDark ? colors.gray[400] : colors.gray[500] },
+          ]}
         >
           {t('profile.dobNudge.subtitle')}
         </Text>

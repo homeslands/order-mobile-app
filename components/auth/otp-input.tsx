@@ -10,6 +10,7 @@ import {
   View,
   useColorScheme,
 } from 'react-native'
+import { useFontScale } from '@/providers/font-scale-provider'
 
 interface OTPInputProps {
   value: string
@@ -48,32 +49,39 @@ const OTPInputField = React.memo(
     onKeyPress,
     setRef,
     onPress,
-  }: OTPInputFieldProps) => (
-    <TouchableOpacity activeOpacity={1} onPress={onPress} className="flex-1">
-      <TextInput
-        ref={setRef}
-        className={cn(
-          'h-14 rounded-lg border-2 text-center font-sans-semibold text-xl',
-          'bg-white text-gray-900 dark:bg-[#121212] dark:text-white',
-          disabled && 'opacity-50',
-        )}
-        style={
-          value
-            ? { borderColor: primaryColor }
-            : { borderColor: mutedBorderColor }
-        }
-        keyboardType={characterSet === 'numeric' ? 'number-pad' : 'default'}
-        maxLength={1}
-        value={value.toUpperCase()}
-        onChangeText={(text) => onChangeText(text, index)}
-        onKeyPress={(e) => onKeyPress(e, index)}
-        editable={!disabled}
-        selectTextOnFocus
-        autoCapitalize={characterSet === 'alphanumeric' ? 'characters' : 'none'}
-        autoCorrect={false}
-      />
-    </TouchableOpacity>
-  ),
+  }: OTPInputFieldProps) => {
+    const scale = useFontScale()
+    return (
+      <TouchableOpacity activeOpacity={1} onPress={onPress} className="flex-1">
+        <TextInput
+          ref={setRef}
+          className={cn(
+            'h-14 rounded-lg border-2 text-center font-sans-semibold',
+            'bg-white text-gray-900 dark:bg-[#121212] dark:text-white',
+            disabled && 'opacity-50',
+          )}
+          style={[
+            value
+              ? { borderColor: primaryColor }
+              : { borderColor: mutedBorderColor },
+            { fontSize: 20 * scale, fontFamily: 'BeVietnamPro_600SemiBold' },
+          ]}
+          keyboardType={characterSet === 'numeric' ? 'number-pad' : 'default'}
+          maxLength={1}
+          value={value.toUpperCase()}
+          onChangeText={(text) => onChangeText(text, index)}
+          onKeyPress={(e) => onKeyPress(e, index)}
+          editable={!disabled}
+          selectTextOnFocus
+          autoCapitalize={
+            characterSet === 'alphanumeric' ? 'characters' : 'none'
+          }
+          autoCorrect={false}
+          allowFontScaling={false}
+        />
+      </TouchableOpacity>
+    )
+  },
 )
 
 OTPInputField.displayName = 'OTPInputField'

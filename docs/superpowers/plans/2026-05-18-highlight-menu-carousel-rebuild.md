@@ -12,8 +12,8 @@
 
 ## File Map
 
-| File | Action | Trách nhiệm |
-|------|--------|-------------|
+| File                                 | Action | Trách nhiệm                    |
+| ------------------------------------ | ------ | ------------------------------ |
 | `components/home/highlight-menu.tsx` | Modify | Single file — all changes here |
 
 ---
@@ -40,6 +40,7 @@ Trước khi implement, cần hiểu cách thư viện hoạt động:
 ## Task 1: Rebuild HighlightMenuCarousel
 
 **Files:**
+
 - Modify: `components/home/highlight-menu.tsx`
 
 ### Mô tả thay đổi
@@ -66,7 +67,13 @@ import { useRouter } from 'expo-router'
 import React, { useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ImageSourcePropType, ViewStyle } from 'react-native'
-import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native'
 import Animated, {
   interpolate,
   useAnimatedStyle,
@@ -145,7 +152,10 @@ function Dot({
 
   return (
     <Animated.View
-      style={[{ height: 6, borderRadius: 3, backgroundColor: primaryColor }, dotStyle]}
+      style={[
+        { height: 6, borderRadius: 3, backgroundColor: primaryColor },
+        dotStyle,
+      ]}
     />
   )
 }
@@ -385,6 +395,7 @@ Expected: no errors. Nếu có lỗi liên quan `customAnimation` return type, x
 
 **Nếu TypeScript báo lỗi `transform` type không tương thích:**
 Thay dòng return trong `customAnimation`:
+
 ```tsx
 return {
   opacity: 0.55 + 0.45 * p,
@@ -397,24 +408,33 @@ return {
 ```
 
 **Nếu TypeScript báo lỗi `onProgressChange` type (SharedValue không khớp):**
+
 ```tsx
 onProgressChange={absoluteProgress as Parameters<NonNullable<React.ComponentProps<typeof Carousel>['onProgressChange']>>[0] as never}
 ```
+
 Hoặc đơn giản hơn, dùng callback form:
+
 ```tsx
 // Thay onProgressChange={absoluteProgress} bằng:
 onProgressChange={(_offset, abs) => {
   absoluteProgress.value = abs
 }}
 ```
+
 Note: callback form chạy trên JS thread nên dot animation sẽ kém smooth hơn SharedValue form. Prefer SharedValue form nếu TypeScript cho phép.
 
 **Nếu TypeScript báo lỗi `renderItem` type:**
 Thêm import type:
+
 ```tsx
-import Carousel, { type CarouselRenderItem } from 'react-native-reanimated-carousel'
+import Carousel, {
+  type CarouselRenderItem,
+} from 'react-native-reanimated-carousel'
 ```
+
 Rồi type `renderItem`:
+
 ```tsx
 const renderItem: CarouselRenderItem<HighlightMenuItem> = useCallback(
   ({ item }) => (
@@ -451,6 +471,7 @@ git commit -m "refactor(home): rebuild highlight carousel with reanimated-carous
 ## Self-Review
 
 **Spec coverage:**
+
 - ✅ Infinite loop không flash: `loop={true}` trong reanimated-carousel — không teleport, không frame lag
 - ✅ Item-2 không bị delayed sau loop: Không còn extended-data + scrollTo — library xử lý internally với PanGesture
 - ✅ Focus-card effect (scale 0.86→1, opacity 0.55→1, translateY 12→0): `customAnimation` với `p = Math.max(0, 1 - Math.abs(value))`
@@ -464,6 +485,7 @@ git commit -m "refactor(home): rebuild highlight carousel with reanimated-carous
 **Placeholder scan:** Không có TBD/TODO. Tất cả code đầy đủ.
 
 **Type consistency:**
+
 - `HighlightCard` props: `item, cardWidth, cardHeight, onPress` — nhất quán giữa definition và usage ✓
 - `Dot` props: `index, count, absoluteProgress, primaryColor` — nhất quán ✓
 - `customAnimation` nhận `value: number`, return `ViewStyle` — khớp với `TCarouselProps.customAnimation` signature ✓

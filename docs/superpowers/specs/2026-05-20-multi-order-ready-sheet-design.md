@@ -7,6 +7,7 @@ Redesign the `OrderReadyPickupSheet` flow so that when a customer has multiple o
 ## Context
 
 Current bugs in the multi-order flow:
+
 1. **LIFO bug** — store prepends newest notification, `.find()` returns newest first → wrong order shown
 2. **Race condition** — `markAllReadByOrder` (sync Zustand) races with `usePathname()` async update during navigation → sheet B can flash during push animation to order A
 3. **Content swap** — when multiple FCM arrive close together, sheet content changes mid-animation
@@ -39,11 +40,11 @@ OrderReadyPickupSheet  (pure render — no business logic)
 
 ```ts
 interface OrderReadyQueue {
-  activeOrder: PendingOrder | null  // oldest unread, non-snoozed ORDER_NEEDS_READY_TO_GET
-  pendingCount: number              // total unread ORDER_NEEDS_READY_TO_GET (incl. snoozed)
-  snooze: (orderSlug: string) => void       // "Để sau" / swipe dismiss
-  markDone: (orderSlug: string) => void     // "Xem chi tiết" — mark read + clear snooze
-  suppressFor: (ms: number) => void         // block present for N ms (post-navigate guard)
+  activeOrder: PendingOrder | null // oldest unread, non-snoozed ORDER_NEEDS_READY_TO_GET
+  pendingCount: number // total unread ORDER_NEEDS_READY_TO_GET (incl. snoozed)
+  snooze: (orderSlug: string) => void // "Để sau" / swipe dismiss
+  markDone: (orderSlug: string) => void // "Xem chi tiết" — mark read + clear snooze
+  suppressFor: (ms: number) => void // block present for N ms (post-navigate guard)
 }
 ```
 
@@ -51,7 +52,7 @@ interface OrderReadyQueue {
 
 ```ts
 const snoozeMap = new Map<string, number>() // orderSlug → expireAt (ms since epoch)
-const SNOOZE_MS = 90_000                    // 90 seconds
+const SNOOZE_MS = 90_000 // 90 seconds
 ```
 
 Module-level (not React state) so it persists across re-renders and component remounts. Cleared only on JS runtime kill.
@@ -62,7 +63,10 @@ Module-level (not React state) so it persists across re-renders and component re
 function isSnoozing(orderSlug: string): boolean {
   const exp = snoozeMap.get(orderSlug)
   if (!exp) return false
-  if (Date.now() >= exp) { snoozeMap.delete(orderSlug); return false }
+  if (Date.now() >= exp) {
+    snoozeMap.delete(orderSlug)
+    return false
+  }
   return true
 }
 ```
@@ -72,11 +76,13 @@ function isSnoozing(orderSlug: string): boolean {
 ```ts
 // Sort ASC by createdAt → oldest first → consistent FIFO order
 const sorted = notifications
-  .filter(n => !n.isRead && n.message === ORDER_NEEDS_READY_TO_GET)
-  .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+  .filter((n) => !n.isRead && n.message === ORDER_NEEDS_READY_TO_GET)
+  .sort(
+    (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+  )
 
-const activeOrder = sorted.find(n => !isSnoozing(n.metadata.order)) ?? null
-const pendingCount = sorted.length  // includes snoozed — shows total waiting
+const activeOrder = sorted.find((n) => !isSnoozing(n.metadata.order)) ?? null
+const pendingCount = sorted.length // includes snoozed — shows total waiting
 ```
 
 ### Snooze re-trigger (interval)
@@ -85,7 +91,7 @@ const pendingCount = sorted.length  // includes snoozed — shows total waiting
 const [snoozeTick, setSnoozeTick] = useState(0)
 
 useEffect(() => {
-  const id = setInterval(() => setSnoozeTick(t => t + 1), 10_000)
+  const id = setInterval(() => setSnoozeTick((t) => t + 1), 10_000)
   return () => clearInterval(id)
 }, [])
 ```
@@ -122,7 +128,7 @@ Does NOT call `markAsRead` — notification stays unread in the list.
 ```ts
 function markDone(orderSlug: string) {
   snoozeMap.delete(orderSlug)
-  markAllReadByOrder(orderSlug)   // Zustand action
+  markAllReadByOrder(orderSlug) // Zustand action
 }
 ```
 
@@ -137,19 +143,20 @@ Marks all notifications for this order as read → they disappear from the queue
 
 ### Changes from current
 
-| Removed | Replaced with |
-|---------|---------------|
-| `dismissedInSession` Set | `snoozeMap` in hook |
-| `isProgrammaticDismissRef` | `suppressFor(600)` called before navigate |
-| `pendingOrderRef` | hook's `activeOrder` (always current) |
-| `dismissAllByOrder` | `snooze(orderSlug)` |
-| `markAllReadByOrder` subscription | `markDone(orderSlug)` |
-| `onChange` debug handler | removed |
+| Removed                           | Replaced with                             |
+| --------------------------------- | ----------------------------------------- |
+| `dismissedInSession` Set          | `snoozeMap` in hook                       |
+| `isProgrammaticDismissRef`        | `suppressFor(600)` called before navigate |
+| `pendingOrderRef`                 | hook's `activeOrder` (always current)     |
+| `dismissAllByOrder`               | `snooze(orderSlug)`                       |
+| `markAllReadByOrder` subscription | `markDone(orderSlug)`                     |
+| `onChange` debug handler          | removed                                   |
 
 ### Sheet present/dismiss logic
 
 ```ts
-const { activeOrder, pendingCount, snooze, markDone, suppressFor } = useOrderReadyQueue()
+const { activeOrder, pendingCount, snooze, markDone, suppressFor } =
+  useOrderReadyQueue()
 const shownSlugRef = useRef<string | null>(null)
 
 useEffect(() => {
@@ -174,7 +181,11 @@ const handleDismissLater = useCallback(() => {
   snooze(activeOrder.orderSlug)
   isProgrammaticRef.current = true
   sheetRef.current?.dismiss()
-  showToastInternal('Đã ẩn nhắc nhở', 'Sẽ nhắc lại sau 90 giây · Xem ở Thông báo', 'info')
+  showToastInternal(
+    'Đã ẩn nhắc nhở',
+    'Sẽ nhắc lại sau 90 giây · Xem ở Thông báo',
+    'info',
+  )
 }, [activeOrder, snooze])
 
 const handleViewOrder = useCallback(() => {
@@ -193,7 +204,9 @@ const handleViewOrder = useCallback(() => {
 // Sync ref so handleSheetDismiss can read latest activeOrder without
 // adding it as a useCallback dependency (avoids stale closure).
 const activeOrderRef = useRef<PendingOrder | null>(null)
-useEffect(() => { activeOrderRef.current = activeOrder }, [activeOrder])
+useEffect(() => {
+  activeOrderRef.current = activeOrder
+}, [activeOrder])
 
 const handleSheetDismiss = useCallback(() => {
   if (!isProgrammaticRef.current && activeOrderRef.current) {
@@ -207,14 +220,14 @@ const handleSheetDismiss = useCallback(() => {
 ### Pending badge UI
 
 ```tsx
-{pendingCount > 1 && (
-  <View style={s.pendingBadge}>
-    <View style={s.pendingDot} />
-    <Text style={s.pendingText}>
-      Còn {pendingCount - 1} đơn nữa đang chờ
-    </Text>
-  </View>
-)}
+{
+  pendingCount > 1 && (
+    <View style={s.pendingBadge}>
+      <View style={s.pendingDot} />
+      <Text style={s.pendingText}>Còn {pendingCount - 1} đơn nữa đang chờ</Text>
+    </View>
+  )
+}
 ```
 
 Badge appears between sheet handle and icon. Animated pulsing dot (Animated.loop or Reanimated withRepeat).
@@ -223,23 +236,23 @@ Badge appears between sheet handle and icon. Animated pulsing dot (Animated.loop
 
 ## Cases
 
-| # | Trigger | Behavior |
-|---|---------|----------|
-| 1 | 1 đơn ready | Sheet bình thường, không badge |
-| 2 | Đơn B tới khi đang xem sheet A | Badge "Còn 1 đơn nữa" xuất hiện, sheet A không bị đóng |
-| 3 | Bấm "Để sau" | Snooze 90s, toast "Sẽ nhắc lại sau 90 giây", re-show sau |
-| 4 | Xem chi tiết A → back | suppressFor(600ms) → sheet B hiện (FIFO) |
-| 5 | Swipe down / tap scrim | Snooze 90s (giống "Để sau") |
-| 6 | 3 đơn cùng lúc | Badge "Còn 2 đơn nữa", giảm khi xử lý từng đơn |
+| #   | Trigger                        | Behavior                                                 |
+| --- | ------------------------------ | -------------------------------------------------------- |
+| 1   | 1 đơn ready                    | Sheet bình thường, không badge                           |
+| 2   | Đơn B tới khi đang xem sheet A | Badge "Còn 1 đơn nữa" xuất hiện, sheet A không bị đóng   |
+| 3   | Bấm "Để sau"                   | Snooze 90s, toast "Sẽ nhắc lại sau 90 giây", re-show sau |
+| 4   | Xem chi tiết A → back          | suppressFor(600ms) → sheet B hiện (FIFO)                 |
+| 5   | Swipe down / tap scrim         | Snooze 90s (giống "Để sau")                              |
+| 6   | 3 đơn cùng lúc                 | Badge "Còn 2 đơn nữa", giảm khi xử lý từng đơn           |
 
 ---
 
 ## Files Touched
 
-| File | Action |
-|------|--------|
-| `hooks/use-order-ready-queue.ts` | **Create** — hook with all queue/snooze logic |
-| `components/notification/order-ready-pickup-sheet.tsx` | **Modify** — consume hook, add pending badge |
+| File                                                   | Action                                        |
+| ------------------------------------------------------ | --------------------------------------------- |
+| `hooks/use-order-ready-queue.ts`                       | **Create** — hook with all queue/snooze logic |
+| `components/notification/order-ready-pickup-sheet.tsx` | **Modify** — consume hook, add pending badge  |
 
 No other files change. `stores/notification.store.ts` already has `markAllReadByOrder`.
 

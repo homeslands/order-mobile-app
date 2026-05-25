@@ -9,11 +9,12 @@ import {
 } from '@gorhom/bottom-sheet'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { Pressable, StyleSheet, useColorScheme, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '@/constants'
 import { useLogoutSheetStore } from '@/stores/logout-sheet.store'
+import { Text } from '@/components/ui/text'
 
 const LOGOUT_SHEET_SNAP = ['30%']
 

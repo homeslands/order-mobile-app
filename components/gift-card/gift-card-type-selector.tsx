@@ -1,10 +1,11 @@
 import { Lock, UserRound, Users, ShoppingBag } from 'lucide-react-native'
 import { memo, useCallback } from 'react'
-import { Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { Pressable, StyleSheet, useColorScheme, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 
 import { colors } from '@/constants'
 import { GiftCardType } from '@/constants/gift-card.constant'
+import { Text } from '@/components/ui/text'
 
 interface TypeOptionProps {
   value: GiftCardType.SELF | GiftCardType.GIFT | GiftCardType.BUY

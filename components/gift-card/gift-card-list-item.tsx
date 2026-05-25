@@ -1,13 +1,14 @@
 import { Image } from 'expo-image'
 import { Coins, Gift, Plus } from 'lucide-react-native'
 import { memo, useCallback } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 
 import { colors } from '@/constants'
 import { IGiftCard } from '@/types'
 import { capitalizeFirst, formatCurrency, formatPoints } from '@/utils'
 import { getProductImageUrl } from '@/utils/product-image-url'
 import { useTranslation } from 'react-i18next'
+import { Text } from '@/components/ui/text'
 
 export const GIFT_CARD_ITEM_HEIGHT = 128
 export const GIFT_CARD_IMAGE_SIZE = 128

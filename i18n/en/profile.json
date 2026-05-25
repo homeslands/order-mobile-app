@@ -429,6 +429,13 @@
       "dark": "Dark",
       "system": "System"
     },
+    "fontSize": {
+      "title": "Text Size",
+      "small": "Small",
+      "normal": "Normal",
+      "large": "Large",
+      "preview": "Sample text"
+    },
     "dobPicker": {
       "confirm": "Confirm",
       "months": [

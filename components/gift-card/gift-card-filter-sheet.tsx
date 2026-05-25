@@ -17,13 +17,14 @@ import {
 import dayjs from 'dayjs'
 import { ArrowRight, CalendarDays, X } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import DatePicker from 'react-native-date-picker'
 import { TouchableOpacity as GHTouchable } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors, GiftCardUsageStatus } from '@/constants'
+import { Text } from '@/components/ui/text'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 

@@ -1,7 +1,7 @@
 import { ArrowLeft } from 'lucide-react-native'
 import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ScrollView, Text, View, useColorScheme } from 'react-native'
+import { ScrollView, View, useColorScheme } from 'react-native'
 import { ScreenContainer } from '@/components/layout'
 
 import { Button, Input } from '@/components/ui'
@@ -9,6 +9,7 @@ import { colors } from '@/constants'
 import { navigateNative } from '@/lib/navigation'
 import { useUserStore } from '@/stores'
 import { showToast } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 function EditProfileScreen() {
   const { t } = useTranslation('profile')

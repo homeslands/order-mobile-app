@@ -12,7 +12,8 @@ import * as Clipboard from 'expo-clipboard'
 import { Copy } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
+import { Text } from '@/components/ui/text'
 
 const CONDITION_SHEET_SNAP = ['60%']
 

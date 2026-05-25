@@ -21,7 +21,6 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -49,6 +48,7 @@ import { useRunAfterTransition } from '@/hooks/use-run-after-transition'
 import { useUserStore } from '@/stores'
 import type { ILoyaltyPointHistory } from '@/types'
 import { calculateTotalPoints, formatPoints } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 // ─── Stats strip ──────────────────────────────────────────────────────────────
 

@@ -31,7 +31,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -60,6 +59,7 @@ import {
 
 export type { CheckoutFormValues } from './schema'
 import { checkoutSchema, type CheckoutFormValues } from './schema'
+import { Text } from '@/components/ui/text'
 
 // ─── Summary Row ─────────────────────────────────────────────────────────────
 

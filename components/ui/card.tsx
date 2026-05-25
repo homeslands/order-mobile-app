@@ -1,6 +1,7 @@
 import { cn } from '@/lib/utils'
 import { ComponentProps } from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
+import { Text } from '@/components/ui/text'
 
 interface CardProps extends ComponentProps<typeof View> {
   children: React.ReactNode

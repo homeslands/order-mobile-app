@@ -8,7 +8,6 @@ import {
   Platform,
   Pressable,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -23,6 +22,7 @@ import {
   useDetailSelectedVariant,
 } from '@/stores/selectors'
 import { formatCurrency } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 export interface ProductPriceFooterProps {
   totalPriceLabel: string

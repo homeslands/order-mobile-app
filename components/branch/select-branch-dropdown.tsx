@@ -1,17 +1,13 @@
 import { MapPin } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useState } from 'react'
-import {
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  useColorScheme,
-} from 'react-native'
+import { StyleSheet, TouchableOpacity, useColorScheme } from 'react-native'
 
 import { BranchSheet } from './branch-sheet'
 import { colors } from '@/constants'
 import { useBranch } from '@/hooks'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { useBranchStore } from '@/stores'
+import { Text } from '@/components/ui/text'
 
 interface SelectBranchDropdownProps {
   /** Khi true: tự mở sheet chọn chi nhánh (lần đầu, chưa có branch).

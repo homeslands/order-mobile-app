@@ -16,10 +16,11 @@ import React, {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
+import { Pressable, StyleSheet, TextInput, View } from 'react-native'
 
 import type { CartDisplayItem } from './cart-display-item'
 import { CartSwipeable } from './cart-swipeable'
+import { Text } from '@/components/ui/text'
 
 const DEBOUNCE_QTY_MS = 200
 

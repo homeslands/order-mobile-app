@@ -1,12 +1,13 @@
 import { ChevronRight } from 'lucide-react-native'
 import React from 'react'
-import { Text, View, useColorScheme } from 'react-native'
+import { View, useColorScheme } from 'react-native'
 
 import { colors } from '@/constants/colors.constant'
 import {
   NativeGesturePressable,
   type NativeGesturePressableProps,
 } from '@/components/navigation/native-gesture-pressable'
+import { Text } from '@/components/ui/text'
 
 interface SettingsItemProps {
   icon: React.ComponentType<{ size?: number; color?: string }>

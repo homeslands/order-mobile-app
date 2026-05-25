@@ -7,7 +7,6 @@ import {
   Linking,
   Pressable,
   StyleSheet,
-  Text,
   View,
   useColorScheme,
   useWindowDimensions,
@@ -15,6 +14,7 @@ import {
 
 import { colors } from '@/constants'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
+import { Text } from '@/components/ui/text'
 
 interface YouTubeVideoSectionProps {
   videoId: string

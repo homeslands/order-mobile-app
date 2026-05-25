@@ -17,9 +17,10 @@ import {
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { useTranslation } from 'react-i18next'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 import { formatCurrencyNative } from 'cart-price-calc'
 import { capitalizeFirst } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 const SIZE_SHEET_SNAP = ['40%']
 const EMPTY_VARIANTS: IProductVariant[] = []

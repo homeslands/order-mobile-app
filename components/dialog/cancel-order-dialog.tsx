@@ -10,7 +10,6 @@ import {
   ActivityIndicator,
   Pressable,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -21,6 +20,7 @@ import { useDeleteOrder } from '@/hooks'
 import type { IOrder } from '@/types'
 import { showToast } from '@/utils'
 import { useQueryClient } from '@tanstack/react-query'
+import { Text } from '@/components/ui/text'
 
 const SNAP_POINTS = ['38%']
 

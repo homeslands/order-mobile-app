@@ -28,11 +28,11 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   View,
   useColorScheme,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Text } from '@/components/ui/text'
 
 dayjs.extend(customParseFormat)
 
@@ -367,7 +367,9 @@ const ProfileEditForm = React.memo(function ProfileEditForm({
           firstName: payload.firstName ?? '',
           lastName: payload.lastName ?? '',
           address: payload.address ?? '',
-          ...(payload.dob !== undefined ? { dob: payload.dob ?? undefined } : {}),
+          ...(payload.dob !== undefined
+            ? { dob: payload.dob ?? undefined }
+            : {}),
         })
       showToast(tToast('toast.updateProfileSuccess'))
       router.back()

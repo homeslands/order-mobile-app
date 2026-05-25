@@ -13,8 +13,15 @@ import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging'
 
-import { hasProcessed, markProcessed, fcmMessageId } from '@/lib/notification-dedup'
-import { playNotificationSound, playOrderReadySound } from '@/lib/notification-sound'
+import {
+  hasProcessed,
+  markProcessed,
+  fcmMessageId,
+} from '@/lib/notification-dedup'
+import {
+  playNotificationSound,
+  playOrderReadySound,
+} from '@/lib/notification-sound'
 import {
   useNotificationStore,
   type NotificationPayload,
@@ -56,15 +63,19 @@ export function useNotificationListener(enabled = true) {
       let parsedPayloadMsg = ''
       try {
         if (remoteMessage.data?.payload) {
-          const p = JSON.parse(remoteMessage.data.payload as string) as Record<string, string>
+          const p = JSON.parse(remoteMessage.data.payload as string) as Record<
+            string,
+            string
+          >
           parsedPayloadMsg = p.message ?? ''
         }
-      } catch { /* ignore malformed payload JSON */ }
+      } catch {
+        /* ignore malformed payload JSON */
+      }
       const messageCode = remoteMessage.data?.message || parsedPayloadMsg
 
       const isOrderReady =
         messageCode === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET
-
 
       const title = payload.notification?.title || 'Thông báo'
       const body = payload.notification?.body || ''

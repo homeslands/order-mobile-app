@@ -39,7 +39,6 @@ import {
   InteractionManager,
   RefreshControl,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -53,6 +52,7 @@ import {
   MenuItemRow,
   menuViewabilityConfig,
 } from './menu-item-row'
+import { Text } from '@/components/ui/text'
 
 type FlatItem =
   | { _kind: 'header'; key: string; name: string }
