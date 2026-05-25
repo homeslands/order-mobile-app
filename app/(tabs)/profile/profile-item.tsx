@@ -4,7 +4,7 @@
  */
 import { ChevronRight, type LucideIcon } from 'lucide-react-native'
 import React, { useMemo } from 'react'
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import { colors, SPRING_CONFIGS } from '@/constants'
 import Animated, {
@@ -13,6 +13,7 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from 'react-native-reanimated'
+import { Text } from '@/components/ui/text'
 
 const PRESS_SCALE = 0.96
 

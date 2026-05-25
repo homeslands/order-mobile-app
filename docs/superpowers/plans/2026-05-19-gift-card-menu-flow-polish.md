@@ -12,9 +12,9 @@
 
 ## File Map
 
-| File | Change |
-|------|--------|
-| `hooks/use-gift-cards.ts` | Add `meta`, `refetchOnMount: false`, raise `staleTime` to 5 min |
+| File                       | Change                                                                    |
+| -------------------------- | ------------------------------------------------------------------------- |
+| `hooks/use-gift-cards.ts`  | Add `meta`, `refetchOnMount: false`, raise `staleTime` to 5 min           |
 | `app/(tabs)/gift-card.tsx` | Reset `allowFetch` on blur, fix skeleton condition, add error UI + styles |
 
 ---
@@ -22,6 +22,7 @@
 ### Task 1: Update `useGiftCards` hook options
 
 **Files:**
+
 - Modify: `hooks/use-gift-cards.ts:19-36`
 
 Context: `useGiftCards` is used only in `app/(tabs)/gift-card.tsx`. The global `QueryCache.onError` in `app/_layout.tsx` (line 115) skips toast when `query.meta?.skipGlobalError` is true — we need this so the screen can show its own error UI without a global toast also firing. `refetchOnMount: false` matches the menu screen pattern (the `allowFetch` gate drives refetching, not mount lifecycle). `staleTime: 5 * 60_000` is safe because gift card catalogue changes infrequently.
@@ -73,11 +74,13 @@ git commit -m "perf(gift-card): skipGlobalError, refetchOnMount=false, staleTime
 ### Task 2: Align `useFocusEffect` reset pattern in gift card screen
 
 **Files:**
+
 - Modify: `app/(tabs)/gift-card.tsx:156-170` (the `useFocusEffect` block)
 
 Context: Menu screen resets `allowFetch` to `false` at the start of each focus AND in the cleanup function. This disables the query during tab transitions (preventing stale fetches mid-animation) and re-enables it after the `InteractionManager + 120ms` delay. Gift card screen currently never resets — `allowFetch` stays `true` forever after first focus. The fix is a one-line addition in two places.
 
 Current code (lines 157–170):
+
 ```typescript
 useFocusEffect(
   useCallback(() => {
@@ -138,11 +141,13 @@ git commit -m "fix(gift-card): reset allowFetch on focus/blur, match menu screen
 ### Task 3: Fix skeleton condition + add error state with retry
 
 **Files:**
+
 - Modify: `app/(tabs)/gift-card.tsx` — destructuring at line 172, render at lines 404–430, StyleSheet at line 457+
 
 Context: Current condition `!allowFetch || isPending` shows skeleton whenever `allowFetch` is false — with the new reset pattern that means skeleton flashes on every tab return even when cached data exists. Fix: use `isPending` alone. `isPending` (React Query v5) is `true` only when there is no cached data — so returning to the tab with fresh cache keeps the list visible through the 120ms delay. Additionally, `isError` from the hook is currently ignored; when the API fails, users see the empty state "Chưa có thẻ quà tặng nào" which is misleading. Add an error branch with a retry button.
 
 Current destructuring (line 172):
+
 ```typescript
 const { data, isPending, refetch, isRefetching } = useGiftCards(undefined, {
   enabled: allowFetch,
@@ -161,6 +166,7 @@ const { data, isPending, isError, refetch, isRefetching } = useGiftCards(
 - [ ] **Step 2: Replace the content render block (lines 403–430)**
 
 Current:
+
 ```typescript
 {/* Content */}
 {!allowFetch || isPending ? (
@@ -177,6 +183,7 @@ Current:
 ```
 
 Replace with:
+
 ```typescript
 {/* Content */}
 {isPending ? (
@@ -278,6 +285,7 @@ npx expo start
 - [ ] **Step 5: Final commit message confirmation**
 
 All three prior commits should be visible in `git log`:
+
 ```
 fix(gift-card): fix skeleton condition, add error state with retry button
 fix(gift-card): reset allowFetch on focus/blur, match menu screen pattern

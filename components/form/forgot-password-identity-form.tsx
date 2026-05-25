@@ -1,6 +1,6 @@
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native'
 
 import { Button } from '@/components/ui'
 import { ROUTE } from '@/constants'
@@ -12,6 +12,7 @@ import {
 } from '@/schemas'
 
 import { FormInput } from './form-input'
+import { Text } from '@/components/ui/text'
 
 interface ForgotPasswordIdentityFormProps {
   onSubmit: (value: TForgotPasswordIdentitySchema) => void

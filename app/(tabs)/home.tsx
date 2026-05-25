@@ -7,7 +7,6 @@ import {
   Pressable,
   RefreshControl,
   StyleSheet,
-  Text,
   View,
   useColorScheme,
 } from 'react-native'
@@ -38,6 +37,7 @@ import { useRunAfterTransition } from '@/hooks'
 import { useBanners } from '@/hooks/use-banner'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import type { IBanner } from '@/types'
+import { Text } from '@/components/ui/text'
 
 const SCREEN_W = Dimensions.get('window').width
 
@@ -107,7 +107,7 @@ export default function HomeScreen() {
 
   const scrollHandler = useAnimatedScrollHandler((e) => {
     'worklet'
-    scrollY.value = e.contentOffset.y       // local — banner parallax
+    scrollY.value = e.contentOffset.y // local — banner parallax
   })
 
   // Fixed banner height — 2:1 aspect ratio

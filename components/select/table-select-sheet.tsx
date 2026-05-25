@@ -5,7 +5,7 @@ import BottomSheet, {
 } from '@gorhom/bottom-sheet'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { ActivityIndicator, Text, useColorScheme, View } from 'react-native'
+import { ActivityIndicator, useColorScheme, View } from 'react-native'
 
 import { colors, TableStatus } from '@/constants'
 import { TABLE_SELECT_ITEM_HEIGHT } from '@/constants/list-item-sizes'
@@ -14,6 +14,7 @@ import { useOrderFlowStore } from '@/stores'
 import { ITable } from '@/types'
 
 import { TableItem } from './table-item'
+import { Text } from '@/components/ui/text'
 
 let sheetRef: BottomSheet | null = null
 let openCallback: (() => void) | null = null

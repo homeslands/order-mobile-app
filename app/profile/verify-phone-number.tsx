@@ -8,12 +8,11 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   useColorScheme,
 } from 'react-native'
-import Animated, {
+import {
   interpolate,
   useAnimatedStyle,
   useSharedValue,
@@ -37,6 +36,8 @@ import {
 import { navigateNative } from '@/lib/navigation'
 import { useUserStore } from '@/stores'
 import { showErrorToast, showToast } from '@/utils'
+import { AnimatedText } from '@/components/ui/animated-text'
+import { Text } from '@/components/ui/text'
 
 function applyOtpBuffer(expiresAt: string): string {
   const expiresMs = new Date(expiresAt).getTime()
@@ -97,7 +98,7 @@ const VerifyPhoneHeader = React.memo(function VerifyPhoneHeader({
             color={isDark ? colors.gray[50] : colors.gray[900]}
           />
         </Pressable>
-        <Animated.Text
+        <AnimatedText
           style={[
             headerStyles.title,
             { color: isDark ? colors.gray[50] : colors.gray[900] },
@@ -106,7 +107,7 @@ const VerifyPhoneHeader = React.memo(function VerifyPhoneHeader({
           numberOfLines={1}
         >
           {title}
-        </Animated.Text>
+        </AnimatedText>
         <View style={headerStyles.circleBtn} />
       </View>
     </View>

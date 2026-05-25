@@ -284,5 +284,10 @@
       "quantityMin": "Tối thiểu 1",
       "messageMax": "Tối đa 200 ký tự"
     }
+  },
+  "menu": {
+    "loadError": "Không thể tải thẻ quà tặng",
+    "retry": "Thử lại",
+    "empty": "Chưa có thẻ quà tặng nào"
   }
 }

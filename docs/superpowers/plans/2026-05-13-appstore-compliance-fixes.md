@@ -12,19 +12,20 @@
 
 ## File Map
 
-| File | Action | Why |
-|------|--------|-----|
-| `ios/TRENDCoffee/TRENDCoffee.entitlements` | Modify | `aps-environment` must be `production` for App Store |
-| `app/(tabs)/profile/account-settings-placeholder.tsx` | Delete | Placeholder with "Trang rỗng để kiểm tra transition hãm phanh" |
-| `app/(tabs)/profile/settings.tsx` | Delete | Placeholder with "Trang rỗng — test transition" |
-| `ios/TRENDCoffee/Info.plist` | Modify | Remove NSMicrophoneUsageDescription, NSLocationAlways* variants, UIBackgroundModes fetch |
-| `app.json` | Modify | Remove NSUserTrackingUsageDescription and "fetch" from UIBackgroundModes |
+| File                                                  | Action | Why                                                                                       |
+| ----------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------- |
+| `ios/TRENDCoffee/TRENDCoffee.entitlements`            | Modify | `aps-environment` must be `production` for App Store                                      |
+| `app/(tabs)/profile/account-settings-placeholder.tsx` | Delete | Placeholder with "Trang rỗng để kiểm tra transition hãm phanh"                            |
+| `app/(tabs)/profile/settings.tsx`                     | Delete | Placeholder with "Trang rỗng — test transition"                                           |
+| `ios/TRENDCoffee/Info.plist`                          | Modify | Remove NSMicrophoneUsageDescription, NSLocationAlways\* variants, UIBackgroundModes fetch |
+| `app.json`                                            | Modify | Remove NSUserTrackingUsageDescription and "fetch" from UIBackgroundModes                  |
 
 ---
 
 ### Task 1: Fix APS environment — development → production
 
 **Files:**
+
 - Modify: `ios/TRENDCoffee/TRENDCoffee.entitlements`
 
 **Context:** The entitlements file currently has `aps-environment = development`. App Store builds require `production`. With `development`, push notifications work on TestFlight internal but fail after public release. Apple's review tool checks this automatically.
@@ -60,10 +61,13 @@
 - [ ] **Step 2: Verify**
 
   Run:
+
   ```bash
   grep -A1 "aps-environment" ios/TRENDCoffee/TRENDCoffee.entitlements
   ```
+
   Expected output:
+
   ```
     <key>aps-environment</key>
     <string>production</string>
@@ -81,6 +85,7 @@
 ### Task 2: Delete orphaned placeholder screens
 
 **Files:**
+
 - Delete: `app/(tabs)/profile/account-settings-placeholder.tsx`
 - Delete: `app/(tabs)/profile/settings.tsx`
 
@@ -91,9 +96,11 @@
 - [ ] **Step 1: Confirm zero callers for both files**
 
   Run:
+
   ```bash
   grep -rn "account-settings-placeholder\|profile/settings" app/ components/ 2>/dev/null
   ```
+
   Expected: no output. If any results appear, check the callers before deleting.
 
 - [ ] **Step 2: Delete both files**
@@ -108,6 +115,7 @@
   ```bash
   ls app/\(tabs\)/profile/
   ```
+
   Expected: neither `account-settings-placeholder.tsx` nor `settings.tsx` appears.
 
 - [ ] **Step 4: Run typecheck to confirm no broken imports**
@@ -115,6 +123,7 @@
   ```bash
   npm run typecheck
   ```
+
   Expected: exits 0. If errors appear, a file imports one of the deleted screens — fix that import.
 
 - [ ] **Step 5: Commit**
@@ -129,6 +138,7 @@
 ### Task 3: Clean up Info.plist — remove unused/incorrect permission entries
 
 **Files:**
+
 - Modify: `ios/TRENDCoffee/Info.plist`
 
 **Context:** Three issues in Info.plist:
@@ -142,6 +152,7 @@ All three entries should be removed. `NSLocationWhenInUseUsageDescription` (line
 - [ ] **Step 1: Remove NSMicrophoneUsageDescription from Info.plist**
 
   In `ios/TRENDCoffee/Info.plist`, remove these two lines entirely:
+
   ```xml
   <key>NSMicrophoneUsageDescription</key>
   <string>Allow $(PRODUCT_NAME) to access your microphone</string>
@@ -150,6 +161,7 @@ All three entries should be removed. `NSLocationWhenInUseUsageDescription` (line
 - [ ] **Step 2: Remove NSLocationAlwaysAndWhenInUseUsageDescription from Info.plist**
 
   Remove these two lines:
+
   ```xml
   <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
   <string>Allow $(PRODUCT_NAME) to access your location</string>
@@ -158,6 +170,7 @@ All three entries should be removed. `NSLocationWhenInUseUsageDescription` (line
 - [ ] **Step 3: Remove NSLocationAlwaysUsageDescription from Info.plist**
 
   Remove these two lines:
+
   ```xml
   <key>NSLocationAlwaysUsageDescription</key>
   <string>Allow $(PRODUCT_NAME) to access your location</string>
@@ -166,10 +179,13 @@ All three entries should be removed. `NSLocationWhenInUseUsageDescription` (line
 - [ ] **Step 4: Verify remaining location key**
 
   Run:
+
   ```bash
   grep -A1 "NSLocation" ios/TRENDCoffee/Info.plist
   ```
+
   Expected output (only one key remains):
+
   ```
   <key>NSLocationWhenInUseUsageDescription</key>
   <string>Ứng dụng cần quyền truy cập vị trí để giao hàng đến đúng địa chỉ.</string>
@@ -178,9 +194,11 @@ All three entries should be removed. `NSLocationWhenInUseUsageDescription` (line
 - [ ] **Step 5: Verify microphone is gone**
 
   Run:
+
   ```bash
   grep "NSMicrophone" ios/TRENDCoffee/Info.plist
   ```
+
   Expected: no output.
 
 - [ ] **Step 6: Commit**
@@ -195,6 +213,7 @@ All three entries should be removed. `NSLocationWhenInUseUsageDescription` (line
 ### Task 4: Clean up app.json — remove NSUserTrackingUsageDescription and fetch background mode
 
 **Files:**
+
 - Modify: `app.json`
 
 **Context:** Two issues in `app.json` that get injected into `Info.plist` during EAS build (expo prebuild):
@@ -208,6 +227,7 @@ Note: `Info.plist` currently has `"fetch"` hardcoded (line 75) and does NOT have
 - [ ] **Step 1: Remove NSUserTrackingUsageDescription from app.json**
 
   In `app.json`, in the `expo.ios.infoPlist` object, remove this line:
+
   ```json
   "NSUserTrackingUsageDescription": "Ứng dụng không thu thập dữ liệu theo dõi quảng cáo.",
   ```
@@ -215,13 +235,16 @@ Note: `Info.plist` currently has `"fetch"` hardcoded (line 75) and does NOT have
 - [ ] **Step 2: Remove "fetch" from UIBackgroundModes in app.json**
 
   In `app.json`, change:
+
   ```json
   "UIBackgroundModes": [
     "remote-notification",
     "fetch"
   ]
   ```
+
   To:
+
   ```json
   "UIBackgroundModes": [
     "remote-notification"
@@ -231,6 +254,7 @@ Note: `Info.plist` currently has `"fetch"` hardcoded (line 75) and does NOT have
 - [ ] **Step 3: Remove "fetch" from UIBackgroundModes in Info.plist**
 
   In `ios/TRENDCoffee/Info.plist`, change:
+
   ```xml
   <key>UIBackgroundModes</key>
   <array>
@@ -238,7 +262,9 @@ Note: `Info.plist` currently has `"fetch"` hardcoded (line 75) and does NOT have
     <string>fetch</string>
   </array>
   ```
+
   To:
+
   ```xml
   <key>UIBackgroundModes</key>
   <array>
@@ -249,19 +275,23 @@ Note: `Info.plist` currently has `"fetch"` hardcoded (line 75) and does NOT have
 - [ ] **Step 4: Verify app.json**
 
   Run:
+
   ```bash
   grep -A3 "UIBackgroundModes" app.json
   grep "NSUserTrackingUsageDescription" app.json
   ```
+
   Expected: UIBackgroundModes shows only `remote-notification`; no output for NSUserTrackingUsageDescription.
 
 - [ ] **Step 5: Verify Info.plist**
 
   Run:
+
   ```bash
   grep -A4 "UIBackgroundModes" ios/TRENDCoffee/Info.plist
   grep "fetch" ios/TRENDCoffee/Info.plist
   ```
+
   Expected: only `remote-notification` in UIBackgroundModes array; no `fetch` string.
 
 - [ ] **Step 6: Commit**

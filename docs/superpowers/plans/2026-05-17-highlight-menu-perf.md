@@ -12,8 +12,8 @@
 
 ## File Map
 
-| File | Action | Trách nhiệm |
-|------|--------|-------------|
+| File                                 | Action | Trách nhiệm    |
+| ------------------------------------ | ------ | -------------- |
 | `components/home/highlight-menu.tsx` | Modify | Tất cả 5 fixes |
 
 ---
@@ -21,6 +21,7 @@
 ### Task 1: Bỏ `useCatalog()` subscription — đọc catalog lazy khi press
 
 **Files:**
+
 - Modify: `components/home/highlight-menu.tsx:18–19, 233–234, 297–309`
 
 Hiện tại `useCatalog()` khiến toàn bộ carousel re-render mỗi lần React Query refetch catalog (mỗi 30s). Fix: đọc từ cache `queryClient.getQueryData` ngay tại thời điểm user nhấn, không subscribe reactive.
@@ -75,6 +76,7 @@ import { scheduleTransitionTask } from '@/lib/navigation'
 - [ ] **Step 2: Thay `useCatalog()` và `useMenuFilterStore` bên trong `HighlightMenuCarousel`**
 
 Xoá 2 dòng cũ (line 233–234):
+
 ```tsx
 // Xoá:
 const { data: catalogResponse } = useCatalog()
@@ -82,6 +84,7 @@ const setMenuFilter = useMenuFilterStore((s) => s.setMenuFilter)
 ```
 
 Thêm vào thay thế:
+
 ```tsx
 const queryClient = useQueryClient()
 const setMenuFilter = useSetMenuFilter()
@@ -150,6 +153,7 @@ git commit -m "perf(home): lazy-read catalog on press instead of reactive subscr
 ### Task 2: Thêm `estimatedItemSize` vào AnimatedFlashList
 
 **Files:**
+
 - Modify: `components/home/highlight-menu.tsx:343–356`
 
 FlashList **bắt buộc** phải có `estimatedItemSize` để recycling hoạt động đúng. Với horizontal list, giá trị này là chiều rộng của một item = `step` (`cardWidth + CARD_GAP`).
@@ -213,6 +217,7 @@ git commit -m "perf(home): add estimatedItemSize to highlight menu FlashList"
 ### Task 3: Xoá race condition `scrollX.value` write từ JS thread
 
 **Files:**
+
 - Modify: `components/home/highlight-menu.tsx:277–295`
 
 Sau khi `scrollToOffset({ animated: false })` được gọi, OS sẽ tự fire scroll event → worklet `scrollHandler` cập nhật `scrollX.value` đúng. Việc ghi `scrollX.value = target` từ JS thread tạo race: hai write đến cùng `SharedValue` trong cùng frame, có thể gây animation jump ở biên carousel. Bỏ 2 dòng JS write là đủ.
@@ -231,11 +236,11 @@ const handleScrollEnd = useCallback(
     if (rawIndex === 0) {
       const target = count * step
       listRef.current?.scrollToOffset({ offset: target, animated: false })
-      scrollX.value = target                   // ← xoá dòng này
+      scrollX.value = target // ← xoá dòng này
     } else if (rawIndex === count + 1) {
       const target = step
       listRef.current?.scrollToOffset({ offset: target, animated: false })
-      scrollX.value = target                   // ← xoá dòng này
+      scrollX.value = target // ← xoá dòng này
     }
   },
   [count, step, scrollX],
@@ -281,6 +286,7 @@ git commit -m "fix(home): remove JS-thread scrollX write race with worklet in ha
 ### Task 4: Wrap card dimensions trong `useMemo`
 
 **Files:**
+
 - Modify: `components/home/highlight-menu.tsx:236–241`
 
 `cardWidth`, `cardHeight`, `sideInset`, `step` hiện được tính inline mỗi render. Vì chúng là primitive numbers, `useCallback` deps so sánh bằng value nên thực tế không gây vấn đề khi `screenWidth` không đổi. Tuy nhiên wrap `useMemo` để ổn định deps, rõ ràng hơn về intent, và phòng khi có rotation/tablet support sau này.
@@ -333,6 +339,7 @@ git commit -m "perf(home): memoize card dimensions derived from screenWidth"
 ### Task 5: Thêm cleanup cho `requestAnimationFrame` trong `useEffect`
 
 **Files:**
+
 - Modify: `components/home/highlight-menu.tsx:267–274`
 
 `requestAnimationFrame` không được cancel khi component unmount. Nếu component unmount trước khi RAF chạy (ví dụ navigation rất nhanh), callback vẫn chạy và gọi `listRef.current?.scrollToOffset` — tuy `?.` null-safe nhưng vẫn là dangling call. Thêm cleanup để cancel.
@@ -382,6 +389,7 @@ git commit -m "fix(home): cancel requestAnimationFrame on carousel unmount"
 ## Self-Review
 
 **Spec coverage:**
+
 - ✅ Task 1: CRITICAL — bỏ `useCatalog()` subscription, lazy read, `scheduleTransitionTask`, selector convention
 - ✅ Task 2: HIGH — `estimatedItemSize` FlashList
 - ✅ Task 3: HIGH — race condition `scrollX.value`

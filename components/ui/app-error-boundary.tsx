@@ -1,8 +1,9 @@
 import React from 'react'
-import { Appearance, Pressable, Text, View } from 'react-native'
+import { Appearance, Pressable, View } from 'react-native'
 
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
+import { Text } from '@/components/ui/text'
 
 interface AppErrorBoundaryProps {
   children: React.ReactNode
@@ -82,8 +83,8 @@ export class AppErrorBoundary extends React.Component<
               textAlign: 'center',
             }}
           >
-            Vui lòng thử lại. Nếu lỗi tiếp tục xuất hiện, hãy khởi động lại
-            ứng dụng.
+            Vui lòng thử lại. Nếu lỗi tiếp tục xuất hiện, hãy khởi động lại ứng
+            dụng.
           </Text>
           <Pressable
             onPress={this.handleReset}

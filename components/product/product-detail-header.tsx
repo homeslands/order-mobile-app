@@ -1,7 +1,7 @@
 import { BlurView } from 'expo-blur'
 import { ChevronLeft, ShoppingCart } from 'lucide-react-native'
 import React from 'react'
-import { Platform, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Platform, Pressable, StyleSheet, View } from 'react-native'
 import Animated, {
   interpolate,
   useAnimatedStyle,
@@ -10,6 +10,7 @@ import Animated, {
 
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
+import { Text } from '@/components/ui/text'
 
 const ICON_SIZE = 22
 const ICON_COLOR_OVER = colors.white.light

@@ -39,7 +39,7 @@ import {
   useUserStore,
 } from '@/stores'
 import { useNotificationStore } from '@/stores/notification.store'
-import { ProfileNudgePopup } from '@/components/profile'
+// import { ProfileNudgePopup } from '@/components/profile'
 const TAB_ROUTES = {
   HOME: '/(tabs)/home',
   MENU: '/(tabs)/menu',
@@ -328,10 +328,10 @@ export default function TabsLayout() {
 
   return (
     <View style={{ flex: 1 }}>
-        {/* Không dùng shouldRasterizeIOS/renderToHardwareTextureAndroid ở đây:
+      {/* Không dùng shouldRasterizeIOS/renderToHardwareTextureAndroid ở đây:
             indicator trong AnimatedTabBar animate mỗi frame spring, cache bitmap
             sẽ bị invalidate liên tục → ngược tác dụng. */}
-        {isBarMounted && (
+      {isBarMounted && (
         <Animated.View
           style={[
             {
@@ -457,7 +457,7 @@ export default function TabsLayout() {
         />
       </Tabs>
       <OrderReadyPickupSheet />
-      <ProfileNudgePopup />
+      {/* <ProfileNudgePopup /> */}
     </View>
   )
 }

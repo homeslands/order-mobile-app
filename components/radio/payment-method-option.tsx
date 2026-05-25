@@ -1,10 +1,11 @@
 import { memo, useCallback } from 'react'
-import { Pressable, Text, View } from 'react-native'
+import { Pressable, View } from 'react-native'
 import type { LucideIcon } from 'lucide-react-native'
 
 import { Input, Label, RadioGroupItem } from '@/components/ui'
 import { PaymentMethod } from '@/constants'
 import { cn } from '@/lib/utils'
+import { Text } from '@/components/ui/text'
 
 interface PaymentMethodOptionProps {
   method: PaymentMethod

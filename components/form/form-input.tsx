@@ -4,12 +4,14 @@ import {
   type FieldValues,
   type Path,
 } from 'react-hook-form'
-import { Platform, Text, TextInput, View, useColorScheme } from 'react-native'
+import { Platform, TextInput, View, useColorScheme } from 'react-native'
 import { useRef, useEffect, useState } from 'react'
 
 import { Input } from '@/components/ui'
 import { colors } from '@/constants'
 import { cn } from '@/lib/utils'
+import { Text } from '@/components/ui/text'
+import { useFontScale } from '@/providers/font-scale-provider'
 
 interface FormInputProps<T extends FieldValues> {
   control: Control<T>
@@ -93,6 +95,7 @@ function FormInputField({
 }: FormInputFieldProps) {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
+  const scale = useFontScale()
   const [localValue, setLocalValue] = useState(value ?? '')
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const pendingValueRef = useRef<string>(value ?? '')
@@ -180,6 +183,8 @@ function FormInputField({
           style={{
             height: 48,
             paddingVertical: Platform.OS === 'ios' ? 0 : 12,
+            fontFamily: 'BeVietnamPro_400Regular',
+            fontSize: 16 * scale,
           }}
           placeholder={placeholder}
           placeholderTextColor={
@@ -195,6 +200,7 @@ function FormInputField({
           spellCheck={false}
           secureTextEntry={secureTextEntry}
           editable={!disabled}
+          allowFontScaling={false}
         />
       ) : (
         <Input

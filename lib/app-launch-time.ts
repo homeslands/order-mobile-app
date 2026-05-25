@@ -20,5 +20,7 @@ export function isResponseFromThisSession(
   // Accept if the notification was delivered up to COLD_START_RESPONSE_WINDOW_MS
   // *before* the JS bundle started — covers the gap between OS delivering the
   // tap and React/JS being ready to consume it.
-  return notificationDateMs >= APP_LAUNCH_TIME_MS - COLD_START_RESPONSE_WINDOW_MS
+  return (
+    notificationDateMs >= APP_LAUNCH_TIME_MS - COLD_START_RESPONSE_WINDOW_MS
+  )
 }

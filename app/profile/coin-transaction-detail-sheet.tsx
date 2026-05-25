@@ -27,7 +27,6 @@ import {
   Clipboard,
   Pressable,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -43,6 +42,7 @@ import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { useUserStore } from '@/stores'
 import type { IPointTransaction } from '@/types'
 import { formatPoints } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

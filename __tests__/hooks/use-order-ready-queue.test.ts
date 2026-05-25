@@ -22,17 +22,15 @@ const mockStoreState = {
 
 jest.mock('@/stores/notification.store', () => {
   const mockFn = Object.assign(
-    jest.fn(
-      (selector: (s: typeof mockStoreState) => unknown) =>
-        typeof selector === 'function'
-          ? selector(mockStoreState)
-          : mockStoreState,
+    jest.fn((selector: (s: typeof mockStoreState) => unknown) =>
+      typeof selector === 'function'
+        ? selector(mockStoreState)
+        : mockStoreState,
     ),
     { getState: () => mockStoreState },
   )
   return { useNotificationStore: mockFn }
 })
-
 
 // Import AFTER mocks (Jest hoisting)
 import { NotificationMessageCode } from '@/constants/notification.constant'

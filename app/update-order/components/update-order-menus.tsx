@@ -2,7 +2,7 @@ import { FlashList } from '@shopify/flash-list'
 import dayjs from 'dayjs'
 import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { StyleSheet, useColorScheme, View } from 'react-native'
 
 import { colors } from '@/constants'
 import {
@@ -15,6 +15,7 @@ import { useAuthStore, useOrderFlowStore } from '@/stores'
 import { IMenuItem } from '@/types'
 
 import ClientMenuItemForUpdateOrder from './client-menu-item-for-update-order'
+import { Text } from '@/components/ui/text'
 
 interface UpdateOrderMenusProps {
   branchSlug: string

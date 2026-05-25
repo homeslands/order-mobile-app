@@ -4,11 +4,12 @@
  */
 import { QrCode, ShoppingBag, Truck } from 'lucide-react-native'
 import React, { useCallback, useMemo } from 'react'
-import { Pressable, Text, View, useColorScheme } from 'react-native'
+import { Pressable, View, useColorScheme } from 'react-native'
 import { useRouter } from 'expo-router'
 
 import { colors } from '@/constants'
 import { useScanSheetStore } from '@/stores/scan-sheet.store'
+import { Text } from '@/components/ui/text'
 
 interface QuickAction {
   key: string

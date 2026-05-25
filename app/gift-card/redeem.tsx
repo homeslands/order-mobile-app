@@ -13,7 +13,6 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -31,6 +30,7 @@ import { useZodForm } from '@/hooks/use-zod-form'
 import { useUserStore } from '@/stores'
 import { IUseGiftCardResponse } from '@/types'
 import { formatPoints, showErrorToast } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 // ─── Schema ───────────────────────────────────────────────────────────────────
 

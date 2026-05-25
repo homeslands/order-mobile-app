@@ -2,7 +2,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Loader2, ShoppingCart } from 'lucide-react-native'
 import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Text, TouchableOpacity, useColorScheme, View } from 'react-native'
+import { TouchableOpacity, useColorScheme, View } from 'react-native'
 
 import { getOrderBySlug } from '@/api/order'
 import { OrderInfoSection } from '@/components/dialog/order-info-section'
@@ -33,6 +33,7 @@ import {
 } from '@/utils'
 import { Profiler } from 'react'
 import { useShallow } from 'zustand/react/shallow'
+import { Text } from '@/components/ui/text'
 
 interface IPlaceOrderDialogProps {
   onSuccess?: () => void

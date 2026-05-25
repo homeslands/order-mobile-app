@@ -1,6 +1,7 @@
 import { cn, variants } from '@/lib/utils'
 import { ComponentProps } from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
+import { Text } from '@/components/ui/text'
 
 interface BadgeProps extends ComponentProps<typeof View> {
   variant?: 'default' | 'secondary' | 'destructive' | 'outline'

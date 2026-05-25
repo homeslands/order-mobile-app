@@ -2,12 +2,13 @@ import React from 'react'
 import { Image } from 'expo-image'
 import { ArrowLeft } from 'lucide-react-native'
 import { useRouter } from 'expo-router'
-import { Platform, Pressable, Text, View } from 'react-native'
+import { Platform, Pressable, View } from 'react-native'
 import Animated from 'react-native-reanimated'
 import { ScrollView as GestureScrollView } from 'react-native-gesture-handler'
 
 import { ScreenContainer } from '@/components/layout'
 import { useSharedElementDest } from '@/lib/shared-element'
+import { Text } from '@/components/ui/text'
 
 const TEST_IMAGE_URI =
   'https://images.pexels.com/photos/2396220/pexels-photo-2396220.jpeg?auto=compress&cs=tinysrgb&w=800'

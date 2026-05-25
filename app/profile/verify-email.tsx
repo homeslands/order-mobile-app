@@ -8,12 +8,11 @@ import {
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   useColorScheme,
 } from 'react-native'
-import Animated, {
+import {
   interpolate,
   useAnimatedStyle,
   useSharedValue,
@@ -41,6 +40,8 @@ import { navigateNative } from '@/lib/navigation'
 import { verifyEmailSchema, type TVerifyEmailSchema } from '@/schemas'
 import { useAuthStore, useUserStore } from '@/stores'
 import { showErrorToast, showToast } from '@/utils'
+import { AnimatedText } from '@/components/ui/animated-text'
+import { Text } from '@/components/ui/text'
 
 function applyOtpBuffer(expiresAt: string): string {
   const expiresMs = new Date(expiresAt).getTime()
@@ -104,7 +105,7 @@ const VerifyEmailHeader = React.memo(function VerifyEmailHeader({
             color={isDark ? colors.gray[50] : colors.gray[900]}
           />
         </Pressable>
-        <Animated.Text
+        <AnimatedText
           style={[
             headerStyles.title,
             { color: isDark ? colors.gray[50] : colors.gray[900] },
@@ -113,7 +114,7 @@ const VerifyEmailHeader = React.memo(function VerifyEmailHeader({
           numberOfLines={1}
         >
           {title}
-        </Animated.Text>
+        </AnimatedText>
         <View style={headerStyles.circleBtn} />
       </View>
     </View>
@@ -444,8 +445,7 @@ function VerifyEmailContent() {
                       }
                     )?.response?.data?.statusCode
                   if (typeof resendCode === 'number') showErrorToast(resendCode)
-                  else
-                    showToast(t('profile.verifyEmailFailed'), 'error')
+                  else showToast(t('profile.verifyEmailFailed'), 'error')
                 },
               })
             } else if (typeof code === 'number') {
@@ -457,14 +457,7 @@ function VerifyEmailContent() {
         },
       )
     },
-    [
-      token,
-      verifyEmail,
-      resendOtp,
-      queryClient,
-      setEmailVerificationStatus,
-      t,
-    ],
+    [token, verifyEmail, resendOtp, queryClient, setEmailVerificationStatus, t],
   )
 
   const handleVerifyOtp = useCallback(() => {

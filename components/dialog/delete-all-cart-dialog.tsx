@@ -1,12 +1,13 @@
 import { Trash2, TriangleAlert } from 'lucide-react-native'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 
 import { Button, Dialog, Label } from '@/components/ui'
 import { useOrderFlowStore } from '@/stores'
 
 import { ConfirmationDialog } from './confirmation-dialog'
+import { Text } from '@/components/ui/text'
 
 export default function DeleteAllCartDialog() {
   const { t } = useTranslation('menu')

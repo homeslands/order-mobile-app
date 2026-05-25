@@ -4,11 +4,12 @@
  */
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { Text, View, useColorScheme } from 'react-native'
+import { View, useColorScheme } from 'react-native'
 
 import { Images } from '@/assets/images'
 import { colors } from '@/constants'
 import StoreCarousel from './store-carousel'
+import { Text } from '@/components/ui/text'
 
 const STORE_IMAGES = [
   Images.News.Article1_1,

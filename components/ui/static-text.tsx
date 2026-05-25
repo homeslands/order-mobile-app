@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
-import { Text, TextProps } from 'react-native'
+import { TextProps } from 'react-native'
+import { Text } from '@/components/ui/text'
 
 interface StaticTextProps extends Omit<TextProps, 'children'> {
   /** Key để so sánh — khi đổi product (slug) mới mount lại. Tránh diff khi size/quantity thay đổi. */

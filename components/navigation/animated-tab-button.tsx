@@ -10,6 +10,7 @@ import Animated, {
 } from 'react-native-reanimated'
 import type { SharedValue } from 'react-native-reanimated'
 
+import { AnimatedText } from '@/components/ui/animated-text'
 import { NativeGesturePressable } from './native-gesture-pressable'
 
 type AnimatedTabButtonProps = {
@@ -61,7 +62,11 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
   }))
 
   const labelStyle = useAnimatedStyle(() => ({
-    color: interpolateColor(activeFraction.value, [0, 1], [mutedColor, '#ffffff']),
+    color: interpolateColor(
+      activeFraction.value,
+      [0, 1],
+      [mutedColor, '#ffffff'],
+    ),
   }))
 
   const activeIconOpacity = useAnimatedStyle(() => ({
@@ -85,23 +90,31 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
         {/* Cross-fade two icons so strokes never overlap — avoids dark fringing */}
         <View style={{ width: iconPx, height: iconPx }}>
           <Animated.View
-            style={[StyleSheet.absoluteFill, styles.iconOverlay, mutedIconOpacity]}
+            style={[
+              StyleSheet.absoluteFill,
+              styles.iconOverlay,
+              mutedIconOpacity,
+            ]}
           >
             <Icon color={mutedColor} size={iconPx} />
           </Animated.View>
           <Animated.View
-            style={[StyleSheet.absoluteFill, styles.iconOverlay, activeIconOpacity]}
+            style={[
+              StyleSheet.absoluteFill,
+              styles.iconOverlay,
+              activeIconOpacity,
+            ]}
           >
             <Icon color="#ffffff" size={iconPx} />
           </Animated.View>
         </View>
         {label ? (
-          <Animated.Text
+          <AnimatedText
             style={[styles.label, { maxWidth: itemWidth - 20 }, labelStyle]}
             numberOfLines={1}
           >
             {label}
-          </Animated.Text>
+          </AnimatedText>
         ) : null}
       </Animated.View>
     </NativeGesturePressable>

@@ -25,7 +25,6 @@ import {
   Clipboard,
   Pressable,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -36,6 +35,7 @@ import { useCardOrderBySlug } from '@/hooks/use-card-order'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { navigateNative } from '@/lib/navigation'
 import { formatCurrency } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

@@ -7,7 +7,6 @@ import {
   Keyboard,
   Pressable,
   StyleSheet,
-  Text,
   TextInput,
   useColorScheme,
   View,
@@ -24,6 +23,7 @@ import { Input } from '@/components/ui'
 import { colors } from '@/constants'
 import { useUserByPhone } from '@/hooks/use-users'
 import type { CheckoutFormValues } from '@/app/gift-card/checkout/schema'
+import { Text } from '@/components/ui/text'
 
 const MIN_QTY = 1
 const MAX_QTY = 10

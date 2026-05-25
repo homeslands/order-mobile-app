@@ -6,7 +6,7 @@ import dayjs from 'dayjs'
 import { Plus } from 'lucide-react-native'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 
 import { PressableWithFeedback } from '@/components/navigation'
 import { OrderFlowStep } from '@/constants'
@@ -16,6 +16,7 @@ import { useUserStore } from '@/stores'
 import { useOrderFlowMenuItemControl } from '@/stores/selectors'
 import { IMenuItem, IOrderItem } from '@/types'
 import { showToast } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 interface MenuItemQuantityControlProps {
   item: IMenuItem

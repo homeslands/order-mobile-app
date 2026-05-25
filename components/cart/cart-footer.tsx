@@ -33,7 +33,7 @@ import { formatCurrencyNative } from 'cart-price-calc'
 import { ChevronRight, ShoppingBag, Ticket } from 'lucide-react-native'
 import React, { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 
 import { DeliveryAddressSheet, DeliveryInfoRow } from '@/components/delivery'
 import { ConfirmOrderSheet } from './cart-confirm-order-sheet'
@@ -41,6 +41,7 @@ import { SimpleOrderTypeSheet } from './cart-order-type-sheet'
 import { SimpleTableSheet } from './cart-table-sheet'
 import { VoucherSheet } from './cart-voucher-sheet'
 import { PickupTimeChips } from './pickup-time-chips'
+import { Text } from '@/components/ui/text'
 
 const ORDER_TYPE_FEATURE_MAP: Partial<Record<string, string>> = {
   'at-table': SystemLockFeatureChild.AT_TABLE,

@@ -1,7 +1,8 @@
 import React from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 
 import { formatCurrency } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 interface PriceTagProps {
   price: number | null
