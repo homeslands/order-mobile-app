@@ -1,9 +1,10 @@
 import { ShoppingBag } from 'lucide-react-native'
 import { useTranslation } from 'react-i18next'
-import { Text, TouchableOpacity, useColorScheme } from 'react-native'
+import { TouchableOpacity, useColorScheme } from 'react-native'
 
 import { useOrderTypeOptions } from '@/hooks'
 import { cn } from '@/lib/utils'
+import { Text } from '@/components/ui/text'
 
 interface OrderTypeSelectProps {
   /** B2: Khi false, không fetch feature flags — defer đến khi cần. */

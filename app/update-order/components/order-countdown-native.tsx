@@ -2,10 +2,11 @@ import dayjs from 'dayjs'
 import { Timer } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { StyleSheet, Text, useColorScheme } from 'react-native'
+import { StyleSheet, useColorScheme } from 'react-native'
 import Animated, { useAnimatedStyle } from 'react-native-reanimated'
 
 import { colors } from '@/constants'
+import { Text } from '@/components/ui/text'
 
 const ORDER_TIMEOUT_SECONDS = 900 // 15 minutes
 const WARNING_THRESHOLD_SEC = 120

@@ -16,7 +16,6 @@ import { useTranslation } from 'react-i18next'
 import {
   Platform,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   useColorScheme,
@@ -27,6 +26,7 @@ import Animated, {
   useSharedValue,
   withTiming,
 } from 'react-native-reanimated'
+import { Text } from '@/components/ui/text'
 
 dayjs.extend(customParseFormat)
 
@@ -72,6 +72,7 @@ type Props = {
   onSelect: (date: string) => void
   theme?: DobExpandablePickerTheme
   placeholder?: string
+  disabled?: boolean
 }
 
 export function DobExpandablePicker({
@@ -79,6 +80,7 @@ export function DobExpandablePicker({
   onSelect,
   theme,
   placeholder,
+  disabled = false,
 }: Props) {
   const { t } = useTranslation('profile')
   const resolvedPlaceholder = placeholder ?? t('profile.enterDob')
@@ -112,6 +114,7 @@ export function DobExpandablePicker({
   )
 
   const handlePress = useCallback(() => {
+    if (disabled) return
     if (Platform.OS === 'android') {
       DateTimePickerAndroid.open({
         value: safeDate,
@@ -126,7 +129,7 @@ export function DobExpandablePicker({
     } else {
       setExpanded((e) => !e)
     }
-  }, [safeDate, onSelect])
+  }, [safeDate, onSelect, disabled])
 
   const animatedStyle = useAnimatedStyle(() => {
     'worklet'
@@ -143,9 +146,11 @@ export function DobExpandablePicker({
         style={[
           styles.touchable,
           { backgroundColor: finalTheme.bg, borderColor: finalTheme.editBtn },
+          disabled && { opacity: 0.5 },
         ]}
         onPress={handlePress}
-        activeOpacity={0.7}
+        activeOpacity={disabled ? 1 : 0.7}
+        disabled={disabled}
       >
         <Text
           style={[

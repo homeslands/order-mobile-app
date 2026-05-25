@@ -5,7 +5,6 @@ import {
   Modal,
   Pressable,
   ScrollView,
-  Text,
   View,
   useColorScheme,
 } from 'react-native'
@@ -17,6 +16,7 @@ import Animated, {
 
 import { SPRING_CONFIGS, colors } from '@/constants'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Text } from '@/components/ui/text'
 
 interface SheetProps {
   open: boolean

@@ -6,7 +6,6 @@ import React, { ReactNode, useEffect } from 'react'
 import {
   Modal,
   Pressable,
-  Text,
   TouchableOpacity,
   View,
   useColorScheme,
@@ -18,6 +17,7 @@ import Animated, {
   withDelay,
   withSpring,
 } from 'react-native-reanimated'
+import { Text } from '@/components/ui/text'
 
 /* -------------------------------------------------------------------------- */
 /*                                   Types                                    */

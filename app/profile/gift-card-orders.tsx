@@ -36,7 +36,6 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -56,6 +55,7 @@ import { useRunAfterTransition } from '@/hooks/use-run-after-transition'
 import { useUserStore } from '@/stores'
 import type { ICardOrderResponse } from '@/types'
 import { formatCurrency } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 // ─── Filter bar ───────────────────────────────────────────────────────────────
 

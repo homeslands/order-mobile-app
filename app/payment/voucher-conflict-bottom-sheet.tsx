@@ -5,17 +5,12 @@ import {
 } from '@gorhom/bottom-sheet'
 import { TriangleAlert } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '@/constants'
+import { Text } from '@/components/ui/text'
 
 interface VoucherConflictBottomSheetProps {
   visible: boolean

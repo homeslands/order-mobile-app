@@ -5,20 +5,23 @@ import { useRouter } from 'expo-router'
 import React, { useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import type { ImageSourcePropType, ViewStyle } from 'react-native'
-import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
+import { Pressable, StyleSheet, View, useWindowDimensions } from 'react-native'
 import Animated, {
   interpolate,
   useAnimatedStyle,
   useSharedValue,
   type SharedValue,
 } from 'react-native-reanimated'
-import Carousel, { type CarouselRenderItem } from 'react-native-reanimated-carousel'
+import Carousel, {
+  type CarouselRenderItem,
+} from 'react-native-reanimated-carousel'
 
 import { getCatalog } from '@/api'
 import { Images } from '@/assets/images'
 import { QUERYKEY } from '@/constants'
 import type { IApiResponse, ICatalog } from '@/types'
 import { useSetMenuFilter } from '@/stores/selectors/menu-filter.selectors'
+import { Text } from '@/components/ui/text'
 
 interface HighlightMenuItem {
   id: number
@@ -84,7 +87,10 @@ function Dot({
 
   return (
     <Animated.View
-      style={[{ height: 6, borderRadius: 3, backgroundColor: primaryColor }, dotStyle]}
+      style={[
+        { height: 6, borderRadius: 3, backgroundColor: primaryColor },
+        dotStyle,
+      ]}
     />
   )
 }

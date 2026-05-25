@@ -16,7 +16,7 @@ import { Image } from 'expo-image'
 import { Gift, Minus, Plus } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '@/constants'
@@ -24,6 +24,7 @@ import { useGiftCardStore } from '@/stores'
 import { IGiftCard } from '@/types'
 import { formatCurrency, formatPoints } from '@/utils'
 import { GiftCardExistsWarningDialog } from './gift-card-exists-warning-dialog'
+import { Text } from '@/components/ui/text'
 
 interface GiftCardSelectedSheetProps {
   visible: boolean

@@ -14,12 +14,12 @@ When the backend signals that a customer's order is ready, their device should a
 
 ## Behavior by State
 
-| State | Sound | Vibration | UI |
-|---|---|---|---|
-| **Foreground** | `order_ready.wav` looping until dismissed | Continuous pattern until dismissed | Full-screen modal overlay |
-| **Background / Killed (Android)** | `order_ready.wav` single play (~15s) via `order-ready` channel | ~4s pattern via channel | Heads-up banner; tap → order detail |
-| **Background / Killed (iOS)** | `order_ready.wav` single play via APNs | OS default | Heads-up banner; `time-sensitive` bypasses Focus Mode but not silent |
-| **Silent mode** | No sound | Vibration only (Android foreground + background) | Same UI |
+| State                             | Sound                                                          | Vibration                                        | UI                                                                   |
+| --------------------------------- | -------------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------------- |
+| **Foreground**                    | `order_ready.wav` looping until dismissed                      | Continuous pattern until dismissed               | Full-screen modal overlay                                            |
+| **Background / Killed (Android)** | `order_ready.wav` single play (~15s) via `order-ready` channel | ~4s pattern via channel                          | Heads-up banner; tap → order detail                                  |
+| **Background / Killed (iOS)**     | `order_ready.wav` single play via APNs                         | OS default                                       | Heads-up banner; `time-sensitive` bypasses Focus Mode but not silent |
+| **Silent mode**                   | No sound                                                       | Vibration only (Android foreground + background) | Same UI                                                              |
 
 ---
 
@@ -56,6 +56,7 @@ BE must send `android.notification.channelId = 'order-ready'` for `order-needs-r
 ### 3. iOS APNs config (BE side)
 
 BE sends for `order-needs-ready-to-get`:
+
 ```json
 "apns": {
   "payload": {
@@ -76,6 +77,7 @@ BE sends for `order-needs-ready-to-get`:
 A full-screen modal that renders on top of all content when the app is in the foreground and an `order-needs-ready-to-get` message arrives.
 
 **Responsibilities:**
+
 - Play `order_ready.wav` in a loop (`setIsLoopingAsync(true)`)
 - Call `Vibration.vibrate([0, 1000, 500, 1000, 500, 1000, 500, 1000], true)` (repeating)
 - Show order title + body from notification payload
@@ -103,6 +105,7 @@ Used by `useNotificationListener` to trigger the alert.
 ### 6. Modified `useNotificationListener`
 
 When a foreground FCM message arrives with `data.message === NotificationMessageCode.ORDER_NEEDS_READY_TO_GET`:
+
 - Call `useOrderReadyAlert.show(title, body)` — triggers full-screen modal
 - Skip the regular toast and regular sound
 
@@ -143,6 +146,7 @@ FCM payload (order-needs-ready-to-get)
 ## BE Integration Checklist
 
 For `order-needs-ready-to-get` FCM payload, BE must include:
+
 - `android.notification.channelId = 'order-ready'`
 - `apns.payload.aps.interruption-level = 'time-sensitive'`
 - `apns.payload.aps.sound.name = 'order_ready.wav'`

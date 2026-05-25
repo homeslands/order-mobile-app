@@ -6,7 +6,9 @@ import { NotificationMessageCode } from '@/constants/notification.constant'
 import { useNotificationStore } from '@/stores/notification.store'
 import type { INotification } from '@/types/notification.type'
 
-const makeNotif = (overrides: Partial<INotification> & { slug: string }): INotification => ({
+const makeNotif = (
+  overrides: Partial<INotification> & { slug: string },
+): INotification => ({
   slug: overrides.slug,
   createdAt: overrides.createdAt ?? new Date().toISOString(),
   message: overrides.message ?? NotificationMessageCode.ORDER_NEEDS_PROCESSED,

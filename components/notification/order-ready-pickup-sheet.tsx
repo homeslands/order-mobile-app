@@ -21,7 +21,7 @@ import {
 import { usePathname } from 'expo-router'
 import { CheckCircle2 } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
-import { Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { Pressable, StyleSheet, useColorScheme, View } from 'react-native'
 import Animated, {
   cancelAnimation,
   useAnimatedStyle,
@@ -39,6 +39,7 @@ import {
 } from '@/hooks/use-order-ready-queue'
 import { navigateNative, scheduleTransitionTask } from '@/lib/navigation'
 import { showToastInternal } from '@/providers/toast-provider'
+import { Text } from '@/components/ui/text'
 
 const SNAP_POINTS = ['45%']
 // Pause before re-presenting the next order so the dismiss animation has

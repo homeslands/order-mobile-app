@@ -5,7 +5,6 @@ import {
   Modal,
   Pressable,
   ScrollView,
-  Text,
   TouchableOpacity,
   useColorScheme,
   View,
@@ -17,6 +16,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { SPRING_CONFIGS, colors } from '@/constants'
+import { Text } from '@/components/ui/text'
 
 /* ------------------------------------------------------------------ */
 /* Context */

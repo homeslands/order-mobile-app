@@ -74,7 +74,10 @@ module.exports = function withIosStaticFrameworksFix(config) {
   return withDangerousMod(config, [
     'ios',
     (mod) => {
-      const podfilePath = path.join(mod.modRequest.platformProjectRoot, 'Podfile')
+      const podfilePath = path.join(
+        mod.modRequest.platformProjectRoot,
+        'Podfile',
+      )
       let podfile = fs.readFileSync(podfilePath, 'utf8')
 
       if (podfile.includes('static frameworks compatibility fix')) {

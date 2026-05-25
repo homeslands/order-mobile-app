@@ -6,7 +6,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Text,
   TouchableOpacity,
   View,
   useColorScheme,
@@ -52,6 +51,7 @@ import {
   showErrorToastMessage,
   showToast,
 } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 function extractErrorCode(err: unknown): number | undefined {
   const data = (

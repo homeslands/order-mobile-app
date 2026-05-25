@@ -8,7 +8,8 @@ import {
   setNavigationBarColor,
   useNavigationBar,
 } from '@/hooks/use-navigation-bar'
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
+import { Text } from '@/components/ui/text'
 
 // ============================================
 // Ví dụ 1: Sử dụng Hook trong Component

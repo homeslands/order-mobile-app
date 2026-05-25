@@ -1,6 +1,6 @@
 import { Check, ShoppingBag } from 'lucide-react-native'
 import { useTranslation } from 'react-i18next'
-import { Text, TouchableOpacity, View, useColorScheme } from 'react-native'
+import { TouchableOpacity, View, useColorScheme } from 'react-native'
 
 import { colors } from '@/constants'
 import {
@@ -10,6 +10,7 @@ import {
 } from '@/components/ui'
 import { useOrderTypeOptionsForUpdateOrder } from '@/hooks/use-order-type-options-for-update-order'
 import { cn } from '@/lib/utils'
+import { Text } from '@/components/ui/text'
 
 interface OrderTypeSelectInUpdateOrderProps {
   typeOrder: string

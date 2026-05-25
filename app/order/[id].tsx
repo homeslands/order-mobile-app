@@ -11,7 +11,6 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -42,6 +41,7 @@ import {
 
 import { InvoiceSection } from '@/app/payment/payment-invoice-section'
 import { PaymentProductItem } from '@/app/payment/payment-product-item'
+import { Text } from '@/components/ui/text'
 
 // ─── Skeleton ───────────────────────────────────────────────────────────────
 

@@ -1,11 +1,12 @@
 import { Clock, MapPin, Notebook, Phone, Receipt } from 'lucide-react-native'
 import { memo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 
 import { Badge } from '@/components/ui'
 import { IOrderingData } from '@/stores'
 import { OrderTypeEnum } from '@/types'
+import { Text } from '@/components/ui/text'
 
 interface OrderInfoSectionProps {
   order: IOrderingData | null

@@ -19,13 +19,13 @@ import {
   Platform,
   Pressable,
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   useColorScheme,
 } from 'react-native'
 
 import { colors } from '@/constants'
+import { Text } from '@/components/ui/text'
 
 export type BirthdayPickerRef = {
   open: () => void

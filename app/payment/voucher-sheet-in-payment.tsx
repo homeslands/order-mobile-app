@@ -26,7 +26,7 @@ import {
 } from '@gorhom/bottom-sheet'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { InvalidList } from '../update-order/components/voucher-sheet-in-update-order/invalid-list'
@@ -34,6 +34,7 @@ import { SearchHeader } from '../update-order/components/voucher-sheet-in-update
 import { SearchResult } from '../update-order/components/voucher-sheet-in-update-order/search-result'
 import { SheetFooter } from '../update-order/components/voucher-sheet-in-update-order/sheet-footer'
 import { ValidList } from '../update-order/components/voucher-sheet-in-update-order/valid-list'
+import { Text } from '@/components/ui/text'
 
 const SNAP = ['90%']
 const MAX_VOUCHERS = 50

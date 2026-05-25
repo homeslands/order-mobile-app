@@ -21,7 +21,11 @@ import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging'
 
-import { hasProcessed, markProcessed, fcmMessageId } from '@/lib/notification-dedup'
+import {
+  hasProcessed,
+  markProcessed,
+  fcmMessageId,
+} from '@/lib/notification-dedup'
 import { isResponseFromThisSession } from '@/lib/app-launch-time'
 import { navigateFromNotification } from '@/lib/notification-navigation'
 import { useNotificationStore } from '@/stores/notification.store'
@@ -120,7 +124,10 @@ export function useNotificationResponse(enabled = true) {
       })
       .catch((e) =>
         // eslint-disable-next-line no-console
-        console.warn('[Notifications] getLastNotificationResponseAsync failed:', e),
+        console.warn(
+          '[Notifications] getLastNotificationResponseAsync failed:',
+          e,
+        ),
       )
 
     return () => {

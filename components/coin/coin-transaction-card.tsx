@@ -8,7 +8,7 @@ import {
 } from 'lucide-react-native'
 import { memo, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 
 import {
   colors,
@@ -17,6 +17,7 @@ import {
 } from '@/constants'
 import type { IPointTransaction } from '@/types'
 import { formatPoints } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 // ─── Type config ──────────────────────────────────────────────────────────────
 

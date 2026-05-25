@@ -429,6 +429,13 @@
       "dark": "Tối",
       "system": "Tự động"
     },
+    "fontSize": {
+      "title": "Cỡ chữ",
+      "small": "Nhỏ",
+      "normal": "Vừa",
+      "large": "Lớn",
+      "preview": "Văn bản mẫu"
+    },
     "dobPicker": {
       "confirm": "Xác nhận",
       "months": [

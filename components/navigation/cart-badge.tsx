@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react'
-import { Text, useColorScheme } from 'react-native'
+import { useColorScheme } from 'react-native'
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -9,6 +9,7 @@ import Animated, {
 
 import { SPRING_CONFIGS, colors } from '@/constants'
 import { useOrderFlowCartItemCount } from '@/stores/selectors'
+import { Text } from '@/components/ui/text'
 
 /** Badge số lượng giỏ hàng — chỉ subscribe cartItemCount, tránh re-render toàn header khi add item */
 export const CartBadge = React.memo(function CartBadge() {

@@ -1,7 +1,7 @@
 import { Image } from 'expo-image'
 import React, { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 
 import { Images } from '@/assets/images'
 import { NativeGesturePressable } from '@/components/navigation'
@@ -11,6 +11,7 @@ import { IMenuItem, IProduct } from '@/types'
 import { formatCurrency } from '@/utils'
 
 import { MenuItemQuantityControl } from './menu-item-quantity-control'
+import { Text } from '@/components/ui/text'
 
 interface IClientMenuItemProps {
   item: IMenuItem

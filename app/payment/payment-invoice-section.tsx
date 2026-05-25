@@ -1,19 +1,14 @@
 import { FileDown } from 'lucide-react-native'
 import { memo, useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native'
 
 import { InvoiceTemplate } from '@/components/profile'
 import { colors } from '@/constants'
 import { useExportPublicOrderInvoice, useOrderBySlug } from '@/hooks'
 import { OrderStatus } from '@/types'
 import { downloadAndSavePDF, showToast } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 export const InvoiceSection = memo(function InvoiceSection({
   order,

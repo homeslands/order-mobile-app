@@ -43,8 +43,13 @@ export function useOrderReadyQueue(): OrderReadyQueue {
     const now = Date.now()
     for (const n of allNotifications) {
       if (n.isRead) continue
-      if (n.message !== NotificationMessageCode.ORDER_NEEDS_READY_TO_GET) continue
-      if (now - Date.parse(n.sentAt ?? n.receivedAt ?? n.createdAt) > ORDER_READY_MAX_AGE_MS) continue
+      if (n.message !== NotificationMessageCode.ORDER_NEEDS_READY_TO_GET)
+        continue
+      if (
+        now - Date.parse(n.sentAt ?? n.receivedAt ?? n.createdAt) >
+        ORDER_READY_MAX_AGE_MS
+      )
+        continue
       count++
       // sentAt = server time staff pressed call (most accurate).
       // receivedAt = device-local fallback for older FCM without sentAt.

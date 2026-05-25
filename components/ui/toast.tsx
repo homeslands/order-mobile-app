@@ -1,6 +1,6 @@
 import { AlertCircle, CircleCheck, Info, XCircle } from 'lucide-react-native'
 import React, { useEffect } from 'react'
-import { StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { StyleSheet, useColorScheme, View } from 'react-native'
 import Animated, {
   cancelAnimation,
   runOnJS,
@@ -13,6 +13,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors, SPRING_CONFIGS } from '@/constants'
+import { Text } from '@/components/ui/text'
 
 interface ToastData {
   id: string

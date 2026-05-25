@@ -1,6 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { Controller } from 'react-hook-form'
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, TouchableOpacity, View } from 'react-native'
 
 import { FormInput } from '@/components/form/form-input'
 import { PasswordInputField } from '@/components/input'
@@ -10,6 +10,7 @@ import { navigateNative } from '@/lib/navigation'
 import { loginSchema, TLoginSchema } from '@/schemas'
 import type { ILoginResponse } from '@/types'
 import { showErrorToastMessage } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 interface LoginFormProps {
   onLoginSuccess?: () => void

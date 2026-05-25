@@ -1,11 +1,17 @@
 import { FlashList, type ListRenderItem } from '@shopify/flash-list'
 import { useRouter } from 'expo-router'
-import { Gift, History, Settings, Trash2, User, Wallet } from 'lucide-react-native'
+import {
+  Gift,
+  History,
+  Settings,
+  Trash2,
+  User,
+  Wallet,
+} from 'lucide-react-native'
 import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   StyleSheet,
-  Text,
   TouchableOpacity,
   View,
   useColorScheme,
@@ -28,6 +34,7 @@ import {
   ProfileItem,
   type ProfileItemProps,
 } from '../(tabs)/profile/profile-item'
+import { Text } from '@/components/ui/text'
 
 interface ProfileSettingItem {
   key: string
@@ -167,15 +174,16 @@ export default function ProfilePlaceholderScreen() {
     router.replace('/(tabs)/home' as never)
   }, [router, removeUserInfo, setLogout])
 
-  const handleDeleteSuccess = useCallback(async () => {
-    const capturedToken = useUserStore.getState().deviceToken ?? undefined
-    await Promise.race([
-      cleanupTokenOnLogout(capturedToken),
-      new Promise<void>((r) => setTimeout(r, 3000)),
-    ]).catch(() => {})
+  const handleDeleteSuccess = useCallback(() => {
     setLogout()
     removeUserInfo()
     router.replace('/(tabs)/home' as never)
+    // FCM cleanup runs in background — không block navigation
+    const capturedToken = useUserStore.getState().deviceToken ?? undefined
+    void Promise.race([
+      cleanupTokenOnLogout(capturedToken),
+      new Promise<void>((r) => setTimeout(r, 3000)),
+    ]).catch(() => {})
   }, [router, removeUserInfo, setLogout])
 
   const overrideItemLayout = useCallback(

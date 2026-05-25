@@ -36,7 +36,6 @@ export type ElementRect = {
 
 const ZERO_RECT: ElementRect = { x: 0, y: 0, w: 0, h: 0 }
 
-
 export type SharedElementContextValue = {
   triggerTransition: (source: ElementRect, imageUri: string) => void
   setDestRect: (dest: ElementRect) => void
@@ -120,25 +119,33 @@ function useSharedElementApi(setDisplayUri: (uri: string) => void) {
   )
 
   const completeTransition = useCallback(() => {
-    animationProgress.value = withSpring(1, SPRING_CONFIGS.sharedElement, (finished) => {
-      'worklet'
-      if (finished) {
-        isActive.value = false
-        runOnJS(hideOverlay)()
-      }
-    })
+    animationProgress.value = withSpring(
+      1,
+      SPRING_CONFIGS.sharedElement,
+      (finished) => {
+        'worklet'
+        if (finished) {
+          isActive.value = false
+          runOnJS(hideOverlay)()
+        }
+      },
+    )
   }, [animationProgress, isActive, hideOverlay])
 
   const reverseTransition = useCallback(() => {
     overlayVisible.value = true
     isActive.value = true
-    animationProgress.value = withSpring(0, SPRING_CONFIGS.sharedElement, (finished) => {
-      'worklet'
-      if (finished) {
-        isActive.value = false
-        runOnJS(hideOverlay)()
-      }
-    })
+    animationProgress.value = withSpring(
+      0,
+      SPRING_CONFIGS.sharedElement,
+      (finished) => {
+        'worklet'
+        if (finished) {
+          isActive.value = false
+          runOnJS(hideOverlay)()
+        }
+      },
+    )
   }, [overlayVisible, isActive, animationProgress, hideOverlay])
 
   const overlayStyle = useAnimatedStyle(() => {

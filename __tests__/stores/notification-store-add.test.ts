@@ -57,7 +57,11 @@ describe('addNotification', () => {
       markedAllReadAt: new Date().toISOString(),
     })
     useNotificationStore.getState().addNotification({
-      data: { slug: 'n-delayed', message: 'order-needs-processed', createdAt: pastTs },
+      data: {
+        slug: 'n-delayed',
+        message: 'order-needs-processed',
+        createdAt: pastTs,
+      },
     })
     const n = useNotificationStore.getState().notifications[0]
     expect(n.isRead).toBe(true)
@@ -72,7 +76,11 @@ describe('addNotification', () => {
       markedAllReadAt: new Date(Date.now() - 5_000).toISOString(),
     })
     useNotificationStore.getState().addNotification({
-      data: { slug: 'n-new', message: 'order-needs-processed', createdAt: futureTs },
+      data: {
+        slug: 'n-new',
+        message: 'order-needs-processed',
+        createdAt: futureTs,
+      },
     })
     const n = useNotificationStore.getState().notifications[0]
     expect(n.isRead).toBe(false)

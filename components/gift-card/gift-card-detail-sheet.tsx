@@ -17,7 +17,6 @@ import {
   Clipboard,
   Pressable,
   StyleSheet,
-  Text,
   useColorScheme,
   View,
 } from 'react-native'
@@ -30,6 +29,7 @@ import { useRedeemGiftCard } from '@/hooks/use-redeem-gift-card'
 import { useUserStore } from '@/stores'
 import { formatPoints } from '@/utils'
 import { showErrorToast, showToast } from '@/utils/toast'
+import { Text } from '@/components/ui/text'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 

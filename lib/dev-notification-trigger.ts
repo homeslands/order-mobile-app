@@ -12,13 +12,10 @@ if (__DEV__) {
     branchName?: string
     orderSlug?: string
   }) => {
-    const { useNotificationStore } = await import(
-      '@/stores/notification.store'
-    )
+    const { useNotificationStore } = await import('@/stores/notification.store')
     const { playOrderReadySound } = await import('@/lib/notification-sound')
-    const { NotificationMessageCode } = await import(
-      '@/constants/notification.constant'
-    )
+    const { NotificationMessageCode } =
+      await import('@/constants/notification.constant')
 
     const slug = `dev-order-ready-${Date.now()}`
     useNotificationStore.getState().addNotification(
@@ -42,9 +39,8 @@ if (__DEV__) {
     await playOrderReadySound()
   }
 
-  ;(
-    global as unknown as Record<string, unknown>
-  ).__devTriggerOrderReady = trigger
+  ;(global as unknown as Record<string, unknown>).__devTriggerOrderReady =
+    trigger
 }
 
 export {}

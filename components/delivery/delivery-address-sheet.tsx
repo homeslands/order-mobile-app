@@ -25,7 +25,6 @@ import {
   Keyboard,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -47,6 +46,7 @@ import {
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import type { IAddressSuggestion } from '@/types'
 import { decodePolyline, showToast } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 const MAP_HEIGHT = Dimensions.get('window').height * 0.38
 

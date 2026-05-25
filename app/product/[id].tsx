@@ -2,12 +2,13 @@ import { useIsFocused } from '@react-navigation/native'
 import { Image } from 'expo-image'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import React, { Suspense, lazy, useMemo } from 'react'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { TouchableOpacity, View } from 'react-native'
 import Animated, {
   useAnimatedScrollHandler,
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated'
+import { Text } from '@/components/ui/text'
 
 const RelatedProducts = lazy(() => import('@/components/menu/related-products'))
 

@@ -9,12 +9,13 @@
  */
 import { memo, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 
 import { colors } from '@/constants'
 import type { useOrderBySlug } from '@/hooks'
 import { OrderStatus, OrderTypeEnum } from '@/types'
 import { formatDateTime } from '@/utils'
+import { Text } from '@/components/ui/text'
 
 type Order = NonNullable<ReturnType<typeof useOrderBySlug>['data']>['result']
 

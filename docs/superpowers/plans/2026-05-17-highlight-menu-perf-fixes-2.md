@@ -12,15 +12,16 @@
 
 ## File Map
 
-| File | Action | Trách nhiệm |
-|------|--------|-------------|
-| `components/home/highlight-menu.tsx` | Modify | Cả 2 tasks |
+| File                                 | Action | Trách nhiệm |
+| ------------------------------------ | ------ | ----------- |
+| `components/home/highlight-menu.tsx` | Modify | Cả 2 tasks  |
 
 ---
 
 ### Task 1: Sửa handleItemPress — ensureQueryData + setMenuFilter trước navigate
 
 **Files:**
+
 - Modify: `components/home/highlight-menu.tsx:16, 23, 312–330`
 
 **Bối cảnh:**
@@ -32,6 +33,7 @@ Có 2 bugs trong `handleItemPress` hiện tại:
 **C2 (filter mất khi cache lạnh):** `getQueryData` trả về `undefined` nếu catalog chưa fetch xong → `matched` là `undefined` → filter bị xoá. Cần `ensureQueryData` để await fetch nếu cache trống.
 
 **Fix kết hợp C1 + C2:**
+
 1. Gọi `router.push` trước (responsive UX)
 2. Dùng `ensureQueryData` — resolve ngay từ cache nếu warm (microtask, chạy trước render tiếp theo), hoặc await network nếu cold
 3. Set filter trong `.then()` — khi cache warm, `.then()` là microtask chạy trước menu screen fetch đầu tiên
@@ -69,9 +71,9 @@ Tìm `handleItemPress` (line ~312) và thay thế:
 // Xoá:
 const handleItemPress = useCallback(
   (catalogSearch: string) => {
-    const cached = queryClient.getQueryData<IApiResponse<ICatalog[]>>(
-      [QUERYKEY.catalog],
-    )
+    const cached = queryClient.getQueryData<IApiResponse<ICatalog[]>>([
+      QUERYKEY.catalog,
+    ])
     const catalogs = cached?.result ?? []
     const matched = catalogs.find((c) =>
       c.name.toLowerCase().includes(catalogSearch.toLowerCase()),
@@ -137,15 +139,18 @@ git commit -m "fix(home): use ensureQueryData and navigate-first for highlight m
 ### Task 2: Đổi useQuery observer thành prefetchQuery trong useEffect
 
 **Files:**
+
 - Modify: `components/home/highlight-menu.tsx:16, 240–246`
 
 **Bối cảnh:**
 
 `useQuery({ notifyOnChangeProps: [] })` hiện tại tạo một React Query observer — subscriber gắn vào query lifecycle. Mỗi lần `HighlightMenuCarousel` mount, observer mới được đăng ký. Observer này không cần thiết vì:
+
 - `notifyOnChangeProps: []` đã đảm bảo component không re-render
 - Nhưng observer vẫn chiếm memory và trigger refetch theo `staleTime`/`refetchOnMount`
 
 Thay bằng `queryClient.prefetchQuery` trong `useEffect`:
+
 - Chỉ chạy 1 lần khi mount (dep `[queryClient]` — queryClient là singleton, không đổi)
 - Không tạo observer — không subscription, không memory overhead
 - Nếu cache đã có data, `prefetchQuery` no-op
@@ -215,6 +220,7 @@ git commit -m "perf(home): replace useQuery observer with prefetchQuery for cata
 ## Self-Review
 
 **Spec coverage:**
+
 - ✅ C1 (menu flash): `setMenuFilter` set trong `.then()` — với cache warm là microtask trước menu render đầu tiên
 - ✅ C2 (filter mất khi cache lạnh): `ensureQueryData` await fetch nếu `getQueryData` sẽ miss
 - ✅ H1 (observer thừa): `useQuery` → `prefetchQuery` trong `useEffect`, không subscription
@@ -222,6 +228,7 @@ git commit -m "perf(home): replace useQuery observer with prefetchQuery for cata
 **Placeholder scan:** Không có TBD/TODO. Tất cả code đầy đủ.
 
 **Type consistency:**
+
 - `ensureQueryData<IApiResponse<ICatalog[]>>` — type match với `getCatalog(): Promise<IApiResponse<ICatalog[]>>`
 - `res.result` là `ICatalog[]` — `find` trả về `ICatalog | undefined`, `matched?.slug` là `string | undefined` ✓
 - `setMenuFilter` nhận `(prev) => ({ ...prev, catalog: matched?.slug ?? undefined })` — khớp với type `IMenuFilter` có `catalog?: string` ✓

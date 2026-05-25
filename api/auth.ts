@@ -1,11 +1,14 @@
 import {
   IApiResponse,
+  ICompleteRegistrationRequest,
   IConfirmForgotPasswordRequest,
   IEmailVerificationResponse,
   IInitiateForgotPasswordRequest,
   IInitiateForgotPasswordResponse,
+  IInitiateRegistrationResult,
   ILoginRequest,
   ILoginResponse,
+  IOtpResult,
   IRefreshTokenResponse,
   IRegisterRequest,
   IResendOTPForgotPasswordRequest,
@@ -27,6 +30,36 @@ export async function register(
 ): Promise<IApiResponse<ILoginResponse>> {
   const response = await http.post<IApiResponse<ILoginResponse>>(
     '/auth/register',
+    params,
+  )
+  return response.data
+}
+
+export async function initiateRegistration(
+  phonenumber: string,
+): Promise<IApiResponse<IInitiateRegistrationResult>> {
+  const response = await http.post<IApiResponse<IInitiateRegistrationResult>>(
+    '/auth/register/initiate',
+    { phonenumber },
+  )
+  return response.data
+}
+
+export async function resendRegistration(
+  phonenumber: string,
+): Promise<IApiResponse<IOtpResult>> {
+  const response = await http.post<IApiResponse<IOtpResult>>(
+    '/auth/register/resend',
+    { phonenumber },
+  )
+  return response.data
+}
+
+export async function completeRegistration(
+  params: ICompleteRegistrationRequest,
+): Promise<IApiResponse<ILoginResponse['result']>> {
+  const response = await http.post<IApiResponse<ILoginResponse['result']>>(
+    '/auth/register/complete',
     params,
   )
   return response.data
@@ -153,8 +186,11 @@ export async function uploadAvatar(
 export async function deleteAccount(
   password: string,
 ): Promise<IApiResponse<null>> {
-  const response = await http.delete<IApiResponse<null>>('/auth/delete-account', {
-    data: { password },
-  })
+  const response = await http.delete<IApiResponse<null>>(
+    '/auth/delete-account',
+    {
+      data: { password },
+    },
+  )
   return response.data
 }

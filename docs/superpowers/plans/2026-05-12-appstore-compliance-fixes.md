@@ -12,23 +12,25 @@
 
 ## Files to create / modify
 
-| File | Change |
-|---|---|
-| `app.json` | Add `buildNumber` to `ios` section |
-| `ios/TRENDCoffee/PrivacyInfo.xcprivacy` | Fill `NSPrivacyCollectedDataTypes` |
-| `utils/storage.ts` | Add `createSecureStorage()` export |
-| `stores/auth.store.ts` | Switch persist storage to SecureStore, add `partialize` |
+| File                                    | Change                                                  |
+| --------------------------------------- | ------------------------------------------------------- |
+| `app.json`                              | Add `buildNumber` to `ios` section                      |
+| `ios/TRENDCoffee/PrivacyInfo.xcprivacy` | Fill `NSPrivacyCollectedDataTypes`                      |
+| `utils/storage.ts`                      | Add `createSecureStorage()` export                      |
+| `stores/auth.store.ts`                  | Switch persist storage to SecureStore, add `partialize` |
 
 ---
 
 ## Task 1: Add buildNumber to app.json
 
 **Files:**
+
 - Modify: `app.json` (ios section)
 
 - [ ] **Step 1: Open app.json and locate the ios section**
 
 Current state of `app.json` ios block (line ~11):
+
 ```json
 "ios": {
   "googleServicesFile": "./GoogleService-Info.plist",
@@ -70,6 +72,7 @@ Add `"buildNumber": "50"` to the `ios` section. The value `"50"` matches the cur
 ```bash
 npm run check
 ```
+
 Expected: `0 errors`
 
 - [ ] **Step 4: Commit**
@@ -84,6 +87,7 @@ git commit -m "chore(ios): add buildNumber to app.json for App Store upload"
 ## Task 2: Fill NSPrivacyCollectedDataTypes in PrivacyInfo.xcprivacy
 
 **Files:**
+
 - Modify: `ios/TRENDCoffee/PrivacyInfo.xcprivacy`
 
 This file declares what personal data the **app** (not just SDKs) collects. Currently `NSPrivacyCollectedDataTypes` is an empty array — that contradicts the fact that the app collects name, phone number, location, and purchase history.
@@ -91,6 +95,7 @@ This file declares what personal data the **app** (not just SDKs) collects. Curr
 - [ ] **Step 1: Understand the data the app actually collects**
 
 From code audit:
+
 - **Name** (firstName, lastName) — collected at registration, stored on server
 - **Phone number** — used as login identifier
 - **User ID** (server-side slug) — stored in auth store
@@ -227,6 +232,7 @@ Replace the entire file at `ios/TRENDCoffee/PrivacyInfo.xcprivacy`:
 ```bash
 plutil -lint ios/TRENDCoffee/PrivacyInfo.xcprivacy
 ```
+
 Expected: `ios/TRENDCoffee/PrivacyInfo.xcprivacy: OK`
 
 - [ ] **Step 4: Commit**
@@ -241,6 +247,7 @@ git commit -m "chore(ios): declare collected data types in PrivacyInfo.xcprivacy
 ## Task 3: Add createSecureStorage() to utils/storage.ts
 
 **Files:**
+
 - Modify: `utils/storage.ts`
 
 This task adds the `createSecureStorage()` function that wraps `expo-secure-store`. Task 4 wires it into the auth store. Separating them makes each testable independently.
@@ -250,6 +257,7 @@ This task adds the `createSecureStorage()` function that wraps `expo-secure-stor
 ```bash
 npx expo install expo-secure-store
 ```
+
 Expected: package added to `package.json`, `package-lock.json` updated.
 
 - [ ] **Step 2: Write the failing test**
@@ -272,7 +280,9 @@ import { createSecureStorage } from '@/utils/storage'
 
 describe('createSecureStorage', () => {
   it('getItem delegates to SecureStore.getItemAsync', async () => {
-    ;(SecureStore.getItemAsync as jest.Mock).mockResolvedValueOnce('{"token":"abc"}')
+    ;(SecureStore.getItemAsync as jest.Mock).mockResolvedValueOnce(
+      '{"token":"abc"}',
+    )
     const storage = createSecureStorage()
     const result = await storage.getItem('auth-storage')
     expect(SecureStore.getItemAsync).toHaveBeenCalledWith('auth-storage')
@@ -282,7 +292,10 @@ describe('createSecureStorage', () => {
   it('setItem delegates to SecureStore.setItemAsync', async () => {
     const storage = createSecureStorage()
     await storage.setItem('auth-storage', '{"token":"abc"}')
-    expect(SecureStore.setItemAsync).toHaveBeenCalledWith('auth-storage', '{"token":"abc"}')
+    expect(SecureStore.setItemAsync).toHaveBeenCalledWith(
+      'auth-storage',
+      '{"token":"abc"}',
+    )
   })
 
   it('removeItem delegates to SecureStore.deleteItemAsync', async () => {
@@ -292,7 +305,9 @@ describe('createSecureStorage', () => {
   })
 
   it('returns null when SecureStore throws', async () => {
-    ;(SecureStore.getItemAsync as jest.Mock).mockRejectedValueOnce(new Error('keychain error'))
+    ;(SecureStore.getItemAsync as jest.Mock).mockRejectedValueOnce(
+      new Error('keychain error'),
+    )
     const storage = createSecureStorage()
     const result = await storage.getItem('auth-storage')
     expect(result).toBeNull()
@@ -305,6 +320,7 @@ describe('createSecureStorage', () => {
 ```bash
 npx jest __tests__/utils/secure-storage.test.ts --no-coverage
 ```
+
 Expected: FAIL — `createSecureStorage is not a function` or similar import error.
 
 - [ ] **Step 4: Add createSecureStorage() to utils/storage.ts**
@@ -362,6 +378,7 @@ export const createSecureStorage = (): StateStorage => {
 ```bash
 npx jest __tests__/utils/secure-storage.test.ts --no-coverage
 ```
+
 Expected: PASS, 4 tests passing.
 
 - [ ] **Step 6: Run full typecheck**
@@ -369,6 +386,7 @@ Expected: PASS, 4 tests passing.
 ```bash
 npm run check
 ```
+
 Expected: `0 errors`
 
 - [ ] **Step 7: Commit**
@@ -383,6 +401,7 @@ git commit -m "feat(security): add createSecureStorage() backed by iOS Keychain"
 ## Task 4: Migrate auth store to SecureStore
 
 **Files:**
+
 - Modify: `stores/auth.store.ts`
 
 The auth store currently persists all state (including `token`, `refreshToken`) to MMKV via `createSafeStorage()`. This task switches it to `createSecureStorage()` and adds `partialize` to exclude the transient `isRefreshing` field from persistence.
@@ -465,6 +484,7 @@ describe('useAuthStore', () => {
 ```bash
 npx jest __tests__/stores/auth-store-secure.test.ts --no-coverage
 ```
+
 Expected: FAIL (module resolution or import errors — that's fine).
 
 - [ ] **Step 3: Update auth.store.ts to use SecureStore**
@@ -587,6 +607,7 @@ export const useAuthStore = create<IAuthStore>()(
 ```bash
 npx jest __tests__/stores/auth-store-secure.test.ts --no-coverage
 ```
+
 Expected: PASS, 5 tests passing.
 
 - [ ] **Step 5: Run full check**
@@ -594,6 +615,7 @@ Expected: PASS, 5 tests passing.
 ```bash
 npm run check
 ```
+
 Expected: `0 errors`
 
 - [ ] **Step 6: Run all tests to verify no regressions**
@@ -601,6 +623,7 @@ Expected: `0 errors`
 ```bash
 npx jest --no-coverage
 ```
+
 Expected: all previously passing tests still pass.
 
 - [ ] **Step 7: Commit**
@@ -650,13 +673,13 @@ App Store Review Guideline 3.1.1 (physical goods and services).
 1. App Store Connect → your app → **App Privacy**
 2. Click **Edit** → declare the following data types:
 
-| Data Type | Linked to Identity | Used for Tracking | Purpose |
-|---|---|---|---|
-| Name | Yes | No | App Functionality |
-| Phone Number | Yes | No | App Functionality |
-| User ID | Yes | No | App Functionality |
-| Precise Location | No | No | App Functionality |
-| Purchase History | Yes | No | App Functionality |
+| Data Type        | Linked to Identity | Used for Tracking | Purpose           |
+| ---------------- | ------------------ | ----------------- | ----------------- |
+| Name             | Yes                | No                | App Functionality |
+| Phone Number     | Yes                | No                | App Functionality |
+| User ID          | Yes                | No                | App Functionality |
+| Precise Location | No                 | No                | App Functionality |
+| Purchase History | Yes                | No                | App Functionality |
 
 3. Save and confirm.
 

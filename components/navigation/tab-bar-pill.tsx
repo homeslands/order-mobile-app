@@ -1,9 +1,10 @@
 import type { TFunction } from 'i18next'
 import { Gift, Home, Menu, User } from 'lucide-react-native'
 import React, { useCallback, useMemo } from 'react'
-import { Text, View } from 'react-native'
+import { View } from 'react-native'
 
 import { NativeGesturePressable } from './native-gesture-pressable'
+import { Text } from '@/components/ui/text'
 
 const PILL_PADDING = 6
 

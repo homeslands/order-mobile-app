@@ -185,7 +185,7 @@ export interface IReplaceMembershipCardRequest {
   newCardNumber: string
 }
 
-export interface ICompleteRegistrationRequest {
+export interface ICompleteUserProfileRequest {
   slug: string
   firstName: string
   lastName: string

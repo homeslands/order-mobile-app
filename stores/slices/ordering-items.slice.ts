@@ -96,7 +96,10 @@ export function createOrderingItemsMethods(set: SetFn, get: GetFn) {
 
       set({
         orderItemsById: prev
-          ? { ...orderItemsById, [id]: { ...prev, variant: prev.variant || [] } }
+          ? {
+              ...orderItemsById,
+              [id]: { ...prev, variant: prev.variant || [] },
+            }
           : orderItemsById,
         orderingData: {
           ...orderingData,

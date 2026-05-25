@@ -5,6 +5,7 @@
 **Goal:** Standardize the notification flow so that foreground / background / cold-start taps all behave consistently, the FCM background handler is no longer dead code, dedup is reliable, and audio / channels never race startup.
 
 **Architecture:** BE sends an FCM **notification message** (has `notification` field) with a stringified `data.payload` JSON. Firebase Cloud Messaging SDK renders the system tray notification natively. The app only needs to:
+
 - React to **foreground** messages via `onMessage` (toast + sound + ORDER_READY modal).
 - React to **tap** via `getInitialNotification` (cold start), `onNotificationOpenedApp` (background tap), and the expo-notifications response listener (in-app local notifications). The native background message handler is a no-op anti-warning stub.
 
@@ -42,6 +43,7 @@ A single source of truth for "when this JS bundle started running". Used by the 
 ## File: lib/notification-sound.ts (new)
 
 A shared cache for the foreground notification sound. Two reasons for extracting it from `use-notification-listener.ts`:
+
 1. `notification-setup.ts` can preload it at app start (eliminate first-shot 100-300ms load delay).
 2. We can stop unloading the cached `Audio.Sound` in the listener's effect cleanup (race condition fix).
 
@@ -52,6 +54,7 @@ A shared cache for the foreground notification sound. Two reasons for extracting
 **Why:** iOS `getLastNotificationResponseAsync()` returns the **most recent** response, including one from a previous app session (the OS keeps it cached). If the user opened the app via icon (not the notification), we currently navigate as if they tapped the notification — a "ghost response". We discriminate by comparing the response's notification date against the JS bundle start time.
 
 **Files:**
+
 - Create: `lib/app-launch-time.ts`
 
 - [ ] **Step 1: Create launch time module**
@@ -80,7 +83,9 @@ export function isResponseFromThisSession(
   // Accept if the notification was delivered up to COLD_START_RESPONSE_WINDOW_MS
   // *before* the JS bundle started — covers the gap between OS delivering the
   // tap and React/JS being ready to consume it.
-  return notificationDateMs >= APP_LAUNCH_TIME_MS - COLD_START_RESPONSE_WINDOW_MS
+  return (
+    notificationDateMs >= APP_LAUNCH_TIME_MS - COLD_START_RESPONSE_WINDOW_MS
+  )
 }
 ```
 
@@ -98,11 +103,13 @@ git commit -m "feat(notification): add app launch time module for ghost-response
 **Why:** The cached `Audio.Sound` currently lives inside `use-notification-listener.ts`. When that hook's effect cleans up (e.g., `enabled` flips to `false` on logout), we call `disposeSound()` which `unloadAsync()`s the same instance that may have an in-flight `playAsync()` from a notification fired milliseconds earlier — race condition. Also we cannot preload the file until the hook mounts, causing first-shot lag.
 
 By moving the cache to a module-level singleton with proper reference-counting around playback, we can:
+
 - Preload from `notification-setup.ts` at startup.
 - Stop unloading on effect cleanup (the sound is process-scoped, not auth-scoped).
 - Still expose a `disposeNotificationSound()` for explicit teardown if ever needed.
 
 **Files:**
+
 - Create: `lib/notification-sound.ts`
 
 - [ ] **Step 1: Create shared sound module**
@@ -203,12 +210,14 @@ git commit -m "feat(notification): extract shared notification sound module with
 ## Task 3: Add channel readiness gate + preload sound in notification-setup
 
 **Why:**
+
 - Channel `setNotificationChannelAsync` is `fire-and-forget` — if the OS has just installed the app and the user is logging in within the first second, `useRegisterDeviceToken` may register the FCM token before the channels exist. Notifications can then arrive on a missing channel (Android silently drops them or uses fallback importance).
 - The first call to load `notification.mp3` happens lazily when the first foreground push arrives, adding 100-300ms latency to the first shot. We can preload during the same idle window that runs other startup code.
 
 We expose `awaitChannelsReady()` so the token-registration hook can `await` it once before the FCM API call.
 
 **Files:**
+
 - Modify: `lib/notification-setup.ts`
 
 - [ ] **Step 1: Replace `lib/notification-setup.ts` content**
@@ -314,6 +323,7 @@ git commit -m "feat(notification): gate FCM token registration on Android channe
 So we keep registration, drop all logic, and document that this is by design.
 
 **Files:**
+
 - Modify: `lib/firebase-background-handler.ts`
 
 - [ ] **Step 1: Replace file with dummy handler**
@@ -360,6 +370,7 @@ git commit -m "refactor(notification): convert background handler to dummy anti-
 **Why:** `navigateFromNotification` currently applies a 600ms delay to **every** invocation. That delay exists so cold start has enough time for JS bundle load + React mount + `NavigationEngineProvider` to come up. For a **background tap** (app is already alive in memory), the delay is pure user-perceived lag. Splitting the path lets us push immediately when the app is warm.
 
 **Files:**
+
 - Modify: `lib/notification-navigation.ts`
 
 - [ ] **Step 1: Replace `lib/notification-navigation.ts` content**
@@ -528,7 +539,7 @@ git commit -m "fix(notification): split cold-start vs background-tap nav modes t
 
 **Why:** Four bugs in one place — fixing them together because they all live in the same hook and share the same mental model.
 
-1. **Dedup reset on re-auth.** `processedRef = useRef(new Set())` is created per hook instance. When `enabled` flips false → true (logout/login cycle), the effect re-runs but the ref is the same — *unless* the hook unmounts. In the current tree it stays mounted, so this is "mostly fine"… until someone mounts/unmounts `NotificationProvider` (e.g., during a deep refactor or React Strict Mode). Promote the set to module level so it is stable regardless of mount semantics.
+1. **Dedup reset on re-auth.** `processedRef = useRef(new Set())` is created per hook instance. When `enabled` flips false → true (logout/login cycle), the effect re-runs but the ref is the same — _unless_ the hook unmounts. In the current tree it stays mounted, so this is "mostly fine"… until someone mounts/unmounts `NotificationProvider` (e.g., during a deep refactor or React Strict Mode). Promote the set to module level so it is stable regardless of mount semantics.
 
 2. **Inconsistent dedup ID.** Path A uses `remoteMessage.messageId`. Path B uses `response.notification.request.identifier`. On iOS these are **different** values for the same logical notification. If both paths fire (e.g., expo-notifications also surfaces an FCM-originated tap), we navigate twice. We unify on a stable key: prefer the FCM `google.message_id` / `messageId` when present; fall back to `request.identifier`.
 
@@ -537,6 +548,7 @@ git commit -m "fix(notification): split cold-start vs background-tap nav modes t
 4. **ORDER_READY tap doesn't show modal.** In foreground, `onMessage` calls `onOrderReady` → full-screen alert modal. From background/cold-start, we just navigate. That's inconsistent — the user expects to see "Đơn của bạn đã sẵn sàng" with sound + vibration regardless of how they entered. Plumb `onOrderReady` from the provider into the response hook.
 
 **Files:**
+
 - Modify: `hooks/use-notification-response.ts`
 
 - [ ] **Step 1: Replace `hooks/use-notification-response.ts` content**
@@ -779,6 +791,7 @@ git commit -m "fix(notification): module-level dedup, unified ID, launch-time gu
 **Why:** With Task 6 done, the response hook now accepts an `onOrderReady` callback but no one passes it. The provider already has `showOrderReady` from `useOrderReadyAlert` — wire it through.
 
 **Files:**
+
 - Modify: `providers/notification-provider.tsx`
 
 - [ ] **Step 1: Pass `showOrderReady` to `useNotificationResponse`**
@@ -827,8 +840,13 @@ export function NotificationProvider() {
   const schedulerStartedRef = useRef(false)
 
   // Order-ready full-screen alert
-  const { isVisible, title, body, show: showOrderReady, hide: hideOrderReady } =
-    useOrderReadyAlert()
+  const {
+    isVisible,
+    title,
+    body,
+    show: showOrderReady,
+    hide: hideOrderReady,
+  } = useOrderReadyAlert()
 
   // T2+T3: Get FCM token + register with server (only when authenticated)
   const { permissionDenied } = useRegisterDeviceToken(isAuthenticated)
@@ -905,9 +923,10 @@ git commit -m "feat(notification): show order-ready modal for background and col
 
 ## Task 8: Auto mark-read on order-ready modal show
 
-**Why:** The user has unmistakably *seen* the notification when the full-screen modal pops with sound + vibration. Leaving it as unread is bookkeeping noise. We mark it read as soon as `show()` is called. The latest unread ORDER_READY entry is the one to mark.
+**Why:** The user has unmistakably _seen_ the notification when the full-screen modal pops with sound + vibration. Leaving it as unread is bookkeeping noise. We mark it read as soon as `show()` is called. The latest unread ORDER_READY entry is the one to mark.
 
 **Files:**
+
 - Modify: `hooks/use-order-ready-alert.ts`
 
 - [ ] **Step 1: Replace `hooks/use-order-ready-alert.ts` content**
@@ -974,10 +993,12 @@ git commit -m "feat(notification): auto mark-read order-ready entry when alert m
 ## Task 9: Switch foreground listener to shared sound module + drop dispose race
 
 **Why:** Now that `lib/notification-sound.ts` owns the cache:
+
 - Replace inline sound logic with imports from the shared module.
 - Remove the `disposeSound()` call from the effect cleanup. The sound is process-scoped, not auth-scoped; the next user benefits from preload. The shared module's reference-counted `disposeNotificationSound` is still exported should we ever need explicit teardown.
 
 **Files:**
+
 - Modify: `hooks/use-notification-listener.ts`
 
 - [ ] **Step 1: Replace `hooks/use-notification-listener.ts` content**
@@ -1092,6 +1113,7 @@ git commit -m "refactor(notification): use shared sound module, drop dispose rac
 **Why:** `index.js` documents the import order. Two of the files just changed semantics — keep the comment accurate so future contributors don't reintroduce a non-dummy background handler or break the channel-readiness gate.
 
 **Files:**
+
 - Modify: `index.js`
 
 - [ ] **Step 1: Replace `index.js` content**
@@ -1139,6 +1161,7 @@ npm run check
 - [ ] **Step 2: If typecheck flags any issue in the changed files, fix in place**
 
 Common fix surfaces:
+
 - `Record<string, string>` vs `Record<string, unknown>` mismatches around `remoteMessage.data` — cast through `as unknown as Record<string, string>` only when narrowing is impossible.
 - `useOrderReadyAlert` type assertion on `n.type` — if `INotification.type` is already typed, remove the unsafe cast and use the typed field directly.
 
@@ -1159,15 +1182,15 @@ git commit -m "chore(notification): typecheck + lint cleanup after standardizati
 
 ## Summary of Changes
 
-| Issue (audit ID) | Fix landed in |
-| --- | --- |
-| #1 background handler dead code | Task 4 |
-| #2 iOS ghost response | Task 1 + Task 6 |
-| #3 600ms delay on background tap | Task 5 + Task 6 (passes mode) |
-| #4 ORDER_READY tap doesn't show modal in bg/cold-start | Task 6 + Task 7 |
-| #5 dedup Set reset on re-auth | Task 6 (module-level set) |
-| #6 dedup ID inconsistency | Task 6 (unified ID helper) |
-| #7 channel setup fire-and-forget | Task 3 |
-| #8 auto mark-read on alert show | Task 8 |
-| #9 sound lazy load delay | Task 2 + Task 3 (preload) |
-| #10 sound dispose race | Task 2 + Task 9 |
+| Issue (audit ID)                                       | Fix landed in                 |
+| ------------------------------------------------------ | ----------------------------- |
+| #1 background handler dead code                        | Task 4                        |
+| #2 iOS ghost response                                  | Task 1 + Task 6               |
+| #3 600ms delay on background tap                       | Task 5 + Task 6 (passes mode) |
+| #4 ORDER_READY tap doesn't show modal in bg/cold-start | Task 6 + Task 7               |
+| #5 dedup Set reset on re-auth                          | Task 6 (module-level set)     |
+| #6 dedup ID inconsistency                              | Task 6 (unified ID helper)    |
+| #7 channel setup fire-and-forget                       | Task 3                        |
+| #8 auto mark-read on alert show                        | Task 8                        |
+| #9 sound lazy load delay                               | Task 2 + Task 3 (preload)     |
+| #10 sound dispose race                                 | Task 2 + Task 9               |

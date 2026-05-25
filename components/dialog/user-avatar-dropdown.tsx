@@ -1,7 +1,7 @@
 import { LogOut, User } from 'lucide-react-native'
 import React from 'react'
 import { Image } from 'expo-image'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { TouchableOpacity, View } from 'react-native'
 
 import {
   DropdownMenu,
@@ -13,6 +13,7 @@ import {
 import { colors } from '@/constants'
 import { cn } from '@/lib/utils'
 import { useTranslation } from 'react-i18next'
+import { Text } from '@/components/ui/text'
 
 interface UserAvatarDropdownProps {
   userInfo: {

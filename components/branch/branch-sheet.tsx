@@ -8,18 +8,13 @@ import { useLocalSearchParams } from 'expo-router'
 import { MapPin } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native'
+import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native'
 
 import { colors } from '@/constants'
 import { useBranch } from '@/hooks'
 import { useBranchStore } from '@/stores'
 import type { IBranch } from '@/types'
+import { Text } from '@/components/ui/text'
 
 const SNAP_POINTS = ['40%']
 

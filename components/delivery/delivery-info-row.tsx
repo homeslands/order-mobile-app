@@ -1,8 +1,9 @@
 import { MapPin } from 'lucide-react-native'
 import { memo } from 'react'
-import { Pressable, StyleSheet, Text } from 'react-native'
+import { Pressable, StyleSheet } from 'react-native'
 
 import { colors } from '@/constants'
+import { Text } from '@/components/ui/text'
 
 interface DeliveryInfoRowProps {
   address: string

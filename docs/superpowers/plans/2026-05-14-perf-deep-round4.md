@@ -13,10 +13,12 @@
 ## Task 1 — Purge 9 dead stores + 1 mock hook
 
 **Why:**
+
 - 9 stores have zero consumers outside their own file and `stores/index.ts`. Several still persist to MMKV/AsyncStorage on any accidental mutation. Dead code bloats autocomplete, bundle, and error surface.
 - `hooks/use-loyalty-point-history.ts` is a stub that returns fabricated data (`lp-1`, `lp-2`, …). It is exported via `hooks/index.ts`. Any future `import { useLoyaltyPointHistory } from '@/hooks'` silently returns fake data with no compile error.
 
 **Files:**
+
 - Delete: `stores/order.store.ts`
 - Delete: `stores/current-url.store.ts`
 - Delete: `stores/catalog.store.ts`
@@ -126,6 +128,7 @@ Three independent queryKey bugs cause silent data failures:
 3. **Profile invalidate never fires:** After phone/email OTP verification, code calls `invalidateQueries({ queryKey: [QUERYKEY.profile] })` = `[['profile']]`. But `useProfile` uses flat `queryKey: ['profile']`. The nested key never matches → profile remains stale after verification.
 
 **Files:**
+
 - Modify: `hooks/use-voucher.ts` (lines ~120, ~135)
 - Modify: `hooks/use-predictive-prefetch.ts` (line ~80)
 - Modify: `app/profile/verify-phone-number.tsx` (lines ~382–383, ~425–426)
@@ -136,19 +139,25 @@ Three independent queryKey bugs cause silent data failures:
 Read the file to find `useSpecificVoucher` (~line 120) and `useSpecificPublicVoucher` (~line 135).
 
 Change `useSpecificVoucher` queryKey from:
+
 ```ts
     queryKey: [QUERYKEY.specificVoucher, data],
 ```
+
 To:
+
 ```ts
     queryKey: [QUERYKEY.specificVoucher, 'private', data],
 ```
 
 Change `useSpecificPublicVoucher` queryKey from:
+
 ```ts
     queryKey: [QUERYKEY.specificVoucher, data],
 ```
+
 To:
+
 ```ts
     queryKey: [QUERYKEY.specificVoucher, 'public', data],
 ```
@@ -156,20 +165,21 @@ To:
 - [ ] **2.2** Fix banner prefetch key in `hooks/use-predictive-prefetch.ts`.
 
 Read the file. Find the `queryClient.prefetchQuery` call for banners (~line 80). It currently uses:
+
 ```ts
-        queryClient.prefetchQuery({
-          queryKey: ['banners', BannerPage.HOME],
-          queryFn: () => getBanners({ page: BannerPage.HOME, isActive: true }),
-        })
+queryClient.prefetchQuery({
+  queryKey: ['banners', BannerPage.HOME],
+  queryFn: () => getBanners({ page: BannerPage.HOME, isActive: true }),
+})
 ```
 
 The home screen calls `useBanners({ page: BannerPage.HOME, isActive: true })`, which uses key `[QUERYKEY.banners, { page: BannerPage.HOME, isActive: true }]`. Match that exactly:
 
 ```ts
-        queryClient.prefetchQuery({
-          queryKey: [QUERYKEY.banners, { page: BannerPage.HOME, isActive: true }],
-          queryFn: () => getBanners({ page: BannerPage.HOME, isActive: true }),
-        })
+queryClient.prefetchQuery({
+  queryKey: [QUERYKEY.banners, { page: BannerPage.HOME, isActive: true }],
+  queryFn: () => getBanners({ page: BannerPage.HOME, isActive: true }),
+})
 ```
 
 `QUERYKEY` is already imported in this file — do not add a new import.
@@ -177,10 +187,13 @@ The home screen calls `useBanners({ page: BannerPage.HOME, isActive: true })`, w
 - [ ] **2.3** Fix profile invalidate in `app/profile/verify-phone-number.tsx`.
 
 Read the file. Find all `invalidateQueries({ queryKey: [QUERYKEY.profile] })` calls (~lines 382–383, 425–426). `useProfile` uses flat key `['profile']`. Change each occurrence from:
+
 ```ts
           queryKey: [QUERYKEY.profile],
 ```
+
 To:
+
 ```ts
           queryKey: ['profile'],
 ```
@@ -190,10 +203,13 @@ There are 2 occurrences. Change both.
 - [ ] **2.4** Fix profile invalidate in `app/profile/verify-email.tsx`.
 
 Same fix. Find all `invalidateQueries({ queryKey: [QUERYKEY.profile] })` calls (~lines 400, 481). Change each from:
+
 ```ts
           queryKey: [QUERYKEY.profile],
 ```
+
 To:
+
 ```ts
           queryKey: ['profile'],
 ```
@@ -219,6 +235,7 @@ cd /Users/phanquyetthang/mobile-movie-app && git add hooks/use-voucher.ts hooks/
 **Why:** These two actions currently call `aggregateOrderItems(updatedItems).orderItemsById` — which runs a full O(N) loop — just to rebuild the `orderItemsById` map after a note change or variant init. Neither action changes quantity or price, so rebuilding `orderItemTotalQuantity`, `minOrderValue`, and `rawSubTotal` is wasted work. A note change on item `X` should patch only `orderItemsById[X]` — O(1).
 
 **Files:**
+
 - Modify: `stores/slices/ordering-items.slice.ts`
 
 - [ ] **3.1** Read the current implementations:
@@ -231,6 +248,7 @@ sed -n '200,230p' stores/slices/ordering-items.slice.ts
 - [ ] **3.2** Replace `addOrderingProductVariant` (~line 88):
 
 Current:
+
 ```ts
     addOrderingProductVariant: (id: string) => {
       const { orderingData } = get()
@@ -252,6 +270,7 @@ Current:
 ```
 
 Replace with:
+
 ```ts
     addOrderingProductVariant: (id: string) => {
       const { orderingData, orderItemsById } = get()
@@ -278,6 +297,7 @@ Replace with:
 - [ ] **3.3** Replace `addOrderingNote` (~line 201):
 
 Current:
+
 ```ts
     addOrderingNote: (itemId: string, note: string) => {
       const { orderingData } = get()
@@ -299,6 +319,7 @@ Current:
 ```
 
 Replace with:
+
 ```ts
     addOrderingNote: (itemId: string, note: string) => {
       const { orderingData, orderItemsById } = get()
@@ -349,6 +370,7 @@ cd /Users/phanquyetthang/mobile-movie-app && git add stores/slices/ordering-item
 **Why:** `stores/payment-flow.store.ts` and `stores/update-order-flow.store.ts` both set `isHydrated = true` inside a `setTimeout(..., 0)` inside `onRehydrateStorage`. This causes a one-frame window after app restart where `isHydrated` is `false`, making consumer components (payment guards, update-order guards) see stale `false` and potentially render loading states incorrectly. The `useOrderFlowStore` was already fixed in Round 1 to set `isHydrated` inline on the rehydrated state object — these two stores should follow the same pattern.
 
 **Files:**
+
 - Modify: `stores/payment-flow.store.ts`
 - Modify: `stores/update-order-flow.store.ts`
 
@@ -369,6 +391,7 @@ cd /Users/phanquyetthang/mobile-movie-app && sed -n '105,120p' stores/payment-fl
 ```
 
 Replace with:
+
 ```ts
       onRehydrateStorage: () => (state) => {
         if (!state) return
@@ -393,6 +416,7 @@ cd /Users/phanquyetthang/mobile-movie-app && sed -n '160,175p' stores/update-ord
 ```
 
 Replace with:
+
 ```ts
       onRehydrateStorage: () => (state) => {
         if (!state) return
@@ -417,12 +441,14 @@ cd /Users/phanquyetthang/mobile-movie-app && git add stores/payment-flow.store.t
 ## Task 5 — `unreadCount` primitive in `useNotificationStore`
 
 **Why:** Two places in the app compute unread notification count by filtering the entire `notifications` array on every store update:
+
 - `components/notification/notification-bell.tsx:22` — for-loop selector, O(N) per re-render
 - `app/notification/index.tsx:316` — `.filter().length`, O(N) per re-render
 
 Both run every time any notification is added, read, or rehydrated. With 50 notifications, this is 50 iterations × every subscriber × every store mutation. Maintaining `unreadCount` as a first-class primitive eliminates this: each mutator computes the new count once (already doing O(N) work for other reasons), stores it, and selectors just read `s.unreadCount` — O(1).
 
 **Files:**
+
 - Modify: `stores/notification.store.ts`
 - Modify: `components/notification/notification-bell.tsx`
 - Modify: `app/notification/index.tsx`
@@ -436,7 +462,7 @@ cd /Users/phanquyetthang/mobile-movie-app && cat stores/notification.store.ts
 - [ ] **5.2** In `stores/notification.store.ts`, add `unreadCount: number` to the `NotificationStore` interface. The interface currently has `notifications`, `markedAllReadAt`, action methods. Add after `markedAllReadAt`:
 
 ```ts
-  unreadCount: number
+unreadCount: number
 ```
 
 Also remove `getUnreadCount: () => number` from the interface (it will be replaced by the primitive field).
@@ -446,6 +472,7 @@ Also remove `getUnreadCount: () => number` from the interface (it will be replac
 - [ ] **5.4** Update `addNotification`. After computing `updated` (the new notifications array), compute and set `unreadCount`:
 
 Current ending of `addNotification`:
+
 ```ts
       const filtered = state.notifications.filter((n) => n.slug !== item.slug)
       const updated = [item, ...filtered].slice(0, MAX_NOTIFICATIONS)
@@ -456,6 +483,7 @@ Current ending of `addNotification`:
 ```
 
 Replace with:
+
 ```ts
       const filtered = state.notifications.filter((n) => n.slug !== item.slug)
       const updated = [item, ...filtered].slice(0, MAX_NOTIFICATIONS)
@@ -470,6 +498,7 @@ Replace with:
 - [ ] **5.5** Update `markAsRead`. After computing the mapped array, compute and set `unreadCount`:
 
 Current:
+
 ```ts
   markAsRead: (slug) => {
     set((state) => ({
@@ -482,6 +511,7 @@ Current:
 ```
 
 Replace with:
+
 ```ts
   markAsRead: (slug) => {
     set((state) => {
@@ -499,6 +529,7 @@ Replace with:
 - [ ] **5.6** Update `markAllAsRead`:
 
 Current:
+
 ```ts
   markAllAsRead: () => {
     const ts = new Date().toISOString()
@@ -511,6 +542,7 @@ Current:
 ```
 
 Replace with:
+
 ```ts
   markAllAsRead: () => {
     const ts = new Date().toISOString()
@@ -526,6 +558,7 @@ Replace with:
 - [ ] **5.7** Update `setReadStates`:
 
 Current:
+
 ```ts
   setReadStates: (updates) => {
     const map = new Map(updates.map((u) => [u.slug, u.isRead]))
@@ -539,6 +572,7 @@ Current:
 ```
 
 Replace with:
+
 ```ts
   setReadStates: (updates) => {
     const map = new Map(updates.map((u) => [u.slug, u.isRead]))
@@ -557,6 +591,7 @@ Replace with:
 - [ ] **5.8** Update `clearAll`:
 
 Current:
+
 ```ts
   clearAll: () => {
     set({ notifications: [], markedAllReadAt: null })
@@ -565,6 +600,7 @@ Current:
 ```
 
 Replace with:
+
 ```ts
   clearAll: () => {
     set({ notifications: [], markedAllReadAt: null, unreadCount: 0 })
@@ -583,50 +619,54 @@ Replace with:
 - [ ] **5.10** Update `hydrateFromApi`. After computing the final `merged` array, add `unreadCount`:
 
 Find the `return { notifications: merged, ... }` inside the `set()` call at the end of `hydrateFromApi`. Current:
+
 ```ts
-      return {
-        notifications: merged,
-        ...(isDifferentUser ? { markedAllReadAt: null } : {}),
-      }
+return {
+  notifications: merged,
+  ...(isDifferentUser ? { markedAllReadAt: null } : {}),
+}
 ```
 
 Replace with:
+
 ```ts
-      let unreadCount = 0
-      for (const n of merged) if (!n.isRead) unreadCount++
-      return {
-        notifications: merged,
-        unreadCount,
-        ...(isDifferentUser ? { markedAllReadAt: null } : {}),
-      }
+let unreadCount = 0
+for (const n of merged) if (!n.isRead) unreadCount++
+return {
+  notifications: merged,
+  unreadCount,
+  ...(isDifferentUser ? { markedAllReadAt: null } : {}),
+}
 ```
 
 - [ ] **5.11** Update `components/notification/notification-bell.tsx`. Read the file, then find the selector:
 
 ```ts
-  const unreadCount = useNotificationStore((s) => {
-    let count = 0
-    for (const n of s.notifications) if (!n.isRead) count++
-    return count
-  })
+const unreadCount = useNotificationStore((s) => {
+  let count = 0
+  for (const n of s.notifications) if (!n.isRead) count++
+  return count
+})
 ```
 
 Replace with:
+
 ```ts
-  const unreadCount = useNotificationStore((s) => s.unreadCount)
+const unreadCount = useNotificationStore((s) => s.unreadCount)
 ```
 
 - [ ] **5.12** Update `app/notification/index.tsx`. Read the file (~line 316), find:
 
 ```ts
-  const unreadCount = useNotificationStore(
-    (s) => s.notifications.filter((n) => !n.isRead).length,
-  )
+const unreadCount = useNotificationStore(
+  (s) => s.notifications.filter((n) => !n.isRead).length,
+)
 ```
 
 Replace with:
+
 ```ts
-  const unreadCount = useNotificationStore((s) => s.unreadCount)
+const unreadCount = useNotificationStore((s) => s.unreadCount)
 ```
 
 - [ ] **5.13** Check if `getUnreadCount` is called anywhere:
@@ -654,10 +694,12 @@ cd /Users/phanquyetthang/mobile-movie-app && git add stores/notification.store.t
 ## Task 6 — Quick wins: narrow notification effect dep + invoice staleTime
 
 **Why:**
+
 - `app/notification/index.tsx` has a `useEffect` that calls `hydrateFromApi` with dep `[apiData]`. React Query replaces the `apiData` wrapper object on every refetch even when the `items` array content is unchanged — causing the effect to run and re-merge all 50 notifications unnecessarily on every focus/polling cycle. Narrowing to `apiData?.result?.items` prevents false fires.
 - `useGetOrderInvoice` and `useGetPublicOrderInvoice` in `hooks/use-order.ts` have no `staleTime`. Invoices are immutable once generated; every focus event triggers a refetch.
 
 **Files:**
+
 - Modify: `app/notification/index.tsx`
 - Modify: `hooks/use-order.ts`
 
@@ -668,23 +710,25 @@ cd /Users/phanquyetthang/mobile-movie-app && grep -n "hydrateFromApi\|apiData" a
 ```
 
 Current effect:
+
 ```ts
-  useEffect(() => {
-    const items = apiData?.result?.items
-    if (items && items.length > 0) {
-      useNotificationStore.getState().hydrateFromApi(items)
-    }
-  }, [apiData])
+useEffect(() => {
+  const items = apiData?.result?.items
+  if (items && items.length > 0) {
+    useNotificationStore.getState().hydrateFromApi(items)
+  }
+}, [apiData])
 ```
 
 Change the dep from `[apiData]` to `[apiData?.result?.items]`:
+
 ```ts
-  useEffect(() => {
-    const items = apiData?.result?.items
-    if (items && items.length > 0) {
-      useNotificationStore.getState().hydrateFromApi(items)
-    }
-  }, [apiData?.result?.items])
+useEffect(() => {
+  const items = apiData?.result?.items
+  if (items && items.length > 0) {
+    useNotificationStore.getState().hydrateFromApi(items)
+  }
+}, [apiData?.result?.items])
 ```
 
 - [ ] **6.2** In `hooks/use-order.ts`, find `useGetOrderInvoice` and `useGetPublicOrderInvoice`:
@@ -696,12 +740,14 @@ cd /Users/phanquyetthang/mobile-movie-app && grep -n "order-invoice\|public-orde
 Find the two invoice hooks (they use queryKeys `'order-invoice'` and `'public-order-invoice'`). Add `staleTime: Infinity` and `gcTime: 10 * 60_000` to each:
 
 For `useGetOrderInvoice`, add inside `useQuery({…})`:
+
 ```ts
     staleTime: Infinity,
     gcTime: 10 * 60_000,
 ```
 
 For `useGetPublicOrderInvoice`, add inside `useQuery({…})`:
+
 ```ts
     staleTime: Infinity,
     gcTime: 10 * 60_000,

@@ -12,8 +12,8 @@
 
 ## File Map
 
-| File | Action | Trách nhiệm |
-|------|--------|-------------|
+| File                                 | Action | Trách nhiệm    |
+| ------------------------------------ | ------ | -------------- |
 | `components/home/highlight-menu.tsx` | Modify | Tất cả 6 tasks |
 
 ---
@@ -21,6 +21,7 @@
 ### Task 1 (CRITICAL): Bỏ `useCatalog()` subscription — lazy read + scheduleTransitionTask
 
 **Files:**
+
 - Modify: `components/home/highlight-menu.tsx`
 
 **Bối cảnh:**
@@ -34,12 +35,14 @@ Fix: (1) Đọc catalog lazy qua `queryClient.getQueryData` khi nhấn. (2) Warm
 - [ ] **Step 1: Cập nhật imports**
 
 Xoá 2 dòng:
+
 ```tsx
 import { useCatalog } from '@/hooks'
 import { useMenuFilterStore } from '@/stores'
 ```
 
 Thêm vào đầu block `@/` imports (sau `import { Images } from '@/assets/images'`):
+
 ```tsx
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -51,6 +54,7 @@ import { useSetMenuFilter } from '@/stores/selectors/menu-filter.selectors'
 ```
 
 File imports sau khi sửa (toàn bộ, giữ nguyên thứ tự):
+
 ```tsx
 import { FlashList, type FlashListRef } from '@shopify/flash-list'
 import { Image } from 'expo-image'
@@ -80,12 +84,14 @@ import { useSetMenuFilter } from '@/stores/selectors/menu-filter.selectors'
 - [ ] **Step 2: Thay `useCatalog()` và `useMenuFilterStore` trong `HighlightMenuCarousel`**
 
 Tìm 2 dòng (khoảng line 233-234):
+
 ```tsx
 const { data: catalogResponse } = useCatalog()
 const setMenuFilter = useMenuFilterStore((s) => s.setMenuFilter)
 ```
 
 Thay thành:
+
 ```tsx
 const queryClient = useQueryClient()
 const setMenuFilter = useSetMenuFilter()
@@ -94,6 +100,7 @@ const setMenuFilter = useSetMenuFilter()
 - [ ] **Step 3: Thêm `prefetchQuery` useEffect để warm catalog cache khi mount**
 
 Thêm sau block khai báo `queryClient`/`setMenuFilter` vừa sửa (trước phần khai báo `cardWidth`):
+
 ```tsx
 useEffect(() => {
   queryClient.prefetchQuery({
@@ -106,6 +113,7 @@ useEffect(() => {
 - [ ] **Step 4: Thay thế `handleItemPress`**
 
 Tìm `handleItemPress` (khoảng line 297) và thay toàn bộ:
+
 ```tsx
 // Xoá:
 const handleItemPress = useCallback(
@@ -126,7 +134,9 @@ const handleItemPress = useCallback(
 // Thêm:
 const handleItemPress = useCallback(
   (catalogSearch: string) => {
-    const cached = queryClient.getQueryData<IApiResponse<ICatalog[]>>([QUERYKEY.catalog])
+    const cached = queryClient.getQueryData<IApiResponse<ICatalog[]>>([
+      QUERYKEY.catalog,
+    ])
     const needle = catalogSearch.toLowerCase()
     const matched = cached?.result?.find((c) =>
       c.name.toLowerCase().includes(needle),
@@ -163,11 +173,13 @@ git commit -m "perf(home): lazy-read catalog on press, prefetch on mount, schedu
 ### Task 2 (HIGH): FlashList — estimatedItemSize + keyExtractor + scrollEventThrottle
 
 **Files:**
+
 - Modify: `components/home/highlight-menu.tsx`
 
 **Bối cảnh:**
 
 3 vấn đề FlashList cần fix cùng lúc:
+
 - Thiếu `estimatedItemSize` → FlashList không thể recycle view đúng cách (bắt buộc theo CLAUDE.md)
 - `keyExtractor` dùng `index` thay vì `item.id` → clone collision khi teleport, FlashList tear-down cell không cần thiết
 - `scrollEventThrottle={16}` không có tác dụng với Reanimated worklet handler — nên set `1`
@@ -175,6 +187,7 @@ git commit -m "perf(home): lazy-read catalog on press, prefetch on mount, schedu
 - [ ] **Step 1: Sửa `keyExtractor` để dùng `item.id`**
 
 Tìm `keyExtractor` (khoảng line 329) và thay:
+
 ```tsx
 // Xoá:
 const keyExtractor = useCallback(
@@ -196,6 +209,7 @@ const keyExtractor = useCallback(
 - [ ] **Step 2: Thêm `estimatedItemSize` và sửa `scrollEventThrottle` trong JSX**
 
 Tìm `<AnimatedFlashList` trong JSX và sửa 2 props:
+
 ```tsx
 // Trước:
 <AnimatedFlashList
@@ -251,6 +265,7 @@ git commit -m "perf(home): add estimatedItemSize, fix keyExtractor and scrollEve
 ### Task 3 (HIGH): Xoá JS-thread `scrollX.value` write race trong `handleScrollEnd`
 
 **Files:**
+
 - Modify: `components/home/highlight-menu.tsx`
 
 **Bối cảnh:**
@@ -317,6 +332,7 @@ git commit -m "fix(home): remove JS-thread scrollX write race in handleScrollEnd
 ### Task 4 (MEDIUM): `useMemo` cho card dimensions và `highlightMenus`
 
 **Files:**
+
 - Modify: `components/home/highlight-menu.tsx`
 
 **Bối cảnh:**
@@ -328,6 +344,7 @@ git commit -m "fix(home): remove JS-thread scrollX write race in handleScrollEnd
 - [ ] **Step 1: Wrap card dimensions vào `useMemo`**
 
 Tìm 4 dòng khai báo riêng lẻ (khoảng line 236-241):
+
 ```tsx
 // Xoá:
 const cardWidth = screenWidth * 0.72
@@ -355,15 +372,13 @@ const { cardWidth, cardHeight, sideInset, step } = useMemo(() => {
 - [ ] **Step 2: Wrap `highlightMenus` vào `useMemo`**
 
 Tìm dòng (khoảng line 230):
+
 ```tsx
 // Xoá:
 const highlightMenus = items ?? DEFAULT_HIGHLIGHT_MENUS
 
 // Thêm:
-const highlightMenus = useMemo(
-  () => items ?? DEFAULT_HIGHLIGHT_MENUS,
-  [items],
-)
+const highlightMenus = useMemo(() => items ?? DEFAULT_HIGHLIGHT_MENUS, [items])
 ```
 
 Dòng `const count = highlightMenus.length` giữ nguyên, chỉ đảm bảo nó nằm SAU `useMemo` trên.
@@ -388,6 +403,7 @@ git commit -m "perf(home): memoize card dimensions and highlightMenus"
 ### Task 5 (MEDIUM): Chuyển `t` vào `HighlightCard` + bỏ `backgroundColor` ra khỏi `Dot` worklet
 
 **Files:**
+
 - Modify: `components/home/highlight-menu.tsx`
 
 **Bối cảnh:**
@@ -399,6 +415,7 @@ git commit -m "perf(home): memoize card dimensions and highlightMenus"
 - [ ] **Step 1: Xoá `t` khỏi `HighlightCardProps`**
 
 Tìm interface `HighlightCardProps` và xoá field `t`:
+
 ```tsx
 // Trước:
 interface HighlightCardProps {
@@ -427,6 +444,7 @@ interface HighlightCardProps {
 - [ ] **Step 2: Thêm `useTranslation` vào `HighlightCard`, xoá `t` khỏi props destructure**
 
 Tìm đầu hàm `HighlightCard`:
+
 ```tsx
 // Trước:
 const HighlightCard = React.memo(function HighlightCard({
@@ -458,6 +476,7 @@ const HighlightCard = React.memo(function HighlightCard({
 - [ ] **Step 3: Xoá `t` khỏi `renderItem` props và dep array**
 
 Tìm `renderItem` useCallback:
+
 ```tsx
 // Trước:
 const renderItem = useCallback(
@@ -496,9 +515,15 @@ const renderItem = useCallback(
 - [ ] **Step 4: Xoá `backgroundColor` ra khỏi `Dot` worklet**
 
 Tìm `Dot` component và sửa:
+
 ```tsx
 // Trước:
-function Dot({ targetOffset, scrollX, step, primaryColor }: {
+function Dot({
+  targetOffset,
+  scrollX,
+  step,
+  primaryColor,
+}: {
   targetOffset: number
   scrollX: SharedValue<number>
   step: number
@@ -519,7 +544,12 @@ function Dot({ targetOffset, scrollX, step, primaryColor }: {
 }
 
 // Sau:
-function Dot({ targetOffset, scrollX, step, primaryColor }: {
+function Dot({
+  targetOffset,
+  scrollX,
+  step,
+  primaryColor,
+}: {
   targetOffset: number
   scrollX: SharedValue<number>
   step: number
@@ -537,7 +567,10 @@ function Dot({ targetOffset, scrollX, step, primaryColor }: {
 
   return (
     <Animated.View
-      style={[{ height: 6, borderRadius: 3, backgroundColor: primaryColor }, dotStyle]}
+      style={[
+        { height: 6, borderRadius: 3, backgroundColor: primaryColor },
+        dotStyle,
+      ]}
     />
   )
 }
@@ -563,6 +596,7 @@ git commit -m "perf(home): move t into HighlightCard, remove backgroundColor fro
 ### Task 6 (LOW): Hoist static styles + sửa `cachePolicy`
 
 **Files:**
+
 - Modify: `components/home/highlight-menu.tsx`
 
 **Bối cảnh:**
@@ -576,12 +610,19 @@ Mỗi render của `HighlightCard` tạo 5+ fresh inline style objects (Pressabl
 import { Pressable, Text, View, useWindowDimensions } from 'react-native'
 
 // Sau:
-import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native'
+import {
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native'
 ```
 
 - [ ] **Step 2: Thêm static styles dạng StyleSheet trước `HighlightCard`**
 
 Thêm đoạn này ngay trước `const HighlightCard = React.memo(...)`:
+
 ```tsx
 const cardStyles = StyleSheet.create({
   pressable: { flex: 1, borderRadius: 20, overflow: 'hidden' },
@@ -700,6 +741,7 @@ Tìm phần JSX của `HighlightCard` và thay các inline styles:
 - [ ] **Step 4: Thay inline `dotRow` style trong `HighlightMenuCarousel` JSX**
 
 Tìm dot container `View` trong return JSX:
+
 ```tsx
 // Trước:
 <View
@@ -744,6 +786,7 @@ git commit -m "perf(home): hoist static styles to StyleSheet, fix cachePolicy to
 ## Self-Review
 
 **Spec coverage:**
+
 - ✅ CRITICAL 1: `useCatalog` → `prefetchQuery` + `getQueryData` lazy (Task 1)
 - ✅ CRITICAL 2: `setMenuFilter` → `scheduleTransitionTask` + push-first (Task 1)
 - ✅ HIGH 1: `estimatedItemSize={step}` (Task 2)
@@ -760,6 +803,7 @@ git commit -m "perf(home): hoist static styles to StyleSheet, fix cachePolicy to
 **Placeholder scan:** Không có TBD/TODO. Tất cả steps có code đầy đủ.
 
 **Type consistency:**
+
 - `queryClient.getQueryData<IApiResponse<ICatalog[]>>([QUERYKEY.catalog])` — type nhất quán với `getCatalog(): Promise<IApiResponse<ICatalog[]>>` và queryKey `[QUERYKEY.catalog]` trong `useCatalog`
 - `useSetMenuFilter()` trả về cùng type với `useMenuFilterStore((s) => s.setMenuFilter)`
 - `HighlightCardProps` sau khi xoá `t`: không còn prop nào dùng `t`, `HighlightCard` tự lấy từ `useTranslation('home')`

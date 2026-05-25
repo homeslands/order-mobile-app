@@ -1,11 +1,12 @@
 import { Check, Circle } from 'lucide-react-native'
 import { memo, useCallback } from 'react'
-import { Text, TouchableOpacity, View } from 'react-native'
+import { TouchableOpacity, View } from 'react-native'
 
 import { TableStatus } from '@/constants'
 import { colors } from '@/constants/colors.constant'
 import { cn } from '@/lib/utils'
 import { ITable } from '@/types'
+import { Text } from '@/components/ui/text'
 
 interface TableItemProps {
   table: ITable

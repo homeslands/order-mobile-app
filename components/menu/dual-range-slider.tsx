@@ -1,13 +1,8 @@
 import { useMemo, useRef } from 'react'
-import {
-  Dimensions,
-  PanResponder,
-  Text,
-  useColorScheme,
-  View,
-} from 'react-native'
+import { Dimensions, PanResponder, useColorScheme, View } from 'react-native'
 
 import { colors } from '@/constants/colors.constant'
+import { Text } from '@/components/ui/text'
 
 interface DualRangeSliderProps {
   min: number

@@ -17,10 +17,11 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import { StyleSheet, Text, TextInput, View } from 'react-native'
+import { StyleSheet, TextInput, View } from 'react-native'
 import { colors } from '@/constants'
 import { TouchableOpacity as GHTouchable } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { Text } from '@/components/ui/text'
 
 const PRICE_PRESETS = [
   { label: '', min: 0, max: 300_000 },

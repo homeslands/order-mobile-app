@@ -16,7 +16,7 @@ import * as Haptics from 'expo-haptics'
 import { usePathname } from 'expo-router'
 import { X } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useRef } from 'react'
-import { Pressable, StyleSheet, Text, useColorScheme, View } from 'react-native'
+import { Pressable, StyleSheet, useColorScheme, View } from 'react-native'
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -32,6 +32,7 @@ import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { navigateNative } from '@/lib/navigation'
 import { showToastInternal } from '@/providers/toast-provider'
 import { useNotificationStore } from '@/stores/notification.store'
+import { Text } from '@/components/ui/text'
 
 const BAR_TOP = STATIC_TOP_INSET + TAB_HEADER_CONTENT_HEIGHT
 

@@ -11,7 +11,7 @@
  */
 import { Image } from 'expo-image'
 import React, { memo } from 'react'
-import { StyleSheet, Text, View, useColorScheme } from 'react-native'
+import { StyleSheet, View, useColorScheme } from 'react-native'
 import Animated from 'react-native-reanimated'
 import type { AnimatedStyle } from 'react-native-reanimated'
 import type { StyleProp, ViewStyle } from 'react-native'
@@ -19,6 +19,7 @@ import type { StyleProp, ViewStyle } from 'react-native'
 import { Images } from '@/assets/images'
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
+import { Text } from '@/components/ui/text'
 
 export interface TabHeaderProps {
   /** 'logo' = brand logo (Home), 'title' = text title (Menu, Cart...) */

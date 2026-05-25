@@ -1,7 +1,10 @@
 import { Platform } from 'react-native'
 import * as Notifications from 'expo-notifications'
 
-import { preloadNotificationSound, preloadOrderReadySound } from '@/lib/notification-sound'
+import {
+  preloadNotificationSound,
+  preloadOrderReadySound,
+} from '@/lib/notification-sound'
 
 // Foreground: suppress OS banner/sound — app handles via onMessage toast + sound.
 // Background: OS handles automatically (this handler only applies in foreground).
@@ -30,15 +33,21 @@ const CHANNEL_VERSION_KEY = '@notif/channelVersion'
 async function createChannels(): Promise<void> {
   if (Platform.OS !== 'android') return
 
-  const AsyncStorage = (await import('@react-native-async-storage/async-storage')).default
-  const stored = await AsyncStorage.getItem(CHANNEL_VERSION_KEY).catch(() => null)
+  const AsyncStorage = (
+    await import('@react-native-async-storage/async-storage')
+  ).default
+  const stored = await AsyncStorage.getItem(CHANNEL_VERSION_KEY).catch(
+    () => null,
+  )
 
   if (stored !== CHANNEL_VERSION) {
     await Promise.allSettled([
       Notifications.deleteNotificationChannelAsync('default'),
       Notifications.deleteNotificationChannelAsync('order-needs-ready-to-get'),
     ])
-    await AsyncStorage.setItem(CHANNEL_VERSION_KEY, CHANNEL_VERSION).catch(() => {})
+    await AsyncStorage.setItem(CHANNEL_VERSION_KEY, CHANNEL_VERSION).catch(
+      () => {},
+    )
   }
 
   // sound: bare basename (no extension) — expo-notifications resolves via res/raw identifier.
