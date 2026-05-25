@@ -22,7 +22,7 @@ export function SearchHeader({
 }: SearchHeaderProps) {
   const { t } = useTranslation('voucher')
   return (
-    <View style={styles.fixedHeader}>
+    <View style={[styles.fixedHeader, { borderBottomColor: isDark ? colors.border.dark : colors.gray[200] }]}>
       <Text
         style={[
           styles.title,
@@ -36,9 +36,8 @@ export function SearchHeader({
           style={[
             styles.inputWrap,
             {
-              backgroundColor: isDark
-                ? colors.background.dark
-                : colors.gray[100],
+              backgroundColor: isDark ? colors.background.dark : colors.gray[100],
+              borderColor: isDark ? colors.border.dark : colors.gray[300],
             },
           ]}
         >
@@ -105,7 +104,7 @@ const styles = StyleSheet.create({
     paddingTop: 4,
     paddingBottom: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: colors.gray[200],
+    borderBottomColor: colors.gray[200], // overridden inline per isDark
   },
   title: { fontSize: 17, fontWeight: '700', marginBottom: 12 },
   inputRow: { flexDirection: 'row', gap: 10 },
@@ -118,7 +117,7 @@ const styles = StyleSheet.create({
     height: 46,
     borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.gray[300],
+    borderColor: colors.gray[300], // overridden inline per isDark
   },
   input: {
     flex: 1,

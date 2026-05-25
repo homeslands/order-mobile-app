@@ -127,10 +127,11 @@ export default function UpdateOrderMenus({
           listIndex={index}
           showImage={showImage}
           primaryColor={primaryColor}
+          isDark={isDark}
         />
       )
     },
-    [showImage, primaryColor, grayColor],
+    [showImage, primaryColor, grayColor, isDark],
   )
 
   const keyExtractor = useCallback(

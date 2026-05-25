@@ -19,6 +19,7 @@ interface ClientMenuItemForUpdateOrderProps {
   listIndex: number
   showImage?: boolean
   primaryColor: string
+  isDark: boolean
 }
 
 /**
@@ -31,6 +32,7 @@ const ClientMenuItemForUpdateOrder = memo(
     listIndex,
     showImage = true,
     primaryColor,
+    isDark,
   }: ClientMenuItemForUpdateOrderProps) {
     const { t: tToast } = useTranslation('toast')
     const { addDraftItem, hasUpdatingData } = useOrderFlowStore(
@@ -96,7 +98,7 @@ const ClientMenuItemForUpdateOrder = memo(
 
     return (
       <Pressable style={mi.wrapper}>
-        <View style={mi.card}>
+        <View style={[mi.card, { backgroundColor: isDark ? colors.card.dark : colors.white.light }]}>
           <View style={mi.imageWrap}>
             <MenuItemImage
               id={item.product.slug}
@@ -108,7 +110,7 @@ const ClientMenuItemForUpdateOrder = memo(
           </View>
           <View style={mi.content}>
             <View>
-              <Text style={mi.productName} numberOfLines={1}>
+              <Text style={[mi.productName, { color: isDark ? colors.gray[50] : colors.gray[900] }]} numberOfLines={1}>
                 {capitalizeFirst(item.product.name)}
               </Text>
               {hasPromotion ? (
@@ -148,7 +150,8 @@ const ClientMenuItemForUpdateOrder = memo(
     prev.item === next.item &&
     prev.listIndex === next.listIndex &&
     prev.showImage === next.showImage &&
-    prev.primaryColor === next.primaryColor,
+    prev.primaryColor === next.primaryColor &&
+    prev.isDark === next.isDark,
 )
 
 export default ClientMenuItemForUpdateOrder
@@ -161,7 +164,6 @@ const mi = StyleSheet.create({
   card: {
     flexDirection: 'row',
     padding: 8,
-    backgroundColor: colors.white.light,
     borderRadius: 16,
     alignItems: 'stretch',
   },
@@ -180,7 +182,6 @@ const mi = StyleSheet.create({
   productName: {
     fontSize: 16,
     fontWeight: '600',
-    color: colors.gray[900],
   },
   priceRow: {
     flexDirection: 'row',
