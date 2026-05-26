@@ -22,7 +22,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 
-import { getPublicSpecificMenu, getSpecificMenu } from '@/api'
+import { getGiftCards, getPublicSpecificMenu, getSpecificMenu } from '@/api'
 import { getLoyaltyPoints } from '@/api/loyalty-point'
 import { AnimatedTabBar, FloatingCartButton } from '@/components/navigation'
 import { OrderReadyPickupSheet } from '@/components/notification/order-ready-pickup-sheet'
@@ -206,6 +206,17 @@ export default function TabsLayout() {
               })
               .catch(() => {})
           }
+        }
+      }
+      if (href?.includes('/gift-card') && isAuthenticated) {
+        const giftCardKey = [QUERYKEY.giftCards, undefined]
+        if (!queryClient.getQueryData(giftCardKey)) {
+          queryClient
+            .prefetchQuery({
+              queryKey: giftCardKey,
+              queryFn: () => getGiftCards(),
+            })
+            .catch(() => {})
         }
       }
       if (href?.includes('/profile') && userSlug) {

@@ -288,6 +288,8 @@
   "menu": {
     "loadError": "Không thể tải thẻ quà tặng",
     "retry": "Thử lại",
-    "empty": "Chưa có thẻ quà tặng nào"
+    "empty": "Chưa có thẻ quà tặng nào",
+    "loginRequired": "Đăng nhập để xem thẻ quà tặng",
+    "login": "Đăng nhập"
   }
 }
