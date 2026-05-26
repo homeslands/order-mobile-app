@@ -282,6 +282,8 @@
   "menu": {
     "loadError": "Unable to load gift cards",
     "retry": "Try again",
-    "empty": "No gift cards available"
+    "empty": "No gift cards available",
+    "loginRequired": "Login to view gift cards",
+    "login": "Login"
   }
 }

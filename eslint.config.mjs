@@ -8,7 +8,7 @@ import tseslint from 'typescript-eslint'
 
 export default tseslint.config(
   {
-    ignores: ['node_modules', '.expo', 'android', 'ios', 'dist', 'build'],
+    ignores: ['node_modules', '.expo', '.claude', 'android', 'ios', 'dist', 'build'],
   },
   {
     files: ['**/*.{ts,tsx}'],

@@ -61,7 +61,7 @@ import { TabScreenLayout } from '@/components/layout'
 import { showErrorToastMessage } from '@/utils/toast'
 import { useGiftCards } from '@/hooks/use-gift-cards'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
-import { useGiftCardStore, useUserStore } from '@/stores'
+import { useAuthStore, useGiftCardStore, useUserStore } from '@/stores'
 import type { IGiftCard } from '@/types'
 import { Text } from '@/components/ui/text'
 
@@ -152,6 +152,7 @@ export default function GiftCardScreen() {
   const giftCardItem = useGiftCardStore((s) => s.giftCardItem)
   const setGiftCardItem = useGiftCardStore((s) => s.setGiftCardItem)
   const clearGiftCard = useGiftCardStore((s) => s.clearGiftCard)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated())
 
   // ── Defer fetch ──────────────────────────────────────────────────────────
   useFocusEffect(
@@ -173,7 +174,7 @@ export default function GiftCardScreen() {
 
   const { data, isPending, isError, refetch, isRefetching } = useGiftCards(
     undefined,
-    { enabled: allowFetch },
+    { enabled: allowFetch && isAuthenticated },
   )
 
   const items = useMemo(() => {
@@ -204,6 +205,7 @@ export default function GiftCardScreen() {
       // Đọc từ store state tại thời điểm gọi — không subscribe, không recreate callback
       const currentGiftCardItem = useGiftCardStore.getState().giftCardItem
       if (!currentGiftCardItem) {
+        if (!useGiftCardStore.getState().isHydrated) return
         setGiftCardItem({
           id: item.slug,
           slug: item.slug,
@@ -403,9 +405,24 @@ export default function GiftCardScreen() {
       </View>
 
       {/* Content */}
-      {isPending ? (
+      {!isAuthenticated ? (
+        <View style={s.empty}>
+          <Gift size={48} color={colors.gray[300]} />
+          <Text style={[s.emptyText, { color: subColor }]}>
+            {t('menu.loginRequired')}
+          </Text>
+          <Pressable
+            onPress={() =>
+              router.push('/auth/login' as Parameters<typeof router.push>[0])
+            }
+            style={[s.retryBtn, { backgroundColor: primaryColor }]}
+          >
+            <Text style={s.retryBtnText}>{t('menu.login')}</Text>
+          </Pressable>
+        </View>
+      ) : isPending ? (
         <GiftCardSkeleton />
-      ) : isError || data === null ? (
+      ) : isError ? (
         <View style={s.empty}>
           <Gift size={48} color={colors.gray[300]} />
           <Text style={[s.emptyText, { color: subColor }]}>
