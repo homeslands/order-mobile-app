@@ -13,6 +13,7 @@ import { useEffect, useMemo, useRef } from 'react'
 import { InteractionManager } from 'react-native'
 
 import { getBanners } from '@/api/banner'
+import { getGiftCards } from '@/api/gift-card'
 import { getPublicSpecificMenu, getSpecificMenu } from '@/api/menu'
 import { BannerPage, FILTER_VALUE, QUERYKEY } from '@/constants'
 import { isTransitionLocked } from '@/lib/navigation/transition-lock'
@@ -83,6 +84,12 @@ export function usePredictivePrefetch() {
           ],
           queryFn: () => getBanners({ page: BannerPage.HOME, isActive: true }),
         })
+        if (hasUser) {
+          queryClient.prefetchQuery({
+            queryKey: [QUERYKEY.giftCards, undefined],
+            queryFn: () => getGiftCards(),
+          })
+        }
         // Prefetch menu ngay khi vào Home — user chủ yếu vào Menu, giảm khựng khi chuyển tab
         if (hasBranch) {
           if (hasUser) {
