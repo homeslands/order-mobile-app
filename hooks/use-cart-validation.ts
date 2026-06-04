@@ -143,7 +143,7 @@ export function useCartValidation() {
         const menuData = await queryClient.fetchQuery({
           queryKey,
           queryFn: () => fetchMenu(query),
-          staleTime: force ? 0 : 30_000,
+          staleTime: 30_000,
           meta: { skipGlobalError: true },
         })
 
