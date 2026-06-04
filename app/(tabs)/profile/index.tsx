@@ -6,7 +6,7 @@ import {
   ThemeSheet,
 } from '@/components/profile'
 import { Skeleton } from '@/components/ui'
-import { colors, publicFileURL } from '@/constants'
+import { colors, publicFileURL, QUERYKEY } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { clearOrderDisplayCache } from '@/app/profile/history'
 import {
@@ -19,6 +19,7 @@ import { useNotificationStore } from '@/stores/notification.store'
 import { useLogoutSheetStore } from '@/stores/logout-sheet.store'
 import { useQRSelectionSheetStore } from '@/stores/qr-selection-sheet.store'
 import { showToast } from '@/utils'
+import { resetHttpState } from '@/utils/http'
 import {
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
@@ -27,6 +28,7 @@ import {
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
 import { LinearGradient } from 'expo-linear-gradient'
+import { useQueryClient } from '@tanstack/react-query'
 import { useFocusEffect, useRouter } from 'expo-router'
 import {
   Camera,
@@ -452,6 +454,7 @@ const ProfileTest = () => {
   const setUserInfo = useUserStore((state) => state.setUserInfo)
   const setLogout = useAuthStore((state) => state.setLogout)
   const removeUserInfo = useUserStore((state) => state.removeUserInfo)
+  const queryClient = useQueryClient()
   const { mutate: uploadAvatar } = useUploadAvatar()
 
   const [allowFetch, setAllowFetch] = React.useState(false)
@@ -586,6 +589,8 @@ const ProfileTest = () => {
   const { t: tToast } = useTranslation('toast')
 
   const handleLogoutConfirm = useCallback(async () => {
+    resetHttpState()
+    queryClient.removeQueries({ queryKey: [QUERYKEY.loyaltyPoints] })
     // Capture token BEFORE removeUserInfo() clears it — avoids race condition
     // where cleanupTokenOnLogout() reads null and skips server unregister
     const capturedToken = useUserStore.getState().deviceToken
@@ -602,7 +607,7 @@ const ProfileTest = () => {
     removeUserInfo()
     router.replace('/(tabs)/home' as never)
     showToast(tToast('logoutSuccess', 'Đăng xuất thành công'))
-  }, [removeUserInfo, setLogout, tToast, router])
+  }, [removeUserInfo, setLogout, tToast, router, queryClient])
 
   const handleLogoutPress = useCallback(() => {
     openLogoutSheet(handleLogoutConfirm)
@@ -626,19 +631,23 @@ const ProfileTest = () => {
   }, [t])
 
   const handleDeleteSuccess = useCallback(() => {
+    resetHttpState()
+    queryClient.removeQueries({ queryKey: [QUERYKEY.loyaltyPoints] })
+    // Capture token BEFORE removeUserInfo() clears it — avoids race condition
+    // where cleanupTokenOnLogout() reads null and skips server unregister
+    const capturedToken = useUserStore.getState().deviceToken
     setLogout()
     removeUserInfo()
     useNotificationStore.getState().clearAll()
     router.replace('/(tabs)/home' as never)
     // FCM cleanup runs in background — không block navigation
-    const capturedToken = useUserStore.getState().deviceToken
     void import('@/lib/fcm-token-manager').then(({ cleanupTokenOnLogout }) =>
       Promise.race([
         cleanupTokenOnLogout(capturedToken ?? undefined),
         new Promise<void>((r) => setTimeout(r, 3000)),
       ]).catch(() => {}),
     )
-  }, [removeUserInfo, setLogout, router])
+  }, [removeUserInfo, setLogout, router, queryClient])
 
   if (needsUserInfo || !userInfo) {
     return (
