@@ -144,6 +144,7 @@
     "giftCardUsedSuccess": "Thẻ quà tặng đã sử dụng thành công",
     "giftCardValidationError": "Vui lòng kiểm tra thông tin thẻ quà tặng",
     "handleCancelOrderSuccess": "Hủy đơn hàng thành công",
+    "handleCancelOrderError": "Hủy đơn hàng thất bại, vui lòng thử lại",
     "importMultipleProductsSuccess": "Import sản phẩm thành công",
     "initiatePublicPaymentDenied": "Từ chối khởi tạo thanh toán công khai",
     "initiateQrCodeFail": "Khởi tạo mã QR thất bại",

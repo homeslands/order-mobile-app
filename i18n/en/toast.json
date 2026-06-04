@@ -144,6 +144,7 @@
     "giftCardUsedSuccess": "Gift card used successfully",
     "giftCardValidationError": "Please check information gift card",
     "handleCancelOrderSuccess": "Order canceled successfully",
+    "handleCancelOrderError": "Failed to cancel order, please try again",
     "importMultipleProductsSuccess": "Products imported successfully",
     "initiatePublicPaymentDenied": "Public payment initiation denied",
     "initiateQrCodeFail": "Failed to initiate QR code",
