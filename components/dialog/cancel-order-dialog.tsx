@@ -64,7 +64,7 @@ function CancelOrderDialogComponent({
     deleteOrder(order.slug, {
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['orders'] })
-        queryClient.invalidateQueries({ queryKey: ['order', order.slug] })
+        queryClient.removeQueries({ queryKey: ['order', order.slug] })
         showToast(tToast('toast.handleCancelOrderSuccess'))
         navigateNative.back()
       },
