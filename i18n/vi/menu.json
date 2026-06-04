@@ -105,6 +105,8 @@
     "updateMenuItem": "Cập nhật món",
     "updateMenuItemDescription": "Thay đổi thông tin để cập nhật món",
     "selectBranchPrompt": "Vui lòng chọn chi nhánh để xem menu.",
+    "selectBranchSubtitle": "Chọn chi nhánh gần bạn để xem thực đơn và đặt hàng.",
+    "selectBranchAction": "Chọn chi nhánh",
     "loadingMenu": "Đang tải menu...",
     "noMenuData": "Không có dữ liệu thực đơn. Vui lòng chọn chi nhánh khác hoặc thử lại sau.",
     "catalogEmpty": "Danh mục sản phẩm sẽ được cập nhật sớm",

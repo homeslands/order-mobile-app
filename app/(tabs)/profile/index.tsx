@@ -5,15 +5,10 @@ import {
   LanguageSheet,
   ThemeSheet,
 } from '@/components/profile'
-import { Skeleton } from '@/components/ui'
 import { colors, publicFileURL, QUERYKEY } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { clearOrderDisplayCache } from '@/app/profile/history'
-import {
-  useLoyaltyPoints,
-  useRunAfterTransition,
-  useUploadAvatar,
-} from '@/hooks'
+import { useUploadAvatar } from '@/hooks'
 import { useAuthStore, useUserStore } from '@/stores'
 import { useNotificationStore } from '@/stores/notification.store'
 import { useLogoutSheetStore } from '@/stores/logout-sheet.store'
@@ -457,9 +452,7 @@ const ProfileTest = () => {
   const queryClient = useQueryClient()
   const { mutate: uploadAvatar } = useUploadAvatar()
 
-  const [allowFetch, setAllowFetch] = React.useState(false)
   const openLogoutSheet = useLogoutSheetStore((s) => s.open)
-  useRunAfterTransition(() => setAllowFetch(true), [])
 
   useEffect(() => {
     const sub = AppState.addEventListener('memoryWarning', () => {
@@ -475,11 +468,6 @@ const ProfileTest = () => {
     const last = userInfo?.lastName?.charAt(0) || ''
     return `${first}${last}`.toUpperCase()
   }, [userInfo?.firstName, userInfo?.lastName])
-
-  const { isLoading: loyaltyLoading } = useLoyaltyPoints(
-    userInfo?.slug,
-    allowFetch,
-  )
 
   const [isLangSheetOpen, setIsLangSheetOpen] = useState(false)
   const openLangSheet = useCallback(() => setIsLangSheetOpen(true), [])
@@ -575,7 +563,7 @@ const ProfileTest = () => {
   }, [router])
 
   const openPoints = useCallback(() => {
-    router.push('/profile/loyalty-point-hub' as never)
+    router.push('/(tabs)/profile/loyalty-point-hub' as never)
   }, [router])
 
   const openOrdersHistory = useCallback(() => {
@@ -583,7 +571,7 @@ const ProfileTest = () => {
   }, [router])
 
   const openGiftCard = useCallback(() => {
-    router.push('/profile/gift-card-hub' as never)
+    router.push('/(tabs)/profile/gift-card-hub' as never)
   }, [router])
 
   const { t: tToast } = useTranslation('toast')
@@ -791,44 +779,22 @@ const ProfileTest = () => {
                 textColor={theme.text}
                 textMuted={theme.textMuted}
               />
-              {loyaltyLoading ? (
-                <>
-                  <View
-                    style={[
-                      styles.menuItemDivider,
-                      { backgroundColor: theme.divider },
-                    ]}
-                  />
-                  <View style={styles.menuItem}>
-                    <Skeleton
-                      style={[styles.menuIconWrap, { marginRight: 14 }]}
-                    />
-                    <View style={{ flex: 1 }}>
-                      <Skeleton
-                        style={{ height: 16, width: 120, borderRadius: 4 }}
-                      />
-                    </View>
-                    <ChevronRight size={20} color={theme.textMuted} />
-                  </View>
-                </>
-              ) : (
-                <>
-                  <View
-                    style={[
-                      styles.menuItemDivider,
-                      { backgroundColor: theme.divider },
-                    ]}
-                  />
-                  <MenuItem
-                    icon={Trophy}
-                    iconColor={ICON_COLORS.green}
-                    title={t('profile.loyaltyPoint.title', 'Điểm tích lũy')}
-                    onPress={openPoints}
-                    textColor={theme.text}
-                    textMuted={theme.textMuted}
-                  />
-                </>
-              )}
+              <>
+                <View
+                  style={[
+                    styles.menuItemDivider,
+                    { backgroundColor: theme.divider },
+                  ]}
+                />
+                <MenuItem
+                  icon={Trophy}
+                  iconColor={ICON_COLORS.green}
+                  title={t('profile.loyaltyPoint.title', 'Điểm tích lũy')}
+                  onPress={openPoints}
+                  textColor={theme.text}
+                  textMuted={theme.textMuted}
+                />
+              </>
             </View>
 
             {/* Group 4: Settings */}

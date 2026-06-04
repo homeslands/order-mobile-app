@@ -257,7 +257,7 @@ function SkeletonList() {
         <Skeleton
           key={i}
           className="w-full rounded-2xl"
-          style={{ height: ITEM_HEIGHT }}
+          style={{ height: GIFT_CARD_ORDER_ITEM_HEIGHT }}
         />
       ))}
     </View>

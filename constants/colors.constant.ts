@@ -84,10 +84,10 @@ export const colors: ColorConstants = {
   },
   // Destructive colors (from --destructive CSS variable)
   // Light: hsl(0, 84.2%, 60.2%) ≈ #ef4444
-  // Dark: hsl(355, 87%, 47%) ≈ #dc2626
+  // Dark: iOS systemRed dark = #FF453A
   destructive: {
     light: '#ef4444',
-    dark: '#dc2626',
+    dark: '#FF453A',
   },
 
   // Primary colors (from --primary CSS variable)
@@ -100,10 +100,10 @@ export const colors: ColorConstants = {
 
   // Background colors (from --background CSS variable)
   // Light: hsl(210, 15%, 95%) = #F0F2F5
-  // Dark: hsl(0, 0%, 7%) = #121212  — pure neutral, Spotify/Notion standard
+  // Dark: iOS systemBackground = #000000 (pure black)
   background: {
     light: '#F0F2F5',
-    dark: '#121212',
+    dark: '#000000',
   },
 
   // Foreground colors (from --foreground CSS variable)
@@ -124,10 +124,10 @@ export const colors: ColorConstants = {
 
   // Border colors (from --border CSS variable)
   // Light: hsl(20, 5.9%, 90%) = #e5e7eb
-  // Dark: hsl(0, 0%, 18%) = #2e2e2e
+  // Dark: iOS opaqueSeparator = #38383A
   border: {
     light: '#e5e7eb',
-    dark: '#2e2e2e',
+    dark: '#38383A',
   },
 
   // Tailwind gray scale (matches gray-50 → gray-900)
