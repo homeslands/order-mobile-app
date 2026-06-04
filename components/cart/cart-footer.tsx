@@ -199,7 +199,7 @@ export const CartFooter = memo(function CartFooter({
         backgroundColor: isDark ? colors.card.dark : colors.white.light,
       },
       selectBtnBorder: {
-        borderColor: isDark ? colors.gray[700] : colors.gray[200],
+        borderColor: isDark ? colors.border.dark : colors.gray[200],
       },
       selectBtnTextColor: {
         color: isDark ? colors.gray[50] : colors.gray[900],
@@ -213,7 +213,7 @@ export const CartFooter = memo(function CartFooter({
       primaryColorStyle: { color: primaryColor },
       primaryBorderStyle: { borderColor: primaryColor },
       disabledBtnBg: {
-        backgroundColor: isDark ? colors.gray[700] : colors.gray[300],
+        backgroundColor: isDark ? colors.border.dark : colors.gray[300],
       },
       disabledTextColor: {
         color: isDark ? colors.gray[400] : colors.gray[500],
@@ -227,7 +227,7 @@ export const CartFooter = memo(function CartFooter({
     () => ({
       borderColor: tableName
         ? isDark
-          ? colors.gray[700]
+          ? colors.border.dark
           : colors.gray[200]
         : isDark
           ? colors.destructive.dark
@@ -254,7 +254,7 @@ export const CartFooter = memo(function CartFooter({
       borderColor: voucher
         ? primaryColor
         : isDark
-          ? colors.gray[600]
+          ? colors.border.dark
           : colors.gray[300],
     }),
     [voucher, primaryColor, isDark],

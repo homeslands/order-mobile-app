@@ -16,7 +16,18 @@ import { TouchableOpacity } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Text } from '@/components/ui/text'
 
-const ORDER_TYPE_SHEET_BASE_HEIGHT = 280
+const ORDER_TYPE_SHEET_BASE_HEIGHT = 320
+
+const ORDER_TYPE_ICONS = {
+  'take-out': PackageCheck,
+  delivery: Truck,
+} as const
+
+const ORDER_TYPE_SUBTITLES: Record<string, string> = {
+  'at-table': 'Thưởng thức tại cửa hàng',
+  'take-out': 'Đặt để mang đi',
+  delivery: 'Giao đến địa chỉ của bạn',
+}
 
 export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
   visible,
@@ -34,7 +45,6 @@ export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
   const sheetRef = useRef<BottomSheetModal>(null)
   const { t } = useTranslation('menu')
   const { bottom: bottomInset } = useSafeAreaInsets()
-  // Fetch feature flags only when sheet is visible — defer pattern
   const {
     orderTypes,
     selectedType,
@@ -77,6 +87,11 @@ export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
     [selectType, onDeliverySelected],
   )
 
+  const iconBg = isDark ? 'rgba(255,255,255,0.06)' : colors.gray[100]
+  const mutedColor = isDark ? colors.gray[400] : colors.gray[500]
+  const labelColor = isDark ? colors.gray[50] : colors.gray[900]
+  const radioRingColor = isDark ? colors.border.dark : colors.gray[300]
+
   return (
     <BottomSheetModal
       ref={sheetRef}
@@ -93,10 +108,7 @@ export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
         style={[orderTypeSheetStyles.content, { paddingBottom: bottomInset }]}
       >
         <Text
-          style={[
-            orderTypeSheetStyles.title,
-            { color: isDark ? colors.gray[50] : colors.gray[900] },
-          ]}
+          style={[orderTypeSheetStyles.title, { color: labelColor }]}
         >
           {t('menu.orderType')}
         </Text>
@@ -104,7 +116,7 @@ export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
           <Text
             style={{
               fontSize: 14,
-              color: isDark ? colors.gray[400] : colors.gray[500],
+              color: mutedColor,
               textAlign: 'center',
               paddingVertical: 16,
             }}
@@ -114,17 +126,9 @@ export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
         )}
         {orderTypes.map((opt: OrderTypeOption) => {
           const selected = selectedType?.value === opt.value
-          const iconColor = selected
-            ? primaryColor
-            : isDark
-              ? colors.gray[400]
-              : colors.gray[500]
-          const Icon =
-            opt.value === 'take-out'
-              ? PackageCheck
-              : opt.value === 'delivery'
-                ? Truck
-                : UtensilsCrossed
+          const Icon = ORDER_TYPE_ICONS[opt.value as keyof typeof ORDER_TYPE_ICONS] ?? UtensilsCrossed
+          const iconColor = selected ? primaryColor : mutedColor
+
           return (
             <TouchableOpacity
               activeOpacity={0.7}
@@ -136,7 +140,7 @@ export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
                   borderColor: selected
                     ? primaryColor
                     : isDark
-                      ? colors.gray[700]
+                      ? colors.border.dark
                       : colors.gray[200],
                   backgroundColor: selected
                     ? `${primaryColor}10`
@@ -144,28 +148,55 @@ export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
                 },
               ]}
             >
-              <Icon size={18} color={iconColor} />
-              <Text
+              {/* Icon with background */}
+              <View
                 style={[
-                  orderTypeSheetStyles.optionLabel,
+                  orderTypeSheetStyles.iconWrap,
                   {
-                    fontWeight: selected ? '600' : '400',
-                    color: isDark ? colors.gray[50] : colors.gray[900],
+                    backgroundColor: selected
+                      ? `${primaryColor}20`
+                      : iconBg,
                   },
                 ]}
               >
-                {opt.label}
-              </Text>
-              {selected && (
-                <View
+                <Icon size={20} color={iconColor} />
+              </View>
+
+              {/* Label + subtitle */}
+              <View style={orderTypeSheetStyles.textBlock}>
+                <Text
                   style={[
-                    orderTypeSheetStyles.radio,
-                    { backgroundColor: primaryColor },
+                    orderTypeSheetStyles.optionLabel,
+                    {
+                      fontWeight: selected ? '600' : '400',
+                      color: labelColor,
+                    },
                   ]}
                 >
-                  <View style={orderTypeSheetStyles.radioDot} />
-                </View>
-              )}
+                  {opt.label}
+                </Text>
+                <Text
+                  style={[
+                    orderTypeSheetStyles.optionSubtitle,
+                    { color: mutedColor },
+                  ]}
+                >
+                  {ORDER_TYPE_SUBTITLES[opt.value]}
+                </Text>
+              </View>
+
+              {/* Always-visible radio ring */}
+              <View
+                style={[
+                  orderTypeSheetStyles.radio,
+                  {
+                    borderColor: selected ? primaryColor : radioRingColor,
+                    backgroundColor: selected ? primaryColor : 'transparent',
+                  },
+                ]}
+              >
+                {selected && <View style={orderTypeSheetStyles.radioDot} />}
+              </View>
             </TouchableOpacity>
           )
         })}
@@ -188,19 +219,33 @@ const orderTypeSheetStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    paddingVertical: 12,
+    paddingHorizontal: 14,
     borderRadius: 12,
     borderWidth: 1.5,
   },
-  optionLabel: {
+  iconWrap: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  textBlock: {
     flex: 1,
+    gap: 2,
+  },
+  optionLabel: {
     fontSize: 15,
+  },
+  optionSubtitle: {
+    fontSize: 12,
   },
   radio: {
     width: 20,
     height: 20,
     borderRadius: 10,
+    borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
   },
