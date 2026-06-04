@@ -48,7 +48,10 @@ function CancelOrderDialogComponent({
   const hasPresentedRef = useRef(false)
 
   const handleOpen = useCallback(() => setVisible(true), [])
-  const handleClose = useCallback(() => setVisible(false), [])
+  const handleClose = useCallback(() => {
+    hasPresentedRef.current = false
+    setVisible(false)
+  }, [])
 
   useEffect(() => {
     return () => {
