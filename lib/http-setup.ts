@@ -2,9 +2,11 @@
  * Bootstrap cho HTTP client — inject auth state từ stores.
  * Gọi ngay khi app khởi động để tránh require cycle (utils/http ↔ stores).
  */
-import { configureHttpAuth } from '@/utils/http'
+import { configureHttpAuth, resetHttpState } from '@/utils/http'
 import { useAuthStore, useUserStore } from '@/stores'
 import { useNotificationStore } from '@/stores/notification.store'
+import { queryClient } from '@/lib/query-client'
+import { QUERYKEY } from '@/constants'
 
 configureHttpAuth({
   getAuthState: () => {
@@ -23,6 +25,8 @@ configureHttpAuth({
     }
   },
   onLogout: async () => {
+    resetHttpState()
+    queryClient.removeQueries({ queryKey: [QUERYKEY.loyaltyPoints] })
     // Capture token BEFORE removeUserInfo() clears it
     const capturedToken = useUserStore.getState().deviceToken
     const { cleanupTokenOnLogout } = await import('@/lib/fcm-token-manager')

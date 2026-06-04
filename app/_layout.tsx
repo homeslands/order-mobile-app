@@ -1,9 +1,6 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import {
   focusManager,
-  MutationCache,
-  QueryCache,
-  QueryClient,
   QueryClientProvider,
 } from '@tanstack/react-query'
 import * as SplashScreen from 'expo-splash-screen'
@@ -23,6 +20,7 @@ import {
 import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 
+import LoginSheetPortal from '@/components/auth/login-sheet-portal'
 import LogoutSheetPortal from '@/components/profile/logout-sheet-portal'
 import QRSelectionSheet from '@/components/profile/qr-selection-sheet'
 import ScanSheetPortal from '@/components/profile/scan-sheet-portal'
@@ -35,6 +33,7 @@ import {
 } from '@/hooks/use-navigation-bar-fixed'
 import '@/lib/http-setup'
 import { NavigationEngineProvider } from '@/lib/navigation'
+import { queryClient } from '@/lib/query-client'
 import { isNotificationNavigationPending } from '@/lib/notification-navigation'
 import { SharedElementProvider } from '@/lib/shared-element'
 import '@/lib/store-sync-setup'
@@ -42,7 +41,6 @@ import { AppToastProvider, I18nProvider } from '@/providers'
 import { NotificationProvider } from '@/providers/notification-provider'
 import { FontScaleProvider } from '@/providers/font-scale-provider'
 import { applyTheme, useThemeStore } from '@/stores/theme.store'
-import { showErrorToast } from '@/utils/toast'
 
 import './global.css'
 
@@ -76,40 +74,6 @@ if (typeof global !== 'undefined' && !global.onunhandledrejection) {
     }
   }
 }
-
-function extractStatusCode(error: unknown): number | null {
-  const err = error as {
-    response?: { data?: { statusCode?: number; code?: number } }
-  }
-  return err?.response?.data?.statusCode ?? err?.response?.data?.code ?? null
-}
-
-const queryClient = new QueryClient({
-  queryCache: new QueryCache({
-    onError: (error, query) => {
-      if (query.meta?.skipGlobalError) return
-      const code = extractStatusCode(error)
-      if (code) showErrorToast(code)
-    },
-  }),
-  mutationCache: new MutationCache({
-    onError: (error, _variables, _context, mutation) => {
-      if (mutation.options.onError) return
-      if (mutation.meta?.skipGlobalError) return
-      const code = extractStatusCode(error)
-      if (code) showErrorToast(code)
-    },
-  }),
-  defaultOptions: {
-    queries: {
-      // Performance optimizations: stale time 30s, cache 5min
-      staleTime: 30 * 1000,
-      gcTime: 5 * 60 * 1000,
-      retry: 1,
-      refetchOnWindowFocus: false,
-    },
-  },
-})
 
 const SPLASH_TIMEOUT_MS = 5000 // Fallback: ẩn splash sau 5s nếu font/init treo
 
@@ -162,6 +126,7 @@ function AppContent() {
         <SafeAreaProvider>
           <QueryClientProvider client={queryClient}>
             <BottomSheetModalProvider>
+              <LoginSheetPortal />
               <LogoutSheetPortal />
               <QRSelectionSheet />
               <ScanSheetPortal />

@@ -1,5 +1,4 @@
 import { colors } from '@/constants'
-import { TABLE_SELECT_ITEM_HEIGHT } from '@/constants/list-item-sizes'
 import { useTables } from '@/hooks/use-table'
 import { useBranchStore, useOrderFlowStore } from '@/stores'
 import type { ITable } from '@/types'
@@ -18,8 +17,8 @@ import type { ListRenderItem } from '@shopify/flash-list'
 import { Text } from '@/components/ui/text'
 
 const TABLE_SHEET_SNAP = ['50%']
-// item height (48) + separator (8)
-const ESTIMATED_ITEM_SIZE = TABLE_SELECT_ITEM_HEIGHT + 8
+const COLUMNS = 3
+const CHIP_HEIGHT = 72
 
 export const SimpleTableSheet = memo(function SimpleTableSheet({
   visible,
@@ -51,50 +50,63 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
     ({ item: table }) => {
       const selected = selectedTable === table.slug
       const isAvailable = table.status === 'available'
-      const statusColor = isAvailable ? '#22c55e' : '#ef4444'
+      const statusColor = isAvailable
+        ? isDark
+          ? colors.success.dark
+          : colors.success.light
+        : isDark
+          ? colors.destructive.dark
+          : colors.destructive.light
+
       return (
+        // Opacity on a plain View — not on TouchableOpacity — to avoid
+        // RNGH's animated opacity conflicting with FlashList view recycling.
+        <View style={[chipStyles.chipWrapper, !isAvailable && chipStyles.chipDisabled]}>
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={() => handleSelect(table)}
+          disabled={!isAvailable}
           style={[
-            tableSheetStyles.tableItem,
+            chipStyles.chip,
             {
               borderColor: selected
                 ? primaryColor
                 : isDark
-                  ? colors.gray[700]
+                  ? colors.border.dark
                   : colors.gray[200],
-              backgroundColor: selected ? `${primaryColor}10` : 'transparent',
+              backgroundColor: selected ? `${primaryColor}15` : 'transparent',
             },
           ]}
         >
-          <View
+          {selected && (
+            <CheckCircle
+              size={14}
+              color={primaryColor}
+              style={chipStyles.checkIcon}
+            />
+          )}
+          <Text
             style={[
-              tableSheetStyles.statusDot,
-              { backgroundColor: statusColor },
+              chipStyles.chipName,
+              {
+                color: isDark ? colors.gray[50] : colors.gray[900],
+                fontWeight: selected ? '700' : '500',
+              },
             ]}
-          />
-          <View style={tableSheetStyles.tableNameRow}>
-            <Text
-              style={[
-                tableSheetStyles.tableName,
-                {
-                  color: isDark ? colors.gray[50] : colors.gray[900],
-                  fontWeight: selected ? '600' : '400',
-                },
-              ]}
-              numberOfLines={1}
-            >
-              Bàn {table.name}
-            </Text>
-            <Text
-              style={[tableSheetStyles.tableStatus, { color: statusColor }]}
-            >
-              · {isAvailable ? 'Trống' : 'Đã đặt'}
+            numberOfLines={1}
+          >
+            {table.name}
+          </Text>
+          <View style={chipStyles.statusRow}>
+            <View
+              style={[chipStyles.statusDot, { backgroundColor: statusColor }]}
+            />
+            <Text style={[chipStyles.statusText, { color: statusColor }]}>
+              {isAvailable ? 'Trống' : 'Đặt'}
             </Text>
           </View>
-          {selected && <CheckCircle size={16} color={primaryColor} />}
         </TouchableOpacity>
+        </View>
       )
     },
     [selectedTable, primaryColor, isDark, handleSelect],
@@ -106,7 +118,7 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
     () => (
       <Text
         style={[
-          tableSheetStyles.title,
+          chipStyles.title,
           { color: isDark ? colors.gray[50] : colors.gray[900] },
         ]}
       >
@@ -119,10 +131,10 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
   const ListEmpty = useMemo(
     () =>
       isLoading ? (
-        <View style={tableSheetStyles.loadingWrap}>
+        <View style={chipStyles.loadingWrap}>
           <ActivityIndicator
             size="small"
-            color={isDark ? '#9ca3af' : '#6b7280'}
+            color={isDark ? colors.mutedForeground.dark : colors.mutedForeground.light}
           />
           <Text
             style={{
@@ -147,11 +159,6 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
         </Text>
       ),
     [isLoading, isDark],
-  )
-
-  const ItemSeparator = useCallback(
-    () => <View style={tableSheetStyles.separator} />,
-    [],
   )
 
   const bgStyle = useMemo(
@@ -193,60 +200,70 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
         data={allTables}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
-        estimatedItemSize={ESTIMATED_ITEM_SIZE}
+        numColumns={COLUMNS}
+        estimatedItemSize={CHIP_HEIGHT}
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={ListEmpty}
-        ItemSeparatorComponent={ItemSeparator}
-        contentContainerStyle={tableSheetStyles.scrollContent}
+        contentContainerStyle={chipStyles.scrollContent}
         showsVerticalScrollIndicator={false}
       />
     </BottomSheetModal>
   )
 })
 
-const tableSheetStyles = StyleSheet.create({
+const chipStyles = StyleSheet.create({
   scrollContent: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingTop: 8,
-    paddingBottom: 20,
+    paddingBottom: 24,
   },
   title: {
     fontSize: 17,
     fontWeight: '700',
     marginBottom: 12,
+    paddingHorizontal: 4,
   },
   loadingWrap: {
     alignItems: 'center',
     paddingVertical: 24,
   },
-  separator: {
-    height: 8,
+  chipWrapper: {
+    flex: 1,
+    margin: 4,
   },
-  tableItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
+  chipDisabled: {
+    opacity: 0.4,
+  },
+  chip: {
+    flex: 1,
     paddingVertical: 12,
-    paddingHorizontal: 14,
+    paddingHorizontal: 8,
     borderRadius: 10,
     borderWidth: 1.5,
+    alignItems: 'center',
+    gap: 6,
   },
-  statusDot: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
+  checkIcon: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
   },
-  tableNameRow: {
-    flex: 1,
+  chipName: {
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
   },
-  tableName: {
-    fontSize: 14,
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
   },
-  tableStatus: {
-    fontSize: 12,
+  statusText: {
+    fontSize: 11,
     fontWeight: '500',
   },
 })

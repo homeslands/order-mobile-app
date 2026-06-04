@@ -26,10 +26,9 @@ function OrderHistorySkeletonComponent({
           { backgroundColor: headerBg, borderBottomColor: headerBorder },
         ]}
       >
-        <Skeleton
-          style={{ width: 24, height: 24, borderRadius: 12, marginRight: 12 }}
-        />
+        <Skeleton style={{ width: 42, height: 42, borderRadius: 21 }} />
         <Skeleton style={{ width: 160, height: 20, borderRadius: 6 }} />
+        <Skeleton style={{ width: 42, height: 42, borderRadius: 21 }} />
       </View>
       <ScrollView contentContainerStyle={styles.listPadding}>
         {SKELETON_KEYS.map((key) => (
@@ -83,7 +82,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  listPadding: { paddingHorizontal: 16, paddingTop: 130, paddingBottom: 24 },
+  listPadding: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 24 },
   skeletonCard: {
     marginBottom: 16,
     borderRadius: 12,

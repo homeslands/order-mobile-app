@@ -2,12 +2,15 @@
  * Thông tin cá nhân — UI giống Profile: avatar, 2 nút header, các trường thông tin bên dưới.
  */
 import { FloatingHeader } from '@/components/navigation'
-import { colors, publicFileURL } from '@/constants'
+import { colors, publicFileURL, QUERYKEY } from '@/constants'
 import { ROUTE } from '@/constants/route.contstant'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { navigateNative } from '@/lib/navigation'
 import { cleanupTokenOnLogout } from '@/lib/fcm-token-manager'
+import { useQueryClient } from '@tanstack/react-query'
 import { useAuthStore, useUserStore } from '@/stores'
+import { useNotificationStore } from '@/stores/notification.store'
+import { resetHttpState } from '@/utils/http'
 import { useLogoutSheetStore } from '@/stores/logout-sheet.store'
 import { showToast } from '@/utils'
 import dayjs from 'dayjs'
@@ -212,6 +215,7 @@ export default function GeneralInfo() {
   const { t } = useTranslation('profile')
   const { t: tToast } = useTranslation('toast')
 
+  const queryClient = useQueryClient()
   const userInfo = useUserStore((state) => state.userInfo)
   const setLogout = useAuthStore((state) => state.setLogout)
   const removeUserInfo = useUserStore((state) => state.removeUserInfo)
@@ -224,17 +228,20 @@ export default function GeneralInfo() {
   const openLogoutSheet = useLogoutSheetStore((s) => s.open)
 
   const handleLogoutConfirm = useCallback(async () => {
+    resetHttpState()
+    queryClient.removeQueries({ queryKey: [QUERYKEY.loyaltyPoints] })
     isLoggingOutRef.current = true
     const capturedToken = useUserStore.getState().deviceToken ?? undefined
     await Promise.race([
       cleanupTokenOnLogout(capturedToken),
       new Promise<void>((r) => setTimeout(r, 3000)),
     ]).catch(() => {})
+    useNotificationStore.getState().clearAll()
     setLogout()
     removeUserInfo()
     router.replace('/(tabs)/home' as never)
     showToast(tToast('logoutSuccess', 'Đăng xuất thành công'))
-  }, [removeUserInfo, router, setLogout, tToast])
+  }, [queryClient, removeUserInfo, router, setLogout, tToast])
 
   const handleLogoutPress = useCallback(() => {
     openLogoutSheet(handleLogoutConfirm)

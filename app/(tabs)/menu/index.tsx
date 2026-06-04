@@ -19,7 +19,8 @@ import { useTransientNavStore } from '@/stores/transient-nav.store'
 import type { ISpecificMenuRequest } from '@/types'
 import { IOrderItem } from '@/types'
 import { getProductImageUrl } from '@/utils/product-image-url'
-import { showErrorToastMessage, showToast } from '@/utils/toast'
+import { useLoginSheetStore } from '@/stores/login-sheet.store'
+import { showToast } from '@/utils/toast'
 import { useFocusEffect } from '@react-navigation/native'
 import { FlashList } from '@shopify/flash-list'
 import { useQuery } from '@tanstack/react-query'
@@ -34,6 +35,7 @@ import React, {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
+import { MapPin } from 'lucide-react-native'
 import {
   AppState,
   InteractionManager,
@@ -42,6 +44,7 @@ import {
   useColorScheme,
   View,
 } from 'react-native'
+import { PressableWithFeedback } from '@/components/navigation/pressable-with-feedback'
 
 import type { CatalogChipData } from './menu-filter-bar'
 import { MenuFilterBar } from './menu-filter-bar'
@@ -227,6 +230,16 @@ export default function MenuPage() {
       })
     },
     [setMenuFilter],
+  )
+
+  const [openBranchSheet, setOpenBranchSheet] = useState(false)
+  const handleOpenBranchSheet = useCallback(
+    () => setOpenBranchSheet(true),
+    [],
+  )
+  const handleBranchSheetConsumed = useCallback(
+    () => setOpenBranchSheet(false),
+    [],
   )
 
   const [priceSheetVisible, setPriceSheetVisible] = useState(false)
@@ -524,8 +537,7 @@ export default function MenuPage() {
   const handleAddToCart = useCallback(
     (itemId: string) => {
       if (!useUserStore.getState().userInfo?.slug) {
-        showErrorToastMessage('toast.unloggedIn')
-        router.push('/auth/login' as Parameters<typeof router.push>[0])
+        useLoginSheetStore.getState().open()
         return
       }
 
@@ -574,7 +586,7 @@ export default function MenuPage() {
       store.addOrderingItem(orderItem)
       showToast(t('menu.addedToCart', { name: displayItem.name }))
     },
-    [t, router],
+    [t],
   )
 
   const catalogHeaderColor = isDark ? colors.gray[400] : colors.gray[500]
@@ -646,7 +658,11 @@ export default function MenuPage() {
                   : colors.mutedForeground.light
               }
             />
-            <SelectBranchDropdown autoOpen={allowFetch && !hasBranch} />
+            <SelectBranchDropdown
+              autoOpen={allowFetch && !hasBranch}
+              forceOpen={openBranchSheet}
+              onForceOpenConsumed={handleBranchSheetConsumed}
+            />
           </View>
         </View>
         {hasBranch && (
@@ -679,10 +695,44 @@ export default function MenuPage() {
         <View
           style={[
             styles.emptyBox,
+            styles.emptyBranchBox,
             { backgroundColor: isDark ? colors.card.dark : colors.gray[100] },
           ]}
         >
-          <Text style={styles.emptyText}>{t('menu.selectBranchPrompt')}</Text>
+          <MapPin
+            size={32}
+            color={colors.gray[400]}
+            strokeWidth={1.5}
+          />
+          <Text
+            style={[
+              styles.emptyText,
+              styles.emptyBranchTitle,
+              { color: isDark ? colors.gray[200] : colors.gray[700] },
+            ]}
+          >
+            {t('menu.selectBranchPrompt')}
+          </Text>
+          <Text
+            style={[
+              styles.emptyText,
+              { color: isDark ? colors.gray[400] : colors.gray[500] },
+            ]}
+          >
+            {t('menu.selectBranchSubtitle')}
+          </Text>
+          <PressableWithFeedback
+            onPress={handleOpenBranchSheet}
+            style={[
+              styles.selectBranchBtn,
+              { backgroundColor: primaryColor },
+            ]}
+            hapticStyle="light"
+          >
+            <Text style={styles.selectBranchBtnText}>
+              {t('menu.selectBranchAction')}
+            </Text>
+          </PressableWithFeedback>
         </View>
       ) : (
         <MenuImagePhaseContext.Provider value={imagePhaseCount}>
@@ -802,6 +852,29 @@ const styles = StyleSheet.create({
     margin: 16,
     borderRadius: 12,
     padding: 16,
+  },
+  emptyBranchBox: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 32,
+  },
+  emptyBranchTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  selectBranchBtn: {
+    marginTop: 8,
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectBranchBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: colors.white.light,
   },
   emptyText: {
     fontSize: 14,

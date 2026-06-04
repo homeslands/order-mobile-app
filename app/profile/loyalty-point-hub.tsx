@@ -152,12 +152,12 @@ const tf = StyleSheet.create({
 
 function SkeletonList() {
   return (
-    <View style={{ paddingHorizontal: 16, paddingTop: 10, gap: 10 }}>
+    <View style={{ paddingHorizontal: 16, paddingTop: 12, gap: 10 }}>
       {Array.from({ length: 6 }).map((_, i) => (
         <Skeleton
           key={i}
           className="w-full rounded-2xl"
-          style={{ height: 100 }}
+          style={{ height: LOYALTY_HUB_ITEM_HEIGHT }}
         />
       ))}
     </View>

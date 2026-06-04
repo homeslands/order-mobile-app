@@ -14,9 +14,10 @@ import { Text } from '@/components/ui/text'
 
 interface LoginFormProps {
   onLoginSuccess?: () => void
+  onBeforeNavigate?: () => void
 }
 
-export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
+export default function LoginForm({ onLoginSuccess, onBeforeNavigate }: LoginFormProps) {
   const { t } = useTranslation('auth')
 
   const {
@@ -89,7 +90,10 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
             {t('login.password')}
           </Text>
           <TouchableOpacity
-            onPress={() => navigateNative.push(ROUTE.FORGOT_PASSWORD)}
+            onPress={() => {
+              onBeforeNavigate?.()
+              navigateNative.push(ROUTE.FORGOT_PASSWORD)
+            }}
             disabled={isLoading}
             hitSlop={8}
           >
@@ -143,7 +147,10 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
       {/* Register link */}
       <TouchableOpacity
         className="mt-6 items-center"
-        onPress={() => navigateNative.replace('/auth/register')}
+        onPress={() => {
+          onBeforeNavigate?.()
+          navigateNative.replace('/auth/register')
+        }}
         disabled={isLoading}
       >
         <Text className="font-sans text-sm text-gray-500 dark:text-gray-400">
@@ -157,7 +164,10 @@ export default function LoginForm({ onLoginSuccess }: LoginFormProps) {
       {/* Back to home */}
       <TouchableOpacity
         className="mt-4 items-center"
-        onPress={() => navigateNative.replace('/(tabs)/home')}
+        onPress={() => {
+          onBeforeNavigate?.()
+          navigateNative.replace('/(tabs)/home')
+        }}
         disabled={isLoading}
       >
         <Text className="font-sans text-sm text-gray-500 dark:text-gray-400">

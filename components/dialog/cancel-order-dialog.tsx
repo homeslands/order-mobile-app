@@ -17,6 +17,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '@/constants'
 import { useDeleteOrder } from '@/hooks'
+import { navigateNative } from '@/lib/navigation'
 import type { IOrder } from '@/types'
 import { showToast } from '@/utils'
 import { useQueryClient } from '@tanstack/react-query'
@@ -44,21 +45,16 @@ function CancelOrderDialogComponent({
   const { bottom: bottomInset } = useSafeAreaInsets()
 
   const sheetRef = useRef<BottomSheetModal>(null)
-  const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hasPresentedRef = useRef(false)
 
   const handleOpen = useCallback(() => setVisible(true), [])
   const handleClose = useCallback(() => setVisible(false), [])
 
   useEffect(() => {
-    return () => {
-      if (successTimerRef.current) clearTimeout(successTimerRef.current)
-    }
-  }, [])
-
-  useEffect(() => {
     if (visible) {
+      hasPresentedRef.current = true
       sheetRef.current?.present()
-    } else {
+    } else if (hasPresentedRef.current) {
       sheetRef.current?.dismiss()
     }
   }, [visible])
@@ -67,14 +63,13 @@ function CancelOrderDialogComponent({
     if (!order?.slug || isDeleting) return
     deleteOrder(order.slug, {
       onSuccess: () => {
-        if (successTimerRef.current) clearTimeout(successTimerRef.current)
-        successTimerRef.current = setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ['orders'] })
-          queryClient.invalidateQueries({ queryKey: ['order', order.slug] })
-          showToast(tToast('toast.handleCancelOrderSuccess'))
-          setVisible(false)
-          successTimerRef.current = null
-        }, 500)
+        queryClient.invalidateQueries({ queryKey: ['orders'] })
+        queryClient.removeQueries({ queryKey: ['order', order.slug] })
+        showToast(tToast('toast.handleCancelOrderSuccess'))
+        navigateNative.back()
+      },
+      onError: () => {
+        showToast(tToast('toast.handleCancelOrderError'), 'error')
       },
     })
   }, [order, isDeleting, deleteOrder, queryClient, tToast])
@@ -91,10 +86,10 @@ function CancelOrderDialogComponent({
         disappearsOnIndex={-1}
         appearsOnIndex={0}
         opacity={0.5}
-        pressBehavior="close"
+        pressBehavior={isDeleting ? 'none' : 'close'}
       />
     ),
-    [],
+    [isDeleting],
   )
 
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
@@ -122,7 +117,7 @@ function CancelOrderDialogComponent({
       <BottomSheetModal
         ref={sheetRef}
         snapPoints={SNAP_POINTS}
-        enablePanDownToClose
+        enablePanDownToClose={!isDeleting}
         enableDynamicSizing={false}
         backdropComponent={renderBackdrop}
         backgroundStyle={bgStyle}
