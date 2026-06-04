@@ -68,6 +68,18 @@ const processQueue = (error: unknown, token: string | null = null) => {
   failedQueue.length = 0
 }
 
+/**
+ * Reset HTTP interceptor state — call on login/logout to prevent stale
+ * isRefreshing flag from trapping new requests in failedQueue across sessions.
+ */
+export function resetHttpState(): void {
+  if (isRefreshing) {
+    processQueue(new Error('HTTP queue flushed: session reset on logout/login'), null)
+  }
+  isRefreshing = false
+  getAuthState?.().setIsRefreshing(false)
+}
+
 const isTokenExpired = (expiryTime: string): boolean => {
   const currentDate = new Date()
   const expireDate = new Date(expiryTime)

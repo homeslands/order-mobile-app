@@ -25,11 +25,14 @@ import { LoginForm } from '@/components/auth'
 import { ScreenContainer } from '@/components/layout'
 import { DeleteAccountSheet } from '@/components/profile'
 import { AnimatedProfileHeader } from '@/components/profile/animated-profile-header'
-import { colors } from '@/constants'
+import { colors, QUERYKEY } from '@/constants'
 import { PROFILE_SETTINGS_ITEM_HEIGHT } from '@/constants/list-item-sizes'
 import { useLoyaltyPoints, useRunAfterTransition } from '@/hooks'
 import { useAuthStore, useUserStore } from '@/stores'
+import { useNotificationStore } from '@/stores/notification.store'
 import { cleanupTokenOnLogout } from '@/lib/fcm-token-manager'
+import { useQueryClient } from '@tanstack/react-query'
+import { resetHttpState } from '@/utils/http'
 import {
   ProfileItem,
   type ProfileItemProps,
@@ -68,6 +71,7 @@ export default function ProfilePlaceholderScreen() {
   const userInfo = useUserStore((state) => state.userInfo)
   const setLogout = useAuthStore((state) => state.setLogout)
   const removeUserInfo = useUserStore((state) => state.removeUserInfo)
+  const queryClient = useQueryClient()
   const [showDeleteSheet, setShowDeleteSheet] = useState(false)
 
   const settingsItems = useMemo<ProfileSettingItem[]>(
@@ -164,27 +168,34 @@ export default function ProfilePlaceholderScreen() {
   )
 
   const handleLogout = useCallback(async () => {
+    resetHttpState()
+    queryClient.removeQueries({ queryKey: [QUERYKEY.loyaltyPoints] })
     const capturedToken = useUserStore.getState().deviceToken ?? undefined
     await Promise.race([
       cleanupTokenOnLogout(capturedToken),
       new Promise<void>((r) => setTimeout(r, 3000)),
     ]).catch(() => {})
+    useNotificationStore.getState().clearAll()
     setLogout()
     removeUserInfo()
     router.replace('/(tabs)/home' as never)
-  }, [router, removeUserInfo, setLogout])
+  }, [queryClient, router, removeUserInfo, setLogout])
 
   const handleDeleteSuccess = useCallback(() => {
+    resetHttpState()
+    queryClient.removeQueries({ queryKey: [QUERYKEY.loyaltyPoints] })
+    // Capture token BEFORE removeUserInfo() clears it
+    const capturedToken = useUserStore.getState().deviceToken ?? undefined
+    useNotificationStore.getState().clearAll()
     setLogout()
     removeUserInfo()
     router.replace('/(tabs)/home' as never)
     // FCM cleanup runs in background — không block navigation
-    const capturedToken = useUserStore.getState().deviceToken ?? undefined
     void Promise.race([
       cleanupTokenOnLogout(capturedToken),
       new Promise<void>((r) => setTimeout(r, 3000)),
     ]).catch(() => {})
-  }, [router, removeUserInfo, setLogout])
+  }, [queryClient, router, removeUserInfo, setLogout])
 
   const overrideItemLayout = useCallback(
     (layout: { span?: number; size?: number }) => {

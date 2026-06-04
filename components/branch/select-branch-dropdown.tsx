@@ -14,9 +14,18 @@ interface SelectBranchDropdownProps {
    *  Nên truyền từ màn hình sau khi animation và interactions đã hoàn tất
    *  (vd: sau allowFetch trong menu screen) để tránh conflict với transition. */
   autoOpen?: boolean
+  /** Khi true: mở sheet ngay lập tức (dùng cho CTA button từ empty state).
+   *  Caller phải reset về false trong onForceOpenConsumed để tránh re-open. */
+  forceOpen?: boolean
+  /** Callback để caller reset forceOpen về false sau khi sheet đã được mở. */
+  onForceOpenConsumed?: () => void
 }
 
-function SelectBranchDropdown({ autoOpen = false }: SelectBranchDropdownProps) {
+function SelectBranchDropdown({
+  autoOpen = false,
+  forceOpen = false,
+  onForceOpenConsumed,
+}: SelectBranchDropdownProps) {
   const [sheetVisible, setSheetVisible] = useState(false)
   const branch = useBranchStore((s) => s.branch)
   const setBranch = useBranchStore((s) => s.setBranch)
@@ -47,6 +56,13 @@ function SelectBranchDropdown({ autoOpen = false }: SelectBranchDropdownProps) {
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSheetVisible(true)
   }, [autoOpen, branch, branchRes, setBranch])
+
+  useEffect(() => {
+    if (!forceOpen) return
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSheetVisible(true)
+    onForceOpenConsumed?.()
+  }, [forceOpen, onForceOpenConsumed])
 
   const openSheet = useCallback(() => setSheetVisible(true), [])
   const closeSheet = useCallback(() => setSheetVisible(false), [])

@@ -1,3 +1,5 @@
+import { getSystemFeatureFlagsByGroup } from '@/api'
+import { QUERYKEY, SystemLockFeatureGroup } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { shouldAutoRemoveVoucher } from '@/components/sheet/voucher-validation'
 import { useCartValidation } from '@/hooks/use-cart-validation'
@@ -9,6 +11,7 @@ import {
   useCartVoucher,
 } from '@/stores/cart.store'
 import { showToast } from '@/utils'
+import { useQueryClient } from '@tanstack/react-query'
 import { FlashList } from '@shopify/flash-list'
 import { useRouter } from 'expo-router'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -29,6 +32,7 @@ import { CartSizeSheet } from './cart-size-sheet'
 // ─── List helpers (module-level — 0 allocation per render) ───────────────────
 
 const ItemSeparator = () => <View style={listStyles.separator} />
+const getCartItemType = () => 'cartItem'
 
 const listStyles = StyleSheet.create({
   root: { flex: 1 },
@@ -94,12 +98,19 @@ export default function CartContent({
 
   // ── Cart validation against today's menu (auto, once per day) ──
   const { validate } = useCartValidation()
+  const queryClient = useQueryClient()
   const didAutoValidateRef = useRef(false)
   useEffect(() => {
     if (didAutoValidateRef.current || rawItems.length === 0) return
     didAutoValidateRef.current = true
     validate()
-  }, [validate, rawItems.length])
+    // Pre-warm feature flags cache so "Đặt hàng" opens sheet without delay
+    queryClient.prefetchQuery({
+      queryKey: [QUERYKEY.systemFeatureFlagsByGroup, SystemLockFeatureGroup.ORDER],
+      queryFn: () => getSystemFeatureFlagsByGroup(SystemLockFeatureGroup.ORDER),
+      staleTime: 5_000,
+    })
+  }, [validate, queryClient, rawItems.length])
 
   const [sizeSheetItemId, setSizeSheetItemId] = useState<string | null>(null)
   const handleSizePress = useCallback(
@@ -141,6 +152,11 @@ export default function CartContent({
 
   const keyExtractor = useCallback((item: CartDisplayItem) => item.cartKey, [])
 
+  const CartOrderNoteFooter = useCallback(
+    () => <CartOrderNote isDark={isDark} />,
+    [isDark],
+  )
+
   if (items.length === 0) {
     return (
       <CartEmpty
@@ -158,13 +174,13 @@ export default function CartContent({
         data={items}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
-        getItemType={() => 'cartItem'}
+        getItemType={getCartItemType}
         onScroll={handleScroll}
         scrollEventThrottle={32}
         contentContainerStyle={listStyles.content}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={ItemSeparator}
-        ListFooterComponent={<CartOrderNote isDark={isDark} />}
+        ListFooterComponent={CartOrderNoteFooter}
       />
       <CartFooter primaryColor={primaryColor} isDark={isDark} />
       <CartSizeSheet

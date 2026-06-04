@@ -105,6 +105,8 @@
     "updateMenuItem": "Update menu item",
     "updateMenuItemDescription": "Modify details to update menu item",
     "selectBranchPrompt": "Please select a branch to view menu.",
+    "selectBranchSubtitle": "Choose a branch near you to browse the menu and place an order.",
+    "selectBranchAction": "Select branch",
     "loadingMenu": "Loading menu...",
     "noMenuData": "No menu data. Please select a different branch or try again later.",
     "catalogEmpty": "Product categories will be updated soon",

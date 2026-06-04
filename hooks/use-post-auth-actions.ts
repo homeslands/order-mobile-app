@@ -17,6 +17,7 @@ import { useProfile } from '@/hooks/use-profile'
 import { navigateNative } from '@/lib/navigation'
 import { useMasterTransitionOptional } from '@/lib/navigation/master-transition-provider'
 import { useAuthStore, useUserStore } from '@/stores'
+import { resetHttpState } from '@/utils/http'
 import { useShallow } from 'zustand/react/shallow'
 
 export interface ITokenPayload {
@@ -84,6 +85,8 @@ export function usePostAuthActions() {
       const profileResult = profile.data?.result
 
       if (!profileResult) {
+        resetHttpState()
+        queryClient.removeQueries({ queryKey: [QUERYKEY.loyaltyPoints] })
         const capturedToken = useUserStore.getState().deviceToken ?? undefined
         const { cleanupTokenOnLogout } = await import('@/lib/fcm-token-manager')
         await Promise.race([
@@ -97,6 +100,8 @@ export function usePostAuthActions() {
 
       // 3. Chặn tài khoản không phải CUSTOMER
       if (profileResult.role?.name !== Role.CUSTOMER) {
+        resetHttpState()
+        queryClient.removeQueries({ queryKey: [QUERYKEY.loyaltyPoints] })
         const capturedToken = useUserStore.getState().deviceToken ?? undefined
         const { cleanupTokenOnLogout } = await import('@/lib/fcm-token-manager')
         await Promise.race([

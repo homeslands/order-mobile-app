@@ -108,12 +108,15 @@ export const CartFooter = memo(function CartFooter({
   const { validate } = useCartValidation()
   const setOrderingType = useOrderFlowStore((s) => s.setOrderingType)
 
-  const orderTypeLabel =
-    orderType === 'take-out'
-      ? t('menu.takeAway')
-      : orderType === 'delivery'
-        ? t('menu.delivery')
-        : t('menu.dineIn')
+  const orderTypeLabel = useMemo(
+    () =>
+      orderType === 'take-out'
+        ? t('menu.takeAway')
+        : orderType === 'delivery'
+          ? t('menu.delivery')
+          : t('menu.dineIn'),
+    [orderType, t],
+  )
 
   const closeConfirmSheet = useCallback(() => setConfirmSheetVisible(false), [])
   const closeOrderTypeSheet = useCallback(
@@ -143,9 +146,13 @@ export const CartFooter = memo(function CartFooter({
     orderType === 'delivery' &&
     (!deliveryAddress || !deliveryPhone || !/^[0-9]{10}$/.test(deliveryPhone))
   const isOrderDisabled = (showTableSelect && !tableName) || needsDeliveryInfo
-  const orderBtnLabel = isOrderDisabled
-    ? t('menu.selectTable', 'Chọn bàn')
-    : t('cart.placeOrder', 'Đặt hàng')
+  const orderBtnLabel = useMemo(
+    () =>
+      isOrderDisabled
+        ? t('menu.selectTable', 'Chọn bàn')
+        : t('cart.placeOrder', 'Đặt hàng'),
+    [isOrderDisabled, t],
+  )
 
   const openOrderTypeSheet = useCallback(
     () => setOrderTypeSheetVisible(true),
@@ -155,38 +162,39 @@ export const CartFooter = memo(function CartFooter({
   const openVoucherSheet = useCallback(() => setVoucherSheetOpen(true), [])
   const openConfirmSheet = useCallback(async () => {
     if (isOrderDisabled) return
-    await validate(true)
-    // After validation, check if cart still has items
+
+    // Chạy song song: validate menu + fetch feature flags (cả 2 thường đã warm cache)
+    const [, flagsResponse] = await Promise.all([
+      validate(true),
+      queryClient
+        .fetchQuery({
+          queryKey: [
+            QUERYKEY.systemFeatureFlagsByGroup,
+            SystemLockFeatureGroup.ORDER,
+          ],
+          queryFn: () =>
+            getSystemFeatureFlagsByGroup(SystemLockFeatureGroup.ORDER),
+          staleTime: 5_000,
+        })
+        .catch(() => null),
+    ])
+
     const remaining = useOrderFlowStore.getState().orderingData?.orderItems
     if (!remaining || remaining.length === 0) return
 
-    // Proactive: fetch fresh feature flags để đảm bảo order type chưa bị khoá
-    // staleTime 5s — dùng cache nếu còn mới, tránh fetch thừa
-    try {
-      const flagsResponse = await queryClient.fetchQuery({
-        queryKey: [
-          QUERYKEY.systemFeatureFlagsByGroup,
-          SystemLockFeatureGroup.ORDER,
-        ],
-        queryFn: () =>
-          getSystemFeatureFlagsByGroup(SystemLockFeatureGroup.ORDER),
-        staleTime: 5_000,
-      })
+    if (flagsResponse) {
       const currentType = useOrderFlowStore.getState().orderingData?.type
       const available = getAvailableOrderTypes(
         flagsResponse.result ?? [],
         hasUser,
       )
       if (currentType && !available.includes(currentType)) {
-        // Type bị khoá: tự chuyển sang type đầu tiên còn khả dụng để user thấy ngay
         if (available.length > 0) {
           setOrderingType(available[0] as Parameters<typeof setOrderingType>[0])
         }
         showErrorToastMessage('toast.orderTypeUnavailable')
         return
       }
-    } catch {
-      // Lỗi mạng: bỏ qua, để BE validate khi submit
     }
 
     setConfirmSheetVisible(true)
@@ -199,7 +207,7 @@ export const CartFooter = memo(function CartFooter({
         backgroundColor: isDark ? colors.card.dark : colors.white.light,
       },
       selectBtnBorder: {
-        borderColor: isDark ? colors.gray[700] : colors.gray[200],
+        borderColor: isDark ? colors.border.dark : colors.gray[200],
       },
       selectBtnTextColor: {
         color: isDark ? colors.gray[50] : colors.gray[900],
@@ -213,7 +221,7 @@ export const CartFooter = memo(function CartFooter({
       primaryColorStyle: { color: primaryColor },
       primaryBorderStyle: { borderColor: primaryColor },
       disabledBtnBg: {
-        backgroundColor: isDark ? colors.gray[700] : colors.gray[300],
+        backgroundColor: isDark ? colors.border.dark : colors.gray[300],
       },
       disabledTextColor: {
         color: isDark ? colors.gray[400] : colors.gray[500],
@@ -227,7 +235,7 @@ export const CartFooter = memo(function CartFooter({
     () => ({
       borderColor: tableName
         ? isDark
-          ? colors.gray[700]
+          ? colors.border.dark
           : colors.gray[200]
         : isDark
           ? colors.destructive.dark
@@ -254,7 +262,7 @@ export const CartFooter = memo(function CartFooter({
       borderColor: voucher
         ? primaryColor
         : isDark
-          ? colors.gray[600]
+          ? colors.border.dark
           : colors.gray[300],
     }),
     [voucher, primaryColor, isDark],

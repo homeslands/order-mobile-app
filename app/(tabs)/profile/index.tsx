@@ -5,20 +5,16 @@ import {
   LanguageSheet,
   ThemeSheet,
 } from '@/components/profile'
-import { Skeleton } from '@/components/ui'
-import { colors, publicFileURL } from '@/constants'
+import { colors, publicFileURL, QUERYKEY } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { clearOrderDisplayCache } from '@/app/profile/history'
-import {
-  useLoyaltyPoints,
-  useRunAfterTransition,
-  useUploadAvatar,
-} from '@/hooks'
+import { useUploadAvatar } from '@/hooks'
 import { useAuthStore, useUserStore } from '@/stores'
 import { useNotificationStore } from '@/stores/notification.store'
 import { useLogoutSheetStore } from '@/stores/logout-sheet.store'
 import { useQRSelectionSheetStore } from '@/stores/qr-selection-sheet.store'
 import { showToast } from '@/utils'
+import { resetHttpState } from '@/utils/http'
 import {
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
@@ -27,6 +23,7 @@ import {
 import { Image } from 'expo-image'
 import * as ImagePicker from 'expo-image-picker'
 import { LinearGradient } from 'expo-linear-gradient'
+import { useQueryClient } from '@tanstack/react-query'
 import { useFocusEffect, useRouter } from 'expo-router'
 import {
   Camera,
@@ -452,11 +449,10 @@ const ProfileTest = () => {
   const setUserInfo = useUserStore((state) => state.setUserInfo)
   const setLogout = useAuthStore((state) => state.setLogout)
   const removeUserInfo = useUserStore((state) => state.removeUserInfo)
+  const queryClient = useQueryClient()
   const { mutate: uploadAvatar } = useUploadAvatar()
 
-  const [allowFetch, setAllowFetch] = React.useState(false)
   const openLogoutSheet = useLogoutSheetStore((s) => s.open)
-  useRunAfterTransition(() => setAllowFetch(true), [])
 
   useEffect(() => {
     const sub = AppState.addEventListener('memoryWarning', () => {
@@ -472,11 +468,6 @@ const ProfileTest = () => {
     const last = userInfo?.lastName?.charAt(0) || ''
     return `${first}${last}`.toUpperCase()
   }, [userInfo?.firstName, userInfo?.lastName])
-
-  const { isLoading: loyaltyLoading } = useLoyaltyPoints(
-    userInfo?.slug,
-    allowFetch,
-  )
 
   const [isLangSheetOpen, setIsLangSheetOpen] = useState(false)
   const openLangSheet = useCallback(() => setIsLangSheetOpen(true), [])
@@ -572,7 +563,7 @@ const ProfileTest = () => {
   }, [router])
 
   const openPoints = useCallback(() => {
-    router.push('/profile/loyalty-point-hub' as never)
+    router.push('/(tabs)/profile/loyalty-point-hub' as never)
   }, [router])
 
   const openOrdersHistory = useCallback(() => {
@@ -580,12 +571,14 @@ const ProfileTest = () => {
   }, [router])
 
   const openGiftCard = useCallback(() => {
-    router.push('/profile/gift-card-hub' as never)
+    router.push('/(tabs)/profile/gift-card-hub' as never)
   }, [router])
 
   const { t: tToast } = useTranslation('toast')
 
   const handleLogoutConfirm = useCallback(async () => {
+    resetHttpState()
+    queryClient.removeQueries({ queryKey: [QUERYKEY.loyaltyPoints] })
     // Capture token BEFORE removeUserInfo() clears it — avoids race condition
     // where cleanupTokenOnLogout() reads null and skips server unregister
     const capturedToken = useUserStore.getState().deviceToken
@@ -602,7 +595,7 @@ const ProfileTest = () => {
     removeUserInfo()
     router.replace('/(tabs)/home' as never)
     showToast(tToast('logoutSuccess', 'Đăng xuất thành công'))
-  }, [removeUserInfo, setLogout, tToast, router])
+  }, [removeUserInfo, setLogout, tToast, router, queryClient])
 
   const handleLogoutPress = useCallback(() => {
     openLogoutSheet(handleLogoutConfirm)
@@ -626,19 +619,23 @@ const ProfileTest = () => {
   }, [t])
 
   const handleDeleteSuccess = useCallback(() => {
+    resetHttpState()
+    queryClient.removeQueries({ queryKey: [QUERYKEY.loyaltyPoints] })
+    // Capture token BEFORE removeUserInfo() clears it — avoids race condition
+    // where cleanupTokenOnLogout() reads null and skips server unregister
+    const capturedToken = useUserStore.getState().deviceToken
     setLogout()
     removeUserInfo()
     useNotificationStore.getState().clearAll()
     router.replace('/(tabs)/home' as never)
     // FCM cleanup runs in background — không block navigation
-    const capturedToken = useUserStore.getState().deviceToken
     void import('@/lib/fcm-token-manager').then(({ cleanupTokenOnLogout }) =>
       Promise.race([
         cleanupTokenOnLogout(capturedToken ?? undefined),
         new Promise<void>((r) => setTimeout(r, 3000)),
       ]).catch(() => {}),
     )
-  }, [removeUserInfo, setLogout, router])
+  }, [removeUserInfo, setLogout, router, queryClient])
 
   if (needsUserInfo || !userInfo) {
     return (
@@ -782,44 +779,22 @@ const ProfileTest = () => {
                 textColor={theme.text}
                 textMuted={theme.textMuted}
               />
-              {loyaltyLoading ? (
-                <>
-                  <View
-                    style={[
-                      styles.menuItemDivider,
-                      { backgroundColor: theme.divider },
-                    ]}
-                  />
-                  <View style={styles.menuItem}>
-                    <Skeleton
-                      style={[styles.menuIconWrap, { marginRight: 14 }]}
-                    />
-                    <View style={{ flex: 1 }}>
-                      <Skeleton
-                        style={{ height: 16, width: 120, borderRadius: 4 }}
-                      />
-                    </View>
-                    <ChevronRight size={20} color={theme.textMuted} />
-                  </View>
-                </>
-              ) : (
-                <>
-                  <View
-                    style={[
-                      styles.menuItemDivider,
-                      { backgroundColor: theme.divider },
-                    ]}
-                  />
-                  <MenuItem
-                    icon={Trophy}
-                    iconColor={ICON_COLORS.green}
-                    title={t('profile.loyaltyPoint.title', 'Điểm tích lũy')}
-                    onPress={openPoints}
-                    textColor={theme.text}
-                    textMuted={theme.textMuted}
-                  />
-                </>
-              )}
+              <>
+                <View
+                  style={[
+                    styles.menuItemDivider,
+                    { backgroundColor: theme.divider },
+                  ]}
+                />
+                <MenuItem
+                  icon={Trophy}
+                  iconColor={ICON_COLORS.green}
+                  title={t('profile.loyaltyPoint.title', 'Điểm tích lũy')}
+                  onPress={openPoints}
+                  textColor={theme.text}
+                  textMuted={theme.textMuted}
+                />
+              </>
             </View>
 
             {/* Group 4: Settings */}

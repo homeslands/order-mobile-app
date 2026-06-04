@@ -14,8 +14,9 @@ import React, {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Platform, View, useColorScheme } from 'react-native'
+import { Dimensions, Platform, View, useColorScheme } from 'react-native'
 import Animated, {
+  Easing,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
@@ -48,9 +49,12 @@ const TAB_ROUTES = {
   PROFILE: '/(tabs)/profile',
 } as const
 
+const { width: screenWidth } = Dimensions.get('window')
+
 const BAR_HEIGHT = 64
 const BAR_PADDING = 8
 const FADE_HEIGHT = 120
+const SLIDE_EASING = Easing.bezier(0.33, 1, 0.68, 1)
 
 export default function TabsLayout() {
   const { t } = useTranslation('tabs')
@@ -298,12 +302,12 @@ export default function TabsLayout() {
     }
   }, [])
 
-  const barOpacity = useSharedValue(shouldHideBottomBar ? 0 : 1)
+  const barTranslateX = useSharedValue(shouldHideBottomBar ? -screenWidth : 0)
   // Unmount toàn bộ bar + gradient khi ẩn xong để iOS compositor không phải
   // blend gradient 8-stop full-width trên Cart/Product/Payment/Auth screens.
-  // Giữ mounted trong lúc fade-out (để animation chạy), chỉ unmount sau khi
-  // opacity đạt 0. Khi hiển thị lại, reset ngay trong render để mount trước,
-  // rồi fade-in trong effect.
+  // Giữ mounted trong lúc slide-out (để animation chạy), chỉ unmount sau khi
+  // translateX đạt -screenWidth. Khi hiển thị lại, reset ngay trong render
+  // để mount trước, rồi slide-in trong effect.
   const [hasFadedOut, setHasFadedOut] = useState(shouldHideBottomBar)
   // "Adjust state during render" pattern (React docs) — khi user quay lại tab
   // visible, reset cờ ngay lập tức để mount component cùng render đó, tránh
@@ -313,28 +317,32 @@ export default function TabsLayout() {
   }
   const isBarMounted = !hasFadedOut
   useEffect(() => {
-    // Sync duration với stack transition để tab bar fade đồng bộ với slide —
-    // nếu ngắn hơn (trước là 150ms), bar biến mất trước khi slide xong, cảm
-    // giác disconnect.
+    // Tab switch (animation:'none') → màn đổi instant → bar cũng instant.
+    // Native stack push/pop → isTransitioning=true → slide 360ms.
+    const isNativeTransition = masterTransition?.isTransitioning.value ?? false
     if (shouldHideBottomBar) {
-      barOpacity.value = withTiming(
-        0,
-        { duration: MOTION.nativeStack.durationMs },
-        (finished) => {
-          // finished=false khi animation bị huỷ bởi lần render mới (user quay
-          // lại tab nhanh) → bỏ qua để không unmount nhầm.
-          if (finished) runOnJS(setHasFadedOut)(true)
-        },
-      )
+      if (!isNativeTransition) {
+        barTranslateX.value = -screenWidth
+        runOnJS(setHasFadedOut)(true)
+      } else {
+        barTranslateX.value = withTiming(
+          -screenWidth,
+          { duration: MOTION.nativeStack.durationMs, easing: SLIDE_EASING },
+          (finished) => {
+            if (finished) runOnJS(setHasFadedOut)(true)
+          },
+        )
+      }
     } else {
-      barOpacity.value = withTiming(1, {
-        duration: MOTION.nativeStack.durationMs,
-      })
+      barTranslateX.value = isNativeTransition
+        ? withTiming(0, { duration: MOTION.nativeStack.durationMs, easing: SLIDE_EASING })
+        : 0
     }
-  }, [shouldHideBottomBar, barOpacity])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldHideBottomBar])
 
   const barAnimatedStyle = useAnimatedStyle(() => ({
-    opacity: barOpacity.value,
+    transform: [{ translateX: barTranslateX.value }],
   }))
 
   return (
