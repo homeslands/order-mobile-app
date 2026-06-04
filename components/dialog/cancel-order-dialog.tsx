@@ -45,6 +45,7 @@ function CancelOrderDialogComponent({
 
   const sheetRef = useRef<BottomSheetModal>(null)
   const successTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const hasPresentedRef = useRef(false)
 
   const handleOpen = useCallback(() => setVisible(true), [])
   const handleClose = useCallback(() => setVisible(false), [])
@@ -57,8 +58,9 @@ function CancelOrderDialogComponent({
 
   useEffect(() => {
     if (visible) {
+      hasPresentedRef.current = true
       sheetRef.current?.present()
-    } else {
+    } else if (hasPresentedRef.current) {
       sheetRef.current?.dismiss()
     }
   }, [visible])
@@ -67,14 +69,17 @@ function CancelOrderDialogComponent({
     if (!order?.slug || isDeleting) return
     deleteOrder(order.slug, {
       onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['orders'] })
+        queryClient.invalidateQueries({ queryKey: ['order', order.slug] })
         if (successTimerRef.current) clearTimeout(successTimerRef.current)
         successTimerRef.current = setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ['orders'] })
-          queryClient.invalidateQueries({ queryKey: ['order', order.slug] })
           showToast(tToast('toast.handleCancelOrderSuccess'))
           setVisible(false)
           successTimerRef.current = null
         }, 500)
+      },
+      onError: () => {
+        showToast(tToast('toast.handleCancelOrderError'), 'error')
       },
     })
   }, [order, isDeleting, deleteOrder, queryClient, tToast])
@@ -91,10 +96,10 @@ function CancelOrderDialogComponent({
         disappearsOnIndex={-1}
         appearsOnIndex={0}
         opacity={0.5}
-        pressBehavior="close"
+        pressBehavior={isDeleting ? 'none' : 'close'}
       />
     ),
-    [],
+    [isDeleting],
   )
 
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
@@ -122,7 +127,7 @@ function CancelOrderDialogComponent({
       <BottomSheetModal
         ref={sheetRef}
         snapPoints={SNAP_POINTS}
-        enablePanDownToClose
+        enablePanDownToClose={!isDeleting}
         enableDynamicSizing={false}
         backdropComponent={renderBackdrop}
         backgroundStyle={bgStyle}
