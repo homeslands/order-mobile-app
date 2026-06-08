@@ -34,19 +34,9 @@ export const ConfirmReservedTableSheet = memo(
     const isDark = useColorScheme() === 'dark'
     const { bottom } = useSafeAreaInsets()
 
-    // Track controlled vs uncontrolled dismiss: when parent sets visible=false we
-    // mark the dismiss as controlled to avoid firing onCancel redundantly. Backdrop
-    // / pan-down dismisses are uncontrolled and DO fire onCancel so parent can clear
-    // its pending state.
-    const controlledDismissRef = useRef(false)
-
     useEffect(() => {
-      if (visible) {
-        sheetRef.current?.present()
-      } else {
-        controlledDismissRef.current = true
-        sheetRef.current?.dismiss()
-      }
+      if (visible) sheetRef.current?.present()
+      else sheetRef.current?.dismiss()
     }, [visible])
 
     const renderBackdrop = useCallback(
@@ -120,13 +110,7 @@ export const ConfirmReservedTableSheet = memo(
         backdropComponent={renderBackdrop}
         backgroundStyle={bgStyle}
         footerComponent={renderFooter}
-        onDismiss={() => {
-          if (controlledDismissRef.current) {
-            controlledDismissRef.current = false
-            return
-          }
-          onCancel()
-        }}
+        onDismiss={onCancel}
       >
         {/* paddingBottom clears the absolute-positioned BottomSheetFooter
             (footer height ~76: pt-3 12 + button 48 + pb-4 16) + safe-area bottom. */}
