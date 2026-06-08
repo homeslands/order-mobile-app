@@ -1,4 +1,4 @@
-import { colors } from '@/constants'
+import { colors, TableStatus } from '@/constants'
 import { useTables } from '@/hooks/use-table'
 import { useBranchStore, useOrderFlowStore } from '@/stores'
 import type { ITable } from '@/types'
@@ -9,7 +9,8 @@ import {
   BottomSheetModal,
 } from '@gorhom/bottom-sheet'
 import { CheckCircle } from 'lucide-react-native'
-import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { ConfirmReservedTableSheet } from './confirm-reserved-table-sheet'
 import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, StyleSheet, View } from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler'
@@ -35,6 +36,8 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
   const { t } = useTranslation('table')
   const selectedTable = useOrderFlowStore((s) => s.orderingData?.table)
   const branchSlug = useBranchStore((s) => s.branch?.slug)
+  const [pendingReservedTable, setPendingReservedTable] =
+    useState<ITable | null>(null)
 
   const { data: tablesRes, isLoading } = useTables(
     visible ? branchSlug : undefined,
@@ -42,14 +45,29 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
   const allTables = useMemo(() => tablesRes?.result ?? [], [tablesRes?.result])
 
   const handleSelect = useCallback((table: ITable) => {
-    useOrderFlowStore.getState().setOrderingTable(table)
+    if (table.status === TableStatus.AVAILABLE) {
+      useOrderFlowStore.getState().setOrderingTable(table)
+      sheetRef.current?.dismiss()
+    } else {
+      setPendingReservedTable(table)
+    }
+  }, [])
+
+  const handleConfirmReserved = useCallback(() => {
+    if (!pendingReservedTable) return
+    useOrderFlowStore.getState().setOrderingTable(pendingReservedTable)
+    setPendingReservedTable(null)
     sheetRef.current?.dismiss()
+  }, [pendingReservedTable])
+
+  const handleCancelReserved = useCallback(() => {
+    setPendingReservedTable(null)
   }, [])
 
   const renderItem: ListRenderItem<ITable> = useCallback(
     ({ item: table }) => {
       const selected = selectedTable === table.slug
-      const isAvailable = table.status === 'available'
+      const isAvailable = table.status === TableStatus.AVAILABLE
       const statusColor = isAvailable
         ? isDark
           ? colors.success.dark
@@ -61,11 +79,10 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
       return (
         // Opacity on a plain View — not on TouchableOpacity — to avoid
         // RNGH's animated opacity conflicting with FlashList view recycling.
-        <View style={[chipStyles.chipWrapper, !isAvailable && chipStyles.chipDisabled]}>
+        <View style={chipStyles.chipWrapper}>
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={() => handleSelect(table)}
-          disabled={!isAvailable}
           style={[
             chipStyles.chip,
             {
@@ -185,29 +202,37 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
   }, [visible])
 
   return (
-    <BottomSheetModal
-      ref={sheetRef}
-      snapPoints={TABLE_SHEET_SNAP}
-      enablePanDownToClose
-      enableContentPanningGesture={false}
-      enableHandlePanningGesture
-      enableDynamicSizing={false}
-      backdropComponent={renderBackdrop}
-      backgroundStyle={bgStyle}
-      onDismiss={onClose}
-    >
-      <BottomSheetFlashList
-        data={allTables}
-        keyExtractor={keyExtractor}
-        renderItem={renderItem}
-        numColumns={COLUMNS}
-        estimatedItemSize={CHIP_HEIGHT}
-        ListHeaderComponent={ListHeader}
-        ListEmptyComponent={ListEmpty}
-        contentContainerStyle={chipStyles.scrollContent}
-        showsVerticalScrollIndicator={false}
+    <>
+      <BottomSheetModal
+        ref={sheetRef}
+        snapPoints={TABLE_SHEET_SNAP}
+        enablePanDownToClose
+        enableContentPanningGesture={false}
+        enableHandlePanningGesture
+        enableDynamicSizing={false}
+        backdropComponent={renderBackdrop}
+        backgroundStyle={bgStyle}
+        onDismiss={onClose}
+      >
+        <BottomSheetFlashList
+          data={allTables}
+          keyExtractor={keyExtractor}
+          renderItem={renderItem}
+          numColumns={COLUMNS}
+          estimatedItemSize={CHIP_HEIGHT}
+          ListHeaderComponent={ListHeader}
+          ListEmptyComponent={ListEmpty}
+          contentContainerStyle={chipStyles.scrollContent}
+          showsVerticalScrollIndicator={false}
+        />
+      </BottomSheetModal>
+      <ConfirmReservedTableSheet
+        visible={!!pendingReservedTable}
+        tableName={pendingReservedTable?.name ?? ''}
+        onConfirm={handleConfirmReserved}
+        onCancel={handleCancelReserved}
       />
-    </BottomSheetModal>
+    </>
   )
 })
 
@@ -230,9 +255,6 @@ const chipStyles = StyleSheet.create({
   chipWrapper: {
     flex: 1,
     margin: 4,
-  },
-  chipDisabled: {
-    opacity: 0.4,
   },
   chip: {
     flex: 1,
