@@ -10,7 +10,7 @@ import {
   capitalizeFirstLetter,
   formatCurrency,
 } from '@/utils'
-import { getProductImageUrl } from '@/utils/product-image-url'
+import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 import { Text } from '@/components/ui/text'
 
 export type DisplayItemData = ReturnType<
@@ -68,7 +68,9 @@ export const PaymentProductItem = React.memo(function PaymentProductItem({
     }
   }, [item.variant, item.quantity, displayItem, voucher])
 
-  const imageUrl = getProductImageUrl(item.variant?.product?.image)
+  const imageUrl = getProductImageUrl(item.variant?.product?.image, {
+    maxWidth: IMAGE_PRESET.THUMB,
+  })
 
   return (
     <View

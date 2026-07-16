@@ -12,7 +12,7 @@ import { scheduleStoreUpdate } from '@/lib/navigation'
 import { useOrderFlowStore } from '@/stores'
 import { IMenuItem, IOrderItem } from '@/types'
 import { capitalizeFirst, showToast } from '@/utils'
-import { getProductImageUrl } from '@/utils/product-image-url'
+import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 import { Text } from '@/components/ui/text'
 
 interface ClientMenuItemForUpdateOrderProps {
@@ -43,7 +43,9 @@ const ClientMenuItemForUpdateOrder = memo(
       })),
     )
 
-    const imageUrl = getProductImageUrl(item.product.image)
+    const imageUrl = getProductImageUrl(item.product.image, {
+      maxWidth: IMAGE_PRESET.THUMB,
+    })
 
     const hasPromotion = (item.promotion?.value ?? 0) > 0
     const promotionValue = item.promotion?.value ?? 0

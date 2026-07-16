@@ -15,7 +15,7 @@ import {
   capitalizeFirstLetter,
   formatCurrency,
 } from '@/utils'
-import { getProductImageUrl } from '@/utils/product-image-url'
+import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 import { Text } from '@/components/ui/text'
 
 // ─── Shared types ──────────────────────────────────────────────────────────
@@ -86,7 +86,9 @@ const OrderProductItem = memo(function OrderProductItem({
     (isSamePriceVoucher || hasPromotionDiscount || hasVoucherDiscount) &&
     original > displayPrice
 
-  const imageUrl = getProductImageUrl(product.variant?.product?.image)
+  const imageUrl = getProductImageUrl(product.variant?.product?.image, {
+    maxWidth: IMAGE_PRESET.THUMB,
+  })
 
   return (
     <View

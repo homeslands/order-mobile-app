@@ -19,7 +19,7 @@ import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { colors } from '@/constants'
+import { colors, GIFT_CARD_MAX_ORDER_AMOUNT } from '@/constants'
 import { useGiftCardStore } from '@/stores'
 import { IGiftCard } from '@/types'
 import { formatCurrency, formatPoints } from '@/utils'
@@ -36,7 +36,6 @@ interface GiftCardSelectedSheetProps {
 
 const SNAP_POINTS = ['70%']
 const MIN_QTY = 1
-const MAX_QTY = 10
 
 export const GiftCardSelectedSheet = memo(function GiftCardSelectedSheet({
   visible,
@@ -85,9 +84,13 @@ export const GiftCardSelectedSheet = memo(function GiftCardSelectedSheet({
     setQuantity((q) => Math.max(MIN_QTY, q - 1))
   }, [])
 
+  // Không giới hạn số lượng — chỉ chặn theo trần tổng giá trị đơn.
   const handleIncrement = useCallback(() => {
-    setQuantity((q) => Math.min(MAX_QTY, q + 1))
-  }, [])
+    if (!card) return
+    setQuantity((q) =>
+      (q + 1) * card.price <= GIFT_CARD_MAX_ORDER_AMOUNT ? q + 1 : q,
+    )
+  }, [card])
 
   const handleAddToCart = useCallback(() => {
     if (!card) return
@@ -138,6 +141,8 @@ export const GiftCardSelectedSheet = memo(function GiftCardSelectedSheet({
 
   const totalAmount = card ? card.price * quantity : 0
   const totalPoints = card ? card.points * quantity : 0
+  const atValueCap =
+    !!card && (quantity + 1) * card.price > GIFT_CARD_MAX_ORDER_AMOUNT
 
   if (!card) return null
 
@@ -203,18 +208,30 @@ export const GiftCardSelectedSheet = memo(function GiftCardSelectedSheet({
               <Text style={s.qtyValue}>{quantity}</Text>
               <Pressable
                 onPress={handleIncrement}
-                disabled={quantity >= MAX_QTY}
-                style={[s.qtyBtn, quantity >= MAX_QTY && s.qtyBtnDisabled]}
+                disabled={atValueCap}
+                style={[s.qtyBtn, atValueCap && s.qtyBtnDisabled]}
               >
                 <Plus
                   size={18}
-                  color={
-                    quantity >= MAX_QTY ? colors.gray[400] : colors.gray[700]
-                  }
+                  color={atValueCap ? colors.gray[400] : colors.gray[700]}
                 />
               </Pressable>
             </View>
           </View>
+
+          {/* Trần tổng giá trị đơn */}
+          <Text
+            style={{
+              color: colors.destructive.light,
+              fontStyle: 'italic',
+              fontSize: 12,
+              marginTop: 8,
+            }}
+          >
+            {t('maxOrderNote', {
+              amount: formatCurrency(GIFT_CARD_MAX_ORDER_AMOUNT),
+            })}
+          </Text>
 
           <View style={s.divider} />
 

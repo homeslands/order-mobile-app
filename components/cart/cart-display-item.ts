@@ -3,7 +3,7 @@
  * Shared between cart-item-row, cart-content, cart-footer, etc.
  */
 import type { IOrderItem } from '@/types'
-import { getProductImageUrl } from '@/utils/product-image-url'
+import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 
 export type CartDisplayItem = {
   cartKey: string
@@ -77,7 +77,8 @@ export function toDisplayItem(item: IOrderItem): CartDisplayItem {
     quantity: item.quantity,
     promotionValue: promoValue,
     note: item.note || '',
-    imageUrl: getProductImageUrl(item.image) ?? null,
+    imageUrl:
+      getProductImageUrl(item.image, { maxWidth: IMAGE_PRESET.THUMB }) ?? null,
   }
   displayItemCache.set(item, result)
   return result

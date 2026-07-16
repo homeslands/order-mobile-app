@@ -19,7 +19,7 @@ import { IOrderItem } from '@/types'
 import { useUpdateOrderTotals } from '@/hooks'
 import { capitalizeFirst } from '@/utils'
 import type { calculateOrderDisplayAndTotals } from '@/utils'
-import { getProductImageUrl } from '@/utils/product-image-url'
+import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 import { formatCurrencyNative } from 'cart-price-calc'
 
 import OrderNoteInUpdateOrderInput from './order-note-in-update-order-input'
@@ -191,7 +191,9 @@ const OrderItemRow = memo(
     const lineTotal = displayUnitPrice * displayQty
     const lineTotalOriginal = original * displayQty
 
-    const imageUrl = getProductImageUrl(item.image)
+    const imageUrl = getProductImageUrl(item.image, {
+      maxWidth: IMAGE_PRESET.THUMB,
+    })
 
     return (
       <View style={[row.card, themeStyles.cardBg]}>
