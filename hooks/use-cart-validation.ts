@@ -1,4 +1,10 @@
-import { getPublicSpecificMenu, getSpecificMenu } from '@/api/menu'
+import {
+  buildSpecificMenuRequest,
+  extractMenuItems,
+  getPublicSpecificMenu,
+  getSpecificMenu,
+  type MenuEnvelope,
+} from '@/api/menu'
 import { Role } from '@/constants'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import { cartActions } from '@/stores/cart.store'
@@ -125,10 +131,10 @@ export function useCartValidation() {
       isValidatingRef.current = true
 
       try {
-        const query = {
+        const query = buildSpecificMenuRequest({
           branch: branchSlug,
           date: new Date().toISOString().slice(0, 10),
-        }
+        })
         const fetchMenu =
           hasUser && roleName !== Role.CUSTOMER
             ? getSpecificMenu
@@ -147,8 +153,14 @@ export function useCartValidation() {
           meta: { skipGlobalError: true },
         })
 
-        const menuItems = menuData?.result?.menuItems
-        if (!menuItems) return null
+        // Bail if the response has NEITHER envelope field (missing/malformed) so
+        // a bad 200 can't validate the cart against an empty menu and wipe every
+        // item. Accept both the paged (`items`) and legacy (`menuItems`) shapes.
+        const menuResult = menuData?.result as MenuEnvelope | undefined
+        if (!menuResult || (!menuResult.items && !menuResult.menuItems)) {
+          return null
+        }
+        const menuItems = extractMenuItems(menuResult)
 
         // Validate
         const result = validateCartItems(cartItems, menuItems)

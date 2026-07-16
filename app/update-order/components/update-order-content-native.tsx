@@ -12,18 +12,14 @@ import React, {
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, TextInput, View } from 'react-native'
 
-import {
-  APPLICABILITY_RULE,
-  colors,
-  publicFileURL,
-  VOUCHER_TYPE,
-} from '@/constants'
+import { APPLICABILITY_RULE, colors, VOUCHER_TYPE } from '@/constants'
 import { scheduleStoreUpdate } from '@/lib/navigation'
 import { useOrderFlowStore } from '@/stores'
 import { IOrderItem } from '@/types'
 import { useUpdateOrderTotals } from '@/hooks'
 import { capitalizeFirst } from '@/utils'
 import type { calculateOrderDisplayAndTotals } from '@/utils'
+import { getProductImageUrl } from '@/utils/product-image-url'
 import { formatCurrencyNative } from 'cart-price-calc'
 
 import OrderNoteInUpdateOrderInput from './order-note-in-update-order-input'
@@ -195,7 +191,7 @@ const OrderItemRow = memo(
     const lineTotal = displayUnitPrice * displayQty
     const lineTotalOriginal = original * displayQty
 
-    const imageUrl = item.image ? `${publicFileURL}/${item.image}` : null
+    const imageUrl = getProductImageUrl(item.image)
 
     return (
       <View style={[row.card, themeStyles.cardBg]}>

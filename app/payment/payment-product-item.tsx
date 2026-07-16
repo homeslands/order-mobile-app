@@ -3,18 +3,14 @@ import React, { useMemo } from 'react'
 import { StyleSheet, TextInput, View } from 'react-native'
 
 import { Images } from '@/assets/images'
-import {
-  APPLICABILITY_RULE,
-  colors,
-  publicFileURL,
-  VOUCHER_TYPE,
-} from '@/constants'
+import { APPLICABILITY_RULE, colors, VOUCHER_TYPE } from '@/constants'
 import type { IOrderItems } from '@/types'
 import {
   calculateOrderDisplayAndTotals,
   capitalizeFirstLetter,
   formatCurrency,
 } from '@/utils'
+import { getProductImageUrl } from '@/utils/product-image-url'
 import { Text } from '@/components/ui/text'
 
 export type DisplayItemData = ReturnType<
@@ -72,6 +68,8 @@ export const PaymentProductItem = React.memo(function PaymentProductItem({
     }
   }, [item.variant, item.quantity, displayItem, voucher])
 
+  const imageUrl = getProductImageUrl(item.variant?.product?.image)
+
   return (
     <View
       style={
@@ -91,11 +89,8 @@ export const PaymentProductItem = React.memo(function PaymentProductItem({
       <View style={pItemStyles.contentRow}>
         <View style={pItemStyles.imageWrap}>
           <ExpoImage
-            source={
-              item.variant?.product?.image
-                ? { uri: `${publicFileURL}/${item.variant.product.image}` }
-                : Images.Food.ProductImage
-            }
+            source={imageUrl ? { uri: imageUrl } : Images.Food.ProductImage}
+            placeholder={Images.Food.ProductImage}
             style={pItemStyles.image}
             contentFit="cover"
             cachePolicy="disk"

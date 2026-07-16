@@ -15,6 +15,7 @@ export const useSpecificMenu = (
     queryFn: async () => getSpecificMenu(query),
     enabled: !!enabled,
     staleTime: 30_000,
+    meta: { skipGlobalErrorCodes: [401, 403] },
   })
 }
 
@@ -27,6 +28,7 @@ export const usePublicSpecificMenu = (
     queryFn: async () => getPublicSpecificMenu(query),
     enabled: !!enabled,
     staleTime: 30_000,
+    meta: { skipGlobalErrorCodes: [401, 403] },
   })
 }
 

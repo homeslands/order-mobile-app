@@ -1,7 +1,7 @@
 import { processVoucherList } from '@/components/sheet/voucher-validation'
 import { VoucherCard } from './voucher-card'
 import { VoucherConditionModal } from './voucher-condition-modal'
-import { colors, Role } from '@/constants'
+import { colors } from '@/constants'
 import {
   usePublicVouchersForOrder,
   useSpecificPublicVoucher,
@@ -67,10 +67,11 @@ export const VoucherSheet = memo(function VoucherSheet({
   // Auth — switch between private/public hooks
   const userInfo = useUserStore((s) => s.userInfo)
   const userSlug = userInfo?.slug
+  // Customer-only app: any logged-in user with a real phone is a customer. Role
+  // can be unloaded right after first register+login, so must NOT gate on it —
+  // otherwise the sheet falls back to public vouchers and shows an empty list.
   const isCustomerOwner =
-    !!userInfo &&
-    userInfo.role?.name === Role.CUSTOMER &&
-    userInfo.phonenumber !== 'default-customer'
+    !!userInfo && userInfo.phonenumber !== 'default-customer'
 
   const { mutate: validatePrivate } = useValidateVoucher()
   const { mutate: validatePublic } = useValidatePublicVoucher()

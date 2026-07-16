@@ -2,30 +2,38 @@
  * Tab Menu — FlashList + phase-gated images + ref-stable callbacks.
  * UI & logic ported from perf/index.tsx, store bridged to order-flow.
  */
-import { getPublicSpecificMenu, getSpecificMenu } from '@/api/menu'
+import {
+  buildSpecificMenuRequest,
+  extractMenuItems,
+  getPublicSpecificMenu,
+  getSpecificMenu,
+} from '@/api/menu'
 import { Images } from '@/assets/images'
 import { SelectBranchDropdown } from '@/components/branch'
-import { PriceFilterSheet } from '@/components/menu/price-sheet'
-import { NotificationBell } from '@/components/notification/notification-bell'
 import { TabScreenLayout } from '@/components/layout'
+import { PriceFilterSheet } from '@/components/menu/price-sheet'
+import { PressableWithFeedback } from '@/components/navigation/pressable-with-feedback'
+import { NotificationBell } from '@/components/notification/notification-bell'
 import { colors, OrderFlowStep } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useCatalog } from '@/hooks/use-catalog'
+import { useCatalogMenuPages } from '@/hooks/use-catalog-menu-pages'
 import { useMenuScreenState } from '@/hooks/use-menu-screen-state'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { useOrderFlowStore, useUserStore } from '@/stores'
+import { useLoginSheetStore } from '@/stores/login-sheet.store'
 import { useSetMenuFilter } from '@/stores/selectors'
 import { useTransientNavStore } from '@/stores/transient-nav.store'
 import type { ISpecificMenuRequest } from '@/types'
 import { IOrderItem } from '@/types'
 import { getProductImageUrl } from '@/utils/product-image-url'
-import { useLoginSheetStore } from '@/stores/login-sheet.store'
 import { showToast } from '@/utils/toast'
 import { useFocusEffect } from '@react-navigation/native'
 import { FlashList } from '@shopify/flash-list'
 import { useQuery } from '@tanstack/react-query'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
+import { MapPin } from 'lucide-react-native'
 import React, {
   startTransition,
   useCallback,
@@ -35,7 +43,6 @@ import React, {
   useState,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { MapPin } from 'lucide-react-native'
 import {
   AppState,
   InteractionManager,
@@ -44,40 +51,34 @@ import {
   useColorScheme,
   View,
 } from 'react-native'
-import { PressableWithFeedback } from '@/components/navigation/pressable-with-feedback'
 
+import { Text } from '@/components/ui/text'
 import type { CatalogChipData } from './menu-filter-bar'
 import { MenuFilterBar } from './menu-filter-bar'
 import type { MenuDisplayItem } from './menu-item-row'
 import {
+  MENU_IMAGE_HIGH_PRIORITY_COUNT,
   MenuImagePhaseContext,
-  MENU_ITEM_ESTIMATED_HEIGHT,
   MenuItemRow,
   menuViewabilityConfig,
 } from './menu-item-row'
-import { Text } from '@/components/ui/text'
 
 type FlatItem =
   | { _kind: 'header'; key: string; name: string }
   | { _kind: 'item'; data: MenuDisplayItem }
 
-function overrideItemLayout(
-  layout: { span?: number; size?: number },
-  item: FlatItem,
-) {
-  layout.size = item._kind === 'header' ? 40 : MENU_ITEM_ESTIMATED_HEIGHT
-}
-
 const menuKeyExtractor = (item: FlatItem) =>
   item._kind === 'header' ? item.key : item.data.id
 
+const menuGetItemType = (item: FlatItem) => item._kind
+
 const MENU_IMAGE_PREFETCH_AHEAD_COUNT = 5
 const MENU_IMAGE_PREFETCH_DEBOUNCE_MS = 100
-const MENU_ENTRY_FETCH_DELAY_MS = 120
 const MENU_ENTRY_IMAGE_DELAY_MS = 300
 const ENABLE_SCROLL_PREFETCH = true
 const SEARCH_DEBOUNCE_MS = 300
 const PREFETCH_URL_CACHE_MAX = 256
+const MENU_CATALOG_BATCH = 3
 
 /** Tiny LRU: evicts oldest entry when capacity exceeded — prevents unbounded growth */
 function makeLruSet(max: number) {
@@ -150,25 +151,30 @@ export default function MenuPage() {
       const isFirstLoad = !hasLoadedImagesOnceRef.current
       if (isFirstLoad) setImagePhaseCount(0)
 
-      let timer: ReturnType<typeof setTimeout> | null = null
+      let imageTimer: ReturnType<typeof setTimeout> | null = null
       const task = InteractionManager.runAfterInteractions(() => {
-        timer = setTimeout(
-          () => {
-            startTransition(() => {
-              setAllowFetch(true)
-              if (isFirstLoad) {
-                setImagePhaseCount(Infinity)
-                hasLoadedImagesOnceRef.current = true
-              }
-            })
-          },
-          isFirstLoad ? MENU_ENTRY_IMAGE_DELAY_MS : MENU_ENTRY_FETCH_DELAY_MS,
-        )
+        // Enable the data fetch as soon as interactions settle (past the entry
+        // animation) — NOT coupled to the image-reveal delay, so a cold cache
+        // starts fetching ~300ms sooner.
+        startTransition(() => setAllowFetch(true))
+
+        if (!isFirstLoad) return
+        // Defer the image reveal, then stagger it across two frames to avoid a
+        // single-commit native decode/texture storm on first entry.
+        imageTimer = setTimeout(() => {
+          hasLoadedImagesOnceRef.current = true
+          startTransition(() =>
+            setImagePhaseCount(MENU_IMAGE_HIGH_PRIORITY_COUNT),
+          )
+          requestAnimationFrame(() =>
+            startTransition(() => setImagePhaseCount(Number.MAX_SAFE_INTEGER)),
+          )
+        }, MENU_ENTRY_IMAGE_DELAY_MS)
       })
 
       return () => {
         task.cancel()
-        if (timer) clearTimeout(timer)
+        if (imageTimer) clearTimeout(imageTimer)
         setAllowFetch(false)
       }
     }, []),
@@ -198,7 +204,9 @@ export default function MenuPage() {
   const hasBranch = !!menuFilter.branch || !!branchSlug
 
   // ── Catalog chips ──
-  const { data: catalogRes } = useCatalog({ enabled: hasBranch })
+  const { data: catalogRes, isLoading: catalogLoading } = useCatalog({
+    enabled: hasBranch,
+  })
   const catalogList = useMemo<CatalogChipData[]>(
     () =>
       catalogRes?.result?.map((c) => ({ slug: c.slug, name: c.name })) ?? [],
@@ -270,17 +278,18 @@ export default function MenuPage() {
   const menuIsTopSell = menuFilter.isTopSell
 
   const request = useMemo<ISpecificMenuRequest>(
-    () => ({
-      date: menuDate ?? new Date().toISOString().split('T')[0],
-      branch: menuBranch ?? branchSlug,
-      catalog: menuCatalog,
-      productName: menuProductName,
-      minPrice: menuMinPrice,
-      maxPrice: menuMaxPrice,
-      slug: menuSlug,
-      isNewProduct: menuIsNewProduct,
-      isTopSell: menuIsTopSell,
-    }),
+    () =>
+      buildSpecificMenuRequest({
+        date: menuDate ?? new Date().toISOString().split('T')[0],
+        branch: menuBranch ?? branchSlug,
+        catalog: menuCatalog,
+        productName: menuProductName,
+        minPrice: menuMinPrice,
+        maxPrice: menuMaxPrice,
+        slug: menuSlug,
+        isNewProduct: menuIsNewProduct,
+        isTopSell: menuIsTopSell,
+      }),
     [
       menuDate,
       menuBranch,
@@ -295,44 +304,80 @@ export default function MenuPage() {
     ],
   )
 
+  // Special filters (isNewProduct/isTopSell) don't combine with per-catalog
+  // fetches — they take the single-query fallback path.
+  const useSpecialPath = !!(menuIsNewProduct || menuIsTopSell)
+  const catalogSlugs = useMemo(
+    () => catalogList.map((c) => c.slug),
+    [catalogList],
+  )
+  const displaySlugs = useMemo(
+    () => (menuCatalog ? [menuCatalog] : catalogSlugs),
+    [menuCatalog, catalogSlugs],
+  )
+  // Search filters client-side across the full menu — load all catalogs at once.
+  const catalogBatch = searchKeyword
+    ? displaySlugs.length || 1
+    : MENU_CATALOG_BATCH
+
+  // Per-catalog progressive path (default / chip / price / search).
+  const catalogPages = useCatalogMenuPages({
+    catalogSlugs: displaySlugs,
+    request,
+    hasUser,
+    enabled: hasBranch && allowFetch && !useSpecialPath,
+    batch: catalogBatch,
+  })
+
+  // Single-query path for special filters.
   const {
-    data: privateData,
-    isFetching: isPrivateFetching,
-    refetch: refetchPrivate,
+    data: specialData,
+    isFetching: specialFetching,
+    refetch: refetchSpecial,
   } = useQuery({
-    queryKey: ['specific-menu', request],
-    queryFn: () => getSpecificMenu(request),
-    enabled: hasBranch && hasUser && allowFetch,
+    queryKey: [hasUser ? 'specific-menu' : 'public-specific-menu', request],
+    queryFn: () => (hasUser ? getSpecificMenu : getPublicSpecificMenu)(request),
+    enabled: hasBranch && allowFetch && useSpecialPath,
     staleTime: 60_000,
     gcTime: 10 * 60_000,
     refetchOnMount: false,
-    meta: { skipGlobalError: true },
+    meta: { skipGlobalErrorCodes: [401, 403] },
   })
-  const {
-    data: publicData,
-    isFetching: isPublicFetching,
-    refetch: refetchPublic,
-  } = useQuery({
-    queryKey: ['public-specific-menu', request],
-    queryFn: () => getPublicSpecificMenu(request),
-    enabled: hasBranch && !hasUser && allowFetch,
-    staleTime: 60_000,
-    gcTime: 10 * 60_000,
-    refetchOnMount: false,
-    meta: { skipGlobalError: true },
-  })
-  const isFetching = hasUser ? isPrivateFetching : isPublicFetching
-  const menuData = hasUser ? privateData : publicData
+  const specialItems = useMemo(
+    () => extractMenuItems(specialData?.result),
+    [specialData],
+  )
+
+  const { refetchAll: refetchCatalogs } = catalogPages
+  const sourceItems = useSpecialPath ? specialItems : catalogPages.menuItems
+  // Treat "fetch allowed but catalog list not yet loaded" as loading, so a cold
+  // start shows the loading state instead of a brief "catalog empty" flash.
+  const isFetching = useSpecialPath
+    ? specialFetching
+    : catalogPages.isLoading ||
+      (hasBranch && catalogList.length === 0 && catalogLoading)
 
   const [isRefreshing, setIsRefreshing] = useState(false)
   const handleRefresh = useCallback(() => {
     setIsRefreshing(true)
-    const refetch = hasUser ? refetchPrivate : refetchPublic
-    refetch().finally(() => setIsRefreshing(false))
-  }, [hasUser, refetchPrivate, refetchPublic])
+    const done = useSpecialPath ? refetchSpecial() : refetchCatalogs()
+    Promise.resolve(done).finally(() => setIsRefreshing(false))
+  }, [useSpecialPath, refetchSpecial, refetchCatalogs])
+
+  const refreshControlEl = useMemo(
+    () => (
+      <RefreshControl
+        refreshing={isRefreshing}
+        onRefresh={handleRefresh}
+        tintColor={primaryColor}
+        colors={[primaryColor]}
+      />
+    ),
+    [isRefreshing, handleRefresh, primaryColor],
+  )
 
   const itemsRaw = useMemo<MenuDisplayItem[]>(() => {
-    const raw = menuData?.result?.menuItems ?? []
+    const raw = sourceItems
     return raw.map((item, index) => {
       const variants = item.product?.variants ?? []
       let minPrice = 0
@@ -367,12 +412,9 @@ export default function MenuPage() {
         defaultVariantSlug: cheapestVariantSlug,
         menuItem: item,
         cheapestVariant: cheapestVariantObj,
-        heroImageUrls: heroImagePaths
-          .map((p) => getProductImageUrl(p))
-          .filter((u): u is string => !!u),
       }
     })
-  }, [menuData?.result?.menuItems])
+  }, [sourceItems])
 
   // Keep O(1) lookup map and raw ref in sync with latest items
   useEffect(() => {
@@ -386,7 +428,7 @@ export default function MenuPage() {
   // arrives — eliminates Main Thread WebP decode when user scrolls down.
   const initialPrefetchDoneRef = React.useRef(false)
   useEffect(() => {
-    if (imagePhaseCount === 0 || itemsRaw.length === 0) return
+    if (itemsRaw.length === 0) return
     if (initialPrefetchDoneRef.current) return
     initialPrefetchDoneRef.current = true
     const INITIAL_PREFETCH_COUNT = 8
@@ -403,7 +445,7 @@ export default function MenuPage() {
       }
     }
     if (urls.length > 0) Image.prefetch(urls).catch(() => {})
-  }, [imagePhaseCount, itemsRaw])
+  }, [itemsRaw])
 
   // Client-side filter — no API round-trip, instant UI response.
   const filteredItems = useMemo(() => {
@@ -515,10 +557,12 @@ export default function MenuPage() {
       if (!selectedItem) return
 
       // Hand hero image URLs via in-memory store instead of stringifying
-      // through route params — same transition lifetime, zero serialization.
-      useTransientNavStore
-        .getState()
-        .setHeroImageUrls(selectedItem.heroImageUrls ?? [])
+      // through route params — computed lazily here (only the tapped item),
+      // not eagerly for every list row.
+      const heroImageUrls = selectedItem.heroImagePaths
+        .map((p) => getProductImageUrl(p))
+        .filter((u): u is string => !!u)
+      useTransientNavStore.getState().setHeroImageUrls(heroImageUrls)
 
       router.push({
         pathname: '/(tabs)/menu/product/[id]',
@@ -590,6 +634,47 @@ export default function MenuPage() {
   )
 
   const catalogHeaderColor = isDark ? colors.gray[400] : colors.gray[500]
+
+  const isMenuLoading = !allowFetch || isFetching
+  const listEmptyComponent = useMemo(() => {
+    if (!isMenuLoading && !searchKeyword) {
+      return (
+        <View style={styles.catalogEmptyBox}>
+          <Image
+            source={Images.Brand.LogoIcon}
+            contentFit="contain"
+            style={styles.catalogEmptyLogo}
+          />
+          <Text
+            style={[
+              styles.catalogEmptyText,
+              { color: isDark ? colors.gray[400] : colors.gray[500] },
+            ]}
+          >
+            {t('menu.catalogEmpty')}
+          </Text>
+        </View>
+      )
+    }
+    return (
+      <View
+        style={[
+          styles.emptyBox,
+          {
+            backgroundColor: isDark ? colors.card.dark : colors.gray[100],
+          },
+        ]}
+      >
+        <Text style={styles.emptyText}>
+          {isMenuLoading
+            ? t('menu.loadingMenu')
+            : searchKeyword
+              ? t('menu.searchNotFound', { keyword: searchText })
+              : t('menu.noMenuData')}
+        </Text>
+      </View>
+    )
+  }, [isMenuLoading, searchKeyword, searchText, isDark, t])
 
   const renderItem = useCallback(
     ({ item }: { item: FlatItem }) => {
@@ -740,18 +825,19 @@ export default function MenuPage() {
             data={flatItems}
             renderItem={renderItem}
             keyExtractor={menuKeyExtractor}
-            getItemType={(item) => item._kind}
-            overrideItemLayout={overrideItemLayout}
+            getItemType={menuGetItemType}
             drawDistance={300}
             keyboardDismissMode="on-drag"
-            refreshControl={
-              <RefreshControl
-                refreshing={isRefreshing}
-                onRefresh={handleRefresh}
-                tintColor={primaryColor}
-                colors={[primaryColor]}
-              />
-            }
+            onEndReached={() => {
+              if (
+                !useSpecialPath &&
+                catalogPages.hasMore &&
+                !catalogPages.isLoadingMore
+              )
+                catalogPages.loadMore()
+            }}
+            onEndReachedThreshold={0.6}
+            refreshControl={refreshControlEl}
             onScrollBeginDrag={handleScrollBeginDrag}
             onViewableItemsChanged={
               ENABLE_SCROLL_PREFETCH ? onViewableItemsChanged : undefined
@@ -759,44 +845,7 @@ export default function MenuPage() {
             viewabilityConfig={menuViewabilityConfig}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
-            ListEmptyComponent={
-              !isFetching && !searchKeyword ? (
-                <View style={styles.catalogEmptyBox}>
-                  <Image
-                    source={Images.Brand.LogoIcon}
-                    contentFit="contain"
-                    style={styles.catalogEmptyLogo}
-                  />
-                  <Text
-                    style={[
-                      styles.catalogEmptyText,
-                      { color: isDark ? colors.gray[400] : colors.gray[500] },
-                    ]}
-                  >
-                    {t('menu.catalogEmpty')}
-                  </Text>
-                </View>
-              ) : (
-                <View
-                  style={[
-                    styles.emptyBox,
-                    {
-                      backgroundColor: isDark
-                        ? colors.card.dark
-                        : colors.gray[100],
-                    },
-                  ]}
-                >
-                  <Text style={styles.emptyText}>
-                    {isFetching
-                      ? t('menu.loadingMenu')
-                      : searchKeyword
-                        ? t('menu.searchNotFound', { keyword: searchText })
-                        : t('menu.noMenuData')}
-                  </Text>
-                </View>
-              )
-            }
+            ListEmptyComponent={listEmptyComponent}
           />
         </MenuImagePhaseContext.Provider>
       )}

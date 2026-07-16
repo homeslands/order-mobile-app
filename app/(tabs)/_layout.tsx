@@ -23,7 +23,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 
-import { getGiftCards, getPublicSpecificMenu, getSpecificMenu } from '@/api'
+import { getGiftCards } from '@/api'
 import { getLoyaltyPoints } from '@/api/loyalty-point'
 import { AnimatedTabBar, FloatingCartButton } from '@/components/navigation'
 import { OrderReadyPickupSheet } from '@/components/notification/order-ready-pickup-sheet'
@@ -179,39 +179,11 @@ export default function TabsLayout() {
 
   const onPressInTabSwitch = useCallback(
     (href: string) => {
-      const menuFilter = useMenuFilterStore.getState().menuFilter
-      const branchSlug = useBranchStore.getState().branch?.slug
-
-      if (href?.includes('/menu')) {
-        const userSlugForMenu = useUserStore.getState().userInfo?.slug
-        const hasUser = isAuthenticated && !!userSlugForMenu
-        const hasBranch = !!menuFilter.branch || !!branchSlug
-        if (hasBranch) {
-          const menuRequest = {
-            date: menuFilter.date ?? dayjs().format('YYYY-MM-DD'),
-            branch: menuFilter.branch ?? branchSlug,
-            catalog: menuFilter.catalog,
-            productName: menuFilter.productName,
-            minPrice: menuFilter.minPrice,
-            maxPrice: menuFilter.maxPrice,
-            slug: menuFilter.menu,
-          }
-          const cacheKey = hasUser
-            ? ['specific-menu', menuRequest]
-            : ['public-specific-menu', menuRequest]
-          if (!queryClient.getQueryData(cacheKey)) {
-            queryClient
-              .prefetchQuery({
-                queryKey: cacheKey,
-                queryFn: () =>
-                  hasUser
-                    ? getSpecificMenu(menuRequest)
-                    : getPublicSpecificMenu(menuRequest),
-              })
-              .catch(() => {})
-          }
-        }
-      }
+      // Menu press-in prefetch removed: Menu tab now fetches per-catalog via
+      // `useQueries` (queryKey ['specific-menu', { ...request, catalog: slug }]).
+      // No catalog list is available here to build a matching key, so a
+      // single-key prefetch would just populate a cache entry the Menu
+      // screen never reads.
       if (href?.includes('/gift-card') && isAuthenticated) {
         const giftCardKey = [QUERYKEY.giftCards, undefined]
         if (!queryClient.getQueryData(giftCardKey)) {
