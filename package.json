@@ -37,6 +37,7 @@
     "moduleNameMapper": {
       "^@/(.*)$": "<rootDir>/$1",
       "^expo/src/winter.*$": "<rootDir>/__mocks__/expo-winter.js",
+      "^react-native-blob-util$": "<rootDir>/__mocks__/react-native-blob-util.js",
       "^@react-native-async-storage/async-storage$": "@react-native-async-storage/async-storage/jest/async-storage-mock"
     },
     "transformIgnorePatterns": [

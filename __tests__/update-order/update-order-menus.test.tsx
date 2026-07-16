@@ -35,64 +35,66 @@ jest.mock('@/hooks', () => ({
   })),
 }))
 
-jest.mock('@/hooks/use-menu', () => ({
-  useSpecificMenu: jest.fn(() => ({ data: null, isPending: false })),
-  usePublicSpecificMenu: jest.fn(() => ({
-    data: {
-      result: {
-        menuItems: [
-          {
-            slug: 'ca-phe-sua',
-            isLocked: false,
-            currentStock: 10,
-            promotion: null,
-            product: {
-              slug: 'ca-phe-sua',
-              name: 'Cà phê sữa',
-              image: null,
-              description: '',
-              isLimit: false,
-              isGift: false,
-              catalog: { slug: 'drinks' },
-              variants: [{ size: { name: 'M' }, price: 35000 }],
-            },
-          },
-          {
-            slug: 'tra-sua',
-            isLocked: false,
-            currentStock: 5,
-            promotion: null,
-            product: {
-              slug: 'tra-sua',
-              name: 'Trà sữa',
-              image: null,
-              description: '',
-              isLimit: false,
-              isGift: false,
-              catalog: { slug: 'drinks' },
-              variants: [{ size: { name: 'M' }, price: 40000 }],
-            },
-          },
-          {
-            slug: 'banh-mi',
-            isLocked: false,
-            currentStock: 8,
-            promotion: null,
-            product: {
-              slug: 'banh-mi',
-              name: 'Bánh mì',
-              image: null,
-              description: '',
-              isLimit: false,
-              isGift: false,
-              catalog: { slug: 'food' },
-              variants: [{ size: { name: 'M' }, price: 25000 }],
-            },
-          },
-        ],
-      },
+// Component consumes per-catalog paging via useCatalogMenuPages — mock it at
+// that boundary so the tests bypass React Query (no QueryClientProvider needed).
+const MENU_ITEMS = [
+  {
+    slug: 'ca-phe-sua',
+    isLocked: false,
+    currentStock: 10,
+    promotion: null,
+    product: {
+      slug: 'ca-phe-sua',
+      name: 'Cà phê sữa',
+      image: null,
+      description: '',
+      isLimit: false,
+      isGift: false,
+      catalog: { slug: 'drinks' },
+      variants: [{ size: { name: 'M' }, price: 35000 }],
     },
-    isPending: false,
+  },
+  {
+    slug: 'tra-sua',
+    isLocked: false,
+    currentStock: 5,
+    promotion: null,
+    product: {
+      slug: 'tra-sua',
+      name: 'Trà sữa',
+      image: null,
+      description: '',
+      isLimit: false,
+      isGift: false,
+      catalog: { slug: 'drinks' },
+      variants: [{ size: { name: 'M' }, price: 40000 }],
+    },
+  },
+  {
+    slug: 'banh-mi',
+    isLocked: false,
+    currentStock: 8,
+    promotion: null,
+    product: {
+      slug: 'banh-mi',
+      name: 'Bánh mì',
+      image: null,
+      description: '',
+      isLimit: false,
+      isGift: false,
+      catalog: { slug: 'food' },
+      variants: [{ size: { name: 'M' }, price: 25000 }],
+    },
+  },
+]
+
+jest.mock('@/hooks/use-catalog-menu-pages', () => ({
+  useCatalogMenuPages: jest.fn(() => ({
+    menuItems: MENU_ITEMS,
+    isLoading: false,
+    isLoadingMore: false,
+    hasMore: false,
+    loadMore: jest.fn(),
   })),
 }))
 

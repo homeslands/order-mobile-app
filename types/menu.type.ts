@@ -47,6 +47,9 @@ export interface ISpecificMenuRequest {
   isNewProduct?: boolean
   isSortTopSell?: boolean
   isTopSell?: boolean
+  page?: number
+  size?: number
+  hasPaging?: boolean
 }
 
 export interface IUpdateMenuRequest {
@@ -61,6 +64,16 @@ export interface ISpecificMenu extends IBase {
   dayIndex: number
   isTemplate: boolean
   branch: IBranch
+}
+
+export interface ISpecificMenuPaged {
+  items: ISpecificMenu[]
+  total: number
+  page: number
+  pageSize: number
+  totalPages: number
+  hasNext: boolean
+  hasPrevios?: boolean
 }
 
 export interface IMenuItem extends IBase {

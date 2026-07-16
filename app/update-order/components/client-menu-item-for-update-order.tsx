@@ -7,11 +7,12 @@ import { Pressable, StyleSheet, View } from 'react-native'
 import { useShallow } from 'zustand/react/shallow'
 
 import { MenuItemImage } from '@/components/menu/menu-item-image'
-import { colors, publicFileURL } from '@/constants'
+import { colors } from '@/constants'
 import { scheduleStoreUpdate } from '@/lib/navigation'
 import { useOrderFlowStore } from '@/stores'
 import { IMenuItem, IOrderItem } from '@/types'
 import { capitalizeFirst, showToast } from '@/utils'
+import { getProductImageUrl } from '@/utils/product-image-url'
 import { Text } from '@/components/ui/text'
 
 interface ClientMenuItemForUpdateOrderProps {
@@ -42,9 +43,7 @@ const ClientMenuItemForUpdateOrder = memo(
       })),
     )
 
-    const imageUrl = item.product.image
-      ? `${publicFileURL}/${item.product.image}`
-      : null
+    const imageUrl = getProductImageUrl(item.product.image)
 
     const hasPromotion = (item.promotion?.value ?? 0) > 0
     const promotionValue = item.promotion?.value ?? 0

@@ -19,7 +19,8 @@ import {
 } from 'react-native'
 
 import { Images } from '@/assets/images'
-import { OrderFlowStep, ROUTE, publicFileURL } from '@/constants'
+import { extractMenuItems } from '@/api/menu'
+import { OrderFlowStep, ROUTE } from '@/constants'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import {
   usePressInPrefetchMenuItem,
@@ -30,6 +31,7 @@ import { navigateNative } from '@/lib/navigation'
 import { useOrderFlowStore, useBranchStore, useUserStore } from '@/stores'
 import type { IMenuItem, IOrderItem } from '@/types'
 import { formatCurrency, showToast } from '@/utils'
+import { getProductImageUrl } from '@/utils/product-image-url'
 import { Text } from '@/components/ui/text'
 
 /** Ngày cố định trong session — thay useRef vì linter cấm đọc ref trong render */
@@ -64,14 +66,10 @@ const RelatedProductItem = React.memo(
       () => onAddToCart(item.slug),
       [onAddToCart, item.slug],
     )
-    const imageUrl = useMemo(() => {
-      const imagePath = item?.product.image?.trim()
-      if (!imagePath) return null
-      if (/^https?:\/\//i.test(imagePath)) return imagePath
-      const base = publicFileURL ?? ''
-      if (!base) return null
-      return `${base.replace(/\/$/, '')}/${imagePath.replace(/^\//, '')}`
-    }, [item.product.image])
+    const imageUrl = useMemo(
+      () => getProductImageUrl(item.product.image),
+      [item.product.image],
+    )
     const hasProductImage = imageUrl != null
     const priceRange = useMemo(() => {
       const variants = item.product.variants
@@ -235,13 +233,13 @@ function SliderRelatedProducts({
 
   const relatedProductsData = useMemo(() => {
     const items = hasUser
-      ? relatedProducts?.result.menuItems
-      : publicSpecificMenu?.result.menuItems
-    return items?.filter((item) => item.slug !== currentProduct) ?? []
+      ? extractMenuItems(relatedProducts?.result)
+      : extractMenuItems(publicSpecificMenu?.result)
+    return items.filter((item) => item.slug !== currentProduct)
   }, [
     hasUser,
-    relatedProducts?.result.menuItems,
-    publicSpecificMenu?.result.menuItems,
+    relatedProducts?.result,
+    publicSpecificMenu?.result,
     currentProduct,
   ])
 
@@ -280,14 +278,7 @@ function SliderRelatedProducts({
       ...(mi.product?.images ?? []),
     ].filter((v): v is string => !!v)
     const heroImageUrls = heroImages
-      .map((p) => {
-        if (!p?.trim()) return null
-        if (/^https?:\/\//i.test(p)) return p
-        const base = publicFileURL ?? ''
-        return base
-          ? `${base.replace(/\/$/, '')}/${p.replace(/^\//, '')}`
-          : null
-      })
+      .map((p) => getProductImageUrl(p))
       .filter((u): u is string => !!u)
 
     navigateNative.push({

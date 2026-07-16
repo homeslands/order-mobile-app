@@ -10,7 +10,7 @@ import {
   UPDATE_ORDER_MENU_ITEM_HEIGHT,
 } from '@/constants/list-item-sizes'
 import { useCatalog } from '@/hooks'
-import { usePublicSpecificMenu, useSpecificMenu } from '@/hooks/use-menu'
+import { useCatalogMenuPages } from '@/hooks/use-catalog-menu-pages'
 import { useAuthStore, useOrderFlowStore } from '@/stores'
 import { IMenuItem } from '@/types'
 
@@ -45,23 +45,21 @@ export default function UpdateOrderMenus({
     [branchSlug],
   )
 
-  const shouldFetchAuth = !!branchSlug && isAuthenticated
-  const shouldFetchPublic = !!branchSlug && !isAuthenticated
-
-  const { data: authMenuData, isPending: isLoadingAuthMenu } = useSpecificMenu(
-    menuRequest,
-    shouldFetchAuth,
+  const catalogSlugs = useMemo(
+    () => catalogs?.result?.map((c) => c.slug) ?? [],
+    [catalogs?.result],
   )
-  const { data: publicMenuData, isPending: isLoadingPublicMenu } =
-    usePublicSpecificMenu(menuRequest, shouldFetchPublic)
 
-  const menuData = isAuthenticated ? authMenuData : publicMenuData
-  const isLoadingMenu = isAuthenticated
-    ? isLoadingAuthMenu
-    : isLoadingPublicMenu
+  const catalogPages = useCatalogMenuPages({
+    catalogSlugs,
+    request: menuRequest,
+    hasUser: isAuthenticated,
+    enabled: !!branchSlug,
+    batch: 3,
+  })
 
   const menuItems = useMemo(() => {
-    const items = menuData?.result?.menuItems
+    const items = catalogPages.menuItems
     if (!items) return undefined
     return [...items].sort((a, b) => {
       if (a.isLocked !== b.isLocked)
@@ -72,7 +70,7 @@ export default function UpdateOrderMenus({
         (b.currentStock !== 0 && b.currentStock !== null) || !b.product.isLimit
       return Number(bInStock) - Number(aInStock)
     })
-  }, [menuData])
+  }, [catalogPages.menuItems])
 
   const groupedItems = useMemo(() => {
     const grouped =
@@ -83,7 +81,8 @@ export default function UpdateOrderMenus({
             (mi) => mi.product.catalog?.slug === catalog.slug,
           ) || [],
       })) || []
-    grouped.sort((a, b) => b.items.length - a.items.length)
+    // Fixed catalog order (catalogs.result) — do NOT sort by item count, or
+    // catalogs would reshuffle as later per-catalog batches load in.
     return grouped
   }, [catalogs?.result, menuItems])
 
@@ -172,7 +171,7 @@ export default function UpdateOrderMenus({
     )
   }
 
-  if (isLoadingMenu || isLoadingCatalog) {
+  if (catalogPages.isLoading || isLoadingCatalog) {
     return (
       <View style={s.skeletonList}>
         {Array.from({ length: 5 }).map((_, i) => (
@@ -211,15 +210,21 @@ export default function UpdateOrderMenus({
         getItemType={getItemType}
         overrideItemLayout={overrideItemLayout}
         renderItem={renderItem}
-        scrollEnabled={false}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={s.listContent}
+        onEndReached={() => {
+          if (catalogPages.hasMore && !catalogPages.isLoadingMore)
+            catalogPages.loadMore()
+        }}
+        onEndReachedThreshold={0.6}
       />
     </View>
   )
 }
 
 const s = StyleSheet.create({
-  container: { paddingBottom: 32, paddingTop: 8 },
+  container: { flex: 1 },
+  listContent: { paddingTop: 8, paddingBottom: 32 },
   catalogName: {
     fontSize: 13,
     fontWeight: '600',

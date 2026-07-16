@@ -6,13 +6,7 @@ import { useLocalSearchParams } from 'expo-router'
 import { ShoppingCartIcon } from 'lucide-react-native'
 import React, { useCallback, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  useColorScheme,
-  View,
-} from 'react-native'
+import { Pressable, StyleSheet, useColorScheme, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors, TAB_ROUTES } from '@/constants'
@@ -312,16 +306,10 @@ export default function UpdateOrderScreen() {
             primaryColor={primaryColor}
           />
         ) : (
-          <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={{ paddingBottom: 24 }}
-            showsVerticalScrollIndicator={false}
-          >
-            <UpdateOrderMenus
-              branchSlug={branchSlug}
-              primaryColor={primaryColor}
-            />
-          </ScrollView>
+          <UpdateOrderMenus
+            branchSlug={branchSlug}
+            primaryColor={primaryColor}
+          />
         )}
 
         {/* Footer: order type, table, voucher, total, confirm */}
