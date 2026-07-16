@@ -1,6 +1,7 @@
 import { Image } from 'expo-image'
+import { useRouter } from 'expo-router'
 import type { TFunction } from 'i18next'
-import { Plus } from 'lucide-react-native'
+import { ChevronRight, Plus } from 'lucide-react-native'
 import React, {
   memo,
   useCallback,
@@ -29,13 +30,29 @@ import {
 } from '@/hooks'
 import { navigateNative } from '@/lib/navigation'
 import { useOrderFlowStore, useBranchStore, useUserStore } from '@/stores'
+import { useSetMenuFilter } from '@/stores/selectors'
+import { useTransientNavStore } from '@/stores/transient-nav.store'
 import type { IMenuItem, IOrderItem } from '@/types'
 import { formatCurrency, showToast } from '@/utils'
-import { getProductImageUrl } from '@/utils/product-image-url'
+import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 import { Text } from '@/components/ui/text'
 
 /** Ngày cố định trong session — thay useRef vì linter cấm đọc ref trong render */
 const SESSION_DATE_STR = new Date().toISOString().split('T')[0]
+
+/**
+ * Số thẻ related hiển thị. Row là ScrollView ngang KHÔNG virtualize → mỗi thẻ
+ * mount + decode ảnh ngay; giữ ít để tránh drop frame. Nếu catalog còn nhiều
+ * hơn, hiện thẻ "Xem thêm" điều hướng sang tab Menu với catalog đã chọn.
+ */
+const VISIBLE_RELATED = 6
+
+/**
+ * Fetch dư 2 so với số hiển thị: đủ để (a) biết còn nhiều hơn không (hiện nút
+ * "Xem thêm") kể cả khi sản phẩm hiện tại nằm trong trang, mà vẫn nhẹ tải —
+ * chỉ lấy ~8 thẻ thay vì cả catalog.
+ */
+const RELATED_FETCH_SIZE = VISIBLE_RELATED + 2
 
 interface SliderRelatedProductsProps {
   currentProduct: string
@@ -67,7 +84,10 @@ const RelatedProductItem = React.memo(
       [onAddToCart, item.slug],
     )
     const imageUrl = useMemo(
-      () => getProductImageUrl(item.product.image),
+      () =>
+        getProductImageUrl(item.product.image, {
+          maxWidth: IMAGE_PRESET.THUMB,
+        }),
       [item.product.image],
     )
     const hasProductImage = imageUrl != null
@@ -190,6 +210,8 @@ function SliderRelatedProducts({
   catalog,
 }: SliderRelatedProductsProps) {
   const { t } = useTranslation('menu')
+  const router = useRouter()
+  const setMenuFilter = useSetMenuFilter()
   const primaryColor = usePrimaryColor()
   const prefetchMenuItem = usePressInPrefetchMenuItem()
   const branchSlug = useBranchStore((s) => s.branch?.slug)
@@ -205,6 +227,10 @@ function SliderRelatedProducts({
       productName: '',
       minPrice: 0,
       maxPrice: 1000000,
+      // Chỉ lấy ít thẻ related cho nhẹ tải (BE hỗ trợ paging).
+      page: 1,
+      size: RELATED_FETCH_SIZE,
+      hasPaging: true,
     }),
     [branchSlug, catalog],
   )
@@ -231,11 +257,16 @@ function SliderRelatedProducts({
   const { data: publicSpecificMenu, isPending: isPendingPublicSpecificMenu } =
     usePublicSpecificMenu(filters, !hasUser && hasBranch && fetchEnabled)
 
-  const relatedProductsData = useMemo(() => {
-    const items = hasUser
-      ? extractMenuItems(relatedProducts?.result)
-      : extractMenuItems(publicSpecificMenu?.result)
-    return items.filter((item) => item.slug !== currentProduct)
+  const { visibleRelated, totalRelated } = useMemo(() => {
+    const items = (
+      hasUser
+        ? extractMenuItems(relatedProducts?.result)
+        : extractMenuItems(publicSpecificMenu?.result)
+    ).filter((item) => item.slug !== currentProduct)
+    return {
+      visibleRelated: items.slice(0, VISIBLE_RELATED),
+      totalRelated: items.length,
+    }
   }, [
     hasUser,
     relatedProducts?.result,
@@ -243,23 +274,38 @@ function SliderRelatedProducts({
     currentProduct,
   ])
 
+  const hasMoreRelated = totalRelated > VISIBLE_RELATED
+
   // Keep O(1) lookup map in sync
   useEffect(() => {
     const m = new Map<string, IMenuItem>()
-    for (const item of relatedProductsData) m.set(item.slug, item)
+    for (const item of visibleRelated) m.set(item.slug, item)
     itemsMapRef.current = m
-  }, [relatedProductsData])
+  }, [visibleRelated])
 
   const isLoading = hasUser ? isPending : isPendingPublicSpecificMenu
 
   // 2 items visible, padding synced with body section (16px)
-  const { itemWidth, itemSpacing } = useMemo(() => {
+  const { itemWidth, itemSpacing, cardHeight } = useMemo(() => {
     const w = Dimensions.get('window').width
     const padding = 16
     const gap = 10
     const width = (w - padding * 2 - gap) / 2
-    return { itemWidth: width, itemSpacing: gap }
+    // Ảnh aspect 4/3 (trừ padding 8 mỗi bên) + phần nội dung dưới ~76px.
+    const height = Math.round((width - 16) * 0.75 + 76)
+    return { itemWidth: width, itemSpacing: gap, cardHeight: height }
   }, [])
+
+  const handleSeeMore = useCallback(() => {
+    // Chọn catalog tương ứng rồi chuyển sang tab Menu.
+    setMenuFilter((prev) => ({
+      ...prev,
+      catalog,
+      isNewProduct: undefined,
+      isTopSell: undefined,
+    }))
+    router.navigate(ROUTE.CLIENT_MENU)
+  }, [catalog, setMenuFilter, router])
 
   const handleItemPress = useCallback((slug: string) => {
     const mi = itemsMapRef.current.get(slug)
@@ -278,8 +324,13 @@ function SliderRelatedProducts({
       ...(mi.product?.images ?? []),
     ].filter((v): v is string => !!v)
     const heroImageUrls = heroImages
-      .map((p) => getProductImageUrl(p))
+      .map((p) => getProductImageUrl(p, { maxWidth: IMAGE_PRESET.HERO }))
       .filter((u): u is string => !!u)
+
+    // Hand the hero gallery to the detail screen via the transient store — the
+    // detail reads gallery from here (not from params). Without this, entering
+    // detail from a related item shows the PREVIOUS product's gallery.
+    useTransientNavStore.getState().setHeroImageUrls(heroImageUrls)
 
     navigateNative.push({
       pathname: ROUTE.CLIENT_PRODUCT_DETAIL,
@@ -289,7 +340,6 @@ function SliderRelatedProducts({
         basePrice: String(minPrice),
         promotionValue: String(mi.promotion?.value ?? 0),
         imageUrl: heroImageUrls[0] ?? '',
-        imageUrls: JSON.stringify(heroImageUrls),
       },
     })
   }, [])
@@ -346,7 +396,7 @@ function SliderRelatedProducts({
     [t],
   )
 
-  if (!relatedProductsData || relatedProductsData.length === 0) {
+  if (visibleRelated.length === 0) {
     if (isLoading) {
       return (
         <View style={{ marginTop: 16 }}>
@@ -393,7 +443,7 @@ function SliderRelatedProducts({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingRight: 16 }}
       >
-        {relatedProductsData.map((item) => (
+        {visibleRelated.map((item) => (
           <RelatedProductItem
             key={item.slug}
             item={item}
@@ -406,6 +456,32 @@ function SliderRelatedProducts({
             t={t}
           />
         ))}
+
+        {hasMoreRelated && (
+          <Pressable
+            onPress={handleSeeMore}
+            className="active:opacity-80"
+            style={{ width: itemWidth, marginRight: itemSpacing }}
+          >
+            <View
+              className="items-center justify-center gap-2 rounded-2xl border border-dashed border-gray-300 dark:border-[#3a3a3a]"
+              style={{ height: cardHeight }}
+            >
+              <View
+                className="h-11 w-11 items-center justify-center rounded-full"
+                style={{ backgroundColor: `${primaryColor}1a` }}
+              >
+                <ChevronRight size={22} color={primaryColor} />
+              </View>
+              <Text
+                className="text-[13px] font-semibold"
+                style={{ color: primaryColor }}
+              >
+                {t('menu.seeMore', 'Xem thêm')}
+              </Text>
+            </View>
+          </Pressable>
+        )}
       </ScrollView>
     </View>
   )

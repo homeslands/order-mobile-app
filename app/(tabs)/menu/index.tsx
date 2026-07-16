@@ -26,10 +26,10 @@ import { useSetMenuFilter } from '@/stores/selectors'
 import { useTransientNavStore } from '@/stores/transient-nav.store'
 import type { ISpecificMenuRequest } from '@/types'
 import { IOrderItem } from '@/types'
-import { getProductImageUrl } from '@/utils/product-image-url'
+import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 import { showToast } from '@/utils/toast'
 import { useFocusEffect } from '@react-navigation/native'
-import { FlashList } from '@shopify/flash-list'
+import { FlashList, type FlashListRef } from '@shopify/flash-list'
 import { useQuery } from '@tanstack/react-query'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
@@ -241,10 +241,7 @@ export default function MenuPage() {
   )
 
   const [openBranchSheet, setOpenBranchSheet] = useState(false)
-  const handleOpenBranchSheet = useCallback(
-    () => setOpenBranchSheet(true),
-    [],
-  )
+  const handleOpenBranchSheet = useCallback(() => setOpenBranchSheet(true), [])
   const handleBranchSheetConsumed = useCallback(
     () => setOpenBranchSheet(false),
     [],
@@ -406,7 +403,9 @@ export default function MenuPage() {
         name: item.product?.name ?? 'Unnamed item',
         rawPrice: minPrice,
         promotionValue: item.promotion?.value ?? 0,
-        imageUrl: getProductImageUrl(item.product?.image),
+        imageUrl: getProductImageUrl(item.product?.image, {
+          maxWidth: IMAGE_PRESET.THUMB,
+        }),
         heroImagePaths,
         listIndex: index,
         defaultVariantSlug: cheapestVariantSlug,
@@ -560,7 +559,7 @@ export default function MenuPage() {
       // through route params — computed lazily here (only the tapped item),
       // not eagerly for every list row.
       const heroImageUrls = selectedItem.heroImagePaths
-        .map((p) => getProductImageUrl(p))
+        .map((p) => getProductImageUrl(p, { maxWidth: IMAGE_PRESET.HERO }))
         .filter((u): u is string => !!u)
       useTransientNavStore.getState().setHeroImageUrls(heroImageUrls)
 
@@ -714,6 +713,23 @@ export default function MenuPage() {
     hasUserStartedScrollRef.current = true
   }, [])
 
+  // Reset scroll to top whenever the effective filter changes, so switching
+  // catalog / special filter / price / search shows the new list from the top
+  // instead of retaining the previous scroll offset (which reads as an empty
+  // or wrong list until the user scrolls back up).
+  const flashListRef = useRef<FlashListRef<FlatItem>>(null)
+  useEffect(() => {
+    flashListRef.current?.scrollToOffset({ offset: 0, animated: false })
+  }, [
+    menuCatalog,
+    menuIsNewProduct,
+    menuIsTopSell,
+    searchKeyword,
+    menuMinPrice,
+    menuMaxPrice,
+    menuBranch,
+  ])
+
   return (
     <TabScreenLayout>
       {/* Header + filter — static, solid bg */}
@@ -784,11 +800,7 @@ export default function MenuPage() {
             { backgroundColor: isDark ? colors.card.dark : colors.gray[100] },
           ]}
         >
-          <MapPin
-            size={32}
-            color={colors.gray[400]}
-            strokeWidth={1.5}
-          />
+          <MapPin size={32} color={colors.gray[400]} strokeWidth={1.5} />
           <Text
             style={[
               styles.emptyText,
@@ -808,10 +820,7 @@ export default function MenuPage() {
           </Text>
           <PressableWithFeedback
             onPress={handleOpenBranchSheet}
-            style={[
-              styles.selectBranchBtn,
-              { backgroundColor: primaryColor },
-            ]}
+            style={[styles.selectBranchBtn, { backgroundColor: primaryColor }]}
             hapticStyle="light"
           >
             <Text style={styles.selectBranchBtnText}>
@@ -822,6 +831,7 @@ export default function MenuPage() {
       ) : (
         <MenuImagePhaseContext.Provider value={imagePhaseCount}>
           <FlashList
+            ref={flashListRef}
             data={flatItems}
             renderItem={renderItem}
             keyExtractor={menuKeyExtractor}

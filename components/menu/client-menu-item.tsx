@@ -9,7 +9,7 @@ import { ROUTE } from '@/constants'
 import { useIsMobile, usePressInPrefetchMenuItem } from '@/hooks'
 import { IMenuItem, IProduct } from '@/types'
 import { formatCurrency } from '@/utils'
-import { getProductImageUrl } from '@/utils/product-image-url'
+import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 
 import { MenuItemQuantityControl } from './menu-item-quantity-control'
 import { Text } from '@/components/ui/text'
@@ -55,7 +55,10 @@ export const ClientMenuItem = React.memo(function ClientMenuItem({
   const isMobile = useIsMobile()
 
   const imageUrl = useMemo(
-    () => getProductImageUrl(item.product.image),
+    () =>
+      getProductImageUrl(item.product.image, {
+        maxWidth: IMAGE_PRESET.THUMB,
+      }),
     [item.product.image],
   )
   const priceRange = useMemo(() => {
@@ -92,7 +95,9 @@ export const ClientMenuItem = React.memo(function ClientMenuItem({
           if (item.product.image && imageUrl) {
             const urls = new Set<string>([imageUrl])
             item.product.images?.forEach((img) => {
-              const url = getProductImageUrl(img)
+              const url = getProductImageUrl(img, {
+                maxWidth: IMAGE_PRESET.HERO,
+              })
               if (url) urls.add(url)
             })
             Image.prefetch([...urls]).catch(() => {})

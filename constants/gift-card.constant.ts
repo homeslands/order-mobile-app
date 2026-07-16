@@ -26,3 +26,10 @@ export enum GiftCardUsageStatus {
   EXPIRED = 'expired',
   ALL = 'all',
 }
+
+/**
+ * Trần tổng giá trị một đơn mua thẻ quà (VND).
+ * TẠM HARDCODE — BE chưa có endpoint để lấy giá trị này. Khi BE bổ sung,
+ * thay bằng giá trị fetch được (giữ nguyên chỗ dùng, chỉ đổi nguồn).
+ */
+export const GIFT_CARD_MAX_ORDER_AMOUNT = 5_000_000

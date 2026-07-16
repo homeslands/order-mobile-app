@@ -1,18 +1,18 @@
 import { Image } from 'expo-image'
 import { Coins, Gift } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, View } from 'react-native'
 
 import { CartSwipeable } from '@/components/cart/cart-swipeable'
-import { colors } from '@/constants'
+import { colors, GIFT_CARD_MAX_ORDER_AMOUNT } from '@/constants'
 import { useGiftCardStore } from '@/stores'
 import { capitalizeFirst, formatCurrency, formatPoints } from '@/utils'
-import { getProductImageUrl } from '@/utils/product-image-url'
+import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 import type { IGiftCardCartItem } from '@/types'
 import { Text } from '@/components/ui/text'
 
 const MIN_QTY = 1
-const MAX_QTY = 10
 
 const SWIPE_ID = 'gift-card-cart'
 
@@ -30,6 +30,7 @@ export const GiftCardCartItem = memo(function GiftCardCartItem({
   isDark,
   overrideQty,
 }: GiftCardCartItemProps) {
+  const { t } = useTranslation('giftCard')
   const cardBg = isDark ? colors.card.dark : colors.white.light
   const titleColor = isDark ? colors.gray[50] : colors.gray[900]
   const imgBg = isDark ? colors.border.dark : colors.gray[100]
@@ -66,12 +67,13 @@ export const GiftCardCartItem = memo(function GiftCardCartItem({
     [updateGiftCardQuantity],
   )
 
+  // Không giới hạn số lượng — chỉ chặn theo trần tổng giá trị đơn.
   const handleIncrease = useCallback(() => {
-    if (displayQty >= MAX_QTY) return
+    if ((displayQty + 1) * item.price > GIFT_CARD_MAX_ORDER_AMOUNT) return
     const next = displayQty + 1
     setPendingQty(next)
     scheduleSync(next)
-  }, [displayQty, scheduleSync])
+  }, [displayQty, item.price, scheduleSync])
 
   const handleDecrease = useCallback(() => {
     if (displayQty <= MIN_QTY) return
@@ -84,7 +86,10 @@ export const GiftCardCartItem = memo(function GiftCardCartItem({
 
   const totalPoints = item.points * displayQty
   const totalAmount = item.price * displayQty
-  const imageUrl = getProductImageUrl(item.image)
+  const atValueCap = (displayQty + 1) * item.price > GIFT_CARD_MAX_ORDER_AMOUNT
+  const imageUrl = getProductImageUrl(item.image, {
+    maxWidth: IMAGE_PRESET.THUMB,
+  })
 
   return (
     <CartSwipeable itemId={SWIPE_ID} onDelete={handleDelete}>
@@ -121,6 +126,19 @@ export const GiftCardCartItem = memo(function GiftCardCartItem({
             </View>
           </View>
 
+          {/* Trần tổng giá trị đơn */}
+          <Text
+            style={{
+              color: colors.destructive.light,
+              fontStyle: 'italic',
+              fontSize: 12,
+            }}
+          >
+            {t('maxOrderNote', {
+              amount: formatCurrency(GIFT_CARD_MAX_ORDER_AMOUNT),
+            })}
+          </Text>
+
           <View style={s.footer}>
             <View>
               <Text style={[s.totalPrice, { color: primaryColor }]}>
@@ -151,11 +169,11 @@ export const GiftCardCartItem = memo(function GiftCardCartItem({
               <Text style={[s.qtyText, { color: qtyText }]}>{displayQty}</Text>
               <Pressable
                 onPress={handleIncrease}
-                disabled={isOverridden || displayQty >= MAX_QTY}
+                disabled={isOverridden || atValueCap}
                 style={[
                   s.qtyBtn,
                   { borderColor: qtyBtnBorder },
-                  (isOverridden || displayQty >= MAX_QTY) && s.qtyBtnDisabled,
+                  (isOverridden || atValueCap) && s.qtyBtnDisabled,
                 ]}
               >
                 <Text style={[s.qtyBtnText, { color: qtyBtnText }]}>+</Text>
