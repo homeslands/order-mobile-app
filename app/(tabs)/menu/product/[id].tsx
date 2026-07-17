@@ -35,7 +35,12 @@ import {
 } from '@/components/product/product-detail-options-section'
 import { ProductHeroImage } from '@/components/product/product-hero-image'
 import { ProductInfoCard } from '@/components/product/product-info-card'
-import { ProductPriceFooter } from '@/components/product/product-price-footer'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
+
+import {
+  PRODUCT_FOOTER_BASE_HEIGHT,
+  ProductPriceFooter,
+} from '@/components/product/product-price-footer'
 import { OrderFlowStep, colors } from '@/constants'
 import { useSpecificMenuItem } from '@/hooks'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
@@ -95,6 +100,7 @@ function ProductDetailContent() {
   const router = useRouter()
   const isDark = useColorScheme() === 'dark'
   const primaryColor = usePrimaryColor()
+  const { bottom: bottomInset } = useSafeAreaInsets()
   const { t } = useTranslation('menu')
   const { id, name, basePrice, promotionValue, imageUrl } =
     useLocalSearchParams<{
@@ -320,6 +326,16 @@ function ProductDetailContent() {
     [isDark],
   )
 
+  // Footer là absolute + cao động theo safe-area, nên chừa chỗ theo insets thay
+  // vì số cố định — máy có safe-area lớn thì footer cao hơn và related bị dính.
+  const scrollContentStyle = useMemo(
+    () => [
+      detailStyles.scrollContent,
+      { paddingBottom: bottomInset + PRODUCT_FOOTER_BASE_HEIGHT + 24 },
+    ],
+    [bottomInset],
+  )
+
   const fallbackStyle = useMemo(
     () => ({
       height: 120,
@@ -347,7 +363,7 @@ function ProductDetailContent() {
         scrollEventThrottle={16}
         contentInsetAdjustmentBehavior="never"
         automaticallyAdjustContentInsets={false}
-        contentContainerStyle={detailStyles.scrollContent}
+        contentContainerStyle={scrollContentStyle}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -448,9 +464,8 @@ const detailStyles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  scrollContent: {
-    paddingBottom: 120,
-  },
+  // paddingBottom set động theo safe-area + chiều cao footer (xem scrollContentStyle)
+  scrollContent: {},
   bodySection: {
     padding: 16,
     gap: 16,

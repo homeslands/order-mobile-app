@@ -80,6 +80,15 @@ const SEARCH_DEBOUNCE_MS = 300
 const PREFETCH_URL_CACHE_MAX = 256
 const MENU_CATALOG_BATCH = 3
 
+/**
+ * FlashList v2 bật maintainVisibleContentPosition mặc định. Menu load
+ * progressive theo từng catalog và các query resolve KHÔNG theo thứ tự, nên
+ * item của catalog trước có thể bị chèn phía trên → MVCP giữ neo item đang
+ * thấy và đẩy offset xuống, làm list "mới vào" đã nằm giữa chừng.
+ * Đây là list top-down thường, không cần giữ neo → tắt.
+ */
+const MENU_MAINTAIN_POSITION = { disabled: true } as const
+
 /** Tiny LRU: evicts oldest entry when capacity exceeded — prevents unbounded growth */
 function makeLruSet(max: number) {
   const map = new Map<string, true>()
@@ -836,6 +845,7 @@ export default function MenuPage() {
             renderItem={renderItem}
             keyExtractor={menuKeyExtractor}
             getItemType={menuGetItemType}
+            maintainVisibleContentPosition={MENU_MAINTAIN_POSITION}
             drawDistance={300}
             keyboardDismissMode="on-drag"
             onEndReached={() => {

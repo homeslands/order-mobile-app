@@ -1,6 +1,6 @@
 import { VoucherConditionModal } from '@/components/cart/voucher-condition-modal'
 import { processVoucherList } from '@/components/sheet/voucher-validation'
-import { colors, PaymentMethod, Role } from '@/constants'
+import { colors, PaymentMethod } from '@/constants'
 import {
   usePublicVouchersForOrder,
   useSpecificPublicVoucher,
@@ -73,10 +73,11 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
   // ── Auth ──────────────────────────────────────────────────────────────────
   const userInfo = useUserStore((s) => s.userInfo)
   const userSlug = userInfo?.slug
+  // Customer-only app: any logged-in user with a real phone is a customer. Role
+  // must NOT be used — role.name is not loaded right after the first
+  // register+login, which silently hid the personal voucher list.
   const isCustomerOwner =
-    !!userInfo &&
-    userInfo.role?.name === Role.CUSTOMER &&
-    userInfo.phonenumber !== 'default-customer'
+    !!userInfo && userInfo.phonenumber !== 'default-customer'
 
   // ── Data from order ───────────────────────────────────────────────────────
   const orderSlug = order.slug

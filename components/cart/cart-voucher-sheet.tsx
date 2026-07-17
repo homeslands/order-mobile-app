@@ -40,6 +40,9 @@ import { Text } from '@/components/ui/text'
 
 const VOUCHER_SHEET_SNAP = ['90%']
 
+/** Ref ổn định cho nhánh "sheet đang đóng" — tránh tạo mảng mới mỗi render. */
+const EMPTY_PROCESSED: ReturnType<typeof processVoucherList> = []
+
 export const VoucherSheet = memo(function VoucherSheet({
   visible,
   onClose,
@@ -240,16 +243,22 @@ export const VoucherSheet = memo(function VoucherSheet({
   }, [allVouchers, currentVoucher])
 
   // 3.1 + 3.2 — Classify valid/invalid + error messages
+  // Sheet mount thường trực (xem CartFooter) và `allVouchers` không bị xoá khi
+  // dismiss, nên nếu không gate theo `visible` thì mỗi lần giỏ đổi (qty/voucher)
+  // sẽ chạy lại processVoucherList trên toàn list dù sheet đang ĐÓNG.
   const processed = useMemo(
     () =>
-      processVoucherList(rawEligibleVouchers, {
-        cartProductSlugs,
-        subTotalAfterPromotion: total,
-        userSlug,
-        isCustomerOwner,
-        t: tVoucher,
-      }),
+      visible
+        ? processVoucherList(rawEligibleVouchers, {
+            cartProductSlugs,
+            subTotalAfterPromotion: total,
+            userSlug,
+            isCustomerOwner,
+            t: tVoucher,
+          })
+        : EMPTY_PROCESSED,
     [
+      visible,
       rawEligibleVouchers,
       cartProductSlugs,
       total,

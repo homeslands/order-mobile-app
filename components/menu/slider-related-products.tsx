@@ -286,14 +286,12 @@ function SliderRelatedProducts({
   const isLoading = hasUser ? isPending : isPendingPublicSpecificMenu
 
   // 2 items visible, padding synced with body section (16px)
-  const { itemWidth, itemSpacing, cardHeight } = useMemo(() => {
+  const { itemWidth, itemSpacing } = useMemo(() => {
     const w = Dimensions.get('window').width
     const padding = 16
     const gap = 10
     const width = (w - padding * 2 - gap) / 2
-    // Ảnh aspect 4/3 (trừ padding 8 mỗi bên) + phần nội dung dưới ~76px.
-    const height = Math.round((width - 16) * 0.75 + 76)
-    return { itemWidth: width, itemSpacing: gap, cardHeight: height }
+    return { itemWidth: width, itemSpacing: gap }
   }, [])
 
   const handleSeeMore = useCallback(() => {
@@ -463,10 +461,7 @@ function SliderRelatedProducts({
             className="active:opacity-80"
             style={{ width: itemWidth, marginRight: itemSpacing }}
           >
-            <View
-              className="items-center justify-center gap-2 rounded-2xl border border-dashed border-gray-300 dark:border-[#3a3a3a]"
-              style={{ height: cardHeight }}
-            >
+            <View className="flex-1 items-center justify-center gap-2 rounded-2xl border border-dashed border-gray-300 dark:border-[#3a3a3a]">
               <View
                 className="h-11 w-11 items-center justify-center rounded-full"
                 style={{ backgroundColor: `${primaryColor}1a` }}
