@@ -72,3 +72,6 @@ GoogleService-Info.plist
 
 # Sentry
 .sentryclirc
+
+# Node path cho Android Studio — theo máy, đặt ở ~/.gradle/gradle.properties
+/gradle.properties
