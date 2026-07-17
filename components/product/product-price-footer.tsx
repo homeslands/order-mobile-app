@@ -24,6 +24,14 @@ import {
 import { formatCurrency } from '@/utils'
 import { Text } from '@/components/ui/text'
 
+/**
+ * Chiều cao footer KHÔNG kể safe-area bottom: paddingTop (12) + hàng nút (48)
+ * + FOOTER_BOTTOM_EXTRA. Màn detail dùng để chừa paddingBottom cho scroll:
+ * `paddingBottom: insets.bottom + PRODUCT_FOOTER_BASE_HEIGHT + khoảng thở`.
+ * Sửa style wrapper/nút thì nhớ cập nhật hằng số này.
+ */
+export const PRODUCT_FOOTER_BASE_HEIGHT = 12 + 48 + FOOTER_BOTTOM_EXTRA
+
 export interface ProductPriceFooterProps {
   totalPriceLabel: string
   chooseSizeLabel: string

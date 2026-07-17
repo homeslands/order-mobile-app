@@ -4,6 +4,7 @@
 import { getSystemFeatureFlagsByGroup } from '@/api'
 import {
   colors,
+  ORDER_FEATURE_FLAGS_STALE_MS,
   PHONE_NUMBER_REGEX,
   QUERYKEY,
   SystemLockFeatureChild,
@@ -159,6 +160,23 @@ export const CartFooter = memo(function CartFooter({
     [],
   )
   const openTableSheet = useCallback(() => setTableSheetVisible(true), [])
+
+  // ── Press-in prefetch ────────────────────────────────────────────────────
+  // Nút "Đặt hàng" phải await validate + feature flags mới mở được sheet. Bắn
+  // request ngay lúc ngón tay chạm xuống để ăn trước độ trễ — tới lúc thả thì
+  // thường đã có cache. prefetchQuery tự dedupe nên bấm nhiều lần không tạo
+  // request thừa.
+  const prefetchOrderFlags = useCallback(() => {
+    if (isOrderDisabled) return
+    void queryClient.prefetchQuery({
+      queryKey: [
+        QUERYKEY.systemFeatureFlagsByGroup,
+        SystemLockFeatureGroup.ORDER,
+      ],
+      queryFn: () => getSystemFeatureFlagsByGroup(SystemLockFeatureGroup.ORDER),
+      staleTime: ORDER_FEATURE_FLAGS_STALE_MS,
+    })
+  }, [queryClient, isOrderDisabled])
   const openVoucherSheet = useCallback(() => setVoucherSheetOpen(true), [])
   const openConfirmSheet = useCallback(async () => {
     if (isOrderDisabled) return
@@ -174,7 +192,7 @@ export const CartFooter = memo(function CartFooter({
           ],
           queryFn: () =>
             getSystemFeatureFlagsByGroup(SystemLockFeatureGroup.ORDER),
-          staleTime: 5_000,
+          staleTime: ORDER_FEATURE_FLAGS_STALE_MS,
         })
         .catch(() => null),
     ])
@@ -396,6 +414,7 @@ export const CartFooter = memo(function CartFooter({
           </View>
           <Pressable
             onPress={openConfirmSheet}
+            onPressIn={prefetchOrderFlags}
             disabled={isOrderDisabled}
             style={[
               footerStyles.checkoutBtn,

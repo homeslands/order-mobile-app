@@ -169,7 +169,11 @@ export default function TabsLayout() {
 
   const gradientColors = useMemo(
     () => [
-      'transparent',
+      // KHÔNG dùng 'transparent': trong RN nó là rgba(0,0,0,0) — tức ĐEN trong
+      // suốt. Gradient nội suy cả kênh RGB nên nó chạy đen → màu nền, tạo ra
+      // dải xám mờ ngang phía trên nav bar. Dùng chính màu nền với alpha 0 để
+      // chỉ alpha thay đổi, RGB giữ nguyên → fade sạch, không ám xám.
+      hexToRgba(colors.background, 0),
       hexToRgba(colors.background, 0.15),
       hexToRgba(colors.background, 0.55),
       colors.background,
@@ -307,7 +311,10 @@ export default function TabsLayout() {
       }
     } else {
       barTranslateX.value = isNativeTransition
-        ? withTiming(0, { duration: MOTION.nativeStack.durationMs, easing: SLIDE_EASING })
+        ? withTiming(0, {
+            duration: MOTION.nativeStack.durationMs,
+            easing: SLIDE_EASING,
+          })
         : 0
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps

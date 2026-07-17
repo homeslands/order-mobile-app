@@ -30,6 +30,13 @@ type CatalogHeader = {
 type MenuRow = { type: 'item'; item: IMenuItem }
 type FlatListItem = CatalogHeader | MenuRow
 
+/**
+ * Tắt maintainVisibleContentPosition (FlashList v2 bật mặc định): catalog load
+ * progressive và resolve không theo thứ tự → item chèn phía trên làm MVCP đẩy
+ * offset xuống, list mới vào đã ở giữa chừng. Xem app/(tabs)/menu/index.tsx.
+ */
+const MENU_MAINTAIN_POSITION = { disabled: true } as const
+
 export default function UpdateOrderMenus({
   branchSlug,
   primaryColor,
@@ -210,6 +217,7 @@ export default function UpdateOrderMenus({
         getItemType={getItemType}
         overrideItemLayout={overrideItemLayout}
         renderItem={renderItem}
+        maintainVisibleContentPosition={MENU_MAINTAIN_POSITION}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={s.listContent}
         onEndReached={() => {
