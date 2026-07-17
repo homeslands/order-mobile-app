@@ -10,28 +10,20 @@ import {
   QueryCache,
   QueryClient,
 } from '@tanstack/react-query'
+import { resolveGlobalErrorCode } from '@/lib/global-error-gate'
 import { showErrorToast } from '@/utils/toast'
-
-function extractStatusCode(error: unknown): number | null {
-  const err = error as {
-    response?: { data?: { statusCode?: number; code?: number } }
-  }
-  return err?.response?.data?.statusCode ?? err?.response?.data?.code ?? null
-}
 
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
     onError: (error, query) => {
-      if (query.meta?.skipGlobalError) return
-      const code = extractStatusCode(error)
+      const code = resolveGlobalErrorCode(query.meta, error)
       if (code) showErrorToast(code)
     },
   }),
   mutationCache: new MutationCache({
     onError: (error, _variables, _context, mutation) => {
       if (mutation.options.onError) return
-      if (mutation.meta?.skipGlobalError) return
-      const code = extractStatusCode(error)
+      const code = resolveGlobalErrorCode(mutation.meta, error)
       if (code) showErrorToast(code)
     },
   }),

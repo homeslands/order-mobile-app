@@ -53,15 +53,31 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
     }
   }, [])
 
+  /**
+   * Modal confirm nằm CHỒNG LÊN modal bàn. Nếu dismiss cả hai trong cùng một
+   * tick, modal stack của gorhom hỏng: modal bàn không bắn `onDismiss` →
+   * `visible` ở parent kẹt `true` → lần sau bấm "Chọn bàn" thì
+   * `setTableSheetVisible(true)` không đổi state → effect không chạy →
+   * `present()` không được gọi → sheet không mở lại được.
+   * Vì vậy: chỉ đóng modal confirm ở đây, và đợi nó đóng XONG (onDismiss) rồi
+   * mới dismiss modal bàn.
+   */
+  const closeTableAfterConfirmRef = useRef(false)
+
   const handleConfirmReserved = useCallback(() => {
     if (!pendingReservedTable) return
     useOrderFlowStore.getState().setOrderingTable(pendingReservedTable)
+    closeTableAfterConfirmRef.current = true
     setPendingReservedTable(null)
-    sheetRef.current?.dismiss()
   }, [pendingReservedTable])
 
-  const handleCancelReserved = useCallback(() => {
+  /** Chạy khi modal confirm đã đóng hẳn (cả nút Huỷ, backdrop lẫn Xác nhận). */
+  const handleReservedSheetDismissed = useCallback(() => {
     setPendingReservedTable(null)
+    if (closeTableAfterConfirmRef.current) {
+      closeTableAfterConfirmRef.current = false
+      sheetRef.current?.dismiss()
+    }
   }, [])
 
   const renderItem: ListRenderItem<ITable> = useCallback(
@@ -80,49 +96,49 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
         // Opacity on a plain View — not on TouchableOpacity — to avoid
         // RNGH's animated opacity conflicting with FlashList view recycling.
         <View style={chipStyles.chipWrapper}>
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => handleSelect(table)}
-          style={[
-            chipStyles.chip,
-            {
-              borderColor: selected
-                ? primaryColor
-                : isDark
-                  ? colors.border.dark
-                  : colors.gray[200],
-              backgroundColor: selected ? `${primaryColor}15` : 'transparent',
-            },
-          ]}
-        >
-          {selected && (
-            <CheckCircle
-              size={14}
-              color={primaryColor}
-              style={chipStyles.checkIcon}
-            />
-          )}
-          <Text
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => handleSelect(table)}
             style={[
-              chipStyles.chipName,
+              chipStyles.chip,
               {
-                color: isDark ? colors.gray[50] : colors.gray[900],
-                fontWeight: selected ? '700' : '500',
+                borderColor: selected
+                  ? primaryColor
+                  : isDark
+                    ? colors.border.dark
+                    : colors.gray[200],
+                backgroundColor: selected ? `${primaryColor}15` : 'transparent',
               },
             ]}
-            numberOfLines={1}
           >
-            {table.name}
-          </Text>
-          <View style={chipStyles.statusRow}>
-            <View
-              style={[chipStyles.statusDot, { backgroundColor: statusColor }]}
-            />
-            <Text style={[chipStyles.statusText, { color: statusColor }]}>
-              {isAvailable ? 'Trống' : 'Đặt'}
+            {selected && (
+              <CheckCircle
+                size={14}
+                color={primaryColor}
+                style={chipStyles.checkIcon}
+              />
+            )}
+            <Text
+              style={[
+                chipStyles.chipName,
+                {
+                  color: isDark ? colors.gray[50] : colors.gray[900],
+                  fontWeight: selected ? '700' : '500',
+                },
+              ]}
+              numberOfLines={1}
+            >
+              {table.name}
             </Text>
-          </View>
-        </TouchableOpacity>
+            <View style={chipStyles.statusRow}>
+              <View
+                style={[chipStyles.statusDot, { backgroundColor: statusColor }]}
+              />
+              <Text style={[chipStyles.statusText, { color: statusColor }]}>
+                {isAvailable ? 'Trống' : 'Đặt'}
+              </Text>
+            </View>
+          </TouchableOpacity>
         </View>
       )
     },
@@ -151,7 +167,11 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
         <View style={chipStyles.loadingWrap}>
           <ActivityIndicator
             size="small"
-            color={isDark ? colors.mutedForeground.dark : colors.mutedForeground.light}
+            color={
+              isDark
+                ? colors.mutedForeground.dark
+                : colors.mutedForeground.light
+            }
           />
           <Text
             style={{
@@ -230,7 +250,7 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
         visible={!!pendingReservedTable}
         tableName={pendingReservedTable?.name ?? ''}
         onConfirm={handleConfirmReserved}
-        onCancel={handleCancelReserved}
+        onCancel={handleReservedSheetDismissed}
       />
     </>
   )

@@ -1,5 +1,9 @@
 import { getSystemFeatureFlagsByGroup } from '@/api'
-import { QUERYKEY, SystemLockFeatureGroup } from '@/constants'
+import {
+  ORDER_FEATURE_FLAGS_STALE_MS,
+  QUERYKEY,
+  SystemLockFeatureGroup,
+} from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { shouldAutoRemoveVoucher } from '@/components/sheet/voucher-validation'
 import { useCartValidation } from '@/hooks/use-cart-validation'
@@ -18,7 +22,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import { StyleSheet, useColorScheme, View } from 'react-native'
-import type { SharedValue } from 'react-native-reanimated'
 
 import { type CartDisplayItem, toDisplayItem } from './cart-display-item'
 import { CartItemRow } from './cart-item-row'
@@ -42,11 +45,7 @@ const listStyles = StyleSheet.create({
 
 // ─── Main Content ────────────────────────────────────────────────────────────
 
-export default function CartContent({
-  scrollY,
-}: {
-  scrollY?: SharedValue<number>
-}) {
+export default function CartContent() {
   const router = useRouter()
   const { t } = useTranslation('menu')
   const { t: tToast } = useTranslation('toast')
@@ -106,9 +105,12 @@ export default function CartContent({
     validate()
     // Pre-warm feature flags cache so "Đặt hàng" opens sheet without delay
     queryClient.prefetchQuery({
-      queryKey: [QUERYKEY.systemFeatureFlagsByGroup, SystemLockFeatureGroup.ORDER],
+      queryKey: [
+        QUERYKEY.systemFeatureFlagsByGroup,
+        SystemLockFeatureGroup.ORDER,
+      ],
       queryFn: () => getSystemFeatureFlagsByGroup(SystemLockFeatureGroup.ORDER),
-      staleTime: 5_000,
+      staleTime: ORDER_FEATURE_FLAGS_STALE_MS,
     })
   }, [validate, queryClient, rawItems.length])
 
@@ -128,13 +130,6 @@ export default function CartContent({
       if (cartKey) removeItem(cartKey)
     },
     [removeItem],
-  )
-
-  const handleScroll = useCallback(
-    (e: { nativeEvent: { contentOffset: { y: number } } }) => {
-      if (scrollY) scrollY.value = e.nativeEvent.contentOffset.y
-    },
-    [scrollY],
   )
 
   const renderItem = useCallback(
@@ -175,8 +170,6 @@ export default function CartContent({
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         getItemType={getCartItemType}
-        onScroll={handleScroll}
-        scrollEventThrottle={32}
         contentContainerStyle={listStyles.content}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={ItemSeparator}

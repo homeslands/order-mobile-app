@@ -1,6 +1,7 @@
 import { Image } from 'expo-image'
+import { useRouter } from 'expo-router'
 import type { TFunction } from 'i18next'
-import { Plus } from 'lucide-react-native'
+import { ChevronRight, Plus } from 'lucide-react-native'
 import React, {
   memo,
   useCallback,
@@ -19,7 +20,8 @@ import {
 } from 'react-native'
 
 import { Images } from '@/assets/images'
-import { OrderFlowStep, ROUTE, publicFileURL } from '@/constants'
+import { extractMenuItems } from '@/api/menu'
+import { OrderFlowStep, ROUTE } from '@/constants'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import {
   usePressInPrefetchMenuItem,
@@ -28,12 +30,29 @@ import {
 } from '@/hooks'
 import { navigateNative } from '@/lib/navigation'
 import { useOrderFlowStore, useBranchStore, useUserStore } from '@/stores'
+import { useSetMenuFilter } from '@/stores/selectors'
+import { useTransientNavStore } from '@/stores/transient-nav.store'
 import type { IMenuItem, IOrderItem } from '@/types'
 import { formatCurrency, showToast } from '@/utils'
+import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 import { Text } from '@/components/ui/text'
 
 /** Ngày cố định trong session — thay useRef vì linter cấm đọc ref trong render */
 const SESSION_DATE_STR = new Date().toISOString().split('T')[0]
+
+/**
+ * Số thẻ related hiển thị. Row là ScrollView ngang KHÔNG virtualize → mỗi thẻ
+ * mount + decode ảnh ngay; giữ ít để tránh drop frame. Nếu catalog còn nhiều
+ * hơn, hiện thẻ "Xem thêm" điều hướng sang tab Menu với catalog đã chọn.
+ */
+const VISIBLE_RELATED = 6
+
+/**
+ * Fetch dư 2 so với số hiển thị: đủ để (a) biết còn nhiều hơn không (hiện nút
+ * "Xem thêm") kể cả khi sản phẩm hiện tại nằm trong trang, mà vẫn nhẹ tải —
+ * chỉ lấy ~8 thẻ thay vì cả catalog.
+ */
+const RELATED_FETCH_SIZE = VISIBLE_RELATED + 2
 
 interface SliderRelatedProductsProps {
   currentProduct: string
@@ -64,14 +83,13 @@ const RelatedProductItem = React.memo(
       () => onAddToCart(item.slug),
       [onAddToCart, item.slug],
     )
-    const imageUrl = useMemo(() => {
-      const imagePath = item?.product.image?.trim()
-      if (!imagePath) return null
-      if (/^https?:\/\//i.test(imagePath)) return imagePath
-      const base = publicFileURL ?? ''
-      if (!base) return null
-      return `${base.replace(/\/$/, '')}/${imagePath.replace(/^\//, '')}`
-    }, [item.product.image])
+    const imageUrl = useMemo(
+      () =>
+        getProductImageUrl(item.product.image, {
+          maxWidth: IMAGE_PRESET.THUMB,
+        }),
+      [item.product.image],
+    )
     const hasProductImage = imageUrl != null
     const priceRange = useMemo(() => {
       const variants = item.product.variants
@@ -192,6 +210,8 @@ function SliderRelatedProducts({
   catalog,
 }: SliderRelatedProductsProps) {
   const { t } = useTranslation('menu')
+  const router = useRouter()
+  const setMenuFilter = useSetMenuFilter()
   const primaryColor = usePrimaryColor()
   const prefetchMenuItem = usePressInPrefetchMenuItem()
   const branchSlug = useBranchStore((s) => s.branch?.slug)
@@ -207,6 +227,10 @@ function SliderRelatedProducts({
       productName: '',
       minPrice: 0,
       maxPrice: 1000000,
+      // Chỉ lấy ít thẻ related cho nhẹ tải (BE hỗ trợ paging).
+      page: 1,
+      size: RELATED_FETCH_SIZE,
+      hasPaging: true,
     }),
     [branchSlug, catalog],
   )
@@ -233,24 +257,31 @@ function SliderRelatedProducts({
   const { data: publicSpecificMenu, isPending: isPendingPublicSpecificMenu } =
     usePublicSpecificMenu(filters, !hasUser && hasBranch && fetchEnabled)
 
-  const relatedProductsData = useMemo(() => {
-    const items = hasUser
-      ? relatedProducts?.result.menuItems
-      : publicSpecificMenu?.result.menuItems
-    return items?.filter((item) => item.slug !== currentProduct) ?? []
+  const { visibleRelated, totalRelated } = useMemo(() => {
+    const items = (
+      hasUser
+        ? extractMenuItems(relatedProducts?.result)
+        : extractMenuItems(publicSpecificMenu?.result)
+    ).filter((item) => item.slug !== currentProduct)
+    return {
+      visibleRelated: items.slice(0, VISIBLE_RELATED),
+      totalRelated: items.length,
+    }
   }, [
     hasUser,
-    relatedProducts?.result.menuItems,
-    publicSpecificMenu?.result.menuItems,
+    relatedProducts?.result,
+    publicSpecificMenu?.result,
     currentProduct,
   ])
+
+  const hasMoreRelated = totalRelated > VISIBLE_RELATED
 
   // Keep O(1) lookup map in sync
   useEffect(() => {
     const m = new Map<string, IMenuItem>()
-    for (const item of relatedProductsData) m.set(item.slug, item)
+    for (const item of visibleRelated) m.set(item.slug, item)
     itemsMapRef.current = m
-  }, [relatedProductsData])
+  }, [visibleRelated])
 
   const isLoading = hasUser ? isPending : isPendingPublicSpecificMenu
 
@@ -262,6 +293,17 @@ function SliderRelatedProducts({
     const width = (w - padding * 2 - gap) / 2
     return { itemWidth: width, itemSpacing: gap }
   }, [])
+
+  const handleSeeMore = useCallback(() => {
+    // Chọn catalog tương ứng rồi chuyển sang tab Menu.
+    setMenuFilter((prev) => ({
+      ...prev,
+      catalog,
+      isNewProduct: undefined,
+      isTopSell: undefined,
+    }))
+    router.navigate(ROUTE.CLIENT_MENU)
+  }, [catalog, setMenuFilter, router])
 
   const handleItemPress = useCallback((slug: string) => {
     const mi = itemsMapRef.current.get(slug)
@@ -280,15 +322,13 @@ function SliderRelatedProducts({
       ...(mi.product?.images ?? []),
     ].filter((v): v is string => !!v)
     const heroImageUrls = heroImages
-      .map((p) => {
-        if (!p?.trim()) return null
-        if (/^https?:\/\//i.test(p)) return p
-        const base = publicFileURL ?? ''
-        return base
-          ? `${base.replace(/\/$/, '')}/${p.replace(/^\//, '')}`
-          : null
-      })
+      .map((p) => getProductImageUrl(p, { maxWidth: IMAGE_PRESET.HERO }))
       .filter((u): u is string => !!u)
+
+    // Hand the hero gallery to the detail screen via the transient store — the
+    // detail reads gallery from here (not from params). Without this, entering
+    // detail from a related item shows the PREVIOUS product's gallery.
+    useTransientNavStore.getState().setHeroImageUrls(heroImageUrls)
 
     navigateNative.push({
       pathname: ROUTE.CLIENT_PRODUCT_DETAIL,
@@ -298,7 +338,6 @@ function SliderRelatedProducts({
         basePrice: String(minPrice),
         promotionValue: String(mi.promotion?.value ?? 0),
         imageUrl: heroImageUrls[0] ?? '',
-        imageUrls: JSON.stringify(heroImageUrls),
       },
     })
   }, [])
@@ -355,7 +394,7 @@ function SliderRelatedProducts({
     [t],
   )
 
-  if (!relatedProductsData || relatedProductsData.length === 0) {
+  if (visibleRelated.length === 0) {
     if (isLoading) {
       return (
         <View style={{ marginTop: 16 }}>
@@ -402,7 +441,7 @@ function SliderRelatedProducts({
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingRight: 16 }}
       >
-        {relatedProductsData.map((item) => (
+        {visibleRelated.map((item) => (
           <RelatedProductItem
             key={item.slug}
             item={item}
@@ -415,6 +454,29 @@ function SliderRelatedProducts({
             t={t}
           />
         ))}
+
+        {hasMoreRelated && (
+          <Pressable
+            onPress={handleSeeMore}
+            className="active:opacity-80"
+            style={{ width: itemWidth, marginRight: itemSpacing }}
+          >
+            <View className="flex-1 items-center justify-center gap-2 rounded-2xl border border-dashed border-gray-300 dark:border-[#3a3a3a]">
+              <View
+                className="h-11 w-11 items-center justify-center rounded-full"
+                style={{ backgroundColor: `${primaryColor}1a` }}
+              >
+                <ChevronRight size={22} color={primaryColor} />
+              </View>
+              <Text
+                className="text-[13px] font-semibold"
+                style={{ color: primaryColor }}
+              >
+                {t('menu.seeMore', 'Xem thêm')}
+              </Text>
+            </View>
+          </Pressable>
+        )}
       </ScrollView>
     </View>
   )

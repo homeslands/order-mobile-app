@@ -127,7 +127,8 @@
     "deliveryPhone": "Delivery phone",
     "isTopSell": "Best seller",
     "isNewProduct": "New",
-    "relatedProducts": "Related products"
+    "relatedProducts": "Related products",
+    "seeMore": "See more"
   },
   "cart": {
     "title": "Cart",

@@ -20,13 +20,12 @@ import {
 } from 'react-hook-form'
 
 import { Input } from '@/components/ui'
-import { colors } from '@/constants'
+import { colors, GIFT_CARD_MAX_ORDER_AMOUNT } from '@/constants'
 import { useUserByPhone } from '@/hooks/use-users'
 import type { CheckoutFormValues } from '@/app/gift-card/checkout/schema'
 import { Text } from '@/components/ui/text'
 
 const MIN_QTY = 1
-const MAX_QTY = 10
 
 interface RecipientFormItemProps {
   index: number
@@ -35,6 +34,8 @@ interface RecipientFormItemProps {
   setValue: UseFormSetValue<CheckoutFormValues>
   primaryColor: string
   onRemove: (index: number) => void
+  /** Đơn giá thẻ — để chặn trần 5M áp RIÊNG cho từng người nhận. */
+  cardPrice: number
 }
 
 export const RecipientFormItem = memo(function RecipientFormItem({
@@ -44,6 +45,7 @@ export const RecipientFormItem = memo(function RecipientFormItem({
   setValue,
   primaryColor,
   onRemove,
+  cardPrice,
 }: RecipientFormItemProps) {
   const isDark = useColorScheme() === 'dark'
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
@@ -232,6 +234,8 @@ export const RecipientFormItem = memo(function RecipientFormItem({
           name={`recipients.${index}.quantity`}
           render={({ field: { onChange, value } }) => {
             const qty = typeof value === 'number' ? value : 1
+            // Trần 5M áp RIÊNG cho từng người nhận (qty × giá thẻ).
+            const atCap = (qty + 1) * cardPrice > GIFT_CARD_MAX_ORDER_AMOUNT
             return (
               <View style={s.qtyRow}>
                 <Pressable
@@ -247,12 +251,12 @@ export const RecipientFormItem = memo(function RecipientFormItem({
                 </Pressable>
                 <Text style={[s.qtyValue, { color: qtyText }]}>{qty}</Text>
                 <Pressable
-                  onPress={() => onChange(Math.min(MAX_QTY, qty + 1))}
-                  disabled={qty >= MAX_QTY}
+                  onPress={() => !atCap && onChange(qty + 1)}
+                  disabled={atCap}
                   style={[
                     s.qtyBtn,
                     { borderColor: qtyBtnBorder },
-                    qty >= MAX_QTY && s.qtyBtnDisabled,
+                    atCap && s.qtyBtnDisabled,
                   ]}
                 >
                   <Text style={[s.qtyBtnText, { color: qtyBtnText }]}>+</Text>

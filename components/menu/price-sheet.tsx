@@ -128,6 +128,7 @@ export const PriceFilterSheet = memo(function PriceFilterSheet({
   const inputBg = isDark ? colors.background.dark : colors.gray[100]
   const inputColor = isDark ? colors.gray[50] : colors.gray[900]
   const labelColor = isDark ? colors.gray[400] : colors.gray[500]
+  const placeholderColor = isDark ? colors.gray[600] : colors.gray[300]
 
   return (
     <BottomSheetModal
@@ -162,7 +163,7 @@ export const PriceFilterSheet = memo(function PriceFilterSheet({
                 value={localMin}
                 onChangeText={setLocalMin}
                 placeholder="0"
-                placeholderTextColor={labelColor}
+                placeholderTextColor={placeholderColor}
                 keyboardType="number-pad"
                 style={[
                   styles.input,
@@ -186,7 +187,7 @@ export const PriceFilterSheet = memo(function PriceFilterSheet({
                 value={localMax}
                 onChangeText={setLocalMax}
                 placeholder="300000"
-                placeholderTextColor={labelColor}
+                placeholderTextColor={placeholderColor}
                 keyboardType="number-pad"
                 style={[
                   styles.input,

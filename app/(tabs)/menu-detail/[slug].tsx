@@ -16,10 +16,7 @@ import { MenuItemQuantityControl } from '@/components/menu'
 import { CartBadge } from '@/components/navigation/cart-badge'
 import { NativeGesturePressable } from '@/components/navigation/native-gesture-pressable'
 import { Skeleton } from '@/components/ui'
-import {
-  getProductImageUrl,
-  PRODUCT_IMAGE_MAX_WIDTH_DETAIL,
-} from '@/utils/product-image-url'
+import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 import { TAB_ROUTES } from '@/constants/navigation.config'
 import {
   useOrderFlowAddToCart,
@@ -87,7 +84,7 @@ export default function MenuItemDetailPlaceholder() {
     if (!img) return ''
     return (
       getProductImageUrl(img, {
-        maxWidth: PRODUCT_IMAGE_MAX_WIDTH_DETAIL || undefined,
+        maxWidth: IMAGE_PRESET.HERO,
       }) ?? ''
     )
   }, [productDetail?.product.image])

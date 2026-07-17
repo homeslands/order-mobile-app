@@ -1,8 +1,11 @@
 import { Image } from 'expo-image'
-import React from 'react'
+import React, { useState } from 'react'
 import { StyleSheet, View } from 'react-native'
 
 import { Images } from '@/assets/images'
+import { useThumbnailUri } from '@/hooks/use-thumbnail-uri'
+import { invalidateThumbnail } from '@/lib/image/thumbnail-cache'
+import { IMAGE_PRESET } from '@/utils/product-image-url'
 
 type MenuItemImageProps = {
   id: string
@@ -23,6 +26,18 @@ function MenuItemImageBase({
   priority,
   borderRadius,
 }: MenuItemImageProps) {
+  // Resolve to an on-device 384px thumbnail (small GPU texture → smooth scroll).
+  // Hook must run before the early returns; only active for real remote urls.
+  const thumb = useThumbnailUri(
+    isEnabled && imageUrl ? imageUrl : null,
+    IMAGE_PRESET.THUMB,
+  )
+
+  // If a cached thumbnail file is gone (OS purged the cache dir), the local uri
+  // is dead → fall back to the original remote url for THIS cell (keyed by url,
+  // so a recycled cell showing a different product resets automatically).
+  const [failedUrl, setFailedUrl] = useState<string | null>(null)
+
   // Phase gate chưa ready — giữ View trống để tránh decode storm khi enter tab
   if (!isEnabled) {
     return (
@@ -49,7 +64,19 @@ function MenuItemImageBase({
 
   return (
     <Image
-      source={{ uri: imageUrl }}
+      source={
+        failedUrl === imageUrl && imageUrl
+          ? { uri: imageUrl }
+          : thumb
+            ? { uri: thumb }
+            : null
+      }
+      onError={() => {
+        if (imageUrl) {
+          invalidateThumbnail(imageUrl, IMAGE_PRESET.THUMB)
+          setFailedUrl(imageUrl)
+        }
+      }}
       style={[styles.image, borderRadius != null ? { borderRadius } : null]}
       contentFit="cover"
       transition={transitionMs}

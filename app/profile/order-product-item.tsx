@@ -6,7 +6,6 @@ import { Images } from '@/assets/images'
 import {
   APPLICABILITY_RULE,
   colors,
-  publicFileURL,
   VOUCHER_TYPE,
   paymentStatus,
 } from '@/constants'
@@ -16,6 +15,7 @@ import {
   capitalizeFirstLetter,
   formatCurrency,
 } from '@/utils'
+import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 import { Text } from '@/components/ui/text'
 
 // ─── Shared types ──────────────────────────────────────────────────────────
@@ -86,6 +86,10 @@ const OrderProductItem = memo(function OrderProductItem({
     (isSamePriceVoucher || hasPromotionDiscount || hasVoucherDiscount) &&
     original > displayPrice
 
+  const imageUrl = getProductImageUrl(product.variant?.product?.image, {
+    maxWidth: IMAGE_PRESET.THUMB,
+  })
+
   return (
     <View
       style={[
@@ -95,11 +99,8 @@ const OrderProductItem = memo(function OrderProductItem({
     >
       <View style={productStyles.productImageWrap}>
         <Image
-          source={
-            product.variant?.product?.image
-              ? { uri: `${publicFileURL}/${product.variant.product.image}` }
-              : Images.Food.ProductImage
-          }
+          source={imageUrl ? { uri: imageUrl } : Images.Food.ProductImage}
+          placeholder={Images.Food.ProductImage}
           style={productStyles.productImage}
           contentFit="cover"
           cachePolicy="disk"

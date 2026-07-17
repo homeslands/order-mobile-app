@@ -25,8 +25,6 @@ export type MenuDisplayItem = {
   menuItem: IMenuItem
   /** Pre-computed cheapest variant — avoids reduce() on every tap */
   cheapestVariant: import('@/types').IProductVariant | null
-  /** Pre-computed hero image URLs — serialized lazily on navigation */
-  heroImageUrls: string[]
 }
 
 export const MENU_IMAGE_HIGH_PRIORITY_COUNT = 4
