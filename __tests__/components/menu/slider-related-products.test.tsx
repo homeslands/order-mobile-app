@@ -29,6 +29,14 @@ jest.mock('@/stores', () => ({
   useUserStore: jest.fn(() => ({})),
 }))
 
+jest.mock('@/stores/selectors', () => ({
+  useSetMenuFilter: jest.fn(() => jest.fn()),
+}))
+
+jest.mock('expo-router', () => ({
+  useRouter: jest.fn(() => ({ navigate: jest.fn(), push: jest.fn() })),
+}))
+
 jest.mock('@/utils', () => ({
   formatCurrency: jest.fn((v: number) => String(v)),
   showToast: jest.fn(),
@@ -40,6 +48,7 @@ jest.mock('expo-image', () => ({
 
 jest.mock('lucide-react-native', () => ({
   Plus: () => null,
+  ChevronRight: () => null,
 }))
 
 jest.mock('react-i18next', () => ({

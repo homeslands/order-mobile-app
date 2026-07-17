@@ -25,7 +25,6 @@ import React, {
 import { Pressable, StyleSheet, View, useColorScheme } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { TouchableOpacity as GHTouchable } from 'react-native-gesture-handler'
-import { useSharedValue } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '@/constants'
@@ -301,7 +300,6 @@ export default function MenuCartScreen() {
   const isDark = useColorScheme() === 'dark'
   const itemCount = useOrderFlowCartItemCount()
   const clearCart = useOrderFlowStore((s) => s.clearCart)
-  const scrollY = useSharedValue(0)
   const { t } = useTranslation('menu')
   const [contentReady, setContentReady] = useState(false)
   const [clearSheetVisible, setClearSheetVisible] = useState(false)
@@ -339,7 +337,7 @@ export default function MenuCartScreen() {
           <Suspense
             fallback={<View style={{ flex: 1 }} pointerEvents="none" />}
           >
-            <CartContent scrollY={scrollY} />
+            <CartContent />
           </Suspense>
           <FloatingHeader
             title={`${t('cart.title')}${itemCount > 0 ? ` (${itemCount})` : ''}`}

@@ -127,7 +127,8 @@
     "deliveryPhone": "Số điện thoại giao hàng",
     "isTopSell": "Bán chạy",
     "isNewProduct": "Mới",
-    "relatedProducts": "Sản phẩm liên quan"
+    "relatedProducts": "Sản phẩm liên quan",
+    "seeMore": "Xem thêm"
   },
   "cart": {
     "title": "Giỏ hàng",

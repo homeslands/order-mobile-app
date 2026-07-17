@@ -5,10 +5,11 @@ import { View } from 'react-native'
 
 import { Images } from '@/assets/images'
 import { NativeGesturePressable } from '@/components/navigation'
-import { publicFileURL, ROUTE } from '@/constants'
+import { ROUTE } from '@/constants'
 import { useIsMobile, usePressInPrefetchMenuItem } from '@/hooks'
 import { IMenuItem, IProduct } from '@/types'
 import { formatCurrency } from '@/utils'
+import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 
 import { MenuItemQuantityControl } from './menu-item-quantity-control'
 import { Text } from '@/components/ui/text'
@@ -53,15 +54,13 @@ export const ClientMenuItem = React.memo(function ClientMenuItem({
   const prefetchMenuItem = usePressInPrefetchMenuItem()
   const isMobile = useIsMobile()
 
-  const imageUrl = useMemo(() => {
-    const path = item.product.image?.trim()
-    if (!path) return null
-    // Nếu backend trả về URL đầy đủ thì dùng trực tiếp
-    if (/^https?:\/\//i.test(path)) return path
-    const base = publicFileURL ?? ''
-    if (!base) return null
-    return `${base.replace(/\/$/, '')}/${path.replace(/^\//, '')}`
-  }, [item.product.image])
+  const imageUrl = useMemo(
+    () =>
+      getProductImageUrl(item.product.image, {
+        maxWidth: IMAGE_PRESET.THUMB,
+      }),
+    [item.product.image],
+  )
   const priceRange = useMemo(() => {
     const variants = item.product.variants
     if (!variants?.length) return null
@@ -96,10 +95,10 @@ export const ClientMenuItem = React.memo(function ClientMenuItem({
           if (item.product.image && imageUrl) {
             const urls = new Set<string>([imageUrl])
             item.product.images?.forEach((img) => {
-              if (publicFileURL)
-                urls.add(
-                  `${publicFileURL.replace(/\/$/, '')}/${(img || '').replace(/^\//, '')}`,
-                )
+              const url = getProductImageUrl(img, {
+                maxWidth: IMAGE_PRESET.HERO,
+              })
+              if (url) urls.add(url)
             })
             Image.prefetch([...urls]).catch(() => {})
           }

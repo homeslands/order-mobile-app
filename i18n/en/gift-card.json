@@ -1,6 +1,8 @@
 {
   "selected": "Selected",
   "unavailable": "Unavailable",
+  "maxOrderNote": "Order total up to {{amount}}",
+  "maxPerRecipientNote": "Up to {{amount}} per recipient",
   "status": {
     "available": "Available",
     "used": "Used",
@@ -141,7 +143,9 @@
     "error": {
       "addRecipient": "Please add at least one recipient",
       "typeLocked": "This card type is currently locked. Please select another.",
-      "orderFailed": "Order failed. Please try again."
+      "orderFailed": "Order failed. Please try again.",
+      "maxOrderExceeded": "Order total exceeds the maximum of {{amount}}",
+      "maxPerRecipientExceeded": "Each recipient exceeds the maximum of {{amount}}"
     }
   },
   "redeem": {

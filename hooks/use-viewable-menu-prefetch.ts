@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 
 import { getSpecificMenuItem } from '@/api/menu'
-import { getProductImageUrl } from '@/utils/product-image-url'
+import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 
 const QUERY_KEY = ['specific-menu-item'] as const
 const PREFETCH_LIMIT = 4
@@ -51,10 +51,14 @@ export function useViewableMenuPrefetch() {
             const product = res?.result?.product
             if (!product?.image) return
             const urls: string[] = []
-            const main = getProductImageUrl(product.image)
+            const main = getProductImageUrl(product.image, {
+              maxWidth: IMAGE_PRESET.THUMB,
+            })
             if (main) urls.push(main)
             product.images?.forEach((img) => {
-              const u = getProductImageUrl(img)
+              const u = getProductImageUrl(img, {
+                maxWidth: IMAGE_PRESET.HERO,
+              })
               if (u) urls.push(u)
             })
             if (urls.length) Image.prefetch(urls).catch(() => {})

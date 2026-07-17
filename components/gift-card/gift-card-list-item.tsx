@@ -6,7 +6,7 @@ import { Pressable, StyleSheet, View } from 'react-native'
 import { colors } from '@/constants'
 import { IGiftCard } from '@/types'
 import { capitalizeFirst, formatCurrency, formatPoints } from '@/utils'
-import { getProductImageUrl } from '@/utils/product-image-url'
+import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 import { useTranslation } from 'react-i18next'
 import { Text } from '@/components/ui/text'
 
@@ -31,7 +31,9 @@ export const GiftCardListItem = memo(
     onSelect,
   }: GiftCardListItemProps) {
     const handleSelect = useCallback(() => onSelect(item), [item, onSelect])
-    const imageUrl = getProductImageUrl(item.image)
+    const imageUrl = getProductImageUrl(item.image, {
+      maxWidth: IMAGE_PRESET.THUMB,
+    })
     const { t } = useTranslation('giftCard')
 
     const cardBg = isDark ? colors.card.dark : colors.white.light

@@ -1,12 +1,16 @@
-import { getPublicSpecificMenu, getSpecificMenu } from '@/api/menu'
-import { Role } from '@/constants'
+import {
+  buildSpecificMenuRequest,
+  extractMenuItems,
+  getPublicSpecificMenu,
+  getSpecificMenu,
+  type MenuEnvelope,
+} from '@/api/menu'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import { cartActions } from '@/stores/cart.store'
 import type { IMenuItem, IOrderItem, IProductVariant } from '@/types'
 import { showToast } from '@/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useRef } from 'react'
-import { useShallow } from 'zustand/react/shallow'
 
 export interface CartValidationResult {
   removed: string[]
@@ -101,12 +105,11 @@ export function useCartValidation() {
   const isValidatingRef = useRef(false)
   const lastValidatedDateRef = useRef<string | null>(null)
 
-  const { hasUser, roleName } = useUserStore(
-    useShallow((s) => ({
-      hasUser: !!s.userInfo,
-      roleName: s.userInfo?.role?.name,
-    })),
-  )
+  // Customer-only app: pick the endpoint by LOGIN state, not role. role.name is
+  // not loaded right after the first register+login, and gating on it sent
+  // ordinary customers to the public menu → cart validated against the wrong
+  // menu → items wrongly removed / wrong price.
+  const hasUser = useUserStore((s) => !!s.userInfo)
   const branchSlug = useBranchStore((s) => s.branch?.slug)
 
   const validate = useCallback(
@@ -125,20 +128,16 @@ export function useCartValidation() {
       isValidatingRef.current = true
 
       try {
-        const query = {
+        const query = buildSpecificMenuRequest({
           branch: branchSlug,
           date: new Date().toISOString().slice(0, 10),
-        }
-        const fetchMenu =
-          hasUser && roleName !== Role.CUSTOMER
-            ? getSpecificMenu
-            : getPublicSpecificMenu
+        })
+        const fetchMenu = hasUser ? getSpecificMenu : getPublicSpecificMenu
 
         // Use queryClient to leverage cache
-        const queryKey =
-          hasUser && roleName !== Role.CUSTOMER
-            ? ['specific-menu', query]
-            : ['public-specific-menu', query]
+        const queryKey = hasUser
+          ? ['specific-menu', query]
+          : ['public-specific-menu', query]
 
         const menuData = await queryClient.fetchQuery({
           queryKey,
@@ -147,8 +146,14 @@ export function useCartValidation() {
           meta: { skipGlobalError: true },
         })
 
-        const menuItems = menuData?.result?.menuItems
-        if (!menuItems) return null
+        // Bail if the response has NEITHER envelope field (missing/malformed) so
+        // a bad 200 can't validate the cart against an empty menu and wipe every
+        // item. Accept both the paged (`items`) and legacy (`menuItems`) shapes.
+        const menuResult = menuData?.result as MenuEnvelope | undefined
+        if (!menuResult || (!menuResult.items && !menuResult.menuItems)) {
+          return null
+        }
+        const menuItems = extractMenuItems(menuResult)
 
         // Validate
         const result = validateCartItems(cartItems, menuItems)
@@ -228,7 +233,7 @@ export function useCartValidation() {
         isValidatingRef.current = false
       }
     },
-    [branchSlug, hasUser, roleName, queryClient],
+    [branchSlug, hasUser, queryClient],
   )
 
   return { validate, isValidatingRef }

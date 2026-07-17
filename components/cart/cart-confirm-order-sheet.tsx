@@ -1,5 +1,5 @@
 import { getOrderBySlug } from '@/api/order'
-import { colors, PHONE_NUMBER_REGEX, Role, ROUTE } from '@/constants'
+import { colors, PHONE_NUMBER_REGEX, ROUTE } from '@/constants'
 import {
   useCalculateDeliveryFee,
   useCreateOrder,
@@ -57,19 +57,16 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
     useCreateOrderWithoutLogin()
   const clearUpdatingData = useOrderFlowStore((s) => s.clearUpdatingData)
 
-  const { hasUser, roleName, userBranchSlug } = useUserStore(
+  const { hasUser } = useUserStore(
     useShallow((s) => ({
       hasUser: !!s.userInfo,
-      roleName: s.userInfo?.role?.name,
-      userBranchSlug: s.userInfo?.branch?.slug,
     })),
   )
   const getUserInfo = useUserStore((s) => s.getUserInfo)
-  const branchSlugFromBranch = useBranchStore((s) => s.branch?.slug)
-  const branchSlug =
-    !hasUser || roleName === Role.CUSTOMER
-      ? branchSlugFromBranch
-      : userBranchSlug
+  // Customer-only app: the branch always comes from the customer's picked branch
+  // (branchStore) — never a staff-assigned userInfo.branch. Role can be unloaded
+  // right after first register+login, so it must NOT gate the branch source.
+  const branchSlug = useBranchStore((s) => s.branch?.slug)
 
   const order = useOrderFlowStore((s) => s.orderingData)
   const transitionToPayment = useOrderFlowStore((s) => s.transitionToPayment)
@@ -133,15 +130,14 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
 
     const onSuccess = (data: { result: { slug: string } }) => {
       const orderSlug = data.result.slug
-      const paymentRoute =
-        roleName === Role.CUSTOMER ? ROUTE.CLIENT_PAYMENT : ROUTE.SYSTEM_PAYMENT
 
       queryClient.prefetchQuery({
         queryKey: ['order', orderSlug],
         queryFn: () => getOrderBySlug(orderSlug),
       })
       navigateNative.push({
-        pathname: hasUser ? paymentRoute : ROUTE.CLIENT_PAYMENT,
+        // Customer-only app: always the client payment route.
+        pathname: ROUTE.CLIENT_PAYMENT,
         params: { order: orderSlug },
       })
       scheduleTransitionTask(() => {
@@ -177,7 +173,6 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
     order,
     branchSlug,
     hasUser,
-    roleName,
     getUserInfo,
     transitionToPayment,
     clearUpdatingData,

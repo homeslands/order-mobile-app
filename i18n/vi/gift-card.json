@@ -1,6 +1,8 @@
 {
   "selected": "Đã chọn",
   "unavailable": "Không khả dụng",
+  "maxOrderNote": "Giá trị đơn hàng tối đa {{amount}}",
+  "maxPerRecipientNote": "Mỗi người nhận tối đa {{amount}}",
   "status": {
     "available": "Khả dụng",
     "used": "Đã dùng",
@@ -142,7 +144,9 @@
     "error": {
       "addRecipient": "Vui lòng thêm ít nhất một người nhận",
       "typeLocked": "Loại thẻ này hiện đang bị khoá. Vui lòng chọn loại khác.",
-      "orderFailed": "Đặt hàng thất bại. Vui lòng thử lại."
+      "orderFailed": "Đặt hàng thất bại. Vui lòng thử lại.",
+      "maxOrderExceeded": "Giá trị đơn hàng vượt mức tối đa {{amount}}",
+      "maxPerRecipientExceeded": "Mỗi người nhận vượt mức tối đa {{amount}}"
     }
   },
   "redeem": {

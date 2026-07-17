@@ -40,7 +40,7 @@ import { GiftCardCartItem } from '@/components/gift-card/gift-card-cart-item'
 import { GiftCardTypeSelector } from '@/components/gift-card/gift-card-type-selector'
 import { RecipientFormItem } from '@/components/gift-card/recipient-form-item'
 import { FloatingHeader } from '@/components/navigation/floating-header'
-import { colors, GiftCardType } from '@/constants'
+import { colors, GiftCardType, GIFT_CARD_MAX_ORDER_AMOUNT } from '@/constants'
 import { FOOTER_BOTTOM_EXTRA, STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useCreateCardOrder } from '@/hooks/use-card-order'
 import { useGiftCardTypeOptions } from '@/hooks/use-gift-card-type-options'
@@ -174,6 +174,9 @@ export default function GiftCardCheckoutScreen() {
   const totalAmount = (giftCardItem?.price ?? 0) * totalQty
   const totalPoints = (giftCardItem?.points ?? 0) * totalQty
 
+  // Trần 5M áp RIÊNG mỗi người nhận — recipient row tự chặn theo qty của nó.
+  const cardPrice = giftCardItem?.price ?? 0
+
   // ── Handlers ─────────────────────────────────────────────────────────────
 
   const handleTypeChange = useCallback(
@@ -207,6 +210,27 @@ export default function GiftCardCheckoutScreen() {
         data.cardOrderType === GiftCardType.GIFT
           ? data.recipients.reduce((sum, r) => sum + r.quantity, 0)
           : selfQty
+
+      // Trần 5M — chặn cuối. Tặng: mỗi người nhận ≤ 5M. Mua cho mình: tổng ≤ 5M.
+      if (giftCardItem) {
+        const amount = formatCurrency(GIFT_CARD_MAX_ORDER_AMOUNT)
+        if (data.cardOrderType === GiftCardType.GIFT) {
+          const over = data.recipients.some(
+            (r) => r.quantity * giftCardItem.price > GIFT_CARD_MAX_ORDER_AMOUNT,
+          )
+          if (over) {
+            showErrorToastMessage(
+              t('checkout.error.maxPerRecipientExceeded', { amount }),
+            )
+            return
+          }
+        } else if (giftCardItem.price * orderQty > GIFT_CARD_MAX_ORDER_AMOUNT) {
+          showErrorToastMessage(
+            t('checkout.error.maxOrderExceeded', { amount }),
+          )
+          return
+        }
+      }
 
       createOrder(
         {
@@ -445,6 +469,20 @@ export default function GiftCardCheckoutScreen() {
                     )}
                   </View>
 
+                  {/* Trần 5M áp riêng mỗi người nhận */}
+                  <Text
+                    style={{
+                      color: colors.destructive.light,
+                      fontStyle: 'italic',
+                      fontSize: 12,
+                      marginBottom: 8,
+                    }}
+                  >
+                    {t('maxPerRecipientNote', {
+                      amount: formatCurrency(GIFT_CARD_MAX_ORDER_AMOUNT),
+                    })}
+                  </Text>
+
                   <View style={s.recipientList}>
                     {fields.map((field, index) => (
                       <RecipientFormItem
@@ -455,6 +493,7 @@ export default function GiftCardCheckoutScreen() {
                         setValue={setValue}
                         primaryColor={primaryColor}
                         onRemove={handleRemoveRecipient}
+                        cardPrice={cardPrice}
                       />
                     ))}
                   </View>

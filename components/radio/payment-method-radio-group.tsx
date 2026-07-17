@@ -1,8 +1,6 @@
 import {
   CircleDollarSign,
-  Coins,
   Coins as CoinsIcon,
-  CreditCard,
   Smartphone,
 } from 'lucide-react-native'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -10,7 +8,7 @@ import { useTranslation } from 'react-i18next'
 import { useColorScheme, View } from 'react-native'
 
 import { RadioGroup } from '@/components/ui'
-import { PaymentMethod, Role } from '@/constants'
+import { PaymentMethod } from '@/constants'
 import { cn } from '@/lib/utils'
 import { useUserStore } from '@/stores'
 import { IOrder, IUserInfo } from '@/types'
@@ -21,15 +19,25 @@ import { Text } from '@/components/ui/text'
 
 // ─── Pure helpers (no React deps) ────────────────────────────────────────────
 
+/**
+ * Customer-only app: đăng nhập = khách. KHÔNG được gate theo `role.name` —
+ * role load bất đồng bộ, ngay sau lần đăng ký+login đầu nó còn rỗng, mà
+ * `userInfo.role.name` lại không có optional-chaining → CRASH đúng ở màn thanh
+ * toán (bước cuối của flow đăng ký → đặt hàng). Kể cả thêm `?.` cũng sai: role
+ * rỗng sẽ rơi vào nhánh "không phải khách" → khách mới bị đẩy Tiền mặt/Thẻ tín
+ * dụng và mất Điểm tích luỹ. Nhánh nhân viên đã bỏ vì admin/quản lý không đăng
+ * nhập được vào app này.
+ */
+export function isCustomerUser(userInfo: IUserInfo | null): boolean {
+  return !!userInfo && userInfo.phonenumber !== 'default-customer'
+}
+
 function computeAvailableMethods(
   userInfo: IUserInfo | null,
   disabledMethods?: PaymentMethod[],
 ): PaymentMethod[] {
   const methods: PaymentMethod[] = [PaymentMethod.BANK_TRANSFER]
-  if (userInfo && userInfo.role.name !== Role.CUSTOMER) {
-    methods.push(PaymentMethod.CASH, PaymentMethod.CREDIT_CARD)
-  }
-  if (userInfo && userInfo.role.name === Role.CUSTOMER) {
+  if (isCustomerUser(userInfo)) {
     methods.push(PaymentMethod.POINT)
   }
   return disabledMethods?.length
@@ -87,19 +95,18 @@ export default function PaymentMethodRadioGroup({
 
   const balance = coinBalance ?? userInfo?.balance?.points ?? 0
   const orderSubtotal = order?.subtotal ?? 0
+  // Cũng phải theo đăng nhập, không theo role: role rỗng ngay sau đăng ký sẽ
+  // khiến check này luôn false → cho chọn "Điểm tích luỹ" dù không đủ điểm.
   const isBalanceInsufficient =
-    userInfo?.role?.name === Role.CUSTOMER && balance < orderSubtotal
+    isCustomerUser(userInfo) && balance < orderSubtotal
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<string>('')
-  const [creditCardTransactionId, setCreditCardTransactionId] =
-    useState<string>('')
 
   const voucherPaymentMethods = useMemo(
     () => order?.voucher?.voucherPaymentMethods || [],
     [order?.voucher?.voucherPaymentMethods],
   )
 
-  const isNonCustomer = userInfo && userInfo.role.name !== Role.CUSTOMER
-  const isCustomer = userInfo && userInfo.role.name === Role.CUSTOMER
+  const isCustomer = isCustomerUser(userInfo)
 
   // Memoize available methods once — reused in both support check and auto-select
   const availableMethods = useMemo(
@@ -110,8 +117,6 @@ export default function PaymentMethodRadioGroup({
   // Single memoized computation — replaces 6 cascaded hooks
   const {
     bankTransferSupported,
-    creditCardSupported,
-    cashSupported,
     pointSupported,
     hasCompatiblePaymentMethod,
     hasBlockedMethods,
@@ -191,34 +196,12 @@ export default function PaymentMethodRadioGroup({
       const paymentMethod = value as PaymentMethod
       setSelectedPaymentMethod(paymentMethod)
 
-      if (onSelect) {
-        onSelect(
-          paymentMethod,
-          paymentMethod === PaymentMethod.CREDIT_CARD
-            ? creditCardTransactionId
-            : undefined,
-        )
-      }
-      if (onSubmit) {
-        if (paymentMethod === PaymentMethod.CREDIT_CARD) {
-          onSubmit(paymentMethod, creditCardTransactionId)
-        } else {
-          onSubmit(paymentMethod)
-        }
-      }
+      // transactionId chỉ dành cho CREDIT_CARD — phương thức này không còn được
+      // chào ra nữa (chỉ nhân viên mới dùng), nên luôn undefined.
+      if (onSelect) onSelect(paymentMethod)
+      if (onSubmit) onSubmit(paymentMethod)
     },
-    [onSubmit, onSelect, creditCardTransactionId],
-  )
-
-  const handleTransactionIdChange = useCallback(
-    (transactionId: string) => {
-      setCreditCardTransactionId(transactionId)
-      if (selectedPaymentMethod === PaymentMethod.CREDIT_CARD) {
-        if (onSelect) onSelect(PaymentMethod.CREDIT_CARD, transactionId)
-        if (onSubmit) onSubmit(PaymentMethod.CREDIT_CARD, transactionId)
-      }
-    },
-    [selectedPaymentMethod, onSubmit, onSelect],
+    [onSubmit, onSelect],
   )
 
   const handleSelectMethod = useCallback(
@@ -273,38 +256,6 @@ export default function PaymentMethodRadioGroup({
         onSelect={handleSelectMethod}
         onSelectDisabled={makeConflictHandler(PaymentMethod.BANK_TRANSFER)}
       />
-      {isNonCustomer && (
-        <PaymentMethodOption
-          method={PaymentMethod.CREDIT_CARD}
-          icon={CreditCard}
-          label={t('paymentMethod.creditCard')}
-          isSupported={creditCardSupported}
-          isDark={isDark}
-          disabledReason={getDisabledReason(PaymentMethod.CREDIT_CARD)}
-          onSelect={handleSelectMethod}
-          onSelectDisabled={makeConflictHandler(PaymentMethod.CREDIT_CARD)}
-          showTransactionInput={
-            selectedPaymentMethod === PaymentMethod.CREDIT_CARD
-          }
-          transactionId={creditCardTransactionId}
-          onTransactionIdChange={handleTransactionIdChange}
-          transactionPlaceholder={t(
-            'paymentMethod.creditCardTransactionIdPlaceholder',
-          )}
-        />
-      )}
-      {isNonCustomer && (
-        <PaymentMethodOption
-          method={PaymentMethod.CASH}
-          icon={Coins}
-          label={t('paymentMethod.cash')}
-          isSupported={cashSupported}
-          isDark={isDark}
-          disabledReason={getDisabledReason(PaymentMethod.CASH)}
-          onSelect={handleSelectMethod}
-          onSelectDisabled={makeConflictHandler(PaymentMethod.CASH)}
-        />
-      )}
       {isCustomer && (
         <PaymentMethodOption
           method={PaymentMethod.POINT}

@@ -1,7 +1,7 @@
 import { processVoucherList } from '@/components/sheet/voucher-validation'
 import { VoucherCard } from './voucher-card'
 import { VoucherConditionModal } from './voucher-condition-modal'
-import { colors, Role } from '@/constants'
+import { colors } from '@/constants'
 import {
   usePublicVouchersForOrder,
   useSpecificPublicVoucher,
@@ -40,6 +40,9 @@ import { Text } from '@/components/ui/text'
 
 const VOUCHER_SHEET_SNAP = ['90%']
 
+/** Ref ổn định cho nhánh "sheet đang đóng" — tránh tạo mảng mới mỗi render. */
+const EMPTY_PROCESSED: ReturnType<typeof processVoucherList> = []
+
 export const VoucherSheet = memo(function VoucherSheet({
   visible,
   onClose,
@@ -67,10 +70,11 @@ export const VoucherSheet = memo(function VoucherSheet({
   // Auth — switch between private/public hooks
   const userInfo = useUserStore((s) => s.userInfo)
   const userSlug = userInfo?.slug
+  // Customer-only app: any logged-in user with a real phone is a customer. Role
+  // can be unloaded right after first register+login, so must NOT gate on it —
+  // otherwise the sheet falls back to public vouchers and shows an empty list.
   const isCustomerOwner =
-    !!userInfo &&
-    userInfo.role?.name === Role.CUSTOMER &&
-    userInfo.phonenumber !== 'default-customer'
+    !!userInfo && userInfo.phonenumber !== 'default-customer'
 
   const { mutate: validatePrivate } = useValidateVoucher()
   const { mutate: validatePublic } = useValidatePublicVoucher()
@@ -239,16 +243,22 @@ export const VoucherSheet = memo(function VoucherSheet({
   }, [allVouchers, currentVoucher])
 
   // 3.1 + 3.2 — Classify valid/invalid + error messages
+  // Sheet mount thường trực (xem CartFooter) và `allVouchers` không bị xoá khi
+  // dismiss, nên nếu không gate theo `visible` thì mỗi lần giỏ đổi (qty/voucher)
+  // sẽ chạy lại processVoucherList trên toàn list dù sheet đang ĐÓNG.
   const processed = useMemo(
     () =>
-      processVoucherList(rawEligibleVouchers, {
-        cartProductSlugs,
-        subTotalAfterPromotion: total,
-        userSlug,
-        isCustomerOwner,
-        t: tVoucher,
-      }),
+      visible
+        ? processVoucherList(rawEligibleVouchers, {
+            cartProductSlugs,
+            subTotalAfterPromotion: total,
+            userSlug,
+            isCustomerOwner,
+            t: tVoucher,
+          })
+        : EMPTY_PROCESSED,
     [
+      visible,
       rawEligibleVouchers,
       cartProductSlugs,
       total,
