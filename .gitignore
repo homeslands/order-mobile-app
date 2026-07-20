@@ -75,3 +75,6 @@ GoogleService-Info.plist
 
 # Node path cho Android Studio — theo máy, đặt ở ~/.gradle/gradle.properties
 /gradle.properties
+
+# EAS local credentials — chứa mật khẩu keystore, KHÔNG BAO GIỜ commit
+credentials.json
