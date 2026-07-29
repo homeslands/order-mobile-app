@@ -114,7 +114,7 @@ export default function RegisterPhoneForm() {
         disabled={isLoading}
         useTextInput
         transformOnChange={(v) => v.replace(/\D/g, '').slice(0, 10)}
-        labelClassName="text-md font-sans-medium text-gray-500 dark:text-gray-400"
+        labelClassName="text-sm font-sans-medium text-gray-500 dark:text-gray-400"
       />
 
       <TouchableOpacity

@@ -1,4 +1,5 @@
-import { LoginForm } from '@/components/auth'
+import { LoginPanel } from '@/components/auth'
+import { ScreenContainer } from '@/components/layout'
 import {
   DeleteAccountSheet,
   FontSizeSheet,
@@ -46,6 +47,7 @@ import {
   AppState,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -639,14 +641,19 @@ const ProfileTest = () => {
 
   if (needsUserInfo || !userInfo) {
     return (
-      <View
+      <ScreenContainer
+        edges={['top', 'bottom']}
         style={{
-          flex: 1,
           backgroundColor: isDark ? colors.background.dark : '#ffffff',
         }}
       >
-        <LoginForm />
-      </View>
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <LoginPanel showLogo />
+        </ScrollView>
+      </ScreenContainer>
     )
   }
 

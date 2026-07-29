@@ -5,10 +5,11 @@ import {
   type Path,
 } from 'react-hook-form'
 import { Platform, TextInput, View, useColorScheme } from 'react-native'
-import { useRef, useEffect, useState } from 'react'
+import type { TextInputProps } from 'react-native'
 
 import { Input } from '@/components/ui'
 import { colors } from '@/constants'
+import { useMirroredField } from '@/hooks/use-mirrored-field'
 import { cn } from '@/lib/utils'
 import { Text } from '@/components/ui/text'
 import { useFontScale } from '@/providers/font-scale-provider'
@@ -39,6 +40,8 @@ interface FormInputProps<T extends FieldValues> {
   errorClassName?: string
   helperText?: string
   transformOnChange?: (value: string) => string // Transform value before onChange
+  textContentType?: TextInputProps['textContentType']
+  importantForAutofill?: TextInputProps['importantForAutofill']
 }
 
 interface FormInputFieldProps {
@@ -69,6 +72,9 @@ interface FormInputFieldProps {
   errorClassName?: string
   helperText?: string
   transformOnChange?: (value: string) => string
+  invalid?: boolean
+  textContentType?: TextInputProps['textContentType']
+  importantForAutofill?: TextInputProps['importantForAutofill']
 }
 
 function FormInputField({
@@ -92,61 +98,26 @@ function FormInputField({
   errorClassName,
   helperText,
   transformOnChange,
+  invalid,
+  textContentType,
+  importantForAutofill,
 }: FormInputFieldProps) {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
   const scale = useFontScale()
-  const [localValue, setLocalValue] = useState(value ?? '')
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const pendingValueRef = useRef<string>(value ?? '')
-  const prevValueRef = useRef<string | undefined>(value)
+  const {
+    value: localValue,
+    onChangeText: handleChangeText,
+    onBlur: handleBlur,
+  } = useMirroredField({
+    value,
+    onChange,
+    onBlur,
+    transform: transformOnChange,
+  })
 
-  // Sync when value changes externally (e.g. form reset)
-  useEffect(() => {
-    if (value !== prevValueRef.current) {
-      prevValueRef.current = value
-      const next = value ?? ''
-      pendingValueRef.current = next
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLocalValue(next)
-    }
-  }, [value])
-
-  const handleChangeText = (text: string) => {
-    const next = transformOnChange ? transformOnChange(text) : text
-
-    // Sync prevValueRef before setLocalValue so the useEffect that watches
-    // the RHF `value` prop skips calling setLocalValue again when the
-    // debounced onChange fires 300ms later (value === prevValueRef → no-op).
-    prevValueRef.current = next
-    pendingValueRef.current = next
-    setLocalValue(next)
-
-    // Debounce RHF update to avoid Zod validation on every keystroke
-    // (mode: 'onTouched' triggers validation after first blur)
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
-    debounceTimerRef.current = setTimeout(() => {
-      onChange(pendingValueRef.current)
-    }, 300)
-  }
-
-  // Flush on blur so RHF always has latest value before validation
-  const handleBlur = () => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current)
-      debounceTimerRef.current = null
-    }
-    onChange(pendingValueRef.current)
-    onBlur()
-  }
-
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
-    }
-  }, [])
-
-  const showError = !!error
+  const showError = invalid ?? !!error
+  const showMessage = !!error
   const showHelper = !!helperText && !showError
 
   return (
@@ -175,7 +146,7 @@ function FormInputField({
           className={cn(
             'rounded-lg border bg-white px-4 font-sans text-base text-gray-900 dark:bg-[#121212] dark:text-white',
             showError
-              ? 'border-red-500 dark:border-red-400'
+              ? 'border-destructive dark:border-destructive'
               : 'border-gray-200 dark:border-[#2e2e2e]',
             disabled && 'opacity-50',
             className,
@@ -201,6 +172,8 @@ function FormInputField({
           secureTextEntry={secureTextEntry}
           editable={!disabled}
           allowFontScaling={false}
+          textContentType={textContentType}
+          importantForAutofill={importantForAutofill}
         />
       ) : (
         <Input
@@ -215,7 +188,7 @@ function FormInputField({
         />
       )}
 
-      {showError && (
+      {showMessage && (
         <Text
           className={cn(
             'mt-1 text-xs text-red-500 dark:text-red-400',
@@ -254,6 +227,8 @@ export function FormInput<T extends FieldValues>({
   errorClassName,
   helperText,
   transformOnChange,
+  textContentType,
+  importantForAutofill,
 }: FormInputProps<T>) {
   return (
     <Controller
@@ -261,7 +236,7 @@ export function FormInput<T extends FieldValues>({
       name={name}
       render={({
         field: { value, onChange, onBlur },
-        fieldState: { error },
+        fieldState: { error, invalid },
       }) => (
         <FormInputField
           value={value}
@@ -284,6 +259,9 @@ export function FormInput<T extends FieldValues>({
           errorClassName={errorClassName}
           helperText={helperText}
           transformOnChange={transformOnChange}
+          invalid={invalid}
+          textContentType={textContentType}
+          importantForAutofill={importantForAutofill}
         />
       )}
     />

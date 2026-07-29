@@ -1,17 +1,16 @@
-import { Redirect } from 'expo-router'
-import React, { useCallback } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { Redirect, useRouter } from 'expo-router'
+import { useCallback } from 'react'
 import {
   KeyboardAvoidingView,
   Platform,
   ScrollView,
   useColorScheme,
 } from 'react-native'
-import { ScreenContainer } from '@/components/layout'
-import { colors } from '@/constants'
 
-import { useQueryClient } from '@tanstack/react-query'
-import { LoginForm } from '@/components/auth'
-import { BannerPage } from '@/constants'
+import { LoginPanel } from '@/components/auth'
+import { ScreenContainer } from '@/components/layout'
+import { BannerPage, colors } from '@/constants'
 import { navigateWhenUnlocked } from '@/lib/navigation'
 import { useMasterTransitionOptional } from '@/lib/navigation/master-transition-provider'
 import { useAuthStore } from '@/stores'
@@ -23,6 +22,7 @@ export default function LoginScreen() {
   const hasHydrated = useAuthStore((state) => state._hasHydrated)
   const masterTransition = useMasterTransitionOptional()
   const queryClient = useQueryClient()
+  const router = useRouter()
 
   const handleLoginSuccess = useCallback(() => {
     const homeCached = !!queryClient.getQueryData(['banners', BannerPage.HOME])
@@ -32,6 +32,14 @@ export default function LoginScreen() {
     // đang đóng khi user tap Login) thay vì silent drop như navigateNative.replace.
     navigateWhenUnlocked.replace('/(tabs)/home')
   }, [masterTransition, queryClient])
+
+  // Login mở bằng cả push (gift-card, product detail, order detail) lẫn replace
+  // (onboarding, register, forgot-password). Nút back thuần sẽ chết ở nhóm sau,
+  // nên nút này luôn có đường thoát: back nếu có stack, không thì về trang chủ.
+  const handleClose = useCallback(() => {
+    if (router.canGoBack()) router.back()
+    else router.replace('/(tabs)/home')
+  }, [router])
 
   if (!hasHydrated) {
     return null // render nothing while store hydrates (50–200ms)
@@ -43,20 +51,27 @@ export default function LoginScreen() {
 
   return (
     <ScreenContainer
-      edges={['top']}
+      edges={['top', 'bottom']}
       className="flex-1"
       style={{ backgroundColor: bgColor }}
     >
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        // Android đã ở adjustResize mặc định của Expo — dùng thêm
+        // behavior="height" sẽ xử lý hai lần và gây giật layout.
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView
           style={{ backgroundColor: bgColor }}
+          contentContainerStyle={{ flexGrow: 1 }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <LoginForm onLoginSuccess={handleLoginSuccess} />
+          <LoginPanel
+            onClose={handleClose}
+            showLogo
+            onLoginSuccess={handleLoginSuccess}
+          />
         </ScrollView>
       </KeyboardAvoidingView>
     </ScreenContainer>
