@@ -17,7 +17,7 @@ import { Text } from '@/components/ui/text'
 import { ROUTE } from '@/constants'
 import { SHAKE } from '@/constants/motion'
 import { useLogin, usePostAuthActions, useZodForm } from '@/hooks'
-import { navigateNative } from '@/lib/navigation'
+import { navigateWhenUnlocked } from '@/lib/navigation'
 import { loginSchema, TLoginSchema } from '@/schemas'
 import type { ILoginResponse } from '@/types'
 import { showErrorToastMessage } from '@/utils'
@@ -139,7 +139,9 @@ export default function LoginForm({
         className="mt-2 self-start"
         onPress={() => {
           onBeforeNavigate?.()
-          navigateNative.push(ROUTE.FORGOT_PASSWORD)
+          // navigateWhenUnlocked: retry nếu navigation lock đang active (khi
+          // sheet đang đóng) thay vì silent drop như navigateNative.push.
+          navigateWhenUnlocked.push(ROUTE.FORGOT_PASSWORD)
         }}
         disabled={isLoading}
         hitSlop={8}

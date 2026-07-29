@@ -11,7 +11,7 @@ import { TouchableOpacity, View, useColorScheme } from 'react-native'
 import LoginForm from '@/components/auth/login-form'
 import { Text } from '@/components/ui/text'
 import { colors } from '@/constants'
-import { navigateNative } from '@/lib/navigation'
+import { navigateWhenUnlocked } from '@/lib/navigation'
 import { useLoginSheetStore } from '@/stores/login-sheet.store'
 
 const LOGIN_SHEET_SNAP = ['90%']
@@ -27,7 +27,9 @@ const LoginSheetPortalComponent = () => {
 
   const handleRegister = useCallback(() => {
     close()
-    navigateNative.replace('/auth/register')
+    // navigateWhenUnlocked: retry nếu navigation lock đang active (khi sheet
+    // đang đóng) thay vì silent drop như navigateNative.replace.
+    navigateWhenUnlocked.replace('/auth/register')
   }, [close])
 
   useEffect(() => {
