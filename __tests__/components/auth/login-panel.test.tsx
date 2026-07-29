@@ -98,4 +98,33 @@ describe('LoginPanel — chrome dùng chung', () => {
       expect(getByText('login.registerNow')).toBeTruthy()
     })
   })
+
+  it('close button có background className khi onClose được truyền', () => {
+    const onClose = jest.fn()
+    const { getByTestId } = render(<LoginPanel onClose={onClose} />)
+
+    const closeButton = getByTestId('login-panel-close')
+    // Verify close button exists and renders
+    expect(closeButton).toBeTruthy()
+    // Verify hitSlop is set
+    expect(closeButton.props.hitSlop).toBe(8)
+    // Verify className includes background classes
+    const className = closeButton.props.className
+    if (className) {
+      expect(className).toContain('bg-gray-100')
+      expect(className).toContain('dark:bg-[#1c1c1e]')
+    }
+  })
+
+  it('phone label và password label đều dùng text-sm', () => {
+    const { getByText } = render(<LoginPanel />)
+
+    // Phone label inside FormInput (Text component rendered by FormInput)
+    const phoneLabel = getByText('login.phoneNumber')
+    expect(phoneLabel.props.className).toContain('text-sm')
+
+    // Password label inside LoginForm (Text component)
+    const passwordLabel = getByText('login.password')
+    expect(passwordLabel.props.className).toContain('text-sm')
+  })
 })

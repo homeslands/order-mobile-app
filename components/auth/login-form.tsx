@@ -130,12 +130,12 @@ export default function LoginForm({
           disabled={isLoading}
           useTextInput
           transformOnChange={(v) => v.replace(/\D/g, '')}
-          labelClassName="text-md font-sans-medium text-gray-500 dark:text-gray-400"
+          labelClassName="text-sm font-sans-medium text-gray-500 dark:text-gray-400"
           containerClassName="mb-4"
         />
 
         <View>
-          <Text className="text-md mb-1 font-sans-medium text-gray-500 dark:text-gray-400">
+          <Text className="text-sm mb-1 font-sans-medium text-gray-500 dark:text-gray-400">
             {t('login.password')}
           </Text>
           <Controller

@@ -52,7 +52,7 @@ export default function LoginPanel({
           onPress={onClose}
           disabled={isLoginLoading}
           hitSlop={8}
-          className="h-9 w-9 items-center justify-center rounded-full"
+          className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 dark:bg-[#1c1c1e]"
         >
           <X size={22} color={iconColor} />
         </TouchableOpacity>
