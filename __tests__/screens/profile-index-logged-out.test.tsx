@@ -84,4 +84,17 @@ describe('app/profile/index.tsx — chưa đăng nhập vẫn có chrome', () =>
     expect(getByText('login.goBackToHome')).toBeTruthy()
     expect(getByTestId('login-panel-home')).toBeTruthy()
   })
+
+  it('áp dụng safe-area insets top và bottom (không bị kẹt dưới status bar/home indicator)', () => {
+    const { toJSON } = render(<ProfilePlaceholderScreen />)
+
+    const root = toJSON() as { props: { style: unknown } } | null
+    const rawStyle = root?.props.style
+    const style = Array.isArray(rawStyle)
+      ? Object.assign({}, ...rawStyle)
+      : (rawStyle as Record<string, number>)
+
+    expect(style.paddingTop).toBe(44)
+    expect(style.paddingBottom).toBe(34)
+  })
 })

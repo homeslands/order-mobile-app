@@ -1,4 +1,5 @@
 import { LoginPanel } from '@/components/auth'
+import { ScreenContainer } from '@/components/layout'
 import {
   DeleteAccountSheet,
   FontSizeSheet,
@@ -640,9 +641,9 @@ const ProfileTest = () => {
 
   if (needsUserInfo || !userInfo) {
     return (
-      <View
+      <ScreenContainer
+        edges={['top', 'bottom']}
         style={{
-          flex: 1,
           backgroundColor: isDark ? colors.background.dark : '#ffffff',
         }}
       >
@@ -652,7 +653,7 @@ const ProfileTest = () => {
         >
           <LoginPanel showLogo />
         </ScrollView>
-      </View>
+      </ScreenContainer>
     )
   }
 

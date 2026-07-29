@@ -273,7 +273,7 @@ export default function ProfilePlaceholderScreen() {
 
   if (needsUserInfo || !userInfo) {
     return (
-      <ScreenContainer edges={['top']} className="flex-1">
+      <ScreenContainer edges={['top', 'bottom']} className="flex-1">
         <ScrollView
           contentContainerStyle={{ flexGrow: 1 }}
           keyboardShouldPersistTaps="handled"
