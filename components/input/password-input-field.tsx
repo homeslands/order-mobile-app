@@ -22,6 +22,7 @@ export interface PasswordInputFieldProps {
   placeholder?: string
   disabled?: boolean
   error?: string
+  invalid?: boolean
 }
 
 export function PasswordInputField({
@@ -31,6 +32,7 @@ export function PasswordInputField({
   placeholder,
   disabled,
   error,
+  invalid,
 }: PasswordInputFieldProps) {
   const [showPassword, setShowPassword] = useState(false)
   const colorScheme = useColorScheme()
@@ -43,6 +45,8 @@ export function PasswordInputField({
     setShowPassword((v) => !v)
   }
 
+  const showError = invalid ?? !!error
+
   return (
     <View>
       <View className="relative">
@@ -50,7 +54,7 @@ export function PasswordInputField({
           className={cn(
             'rounded-lg border bg-white px-3 pr-10 text-base dark:bg-[#121212]',
             'text-gray-900 dark:text-white',
-            error
+            showError
               ? 'border-destructive dark:border-destructive'
               : 'border-gray-200 dark:border-[#2e2e2e]',
             disabled && 'opacity-50',
