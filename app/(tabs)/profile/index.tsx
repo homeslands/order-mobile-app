@@ -46,6 +46,7 @@ import {
   AppState,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -645,7 +646,12 @@ const ProfileTest = () => {
           backgroundColor: isDark ? colors.background.dark : '#ffffff',
         }}
       >
-        <LoginPanel showLogo />
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <LoginPanel showLogo />
+        </ScrollView>
       </View>
     )
   }

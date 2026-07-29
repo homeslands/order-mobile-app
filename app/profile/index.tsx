@@ -11,6 +11,7 @@ import {
 import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -273,7 +274,12 @@ export default function ProfilePlaceholderScreen() {
   if (needsUserInfo || !userInfo) {
     return (
       <ScreenContainer edges={['top']} className="flex-1">
-        <LoginPanel showLogo />
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <LoginPanel showLogo />
+        </ScrollView>
       </ScreenContainer>
     )
   }

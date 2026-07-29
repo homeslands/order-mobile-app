@@ -39,8 +39,8 @@ export default function LoginPanel({
 
   const handleRegister = useCallback(() => {
     onBeforeNavigate?.()
-    // navigateWhenUnlocked: retry nếu navigation lock đang active (khi sheet
-    // đang đóng) thay vì silent drop như navigateNative.replace.
+    // navigateWhenUnlocked: retry nếu navigation lock đang active (vd: một
+    // transition khác chưa xong) thay vì silent drop như navigateNative.replace.
     navigateWhenUnlocked.replace('/auth/register')
   }, [onBeforeNavigate])
 
