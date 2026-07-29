@@ -3,7 +3,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Image } from 'expo-image'
 import { Redirect, useRouter } from 'expo-router'
 import { X } from 'lucide-react-native'
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   KeyboardAvoidingView,
@@ -35,6 +35,7 @@ export default function LoginScreen() {
   const masterTransition = useMasterTransitionOptional()
   const queryClient = useQueryClient()
   const router = useRouter()
+  const [isLoginLoading, setIsLoginLoading] = useState(false)
 
   const handleLoginSuccess = useCallback(() => {
     const homeCached = !!queryClient.getQueryData(['banners', BannerPage.HOME])
@@ -54,8 +55,10 @@ export default function LoginScreen() {
   }, [router])
 
   const handleRegister = useCallback(() => {
-    router.replace('/auth/register')
-  }, [router])
+    // navigateWhenUnlocked: router.replace thô bỏ qua isNavigationLocked(),
+    // double-tap có thể bắn 2 lần replace vào native stack.
+    navigateWhenUnlocked.replace('/auth/register')
+  }, [])
 
   if (!hasHydrated) {
     return null // render nothing while store hydrates (50–200ms)
@@ -87,6 +90,7 @@ export default function LoginScreen() {
             <TouchableOpacity
               testID="login-close"
               onPress={handleClose}
+              disabled={isLoginLoading}
               hitSlop={8}
               className="h-9 w-9 items-center justify-center rounded-full"
             >
@@ -112,7 +116,10 @@ export default function LoginScreen() {
             </Text>
 
             <View className="mt-7">
-              <LoginForm onLoginSuccess={handleLoginSuccess} />
+              <LoginForm
+                onLoginSuccess={handleLoginSuccess}
+                onLoadingChange={setIsLoginLoading}
+              />
             </View>
 
             <View className="flex-1" />
@@ -120,6 +127,7 @@ export default function LoginScreen() {
             <TouchableOpacity
               className="mt-6 items-center"
               onPress={handleRegister}
+              disabled={isLoginLoading}
               hitSlop={8}
             >
               <Text className="font-sans text-sm text-gray-500 dark:text-gray-400">

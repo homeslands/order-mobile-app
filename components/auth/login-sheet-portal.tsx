@@ -4,7 +4,14 @@ import {
   BottomSheetScrollView,
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet'
-import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
+import {
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react'
 import { useTranslation } from 'react-i18next'
 import { TouchableOpacity, View, useColorScheme } from 'react-native'
 
@@ -22,6 +29,7 @@ const LoginSheetPortalComponent = () => {
   const close = useLoginSheetStore((s) => s.close)
   const sheetRef = useRef<BottomSheetModal>(null)
   const isDark = useColorScheme() === 'dark'
+  const [isLoginLoading, setIsLoginLoading] = useState(false)
 
   const { t } = useTranslation('auth')
 
@@ -86,12 +94,14 @@ const LoginSheetPortalComponent = () => {
             <LoginForm
               onLoginSuccess={handleLoginSuccess}
               onBeforeNavigate={close}
+              onLoadingChange={setIsLoginLoading}
             />
           </View>
 
           <TouchableOpacity
             className="mt-6 items-center"
             onPress={handleRegister}
+            disabled={isLoginLoading}
             hitSlop={8}
           >
             <Text className="font-sans text-sm text-gray-500 dark:text-gray-400">

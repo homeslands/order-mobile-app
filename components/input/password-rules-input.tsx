@@ -89,7 +89,7 @@ export function PasswordRulesInput({
   const field = useMirroredField({ value, onChange, onBlur })
 
   // Rules read the local value so the strength meter stays in step with the
-  // keyboard instead of lagging behind the debounced form update.
+  // keyboard on every keystroke, instead of waiting for the form's onChange.
   const hookResult = usePasswordRules(field.value)
   const rules = rulesProp ?? hookResult.rules
   const strength = strengthProp ?? hookResult.strength

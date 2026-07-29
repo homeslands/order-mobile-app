@@ -2,7 +2,7 @@ import { useTranslation } from 'react-i18next'
 import { Controller } from 'react-hook-form'
 import { ActivityIndicator, TouchableOpacity, View } from 'react-native'
 import * as Haptics from 'expo-haptics'
-import { useCallback } from 'react'
+import { useCallback, useEffect } from 'react'
 import Animated, {
   runOnUI,
   useAnimatedStyle,
@@ -25,11 +25,13 @@ import { showErrorToastMessage } from '@/utils'
 interface LoginFormProps {
   onLoginSuccess?: () => void
   onBeforeNavigate?: () => void
+  onLoadingChange?: (isLoading: boolean) => void
 }
 
 export default function LoginForm({
   onLoginSuccess,
   onBeforeNavigate,
+  onLoadingChange,
 }: LoginFormProps) {
   const { t } = useTranslation('auth')
 
@@ -37,6 +39,8 @@ export default function LoginForm({
     control,
     handleSubmit,
     setError,
+    clearErrors,
+    watch,
     formState: { isSubmitting, errors },
   } = useZodForm(loginSchema, {
     defaultValues: { phonenumber: '', password: '' },
@@ -44,6 +48,22 @@ export default function LoginForm({
 
   const { mutate: loginMutation, isPending } = useLogin()
   const { handleAuthSuccess } = usePostAuthActions()
+
+  // reValidateMode: 'onChange' của RHF chỉ tự xoá lỗi của ô vừa sửa. Spec
+  // yêu cầu sửa BẤT KỲ ô nào cũng xoá viền đỏ ở CẢ 2 ô, nên tự bù thêm ở
+  // đây — chỉ khi đang thực sự có lỗi 'server' cần xoá (tránh chạy clearErrors
+  // ở lần render đầu hoặc khi chưa từng có lỗi).
+  useEffect(() => {
+    const subscription = watch(() => {
+      if (
+        errors.phonenumber?.type === 'server' ||
+        errors.password?.type === 'server'
+      ) {
+        clearErrors(['phonenumber', 'password'])
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [watch, clearErrors, errors.phonenumber?.type, errors.password?.type])
 
   const shakeX = useSharedValue(0)
   const shakeStyle = useAnimatedStyle(() => ({
@@ -89,6 +109,10 @@ export default function LoginForm({
   }
 
   const isLoading = isPending || isSubmitting
+
+  useEffect(() => {
+    onLoadingChange?.(isLoading)
+  }, [isLoading, onLoadingChange])
 
   return (
     <View>

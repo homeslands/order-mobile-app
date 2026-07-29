@@ -62,6 +62,17 @@ const closestCommonAncestor = (a: Instance, b: Instance): Instance | null => {
   return null
 }
 
+describe('LoginForm — autofill', () => {
+  it('khai báo thuộc tính autofill cho ô SĐT (nửa username của cặp password-manager)', () => {
+    const utils = render(<LoginForm />)
+    const phoneInput = utils.getByPlaceholderText('login.enterPhoneNumber')
+
+    expect(phoneInput.props.textContentType).toBe('username')
+    expect(phoneInput.props.importantForAutofill).toBe('yes')
+    expect(phoneInput.props.autoComplete).toBe('tel')
+  })
+})
+
 describe('LoginForm — sai thông tin đăng nhập', () => {
   beforeEach(() => {
     mockMutate.mockReset()
@@ -122,6 +133,35 @@ describe('LoginForm — sai thông tin đăng nhập', () => {
 
     expect(
       utils.getByPlaceholderText('login.enterPhoneNumber').props.className,
+    ).not.toContain('border-destructive')
+  })
+
+  it('sửa MỘT ô cũng xoá viền đỏ ở CẢ 2 ô (spec: sửa bất kỳ ô nào)', async () => {
+    mockMutate.mockImplementation(
+      (_vars: unknown, opts: { onError: () => void }) => opts.onError(),
+    )
+    const utils = render(<LoginForm />)
+    await fillAndSubmit(utils)
+
+    expect(
+      utils.getByPlaceholderText('login.enterPhoneNumber').props.className,
+    ).toContain('border-destructive')
+    expect(
+      utils.getByPlaceholderText('login.enterPassword').props.className,
+    ).toContain('border-destructive')
+
+    // Chỉ sửa ô SĐT — không đụng vào ô mật khẩu.
+    await act(async () => {
+      utils
+        .getByPlaceholderText('login.enterPhoneNumber')
+        .props.onChangeText('0901234568')
+    })
+
+    expect(
+      utils.getByPlaceholderText('login.enterPhoneNumber').props.className,
+    ).not.toContain('border-destructive')
+    expect(
+      utils.getByPlaceholderText('login.enterPassword').props.className,
     ).not.toContain('border-destructive')
   })
 
