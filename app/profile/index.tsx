@@ -11,6 +11,7 @@ import {
 import { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
+  ScrollView,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -21,7 +22,7 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated'
 
-import { LoginForm } from '@/components/auth'
+import { LoginPanel } from '@/components/auth'
 import { ScreenContainer } from '@/components/layout'
 import { DeleteAccountSheet } from '@/components/profile'
 import { AnimatedProfileHeader } from '@/components/profile/animated-profile-header'
@@ -272,8 +273,13 @@ export default function ProfilePlaceholderScreen() {
 
   if (needsUserInfo || !userInfo) {
     return (
-      <ScreenContainer edges={['top']} className="flex-1">
-        <LoginForm />
+      <ScreenContainer edges={['top', 'bottom']} className="flex-1">
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          <LoginPanel showLogo />
+        </ScrollView>
       </ScreenContainer>
     )
   }

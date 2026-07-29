@@ -3,7 +3,7 @@ import { memo, useState } from 'react'
 import { TextInput, TouchableOpacity, View, useColorScheme } from 'react-native'
 
 import { colors } from '@/constants'
-import { usePasswordRules, type PasswordRules } from '@/hooks'
+import { usePasswordRules, useMirroredField, type PasswordRules } from '@/hooks'
 import { cn } from '@/lib/utils'
 import { Text } from '@/components/ui/text'
 import { useFontScale } from '@/providers/font-scale-provider'
@@ -86,8 +86,11 @@ export function PasswordRulesInput({
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
   const scale = useFontScale()
+  const field = useMirroredField({ value, onChange, onBlur })
 
-  const hookResult = usePasswordRules(value)
+  // Rules read the local value so the strength meter stays in step with the
+  // keyboard on every keystroke, instead of waiting for the form's onChange.
+  const hookResult = usePasswordRules(field.value)
   const rules = rulesProp ?? hookResult.rules
   const strength = strengthProp ?? hookResult.strength
   const labels = labelsProp ?? hookResult.labels
@@ -110,14 +113,14 @@ export function PasswordRulesInput({
           placeholderTextColor={
             isDark ? colors.mutedForeground.dark : colors.mutedForeground.light
           }
-          value={value}
+          value={field.value}
           onChangeText={(text) => {
-            onChange(text)
+            field.onChangeText(text)
             if (!touched) setTouched(true)
           }}
           onBlur={() => {
             setTouched(true)
-            onBlur?.()
+            field.onBlur()
           }}
           secureTextEntry={!showPassword}
           autoCapitalize="none"

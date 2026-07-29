@@ -1,28 +1,46 @@
 import { useTranslation } from 'react-i18next'
 import { Controller } from 'react-hook-form'
 import { ActivityIndicator, TouchableOpacity, View } from 'react-native'
+import * as Haptics from 'expo-haptics'
+import { useCallback, useEffect } from 'react'
+import Animated, {
+  runOnUI,
+  useAnimatedStyle,
+  useSharedValue,
+  withSequence,
+  withTiming,
+} from 'react-native-reanimated'
 
 import { FormInput } from '@/components/form/form-input'
 import { PasswordInputField } from '@/components/input'
+import { Text } from '@/components/ui/text'
 import { ROUTE } from '@/constants'
+import { SHAKE } from '@/constants/motion'
 import { useLogin, usePostAuthActions, useZodForm } from '@/hooks'
-import { navigateNative } from '@/lib/navigation'
+import { navigateWhenUnlocked } from '@/lib/navigation'
 import { loginSchema, TLoginSchema } from '@/schemas'
 import type { ILoginResponse } from '@/types'
 import { showErrorToastMessage } from '@/utils'
-import { Text } from '@/components/ui/text'
 
 interface LoginFormProps {
   onLoginSuccess?: () => void
   onBeforeNavigate?: () => void
+  onLoadingChange?: (isLoading: boolean) => void
 }
 
-export default function LoginForm({ onLoginSuccess, onBeforeNavigate }: LoginFormProps) {
+export default function LoginForm({
+  onLoginSuccess,
+  onBeforeNavigate,
+  onLoadingChange,
+}: LoginFormProps) {
   const { t } = useTranslation('auth')
 
   const {
     control,
     handleSubmit,
+    setError,
+    clearErrors,
+    watch,
     formState: { isSubmitting, errors },
   } = useZodForm(loginSchema, {
     defaultValues: { phonenumber: '', password: '' },
@@ -30,6 +48,43 @@ export default function LoginForm({ onLoginSuccess, onBeforeNavigate }: LoginFor
 
   const { mutate: loginMutation, isPending } = useLogin()
   const { handleAuthSuccess } = usePostAuthActions()
+
+  // reValidateMode: 'onChange' của RHF chỉ tự xoá lỗi của ô vừa sửa. Spec
+  // yêu cầu sửa BẤT KỲ ô nào cũng xoá viền đỏ ở CẢ 2 ô, nên tự bù thêm ở
+  // đây — chỉ khi đang thực sự có lỗi 'server' cần xoá (tránh chạy clearErrors
+  // ở lần render đầu hoặc khi chưa từng có lỗi).
+  useEffect(() => {
+    const subscription = watch(() => {
+      if (
+        errors.phonenumber?.type === 'server' ||
+        errors.password?.type === 'server'
+      ) {
+        clearErrors(['phonenumber', 'password'])
+      }
+    })
+    return () => subscription.unsubscribe()
+  }, [watch, clearErrors, errors.phonenumber?.type, errors.password?.type])
+
+  const shakeX = useSharedValue(0)
+  const shakeStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: shakeX.value }],
+  }))
+
+  const triggerErrorFeedback = useCallback(() => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {})
+    setError('phonenumber', { type: 'server', message: '' })
+    setError('password', { type: 'server', message: '' })
+    runOnUI(() => {
+      'worklet'
+      shakeX.value = withSequence(
+        withTiming(-SHAKE.offset, { duration: SHAKE.segmentMs }),
+        withTiming(SHAKE.offset, { duration: SHAKE.segmentMs }),
+        withTiming(-SHAKE.offset / 2, { duration: SHAKE.segmentMs }),
+        withTiming(SHAKE.offset / 2, { duration: SHAKE.segmentMs }),
+        withTiming(0, { duration: SHAKE.segmentMs }),
+      )
+    })()
+  }, [setError, shakeX])
 
   const onSubmit = (data: TLoginSchema) => {
     loginMutation(
@@ -45,93 +100,83 @@ export default function LoginForm({ onLoginSuccess, onBeforeNavigate }: LoginFor
           }
         },
         onError: () => {
-          // Global error handler (QueryCache) sẽ show toast
+          // Toast do global error handler (QueryCache) đảm nhiệm.
+          // Ở đây chỉ lo phản hồi tại chỗ: viền đỏ + lắc + haptic.
+          triggerErrorFeedback()
         },
       },
     )
   }
 
-  // const handleQuickLogin = () => {
-  //   setValue('phonenumber', '0324567894')
-  //   setValue('password', '123456789a')
-  //   clearErrors()
-  // }
-
   const isLoading = isPending || isSubmitting
 
+  useEffect(() => {
+    onLoadingChange?.(isLoading)
+  }, [isLoading, onLoadingChange])
+
   return (
-    <View className="flex-1 px-6 pt-12">
-      <Text className="mb-2 font-sans-bold text-3xl text-gray-900 dark:text-white">
-        {t('login.title')}
-      </Text>
-      <Text className="mb-8 font-sans text-base text-gray-500 dark:text-gray-400">
-        {t('login.description')}
-      </Text>
+    <View>
+      <Animated.View style={shakeStyle}>
+        <FormInput
+          control={control}
+          name="phonenumber"
+          label={t('login.phoneNumber')}
+          placeholder={t('login.enterPhoneNumber')}
+          keyboardType="number-pad"
+          autoCapitalize="none"
+          autoComplete="tel"
+          textContentType="username"
+          importantForAutofill="yes"
+          disabled={isLoading}
+          useTextInput
+          transformOnChange={(v) => v.replace(/\D/g, '')}
+          labelClassName="text-sm font-sans-medium text-gray-500 dark:text-gray-400"
+          containerClassName="mb-4"
+        />
 
-      {/* Phone */}
-      <FormInput
-        control={control}
-        name="phonenumber"
-        label={t('login.phoneNumber')}
-        placeholder={t('login.enterPhoneNumber')}
-        keyboardType="number-pad"
-        autoCapitalize="none"
-        autoComplete="tel"
-        disabled={isLoading}
-        useTextInput
-        transformOnChange={(v) => v.replace(/\D/g, '')}
-        labelClassName="text-md font-sans-medium text-gray-500 dark:text-gray-400"
-      />
-
-      {/* Password */}
-      <View className="mb-6">
-        <View className="mb-1 flex-row items-center justify-between">
-          <Text className="text-md font-sans-medium text-gray-500 dark:text-gray-400">
+        <View>
+          <Text className="text-sm mb-1 font-sans-medium text-gray-500 dark:text-gray-400">
             {t('login.password')}
           </Text>
-          <TouchableOpacity
-            onPress={() => {
-              onBeforeNavigate?.()
-              navigateNative.push(ROUTE.FORGOT_PASSWORD)
-            }}
-            disabled={isLoading}
-            hitSlop={8}
-          >
-            <Text className="font-sans-semibold text-sm text-amber-500 dark:text-amber-400">
-              {t('login.forgotPassword')}
-            </Text>
-          </TouchableOpacity>
+          <Controller
+            control={control}
+            name="password"
+            render={({
+              field: { onChange, onBlur, value },
+              fieldState: { invalid },
+            }) => (
+              <PasswordInputField
+                value={value}
+                onChange={onChange}
+                onBlur={onBlur}
+                placeholder={t('login.enterPassword')}
+                disabled={isLoading}
+                error={errors.password?.message}
+                invalid={invalid}
+              />
+            )}
+          />
         </View>
-        <Controller
-          control={control}
-          name="password"
-          render={({ field: { onChange, onBlur, value } }) => (
-            <PasswordInputField
-              value={value}
-              onChange={onChange}
-              onBlur={onBlur}
-              placeholder={t('login.enterPassword')}
-              disabled={isLoading}
-              error={errors.password?.message}
-            />
-          )}
-        />
-      </View>
+      </Animated.View>
 
-      {/* Quick login — dev helper, hardcoded acc */}
-      {/* <TouchableOpacity
-        className="mb-3 items-center justify-center rounded-lg border border-dashed border-border py-2"
-        onPress={handleQuickLogin}
-        disabled={isLoading}
-      >
-        <Text className="text-sm font-sans text-gray-500 dark:text-gray-400">
-          Đăng nhập nhanh (0324567894)
-        </Text>
-      </TouchableOpacity> */}
-
-      {/* Submit */}
       <TouchableOpacity
-        className="items-center justify-center rounded-lg bg-primary py-4"
+        className="mt-2 self-start"
+        onPress={() => {
+          onBeforeNavigate?.()
+          // navigateWhenUnlocked: retry nếu navigation lock đang active (khi
+          // sheet đang đóng) thay vì silent drop như navigateNative.push.
+          navigateWhenUnlocked.push(ROUTE.FORGOT_PASSWORD)
+        }}
+        disabled={isLoading}
+        hitSlop={8}
+      >
+        <Text className="font-sans-semibold text-sm text-primary">
+          {t('login.forgotPassword')}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        className="mt-6 items-center justify-center rounded-lg bg-primary py-4"
         onPress={handleSubmit(onSubmit)}
         disabled={isLoading}
       >
@@ -142,37 +187,6 @@ export default function LoginForm({ onLoginSuccess, onBeforeNavigate }: LoginFor
             {t('login.login')}
           </Text>
         )}
-      </TouchableOpacity>
-
-      {/* Register link */}
-      <TouchableOpacity
-        className="mt-6 items-center"
-        onPress={() => {
-          onBeforeNavigate?.()
-          navigateNative.replace('/auth/register')
-        }}
-        disabled={isLoading}
-      >
-        <Text className="font-sans text-sm text-gray-500 dark:text-gray-400">
-          {t('login.noAccount')}{' '}
-          <Text className="font-sans-semibold text-amber-500 dark:text-amber-400">
-            {t('login.register')}
-          </Text>
-        </Text>
-      </TouchableOpacity>
-
-      {/* Back to home */}
-      <TouchableOpacity
-        className="mt-4 items-center"
-        onPress={() => {
-          onBeforeNavigate?.()
-          navigateNative.replace('/(tabs)/home')
-        }}
-        disabled={isLoading}
-      >
-        <Text className="font-sans text-sm text-gray-500 dark:text-gray-400">
-          {t('login.goBackToHome')}
-        </Text>
       </TouchableOpacity>
     </View>
   )
