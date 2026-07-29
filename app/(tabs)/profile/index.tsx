@@ -1,4 +1,4 @@
-import { LoginForm } from '@/components/auth'
+import { LoginPanel } from '@/components/auth'
 import {
   DeleteAccountSheet,
   FontSizeSheet,
@@ -645,7 +645,7 @@ const ProfileTest = () => {
           backgroundColor: isDark ? colors.background.dark : '#ffffff',
         }}
       >
-        <LoginForm />
+        <LoginPanel showLogo />
       </View>
     )
   }

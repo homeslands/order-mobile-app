@@ -21,7 +21,7 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated'
 
-import { LoginForm } from '@/components/auth'
+import { LoginPanel } from '@/components/auth'
 import { ScreenContainer } from '@/components/layout'
 import { DeleteAccountSheet } from '@/components/profile'
 import { AnimatedProfileHeader } from '@/components/profile/animated-profile-header'
@@ -273,7 +273,7 @@ export default function ProfilePlaceholderScreen() {
   if (needsUserInfo || !userInfo) {
     return (
       <ScreenContainer edges={['top']} className="flex-1">
-        <LoginForm />
+        <LoginPanel showLogo />
       </ScreenContainer>
     )
   }

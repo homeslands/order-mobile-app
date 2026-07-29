@@ -54,17 +54,17 @@ Cả 3 hướng đều xử lý giống nhau 2 vấn đề đầu (vùng trống
 
 ## Ranh giới component
 
-Nguyên nhân gốc khiến bố cục khó chỉnh: `LoginForm` đang ôm cả tiêu đề màn, form, và 3 link điều hướng, đồng thời được render ở **hai ngữ cảnh** — full screen và bottom sheet 90% (`login-sheet-portal.tsx`). Vì thế `pt-12` và "Quay lại trang chủ" vô nghĩa khi nằm trong sheet nhưng không gỡ được.
+Nguyên nhân gốc khiến bố cục khó chỉnh: `LoginForm` đang ôm cả tiêu đề màn, form, và 3 link điều hướng, đồng thời được render ở **bốn ngữ cảnh** — full screen (`app/auth/login.tsx`), bottom sheet 90% (`login-sheet-portal.tsx`), và trạng thái chưa đăng nhập của hai màn Hồ sơ (`app/(tabs)/profile/index.tsx`, `app/profile/index.tsx`). Vì thế `pt-12` và "Quay lại trang chủ" vô nghĩa khi nằm trong sheet nhưng không gỡ được.
 
 | Đơn vị | Chịu trách nhiệm | Không chứa |
 |---|---|---|
 | `LoginForm` | 2 ô nhập, link "Quên mật khẩu", nút Đăng nhập, gọi mutation, animation lắc | tiêu đề, logo, link đăng ký, nút thoát |
-| `app/auth/login.tsx` | nút X, logo, tiêu đề/mô tả, khung dọc, footer "Đăng ký ngay" | logic đăng nhập |
-| `login-sheet-portal.tsx` | tiêu đề riêng cho sheet, footer "Đăng ký ngay" (đóng sheet trước khi điều hướng) | nút X, logo |
+| `LoginPanel` | nút X (nếu có `onClose`), logo (nếu `showLogo`), tiêu đề/mô tả, `<LoginForm>`, footer "Đăng ký ngay", lề ngang | safe area, vùng cuộn, nền |
+| `app/auth/login.tsx`, `login-sheet-portal.tsx`, hai màn Hồ sơ | safe area, vùng cuộn (`ScrollView` / `BottomSheetScrollView` / không cuộn), nền | chrome đăng nhập |
 
 Sau khi tách, đổi bố cục màn login không còn đụng tới bottom sheet.
 
-**Đánh đổi:** bắt buộc phải sửa `login-sheet-portal.tsx`, vì nó đang hưởng "miễn phí" tiêu đề và link đăng ký nằm sẵn trong `LoginForm`. Đây là file duy nhất ngoài màn login bị ảnh hưởng bởi việc tách.
+**Đánh đổi:** bắt buộc phải sửa `login-sheet-portal.tsx`, vì nó đang hưởng "miễn phí" tiêu đề và link đăng ký nằm sẵn trong `LoginForm`. Ngoài màn login, hai màn Hồ sơ (`app/(tabs)/profile/index.tsx`, `app/profile/index.tsx`) cũng bị ảnh hưởng — trạng thái chưa đăng nhập của chúng render `LoginForm` trần, không có chrome nào.
 
 ## Bố cục
 
@@ -203,3 +203,4 @@ Animation lắc không assert được từng frame trong jest. Chỉ test đư�
 - **Độ mượt của ô nhập chỉ verify được trên máy thật.** Jest gộp mọi update thành đồng bộ nên không tái hiện được độ trễ vài frame vốn là nguyên nhân gây giật. Bộ test chỉ chống hồi quy cho logic mirror.
 - **iCloud Keychain chia sẻ mật khẩu với website** cần Associated Domains + `apple-app-site-association` trên server. Không có nó thì autofill vẫn chạy nhưng giới hạn trong mật khẩu đã lưu cho riêng app.
 - **`i18n` key `login.goBackToHome`** không còn dùng trong UI sau thay đổi này. Giữ lại trong file dịch, không xóa.
+- **Chrome đăng nhập giờ nằm ở một chỗ (`LoginPanel`)**: đổi nó ảnh hưởng cả bốn màn render `LoginForm` — full screen, bottom sheet, và hai màn Hồ sơ ở trạng thái chưa đăng nhập.

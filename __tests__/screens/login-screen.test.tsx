@@ -11,7 +11,15 @@ jest.mock('expo-router', () => ({
   Redirect: () => null,
 }))
 
-jest.mock('@/components/auth', () => ({ LoginForm: () => null }))
+jest.mock('@/components/auth', () => ({
+  LoginPanel: ({ onClose }: { onClose?: () => void }) => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { TouchableOpacity } = require('react-native')
+    return onClose ? (
+      <TouchableOpacity testID="login-panel-close" onPress={onClose} />
+    ) : null
+  },
+}))
 jest.mock('expo-image', () => ({ Image: () => null }))
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: () => ({ top: 44, bottom: 34, left: 0, right: 0 }),
@@ -45,7 +53,7 @@ describe('LoginScreen — nút thoát', () => {
     mockCanGoBack.mockReturnValue(true)
     const { getByTestId } = render(<LoginScreen />)
 
-    fireEvent.press(getByTestId('login-close'))
+    fireEvent.press(getByTestId('login-panel-close'))
 
     expect(mockBack).toHaveBeenCalled()
     expect(mockReplace).not.toHaveBeenCalled()
@@ -55,7 +63,7 @@ describe('LoginScreen — nút thoát', () => {
     mockCanGoBack.mockReturnValue(false)
     const { getByTestId } = render(<LoginScreen />)
 
-    fireEvent.press(getByTestId('login-close'))
+    fireEvent.press(getByTestId('login-panel-close'))
 
     expect(mockReplace).toHaveBeenCalledWith('/(tabs)/home')
     expect(mockBack).not.toHaveBeenCalled()
