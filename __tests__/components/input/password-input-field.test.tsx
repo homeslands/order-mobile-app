@@ -1,0 +1,91 @@
+jest.mock('@/components/ui/text', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
+  const RN = require('react-native')
+  return { Text: RN.Text }
+})
+jest.mock('@/constants', () => ({
+  colors: { mutedForeground: { dark: '#888', light: '#888' } },
+}))
+jest.mock('@/providers/font-scale-provider', () => ({ useFontScale: () => 1 }))
+jest.mock('lucide-react-native', () => ({ Eye: () => null, EyeOff: () => null }))
+
+import { act, render } from '@testing-library/react-native'
+import { Controller } from 'react-hook-form'
+import { View } from 'react-native'
+import { z } from 'zod'
+
+import { PasswordInputField } from '@/components/input/password-input-field'
+import { useZodForm } from '@/hooks/use-zod-form'
+
+const schema = z.object({ password: z.string().min(8) })
+
+function Harness() {
+  const { control } = useZodForm(schema, { defaultValues: { password: '' } })
+
+  return (
+    <View>
+      <Controller
+        control={control}
+        name="password"
+        render={({ field: { value, onChange, onBlur } }) => (
+          <PasswordInputField
+            value={value}
+            onChange={onChange}
+            onBlur={onBlur}
+            placeholder="password"
+          />
+        )}
+      />
+    </View>
+  )
+}
+
+describe('PasswordInputField', () => {
+  it('không ghi đè text native khi gõ', async () => {
+    const { getByPlaceholderText } = render(<Harness />)
+    const input = getByPlaceholderText('password')
+
+    const typed = ['a', 'ab', 'abc', 'abc1', 'abc12', 'abc123']
+    for (const text of typed) {
+      await act(async () => {
+        input.props.onChangeText(text)
+      })
+      expect(getByPlaceholderText('password').props.value).toBe(text)
+    }
+  })
+
+  it('đưa chuỗi autofill vào form ngay lập tức', async () => {
+    const onChange = jest.fn()
+    const { getByPlaceholderText } = render(
+      <PasswordInputField
+        value=""
+        onChange={onChange}
+        placeholder="password"
+      />,
+    )
+
+    await act(async () => {
+      getByPlaceholderText('password').props.onChangeText('secret123')
+    })
+
+    expect(onChange).toHaveBeenCalledWith('secret123')
+  })
+
+  it('chuyển tiếp onBlur ra ngoài', async () => {
+    const onBlur = jest.fn()
+    const { getByPlaceholderText } = render(
+      <PasswordInputField
+        value=""
+        onChange={jest.fn()}
+        onBlur={onBlur}
+        placeholder="password"
+      />,
+    )
+
+    await act(async () => {
+      getByPlaceholderText('password').props.onBlur()
+    })
+
+    expect(onBlur).toHaveBeenCalled()
+  })
+})

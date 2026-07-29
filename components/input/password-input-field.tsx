@@ -9,6 +9,7 @@ import {
 } from 'react-native'
 
 import { colors } from '@/constants'
+import { useMirroredField } from '@/hooks/use-mirrored-field'
 import { cn } from '@/lib/utils'
 import { Text } from '@/components/ui/text'
 import { useFontScale } from '@/providers/font-scale-provider'
@@ -34,6 +35,7 @@ export function PasswordInputField({
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
   const scale = useFontScale()
+  const field = useMirroredField({ value, onChange, onBlur })
 
   return (
     <View>
@@ -58,9 +60,9 @@ export function PasswordInputField({
           placeholderTextColor={
             isDark ? colors.mutedForeground.dark : colors.mutedForeground.light
           }
-          value={value ?? ''}
-          onChangeText={onChange}
-          onBlur={onBlur}
+          value={field.value}
+          onChangeText={field.onChangeText}
+          onBlur={field.onBlur}
           secureTextEntry={!showPassword}
           autoCapitalize="none"
           editable={!disabled}

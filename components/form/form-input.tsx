@@ -5,10 +5,10 @@ import {
   type Path,
 } from 'react-hook-form'
 import { Platform, TextInput, View, useColorScheme } from 'react-native'
-import { useRef, useEffect, useState } from 'react'
 
 import { Input } from '@/components/ui'
 import { colors } from '@/constants'
+import { useMirroredField } from '@/hooks/use-mirrored-field'
 import { cn } from '@/lib/utils'
 import { Text } from '@/components/ui/text'
 import { useFontScale } from '@/providers/font-scale-provider'
@@ -96,55 +96,16 @@ function FormInputField({
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
   const scale = useFontScale()
-  const [localValue, setLocalValue] = useState(value ?? '')
-  const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const pendingValueRef = useRef<string>(value ?? '')
-  const prevValueRef = useRef<string | undefined>(value)
-
-  // Sync when value changes externally (e.g. form reset)
-  useEffect(() => {
-    if (value !== prevValueRef.current) {
-      prevValueRef.current = value
-      const next = value ?? ''
-      pendingValueRef.current = next
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setLocalValue(next)
-    }
-  }, [value])
-
-  const handleChangeText = (text: string) => {
-    const next = transformOnChange ? transformOnChange(text) : text
-
-    // Sync prevValueRef before setLocalValue so the useEffect that watches
-    // the RHF `value` prop skips calling setLocalValue again when the
-    // debounced onChange fires 300ms later (value === prevValueRef → no-op).
-    prevValueRef.current = next
-    pendingValueRef.current = next
-    setLocalValue(next)
-
-    // Debounce RHF update to avoid Zod validation on every keystroke
-    // (mode: 'onTouched' triggers validation after first blur)
-    if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
-    debounceTimerRef.current = setTimeout(() => {
-      onChange(pendingValueRef.current)
-    }, 300)
-  }
-
-  // Flush on blur so RHF always has latest value before validation
-  const handleBlur = () => {
-    if (debounceTimerRef.current) {
-      clearTimeout(debounceTimerRef.current)
-      debounceTimerRef.current = null
-    }
-    onChange(pendingValueRef.current)
-    onBlur()
-  }
-
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current)
-    }
-  }, [])
+  const {
+    value: localValue,
+    onChangeText: handleChangeText,
+    onBlur: handleBlur,
+  } = useMirroredField({
+    value,
+    onChange,
+    onBlur,
+    transform: transformOnChange,
+  })
 
   const showError = !!error
   const showHelper = !!helperText && !showError
