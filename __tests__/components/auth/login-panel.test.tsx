@@ -127,4 +127,46 @@ describe('LoginPanel — chrome dùng chung', () => {
     const passwordLabel = getByText('login.password')
     expect(passwordLabel.props.className).toContain('text-sm')
   })
+
+  describe('không có nút đóng: link "Quay lại trang chủ"', () => {
+    it('không có onClose thì render link về trang chủ, bấm vào điều hướng về home', () => {
+      const { navigateWhenUnlocked } = jest.requireMock('@/lib/navigation') as {
+        navigateWhenUnlocked: { replace: jest.Mock }
+      }
+      const onBeforeNavigate = jest.fn()
+      const { getByTestId, getByText } = render(
+        <LoginPanel onBeforeNavigate={onBeforeNavigate} />,
+      )
+
+      expect(getByText('login.goBackToHome')).toBeTruthy()
+
+      fireEvent.press(getByTestId('login-panel-home'))
+
+      expect(onBeforeNavigate).toHaveBeenCalledTimes(1)
+      expect(navigateWhenUnlocked.replace).toHaveBeenCalledWith('/(tabs)/home')
+    })
+
+    it('có onClose thì KHÔNG render link về trang chủ', () => {
+      const { queryByTestId, queryByText } = render(
+        <LoginPanel onClose={jest.fn()} />,
+      )
+
+      expect(queryByTestId('login-panel-home')).toBeNull()
+      expect(queryByText('login.goBackToHome')).toBeNull()
+    })
+  })
+
+  describe('padding top của root khi không có nút đóng', () => {
+    it('không có onClose thì root có pt-6', () => {
+      const { toJSON } = render(<LoginPanel />)
+
+      expect(toJSON()?.props.className).toContain('pt-6')
+    })
+
+    it('có onClose thì root KHÔNG có pt-6', () => {
+      const { toJSON } = render(<LoginPanel onClose={jest.fn()} />)
+
+      expect(toJSON()?.props.className).not.toContain('pt-6')
+    })
+  })
 })

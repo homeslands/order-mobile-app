@@ -44,8 +44,13 @@ export default function LoginPanel({
     navigateWhenUnlocked.replace('/auth/register')
   }, [onBeforeNavigate])
 
+  const handleGoBackToHome = useCallback(() => {
+    onBeforeNavigate?.()
+    navigateWhenUnlocked.replace('/(tabs)/home')
+  }, [onBeforeNavigate])
+
   return (
-    <View className="flex-1 px-6">
+    <View className={cn('flex-1 px-6', !onClose && 'pt-6')}>
       {onClose && (
         <TouchableOpacity
           testID="login-panel-close"
@@ -107,6 +112,20 @@ export default function LoginPanel({
           </Text>
         </Text>
       </TouchableOpacity>
+
+      {!onClose && (
+        <TouchableOpacity
+          testID="login-panel-home"
+          className="mt-3 items-center"
+          onPress={handleGoBackToHome}
+          disabled={isLoginLoading}
+          hitSlop={8}
+        >
+          <Text className="font-sans text-sm text-gray-500 dark:text-gray-400">
+            {t('login.goBackToHome')}
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   )
 }
