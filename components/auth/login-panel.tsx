@@ -121,7 +121,7 @@ export default function LoginPanel({
       {showHomeLink && (
         <TouchableOpacity
           testID="login-panel-home"
-          className="mt-6 items-center"
+          className="mb-6 mt-6 items-center"
           onPress={handleGoBackToHome}
           disabled={isLoginLoading}
           hitSlop={8}
