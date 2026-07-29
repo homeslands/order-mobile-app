@@ -143,6 +143,17 @@ export const TIMING_CONFIGS = {
   bannerSlide: { duration: 250 } as const,
 } as const
 
+/**
+ * SHAKE — lắc ngang báo lỗi cho khối input.
+ * 4 nhịp biên độ giảm dần rồi về 0. Dùng với withSequence + withTiming.
+ */
+export const SHAKE = {
+  /** Biên độ nhịp đầu (px). Nhịp 3–4 dùng một nửa. */
+  offset: 8,
+  /** Thời lượng mỗi nhịp (ms). */
+  segmentMs: 50,
+} as const
+
 /** Scale active cho PaginationDot — 1.25 thay vì 2–3 để tránh méo hình */
 export const DOT_SCALE_ACTIVE = 1.25
 

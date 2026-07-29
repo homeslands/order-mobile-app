@@ -7,7 +7,7 @@ import {
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useColorScheme } from 'react-native'
 
-import LoginForm from '@/components/auth/login-form'
+import { LoginPanel } from '@/components/auth'
 import { colors } from '@/constants'
 import { useLoginSheetStore } from '@/stores/login-sheet.store'
 
@@ -62,7 +62,12 @@ const LoginSheetPortalComponent = () => {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{ paddingBottom: 32 }}
       >
-        <LoginForm onLoginSuccess={handleLoginSuccess} onBeforeNavigate={close} />
+        <LoginPanel
+          compactTitle
+          showHomeLink={false}
+          onLoginSuccess={handleLoginSuccess}
+          onBeforeNavigate={close}
+        />
       </BottomSheetScrollView>
     </BottomSheetModal>
   )
