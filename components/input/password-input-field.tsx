@@ -7,6 +7,7 @@ import {
   View,
   useColorScheme,
 } from 'react-native'
+import * as Haptics from 'expo-haptics'
 
 import { colors } from '@/constants'
 import { useMirroredField } from '@/hooks/use-mirrored-field'
@@ -37,6 +38,11 @@ export function PasswordInputField({
   const scale = useFontScale()
   const field = useMirroredField({ value, onChange, onBlur })
 
+  const handleToggleVisibility = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {})
+    setShowPassword((v) => !v)
+  }
+
   return (
     <View>
       <View className="relative">
@@ -65,11 +71,17 @@ export function PasswordInputField({
           onBlur={field.onBlur}
           secureTextEntry={!showPassword}
           autoCapitalize="none"
+          autoCorrect={false}
+          spellCheck={false}
+          textContentType="password"
+          autoComplete="password"
+          importantForAutofill="yes"
           editable={!disabled}
         />
         <TouchableOpacity
+          testID="password-visibility-toggle"
           className="absolute bottom-0 right-3 top-0 justify-center"
-          onPress={() => setShowPassword((v) => !v)}
+          onPress={handleToggleVisibility}
           disabled={disabled}
           hitSlop={8}
         >

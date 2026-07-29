@@ -1,3 +1,8 @@
+jest.mock('expo-haptics', () => ({
+  impactAsync: jest.fn((style: string) => Promise.resolve()),
+  ImpactFeedbackStyle: { Light: 'light', Medium: 'medium' },
+}))
+
 jest.mock('@/components/ui/text', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-assignment
   const RN = require('react-native')
@@ -9,13 +14,16 @@ jest.mock('@/constants', () => ({
 jest.mock('@/providers/font-scale-provider', () => ({ useFontScale: () => 1 }))
 jest.mock('lucide-react-native', () => ({ Eye: () => null, EyeOff: () => null }))
 
-import { act, render } from '@testing-library/react-native'
+import { act, fireEvent, render } from '@testing-library/react-native'
 import { Controller } from 'react-hook-form'
 import { View } from 'react-native'
 import { z } from 'zod'
+import * as Haptics from 'expo-haptics'
 
 import { PasswordInputField } from '@/components/input/password-input-field'
 import { useZodForm } from '@/hooks/use-zod-form'
+
+const mockImpactAsync = Haptics.impactAsync as jest.Mock
 
 const schema = z.object({ password: z.string().min(8) })
 
@@ -87,5 +95,38 @@ describe('PasswordInputField', () => {
     })
 
     expect(onBlur).toHaveBeenCalled()
+  })
+
+  it('phát haptic light khi bấm nút ẩn/hiện mật khẩu', async () => {
+    const { getByTestId } = render(
+      <PasswordInputField
+        value=""
+        onChange={jest.fn()}
+        placeholder="password"
+      />,
+    )
+
+    await act(async () => {
+      fireEvent.press(getByTestId('password-visibility-toggle'))
+    })
+
+    expect(mockImpactAsync).toHaveBeenCalledWith('light')
+  })
+
+  it('khai báo thuộc tính autofill cho trình quản lý mật khẩu', () => {
+    const { getByPlaceholderText } = render(
+      <PasswordInputField
+        value=""
+        onChange={jest.fn()}
+        placeholder="password"
+      />,
+    )
+    const input = getByPlaceholderText('password')
+
+    expect(input.props.textContentType).toBe('password')
+    expect(input.props.autoComplete).toBe('password')
+    expect(input.props.importantForAutofill).toBe('yes')
+    expect(input.props.autoCorrect).toBe(false)
+    expect(input.props.spellCheck).toBe(false)
   })
 })
