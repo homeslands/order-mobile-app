@@ -6,7 +6,7 @@ describe('useMirroredField', () => {
   it('đẩy giá trị vào form ngay, không chờ debounce', () => {
     const onChange = jest.fn()
     const { result } = renderHook(
-      ({ value }) => useMirroredField({ value, onChange }),
+      ({ value }: { value: string }) => useMirroredField({ value, onChange }),
       { initialProps: { value: '' } },
     )
 
@@ -19,7 +19,7 @@ describe('useMirroredField', () => {
   it('bỏ qua tiếng vọng của chính lần đẩy vừa rồi', () => {
     const onChange = jest.fn()
     const { result, rerender } = renderHook(
-      ({ value }) => useMirroredField({ value, onChange }),
+      ({ value }: { value: string }) => useMirroredField({ value, onChange }),
       { initialProps: { value: '' } },
     )
 
@@ -32,7 +32,7 @@ describe('useMirroredField', () => {
   it('đồng bộ khi form đổi giá trị từ bên ngoài', () => {
     const onChange = jest.fn()
     const { result, rerender } = renderHook(
-      ({ value }) => useMirroredField({ value, onChange }),
+      ({ value }: { value: string }) => useMirroredField({ value, onChange }),
       { initialProps: { value: '' } },
     )
 

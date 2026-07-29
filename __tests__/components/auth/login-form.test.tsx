@@ -6,11 +6,13 @@ jest.mock('expo-haptics', () => ({
   ImpactFeedbackStyle: { Light: 'light', Medium: 'medium' },
 }))
 
+const mockWithSequence = jest.fn((..._args: unknown[]) => 0)
 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-jest.mock('react-native-reanimated', () =>
+jest.mock('react-native-reanimated', () => ({
   // eslint-disable-next-line @typescript-eslint/no-require-imports
-  require('react-native-reanimated/mock'),
-)
+  ...require('react-native-reanimated/mock'),
+  withSequence: (...args: unknown[]) => mockWithSequence(...args),
+}))
 
 const mockMutate = jest.fn()
 jest.mock('@/hooks', () => ({
@@ -26,9 +28,39 @@ jest.mock('@/lib/navigation', () => ({
 
 jest.mock('@/utils', () => ({ showErrorToastMessage: jest.fn() }))
 
-import { act, fireEvent, render } from '@testing-library/react-native'
+import {
+  act,
+  fireEvent,
+  render,
+  type RenderResult,
+} from '@testing-library/react-native'
 
 import LoginForm from '@/components/auth/login-form'
+
+// Lấy type instance qua RenderResult của @testing-library/react-native thay
+// vì import thẳng từ 'react-test-renderer' — package đó không có type
+// declaration riêng nên import trực tiếp sẽ làm tsc báo lỗi TS7016.
+type Instance = ReturnType<RenderResult['getByPlaceholderText']>
+
+const isDescendantOf = (ancestor: Instance, node: Instance): boolean => {
+  let current: Instance | null = node
+  while (current) {
+    if (current === ancestor) return true
+    current = current.parent
+  }
+  return false
+}
+
+// Node gần nhất chứa cả a lẫn b trong cây — dùng để xác định khối bọc lắc
+// mà không cần biết trước nó là Animated.View hay type cụ thể nào.
+const closestCommonAncestor = (a: Instance, b: Instance): Instance | null => {
+  let node: Instance | null = a
+  while (node) {
+    if (isDescendantOf(node, b)) return node
+    node = node.parent
+  }
+  return null
+}
 
 describe('LoginForm — sai thông tin đăng nhập', () => {
   beforeEach(() => {
@@ -37,6 +69,7 @@ describe('LoginForm — sai thông tin đăng nhập', () => {
     // Promise.resolve() implementation set at creation, so the second
     // test's Haptics.impactAsync().catch() would crash on `undefined`.
     mockImpactAsync.mockClear()
+    mockWithSequence.mockClear()
   })
 
   const fillAndSubmit = async (utils: ReturnType<typeof render>) => {
@@ -77,6 +110,10 @@ describe('LoginForm — sai thông tin đăng nhập', () => {
     const utils = render(<LoginForm />)
     await fillAndSubmit(utils)
 
+    expect(
+      utils.getByPlaceholderText('login.enterPhoneNumber').props.className,
+    ).toContain('border-destructive')
+
     await act(async () => {
       utils
         .getByPlaceholderText('login.enterPhoneNumber')
@@ -86,5 +123,33 @@ describe('LoginForm — sai thông tin đăng nhập', () => {
     expect(
       utils.getByPlaceholderText('login.enterPhoneNumber').props.className,
     ).not.toContain('border-destructive')
+  })
+
+  it('lắc chung một khối 2 ô nhập, không lan sang link/nút submit', async () => {
+    mockMutate.mockImplementation(
+      (_vars: unknown, opts: { onError: () => void }) => opts.onError(),
+    )
+    const utils = render(<LoginForm />)
+
+    expect(mockWithSequence).not.toHaveBeenCalled()
+
+    await fillAndSubmit(utils)
+
+    // (a) khối lắc thực sự chạy sau khi server báo lỗi.
+    expect(mockWithSequence).toHaveBeenCalledTimes(1)
+
+    // (b) khối lắc chỉ bọc 2 ô nhập — không lan ra link "Quên mật khẩu"
+    // hay nút submit.
+    const phoneInput = utils.getByPlaceholderText('login.enterPhoneNumber')
+    const passwordInput = utils.getByPlaceholderText('login.enterPassword')
+    const forgotLink = utils.getByText('login.forgotPassword')
+    const submitButton = utils.getByText('login.login')
+
+    const shakeWrapper = closestCommonAncestor(phoneInput, passwordInput)
+    if (!shakeWrapper) {
+      throw new Error('Không tìm thấy khối bọc chung cho 2 ô nhập')
+    }
+    expect(isDescendantOf(shakeWrapper, forgotLink)).toBe(false)
+    expect(isDescendantOf(shakeWrapper, submitButton)).toBe(false)
   })
 })
