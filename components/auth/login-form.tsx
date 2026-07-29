@@ -4,20 +4,23 @@ import { ActivityIndicator, TouchableOpacity, View } from 'react-native'
 
 import { FormInput } from '@/components/form/form-input'
 import { PasswordInputField } from '@/components/input'
+import { Text } from '@/components/ui/text'
 import { ROUTE } from '@/constants'
 import { useLogin, usePostAuthActions, useZodForm } from '@/hooks'
 import { navigateNative } from '@/lib/navigation'
 import { loginSchema, TLoginSchema } from '@/schemas'
 import type { ILoginResponse } from '@/types'
 import { showErrorToastMessage } from '@/utils'
-import { Text } from '@/components/ui/text'
 
 interface LoginFormProps {
   onLoginSuccess?: () => void
   onBeforeNavigate?: () => void
 }
 
-export default function LoginForm({ onLoginSuccess, onBeforeNavigate }: LoginFormProps) {
+export default function LoginForm({
+  onLoginSuccess,
+  onBeforeNavigate,
+}: LoginFormProps) {
   const { t } = useTranslation('auth')
 
   const {
@@ -51,24 +54,10 @@ export default function LoginForm({ onLoginSuccess, onBeforeNavigate }: LoginFor
     )
   }
 
-  // const handleQuickLogin = () => {
-  //   setValue('phonenumber', '0324567894')
-  //   setValue('password', '123456789a')
-  //   clearErrors()
-  // }
-
   const isLoading = isPending || isSubmitting
 
   return (
-    <View className="flex-1 px-6 pt-12">
-      <Text className="mb-2 font-sans-bold text-3xl text-gray-900 dark:text-white">
-        {t('login.title')}
-      </Text>
-      <Text className="mb-8 font-sans text-base text-gray-500 dark:text-gray-400">
-        {t('login.description')}
-      </Text>
-
-      {/* Phone */}
+    <View>
       <FormInput
         control={control}
         name="phonenumber"
@@ -77,31 +66,19 @@ export default function LoginForm({ onLoginSuccess, onBeforeNavigate }: LoginFor
         keyboardType="number-pad"
         autoCapitalize="none"
         autoComplete="tel"
+        textContentType="username"
+        importantForAutofill="yes"
         disabled={isLoading}
         useTextInput
         transformOnChange={(v) => v.replace(/\D/g, '')}
         labelClassName="text-md font-sans-medium text-gray-500 dark:text-gray-400"
+        containerClassName="mb-4"
       />
 
-      {/* Password */}
-      <View className="mb-6">
-        <View className="mb-1 flex-row items-center justify-between">
-          <Text className="text-md font-sans-medium text-gray-500 dark:text-gray-400">
-            {t('login.password')}
-          </Text>
-          <TouchableOpacity
-            onPress={() => {
-              onBeforeNavigate?.()
-              navigateNative.push(ROUTE.FORGOT_PASSWORD)
-            }}
-            disabled={isLoading}
-            hitSlop={8}
-          >
-            <Text className="font-sans-semibold text-sm text-amber-500 dark:text-amber-400">
-              {t('login.forgotPassword')}
-            </Text>
-          </TouchableOpacity>
-        </View>
+      <View>
+        <Text className="mb-1 text-md font-sans-medium text-gray-500 dark:text-gray-400">
+          {t('login.password')}
+        </Text>
         <Controller
           control={control}
           name="password"
@@ -118,20 +95,22 @@ export default function LoginForm({ onLoginSuccess, onBeforeNavigate }: LoginFor
         />
       </View>
 
-      {/* Quick login — dev helper, hardcoded acc */}
-      {/* <TouchableOpacity
-        className="mb-3 items-center justify-center rounded-lg border border-dashed border-border py-2"
-        onPress={handleQuickLogin}
-        disabled={isLoading}
-      >
-        <Text className="text-sm font-sans text-gray-500 dark:text-gray-400">
-          Đăng nhập nhanh (0324567894)
-        </Text>
-      </TouchableOpacity> */}
-
-      {/* Submit */}
       <TouchableOpacity
-        className="items-center justify-center rounded-lg bg-primary py-4"
+        className="mt-2 self-start"
+        onPress={() => {
+          onBeforeNavigate?.()
+          navigateNative.push(ROUTE.FORGOT_PASSWORD)
+        }}
+        disabled={isLoading}
+        hitSlop={8}
+      >
+        <Text className="font-sans-semibold text-sm text-primary">
+          {t('login.forgotPassword')}
+        </Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        className="mt-6 items-center justify-center rounded-lg bg-primary py-4"
         onPress={handleSubmit(onSubmit)}
         disabled={isLoading}
       >
@@ -142,37 +121,6 @@ export default function LoginForm({ onLoginSuccess, onBeforeNavigate }: LoginFor
             {t('login.login')}
           </Text>
         )}
-      </TouchableOpacity>
-
-      {/* Register link */}
-      <TouchableOpacity
-        className="mt-6 items-center"
-        onPress={() => {
-          onBeforeNavigate?.()
-          navigateNative.replace('/auth/register')
-        }}
-        disabled={isLoading}
-      >
-        <Text className="font-sans text-sm text-gray-500 dark:text-gray-400">
-          {t('login.noAccount')}{' '}
-          <Text className="font-sans-semibold text-amber-500 dark:text-amber-400">
-            {t('login.register')}
-          </Text>
-        </Text>
-      </TouchableOpacity>
-
-      {/* Back to home */}
-      <TouchableOpacity
-        className="mt-4 items-center"
-        onPress={() => {
-          onBeforeNavigate?.()
-          navigateNative.replace('/(tabs)/home')
-        }}
-        disabled={isLoading}
-      >
-        <Text className="font-sans text-sm text-gray-500 dark:text-gray-400">
-          {t('login.goBackToHome')}
-        </Text>
       </TouchableOpacity>
     </View>
   )
