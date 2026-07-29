@@ -377,17 +377,19 @@ Thêm test:
 
 ```tsx
   it('bật viền destructive khi field invalid dù không có chữ lỗi', async () => {
-    const { getByPlaceholderText, getByTestId, queryByText } = render(
-      <Harness />,
+    const { getByPlaceholderText, getByTestId } = render(<Harness />)
+
+    expect(getByPlaceholderText('phone').props.className).not.toContain(
+      'border-destructive',
     )
 
     await act(async () => {
       fireEvent.press(getByTestId('set-empty-error'))
     })
 
-    const input = getByPlaceholderText('phone')
-    expect(input.props.className).toContain('border-destructive')
-    expect(queryByText('')).toBeNull()
+    expect(getByPlaceholderText('phone').props.className).toContain(
+      'border-destructive',
+    )
   })
 ```
 
