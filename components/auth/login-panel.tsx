@@ -21,6 +21,9 @@ export interface LoginPanelProps {
   showLogo?: boolean
   /** Sheet dùng tiêu đề nhỏ hơn vì đã có thanh kéo neo phía trên. */
   compactTitle?: boolean
+  /** Link "Quay lại trang chủ" ở đáy. Tắt trong bottom sheet: sheet nổi trên
+   *  màn khác nên đưa người dùng về trang chủ là sai ngữ cảnh. */
+  showHomeLink?: boolean
   onLoginSuccess?: () => void
   onBeforeNavigate?: () => void
 }
@@ -29,6 +32,7 @@ export default function LoginPanel({
   onClose,
   showLogo,
   compactTitle,
+  showHomeLink = true,
   onLoginSuccess,
   onBeforeNavigate,
 }: LoginPanelProps) {
@@ -97,9 +101,8 @@ export default function LoginPanel({
         />
       </View>
 
-      <View className="flex-1" />
-
       <TouchableOpacity
+        testID="login-panel-register"
         className="mt-6 items-center"
         onPress={handleRegister}
         disabled={isLoginLoading}
@@ -113,10 +116,12 @@ export default function LoginPanel({
         </Text>
       </TouchableOpacity>
 
-      {!onClose && (
+      <View testID="login-panel-spacer" className="flex-1" />
+
+      {showHomeLink && (
         <TouchableOpacity
           testID="login-panel-home"
-          className="mt-3 items-center"
+          className="mt-6 items-center"
           onPress={handleGoBackToHome}
           disabled={isLoginLoading}
           hitSlop={8}

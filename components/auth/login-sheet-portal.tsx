@@ -64,6 +64,7 @@ const LoginSheetPortalComponent = () => {
       >
         <LoginPanel
           compactTitle
+          showHomeLink={false}
           onLoginSuccess={handleLoginSuccess}
           onBeforeNavigate={close}
         />

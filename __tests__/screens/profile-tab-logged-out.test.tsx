@@ -95,4 +95,11 @@ describe('app/(tabs)/profile/index.tsx — chưa đăng nhập vẫn có chrome'
     expect(getByText('login.noAccount', { exact: false })).toBeTruthy()
     expect(getByText('login.registerNow')).toBeTruthy()
   })
+
+  it('render link "Quay lại trang chủ"', () => {
+    const { getByText, getByTestId } = render(<ProfileTest />)
+
+    expect(getByText('login.goBackToHome')).toBeTruthy()
+    expect(getByTestId('login-panel-home')).toBeTruthy()
+  })
 })

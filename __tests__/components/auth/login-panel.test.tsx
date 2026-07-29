@@ -128,8 +128,8 @@ describe('LoginPanel — chrome dùng chung', () => {
     expect(passwordLabel.props.className).toContain('text-sm')
   })
 
-  describe('không có nút đóng: link "Quay lại trang chủ"', () => {
-    it('không có onClose thì render link về trang chủ, bấm vào điều hướng về home', () => {
+  describe('link "Quay lại trang chủ" (showHomeLink)', () => {
+    it('showHomeLink mặc định (true) thì render link về trang chủ, bấm vào điều hướng về home', () => {
       const { navigateWhenUnlocked } = jest.requireMock('@/lib/navigation') as {
         navigateWhenUnlocked: { replace: jest.Mock }
       }
@@ -146,14 +146,58 @@ describe('LoginPanel — chrome dùng chung', () => {
       expect(navigateWhenUnlocked.replace).toHaveBeenCalledWith('/(tabs)/home')
     })
 
-    it('có onClose thì KHÔNG render link về trang chủ', () => {
-      const { queryByTestId, queryByText } = render(
+    it('showHomeLink mặc định (true) vẫn render link kể cả khi có onClose (màn hình full-screen)', () => {
+      const { getByTestId, getByText } = render(
         <LoginPanel onClose={jest.fn()} />,
+      )
+
+      expect(getByText('login.goBackToHome')).toBeTruthy()
+      expect(getByTestId('login-panel-home')).toBeTruthy()
+    })
+
+    it('showHomeLink={false} thì KHÔNG render link về trang chủ (bottom sheet)', () => {
+      const { queryByTestId, queryByText } = render(
+        <LoginPanel showHomeLink={false} />,
       )
 
       expect(queryByTestId('login-panel-home')).toBeNull()
       expect(queryByText('login.goBackToHome')).toBeNull()
     })
+  })
+
+  it('link đăng ký nằm TRƯỚC spacer, link về trang chủ nằm SAU spacer trong cây render', () => {
+    const { toJSON } = render(<LoginPanel onClose={jest.fn()} />)
+
+    type JsonNode = {
+      props?: { testID?: string }
+      children?: (JsonNode | string)[] | null
+    }
+
+    const collectTestIds = (
+      node: JsonNode | (JsonNode | string)[] | string | null | undefined,
+      order: string[] = [],
+    ): string[] => {
+      if (!node || typeof node === 'string') return order
+      if (Array.isArray(node)) {
+        node.forEach((n) => collectTestIds(n, order))
+        return order
+      }
+      const testID = node.props?.testID
+      if (testID) order.push(testID)
+      if (node.children) collectTestIds(node.children, order)
+      return order
+    }
+
+    const order = collectTestIds(toJSON() as JsonNode)
+    const registerIndex = order.indexOf('login-panel-register')
+    const spacerIndex = order.indexOf('login-panel-spacer')
+    const homeIndex = order.indexOf('login-panel-home')
+
+    expect(registerIndex).toBeGreaterThanOrEqual(0)
+    expect(spacerIndex).toBeGreaterThanOrEqual(0)
+    expect(homeIndex).toBeGreaterThanOrEqual(0)
+    expect(registerIndex).toBeLessThan(spacerIndex)
+    expect(spacerIndex).toBeLessThan(homeIndex)
   })
 
   describe('padding top của root khi không có nút đóng', () => {

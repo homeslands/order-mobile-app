@@ -72,4 +72,11 @@ describe('LoginScreen — chưa đăng nhập vẫn có chrome', () => {
     expect(getByText('login.noAccount', { exact: false })).toBeTruthy()
     expect(getByText('login.registerNow')).toBeTruthy()
   })
+
+  it('render link "Quay lại trang chủ" dù màn hình có nút đóng riêng', () => {
+    const { getByText, getByTestId } = render(<LoginScreen />)
+
+    expect(getByText('login.goBackToHome')).toBeTruthy()
+    expect(getByTestId('login-panel-home')).toBeTruthy()
+  })
 })

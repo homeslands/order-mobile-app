@@ -62,4 +62,11 @@ describe('LoginSheetPortal — chưa đăng nhập vẫn có chrome', () => {
     expect(getByText('login.noAccount', { exact: false })).toBeTruthy()
     expect(getByText('login.registerNow')).toBeTruthy()
   })
+
+  it('KHÔNG render link "Quay lại trang chủ" — sheet nổi trên màn khác, pan-down-to-close là lối thoát', () => {
+    const { queryByTestId, queryByText } = render(<LoginSheetPortal />)
+
+    expect(queryByTestId('login-panel-home')).toBeNull()
+    expect(queryByText('login.goBackToHome')).toBeNull()
+  })
 })
