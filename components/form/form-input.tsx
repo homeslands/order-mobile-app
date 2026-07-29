@@ -5,6 +5,7 @@ import {
   type Path,
 } from 'react-hook-form'
 import { Platform, TextInput, View, useColorScheme } from 'react-native'
+import type { TextInputProps } from 'react-native'
 
 import { Input } from '@/components/ui'
 import { colors } from '@/constants'
@@ -39,6 +40,8 @@ interface FormInputProps<T extends FieldValues> {
   errorClassName?: string
   helperText?: string
   transformOnChange?: (value: string) => string // Transform value before onChange
+  textContentType?: TextInputProps['textContentType']
+  importantForAutofill?: TextInputProps['importantForAutofill']
 }
 
 interface FormInputFieldProps {
@@ -69,6 +72,9 @@ interface FormInputFieldProps {
   errorClassName?: string
   helperText?: string
   transformOnChange?: (value: string) => string
+  invalid?: boolean
+  textContentType?: TextInputProps['textContentType']
+  importantForAutofill?: TextInputProps['importantForAutofill']
 }
 
 function FormInputField({
@@ -92,6 +98,9 @@ function FormInputField({
   errorClassName,
   helperText,
   transformOnChange,
+  invalid,
+  textContentType,
+  importantForAutofill,
 }: FormInputFieldProps) {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
@@ -107,7 +116,8 @@ function FormInputField({
     transform: transformOnChange,
   })
 
-  const showError = !!error
+  const showError = invalid ?? !!error
+  const showMessage = !!error
   const showHelper = !!helperText && !showError
 
   return (
@@ -136,7 +146,7 @@ function FormInputField({
           className={cn(
             'rounded-lg border bg-white px-4 font-sans text-base text-gray-900 dark:bg-[#121212] dark:text-white',
             showError
-              ? 'border-red-500 dark:border-red-400'
+              ? 'border-destructive dark:border-destructive'
               : 'border-gray-200 dark:border-[#2e2e2e]',
             disabled && 'opacity-50',
             className,
@@ -162,6 +172,8 @@ function FormInputField({
           secureTextEntry={secureTextEntry}
           editable={!disabled}
           allowFontScaling={false}
+          textContentType={textContentType}
+          importantForAutofill={importantForAutofill}
         />
       ) : (
         <Input
@@ -176,7 +188,7 @@ function FormInputField({
         />
       )}
 
-      {showError && (
+      {showMessage && (
         <Text
           className={cn(
             'mt-1 text-xs text-red-500 dark:text-red-400',
@@ -215,6 +227,8 @@ export function FormInput<T extends FieldValues>({
   errorClassName,
   helperText,
   transformOnChange,
+  textContentType,
+  importantForAutofill,
 }: FormInputProps<T>) {
   return (
     <Controller
@@ -222,7 +236,7 @@ export function FormInput<T extends FieldValues>({
       name={name}
       render={({
         field: { value, onChange, onBlur },
-        fieldState: { error },
+        fieldState: { error, invalid },
       }) => (
         <FormInputField
           value={value}
@@ -245,6 +259,9 @@ export function FormInput<T extends FieldValues>({
           errorClassName={errorClassName}
           helperText={helperText}
           transformOnChange={transformOnChange}
+          invalid={invalid}
+          textContentType={textContentType}
+          importantForAutofill={importantForAutofill}
         />
       )}
     />

@@ -19,7 +19,7 @@ import { useZodForm } from '@/hooks/use-zod-form'
 const schema = z.object({ phonenumber: z.string() })
 
 function Harness() {
-  const { control, reset } = useZodForm(schema, {
+  const { control, reset, setError } = useZodForm(schema, {
     defaultValues: { phonenumber: '' },
   })
 
@@ -34,6 +34,10 @@ function Harness() {
         transformOnChange={(v) => v.replace(/\D/g, '')}
       />
       <Pressable testID="reset" onPress={() => reset({ phonenumber: '' })} />
+      <Pressable
+        testID="set-empty-error"
+        onPress={() => setError('phonenumber', { type: 'server', message: '' })}
+      />
     </View>
   )
 }
@@ -66,5 +70,21 @@ describe('FormInput', () => {
     })
 
     expect(getByPlaceholderText('phone').props.value).toBe('')
+  })
+
+  it('bật viền destructive khi field invalid dù không có chữ lỗi', async () => {
+    const { getByPlaceholderText, getByTestId } = render(<Harness />)
+
+    expect(getByPlaceholderText('phone').props.className).not.toContain(
+      'border-destructive',
+    )
+
+    await act(async () => {
+      fireEvent.press(getByTestId('set-empty-error'))
+    })
+
+    expect(getByPlaceholderText('phone').props.className).toContain(
+      'border-destructive',
+    )
   })
 })
