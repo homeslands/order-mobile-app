@@ -18,7 +18,7 @@ import { ROUTE } from '@/constants'
 import { SHAKE } from '@/constants/motion'
 import { useLogin, usePostAuthActions, useZodForm } from '@/hooks'
 import { navigateWhenUnlocked } from '@/lib/navigation'
-import { loginSchema, TLoginSchema } from '@/schemas'
+import { useLoginSchema, TLoginSchema } from '@/schemas'
 import type { ILoginResponse } from '@/types'
 import { showErrorToastMessage } from '@/utils'
 
@@ -34,6 +34,7 @@ export default function LoginForm({
   onLoadingChange,
 }: LoginFormProps) {
   const { t } = useTranslation('auth')
+  const loginSchema = useLoginSchema()
 
   const {
     control,
@@ -135,7 +136,7 @@ export default function LoginForm({
         />
 
         <View>
-          <Text className="text-sm mb-1 font-sans-medium text-gray-500 dark:text-gray-400">
+          <Text className="mb-1 font-sans-medium text-sm text-gray-500 dark:text-gray-400">
             {t('login.password')}
           </Text>
           <Controller
