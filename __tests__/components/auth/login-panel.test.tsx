@@ -49,20 +49,10 @@ import { fireEvent, render } from '@testing-library/react-native'
 import LoginPanel from '@/components/auth/login-panel'
 
 describe('LoginPanel — chrome dùng chung', () => {
-  it('không có onClose thì không render nút đóng', () => {
+  it('không render nút đóng', () => {
     const { queryByTestId } = render(<LoginPanel />)
 
     expect(queryByTestId('login-panel-close')).toBeNull()
-  })
-
-  it('có onClose thì render nút đóng và gọi đúng callback khi bấm', () => {
-    const onClose = jest.fn()
-    const { getByTestId } = render(<LoginPanel onClose={onClose} />)
-
-    const closeButton = getByTestId('login-panel-close')
-    fireEvent.press(closeButton)
-
-    expect(onClose).toHaveBeenCalledTimes(1)
   })
 
   it('showLogo bật thì render logo', () => {
@@ -80,12 +70,11 @@ describe('LoginPanel — chrome dùng chung', () => {
   describe('luôn render tiêu đề, mô tả và footer đăng ký ở mọi tổ hợp props', () => {
     const cases: { name: string; props: Record<string, unknown> }[] = [
       { name: 'không props gì', props: {} },
-      { name: 'onClose', props: { onClose: jest.fn() } },
       { name: 'showLogo', props: { showLogo: true } },
       { name: 'compactTitle', props: { compactTitle: true } },
       {
         name: 'tất cả cùng lúc',
-        props: { onClose: jest.fn(), showLogo: true, compactTitle: true },
+        props: { showLogo: true, compactTitle: true },
       },
     ]
 
@@ -97,23 +86,6 @@ describe('LoginPanel — chrome dùng chung', () => {
       expect(getByText('login.noAccount', { exact: false })).toBeTruthy()
       expect(getByText('login.registerNow')).toBeTruthy()
     })
-  })
-
-  it('close button có background className khi onClose được truyền', () => {
-    const onClose = jest.fn()
-    const { getByTestId } = render(<LoginPanel onClose={onClose} />)
-
-    const closeButton = getByTestId('login-panel-close')
-    // Verify close button exists and renders
-    expect(closeButton).toBeTruthy()
-    // Verify hitSlop is set
-    expect(closeButton.props.hitSlop).toBe(8)
-    // Verify className includes background classes
-    const className = closeButton.props.className
-    if (className) {
-      expect(className).toContain('bg-gray-100')
-      expect(className).toContain('dark:bg-[#1c1c1e]')
-    }
   })
 
   it('phone label và password label đều dùng text-sm', () => {
@@ -146,15 +118,6 @@ describe('LoginPanel — chrome dùng chung', () => {
       expect(navigateWhenUnlocked.replace).toHaveBeenCalledWith('/(tabs)/home')
     })
 
-    it('showHomeLink mặc định (true) vẫn render link kể cả khi có onClose (màn hình full-screen)', () => {
-      const { getByTestId, getByText } = render(
-        <LoginPanel onClose={jest.fn()} />,
-      )
-
-      expect(getByText('login.goBackToHome')).toBeTruthy()
-      expect(getByTestId('login-panel-home')).toBeTruthy()
-    })
-
     it('showHomeLink={false} thì KHÔNG render link về trang chủ (bottom sheet)', () => {
       const { queryByTestId, queryByText } = render(
         <LoginPanel showHomeLink={false} />,
@@ -166,7 +129,7 @@ describe('LoginPanel — chrome dùng chung', () => {
   })
 
   it('link đăng ký nằm TRƯỚC spacer, link về trang chủ nằm SAU spacer trong cây render', () => {
-    const { toJSON } = render(<LoginPanel onClose={jest.fn()} />)
+    const { toJSON } = render(<LoginPanel />)
 
     type JsonNode = {
       props?: { testID?: string }
@@ -200,17 +163,9 @@ describe('LoginPanel — chrome dùng chung', () => {
     expect(spacerIndex).toBeLessThan(homeIndex)
   })
 
-  describe('padding top của root khi không có nút đóng', () => {
-    it('không có onClose thì root có pt-6', () => {
-      const { toJSON } = render(<LoginPanel />)
+  it('root luôn có pt-6 để nội dung không dính safe area', () => {
+    const { toJSON } = render(<LoginPanel />)
 
-      expect(toJSON()?.props.className).toContain('pt-6')
-    })
-
-    it('có onClose thì root KHÔNG có pt-6', () => {
-      const { toJSON } = render(<LoginPanel onClose={jest.fn()} />)
-
-      expect(toJSON()?.props.className).not.toContain('pt-6')
-    })
+    expect(toJSON()?.props.className).toContain('pt-6')
   })
 })
