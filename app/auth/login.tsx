@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query'
-import { Redirect, useRouter } from 'expo-router'
+import { Redirect } from 'expo-router'
 import { useCallback } from 'react'
 import {
   KeyboardAvoidingView,
@@ -22,7 +22,6 @@ export default function LoginScreen() {
   const hasHydrated = useAuthStore((state) => state._hasHydrated)
   const masterTransition = useMasterTransitionOptional()
   const queryClient = useQueryClient()
-  const router = useRouter()
 
   const handleLoginSuccess = useCallback(() => {
     const homeCached = !!queryClient.getQueryData(['banners', BannerPage.HOME])
@@ -32,14 +31,6 @@ export default function LoginScreen() {
     // đang đóng khi user tap Login) thay vì silent drop như navigateNative.replace.
     navigateWhenUnlocked.replace('/(tabs)/home')
   }, [masterTransition, queryClient])
-
-  // Login mở bằng cả push (gift-card, product detail, order detail) lẫn replace
-  // (onboarding, register, forgot-password). Nút back thuần sẽ chết ở nhóm sau,
-  // nên nút này luôn có đường thoát: back nếu có stack, không thì về trang chủ.
-  const handleClose = useCallback(() => {
-    if (router.canGoBack()) router.back()
-    else router.replace('/(tabs)/home')
-  }, [router])
 
   if (!hasHydrated) {
     return null // render nothing while store hydrates (50–200ms)
@@ -67,11 +58,7 @@ export default function LoginScreen() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <LoginPanel
-            onClose={handleClose}
-            showLogo
-            onLoginSuccess={handleLoginSuccess}
-          />
+          <LoginPanel showLogo onLoginSuccess={handleLoginSuccess} />
         </ScrollView>
       </KeyboardAvoidingView>
     </ScreenContainer>
