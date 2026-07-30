@@ -1,5 +1,4 @@
 import { Image } from 'expo-image'
-import { X } from 'lucide-react-native'
 import { useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { TouchableOpacity, View, useColorScheme } from 'react-native'
@@ -7,7 +6,6 @@ import { TouchableOpacity, View, useColorScheme } from 'react-native'
 import { Images } from '@/assets/images'
 import LoginForm from '@/components/auth/login-form'
 import { Text } from '@/components/ui/text'
-import { colors } from '@/constants'
 import { navigateWhenUnlocked } from '@/lib/navigation'
 import { cn } from '@/lib/utils'
 
@@ -15,8 +13,6 @@ const LOGO_WIDTH = 120
 const LOGO_HEIGHT = 32
 
 export interface LoginPanelProps {
-  /** Hiện nút X khi được truyền. Bỏ trống = không có nút đóng. */
-  onClose?: () => void
   /** Logo thương hiệu phía trên tiêu đề. Tắt trong bottom sheet vì không đủ chỗ. */
   showLogo?: boolean
   /** Sheet dùng tiêu đề nhỏ hơn vì đã có thanh kéo neo phía trên. */
@@ -29,7 +25,6 @@ export interface LoginPanelProps {
 }
 
 export default function LoginPanel({
-  onClose,
   showLogo,
   compactTitle,
   showHomeLink = true,
@@ -38,7 +33,6 @@ export default function LoginPanel({
 }: LoginPanelProps) {
   const { t } = useTranslation('auth')
   const isDark = useColorScheme() === 'dark'
-  const iconColor = isDark ? colors.gray[200] : colors.gray[700]
   const [isLoginLoading, setIsLoginLoading] = useState(false)
 
   const handleRegister = useCallback(() => {
@@ -54,19 +48,7 @@ export default function LoginPanel({
   }, [onBeforeNavigate])
 
   return (
-    <View className={cn('flex-1 px-6', !onClose && 'pt-6')}>
-      {onClose && (
-        <TouchableOpacity
-          testID="login-panel-close"
-          onPress={onClose}
-          disabled={isLoginLoading}
-          hitSlop={8}
-          className="h-9 w-9 items-center justify-center rounded-full bg-gray-100 dark:bg-[#1c1c1e]"
-        >
-          <X size={22} color={iconColor} />
-        </TouchableOpacity>
-      )}
-
+    <View className="flex-1 px-6 pt-6">
       {showLogo && (
         <Image
           testID="login-panel-logo"

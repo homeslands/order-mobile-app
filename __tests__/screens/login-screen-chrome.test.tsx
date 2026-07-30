@@ -73,10 +73,16 @@ describe('LoginScreen — chưa đăng nhập vẫn có chrome', () => {
     expect(getByText('login.registerNow')).toBeTruthy()
   })
 
-  it('render link "Quay lại trang chủ" dù màn hình có nút đóng riêng', () => {
+  it('render link "Quay lại trang chủ"', () => {
     const { getByText, getByTestId } = render(<LoginScreen />)
 
     expect(getByText('login.goBackToHome')).toBeTruthy()
     expect(getByTestId('login-panel-home')).toBeTruthy()
+  })
+
+  it('KHÔNG render nút đóng — đường thoát duy nhất là link "Quay lại trang chủ"', () => {
+    const { queryByTestId } = render(<LoginScreen />)
+
+    expect(queryByTestId('login-panel-close')).toBeNull()
   })
 })
