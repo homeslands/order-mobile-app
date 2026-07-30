@@ -10,10 +10,16 @@ import {
   PHONE_NUMBER_REGEX,
 } from '@/constants'
 
-export const loginSchema = z.object({
-  phonenumber: z.string(),
-  password: z.string(),
-})
+// Chỉ chặn rỗng, KHÔNG validate định dạng. Ràng buộc định dạng ở màn login
+// sẽ khoá cửa những tài khoản đã tạo dưới quy tắc cũ, lỏng hơn PHONE_NUMBER_REGEX
+// hiện tại — họ sẽ không đăng nhập nổi. Sai định dạng cứ để server phán.
+export function useLoginSchema() {
+  const { t } = useTranslation('auth')
+  return z.object({
+    phonenumber: z.string().min(1, t('login.phoneNumberRequired')),
+    password: z.string().min(1, t('login.passwordRequired')),
+  })
+}
 
 export function useRegisterSchema() {
   const { t } = useTranslation('auth')
@@ -128,7 +134,7 @@ export function useRegisterPasswordSchema() {
 }
 
 export type TRegisterSchema = z.infer<ReturnType<typeof useRegisterSchema>>
-export type TLoginSchema = z.infer<typeof loginSchema>
+export type TLoginSchema = z.infer<ReturnType<typeof useLoginSchema>>
 export type TResetPasswordSchema = z.infer<
   ReturnType<typeof useResetPasswordSchema>
 >
