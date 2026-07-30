@@ -73,6 +73,67 @@ describe('LoginForm — autofill', () => {
   })
 })
 
+// Trước khi có ràng buộc client, loginSchema là z.string() thuần nên chuỗi
+// rỗng vẫn parse pass -> handleSubmit gọi onSubmit -> bắn request thật lên
+// server, và user nhận về "sai tài khoản hoặc mật khẩu" thay vì "chưa nhập gì".
+describe('LoginForm — chặn submit khi thiếu dữ liệu', () => {
+  beforeEach(() => {
+    mockMutate.mockReset()
+  })
+
+  const submitEmpty = async (utils: ReturnType<typeof render>) => {
+    await act(async () => {
+      fireEvent.press(utils.getByText('login.login'))
+    })
+  }
+
+  it('không bắn request khi cả 2 ô đều rỗng', async () => {
+    const utils = render(<LoginForm />)
+
+    await submitEmpty(utils)
+
+    expect(mockMutate).not.toHaveBeenCalled()
+  })
+
+  it('hiện thông báo ở cả 2 ô khi submit form rỗng', async () => {
+    const utils = render(<LoginForm />)
+
+    await submitEmpty(utils)
+
+    expect(utils.getByText('login.phoneNumberRequired')).toBeTruthy()
+    expect(utils.getByText('login.passwordRequired')).toBeTruthy()
+  })
+
+  it('không bắn request khi chỉ điền SĐT, bỏ trống mật khẩu', async () => {
+    const utils = render(<LoginForm />)
+
+    await act(async () => {
+      utils
+        .getByPlaceholderText('login.enterPhoneNumber')
+        .props.onChangeText('0901234567')
+    })
+    await submitEmpty(utils)
+
+    expect(mockMutate).not.toHaveBeenCalled()
+  })
+
+  it('vẫn bắn request khi cả 2 ô đã có dữ liệu', async () => {
+    const utils = render(<LoginForm />)
+
+    await act(async () => {
+      utils
+        .getByPlaceholderText('login.enterPhoneNumber')
+        .props.onChangeText('0901234567')
+      utils
+        .getByPlaceholderText('login.enterPassword')
+        .props.onChangeText('somepass1')
+    })
+    await submitEmpty(utils)
+
+    expect(mockMutate).toHaveBeenCalledTimes(1)
+  })
+})
+
 describe('LoginForm — sai thông tin đăng nhập', () => {
   beforeEach(() => {
     mockMutate.mockReset()
