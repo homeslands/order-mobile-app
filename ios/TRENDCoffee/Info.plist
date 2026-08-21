@@ -50,7 +50,7 @@
       <true/>
     </dict>
     <key>NSCameraUsageDescription</key>
-    <string>Cho phép ứng dụng sử dụng camera để chụp ảnh đại diện.</string>
+    <string>Ứng dụng cần quyền camera để chụp ảnh đại diện và quét mã QR voucher.</string>
     <key>NSFaceIDUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your Face ID biometric data.</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
