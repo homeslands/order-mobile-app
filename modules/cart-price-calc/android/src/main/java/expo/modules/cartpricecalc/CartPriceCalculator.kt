@@ -137,13 +137,21 @@ private fun checkMinOrderValue(orderItems: List<OrderItemInput>, voucher: Vouche
   return subtotal >= voucher.minOrderValue
 }
 
+/**
+ * Slug để đối chiếu với voucherProducts. Luôn ưu tiên productSlug — giống quy ước
+ * `productSlug || slug` bên JS. Với đơn đã đặt, `slug` là slug của dòng order-detail
+ * chứ không phải của sản phẩm, nên lấy `slug` trước sẽ không bao giờ khớp.
+ */
+private fun eligibilitySlug(productSlug: String?, slug: String?): String =
+  productSlug?.takeIf { it.isNotEmpty() } ?: slug.orEmpty()
+
 private fun isVoucherApplicable(orderItems: List<OrderItemInput>, voucher: VoucherInput): Boolean {
   if (orderItems.isEmpty()) return false
   val requiredSlugs = getRequiredSlugsSet(voucher)
   if (requiredSlugs.isEmpty()) {
     return checkMinOrderValue(orderItems, voucher)
   }
-  fun itemSlug(item: OrderItemInput) = item.slug ?: item.productSlug ?: ""
+  fun itemSlug(item: OrderItemInput) = eligibilitySlug(item.productSlug, item.slug)
   if (voucher.applicabilityRule == ApplicabilityRule.ALL_REQUIRED) {
     if (!orderItems.all { requiredSlugs.contains(itemSlug(it)) }) return false
   } else if (voucher.applicabilityRule == ApplicabilityRule.AT_LEAST_ONE_REQUIRED) {
@@ -175,7 +183,7 @@ private fun calculateCartItemDisplay(
     val promoDiscount = item.promotionDiscount
       ?: (original * ((item.promotionValue ?: 0.0) / 100)).toInt().toDouble()
     val priceAfterPromo = maxOf(0.0, original - promoDiscount)
-    val slug = item.slug ?: item.productSlug ?: ""
+    val slug = eligibilitySlug(item.productSlug, item.slug)
     val isEligible = eligibleSlugs.contains(slug)
 
     val out = item.toMap()
@@ -297,7 +305,7 @@ private fun calculateCartTotals(
   }
 
   val promotionDiscount = sumBy(displayItems) { item ->
-    val slug = getString(item, "slug").ifEmpty { getString(item, "productSlug") }
+    val slug = eligibilitySlug(getString(item, "productSlug"), getString(item, "slug"))
     val shouldExclude = (voucher?.type == VoucherType.SAME_PRICE_PRODUCT ||
       ((voucher?.type == VoucherType.PERCENT_ORDER || voucher?.type == VoucherType.FIXED_VALUE) &&
         voucher?.applicabilityRule == ApplicabilityRule.AT_LEAST_ONE_REQUIRED)) &&
@@ -316,7 +324,7 @@ private fun calculateCartTotals(
     when (type) {
       VoucherType.SAME_PRICE_PRODUCT -> {
         voucherDiscount = sumBy(displayItems) { item ->
-          val slug = getString(item, "slug").ifEmpty { getString(item, "productSlug") }
+          val slug = eligibilitySlug(getString(item, "productSlug"), getString(item, "slug"))
           if (allowedSlugs.contains(slug)) {
             getDouble(item, "voucherDiscount") * getInt(item, "quantity")
           } else 0.0

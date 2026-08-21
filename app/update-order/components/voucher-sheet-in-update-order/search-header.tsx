@@ -1,6 +1,6 @@
 import { colors } from '@/constants'
 import { BottomSheetTextInput } from '@gorhom/bottom-sheet'
-import { Search, Ticket } from 'lucide-react-native'
+import { ScanLine, Search, Ticket } from 'lucide-react-native'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { Text } from '@/components/ui/text'
@@ -11,6 +11,8 @@ type SearchHeaderProps = {
   onSearch: () => void
   isDark: boolean
   primaryColor: string
+  /** Bỏ trống thì không hiện nút quét — header giữ nguyên hình dạng cũ. */
+  onScanPress?: () => void
 }
 
 export function SearchHeader({
@@ -19,6 +21,7 @@ export function SearchHeader({
   onSearch,
   isDark,
   primaryColor,
+  onScanPress,
 }: SearchHeaderProps) {
   const { t } = useTranslation('voucher')
   return (
@@ -85,6 +88,23 @@ export function SearchHeader({
             }
           />
         </Pressable>
+        {onScanPress ? (
+          <Pressable
+            onPress={onScanPress}
+            style={[
+              styles.scanBtn,
+              {
+                backgroundColor: isDark
+                  ? colors.background.dark
+                  : colors.gray[100],
+                borderColor: isDark ? colors.border.dark : colors.gray[300],
+              },
+            ]}
+            accessibilityLabel={t('scan.title')}
+          >
+            <ScanLine size={18} color={primaryColor} />
+          </Pressable>
+        ) : null}
       </View>
       <Text
         style={[
@@ -132,6 +152,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  scanBtn: {
+    width: 46,
+    height: 46,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
   },
   note: { fontSize: 12, fontStyle: 'italic', marginTop: 8 },
 })

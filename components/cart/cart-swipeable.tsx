@@ -16,6 +16,8 @@ import Animated, {
 } from 'react-native-reanimated'
 
 const SWIPE_WIDTH = 80
+/** Khoảng thụt của nút xoá vào bên trong mép thẻ. */
+const ACTION_INSET = 6
 const returnTrue = () => true
 
 const SLIDE_OUT_DURATION = 180
@@ -24,10 +26,17 @@ const COLLAPSE_DURATION = 200
 function CartSwipeableBase({
   itemId,
   onDelete,
+  cardMargin = 10,
   children,
 }: {
   itemId: string
   onDelete: (id?: string) => void
+  /**
+   * marginHorizontal của thẻ con. Nút xoá nằm dưới thẻ nên phải biết mép thẻ ở
+   * đâu mới canh được; mặc định 10 khớp với hàng trong giỏ. Thẻ không có margin
+   * (gift card) thì truyền 0, nếu không nút sẽ lệch đúng bằng phần margin thiếu.
+   */
+  cardMargin?: number
   children: React.ReactNode
 }) {
   const translateX = useSharedValue(0)
@@ -39,9 +48,15 @@ function CartSwipeableBase({
   const gesture = useMemo(
     () =>
       Gesture.Pan()
-        .activeOffsetX([-30, 30])
-        .failOffsetY([-6, 6])
-        .minDistance(8)
+        // failOffsetY PHẢI lớn hơn activeOffsetX. Native kiểm shouldFail trước
+        // shouldActivate rồi return luôn, nên ngưỡng fail nhỏ hơn ngưỡng kích
+        // hoạt sẽ giết gesture trước khi nó kịp bắt đầu — cấu hình cũ ±6 / ±30
+        // đòi ngón tay đi 30px ngang mà lệch dưới 6px dọc (hình nón 11°), vuốt
+        // nhanh gần như không bao giờ đạt.
+        // RNGH Swipeable dùng activeOffsetX ±10 và không có failOffsetY;
+        // ở đây giữ failOffsetY rộng để cú kéo dọc rõ rệt vẫn nhường cho scroll.
+        .activeOffsetX([-10, 10])
+        .failOffsetY([-20, 20])
         .onStart(() => {
           startX.value = translateX.value
         })
@@ -123,7 +138,13 @@ function CartSwipeableBase({
       style={wrapperStyle}
       onLayout={needsMeasure ? onLayout : undefined}
     >
-      <Animated.View style={[swipeStyles.deleteBox, deleteOpacity]}>
+      <Animated.View
+        style={[
+          swipeStyles.deleteBox,
+          { right: cardMargin + ACTION_INSET },
+          deleteOpacity,
+        ]}
+      >
         <View
           style={swipeStyles.deleteTap}
           onStartShouldSetResponder={returnTrue}
@@ -146,8 +167,7 @@ const swipeStyles = StyleSheet.create({
     position: 'absolute',
     top: 0,
     bottom: 0,
-    right: 16,
-    width: SWIPE_WIDTH - 12,
+    width: SWIPE_WIDTH - ACTION_INSET * 2,
     borderRadius: 16,
     backgroundColor: colors.destructive.light,
     alignItems: 'center',
