@@ -92,7 +92,7 @@ export const GiftCardCartItem = memo(function GiftCardCartItem({
   })
 
   return (
-    <CartSwipeable itemId={SWIPE_ID} onDelete={handleDelete}>
+    <CartSwipeable itemId={SWIPE_ID} onDelete={handleDelete} cardMargin={0}>
       <View style={[s.card, { backgroundColor: cardBg }]}>
         {/* Image — same layout as GiftCardListItem */}
         <View style={s.imageWrap}>

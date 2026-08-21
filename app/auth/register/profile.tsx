@@ -1,4 +1,4 @@
-import { useRef, useState, useEffect } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
   ActivityIndicator,
   BackHandler,
@@ -15,7 +15,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Stack } from 'expo-router'
 import { ScreenContainer } from '@/components/layout'
 import { colors } from '@/constants'
-import { navigateNative } from '@/lib/navigation'
+import { useLogout } from '@/hooks/use-logout'
+import { useLogoutSheetStore } from '@/stores/logout-sheet.store'
 import RegisterProfileForm, {
   type RegisterProfileFormHandle,
 } from '@/components/auth/register-profile-form'
@@ -29,6 +30,14 @@ export default function RegisterProfileScreen() {
 
   const formRef = useRef<RegisterProfileFormHandle>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [isValid, setIsValid] = useState(false)
+
+  const logout = useLogout()
+  const openLogoutSheet = useLogoutSheetStore((s) => s.open)
+  const handleLogoutPress = useCallback(
+    () => openLogoutSheet(logout),
+    [openLogoutSheet, logout],
+  )
 
   // Block Android hardware back button
   useEffect(() => {
@@ -37,6 +46,7 @@ export default function RegisterProfileScreen() {
   }, [])
 
   const footerHeight = bottom + 140
+  const canSubmit = isValid && !isLoading
 
   return (
     <>
@@ -58,7 +68,11 @@ export default function RegisterProfileScreen() {
             keyboardShouldPersistTaps="handled"
             contentContainerStyle={{ paddingBottom: footerHeight }}
           >
-            <RegisterProfileForm ref={formRef} onLoadingChange={setIsLoading} />
+            <RegisterProfileForm
+              ref={formRef}
+              onLoadingChange={setIsLoading}
+              onValidChange={setIsValid}
+            />
           </ScrollView>
         </KeyboardAvoidingView>
 
@@ -73,37 +87,46 @@ export default function RegisterProfileScreen() {
           ]}
         >
           <TouchableOpacity
-            style={[styles.completeBtn]}
+            style={[styles.completeBtn, { opacity: canSubmit ? 1 : 0.5 }]}
             onPress={() => formRef.current?.submit()}
-            disabled={isLoading}
+            disabled={!canSubmit}
             activeOpacity={0.8}
           >
             {isLoading ? (
               <ActivityIndicator color="#fff" />
             ) : (
-              <Text style={styles.completeBtnText}>{t('register.complete')}</Text>
+              <Text style={styles.completeBtnText}>
+                {t('register.complete')}
+              </Text>
             )}
           </TouchableOpacity>
 
+          {/* Lối ra duy nhất của màn này: back cứng và vuốt-về đều bị chặn, và
+              cổng ở app/index.tsx sẽ đưa về đây mỗi lần mở app khi hồ sơ còn
+              thiếu. Không có nút này thì người dùng không thể rời đi. */}
           <TouchableOpacity
             style={[
-              styles.skipBtn,
+              styles.logoutBtn,
               {
-                borderColor: isDark ? '#d97706' : '#f59e0b',
+                borderColor: isDark ? colors.border.dark : colors.border.light,
                 opacity: isLoading ? 0.5 : 1,
               },
             ]}
-            onPress={() => navigateNative.replace('/(tabs)/home')}
+            onPress={handleLogoutPress}
             disabled={isLoading}
             activeOpacity={0.7}
           >
             <Text
               style={[
-                styles.skipBtnText,
-                { color: isDark ? '#d97706' : '#f59e0b' },
+                styles.logoutBtnText,
+                {
+                  color: isDark
+                    ? colors.mutedForeground.dark
+                    : colors.mutedForeground.light,
+                },
               ]}
             >
-              {t('register.skip')}
+              {t('logout.logout')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -135,14 +158,14 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: '#ffffff',
   },
-  skipBtn: {
+  logoutBtn: {
     height: 52,
     borderRadius: 12,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  skipBtnText: {
+  logoutBtnText: {
     fontFamily: 'BeVietnamPro_600SemiBold',
     fontSize: 15,
   },

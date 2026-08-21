@@ -6,6 +6,7 @@ import {
   getPublicSpecificMenu,
   getSpecificMenu,
 } from '@/api/menu'
+import { MENU_QUERY_SKIP_CODES } from '@/lib/global-error-gate'
 import type { ISpecificMenuRequest } from '@/types'
 
 /**
@@ -49,7 +50,7 @@ export function useCatalogMenuPages(opts: {
         staleTime: 60_000,
         gcTime: 10 * 60_000,
         refetchOnMount: false,
-        meta: { skipGlobalErrorCodes: [401, 403] },
+        meta: { skipGlobalErrorCodes: MENU_QUERY_SKIP_CODES },
       }
     }),
   })

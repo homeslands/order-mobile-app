@@ -1,4 +1,7 @@
-import { resolveGlobalErrorCode } from '@/lib/global-error-gate'
+import {
+  MENU_QUERY_SKIP_CODES,
+  resolveGlobalErrorCode,
+} from '@/lib/global-error-gate'
 
 const withCode = (statusCode: number) => ({
   response: { data: { statusCode } },
@@ -36,5 +39,22 @@ describe('resolveGlobalErrorCode', () => {
 
   it('returns null for a network error with no status code', () => {
     expect(resolveGlobalErrorCode(undefined, networkError)).toBeNull()
+  })
+})
+
+describe('MENU_QUERY_SKIP_CODES', () => {
+  // 117002 "Menu not found" là câu trả lời của backend cho catalog không có món
+  // hôm nay. Màn menu bắn một query mỗi catalog nên nếu không chặn, một chi
+  // nhánh có 5 catalog rỗng sẽ bắn 5 toast dù thực đơn vẫn hiện bình thường.
+  it.each([401, 403, 117002])('chặn toast cho mã %i', (code) => {
+    expect(
+      resolveGlobalErrorCode({ skipGlobalErrorCodes: MENU_QUERY_SKIP_CODES }, withCode(code)),
+    ).toBeNull()
+  })
+
+  it('vẫn để lộ lỗi thật của query menu', () => {
+    expect(
+      resolveGlobalErrorCode({ skipGlobalErrorCodes: MENU_QUERY_SKIP_CODES }, withCode(500)),
+    ).toBe(500)
   })
 })
