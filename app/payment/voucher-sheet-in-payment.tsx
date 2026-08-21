@@ -1,4 +1,9 @@
 import { VoucherConditionModal } from '@/components/cart/voucher-condition-modal'
+import {
+  deriveScanStatus,
+  type ScanStatus,
+} from '@/components/sheet/scan-status'
+import { VoucherQrScanner } from '@/components/scan/voucher-qr-scanner'
 import { processVoucherList } from '@/components/sheet/voucher-validation'
 import { colors, PaymentMethod } from '@/constants'
 import {
@@ -26,7 +31,7 @@ import {
 } from '@gorhom/bottom-sheet'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { StyleSheet, View } from 'react-native'
+import { Keyboard, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { InvalidList } from '../update-order/components/voucher-sheet-in-update-order/invalid-list'
@@ -99,6 +104,14 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
 
   const [code, setCode] = useState('')
   const [searchCode, setSearchCode] = useState('')
+  const [scanning, setScanning] = useState(false)
+  /**
+   * Slug đến từ camera. Tách hẳn khỏi searchCode vì hai đường tra cứu bằng
+   * hai tham số khác nhau: camera đọc ra slug, ô nhập tay nhận code.
+   */
+  const [scannedSlug, setScannedSlug] = useState<string | null>(null)
+  /** Lỗi khi server từ chối lúc tự áp — deriveScanStatus không biết việc này. */
+  const [applyError, setApplyError] = useState<string | null>(null)
   const [selectedVoucher, setSelectedVoucher] = useState<IVoucher | null>(null)
   const [conditionVoucher, setConditionVoucher] = useState<IVoucher | null>(
     null,
@@ -132,9 +145,15 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
   const specificFetch = isCustomerOwner
     ? useSpecificVoucher
     : useSpecificPublicVoucher
+  // QR chứa slug, ô nhập tay nhận code — `/voucher/specific` tra bằng hai
+  // tham số khác nhau, truyền nhầm là 404. Nguồn quyết định tham số.
+  const specificParams = useMemo(
+    () => (scannedSlug ? { slug: scannedSlug } : { code: searchCode }),
+    [scannedSlug, searchCode],
+  )
   const { data: specificRes, isFetching } = specificFetch(
-    { code: searchCode },
-    visible && searchCode.length > 0,
+    specificParams,
+    visible && (!!scannedSlug || searchCode.length > 0),
   )
   const fetchedVoucher = specificRes?.result ?? null
 
@@ -333,6 +352,7 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
     setSearchCode('')
     setSelectedVoucher(null)
     setConditionVoucher(null)
+    setScanning(false)
     onClose()
   }, [onClose])
 
@@ -341,6 +361,33 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
     if (!trimmed) return
     setSearchCode(trimmed)
   }, [code])
+
+  const handleOpenScanner = useCallback(() => {
+    Keyboard.dismiss()
+    setScanning(true)
+  }, [])
+  // Đóng camera là bỏ luôn kết quả quét: slug không đổ vào ô nhập được
+  // (ô đó tra bằng code), nên không có chỗ nào giữ lại nó.
+  const handleCloseScanner = useCallback(() => {
+    setScanning(false)
+    setScannedSlug(null)
+    setApplyError(null)
+  }, [])
+
+  const handleScanRetry = useCallback(() => {
+    setApplyError(null)
+    setScannedSlug(null)
+    setCode('')
+    setSearchCode('')
+  }, [])
+
+  // Mã quét được đi vào đúng state mà ô nhập tay dùng — từ đây trở đi luồng
+  // tra cứu và chấm điều kiện chạy y hệt trường hợp khách gõ mã.
+  // Không đổ slug vào ô nhập: ô đó tra bằng code, gõ slug vào sẽ 404.
+  const handleScannedCode = useCallback((slug: string) => {
+    setApplyError(null)
+    setScannedSlug(slug)
+  }, [])
 
   const handleViewCondition = useCallback((v: IVoucher) => {
     setConditionVoucher(v)
@@ -362,6 +409,76 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
     [orderItems, orderSlug],
   )
 
+  /**
+   * Xác nhận với máy chủ rồi ghi voucher vào đơn. Dùng chung cho nút "Áp dụng"
+   * ở footer lẫn nhánh tự áp sau khi quét, để hai đường đi qua đúng một luật.
+   *
+   * `onServerError` cho nhánh quét hiện lỗi ngay trong camera thay vì bắn toast
+   * rồi để khách nhìn một màn quét trống.
+   */
+  const runApplyVoucher = useCallback(
+    (voucher: IVoucher, onServerError?: (message: string) => void) => {
+      setValidating(true)
+      validateVoucher(
+        {
+          voucher: voucher.slug,
+          user: userSlug || '',
+          orderItems: orderItems.map((item) => ({
+            quantity: item.quantity,
+            variant: toSlug(item.variant),
+            note: (item as { note?: string }).note || '',
+            promotion:
+              ((item as { promotionValue?: number }).promotionValue ?? 0) > 0
+                ? toSlug(item.promotion)
+                : null,
+            order: orderSlug,
+          })),
+        },
+        {
+          onSuccess: () => {
+            updateVoucher(
+              {
+                slug: orderSlug,
+                voucher: voucher.slug,
+                orderItems: orderItemsParam,
+              },
+              {
+                onSuccess: () => {
+                  setScanning(false)
+                  showToast(tVoucher('applyVoucher'))
+                  sheetRef.current?.dismiss()
+                  onVoucherApplied()
+                },
+                onError: () => {
+                  if (onServerError) onServerError(tVoucher('scan.applyFailed'))
+                  else showErrorToastMessage('toast.requestFailed')
+                },
+                onSettled: () => setValidating(false),
+              },
+            )
+          },
+          onError: () => {
+            // Hai ngữ cảnh khác nhau: trong camera thì báo tại chỗ, ngoài
+            // camera thì toast — nên hai câu chữ cũng khác nhau.
+            if (onServerError) onServerError(tVoucher('scan.applyFailed'))
+            else showToast(tVoucher('voucherInvalid'), 'error')
+            setValidating(false)
+          },
+        },
+      )
+    },
+    [
+      validateVoucher,
+      updateVoucher,
+      orderItems,
+      orderItemsParam,
+      orderSlug,
+      userSlug,
+      onVoucherApplied,
+      tVoucher,
+    ],
+  )
+
   const handleFooterPress = useCallback(() => {
     if (isCurrentApplied) {
       // Remove voucher
@@ -379,50 +496,7 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
         },
       )
     } else if (selectedVoucher) {
-      setValidating(true)
-      validateVoucher(
-        {
-          voucher: selectedVoucher.slug,
-          user: userSlug || '',
-          orderItems: orderItems.map((item) => ({
-            quantity: item.quantity,
-            variant: toSlug(item.variant),
-            note: (item as { note?: string }).note || '',
-            promotion:
-              ((item as { promotionValue?: number }).promotionValue ?? 0) > 0
-                ? toSlug(item.promotion)
-                : null,
-            order: orderSlug,
-          })),
-        },
-        {
-          onSuccess: () => {
-            // Persist voucher to server
-            updateVoucher(
-              {
-                slug: orderSlug,
-                voucher: selectedVoucher.slug,
-                orderItems: orderItemsParam,
-              },
-              {
-                onSuccess: () => {
-                  showToast(tVoucher('applyVoucher'))
-                  sheetRef.current?.dismiss()
-                  onVoucherApplied()
-                },
-                onError: () => {
-                  showErrorToastMessage('toast.requestFailed')
-                },
-                onSettled: () => setValidating(false),
-              },
-            )
-          },
-          onError: () => {
-            showToast(tVoucher('voucherInvalid'), 'error')
-            setValidating(false)
-          },
-        },
-      )
+      runApplyVoucher(selectedVoucher)
     } else {
       sheetRef.current?.dismiss()
     }
@@ -440,6 +514,45 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
     tVoucher,
   ])
 
+  // ─── Trạng thái màn quét ────────────────────────────────────────────────────
+  const scanStatus = useMemo<ScanStatus>(() => {
+    if (applyError) return { kind: 'error', title: applyError }
+    return deriveScanStatus({
+      scannedValue: scannedSlug,
+      isFetching,
+      fetchedVoucher,
+      processed: processedFetched,
+      currentVoucher,
+      t: tVoucher,
+    })
+  }, [
+    applyError,
+    scannedSlug,
+    isFetching,
+    fetchedVoucher,
+    processedFetched,
+    currentVoucher,
+    tVoucher,
+  ])
+
+  // Chốt theo slug để một lần quét chỉ gọi mutation đúng một lần.
+  const autoAppliedRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (!scanning) {
+      autoAppliedRef.current = null
+      return
+    }
+    if (scanStatus.kind !== 'ready') return
+    if (autoAppliedRef.current === scanStatus.voucher.slug) return
+    autoAppliedRef.current = scanStatus.voucher.slug
+    runApplyVoucher(scanStatus.voucher, setApplyError)
+  }, [scanning, scanStatus, runApplyVoucher])
+
+  const handleConfirmReplace = useCallback(() => {
+    if (scanStatus.kind !== 'confirmReplace') return
+    runApplyVoucher(scanStatus.voucher, setApplyError)
+  }, [scanStatus, runApplyVoucher])
+
   return (
     <>
       <BottomSheetModal
@@ -455,12 +568,15 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
         backgroundStyle={bgStyle}
         handleIndicatorStyle={indicatorStyle}
         onDismiss={handleDismiss}
+        keyboardBehavior="extend"
+        keyboardBlurBehavior="restore"
         android_keyboardInputMode="adjustResize"
       >
         <SearchHeader
           code={code}
           onChangeCode={setCode}
           onSearch={handleSearch}
+          onScanPress={handleOpenScanner}
           isDark={isDark}
           primaryColor={primaryColor}
         />
@@ -576,6 +692,15 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
           isDark={isDark}
           primaryColor={primaryColor}
           bottomInset={insets.bottom}
+        />
+
+        <VoucherQrScanner
+          visible={scanning}
+          status={scanStatus}
+          onScanned={handleScannedCode}
+          onRetry={handleScanRetry}
+          onConfirmReplace={handleConfirmReplace}
+          onClose={handleCloseScanner}
         />
       </BottomSheetModal>
 

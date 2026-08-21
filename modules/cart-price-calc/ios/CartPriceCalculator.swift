@@ -122,13 +122,21 @@ private func checkMinOrderValue(orderItems: [OrderItemInput], voucher: VoucherIn
   return subtotal >= voucher.minOrderValue
 }
 
+/// Slug để đối chiếu với voucherProducts. Luôn ưu tiên productSlug — giống quy ước
+/// `productSlug || slug` bên JS. Với đơn đã đặt, `slug` là slug của dòng order-detail
+/// chứ không phải của sản phẩm, nên lấy `slug` trước sẽ không bao giờ khớp.
+private func eligibilitySlug(_ productSlug: String?, _ slug: String?) -> String {
+  let p = productSlug ?? ""
+  return p.isEmpty ? (slug ?? "") : p
+}
+
 private func isVoucherApplicable(orderItems: [OrderItemInput], voucher: VoucherInput) -> Bool {
   if orderItems.isEmpty { return false }
   let requiredSlugs = getRequiredSlugsSet(voucher: voucher)
   if requiredSlugs.isEmpty {
     return checkMinOrderValue(orderItems: orderItems, voucher: voucher)
   }
-  let itemSlug: (OrderItemInput) -> String = { $0.slug ?? $0.productSlug ?? "" }
+  let itemSlug: (OrderItemInput) -> String = { eligibilitySlug($0.productSlug, $0.slug) }
   if voucher.applicabilityRule == ApplicabilityRule.allRequired {
     let allIn = orderItems.allSatisfy { requiredSlugs.contains(itemSlug($0)) }
     if !allIn { return false }
@@ -169,7 +177,7 @@ private func calculateCartItemDisplay(
     let original = item.originalPrice
     let promoDiscount = item.promotionDiscount ?? Double(Int(original * ((item.promotionValue ?? 0) / 100)))
     let priceAfterPromo = max(0, original - promoDiscount)
-    let slug = item.slug ?? item.productSlug ?? ""
+    let slug = eligibilitySlug(item.productSlug, item.slug)
     let isEligible = eligibleSlugs.contains(slug)
 
     var out = item.toDict()
@@ -268,7 +276,7 @@ private func calculateCartTotals(
   }
 
   let promotionDiscount = sumBy(displayItems) { item in
-    let slug = item["slug"] as? String ?? item["productSlug"] as? String ?? ""
+    let slug = eligibilitySlug(item["productSlug"] as? String, item["slug"] as? String)
     let shouldExclude = (voucher?.type == VoucherType.samePriceProduct ||
       ((voucher?.type == VoucherType.percentOrder || voucher?.type == VoucherType.fixedValue) &&
         voucher?.applicabilityRule == ApplicabilityRule.atLeastOneRequired)) &&
@@ -287,7 +295,7 @@ private func calculateCartTotals(
     let type = v.type
     if type == VoucherType.samePriceProduct {
       voucherDiscount = sumBy(displayItems) { item in
-        let slug = item["slug"] as? String ?? item["productSlug"] as? String ?? ""
+        let slug = eligibilitySlug(item["productSlug"] as? String, item["slug"] as? String)
         if allowedSlugs.contains(slug) {
           let vd = (item["voucherDiscount"] as? NSNumber)?.doubleValue ?? 0
           let qty = (item["quantity"] as? NSNumber)?.intValue ?? 0

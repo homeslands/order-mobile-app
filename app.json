@@ -2,7 +2,7 @@
   "expo": {
     "name": "TREND Coffee",
     "slug": "order-mobile-app",
-    "version": "2.5.6",
+    "version": "2.6.0",
     "orientation": "portrait",
     "icon": "./assets/images/trend/logo-icon-padded.png",
     "scheme": "trend",
@@ -12,9 +12,9 @@
       "icon": "./assets/images/trend/logo-icon.png",
       "googleServicesFile": "./GoogleService-Info.plist",
       "supportsTablet": false,
-      "buildNumber": "63",
+      "buildNumber": "68",
       "infoPlist": {
-        "NSCameraUsageDescription": "Cho phép ứng dụng sử dụng camera để chụp ảnh đại diện.",
+        "NSCameraUsageDescription": "Ứng dụng cần quyền camera để chụp ảnh đại diện và quét mã QR voucher.",
         "NSPhotoLibraryUsageDescription": "Cho phép ứng dụng truy cập thư viện ảnh để chọn ảnh đại diện.",
         "NSPhotoLibraryAddUsageDescription": "Cho phép ứng dụng lưu ảnh hoá đơn và mã QR thanh toán vào thư viện ảnh.",
         "ITSAppUsesNonExemptEncryption": false,
@@ -39,7 +39,7 @@
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.POST_NOTIFICATIONS"
       ],
-      "versionCode": 63,
+      "versionCode": 68,
       "package": "com.trendcoffee.order",
       "config": {
         "googleMaps": {
@@ -99,9 +99,18 @@
       ],
       "@react-native-community/datetimepicker",
       "./plugins/abi-filters",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Ứng dụng cần quyền camera để chụp ảnh đại diện và quét mã QR voucher.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
+        }
+      ],
       "./plugins/remove-permissions",
       "./plugins/android-release-signing",
-      "./plugins/ios-static-frameworks-fix"
+      "./plugins/ios-static-frameworks-fix",
+      "./plugins/ios-prebuilt-rncore-debug-fix"
     ],
     "experiments": {
       "typedRoutes": true
