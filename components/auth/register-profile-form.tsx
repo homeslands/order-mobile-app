@@ -26,22 +26,14 @@ function useRegisterProfileSchema() {
   return z.object({
     firstName: z
       .string()
+      .min(1, t('register.firstNameRequired'))
       .max(100, t('register.firstNameTooLong', { count: 100 }))
-      .refine(
-        (val) => val === '' || NAME_REGEX.test(val),
-        t('register.firstNameInvalid'),
-      )
-      .optional()
-      .or(z.literal('')),
+      .refine((val) => NAME_REGEX.test(val), t('register.firstNameInvalid')),
     lastName: z
       .string()
+      .min(1, t('register.lastNameRequired'))
       .max(100, t('register.lastNameTooLong', { count: 100 }))
-      .refine(
-        (val) => val === '' || NAME_REGEX.test(val),
-        t('register.lastNameInvalid'),
-      )
-      .optional()
-      .or(z.literal('')),
+      .refine((val) => NAME_REGEX.test(val), t('register.lastNameInvalid')),
   })
 }
 
@@ -55,32 +47,38 @@ export interface RegisterProfileFormHandle {
 
 interface Props {
   onLoadingChange?: (loading: boolean) => void
+  onValidChange?: (valid: boolean) => void
 }
 
 const RegisterProfileForm = forwardRef<RegisterProfileFormHandle, Props>(
-  function RegisterProfileForm({ onLoadingChange }, ref) {
+  function RegisterProfileForm({ onLoadingChange, onValidChange }, ref) {
     const { t } = useTranslation('auth')
     const setUserInfo = useUserStore((s) => s.setUserInfo)
     const [dob, setDob] = useState('')
     const [isLoading, setIsLoading] = useState(false)
 
     const schema = useRegisterProfileSchema()
-    const { control, handleSubmit } = useZodForm(schema, {
+    const {
+      control,
+      handleSubmit,
+      formState: { isValid },
+    } = useZodForm(schema, {
       defaultValues: { firstName: '', lastName: '' },
     })
+
+    // Ngày sinh nằm ngoài react-hook-form (DobExpandablePicker không phải field
+    // của RHF), nên tính hợp lệ phải cộng thêm nó bằng tay.
+    const isFormValid = isValid && !!dob
 
     const goHome = () => navigateNative.replace('/(tabs)/home')
 
     const onSubmit = async (data: TRegisterProfileSchema) => {
       setIsLoading(true)
       try {
-        const dobPayload = dob
-          ? dayjs(dob, 'YYYY-MM-DD').format('DD/MM/YYYY')
-          : null
         const res = await updateProfile({
-          firstName: data.firstName || null,
-          lastName: data.lastName || null,
-          dob: dobPayload,
+          firstName: data.firstName,
+          lastName: data.lastName,
+          dob: dayjs(dob, 'YYYY-MM-DD').format('DD/MM/YYYY'),
         })
         if (res?.result) setUserInfo(res.result)
         showToast('toast.updateProfileSuccess', 'success')
@@ -108,6 +106,10 @@ const RegisterProfileForm = forwardRef<RegisterProfileFormHandle, Props>(
       onLoadingChange?.(isLoading)
     }, [isLoading, onLoadingChange])
 
+    useEffect(() => {
+      onValidChange?.(isFormValid)
+    }, [isFormValid, onValidChange])
+
     return (
       <View className="px-6 pt-12">
         <RegisterProgressBar step={3} />
@@ -124,7 +126,6 @@ const RegisterProfileForm = forwardRef<RegisterProfileFormHandle, Props>(
             control={control}
             name="lastName"
             label={t('register.lastName')}
-            optional
             placeholder={t('register.enterLastName')}
             autoCapitalize="words"
             autoComplete="name"
@@ -135,7 +136,6 @@ const RegisterProfileForm = forwardRef<RegisterProfileFormHandle, Props>(
             control={control}
             name="firstName"
             label={t('register.firstName')}
-            optional
             placeholder={t('register.enterFirstName')}
             autoCapitalize="words"
             autoComplete="name"

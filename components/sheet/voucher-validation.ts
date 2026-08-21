@@ -85,18 +85,29 @@ export function processVoucherList(
     // errorMessage
     const allInVoucher = cartProductSlugs.every((s) => vpSet.has(s))
     const anyInVoucher = cartProductSlugs.some((s) => vpSet.has(s))
+    // Mỗi điều kiện dưới đây phủ đúng một vế của `isValid` ở trên, và dùng lại
+    // chính biến đó thay vì diễn đạt lại. Diễn đạt lại là thứ đã tạo ra bốn
+    // đường "không hợp lệ mà không có lý do": voucher bị tắt, endDate trước mốc
+    // 7h, voucher không gắn sản phẩm, và remainingUsage undefined (điều kiện cũ
+    // chỉ so `=== 0`).
     const errorChecks = [
       {
         cond: requiresLogin && !isCustomerOwner,
         msg: t('needVerifyIdentity'),
       },
-      { cond: isExpired, msg: t('expired') },
-      { cond: v.remainingUsage === 0, msg: t('outOfStock') },
+      { cond: isExpired || !isValidDate, msg: t('expired') },
+      { cond: !hasUsage, msg: t('outOfStock') },
+      { cond: !isActive, msg: t('voucherStopped') },
       {
-        cond:
-          v.type !== VOUCHER_TYPE.SAME_PRICE_PRODUCT &&
-          v.minOrderValue > subTotalAfterPromotion,
-        msg: t('minOrderNotMet'),
+        cond: !isValidAmount,
+        // Con số là thứ duy nhất khách cần ở đây: cần bao nhiêu, còn thiếu
+        // bao nhiêu. Nói suông "thêm món" thì khách vẫn phải tự đoán.
+        msg: t('minOrderNotMet', {
+          min: formatCurrency(v.minOrderValue),
+          short: formatCurrency(
+            Math.max(0, v.minOrderValue - subTotalAfterPromotion),
+          ),
+        }),
       },
       {
         cond:
@@ -112,6 +123,9 @@ export function processVoucherList(
           !anyInVoucher,
         msg: t('requireSomeApplicableProducts'),
       },
+      // Bắt phần còn lại của hasValidProducts: voucher không gắn sản phẩm nào,
+      // hoặc giỏ rỗng. Đặt cuối để hai lý do cụ thể ở trên luôn thắng.
+      { cond: !hasValidProducts, msg: t('notApplicableToCart') },
     ]
     const errorMessage = errorChecks.find((e) => e.cond)?.msg || ''
 

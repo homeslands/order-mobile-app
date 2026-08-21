@@ -17,6 +17,7 @@ import { NotificationBell } from '@/components/notification/notification-bell'
 import { colors, OrderFlowStep } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useCatalog } from '@/hooks/use-catalog'
+import { MENU_QUERY_SKIP_CODES } from '@/lib/global-error-gate'
 import { useCatalogMenuPages } from '@/hooks/use-catalog-menu-pages'
 import { useMenuScreenState } from '@/hooks/use-menu-screen-state'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
@@ -347,7 +348,7 @@ export default function MenuPage() {
     staleTime: 60_000,
     gcTime: 10 * 60_000,
     refetchOnMount: false,
-    meta: { skipGlobalErrorCodes: [401, 403] },
+    meta: { skipGlobalErrorCodes: MENU_QUERY_SKIP_CODES },
   })
   const specialItems = useMemo(
     () => extractMenuItems(specialData?.result),

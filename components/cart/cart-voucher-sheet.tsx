@@ -1,4 +1,9 @@
+import {
+  deriveScanStatus,
+  type ScanStatus,
+} from '@/components/sheet/scan-status'
 import { processVoucherList } from '@/components/sheet/voucher-validation'
+import { VoucherQrScanner } from '@/components/scan/voucher-qr-scanner'
 import { VoucherCard } from './voucher-card'
 import { VoucherConditionModal } from './voucher-condition-modal'
 import { colors } from '@/constants'
@@ -29,10 +34,10 @@ import {
   BottomSheetScrollView,
   BottomSheetTextInput,
 } from '@gorhom/bottom-sheet'
-import { Search, Ticket } from 'lucide-react-native'
+import { ScanLine, Search, Ticket } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, StyleSheet, View } from 'react-native'
+import { Keyboard, Pressable, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Text } from '@/components/ui/text'
 
@@ -61,6 +66,14 @@ export const VoucherSheet = memo(function VoucherSheet({
   const currentVoucher = useCartVoucher()
   const [code, setCode] = useState('')
   const [searchCode, setSearchCode] = useState('')
+  const [scanning, setScanning] = useState(false)
+  /**
+   * Slug đến từ camera. Tách hẳn khỏi searchCode vì hai đường tra cứu bằng
+   * hai tham số khác nhau: camera đọc ra slug, ô nhập tay nhận code.
+   */
+  const [scannedSlug, setScannedSlug] = useState<string | null>(null)
+  /** Lỗi khi server từ chối lúc tự áp — deriveScanStatus không biết việc này. */
+  const [applyError, setApplyError] = useState<string | null>(null)
   const [selectedVoucher, setSelectedVoucher] = useState<IVoucher | null>(null)
   const [conditionVoucher, setConditionVoucher] = useState<IVoucher | null>(
     null,
@@ -95,9 +108,15 @@ export const VoucherSheet = memo(function VoucherSheet({
   const specificFetch = isCustomerOwner
     ? useSpecificVoucher
     : useSpecificPublicVoucher
+  // QR chứa slug, ô nhập tay nhận code — `/voucher/specific` tra bằng hai
+  // tham số khác nhau, truyền nhầm là 404. Nguồn quyết định tham số.
+  const specificParams = useMemo(
+    () => (scannedSlug ? { slug: scannedSlug } : { code: searchCode }),
+    [scannedSlug, searchCode],
+  )
   const { data: specificRes, isFetching } = specificFetch(
-    { code: searchCode },
-    visible && searchCode.length > 0,
+    specificParams,
+    visible && (!!scannedSlug || searchCode.length > 0),
   )
   const fetchedVoucher = specificRes?.result ?? null
 
@@ -304,6 +323,9 @@ export const VoucherSheet = memo(function VoucherSheet({
     setSearchCode('')
     setSelectedVoucher(null)
     setConditionVoucher(null)
+    setScanning(false)
+    setScannedSlug(null)
+    setApplyError(null)
     onClose()
   }, [onClose])
 
@@ -312,6 +334,35 @@ export const VoucherSheet = memo(function VoucherSheet({
     if (!trimmed) return
     setSearchCode(trimmed)
   }, [code])
+
+  const handleOpenScanner = useCallback(() => {
+    Keyboard.dismiss()
+    setScanning(true)
+  }, [])
+
+  // Đóng camera là bỏ luôn kết quả quét: slug không đổ vào ô nhập được
+  // (ô đó tra bằng code), nên không có chỗ nào giữ lại nó.
+  const handleCloseScanner = useCallback(() => {
+    setScanning(false)
+    setScannedSlug(null)
+    setApplyError(null)
+  }, [])
+
+  // Mã quét được đi vào đúng state mà ô nhập tay dùng — từ đây trở đi luồng
+  // tra cứu và chấm điều kiện chạy y hệt trường hợp khách gõ mã. Camera KHÔNG
+  // đóng: kết quả sẽ hiện ngay trong màn quét.
+  // Không đổ slug vào ô nhập: ô đó tra bằng code, gõ slug vào sẽ 404.
+  const handleScannedCode = useCallback((slug: string) => {
+    setApplyError(null)
+    setScannedSlug(slug)
+  }, [])
+
+  const handleScanRetry = useCallback(() => {
+    setApplyError(null)
+    setScannedSlug(null)
+    setCode('')
+    setSearchCode('')
+  }, [])
 
   // F1 — Merge fetched + current applied voucher into available pool
   const allAvailable = useMemo(() => {
@@ -340,17 +391,19 @@ export const VoucherSheet = memo(function VoucherSheet({
     selectedVoucher?.slug === currentVoucher?.slug && !!currentVoucher
   const isNewSelection = !!selectedVoucher && !isCurrentApplied
 
-  const handleFooterPress = useCallback(() => {
-    if (isCurrentApplied) {
-      cartActions.setVoucher(null)
-      showToast(tVoucher('voucherRemoved'))
-      sheetRef.current?.dismiss()
-    } else if (selectedVoucher) {
-      // 2.2 — Validate with server before applying
+  /**
+   * Xác nhận với máy chủ rồi áp voucher. Dùng chung cho cả nút "Áp dụng" ở
+   * footer lẫn nhánh tự áp sau khi quét, để hai đường đi qua đúng một luật.
+   *
+   * `onServerError` cho phép nhánh quét hiện lỗi ngay trong camera thay vì
+   * bắn toast rồi để khách nhìn một màn quét trống.
+   */
+  const runApplyVoucher = useCallback(
+    (voucher: IVoucher, onServerError?: (message: string) => void) => {
       setValidating(true)
       validateVoucher(
         {
-          voucher: selectedVoucher.slug,
+          voucher: voucher.slug,
           user: userSlug || '',
           orderItems: items.map((item: IOrderItem) => ({
             quantity: item.quantity,
@@ -365,27 +418,76 @@ export const VoucherSheet = memo(function VoucherSheet({
         },
         {
           onSuccess: () => {
-            onApply(selectedVoucher)
+            setScanning(false)
+            onApply(voucher)
             sheetRef.current?.dismiss()
           },
           onError: () => {
-            showToast(tVoucher('voucherInvalid'), 'error')
+            // Hai ngữ cảnh khác nhau: trong camera thì báo tại chỗ, ngoài
+            // camera thì toast — nên hai câu chữ cũng khác nhau.
+            if (onServerError) onServerError(tVoucher('scan.applyFailed'))
+            else showToast(tVoucher('voucherInvalid'), 'error')
           },
           onSettled: () => setValidating(false),
         },
       )
+    },
+    [validateVoucher, userSlug, items, onApply, tVoucher],
+  )
+
+  const handleFooterPress = useCallback(() => {
+    if (isCurrentApplied) {
+      cartActions.setVoucher(null)
+      showToast(tVoucher('voucherRemoved'))
+      sheetRef.current?.dismiss()
+    } else if (selectedVoucher) {
+      runApplyVoucher(selectedVoucher)
     } else {
       sheetRef.current?.dismiss()
     }
+  }, [selectedVoucher, isCurrentApplied, runApplyVoucher, tVoucher])
+
+  // ─── Trạng thái màn quét ────────────────────────────────────────────────────
+  // Luật nằm trong deriveScanStatus (hàm thuần, dùng chung cho cả ba sheet);
+  // applyError chỉ chồng lên khi máy chủ từ chối ở bước xác nhận cuối.
+  const scanStatus = useMemo<ScanStatus>(() => {
+    if (applyError) return { kind: 'error', title: applyError }
+    return deriveScanStatus({
+      scannedValue: scannedSlug,
+      isFetching,
+      fetchedVoucher,
+      processed: processedFetched,
+      currentVoucher,
+      t: tVoucher,
+    })
   }, [
-    selectedVoucher,
-    isCurrentApplied,
-    onApply,
-    validateVoucher,
-    items,
-    userSlug,
+    applyError,
+    scannedSlug,
+    isFetching,
+    fetchedVoucher,
+    processedFetched,
+    currentVoucher,
     tVoucher,
   ])
+
+  // Tự áp khi mã hợp lệ và không vướng gì. Chốt theo slug để một lần quét chỉ
+  // gọi mutation đúng một lần, dù status có tính lại vì lý do khác.
+  const autoAppliedRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (!scanning) {
+      autoAppliedRef.current = null
+      return
+    }
+    if (scanStatus.kind !== 'ready') return
+    if (autoAppliedRef.current === scanStatus.voucher.slug) return
+    autoAppliedRef.current = scanStatus.voucher.slug
+    runApplyVoucher(scanStatus.voucher, setApplyError)
+  }, [scanning, scanStatus, runApplyVoucher])
+
+  const handleConfirmReplace = useCallback(() => {
+    if (scanStatus.kind !== 'confirmReplace') return
+    runApplyVoucher(scanStatus.voucher, setApplyError)
+  }, [scanStatus, runApplyVoucher])
 
   const handleViewCondition = useCallback((v: IVoucher) => {
     setConditionVoucher(v)
@@ -398,55 +500,66 @@ export const VoucherSheet = memo(function VoucherSheet({
 
   // ─── Footer component pinned at bottom via BottomSheetFooter ────────────────
   const renderFooter = useCallback(
-    (props: BottomSheetFooterProps) => (
-      <BottomSheetFooter {...props} bottomInset={insets.bottom}>
-        <View
-          style={[
-            voucherSheetStyles.footer,
-            {
-              backgroundColor: isDark ? colors.card.dark : colors.white.light,
-              borderTopColor: isDark ? colors.border.dark : colors.gray[200],
-            },
-          ]}
-        >
-          <Pressable
-            onPress={handleFooterPress}
+    (props: BottomSheetFooterProps) => {
+      // BottomSheetFooter render như sibling NẰM TRÊN content container, nên
+      // lớp phủ camera (absolute bên trong content) không che được nút này —
+      // phải ẩn hẳn footer khi đang quét, không thì nút "Áp dụng" nổi trên
+      // hình camera đang chạy.
+      if (scanning) return null
+      return (
+        // Không dùng bottomInset: nó nhấc cả footer lên khỏi mép dưới, để hở
+        // nền sheet bên dưới nên footer trông như đang nổi. Thay vào đó cộng
+        // safe-area vào padding của chính footer, để nền chạy sát mép màn hình.
+        <BottomSheetFooter {...props}>
+          <View
             style={[
-              voucherSheetStyles.footerBtn,
+              voucherSheetStyles.footer,
               {
-                backgroundColor: isCurrentApplied
-                  ? colors.destructive.light
-                  : isNewSelection
-                    ? primaryColor
-                    : isDark
-                      ? colors.border.dark
-                      : colors.gray[200],
+                paddingBottom: insets.bottom + 16,
+                backgroundColor: isDark ? colors.card.dark : colors.white.light,
+                borderTopColor: isDark ? colors.border.dark : colors.gray[200],
               },
             ]}
           >
-            <Text
+            <Pressable
+              onPress={handleFooterPress}
               style={[
-                voucherSheetStyles.footerBtnText,
+                voucherSheetStyles.footerBtn,
                 {
-                  color:
-                    isCurrentApplied || isNewSelection
-                      ? colors.white.light
+                  backgroundColor: isCurrentApplied
+                    ? colors.destructive.light
+                    : isNewSelection
+                      ? primaryColor
                       : isDark
-                        ? colors.gray[300]
-                        : colors.gray[600],
+                        ? colors.border.dark
+                        : colors.gray[200],
                 },
               ]}
             >
-              {isCurrentApplied
-                ? tVoucher('removeVoucher')
-                : isNewSelection
-                  ? tVoucher('apply')
-                  : tVoucher('close')}
-            </Text>
-          </Pressable>
-        </View>
-      </BottomSheetFooter>
-    ),
+              <Text
+                style={[
+                  voucherSheetStyles.footerBtnText,
+                  {
+                    color:
+                      isCurrentApplied || isNewSelection
+                        ? colors.white.light
+                        : isDark
+                          ? colors.gray[300]
+                          : colors.gray[600],
+                  },
+                ]}
+              >
+                {isCurrentApplied
+                  ? tVoucher('removeVoucher')
+                  : isNewSelection
+                    ? tVoucher('apply')
+                    : tVoucher('close')}
+              </Text>
+            </Pressable>
+          </View>
+        </BottomSheetFooter>
+      )
+    },
     [
       isDark,
       primaryColor,
@@ -455,6 +568,7 @@ export const VoucherSheet = memo(function VoucherSheet({
       handleFooterPress,
       insets.bottom,
       tVoucher,
+      scanning,
     ],
   )
 
@@ -474,6 +588,8 @@ export const VoucherSheet = memo(function VoucherSheet({
         handleIndicatorStyle={indicatorStyle}
         onDismiss={handleDismiss}
         footerComponent={renderFooter}
+        keyboardBehavior="extend"
+        keyboardBlurBehavior="restore"
         android_keyboardInputMode="adjustResize"
       >
         {/* Fixed header */}
@@ -551,6 +667,21 @@ export const VoucherSheet = memo(function VoucherSheet({
                       : colors.gray[400]
                 }
               />
+            </Pressable>
+            <Pressable
+              onPress={handleOpenScanner}
+              style={[
+                voucherSheetStyles.scanBtn,
+                {
+                  backgroundColor: isDark
+                    ? colors.background.dark
+                    : colors.gray[100],
+                  borderColor: isDark ? colors.border.dark : colors.gray[300],
+                },
+              ]}
+              accessibilityLabel={tVoucher('scan.title')}
+            >
+              <ScanLine size={18} color={primaryColor} />
             </Pressable>
           </View>
           {currentVoucher ? (
@@ -723,6 +854,15 @@ export const VoucherSheet = memo(function VoucherSheet({
             </Pressable>
           )}
         </BottomSheetScrollView>
+
+        <VoucherQrScanner
+          visible={scanning}
+          status={scanStatus}
+          onScanned={handleScannedCode}
+          onRetry={handleScanRetry}
+          onConfirmReplace={handleConfirmReplace}
+          onClose={handleCloseScanner}
+        />
       </BottomSheetModal>
 
       <VoucherConditionModal
@@ -796,6 +936,14 @@ const voucherSheetStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  scanBtn: {
+    width: 46,
+    height: 46,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+  },
   note: {
     fontSize: 12,
     fontStyle: 'italic',
@@ -851,7 +999,8 @@ const voucherSheetStyles = StyleSheet.create({
   footer: {
     paddingHorizontal: 16,
     paddingTop: 12,
-    paddingBottom: 8,
+    // paddingBottom đặt inline (safe-area + 16), không để ở đây cho khỏi
+    // tưởng là giá trị đang có tác dụng.
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: colors.gray[200],
   },
