@@ -1,6 +1,10 @@
 /**
  * Xác nhận và trả xu cho đơn sau khi quét QR (route /payment/point-confirm).
  *
+ * Bố cục kiểu chuyển khoản ngân hàng: người nhận (cửa hàng, chi nhánh) → số
+ * xu → nguồn tiền (ví xu). Bấm "Thanh toán" mở hộp thoại xác nhận, xác nhận
+ * xong mới gọi API. Trả xong hiện biên lai.
+ *
  * Nhận `qrData` qua params. Kết quả xem trước đã nằm trong cache từ màn quét
  * nên màn hiện ngay; cache trống (mở lại app giữa chừng) thì tự gọi lại.
  *
@@ -11,7 +15,9 @@
  * người khác. Vì vậy hỏi lại trạng thái QR trước (`recheck`), chỉ cho thử
  * lại khi QR vẫn chờ trả.
  */
+import dayjs from 'dayjs'
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
+import { Check } from 'lucide-react-native'
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -25,6 +31,7 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { PointConfirmDialog } from '@/app/payment/payment-point-confirm-dialog'
 import { FloatingHeader } from '@/components/navigation/floating-header'
 import { Text } from '@/components/ui/text'
 import { colors } from '@/constants'
@@ -49,9 +56,13 @@ type Phase =
   | { kind: 'ready' }
   | { kind: 'paying' }
   | { kind: 'rechecking' }
-  | { kind: 'success'; amount: number; newBalance: number }
+  | { kind: 'success'; amount: number; newBalance: number; paidAt?: string }
   | { kind: 'failed'; error: PointQrErrorKind }
   | { kind: 'uncertain'; outcome: 'safeToRetry' | 'maybePaid' | 'stillOffline' }
+
+// formatCurrency(value, '') trả về kèm một dấu cách cuối ("6.400 "); cắt đi để
+// "6.400 xu" không bị hai dấu cách.
+const num = (value: number) => formatCurrency(value, '').trim()
 
 export default function PointConfirmScreen() {
   const { t } = useTranslation('payment')
@@ -63,7 +74,12 @@ export default function PointConfirmScreen() {
   const preview = usePointPaymentQrPreview(qrData)
   const refetchPreview = preview.refetch
   const order = useOrderBySlug(preview.data?.orderSlug)
+  // BE chỉ cấp số thứ tự khi đơn đã trả (job.service), nên lúc xác nhận
+  // thường chưa có. Khi đó dùng slug đơn, giống hoá đơn phía BE.
   const referenceNumber = order.data?.result?.referenceNumber
+  const orderCode = referenceNumber
+    ? `#${referenceNumber}`
+    : (preview.data?.orderSlug ?? '')
   const {
     balance,
     isLoading: balanceLoading,
@@ -72,6 +88,7 @@ export default function PointConfirmScreen() {
   } = useCoinBalance()
   const { mutate: pay } = usePayPointPaymentQr()
   const [phase, setPhase] = useState<Phase>({ kind: 'ready' })
+  const [confirmOpen, setConfirmOpen] = useState(false)
   // Chặn double tap gọi pay() hai lần trước khi setPhase({ kind: 'paying' })
   // kịp render lại (prop disabled chỉ có tác dụng sau render đó). Với
   // TanStack v5, chỉ callback của lần gọi mutate() cuối chạy, nên lần trả
@@ -125,6 +142,7 @@ export default function PointConfirmScreen() {
           kind: 'success',
           amount: qr.amount,
           newBalance: balance - qr.amount,
+          paidAt: qr.paidAt,
         }),
       onError: (error) => {
         const kind = classifyPointQrError(error)
@@ -145,6 +163,13 @@ export default function PointConfirmScreen() {
       },
     })
   }, [balance, pay, qrData, recheck, refetchBalance])
+
+  const openConfirm = useCallback(() => setConfirmOpen(true), [])
+  const closeConfirm = useCallback(() => setConfirmOpen(false), [])
+  const handleConfirmPay = useCallback(() => {
+    setConfirmOpen(false)
+    handlePay()
+  }, [handlePay])
 
   const handleBack = useCallback(() => {
     if (busy) return
@@ -167,51 +192,89 @@ export default function PointConfirmScreen() {
     void recheck()
   }, [recheck])
 
-  const palette = {
+  const palette: Palette = {
     bg: isDark ? colors.background.dark : colors.background.light,
     card: isDark ? colors.card.dark : colors.white.light,
     text: isDark ? colors.gray[50] : colors.gray[900],
     muted: isDark ? colors.gray[400] : colors.gray[500],
     border: isDark ? colors.border.dark : colors.gray[200],
     primary: isDark ? colors.primary.dark : colors.primary.light,
+    primarySoft: isDark ? 'rgba(214,137,16,0.18)' : 'rgba(247,167,55,0.14)',
     danger: isDark ? colors.destructive.dark : colors.destructive.light,
+    success: isDark ? colors.success.dark : colors.success.light,
+    successSoft: isDark ? colors.success.bgDark : colors.success.iconBgLight,
   }
   const unit = t('pointQr.confirm.unit')
-  const fmt = (value: number) => `${formatCurrency(value, '')} ${unit}`
+  const fmt = (value: number) => `${num(value)} ${unit}`
+  const branchName = preview.data?.branchName
 
   let body: ReactNode
+  let footer: ReactNode = null
 
   if (phase.kind === 'success') {
     body = (
-      <Message
-        palette={palette}
-        title={t('pointQr.confirm.successTitle')}
-        body={
-          referenceNumber
-            ? t('pointQr.confirm.successBody', {
-                amount: formatCurrency(phase.amount, ''),
-                order: referenceNumber,
-              })
-            : t('pointQr.confirm.successBodyNoOrder', {
-                amount: formatCurrency(phase.amount, ''),
-              })
-        }
-        extra={
+      <>
+        <View style={s.okHead}>
+          <View
+            style={[s.checkOuter, { backgroundColor: palette.successSoft }]}
+          >
+            <View style={[s.checkInner, { backgroundColor: palette.success }]}>
+              <Check size={20} color={colors.white.light} strokeWidth={3} />
+            </View>
+          </View>
+          <Text style={[s.okTitle, { color: palette.text }]}>
+            {t('pointQr.confirm.successTitle')}
+          </Text>
+          <Text style={[s.okAmount, { color: palette.text }]}>
+            {fmt(phase.amount)}
+          </Text>
+        </View>
+        <View style={[s.card, { backgroundColor: palette.card }]}>
+          <Row
+            palette={palette}
+            label={t('pointQr.confirm.store')}
+            value={
+              branchName
+                ? `${t('pointQr.confirm.merchant')} · ${branchName}`
+                : t('pointQr.confirm.merchant')
+            }
+          />
+          {orderCode ? (
+            <Row
+              palette={palette}
+              label={t('pointQr.confirm.order')}
+              value={orderCode}
+              divided
+            />
+          ) : null}
+          <Row
+            palette={palette}
+            label={t('pointQr.confirm.time')}
+            value={dayjs(phase.paidAt).format('HH:mm · DD/MM/YYYY')}
+            divided
+          />
           <Row
             palette={palette}
             label={t('pointQr.confirm.newBalance')}
             value={fmt(phase.newBalance)}
+            divided
           />
-        }
-        primary={{
-          label: t('pointQr.confirm.done'),
-          onPress: handleBack,
-        }}
-        secondary={{
-          label: t('pointQr.confirm.viewHistory'),
-          onPress: handleViewHistory,
-        }}
-      />
+        </View>
+      </>
+    )
+    footer = (
+      <>
+        <PrimaryButton
+          palette={palette}
+          label={t('pointQr.confirm.done')}
+          onPress={handleBack}
+        />
+        <SecondaryButton
+          palette={palette}
+          label={t('pointQr.confirm.viewHistory')}
+          onPress={handleViewHistory}
+        />
+      </>
     )
   } else if (phase.kind === 'rechecking') {
     body = (
@@ -300,80 +363,117 @@ export default function PointConfirmScreen() {
       />
     )
   } else {
-    const { amount, branchName } = preview.data
+    const { amount } = preview.data
     const short = balanceLoading ? 0 : amount - balance
     const paying = phase.kind === 'paying'
+    const blocked = balanceLoading || short > 0 || paying
     body = (
       <>
-        <View
-          style={[
-            s.card,
-            { backgroundColor: palette.card, borderColor: palette.border },
-          ]}
-        >
+        <View style={[s.merchant, { backgroundColor: palette.card }]}>
+          <View style={[s.logo, { backgroundColor: palette.primary }]}>
+            <Text style={s.logoText}>TC</Text>
+          </View>
+          <View style={s.merchantText}>
+            <Text style={[s.merchantName, { color: palette.text }]}>
+              {t('pointQr.confirm.merchant')}
+            </Text>
+            {branchName ? (
+              <Text
+                style={[s.merchantSub, { color: palette.muted }]}
+                numberOfLines={1}
+              >
+                {branchName}
+              </Text>
+            ) : null}
+          </View>
+        </View>
+
+        <View style={s.amountBlock}>
           <Text style={[s.amountLabel, { color: palette.muted }]}>
             {t('pointQr.confirm.amount')}
           </Text>
-          <Text style={[s.amount, { color: palette.text }]}>{fmt(amount)}</Text>
-          {referenceNumber ? (
+          <Text style={[s.amount, { color: palette.text }]}>
+            {num(amount)}
+            <Text style={[s.amountUnit, { color: palette.muted }]}>
+              {' '}
+              {unit}
+            </Text>
+          </Text>
+        </View>
+
+        {orderCode ? (
+          <View style={[s.card, { backgroundColor: palette.card }]}>
             <Row
               palette={palette}
               label={t('pointQr.confirm.order')}
-              value={`#${referenceNumber}`}
+              value={orderCode}
             />
-          ) : null}
-          {branchName ? (
-            <Row
-              palette={palette}
-              label={t('pointQr.confirm.branch')}
-              value={branchName}
-            />
-          ) : null}
-          <View style={[s.divider, { backgroundColor: palette.border }]} />
-          <Row
-            palette={palette}
-            label={t('pointQr.confirm.currentBalance')}
-            value={balanceLoading ? '—' : fmt(balance)}
-          />
-          <Row
-            palette={palette}
-            label={t('pointQr.confirm.balanceAfter')}
-            value={balanceLoading || short > 0 ? '—' : fmt(balance - amount)}
-          />
-          {!balanceLoading && short > 0 ? (
-            <Text style={[s.short, { color: palette.danger }]}>
-              {t('pointQr.confirm.short', {
-                amount: formatCurrency(short, ''),
-              })}
+          </View>
+        ) : null}
+
+        <View style={[s.source, { backgroundColor: palette.card }]}>
+          <View style={[s.coin, { backgroundColor: palette.primarySoft }]}>
+            <Text style={[s.coinText, { color: palette.primary }]}>X</Text>
+          </View>
+          <View style={s.sourceText}>
+            <Text style={[s.sourceName, { color: palette.text }]}>
+              {t('pointQr.confirm.wallet')}
             </Text>
-          ) : null}
+            <Text style={[s.sourceSub, { color: palette.muted }]}>
+              {balanceLoading
+                ? '—'
+                : t('pointQr.confirm.balanceLine', { amount: num(balance) })}
+            </Text>
+          </View>
+          <View style={s.after}>
+            {short > 0 ? (
+              <Text style={[s.afterValue, { color: palette.danger }]}>
+                {t('pointQr.confirm.short', { amount: num(short) })}
+              </Text>
+            ) : (
+              <>
+                <Text style={[s.afterLabel, { color: palette.muted }]}>
+                  {t('pointQr.confirm.remaining')}
+                </Text>
+                <Text style={[s.afterValue, { color: palette.text }]}>
+                  {balanceLoading ? '—' : fmt(balance - amount)}
+                </Text>
+              </>
+            )}
+          </View>
         </View>
+
         <Text style={[s.note, { color: palette.muted }]}>
           {t('pointQr.confirm.loyaltyNote')}
         </Text>
-        <Pressable
-          style={[
-            s.primaryBtn,
-            { backgroundColor: palette.primary },
-            (balanceLoading || short > 0 || paying) && s.disabled,
-          ]}
-          onPress={handlePay}
-          disabled={balanceLoading || short > 0 || paying}
-          accessibilityRole="button"
-        >
-          {paying ? (
-            <ActivityIndicator color={colors.white.light} />
-          ) : (
-            <Text style={s.primaryText}>
-              {t('pointQr.confirm.pay', {
-                amount: formatCurrency(amount, ''),
-              })}
-            </Text>
-          )}
-        </Pressable>
       </>
     )
+    footer = (
+      <Pressable
+        style={[
+          s.primaryBtn,
+          { backgroundColor: palette.primary },
+          blocked && s.disabled,
+        ]}
+        onPress={openConfirm}
+        disabled={blocked}
+        accessibilityRole="button"
+      >
+        {paying ? (
+          <ActivityIndicator color={colors.white.light} />
+        ) : (
+          <Text style={s.primaryText}>
+            {t('pointQr.confirm.pay', { amount: num(amount) })}
+          </Text>
+        )}
+      </Pressable>
+    )
   }
+
+  const title =
+    phase.kind === 'success'
+      ? t('pointQr.confirm.receiptTitle')
+      : t('pointQr.confirm.title')
 
   return (
     <View style={[s.root, { backgroundColor: palette.bg }]}>
@@ -384,14 +484,32 @@ export default function PointConfirmScreen() {
         contentContainerStyle={[
           s.content,
           {
-            paddingTop: STATIC_TOP_INSET + HEADER_HEIGHT + 16,
-            paddingBottom: bottom + FOOTER_BOTTOM_EXTRA,
+            paddingTop: STATIC_TOP_INSET + HEADER_HEIGHT + 8,
+            paddingBottom: footer ? 16 : bottom + FOOTER_BOTTOM_EXTRA,
           },
         ]}
       >
         {body}
       </ScrollView>
-      <FloatingHeader title={t('pointQr.confirm.title')} onBack={handleBack} />
+      {footer ? (
+        <View
+          style={[s.footer, { paddingBottom: bottom + FOOTER_BOTTOM_EXTRA }]}
+        >
+          {footer}
+        </View>
+      ) : null}
+      <FloatingHeader title={title} onBack={handleBack} />
+      {preview.data ? (
+        <PointConfirmDialog
+          visible={confirmOpen}
+          onClose={closeConfirm}
+          onConfirm={handleConfirmPay}
+          orderSubtotal={preview.data.amount}
+          coinBalance={balance}
+          primaryColor={palette.primary}
+          isDark={isDark}
+        />
+      ) : null}
     </View>
   )
 }
@@ -403,20 +521,31 @@ type Palette = {
   muted: string
   border: string
   primary: string
+  primarySoft: string
   danger: string
+  success: string
+  successSoft: string
 }
 
 function Row({
   palette,
   label,
   value,
+  divided,
 }: {
   palette: Palette
   label: string
   value: string
+  divided?: boolean
 }) {
   return (
-    <View style={s.row}>
+    <View
+      style={[
+        s.row,
+        divided && s.rowDivided,
+        divided && { borderTopColor: palette.border },
+      ]}
+    >
       <Text style={[s.rowLabel, { color: palette.muted }]}>{label}</Text>
       <Text style={[s.rowValue, { color: palette.text }]} numberOfLines={1}>
         {value}
@@ -438,79 +567,170 @@ function Loading({ palette, label }: { palette: Palette; label?: string }) {
 
 type Action = { label: string; onPress: () => void }
 
+function PrimaryButton({
+  palette,
+  label,
+  onPress,
+}: Action & { palette: Palette }) {
+  return (
+    <Pressable
+      style={[s.primaryBtn, { backgroundColor: palette.primary }]}
+      onPress={onPress}
+      accessibilityRole="button"
+    >
+      <Text style={s.primaryText}>{label}</Text>
+    </Pressable>
+  )
+}
+
+function SecondaryButton({
+  palette,
+  label,
+  onPress,
+}: Action & { palette: Palette }) {
+  return (
+    <Pressable
+      style={[s.secondaryBtn, { borderColor: palette.border }]}
+      onPress={onPress}
+      accessibilityRole="button"
+    >
+      <Text style={[s.secondaryText, { color: palette.text }]}>{label}</Text>
+    </Pressable>
+  )
+}
+
 function Message({
   palette,
-  title,
   body,
-  extra,
   primary,
   secondary,
 }: {
   palette: Palette
-  title?: string
   body: string
-  extra?: ReactNode
   primary: Action
   secondary: Action
 }) {
   return (
     <View style={s.message}>
-      {title ? (
-        <Text style={[s.messageTitle, { color: palette.text }]}>{title}</Text>
-      ) : null}
       <Text style={[s.messageBody, { color: palette.text }]}>{body}</Text>
-      {extra}
-      <Pressable
-        style={[s.primaryBtn, { backgroundColor: palette.primary }]}
-        onPress={primary.onPress}
-        accessibilityRole="button"
-      >
-        <Text style={s.primaryText}>{primary.label}</Text>
-      </Pressable>
-      <Pressable
-        style={[s.secondaryBtn, { borderColor: palette.border }]}
-        onPress={secondary.onPress}
-        accessibilityRole="button"
-      >
-        <Text style={[s.secondaryText, { color: palette.text }]}>
-          {secondary.label}
-        </Text>
-      </Pressable>
+      <PrimaryButton palette={palette} {...primary} />
+      <SecondaryButton palette={palette} {...secondary} />
     </View>
   )
 }
 
 const s = StyleSheet.create({
   root: { flex: 1 },
-  content: { paddingHorizontal: 20, gap: 16 },
-  card: {
+  content: { paddingHorizontal: 16, gap: 12 },
+  footer: { paddingHorizontal: 16, paddingTop: 12, gap: 10 },
+
+  merchant: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     borderRadius: 16,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: 16,
-    gap: 10,
+    padding: 12,
   },
+  logo: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  logoText: { color: colors.white.light, fontSize: 14, fontWeight: '800' },
+  merchantText: { flex: 1, minWidth: 0 },
+  merchantName: { fontSize: 15, fontWeight: '700' },
+  merchantSub: { fontSize: 13 },
+
+  amountBlock: { alignItems: 'center', paddingTop: 16, paddingBottom: 8 },
   amountLabel: { fontSize: 13 },
-  amount: { fontSize: 28, fontWeight: '700', marginBottom: 4 },
+  amount: {
+    fontSize: 38,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    fontVariant: ['tabular-nums'],
+  },
+  amountUnit: { fontSize: 18, fontWeight: '700' },
+
+  card: { borderRadius: 16, paddingHorizontal: 14, paddingVertical: 2 },
   row: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: 12,
+    paddingVertical: 11,
   },
-  rowLabel: { fontSize: 14 },
-  rowValue: { fontSize: 14, fontWeight: '600', flexShrink: 1 },
-  divider: { height: StyleSheet.hairlineWidth, marginVertical: 4 },
-  short: { fontSize: 13, fontWeight: '600' },
+  rowDivided: { borderTopWidth: StyleSheet.hairlineWidth },
+  rowLabel: { fontSize: 14, flexShrink: 0 },
+  rowValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    flexShrink: 1,
+    textAlign: 'right',
+    fontVariant: ['tabular-nums'],
+  },
+
+  source: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderRadius: 16,
+    padding: 14,
+  },
+  coin: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  coinText: { fontSize: 15, fontWeight: '800' },
+  sourceText: { flex: 1, minWidth: 0 },
+  sourceName: { fontSize: 14, fontWeight: '600' },
+  sourceSub: { fontSize: 13, fontVariant: ['tabular-nums'] },
+  after: { alignItems: 'flex-end' },
+  afterLabel: { fontSize: 12 },
+  afterValue: {
+    fontSize: 14,
+    fontWeight: '700',
+    fontVariant: ['tabular-nums'],
+  },
+
+  okHead: { alignItems: 'center', gap: 4, paddingTop: 12, paddingBottom: 8 },
+  checkOuter: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 6,
+  },
+  checkInner: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  okTitle: { fontSize: 17, fontWeight: '700' },
+  okAmount: {
+    fontSize: 32,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    fontVariant: ['tabular-nums'],
+  },
+
   note: { fontSize: 13, lineHeight: 18, textAlign: 'center' },
   primaryBtn: {
-    height: 50,
+    height: 52,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
   primaryText: { color: colors.white.light, fontSize: 16, fontWeight: '700' },
   secondaryBtn: {
-    height: 50,
+    height: 52,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
@@ -520,6 +740,5 @@ const s = StyleSheet.create({
   disabled: { opacity: 0.5 },
   loading: { alignItems: 'center', gap: 12, paddingTop: 48 },
   message: { gap: 14, paddingTop: 24 },
-  messageTitle: { fontSize: 20, fontWeight: '700', textAlign: 'center' },
   messageBody: { fontSize: 15, lineHeight: 22, textAlign: 'center' },
 })

@@ -47,9 +47,7 @@
       "loyaltyNote": "Loyalty points for this order go to the person who placed it.",
       "pay": "Pay {{amount}} coins",
       "paying": "Paying...",
-      "successTitle": "Coins paid",
-      "successBody": "Paid {{amount}} coins for order #{{order}}",
-      "successBodyNoOrder": "Paid {{amount}} coins",
+      "successTitle": "Payment successful",
       "newBalance": "New balance",
       "viewHistory": "View coin history",
       "done": "Done",
@@ -60,7 +58,14 @@
       "retry": "Try again",
       "maybePaid": "This code has been paid. Check your coin history to confirm.",
       "stillOffline": "The result is unknown because you are offline. Don't pay again until it can be checked.",
-      "checkAgain": "Check again"
+      "checkAgain": "Check again",
+      "merchant": "TREND Coffee",
+      "wallet": "Coin wallet",
+      "balanceLine": "Balance {{amount}} coins",
+      "remaining": "Remaining",
+      "receiptTitle": "Receipt",
+      "store": "Store",
+      "time": "Time"
     },
     "errors": {
       "notFound": "Payment code not found.",

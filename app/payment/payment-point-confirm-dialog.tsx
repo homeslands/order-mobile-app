@@ -76,7 +76,7 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
                 {t('paymentMethod.currentBalance', 'Số dư hiện tại')}
               </Text>
               <Text style={[s.value, theme.value]}>
-                {formatCurrency(coinBalance, '')} xu
+                {formatCurrency(coinBalance, '').trim()} xu
               </Text>
             </View>
             <View style={s.row}>
@@ -84,7 +84,7 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
                 {t('paymentMethod.deductAmount', 'Số xu thanh toán')}
               </Text>
               <Text style={[s.value, theme.deduct]}>
-                -{formatCurrency(orderSubtotal, '')} xu
+                -{formatCurrency(orderSubtotal, '').trim()} xu
               </Text>
             </View>
             <View style={[s.divider, theme.divider]} />
@@ -95,7 +95,7 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
               <Text
                 style={[s.value, { color: primaryColor, fontWeight: '700' }]}
               >
-                {formatCurrency(coinBalance - orderSubtotal, '')} xu
+                {formatCurrency(coinBalance - orderSubtotal, '').trim()} xu
               </Text>
             </View>
           </View>
