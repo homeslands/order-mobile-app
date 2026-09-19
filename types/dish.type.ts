@@ -13,6 +13,7 @@ import { IRole } from './role.type'
 import { ISize } from './size.type'
 import { ITable } from './table.type'
 import { IVoucher } from './voucher.type'
+import type { IPaymentPointQr } from './qr-payment.type'
 
 export interface IDish {
   id: number
@@ -193,6 +194,8 @@ export interface IPayment extends IBase {
   transactionId: string
   statusCode: paymentStatus
   statusMessage: string
+  /** Có khi đơn trả bằng xu qua QR; null khi chủ đơn tự trả bằng xu. */
+  pointPaymentQr?: IPaymentPointQr | null
 }
 
 export interface IOrderPrinterInvoices extends IBase {
