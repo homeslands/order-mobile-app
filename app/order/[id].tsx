@@ -20,16 +20,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { getOrderBySlug } from '@/api'
 import { CancelOrderDialog } from '@/components/dialog'
 import { Skeleton } from '@/components/ui'
-import {
-  colors,
-  NotificationMessageCode,
-  PaymentMethod,
-  ROUTE,
-} from '@/constants'
+import { colors, PaymentMethod, ROUTE } from '@/constants'
 import { FOOTER_BOTTOM_EXTRA, STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useOrderBySlug, useRunAfterTransition } from '@/hooks'
 import { navigateNative } from '@/lib/navigation'
 import { useNotificationStore, useUserStore } from '@/stores'
+import { firstUnreadOrderPaidSlug } from '@/stores/selectors/notification.selectors'
 import { OrderStatus, OrderTypeEnum } from '@/types'
 import {
   calculateOrderDisplayAndTotals,
@@ -109,18 +105,15 @@ function OrderDetailContent() {
 
   // ── Auto-refetch on FCM ORDER_PAID notification ──
   const processedRef = useRef<Set<string>>(new Set())
-  const latestNotification = useNotificationStore((s) => s.notifications[0])
+  const paidNotificationSlug = useNotificationStore((s) =>
+    firstUnreadOrderPaidSlug(s.notifications, id),
+  )
   useEffect(() => {
-    if (!latestNotification || latestNotification.isRead) return
-    if (processedRef.current.has(latestNotification.slug)) return
-    if (
-      latestNotification.message === NotificationMessageCode.ORDER_PAID &&
-      latestNotification.metadata?.order === id
-    ) {
-      processedRef.current.add(latestNotification.slug)
-      refetchOrder()
-    }
-  }, [latestNotification, id, refetchOrder])
+    if (!paidNotificationSlug) return
+    if (processedRef.current.has(paidNotificationSlug)) return
+    processedRef.current.add(paidNotificationSlug)
+    refetchOrder()
+  }, [paidNotificationSlug, refetchOrder])
 
   // Refetch khi screen regains focus (background FCM)
   useFocusEffect(
