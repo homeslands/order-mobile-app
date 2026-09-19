@@ -34,6 +34,7 @@ import {
   getPaymentStatusLabel,
   showErrorToast,
 } from '@/utils'
+import { formatPointQrPayer } from '@/utils/point-payment-qr'
 
 import { InvoiceSection } from '@/app/payment/payment-invoice-section'
 import { PaymentProductItem } from '@/app/payment/payment-product-item'
@@ -544,6 +545,27 @@ function OrderDetailContent() {
                       : t('paymentMethod.notPaid', 'Chưa thanh toán')}
                   </Text>
                 </View>
+                {order.payment?.pointPaymentQr?.paidBy && (
+                  <View style={ds.receiptRow}>
+                    <Text
+                      style={[
+                        ds.receiptLabel,
+                        { color: isDark ? colors.gray[400] : colors.gray[500] },
+                      ]}
+                    >
+                      {t('paymentMethod.paidBy', 'Người trả')}
+                    </Text>
+                    <Text
+                      style={[
+                        ds.receiptValue,
+                        { color: isDark ? colors.gray[50] : colors.gray[900] },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {formatPointQrPayer(order.payment.pointPaymentQr.paidBy)}
+                    </Text>
+                  </View>
+                )}
                 {order.payment && (
                   <View style={ds.receiptRow}>
                     <Text

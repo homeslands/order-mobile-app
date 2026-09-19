@@ -399,6 +399,7 @@
     "coin": "Thanh toán bằng xu",
     "coinNote": "Xu từ thẻ quà tặng, dùng thanh toán toàn bộ đơn hàng",
     "paidWithCoin": "Đã thanh toán {{amount}} xu",
+    "paidBy": "Người trả",
     "comingSoon": "Sắp ra mắt",
     "completed": "Đã hoàn tất",
     "confirmPayment": "Thanh toán",

@@ -399,6 +399,7 @@
     "coin": "Coin payment",
     "coinNote": "Coins from gift cards, used to pay for the entire order",
     "paidWithCoin": "Paid {{amount}} coins",
+    "paidBy": "Paid by",
     "comingSoon": "Coming soon",
     "completed": "Completed",
     "confirmPayment": "Make payment",
