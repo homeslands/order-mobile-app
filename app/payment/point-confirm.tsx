@@ -64,7 +64,12 @@ export default function PointConfirmScreen() {
   const refetchPreview = preview.refetch
   const order = useOrderBySlug(preview.data?.orderSlug)
   const referenceNumber = order.data?.result?.referenceNumber
-  const { balance, refetch: refetchBalance } = useCoinBalance()
+  const {
+    balance,
+    isLoading: balanceLoading,
+    isError: balanceError,
+    refetch: refetchBalance,
+  } = useCoinBalance()
   const { mutate: pay } = usePayPointPaymentQr()
   const [phase, setPhase] = useState<Phase>({ kind: 'ready' })
   // Chặn double tap gọi pay() hai lần trước khi setPhase({ kind: 'paying' })
@@ -88,7 +93,7 @@ export default function PointConfirmScreen() {
     if (result.error) {
       const kind = classifyPointQrError(result.error)
       setPhase(
-        kind === 'network'
+        kind === 'network' || kind === 'unknown'
           ? { kind: 'uncertain', outcome: 'stillOffline' }
           : { kind: 'failed', error: kind },
       )
@@ -143,7 +148,11 @@ export default function PointConfirmScreen() {
 
   const handleBack = useCallback(() => {
     if (busy) return
-    router.back()
+    if (router.canGoBack()) {
+      router.back()
+    } else {
+      router.replace('/(tabs)/profile' as never)
+    }
   }, [busy, router])
 
   const handleRescan = useCallback(() => {
@@ -247,6 +256,15 @@ export default function PointConfirmScreen() {
         secondary={{ label: t('pointQr.confirm.close'), onPress: handleBack }}
       />
     )
+  } else if (!qrData) {
+    body = (
+      <Message
+        palette={palette}
+        body={t('pointQr.errors.invalid')}
+        primary={{ label: t('pointQr.confirm.rescan'), onPress: handleRescan }}
+        secondary={{ label: t('pointQr.confirm.close'), onPress: handleBack }}
+      />
+    )
   } else if (preview.isPending) {
     body = <Loading palette={palette} />
   } else if (preview.error || !preview.data) {
@@ -269,9 +287,21 @@ export default function PointConfirmScreen() {
         secondary={{ label: t('pointQr.confirm.close'), onPress: handleBack }}
       />
     )
+  } else if (balanceError) {
+    body = (
+      <Message
+        palette={palette}
+        body={t('pointQr.errors.network')}
+        primary={{
+          label: t('pointQr.confirm.checkAgain'),
+          onPress: () => void refetchBalance(),
+        }}
+        secondary={{ label: t('pointQr.confirm.close'), onPress: handleBack }}
+      />
+    )
   } else {
     const { amount, branchName } = preview.data
-    const short = amount - balance
+    const short = balanceLoading ? 0 : amount - balance
     const paying = phase.kind === 'paying'
     body = (
       <>
@@ -303,14 +333,14 @@ export default function PointConfirmScreen() {
           <Row
             palette={palette}
             label={t('pointQr.confirm.currentBalance')}
-            value={fmt(balance)}
+            value={balanceLoading ? '—' : fmt(balance)}
           />
           <Row
             palette={palette}
             label={t('pointQr.confirm.balanceAfter')}
-            value={short > 0 ? '—' : fmt(balance - amount)}
+            value={balanceLoading || short > 0 ? '—' : fmt(balance - amount)}
           />
-          {short > 0 ? (
+          {!balanceLoading && short > 0 ? (
             <Text style={[s.short, { color: palette.danger }]}>
               {t('pointQr.confirm.short', {
                 amount: formatCurrency(short, ''),
@@ -325,10 +355,10 @@ export default function PointConfirmScreen() {
           style={[
             s.primaryBtn,
             { backgroundColor: palette.primary },
-            (short > 0 || paying) && s.disabled,
+            (balanceLoading || short > 0 || paying) && s.disabled,
           ]}
           onPress={handlePay}
-          disabled={short > 0 || paying}
+          disabled={balanceLoading || short > 0 || paying}
           accessibilityRole="button"
         >
           {paying ? (

@@ -28,6 +28,7 @@ export function fetchPointPaymentQr(queryClient: QueryClient, qrData: string) {
     queryFn: () => loadPointPaymentQr(qrData),
     staleTime: 0,
     retry: false,
+    meta: { skipGlobalError: true },
   })
 }
 
@@ -39,6 +40,7 @@ export function usePointPaymentQrPreview(qrData: string | undefined) {
     // Lỗi của API này là lỗi nghiệp vụ (mã huỷ, lệch đơn) — thử lại vô ích
     // và làm khách chờ thêm.
     retry: false,
+    meta: { skipGlobalError: true },
   })
 }
 
@@ -50,6 +52,7 @@ export function usePayPointPaymentQr() {
       const response = await payPointPaymentQr(qrData)
       return response.result
     },
+    meta: { skipGlobalError: true },
     onSuccess: () => {
       // Khoá khớp tiền tố của useCoinBalance ([profile, 'balance', slug]) và
       // usePointTransactions* ([pointTransactions, ...]).

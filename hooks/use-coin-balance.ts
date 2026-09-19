@@ -18,6 +18,7 @@ export function useCoinBalance(enabled = true) {
   return {
     balance: query.data ?? 0,
     isLoading: query.isPending,
+    isError: query.isError,
     refetch: query.refetch,
   }
 }
