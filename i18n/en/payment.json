@@ -69,7 +69,14 @@
       "noticeLead": "Please ",
       "noticeBold": "review and confirm",
       "noticeTail": " the payment details",
-      "scamWarning": "Only pay when you are at the counter and staff show you the code. Never scan a code someone sent you in a message or on social media."
+      "scamWarning": "Only pay when you are at the counter and staff show you the code. Never scan a code someone sent you in a message or on social media.",
+      "successTitleOther": "Paid on their behalf",
+      "orderedBy": "Ordered by",
+      "orderedByYou": "You",
+      "orderedByOther": "Another customer",
+      "viewOrder": "View order details",
+      "loyaltyNoteMine": "Loyalty points for this order will be added to your account.",
+      "loyaltyNoteOther": "You're paying for someone else's order. Loyalty points go to the person who placed it."
     },
     "errors": {
       "notFound": "Payment code not found.",

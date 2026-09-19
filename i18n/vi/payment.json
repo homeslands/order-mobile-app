@@ -70,7 +70,14 @@
       "noticeLead": "Vui lòng ",
       "noticeBold": "kiểm tra và xác nhận",
       "noticeTail": " thông tin thanh toán",
-      "scamWarning": "Chỉ thanh toán khi bạn đang ở quầy và nhân viên đưa mã. Không quét mã do người khác gửi qua tin nhắn hay mạng xã hội."
+      "scamWarning": "Chỉ thanh toán khi bạn đang ở quầy và nhân viên đưa mã. Không quét mã do người khác gửi qua tin nhắn hay mạng xã hội.",
+      "successTitleOther": "Trả hộ thành công",
+      "orderedBy": "Người đặt",
+      "orderedByYou": "Bạn",
+      "orderedByOther": "Khách khác",
+      "viewOrder": "Xem chi tiết đơn",
+      "loyaltyNoteMine": "Điểm tích lũy của đơn sẽ được cộng cho bạn.",
+      "loyaltyNoteOther": "Bạn đang trả hộ đơn này. Điểm tích lũy thuộc về người đặt đơn."
     },
     "errors": {
       "notFound": "Không tìm thấy mã thanh toán.",

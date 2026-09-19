@@ -2,6 +2,7 @@ import {
   classifyPointQrError,
   formatPointQrPayer,
   parsePointPaymentQr,
+  pointQrOrderOwnership,
   previewOutcome,
 } from '@/utils/point-payment-qr'
 
@@ -93,5 +94,21 @@ describe('formatPointQrPayer', () => {
     expect(formatPointQrPayer({ slug: 'u1', phonenumber: '0324567894' })).toBe(
       '******7894',
     )
+  })
+})
+
+describe('pointQrOrderOwnership', () => {
+  it('cùng slug là đơn của mình', () => {
+    expect(pointQrOrderOwnership('u1', 'u1')).toBe('mine')
+  })
+
+  it('khác slug là trả hộ', () => {
+    expect(pointQrOrderOwnership('u2', 'u1')).toBe('other')
+  })
+
+  it('thiếu một trong hai thì không xác định', () => {
+    expect(pointQrOrderOwnership(undefined, 'u1')).toBe('unknown')
+    expect(pointQrOrderOwnership('u2', undefined)).toBe('unknown')
+    expect(pointQrOrderOwnership('', '')).toBe('unknown')
   })
 })

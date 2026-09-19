@@ -39,6 +39,7 @@ import { colors } from '@/constants'
 import { FOOTER_BOTTOM_EXTRA, STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useCoinBalance } from '@/hooks/use-coin-balance'
 import { useOrderBySlug } from '@/hooks/use-order'
+import { useUserStore } from '@/stores'
 import {
   usePayPointPaymentQr,
   usePointPaymentQrPreview,
@@ -48,6 +49,7 @@ import { numberToVietnameseWords } from '@/utils/number-to-vietnamese-words'
 import { wasPointQrScanned } from '@/utils/point-qr-handoff'
 import {
   classifyPointQrError,
+  pointQrOrderOwnership,
   previewOutcome,
   type PointQrErrorKind,
 } from '@/utils/point-payment-qr'
@@ -84,6 +86,13 @@ export default function PointConfirmScreen() {
   // BE chỉ cấp số thứ tự khi đơn đã trả (job.service), nên lúc xác nhận
   // thường chưa có. Khi đó dùng slug đơn, giống hoá đơn phía BE.
   const referenceNumber = order.data?.result?.referenceNumber
+  // Chủ đơn tự quét QR đơn mình (BE cho phép) hay trả hộ người khác: quyết
+  // định câu về điểm tích lũy và nội dung biên lai. Lấy đơn lỗi → 'unknown'.
+  const userSlug = useUserStore((st) => st.userInfo?.slug)
+  const ownership = pointQrOrderOwnership(
+    order.data?.result?.owner?.slug,
+    userSlug,
+  )
   const orderCode = referenceNumber
     ? `#${referenceNumber}`
     : (preview.data?.orderSlug ?? '')
@@ -191,6 +200,12 @@ export default function PointConfirmScreen() {
     router.replace('/payment/scan-point' as never)
   }, [router])
 
+  const orderSlug = preview.data?.orderSlug
+  const handleViewOrder = useCallback(() => {
+    if (!orderSlug) return
+    router.replace(`/order/${orderSlug}` as never)
+  }, [orderSlug, router])
+
   const handleViewHistory = useCallback(() => {
     router.replace('/profile/coin-hub' as never)
   }, [router])
@@ -231,7 +246,9 @@ export default function PointConfirmScreen() {
             </View>
           </View>
           <Text style={[s.okTitle, { color: palette.text }]}>
-            {t('pointQr.confirm.successTitle')}
+            {ownership === 'other'
+              ? t('pointQr.confirm.successTitleOther')
+              : t('pointQr.confirm.successTitle')}
           </Text>
           <Text style={[s.okAmount, { color: palette.text }]}>
             {fmt(phase.amount)}
@@ -252,6 +269,18 @@ export default function PointConfirmScreen() {
               palette={palette}
               label={t('pointQr.confirm.order')}
               value={orderCode}
+              divided
+            />
+          ) : null}
+          {ownership !== 'unknown' ? (
+            <Row
+              palette={palette}
+              label={t('pointQr.confirm.orderedBy')}
+              value={
+                ownership === 'mine'
+                  ? t('pointQr.confirm.orderedByYou')
+                  : t('pointQr.confirm.orderedByOther')
+              }
               divided
             />
           ) : null}
@@ -277,11 +306,19 @@ export default function PointConfirmScreen() {
           label={t('pointQr.confirm.done')}
           onPress={handleBack}
         />
-        <SecondaryButton
-          palette={palette}
-          label={t('pointQr.confirm.viewHistory')}
-          onPress={handleViewHistory}
-        />
+        {ownership === 'mine' ? (
+          <SecondaryButton
+            palette={palette}
+            label={t('pointQr.confirm.viewOrder')}
+            onPress={handleViewOrder}
+          />
+        ) : (
+          <SecondaryButton
+            palette={palette}
+            label={t('pointQr.confirm.viewHistory')}
+            onPress={handleViewHistory}
+          />
+        )}
       </>
     )
   } else if (phase.kind === 'rechecking') {
@@ -483,7 +520,11 @@ export default function PointConfirmScreen() {
         </View>
 
         <Text style={[s.note, { color: palette.muted }]}>
-          {t('pointQr.confirm.loyaltyNote')}
+          {ownership === 'mine'
+            ? t('pointQr.confirm.loyaltyNoteMine')
+            : ownership === 'other'
+              ? t('pointQr.confirm.loyaltyNoteOther')
+              : t('pointQr.confirm.loyaltyNote')}
         </Text>
       </>
     )

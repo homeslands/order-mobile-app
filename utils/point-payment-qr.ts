@@ -103,3 +103,16 @@ export function formatPointQrPayer(payer: IPointQrPayer): string {
   const phone = maskPhone(payer.phonenumber)
   return name ? `${name} · ${phone}` : phone
 }
+
+/**
+ * Đơn trong QR là của người đang quét hay của người khác. BE cho phép chủ
+ * đơn tự quét QR đơn mình, nên màn xác nhận và biên lai phải nói đúng ai
+ * được cộng điểm. Thiếu dữ liệu (lấy đơn lỗi) thì không đoán.
+ */
+export function pointQrOrderOwnership(
+  ownerSlug: string | undefined,
+  userSlug: string | undefined,
+): 'mine' | 'other' | 'unknown' {
+  if (!ownerSlug || !userSlug) return 'unknown'
+  return ownerSlug === userSlug ? 'mine' : 'other'
+}
