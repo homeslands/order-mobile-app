@@ -77,7 +77,6 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
   const { bottom } = useSafeAreaInsets()
   const router = useRouter()
   const userDismissedRef = useRef(false)
-  const isAuthenticated = useAuthStore((s) => s.isAuthenticated())
 
   useEffect(() => {
     if (visible) {
@@ -141,11 +140,13 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
     close()
     closeScanSheet()
     // Chưa đăng nhập thì sang login trước, để khỏi mở camera rồi nhận 401.
-    const target = isAuthenticated ? '/payment/scan-point' : '/auth/login'
+    const target = useAuthStore.getState().isAuthenticated()
+      ? '/payment/scan-point'
+      : '/auth/login'
     scheduleTransitionTask(() => router.push(target as never))
     // router intentionally omitted — same reason as handlePaymentQR
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [close, closeScanSheet, isAuthenticated])
+  }, [close, closeScanSheet])
 
   const contentStyle = useMemo(
     () => [s.content, { paddingBottom: bottom + 24 }],
