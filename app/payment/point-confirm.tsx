@@ -54,6 +54,10 @@ import { showErrorToast } from '@/utils/toast'
 
 const HEADER_HEIGHT = 56
 
+// Nét đứt của đường xé vẽ bằng các gạch ngắn: iOS không vẽ borderStyle
+// 'dashed' khi chỉ có viền một cạnh. Thừa gạch thì overflow hidden cắt đi.
+const TEAR_DASHES = Array.from({ length: 48 }, (_, i) => i)
+
 type Phase =
   | { kind: 'ready' }
   | { kind: 'paying' }
@@ -376,9 +380,7 @@ export default function PointConfirmScreen() {
       <>
         <View style={[s.ticket, { backgroundColor: palette.card }]}>
           <View style={[s.notice, { backgroundColor: palette.primarySoft }]}>
-            <View style={[s.noticeIcon, { borderColor: palette.primary }]}>
-              <Info size={16} color={palette.primary} strokeWidth={2.5} />
-            </View>
+            <Info size={22} color={palette.primary} strokeWidth={2.25} />
             <Text style={[s.noticeText, { color: palette.muted }]}>
               {t('pointQr.confirm.noticeLead')}
               <Text style={[s.noticeBold, { color: palette.text }]}>
@@ -433,10 +435,14 @@ export default function PointConfirmScreen() {
           </View>
 
           <View style={s.tear}>
-            <View
-              style={[s.tearLine, { borderColor: palette.border }]}
-              pointerEvents="none"
-            />
+            <View style={s.tearLine} pointerEvents="none">
+              {TEAR_DASHES.map((i) => (
+                <View
+                  key={i}
+                  style={[s.dash, { backgroundColor: palette.border }]}
+                />
+              ))}
+            </View>
             <View
               style={[s.notch, s.notchLeft, { backgroundColor: palette.bg }]}
             />
@@ -699,14 +705,6 @@ const s = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  noticeIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   noticeText: { flex: 1, fontSize: 13, lineHeight: 19 },
   noticeBold: { fontWeight: '700' },
   infoRows: { paddingHorizontal: 16, paddingTop: 6, paddingBottom: 2 },
@@ -732,10 +730,12 @@ const s = StyleSheet.create({
   // Đường xé của vé: nét đứt giữa hai lỗ khuyết cùng màu nền màn hình.
   tear: { height: 24, justifyContent: 'center' },
   tearLine: {
+    flexDirection: 'row',
+    gap: 4,
     marginHorizontal: 18,
-    borderTopWidth: 1.5,
-    borderStyle: 'dashed',
+    overflow: 'hidden',
   },
+  dash: { width: 6, height: 1.5, borderRadius: 1 },
   notch: {
     position: 'absolute',
     top: 0,
