@@ -23,10 +23,13 @@ const QR = {
   createdAt: '2026-09-19T00:00:00Z',
 }
 
+let activeQueryClient: QueryClient | undefined
+
 function setup() {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   })
+  activeQueryClient = queryClient
   const invalidate = jest.spyOn(queryClient, 'invalidateQueries')
   const wrapper = ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
@@ -34,7 +37,11 @@ function setup() {
   return { queryClient, invalidate, wrapper }
 }
 
-afterEach(() => jest.clearAllMocks())
+afterEach(() => {
+  jest.clearAllMocks()
+  activeQueryClient?.clear()
+  activeQueryClient = undefined
+})
 
 describe('usePayPointPaymentQr', () => {
   it('trả thành công thì làm mới số dư và lịch sử xu', async () => {
@@ -45,6 +52,7 @@ describe('usePayPointPaymentQr', () => {
     await act(async () => {
       await result.current.mutateAsync('RAW')
     })
+    await act(async () => {})
 
     expect(payPointPaymentQr).toHaveBeenCalledWith('RAW')
     expect(invalidate).toHaveBeenCalledWith({
@@ -63,6 +71,7 @@ describe('usePayPointPaymentQr', () => {
     await act(async () => {
       await result.current.mutateAsync('RAW').catch(() => {})
     })
+    await act(async () => {})
 
     expect(invalidate).not.toHaveBeenCalled()
   })
