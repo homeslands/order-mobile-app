@@ -472,7 +472,9 @@
       "memberId": "Member ID",
       "memberIdDesc": "Staff scans code at the counter",
       "coinPayment": "Coin Payment",
-      "coinPaymentDesc": "Scan QR to pay with coins"
+      "coinPaymentDesc": "Show this code to staff to pay with coins",
+      "scanPay": "Scan to pay order",
+      "scanPayDesc": "Pay an order at the counter with your coins"
     },
     "orderStatus": {
       "completed": "Completed",
