@@ -445,7 +445,8 @@
     "processing": "Đang xử lý...",
     "noMethodSelected": "Chưa chọn phương thức",
     "coinPaymentSubmitted": "Đã thanh toán bằng xu thành công",
-    "paymentError": "Lỗi khi cập nhật phương thức thanh toán"
+    "paymentError": "Lỗi khi cập nhật phương thức thanh toán",
+    "coinUnit": "xu"
   },
   "payment": {
     "successTitle": "Thanh toán thành công!",

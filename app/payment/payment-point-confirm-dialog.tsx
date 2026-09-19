@@ -34,6 +34,7 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
   isDark,
 }: Props) {
   const { t } = useTranslation('menu')
+  const unit = t('paymentMethod.coinUnit', 'xu')
 
   // Stable theme-dependent style objects
   const theme = useMemo(
@@ -76,7 +77,7 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
                 {t('paymentMethod.currentBalance', 'Số dư hiện tại')}
               </Text>
               <Text style={[s.value, theme.value]}>
-                {formatCurrency(coinBalance, '').trim()} xu
+                {formatCurrency(coinBalance, '').trim()} {unit}
               </Text>
             </View>
             <View style={s.row}>
@@ -84,7 +85,7 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
                 {t('paymentMethod.deductAmount', 'Số xu thanh toán')}
               </Text>
               <Text style={[s.value, theme.deduct]}>
-                -{formatCurrency(orderSubtotal, '').trim()} xu
+                -{formatCurrency(orderSubtotal, '').trim()} {unit}
               </Text>
             </View>
             <View style={[s.divider, theme.divider]} />
@@ -95,13 +96,13 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
               <Text
                 style={[s.value, { color: primaryColor, fontWeight: '700' }]}
               >
-                {formatCurrency(coinBalance - orderSubtotal, '').trim()} xu
+                {formatCurrency(coinBalance - orderSubtotal, '').trim()} {unit}
               </Text>
             </View>
           </View>
           <View style={s.actions}>
             <Pressable onPress={dismiss} style={[s.btn, theme.cancelBtn]}>
-              <Text style={[s.btnText, theme.cancelText]}>
+              <Text style={[s.btnText, theme.cancelText]} numberOfLines={1}>
                 {t('common:common.cancel', 'Hủy')}
               </Text>
             </Pressable>
@@ -109,8 +110,11 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
               onPress={onConfirm}
               style={[s.btn, { backgroundColor: primaryColor, flex: 1 }]}
             >
-              <Text style={[s.btnText, { color: colors.white.light }]}>
-                {t('paymentMethod.confirmPayment', 'Thanh toán')}
+              <Text
+                style={[s.btnText, { color: colors.white.light }]}
+                numberOfLines={1}
+              >
+                {t('common:common.confirm', 'Xác nhận')}
               </Text>
             </Pressable>
           </View>

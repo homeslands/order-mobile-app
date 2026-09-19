@@ -1,9 +1,10 @@
 /**
  * Xác nhận và trả xu cho đơn sau khi quét QR (route /payment/point-confirm).
  *
- * Bố cục kiểu chuyển khoản ngân hàng: người nhận (cửa hàng, chi nhánh) → số
- * xu → nguồn tiền (ví xu). Bấm "Thanh toán" mở hộp thoại xác nhận, xác nhận
- * xong mới gọi API. Trả xong hiện biên lai.
+ * Thông tin gom trong một card dạng vé, như màn xác nhận chuyển khoản của app
+ * ngân hàng: các dòng cửa hàng, chi nhánh, đơn, nguồn tiền; số xu cần trả nằm
+ * ở cuống vé. Bấm "Thanh toán" mở hộp thoại xác nhận, xác nhận xong mới gọi
+ * API. Trả xong hiện biên lai.
  *
  * Nhận `qrData` qua params. Kết quả xem trước đã nằm trong cache từ màn quét
  * nên màn hiện ngay; cache trống (mở lại app giữa chừng) thì tự gọi lại.
@@ -17,7 +18,7 @@
  */
 import dayjs from 'dayjs'
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
-import { Check } from 'lucide-react-native'
+import { Check, Info } from 'lucide-react-native'
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -43,6 +44,7 @@ import {
   usePointPaymentQrPreview,
 } from '@/hooks/use-point-payment-qr'
 import { formatCurrency } from '@/utils'
+import { numberToVietnameseWords } from '@/utils/number-to-vietnamese-words'
 import {
   classifyPointQrError,
   previewOutcome,
@@ -65,7 +67,7 @@ type Phase =
 const num = (value: number) => formatCurrency(value, '').trim()
 
 export default function PointConfirmScreen() {
-  const { t } = useTranslation('payment')
+  const { t, i18n } = useTranslation('payment')
   const router = useRouter()
   const isDark = useColorScheme() === 'dark'
   const { bottom } = useSafeAreaInsets()
@@ -367,79 +369,100 @@ export default function PointConfirmScreen() {
     const short = balanceLoading ? 0 : amount - balance
     const paying = phase.kind === 'paying'
     const blocked = balanceLoading || short > 0 || paying
+    // Bố cục vé: dải nhắc kiểm tra → các dòng thông tin (nhãn trái, giá trị
+    // đậm bên phải, như màn xác nhận chuyển khoản) → đường xé → cuống vé chỉ
+    // chứa số xu cần trả, kèm số bằng chữ với tiếng Việt.
     body = (
       <>
-        <View style={[s.merchant, { backgroundColor: palette.card }]}>
-          <View style={[s.logo, { backgroundColor: palette.primary }]}>
-            <Text style={s.logoText}>TC</Text>
-          </View>
-          <View style={s.merchantText}>
-            <Text style={[s.merchantName, { color: palette.text }]}>
-              {t('pointQr.confirm.merchant')}
-            </Text>
-            {branchName ? (
-              <Text
-                style={[s.merchantSub, { color: palette.muted }]}
-                numberOfLines={1}
-              >
-                {branchName}
+        <View style={[s.ticket, { backgroundColor: palette.card }]}>
+          <View style={[s.notice, { backgroundColor: palette.primarySoft }]}>
+            <View style={[s.noticeIcon, { borderColor: palette.primary }]}>
+              <Info size={16} color={palette.primary} strokeWidth={2.5} />
+            </View>
+            <Text style={[s.noticeText, { color: palette.muted }]}>
+              {t('pointQr.confirm.noticeLead')}
+              <Text style={[s.noticeBold, { color: palette.text }]}>
+                {t('pointQr.confirm.noticeBold')}
               </Text>
-            ) : null}
-          </View>
-        </View>
-
-        <View style={s.amountBlock}>
-          <Text style={[s.amountLabel, { color: palette.muted }]}>
-            {t('pointQr.confirm.amount')}
-          </Text>
-          <Text style={[s.amount, { color: palette.text }]}>
-            {num(amount)}
-            <Text style={[s.amountUnit, { color: palette.muted }]}>
-              {' '}
-              {unit}
+              {t('pointQr.confirm.noticeTail')}
             </Text>
-          </Text>
-        </View>
+          </View>
 
-        {orderCode ? (
-          <View style={[s.card, { backgroundColor: palette.card }]}>
-            <Row
+          <View style={s.infoRows}>
+            <InfoRow
               palette={palette}
-              label={t('pointQr.confirm.order')}
-              value={orderCode}
+              label={t('pointQr.confirm.store')}
+              value={t('pointQr.confirm.merchant')}
+            />
+            {branchName ? (
+              <InfoRow
+                palette={palette}
+                label={t('pointQr.confirm.branch')}
+                value={branchName}
+              />
+            ) : null}
+            {orderCode ? (
+              <InfoRow
+                palette={palette}
+                label={t('pointQr.confirm.order')}
+                value={orderCode}
+              />
+            ) : null}
+            <InfoRow
+              palette={palette}
+              label={t('pointQr.confirm.source')}
+              value={t('pointQr.confirm.wallet')}
+              sub={
+                balanceLoading
+                  ? undefined
+                  : t('pointQr.confirm.balanceLine', { amount: num(balance) })
+              }
+            />
+            <InfoRow
+              palette={palette}
+              label={t('pointQr.confirm.balanceAfter')}
+              value={
+                balanceLoading
+                  ? '—'
+                  : short > 0
+                    ? t('pointQr.confirm.short', { amount: num(short) })
+                    : fmt(balance - amount)
+              }
+              valueColor={short > 0 ? palette.danger : undefined}
             />
           </View>
-        ) : null}
 
-        <View style={[s.source, { backgroundColor: palette.card }]}>
-          <View style={[s.coin, { backgroundColor: palette.primarySoft }]}>
-            <Text style={[s.coinText, { color: palette.primary }]}>X</Text>
+          <View style={s.tear}>
+            <View
+              style={[s.tearLine, { borderColor: palette.border }]}
+              pointerEvents="none"
+            />
+            <View
+              style={[s.notch, s.notchLeft, { backgroundColor: palette.bg }]}
+            />
+            <View
+              style={[s.notch, s.notchRight, { backgroundColor: palette.bg }]}
+            />
           </View>
-          <View style={s.sourceText}>
-            <Text style={[s.sourceName, { color: palette.text }]}>
-              {t('pointQr.confirm.wallet')}
+
+          <View style={s.stub}>
+            <Text style={[s.stubLabel, { color: palette.muted }]}>
+              {t('pointQr.confirm.amount')}
             </Text>
-            <Text style={[s.sourceSub, { color: palette.muted }]}>
-              {balanceLoading
-                ? '—'
-                : t('pointQr.confirm.balanceLine', { amount: num(balance) })}
-            </Text>
-          </View>
-          <View style={s.after}>
-            {short > 0 ? (
-              <Text style={[s.afterValue, { color: palette.danger }]}>
-                {t('pointQr.confirm.short', { amount: num(short) })}
+            <View style={s.stubValue}>
+              <Text style={[s.stubAmount, { color: palette.primary }]}>
+                {num(amount)}
+                <Text style={[s.stubUnit, { color: palette.primary }]}>
+                  {' '}
+                  {unit}
+                </Text>
               </Text>
-            ) : (
-              <>
-                <Text style={[s.afterLabel, { color: palette.muted }]}>
-                  {t('pointQr.confirm.remaining')}
+              {i18n.language?.startsWith('vi') ? (
+                <Text style={[s.stubWords, { color: palette.muted }]}>
+                  ({numberToVietnameseWords(amount)} {unit})
                 </Text>
-                <Text style={[s.afterValue, { color: palette.text }]}>
-                  {balanceLoading ? '—' : fmt(balance - amount)}
-                </Text>
-              </>
-            )}
+              ) : null}
+            </View>
           </View>
         </View>
 
@@ -462,9 +485,7 @@ export default function PointConfirmScreen() {
         {paying ? (
           <ActivityIndicator color={colors.white.light} />
         ) : (
-          <Text style={s.primaryText}>
-            {t('pointQr.confirm.pay', { amount: num(amount) })}
-          </Text>
+          <Text style={s.primaryText}>{t('pointQr.confirm.pay')}</Text>
         )}
       </Pressable>
     )
@@ -484,7 +505,7 @@ export default function PointConfirmScreen() {
         contentContainerStyle={[
           s.content,
           {
-            paddingTop: STATIC_TOP_INSET + HEADER_HEIGHT + 8,
+            paddingTop: STATIC_TOP_INSET + HEADER_HEIGHT + 16,
             paddingBottom: footer ? 16 : bottom + FOOTER_BOTTOM_EXTRA,
           },
         ]}
@@ -550,6 +571,34 @@ function Row({
       <Text style={[s.rowValue, { color: palette.text }]} numberOfLines={1}>
         {value}
       </Text>
+    </View>
+  )
+}
+
+function InfoRow({
+  palette,
+  label,
+  value,
+  sub,
+  valueColor,
+}: {
+  palette: Palette
+  label: string
+  value: string
+  sub?: string
+  valueColor?: string
+}) {
+  return (
+    <View style={s.infoRow}>
+      <Text style={[s.infoLabel, { color: palette.muted }]}>{label}</Text>
+      <View style={s.infoValueWrap}>
+        <Text style={[s.infoValue, { color: valueColor ?? palette.text }]}>
+          {value}
+        </Text>
+        {sub ? (
+          <Text style={[s.infoSub, { color: palette.muted }]}>{sub}</Text>
+        ) : null}
+      </View>
     </View>
   )
 }
@@ -624,34 +673,7 @@ const s = StyleSheet.create({
   content: { paddingHorizontal: 16, gap: 12 },
   footer: { paddingHorizontal: 16, paddingTop: 12, gap: 10 },
 
-  merchant: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    borderRadius: 16,
-    padding: 12,
-  },
-  logo: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  logoText: { color: colors.white.light, fontSize: 14, fontWeight: '800' },
-  merchantText: { flex: 1, minWidth: 0 },
-  merchantName: { fontSize: 15, fontWeight: '700' },
-  merchantSub: { fontSize: 13 },
-
-  amountBlock: { alignItems: 'center', paddingTop: 16, paddingBottom: 8 },
-  amountLabel: { fontSize: 13 },
-  amount: {
-    fontSize: 38,
-    fontWeight: '800',
-    letterSpacing: -0.5,
-    fontVariant: ['tabular-nums'],
-  },
-  amountUnit: { fontSize: 18, fontWeight: '700' },
+  ticket: { borderRadius: 18, overflow: 'hidden' },
 
   card: { borderRadius: 16, paddingHorizontal: 14, paddingVertical: 2 },
   row: {
@@ -670,32 +692,78 @@ const s = StyleSheet.create({
     textAlign: 'right',
     fontVariant: ['tabular-nums'],
   },
-
-  source: {
+  notice: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    borderRadius: 16,
-    padding: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
-  coin: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+  noticeIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  coinText: { fontSize: 15, fontWeight: '800' },
-  sourceText: { flex: 1, minWidth: 0 },
-  sourceName: { fontSize: 14, fontWeight: '600' },
-  sourceSub: { fontSize: 13, fontVariant: ['tabular-nums'] },
-  after: { alignItems: 'flex-end' },
-  afterLabel: { fontSize: 12 },
-  afterValue: {
-    fontSize: 14,
+  noticeText: { flex: 1, fontSize: 13, lineHeight: 19 },
+  noticeBold: { fontWeight: '700' },
+  infoRows: { paddingHorizontal: 16, paddingTop: 6, paddingBottom: 2 },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 16,
+    paddingVertical: 10,
+  },
+  infoLabel: { fontSize: 14, flexShrink: 0, maxWidth: '45%' },
+  infoValueWrap: { flex: 1, alignItems: 'flex-end' },
+  infoValue: {
+    fontSize: 14.5,
     fontWeight: '700',
+    textAlign: 'right',
     fontVariant: ['tabular-nums'],
   },
+  infoSub: {
+    fontSize: 12.5,
+    textAlign: 'right',
+    fontVariant: ['tabular-nums'],
+  },
+  // Đường xé của vé: nét đứt giữa hai lỗ khuyết cùng màu nền màn hình.
+  tear: { height: 24, justifyContent: 'center' },
+  tearLine: {
+    marginHorizontal: 18,
+    borderTopWidth: 1.5,
+    borderStyle: 'dashed',
+  },
+  notch: {
+    position: 'absolute',
+    top: 0,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+  },
+  notchLeft: { left: -12 },
+  notchRight: { right: -12 },
+  stub: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingTop: 4,
+    paddingBottom: 18,
+  },
+  stubLabel: { fontSize: 14, paddingTop: 10 },
+  stubValue: { flex: 1, alignItems: 'flex-end' },
+  stubAmount: {
+    fontSize: 32,
+    fontWeight: '800',
+    letterSpacing: -0.5,
+    fontVariant: ['tabular-nums'],
+  },
+  stubUnit: { fontSize: 15, fontWeight: '700' },
+  stubWords: { fontSize: 12.5, textAlign: 'right', marginTop: 2 },
 
   okHead: { alignItems: 'center', gap: 4, paddingTop: 12, paddingBottom: 8 },
   checkOuter: {

@@ -45,7 +45,7 @@
       "balanceAfter": "Balance after payment",
       "short": "{{amount}} coins short",
       "loyaltyNote": "Loyalty points for this order go to the person who placed it.",
-      "pay": "Pay {{amount}} coins",
+      "pay": "Pay",
       "paying": "Paying...",
       "successTitle": "Payment successful",
       "newBalance": "New balance",
@@ -62,10 +62,13 @@
       "merchant": "TREND Coffee",
       "wallet": "Coin wallet",
       "balanceLine": "Balance {{amount}} coins",
-      "remaining": "Remaining",
       "receiptTitle": "Receipt",
       "store": "Store",
-      "time": "Time"
+      "time": "Time",
+      "source": "Pay from",
+      "noticeLead": "Please ",
+      "noticeBold": "review and confirm",
+      "noticeTail": " the payment details"
     },
     "errors": {
       "notFound": "Payment code not found.",

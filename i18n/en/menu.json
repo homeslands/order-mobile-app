@@ -444,7 +444,8 @@
     "processing": "Processing...",
     "noMethodSelected": "No method selected",
     "coinPaymentSubmitted": "Paid with coins successfully",
-    "paymentError": "Error updating payment method"
+    "paymentError": "Error updating payment method",
+    "coinUnit": "coins"
   },
   "payment": {
     "successTitle": "Payment successful!",

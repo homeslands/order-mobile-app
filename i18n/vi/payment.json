@@ -46,7 +46,7 @@
       "balanceAfter": "Số dư sau khi trả",
       "short": "Thiếu {{amount}} xu",
       "loyaltyNote": "Điểm tích lũy của đơn thuộc về người đặt đơn.",
-      "pay": "Thanh toán {{amount}} xu",
+      "pay": "Thanh toán",
       "paying": "Đang trả...",
       "successTitle": "Thanh toán thành công",
       "newBalance": "Số dư mới",
@@ -63,10 +63,13 @@
       "merchant": "TREND Coffee",
       "wallet": "Ví xu",
       "balanceLine": "Số dư {{amount}} xu",
-      "remaining": "Còn lại",
       "receiptTitle": "Biên lai",
       "store": "Cửa hàng",
-      "time": "Thời gian"
+      "time": "Thời gian",
+      "source": "Nguồn tiền",
+      "noticeLead": "Vui lòng ",
+      "noticeBold": "kiểm tra và xác nhận",
+      "noticeTail": " thông tin thanh toán"
     },
     "errors": {
       "notFound": "Không tìm thấy mã thanh toán.",
