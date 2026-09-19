@@ -17,6 +17,7 @@ import {
   type QrCameraStatus,
 } from '@/components/scan/qr-camera'
 import { fetchPointPaymentQr } from '@/hooks/use-point-payment-qr'
+import { markPointQrScanned } from '@/utils/point-qr-handoff'
 import {
   classifyPointQrError,
   parsePointPaymentQr,
@@ -67,6 +68,8 @@ export default function ScanPointScreen() {
           if (requestId !== requestIdRef.current) return
           const outcome = previewOutcome(qr)
           if (outcome === 'confirm') {
+            // Màn xác nhận chỉ nhận mã đi qua camera, chặn mở bằng deep link.
+            markPointQrScanned(qrData)
             router.replace({
               pathname: '/payment/point-confirm',
               params: { qrData },

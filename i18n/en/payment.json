@@ -68,7 +68,8 @@
       "source": "Pay from",
       "noticeLead": "Please ",
       "noticeBold": "review and confirm",
-      "noticeTail": " the payment details"
+      "noticeTail": " the payment details",
+      "scamWarning": "Only pay when you are at the counter and staff show you the code. Never scan a code someone sent you in a message or on social media."
     },
     "errors": {
       "notFound": "Payment code not found.",

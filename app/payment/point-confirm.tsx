@@ -18,7 +18,7 @@
  */
 import dayjs from 'dayjs'
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
-import { Check, Info } from 'lucide-react-native'
+import { Check, Info, TriangleAlert } from 'lucide-react-native'
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -45,6 +45,7 @@ import {
 } from '@/hooks/use-point-payment-qr'
 import { formatCurrency } from '@/utils'
 import { numberToVietnameseWords } from '@/utils/number-to-vietnamese-words'
+import { wasPointQrScanned } from '@/utils/point-qr-handoff'
 import {
   classifyPointQrError,
   previewOutcome,
@@ -208,6 +209,7 @@ export default function PointConfirmScreen() {
     primarySoft: isDark ? 'rgba(214,137,16,0.18)' : 'rgba(247,167,55,0.14)',
     danger: isDark ? colors.destructive.dark : colors.destructive.light,
     success: isDark ? colors.success.dark : colors.success.light,
+    warning: isDark ? colors.warning.dark : colors.warning.light,
     successSoft: isDark ? colors.success.bgDark : colors.success.iconBgLight,
   }
   const unit = t('pointQr.confirm.unit')
@@ -325,7 +327,8 @@ export default function PointConfirmScreen() {
         secondary={{ label: t('pointQr.confirm.close'), onPress: handleBack }}
       />
     )
-  } else if (!qrData) {
+  } else if (!qrData || !wasPointQrScanned(qrData)) {
+    // Không có mã, hoặc mã không đi qua màn quét (mở bằng deep link).
     body = (
       <Message
         palette={palette}
@@ -472,6 +475,13 @@ export default function PointConfirmScreen() {
           </View>
         </View>
 
+        <View style={[s.warning, { borderColor: palette.border }]}>
+          <TriangleAlert size={16} color={palette.warning} />
+          <Text style={[s.warningText, { color: palette.text }]}>
+            {t('pointQr.confirm.scamWarning')}
+          </Text>
+        </View>
+
         <Text style={[s.note, { color: palette.muted }]}>
           {t('pointQr.confirm.loyaltyNote')}
         </Text>
@@ -551,6 +561,7 @@ type Palette = {
   primarySoft: string
   danger: string
   success: string
+  warning: string
   successSoft: string
 }
 
@@ -789,6 +800,16 @@ const s = StyleSheet.create({
     fontVariant: ['tabular-nums'],
   },
 
+  warning: {
+    flexDirection: 'row',
+    gap: 10,
+    alignItems: 'flex-start',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+  },
+  warningText: { flex: 1, fontSize: 13, lineHeight: 18 },
   note: { fontSize: 13, lineHeight: 18, textAlign: 'center' },
   primaryBtn: {
     height: 52,

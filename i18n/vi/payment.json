@@ -69,7 +69,8 @@
       "source": "Nguồn tiền",
       "noticeLead": "Vui lòng ",
       "noticeBold": "kiểm tra và xác nhận",
-      "noticeTail": " thông tin thanh toán"
+      "noticeTail": " thông tin thanh toán",
+      "scamWarning": "Chỉ thanh toán khi bạn đang ở quầy và nhân viên đưa mã. Không quét mã do người khác gửi qua tin nhắn hay mạng xã hội."
     },
     "errors": {
       "notFound": "Không tìm thấy mã thanh toán.",
