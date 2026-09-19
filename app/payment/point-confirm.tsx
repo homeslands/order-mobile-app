@@ -4,13 +4,15 @@
  * Nhận `qrData` qua params. Kết quả xem trước đã nằm trong cache từ màn quét
  * nên màn hiện ngay; cache trống (mở lại app giữa chừng) thì tự gọi lại.
  *
- * Mất mạng lúc đang trả là trường hợp nguy hiểm nhất: xu có thể đã bị trừ mà
- * app không nhận được phản hồi. Trả lại ngay thì server báo 160207 và app
- * không phân biệt được do chính khách vừa trả hay người khác. Vì vậy hỏi lại
- * trạng thái QR trước (`recheck`), chỉ cho thử lại khi QR vẫn chờ trả.
+ * Mất mạng, hoặc không rõ lỗi (ví dụ 502/504 từ proxy) lúc đang trả là
+ * trường hợp nguy hiểm nhất: xu có thể đã bị trừ mà app không nhận được
+ * phản hồi, hoặc nhận phản hồi không đọc được mã lỗi. Trả lại ngay thì
+ * server báo 160207 và app không phân biệt được do chính khách vừa trả hay
+ * người khác. Vì vậy hỏi lại trạng thái QR trước (`recheck`), chỉ cho thử
+ * lại khi QR vẫn chờ trả.
  */
 import { Stack, useLocalSearchParams, useRouter } from 'expo-router'
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   ActivityIndicator,
@@ -65,6 +67,11 @@ export default function PointConfirmScreen() {
   const { balance, refetch: refetchBalance } = useCoinBalance()
   const { mutate: pay } = usePayPointPaymentQr()
   const [phase, setPhase] = useState<Phase>({ kind: 'ready' })
+  // Chặn double tap gọi pay() hai lần trước khi setPhase({ kind: 'paying' })
+  // kịp render lại (prop disabled chỉ có tác dụng sau render đó). Với
+  // TanStack v5, chỉ callback của lần gọi mutate() cuối chạy, nên lần trả
+  // đầu thành công có thể bị báo nhầm thành thất bại (alreadyPaid).
+  const payingRef = useRef(false)
 
   const busy = phase.kind === 'paying' || phase.kind === 'rechecking'
 
@@ -102,7 +109,8 @@ export default function PointConfirmScreen() {
   }, [refetchPreview])
 
   const handlePay = useCallback(() => {
-    if (!qrData) return
+    if (!qrData || payingRef.current) return
+    payingRef.current = true
     setPhase({ kind: 'paying' })
     pay(qrData, {
       // Số dư mới tính từ số dư lúc bấm trả: số dư từ server về chậm hơn
@@ -115,7 +123,7 @@ export default function PointConfirmScreen() {
         }),
       onError: (error) => {
         const kind = classifyPointQrError(error)
-        if (kind === 'network') {
+        if (kind === 'network' || kind === 'unknown') {
           void recheck()
           return
         }
@@ -126,6 +134,9 @@ export default function PointConfirmScreen() {
           return
         }
         setPhase({ kind: 'failed', error: kind })
+      },
+      onSettled: () => {
+        payingRef.current = false
       },
     })
   }, [balance, pay, qrData, recheck, refetchBalance])
