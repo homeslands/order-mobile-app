@@ -296,6 +296,15 @@ const errorCodes: { [key: number]: string } = {
   157002: 'toast.voucherGroupAlreadyExists',
   // Gift card error codes
   158205: 'toast.insufficientBalance',
+  // Point payment QR
+  160206: 'toast.pointQrNotFound',
+  160207: 'toast.pointQrAlreadyPaid',
+  160208: 'toast.pointQrCancelled',
+  160209: 'toast.pointQrOrderNotPayable',
+  160210: 'toast.pointQrMissingData',
+  160211: 'toast.pointQrCreateFailed',
+  160212: 'toast.pointQrInvalid',
+  160213: 'toast.pointQrMismatch',
   158402: 'toast.giftCardNotFound',
   158404: 'toast.errorWhenRemoveGiftCard',
   158406: 'toast.errorWhenUseGiftCard',

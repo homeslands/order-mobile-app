@@ -432,6 +432,14 @@
     "findOneVoucherFailed": "Voucher not found",
     "invoiceExportError": "Error exporting invoice",
     "voucherAutoRemoved": "Voucher is no longer valid and has been removed",
-    "pressBackToExit": "Press back again to exit"
+    "pressBackToExit": "Press back again to exit",
+    "pointQrNotFound": "Coin payment code not found",
+    "pointQrAlreadyPaid": "Coin payment code has already been paid",
+    "pointQrCancelled": "Coin payment code was cancelled",
+    "pointQrOrderNotPayable": "The order can no longer be paid",
+    "pointQrMissingData": "Missing QR code data",
+    "pointQrCreateFailed": "Couldn't create the coin payment code",
+    "pointQrInvalid": "Invalid QR code",
+    "pointQrMismatch": "QR code doesn't match the order"
   }
 }
