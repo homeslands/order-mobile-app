@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '@/constants'
 import { IGiftCard } from '@/types'
 import { formatCurrency, formatPoints } from '@/utils'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 interface GiftCardExistsWarningDialogProps {
@@ -83,9 +84,7 @@ export const GiftCardExistsWarningDialog = memo(
         enableHandlePanningGesture
         enableDynamicSizing={false}
         backdropComponent={renderBackdrop}
-        backgroundStyle={{
-          backgroundColor: isDark ? colors.card.dark : colors.white.light,
-        }}
+        backgroundComponent={GlassSheetBackground}
         handleIndicatorStyle={{
           backgroundColor: isDark ? colors.gray[600] : colors.gray[300],
         }}

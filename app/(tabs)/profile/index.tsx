@@ -63,6 +63,7 @@ import {
 import Animated from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useProfileAnimation } from './use-profile-animation'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 const AVATAR_SIZE = 100
@@ -177,10 +178,6 @@ const AvatarPickerSheet = React.memo(function AvatarPickerSheet({
   const sheetRef = useRef<BottomSheetModal>(null)
   const { bottom } = useSafeAreaInsets()
 
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
-  )
   const snapPoints = useMemo(() => [220 + bottom], [bottom])
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -211,7 +208,7 @@ const AvatarPickerSheet = React.memo(function AvatarPickerSheet({
       enableDynamicSizing={false}
       enableContentPanningGesture={false}
       backdropComponent={renderBackdrop}
-      backgroundStyle={bgStyle}
+      backgroundComponent={GlassSheetBackground}
       onDismiss={onClose}
     >
       <View style={[apStyles.container, { paddingBottom: bottom + 16 }]}>
