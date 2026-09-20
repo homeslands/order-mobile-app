@@ -39,6 +39,7 @@ import { SearchHeader } from '../update-order/components/voucher-sheet-in-update
 import { SearchResult } from '../update-order/components/voucher-sheet-in-update-order/search-result'
 import { SheetFooter } from '../update-order/components/voucher-sheet-in-update-order/sheet-footer'
 import { ValidList } from '../update-order/components/voucher-sheet-in-update-order/valid-list'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 const SNAP = ['90%']
@@ -565,7 +566,7 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
         activeOffsetY={[-10, 10]}
         failOffsetX={[-5, 5]}
         backdropComponent={renderBackdrop}
-        backgroundStyle={bgStyle}
+        backgroundComponent={GlassSheetBackground}
         handleIndicatorStyle={indicatorStyle}
         onDismiss={handleDismiss}
         keyboardBehavior="extend"

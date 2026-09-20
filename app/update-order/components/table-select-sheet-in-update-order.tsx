@@ -8,10 +8,11 @@ import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, useColorScheme, View } from 'react-native'
 
 import TableRow from '@/components/select/table-row'
-import { colors, TableStatus } from '@/constants'
+import { TableStatus } from '@/constants'
 import { useTables } from '@/hooks'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import { ITable } from '@/types'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 let sheetRef: BottomSheet | null = null
@@ -84,9 +85,7 @@ function TableSelectSheetInUpdateOrder() {
       enablePanDownToClose
       enableContentPanningGesture={false}
       backdropComponent={renderBackdrop}
-      backgroundStyle={{
-        backgroundColor: isDark ? colors.card.dark : '#ffffff',
-      }}
+      backgroundComponent={GlassSheetBackground}
       containerStyle={{ zIndex: 9999, elevation: 9999 }}
     >
       <View className="border-b border-gray-200 px-4 py-3 dark:border-[#2e2e2e]">

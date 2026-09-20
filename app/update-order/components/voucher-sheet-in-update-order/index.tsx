@@ -34,6 +34,7 @@ import { SearchHeader } from './search-header'
 import { SearchResult } from './search-result'
 import { SheetFooter } from './sheet-footer'
 import { ValidList } from './valid-list'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 
 const SNAP = ['90%']
 const MAX_VOUCHERS = 50
@@ -489,7 +490,7 @@ export const VoucherSheetInUpdateOrder = memo(
           activeOffsetY={[-10, 10]}
           failOffsetX={[-5, 5]}
           backdropComponent={renderBackdrop}
-          backgroundStyle={bgStyle}
+          backgroundComponent={GlassSheetBackground}
           handleIndicatorStyle={indicatorStyle}
           onDismiss={handleDismiss}
           keyboardBehavior="extend"
