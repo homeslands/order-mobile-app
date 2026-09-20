@@ -28,7 +28,7 @@ type AnimatedTabButtonProps = {
   buttonPaddingH: number
   indicatorWidth: number
   /** Worklet: dời indicator ngay lúc nhả tay, không đợi route đổi. */
-  onMoveIndicator: (targetX: number, slotWidth: number) => void
+  onMoveIndicator: (targetX: number) => void
 }
 
 export const AnimatedTabButton = React.memo(function AnimatedTabButton({
@@ -55,10 +55,7 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
   // và nhờ vậy nó không phải chờ router dựng xong màn mới bắt đầu chạy.
   const handleTap = useCallback(() => {
     'worklet'
-    onMoveIndicator(
-      buttonPaddingH + buttonIndex * indicatorWidth,
-      indicatorWidth,
-    )
+    onMoveIndicator(buttonPaddingH + buttonIndex * indicatorWidth)
   }, [onMoveIndicator, buttonPaddingH, buttonIndex, indicatorWidth])
 
   // 1 when indicator covers this button, 0 when ≥1 slot away — all on UI thread

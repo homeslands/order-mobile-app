@@ -94,22 +94,12 @@ export const SPRING_CONFIGS = {
     energyThreshold: 0.1,
   } as const,
 
-  /**
-   * Tab bar sliding indicator — chạy qua `withFrameCappedTiming`, không phải
-   * `withSpring`: đổi tab làm luồng UI đơ cả trăm mili giây, mà animation theo
-   * đồng hồ thật sẽ nhảy vọt qua chỗ đơ đó. `maxFrameMs` = 20 (nhỉnh hơn một
-   * khung ở 60Hz) nên chạy bình thường không bị ghìm, còn một cú đơ 100ms chỉ
-   * ăn mất một bước thay vì cả quãng đường.
-   */
+  /** Tab bar sliding indicator — snappy, ~100ms settle. */
   tabIndicator: {
-    duration: 380,
-    maxFrameMs: 20,
-  } as const,
-
-  /** Độ giãn ngang của indicator co lại sau khi trượt — nhanh hơn cú trượt. */
-  tabIndicatorStretch: {
-    duration: 260,
-    maxFrameMs: 20,
+    stiffness: 500,
+    damping: 32,
+    mass: 0.25,
+    overshootClamping: true,
   } as const,
 
   /** Tab button scale/translate active — mild lift, gentle settle. */

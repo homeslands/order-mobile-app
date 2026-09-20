@@ -9,11 +9,10 @@ import Animated, {
   runOnUI,
   useAnimatedStyle,
   useSharedValue,
-  withSequence,
+  withSpring,
 } from 'react-native-reanimated'
 
 import { SPRING_CONFIGS } from '@/constants'
-import { withFrameCappedTiming } from '@/lib/transitions/frame-capped-timing'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { AnimatedTabButton } from './animated-tab-button'
 
@@ -23,16 +22,6 @@ const PADDING_V = 4
 const CONTENT_HEIGHT = 32 + 14 + 12
 const PILL_RADIUS = (PADDING_V * 2 + CONTENT_HEIGHT) / 2
 const PADDING_H_DEFAULT = 10
-
-/**
- * Indicator giãn ngang trong lúc trượt rồi co lại — chỗ trượt càng xa thì giãn
- * càng nhiều, giống viên kính kéo dài theo hướng đi trên iOS 26. Nhân với số ô
- * đi qua (kẹp ở 3, tức đi hết chiều ngang thanh tab).
- */
-const STRETCH_PER_SLOT = 0.06
-const MAX_STRETCH_SLOTS = 3
-/** Thời gian giãn ra; ngắn hơn cú trượt để bắt kịp lúc indicator tăng tốc. */
-const STRETCH_RISE_MS = 130
 
 type Colors = {
   primary: string
@@ -73,7 +62,6 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   })
   const { pillWidth, paddingH } = layout
   const indicatorX = useSharedValue(0)
-  const indicatorStretch = useSharedValue(1)
   /**
    * Đích cuối cùng đã ra lệnh cho `indicatorX`. Cú chạm và effect theo route
    * đều gọi `moveIndicator`, nên cần mốc này để lần gọi thứ hai (effect, chậm
@@ -104,28 +92,11 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
    * đợi router) và từ effect theo route (chốt lại khi màn đã đổi).
    */
   const moveIndicator = useCallback(
-    (targetX: number, slotWidth: number) => {
+    (targetX: number) => {
       'worklet'
       if (indicatorTarget.value === targetX) return
       indicatorTarget.value = targetX
-
-      const slots = Math.min(
-        Math.abs(targetX - indicatorX.value) / slotWidth,
-        MAX_STRETCH_SLOTS,
-      )
-      // Độ giãn dùng chung đồng hồ theo khung với vị trí, nếu không nó sẽ co
-      // lại xong trong lúc viên cam còn đang đi.
-      indicatorStretch.value = withSequence(
-        withFrameCappedTiming(1 + slots * STRETCH_PER_SLOT, {
-          duration: STRETCH_RISE_MS,
-          maxFrameMs: SPRING_CONFIGS.tabIndicator.maxFrameMs,
-        }),
-        withFrameCappedTiming(1, SPRING_CONFIGS.tabIndicatorStretch),
-      )
-      indicatorX.value = withFrameCappedTiming(
-        targetX,
-        SPRING_CONFIGS.tabIndicator,
-      )
+      indicatorX.value = withSpring(targetX, SPRING_CONFIGS.tabIndicator)
     },
     // Shared value là ref ổn định, không cần nằm trong deps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -141,7 +112,7 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
       hasAnimatedRef.current = true
       return
     }
-    runOnUI(moveIndicator)(targetX, itemWidth)
+    runOnUI(moveIndicator)(targetX)
   }, [
     activeIndex,
     paddingH,
@@ -161,10 +132,7 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   }, [])
 
   const slidingIndicatorStyle = useAnimatedStyle(() => ({
-    transform: [
-      { translateX: indicatorX.value },
-      { scaleX: indicatorStretch.value },
-    ],
+    transform: [{ translateX: indicatorX.value }],
   }))
 
   // Static config — no tabState dep; rebuilds only when routes/translations change
