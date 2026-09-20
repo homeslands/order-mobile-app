@@ -22,6 +22,7 @@ import {
 import { Images } from '@/assets/images'
 import { extractMenuItems } from '@/api/menu'
 import { OrderFlowStep, ROUTE } from '@/constants'
+import { TAB_ROUTES } from '@/constants/navigation.config'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import {
   usePressInPrefetchMenuItem,
@@ -302,7 +303,7 @@ function SliderRelatedProducts({
       isNewProduct: undefined,
       isTopSell: undefined,
     }))
-    router.navigate(ROUTE.CLIENT_MENU)
+    router.navigate(TAB_ROUTES.MENU)
   }, [catalog, setMenuFilter, router])
 
   const handleItemPress = useCallback((slug: string) => {
