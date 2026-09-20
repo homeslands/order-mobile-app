@@ -168,7 +168,7 @@ export default function TabsLayout() {
         </NativeTabs.Trigger>
       </NativeTabs>
 
-      {!shouldHideCartButton(pathname) && (
+      {!shouldHideCartButton(pathname, isAuthenticated) && (
         <View
           style={{
             position: 'absolute',
