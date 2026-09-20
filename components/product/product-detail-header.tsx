@@ -84,16 +84,16 @@ function BlurCircle({
   if (level > 0) {
     const solidBg = isDark ? colors.card.dark : colors.white.light
     return (
-      <GlassSurface
-        color={solidBg}
-        radius={20}
-        interactive
-        style={styles.circle}
-      >
-        <Pressable onPress={onPress} style={styles.circleInner} hitSlop={8}>
+      <Pressable onPress={onPress} style={styles.circle} hitSlop={8}>
+        <GlassSurface
+          color={solidBg}
+          radius={20}
+          interactive
+          style={styles.circleInner}
+        >
           {children}
-        </Pressable>
-      </GlassSurface>
+        </GlassSurface>
+      </Pressable>
     )
   }
 
