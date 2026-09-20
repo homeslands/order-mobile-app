@@ -16,6 +16,7 @@ import {
   showErrorToast,
   showToast,
 } from '@/utils'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import {
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
@@ -183,10 +184,6 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
     tToast,
   ])
 
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
-  )
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
@@ -275,7 +272,7 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
       enableHandlePanningGesture
       enableDynamicSizing={false}
       backdropComponent={renderBackdrop}
-      backgroundStyle={bgStyle}
+      backgroundComponent={GlassSheetBackground}
       onDismiss={onClose}
       footerComponent={renderFooter}
     >

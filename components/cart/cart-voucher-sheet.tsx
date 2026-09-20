@@ -7,6 +7,7 @@ import { VoucherQrScanner } from '@/components/scan/voucher-qr-scanner'
 import { VoucherCard } from './voucher-card'
 import { VoucherConditionModal } from './voucher-condition-modal'
 import { colors } from '@/constants'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import {
   usePublicVouchersForOrder,
   useSpecificPublicVoucher,
@@ -584,7 +585,7 @@ export const VoucherSheet = memo(function VoucherSheet({
         activeOffsetY={[-10, 10]}
         failOffsetX={[-5, 5]}
         backdropComponent={renderBackdrop}
-        backgroundStyle={bgStyle}
+        backgroundComponent={GlassSheetBackground}
         handleIndicatorStyle={indicatorStyle}
         onDismiss={handleDismiss}
         footerComponent={renderFooter}
