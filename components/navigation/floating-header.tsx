@@ -6,6 +6,7 @@
  * BlurView (iOS) + LinearGradient fade, absolute positioned.
  */
 import { BlurView } from 'expo-blur'
+import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect'
 import { LinearGradient } from 'expo-linear-gradient'
 import { ChevronLeft } from 'lucide-react-native'
 import React, { memo, useMemo } from 'react'
@@ -29,6 +30,48 @@ interface FloatingHeaderProps {
   /** iOS only: bỏ BlurView, chỉ dùng LinearGradient fade thuần */
   disableBlur?: boolean
 }
+
+/**
+ * Nút tròn của header: kính thật trên iOS 26+, nền đặc ở mọi nơi khác.
+ *
+ * `isLiquidGlassAvailable()` chỉ hỏi hệ thống một lần, không phải hook. Khi
+ * không có kính, `GlassView` rơi về View trơn và mất luôn nền, nên nhánh
+ * fallback phải tự tô nền — không được bỏ trống.
+ */
+const HAS_LIQUID_GLASS = isLiquidGlassAvailable()
+
+const CircleButton = memo(function CircleButton({
+  isDark,
+  onPress,
+  children,
+}: {
+  isDark: boolean
+  onPress?: () => void
+  children: React.ReactNode
+}) {
+  const solidBg = isDark ? colors.card.dark : colors.white.light
+
+  return (
+    <Pressable
+      onPress={onPress}
+      hitSlop={8}
+      style={[
+        s.circleBtn,
+        !HAS_LIQUID_GLASS && { backgroundColor: solidBg },
+        !HAS_LIQUID_GLASS && s.shadow,
+      ]}
+    >
+      {HAS_LIQUID_GLASS ? (
+        <GlassView
+          style={[StyleSheet.absoluteFill, s.circleGlass]}
+          glassEffectStyle="regular"
+          isInteractive
+        />
+      ) : null}
+      {children}
+    </Pressable>
+  )
+})
 
 export const FloatingHeader = memo(function FloatingHeader({
   title,
@@ -93,20 +136,12 @@ export const FloatingHeader = memo(function FloatingHeader({
         style={[s.row, { paddingTop: STATIC_TOP_INSET + 10 }]}
         pointerEvents="auto"
       >
-        <Pressable
-          onPress={handleBack}
-          hitSlop={8}
-          style={[
-            s.circleBtn,
-            { backgroundColor: isDark ? colors.card.dark : colors.white.light },
-            s.shadow,
-          ]}
-        >
+        <CircleButton isDark={isDark} onPress={handleBack}>
           <ChevronLeft
             size={20}
             color={isDark ? colors.gray[50] : colors.gray[900]}
           />
-        </Pressable>
+        </CircleButton>
 
         {rightElement ?? <View style={s.circleBtn} />}
       </View>
@@ -148,7 +183,9 @@ const s = StyleSheet.create({
     borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
+  circleGlass: { borderRadius: 19 },
   shadow: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
