@@ -26,4 +26,20 @@ describe('GlassSheetBackground', () => {
     expect(surface.props.radius).toBe(24)
     expect(surface.props.color).toBeDefined()
   })
+
+  it('giữ đúng accessibility + pointerEvents của nền mặc định gorhom', () => {
+    render(
+      <GlassSheetBackground
+        style={{ backgroundColor: 'red' }}
+        pointerEvents="none"
+        animatedIndex={{ value: 0 } as never}
+        animatedPosition={{ value: 0 } as never}
+      />,
+    )
+
+    const root = screen.getByLabelText('Bottom Sheet')
+    expect(root.props.accessible).toBe(true)
+    expect(root.props.accessibilityRole).toBe('adjustable')
+    expect(root.props.pointerEvents).toBe('none')
+  })
 })
