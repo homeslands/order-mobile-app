@@ -436,6 +436,14 @@
       "large": "Large",
       "preview": "Sample text"
     },
+    "glass": {
+      "title": "Glass transparency",
+      "subtitle": "Drag to set how transparent bars, sheets and dialogs look.",
+      "solid": "Solid",
+      "clear": "Clear",
+      "preview": "Preview",
+      "reduceTransparencyNote": "Turned off by the device's Reduce Transparency setting."
+    },
     "dobPicker": {
       "confirm": "Confirm",
       "months": [

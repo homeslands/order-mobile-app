@@ -3,12 +3,14 @@ import { ScreenContainer } from '@/components/layout'
 import {
   DeleteAccountSheet,
   FontSizeSheet,
+  GlassSheet,
   LanguageSheet,
   ThemeSheet,
 } from '@/components/profile'
 import { colors, publicFileURL, QUERYKEY } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { clearOrderDisplayCache } from '@/app/profile/history'
+import { useGlassSupported } from '@/hooks/use-glass-level'
 import { useUploadAvatar } from '@/hooks'
 import { useAuthStore, useUserStore } from '@/stores'
 import { useNotificationStore } from '@/stores/notification.store'
@@ -34,6 +36,7 @@ import {
   ImageIcon,
   Languages,
   ScanLine,
+  Sparkles,
   SunMoon,
   Trash2,
   Trophy,
@@ -480,14 +483,16 @@ const ProfileTest = () => {
   const closeThemeSheet = useCallback(() => setIsThemeSheetOpen(false), [])
 
   const [isFontSizeSheetOpen, setIsFontSizeSheetOpen] = useState(false)
-  const openFontSizeSheet = useCallback(
-    () => setIsFontSizeSheetOpen(true),
-    [],
-  )
+  const openFontSizeSheet = useCallback(() => setIsFontSizeSheetOpen(true), [])
   const closeFontSizeSheet = useCallback(
     () => setIsFontSizeSheetOpen(false),
     [],
   )
+
+  const [isGlassSheetOpen, setIsGlassSheetOpen] = useState(false)
+  const openGlassSheet = useCallback(() => setIsGlassSheetOpen(true), [])
+  const closeGlassSheet = useCallback(() => setIsGlassSheetOpen(false), [])
+  const glassSupported = useGlassSupported()
 
   const openQRSelection = useQRSelectionSheetStore((s) => s.open)
 
@@ -848,6 +853,24 @@ const ProfileTest = () => {
                   { backgroundColor: theme.divider },
                 ]}
               />
+              {glassSupported ? (
+                <>
+                  <MenuItem
+                    icon={Sparkles}
+                    iconColor={ICON_COLORS.indigo}
+                    title={t('profile.glass.title', 'Độ trong của kính')}
+                    onPress={openGlassSheet}
+                    textColor={theme.text}
+                    textMuted={theme.textMuted}
+                  />
+                  <View
+                    style={[
+                      styles.menuItemDivider,
+                      { backgroundColor: theme.divider },
+                    ]}
+                  />
+                </>
+              ) : null}
               <MenuItem
                 icon={Trash2}
                 iconColor={ICON_COLORS.red}
@@ -908,6 +931,14 @@ const ProfileTest = () => {
         isDark={isDark}
         primaryColor={isDark ? colors.primary.dark : colors.primary.light}
       />
+      {glassSupported ? (
+        <GlassSheet
+          visible={isGlassSheetOpen}
+          onClose={closeGlassSheet}
+          isDark={isDark}
+          primaryColor={isDark ? colors.primary.dark : colors.primary.light}
+        />
+      ) : null}
       <DeleteAccountSheet
         visible={showDeleteSheet}
         onClose={() => setShowDeleteSheet(false)}
