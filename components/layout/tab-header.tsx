@@ -19,6 +19,7 @@ import type { StyleProp, ViewStyle } from 'react-native'
 import { Images } from '@/assets/images'
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
+import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
 
 export interface TabHeaderProps {
@@ -56,12 +57,8 @@ export const TabHeader = memo(function TabHeader({
   const borderColor = isDark ? colors.border.dark : colors.border.light
 
   return (
-    <View
-      style={[
-        s.root,
-        { backgroundColor: bgColor, paddingTop: STATIC_TOP_INSET },
-      ]}
-    >
+    <View style={[s.root, { paddingTop: STATIC_TOP_INSET }]}>
+      <GlassSurface color={bgColor} style={StyleSheet.absoluteFill} />
       <Animated.View style={[s.row, animatedStyle]}>
         {/* Left — logo or title */}
         {variant === 'logo' ? (

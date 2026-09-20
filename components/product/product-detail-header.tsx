@@ -10,6 +10,8 @@ import Animated, {
 
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
+import { useGlassLevel } from '@/hooks/use-glass-level'
+import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
 
 const ICON_SIZE = 22
@@ -76,7 +78,24 @@ function BlurCircle({
   onPress: () => void
   children: React.ReactNode
 }) {
+  const level = useGlassLevel()
   const overlay = isDark ? CIRCLE_OVERLAY_DARK : CIRCLE_OVERLAY_LIGHT
+
+  if (level > 0) {
+    const solidBg = isDark ? colors.card.dark : colors.white.light
+    return (
+      <GlassSurface
+        color={solidBg}
+        radius={20}
+        interactive
+        style={styles.circle}
+      >
+        <Pressable onPress={onPress} style={styles.circleInner} hitSlop={8}>
+          {children}
+        </Pressable>
+      </GlassSurface>
+    )
+  }
 
   if (Platform.OS === 'ios') {
     return (

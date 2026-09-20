@@ -4,11 +4,13 @@
  */
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
+import { useGlassLevel } from '@/hooks/use-glass-level'
 import { ChevronLeft, Trash2 } from 'lucide-react-native'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native'
 import { BlurView } from 'expo-blur'
+import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
 
 export type CartHeaderBlurProps = {
@@ -27,9 +29,11 @@ export function CartHeaderBlur({
   isDark = false,
 }: CartHeaderBlurProps) {
   const { t } = useTranslation('menu')
+  const level = useGlassLevel()
   const iconColor = isDark
     ? colors.mutedForeground.dark
     : colors.mutedForeground.light
+  const bgColor = isDark ? colors.background.dark : colors.background.light
 
   return (
     <View
@@ -47,11 +51,15 @@ export function CartHeaderBlur({
         },
       ]}
     >
-      <BlurView
-        intensity={Platform.OS === 'ios' ? 60 : 80}
-        tint={isDark ? 'dark' : 'light'}
-        style={StyleSheet.absoluteFillObject}
-      />
+      {level > 0 ? (
+        <GlassSurface color={bgColor} style={StyleSheet.absoluteFillObject} />
+      ) : (
+        <BlurView
+          intensity={Platform.OS === 'ios' ? 60 : 80}
+          tint={isDark ? 'dark' : 'light'}
+          style={StyleSheet.absoluteFillObject}
+        />
+      )}
       <View
         style={[
           styles.content,
