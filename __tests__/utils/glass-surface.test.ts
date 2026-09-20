@@ -23,18 +23,22 @@ describe('glassTint', () => {
     expect(glassTint('#ffffff', 0.333)).toBe('rgba(255, 255, 255, 0.67)')
   })
 
-  it('tintOverride khác color không bao giờ xuống dưới TINT_FLOOR, kể cả ở mức 1', () => {
+  it('có tintOverride thì không bao giờ xuống dưới TINT_FLOOR, kể cả ở mức 1', () => {
     expect(glassTint('#ffffff', 1, '#F7A737')).toBe('rgba(247, 167, 55, 0.5)')
   })
 
-  it('tintOverride khác color giữ floor ở mức cao gần 1 (0.8)', () => {
+  it('có tintOverride giữ floor ở mức cao gần 1 (0.8)', () => {
     expect(glassTint('#ffffff', 0.8, '#F7A737')).toBe('rgba(247, 167, 55, 0.5)')
   })
 
-  it('tintOverride bằng color coi như không có override, giữ hành vi cũ', () => {
-    expect(glassTint('#ffffff', 1, '#ffffff')).toBeUndefined()
-    expect(glassTint('#ffffff', 0.75, '#ffffff')).toBe(
-      'rgba(255, 255, 255, 0.25)',
+  it('tintOverride bằng color vẫn được floor như mọi tintOverride khác', () => {
+    expect(glassTint('#ffffff', 1, '#ffffff')).toBe('rgba(255, 255, 255, 0.5)')
+    expect(glassTint('#ffffff', 0.3, '#ffffff')).toBe(
+      'rgba(255, 255, 255, 0.7)',
     )
+  })
+
+  it('không có tintOverride thì mức 1 vẫn là kính nguyên bản, không pha màu', () => {
+    expect(glassTint('#ffffff', 1)).toBeUndefined()
   })
 })
