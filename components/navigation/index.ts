@@ -1,6 +1,4 @@
-export { AnimatedTabBar } from './animated-tab-bar'
 export { FloatingHeader } from './floating-header'
-export { AnimatedTabButton } from './animated-tab-button'
 export { CartBadge } from './cart-badge'
 export { DeferredReanimatedEntering } from './deferred-reanimated-entering'
 export { FloatingCartButton } from './floating-cart-button'

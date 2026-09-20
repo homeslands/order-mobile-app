@@ -16,7 +16,8 @@ function isTransitionFPSMonitorEnabled(): boolean {
 }
 
 /**
- * Menu tab stack — index (danh sách món) + product/[id] (chi tiết món) + cart.
+ * Menu tab stack — chỉ còn index (danh sách món). product/[id] và cart đã
+ * chuyển ra stack gốc.
  *
  * screenOptions forces statusBarTranslucent: true at the NAVIGATOR level.
  * Why: setting statusBarTranslucent per-screen via <Stack.Screen options>

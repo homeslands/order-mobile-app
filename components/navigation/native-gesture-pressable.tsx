@@ -32,11 +32,6 @@ export type NativeGesturePressableProps = {
   onPressIn?: () => void
   /** Gọi khi State.END (finger up). */
   onPressOut?: () => void
-  /**
-   * Worklet chạy ngay trên UI thread khi tap được công nhận, trước navigation.
-   * Dùng cho hiệu ứng phải khớp với cú chạm chứ không chờ màn mới dựng xong.
-   */
-  onTapWorklet?: () => void
   disabled?: boolean
   /** className cho NativeWind */
   className?: string
@@ -60,7 +55,6 @@ export const NativeGesturePressable = React.forwardRef<
     onPress,
     onPressIn,
     onPressOut,
-    onTapWorklet,
     disabled,
     className,
     hapticStyle: _hapticStyle = 'none', // giữ prop để không break API, nhưng không dùng
@@ -119,7 +113,6 @@ export const NativeGesturePressable = React.forwardRef<
         // tự dedupe/handle concurrent calls. Lock check ở đây sẽ drop legitimate
         // rapid taps giữa các tab khác nhau.
         if (isTabNavigate) {
-          if (onTapWorklet) onTapWorklet()
           runOnJS(triggerAction)()
           pressScale.value = withSpring(1, SPRING_CONFIGS.press)
           return
@@ -134,7 +127,6 @@ export const NativeGesturePressable = React.forwardRef<
           return
         }
         isLockedShared.value = 1
-        if (onTapWorklet) onTapWorklet()
         runOnJS(triggerAction)()
         pressScale.value = withSpring(1, SPRING_CONFIGS.press)
       })
@@ -153,7 +145,6 @@ export const NativeGesturePressable = React.forwardRef<
     triggerAction,
     pressScale,
     onPressIn,
-    onTapWorklet,
     isTabNavigate,
   ])
 

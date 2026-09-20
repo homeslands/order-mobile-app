@@ -1,8 +1,6 @@
 /** Native Stack + Tabs. Bootstrap: lib/navigation-setup.ts */
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack'
 
-const LAZY_DEBUG = process.env.EXPO_PUBLIC_PHASE4_LAZY_DEBUG === 'true'
-
 /**
  * QUAN TRỌNG: expo-router's usePathname() strip group segment — pathname
  * thật trả về '/home', '/menu', '/menu/product/xxx' (KHÔNG có '/(tabs)/'
@@ -36,12 +34,4 @@ export const stackScreenOptions: NativeStackNavigationOptions = {
   presentation: 'card',
   freezeOnBlur: true,
   contentStyle: { backgroundColor: '#ffffff' },
-}
-
-/** Bottom Tabs: no animation (instant switch), freezeOnBlur. Tránh flash màn cũ. */
-export const tabsScreenOptions = {
-  headerShown: false,
-  lazy: !LAZY_DEBUG,
-  freezeOnBlur: true,
-  animation: 'none' as const,
 }
