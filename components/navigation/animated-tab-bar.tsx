@@ -153,10 +153,24 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
         <Animated.View
           style={[
             styles.slidingIndicator,
-            { width: itemWidth, backgroundColor: colors.primary },
+            { width: itemWidth },
+            HAS_LIQUID_GLASS
+              ? styles.indicatorGlassClip
+              : { backgroundColor: colors.primary },
             slidingIndicatorStyle,
           ]}
-        />
+        >
+          {/* Viên nền tab đang chọn: kính pha màu thương hiệu, trôi theo cùng
+              animation với indicator. */}
+          {HAS_LIQUID_GLASS ? (
+            <GlassView
+              style={[StyleSheet.absoluteFill, styles.indicatorGlassClip]}
+              glassEffectStyle="regular"
+              tintColor={colors.primary}
+              pointerEvents="none"
+            />
+          ) : null}
+        </Animated.View>
         {tabConfigs.map(({ Icon, href, label }, index) => (
           <AnimatedTabButton
             key={href}
@@ -187,6 +201,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   pillGlassClip: { borderRadius: 9999, overflow: 'hidden' },
+  indicatorGlassClip: { borderRadius: 9999, overflow: 'hidden' },
   pill: {
     flex: 1,
     flexDirection: 'row',

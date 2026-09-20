@@ -29,6 +29,7 @@ import { AnimatedTabBar, FloatingCartButton } from '@/components/navigation'
 import { HAS_LIQUID_GLASS } from '@/utils/liquid-glass'
 import { OrderReadyPickupSheet } from '@/components/notification/order-ready-pickup-sheet'
 import { MOTION, QUERYKEY, tabsScreenOptions } from '@/constants'
+import { colors as palette } from '@/constants'
 import { STATIC_BOTTOM_INSET } from '@/constants/status-bar'
 import { usePredictivePrefetch } from '@/hooks'
 import { useNotifications } from '@/hooks/use-notification'
@@ -161,11 +162,23 @@ export default function TabsLayout() {
   const tabColors = useMemo(
     () => ({
       primary: colors.primary,
-      mutedForeground: colors.mutedForeground,
+      // Trên nền kính, xám nhạt mặc định chìm vào nội dung phía sau nên tab
+      // chưa chọn khó đọc. Đổi sang mực đậm; nền đặc vẫn giữ xám như cũ.
+      mutedForeground: HAS_LIQUID_GLASS
+        ? isDark
+          ? palette.gray[200]
+          : palette.gray[800]
+        : colors.mutedForeground,
       background: colors.background,
       card: colors.card,
     }),
-    [colors.primary, colors.mutedForeground, colors.background, colors.card],
+    [
+      colors.primary,
+      colors.mutedForeground,
+      colors.background,
+      colors.card,
+      isDark,
+    ],
   )
 
   const gradientColors = useMemo(
