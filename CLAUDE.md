@@ -97,7 +97,7 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 - `app/_layout.tsx` — Root layout with all global providers (QueryClient, GestureHandler, BottomSheet, MasterTransition, SharedElement, Toast, I18n)
 - `app/(tabs)/_layout.tsx` — Tab navigator using the OS-native tab bar (`expo-router/unstable-native-tabs`)
 - Main tabs (in order): home, menu, gift-card, profile, cart — cart is the last tab (renders as a detached pill via `role="search"` on iOS 26+)
-- Nested routes: `/product/[id]`, `/profile/edit`, `/auth/*`, `/payment/[order]`, `/update-order/[order]`
+- Nested routes: `/product/[id]`, `/profile/edit`, `/auth/*`, `/payment/[order]`, `/update-order/[slug]`
 
 ### State Management
 

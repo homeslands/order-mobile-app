@@ -21,7 +21,7 @@ mobile-movie-app/
 │   │   └── profile/
 │   ├── auth/                    # Auth screens (outside tabs)
 │   ├── payment/[order].tsx      # Dynamic payment screen
-│   ├── update-order/[order].tsx # Update order screen
+│   ├── update-order/[slug].tsx  # Update order screen
 │   └── ...
 ├── components/                   # Reusable UI components
 │   ├── ui/                      # Atomic UI components (button, input, card, etc.)
@@ -74,7 +74,6 @@ mobile-movie-app/
 ├── lib/                          # Internal libraries & configs
 │   ├── navigation/              # Navigation engine
 │   │   ├── master-transition-provider.tsx
-│   │   ├── ghost-mount-provider.tsx
 │   │   └── ...
 │   ├── http-setup.ts            # Bootstrap HTTP auth
 │   ├── shared-element/          # Shared element transitions
