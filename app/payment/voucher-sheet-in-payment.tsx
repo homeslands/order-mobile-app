@@ -320,10 +320,6 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
   const isNewSelection = !!selectedVoucher && !isCurrentApplied
 
   // ── Sheet callbacks ───────────────────────────────────────────────────────
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
-  )
   const indicatorStyle = useMemo(
     () => ({ backgroundColor: isDark ? colors.gray[600] : colors.gray[300] }),
     [isDark],
@@ -710,7 +706,6 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
         onClose={handleCloseConditionModal}
         isDark={isDark}
         primaryColor={primaryColor}
-        bgStyle={bgStyle}
         indicatorStyle={indicatorStyle}
         bottomInset={insets.bottom}
       />

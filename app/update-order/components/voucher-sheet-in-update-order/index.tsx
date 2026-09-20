@@ -300,12 +300,6 @@ export const VoucherSheetInUpdateOrder = memo(
     const isNewSelection = !!selectedVoucher && !isCurrentApplied
 
     // ── Sheet callbacks ───────────────────────────────────────────────────────
-    const bgStyle = useMemo(
-      () => ({
-        backgroundColor: isDark ? colors.card.dark : colors.white.light,
-      }),
-      [isDark],
-    )
     const indicatorStyle = useMemo(
       () => ({ backgroundColor: isDark ? colors.gray[600] : colors.gray[300] }),
       [isDark],
@@ -566,7 +560,6 @@ export const VoucherSheetInUpdateOrder = memo(
           onClose={() => setConditionVoucher(null)}
           isDark={isDark}
           primaryColor={primaryColor}
-          bgStyle={bgStyle}
           indicatorStyle={indicatorStyle}
           bottomInset={insets.bottom}
         />

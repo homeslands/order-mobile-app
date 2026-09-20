@@ -294,10 +294,6 @@ export const VoucherSheet = memo(function VoucherSheet({
     return { validVouchers: valid, invalidVouchers: invalid }
   }, [processed])
 
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
-  )
   const indicatorStyle = useMemo(
     () => ({ backgroundColor: isDark ? colors.gray[600] : colors.gray[300] }),
     [isDark],
@@ -871,7 +867,6 @@ export const VoucherSheet = memo(function VoucherSheet({
         onClose={handleCloseConditionModal}
         isDark={isDark}
         primaryColor={primaryColor}
-        bgStyle={bgStyle}
         indicatorStyle={indicatorStyle}
         bottomInset={insets.bottom}
       />
