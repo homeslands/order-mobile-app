@@ -33,6 +33,21 @@ import { useNotificationStore } from '@/stores/notification.store'
 
 const isAndroid = Platform.OS === 'android'
 
+// role="search" map thẳng sang UITabBarItem.SystemItem.search — API này tồn
+// tại từ rất lâu, KHÔNG chỉ trên iOS 26, nên tự nó không rào theo phiên bản.
+// Dáng ô tròn tách rời chỉ xuất hiện trên thanh tab kiểu iOS 26; ở bản thấp
+// hơn (app hỗ trợ tối thiểu 15.1, xem ios/Podfile) thanh tab là dạng cổ điển
+// và LUÔN hiện nhãn dưới icon — nhãn đó do hệ thống tự đặt cho system item
+// ("Tìm kiếm"/"Search"), bỏ qua <Label> (xem RNSBottomTabsScreenComponentView.mm,
+// updateTabBarItem: khi _systemItem != None thì không gán tabBarItem.title).
+// Nếu không rào ở đây, người dùng iOS 15–18 sẽ thấy icon giỏ hàng kèm chữ
+// "Tìm kiếm" thay vì "Giỏ hàng". Platform.Version trên iOS là string (vd.
+// "17.4.1"), không phải number như Android (xem PlatformIOSStatic trong
+// react-native/Libraries/Utilities/Platform.d.ts) — parseInt lấy major
+// version rồi so sánh.
+const supportsDetachedSearchTab =
+  Platform.OS === 'ios' && parseInt(Platform.Version, 10) >= 26
+
 export default function TabsLayout() {
   const { t } = useTranslation('tabs')
   const pathname = usePathname()
@@ -166,14 +181,25 @@ export default function TabsLayout() {
           )}
           <Label>{t('tabs.profile', 'Tài khoản')}</Label>
         </NativeTabs.Trigger>
-        {/* role="search" (iOS only) — CHỦ Ý, đã chốt sau khi xem trên máy thật.
-            Đây là cách DUY NHẤT để có dáng nút tròn tách rời bên phải thanh
-            tab theo Apple HIG (iOS 26): nó map thẳng sang
+        {/* role="search" (iOS 26+ only) — CHỦ Ý, đã chốt sau khi xem trên máy
+            thật. Đây là cách DUY NHẤT để có dáng nút tròn tách rời bên phải
+            thanh tab theo Apple HIG (iOS 26): nó map thẳng sang
             `UITabBarItem(tabBarSystemItem: .search)` ở native
             (xem RCTConvert+RNSBottomTabs.mm trong react-native-screens).
             Không có prop/API nào khác của NativeTabs tạo được hình dạng này.
 
-            Đánh đổi đã biết và đã CHẤP NHẬN có ý thức (không phải bug):
+            RÀO PHIÊN BẢN — quan trọng nhất, không phải chỉ iPad/cỡ chữ lớn:
+            `.search` là system item có sẵn từ lâu, chạy được trên mọi phiên
+            bản iOS (app hỗ trợ tối thiểu 15.1, xem ios/Podfile). Ô tròn tách
+            rời chỉ là hình dạng trên thanh tab kiểu iOS 26; ở bản thấp hơn,
+            thanh tab là dạng cổ điển và LUÔN hiện nhãn dưới icon — nếu vẫn
+            gán role="search" ở đó, người dùng sẽ thấy icon giỏ hàng kèm chữ
+            "Tìm kiếm" hệ thống thay vì "Giỏ hàng". Do đó chỉ bật role này khi
+            `supportsDetachedSearchTab` (iOS >= 26); các bản khác rơi về tab
+            thường, dùng đúng <Label> bên dưới.
+
+            Đánh đổi đã biết và đã CHẤP NHẬN có ý thức (không phải bug, chỉ áp
+            dụng khi supportsDetachedSearchTab = true):
             1. Nhãn do hệ thống tự đặt, không ghi đè được — ở bố cục có hiện
                nhãn cạnh icon search (iPad, cỡ chữ trợ năng lớn) nó sẽ hiện
                "Tìm kiếm"/"Search" chứ không phải text trong <Label> bên dưới.
@@ -185,7 +211,10 @@ export default function TabsLayout() {
                không có cách nào override từ phía app.
             Android không có khái niệm "search tab" trong Material You, nên
             role=undefined ở đó, giữ nguyên tab thường. */}
-        <NativeTabs.Trigger name="cart" role={isAndroid ? undefined : 'search'}>
+        <NativeTabs.Trigger
+          name="cart"
+          role={supportsDetachedSearchTab ? 'search' : undefined}
+        >
           {isAndroid ? (
             <Icon
               src={<VectorIcon family={MaterialIcons} name="shopping-cart" />}
@@ -193,9 +222,9 @@ export default function TabsLayout() {
           ) : (
             <Icon sf={{ default: 'cart', selected: 'cart.fill' }} />
           )}
-          {/* <Label> vẫn cần giữ dù iOS bỏ qua nó (dùng nhãn hệ thống của
-              role="search") — Android không có role này nên vẫn hiện nhãn
-              "Giỏ hàng" bình thường. */}
+          {/* <Label> vẫn cần giữ dù iOS 26+ bỏ qua nó (dùng nhãn hệ thống của
+              role="search") — Android và iOS < 26 không có role này nên vẫn
+              hiện nhãn "Giỏ hàng" bình thường. */}
           <Label>{t('tabs.cart', 'Giỏ hàng')}</Label>
           {/* Giữ nguyên dạng `cartItemCount > 0 && <Badge>`, KHÔNG đổi sang
               `<Badge hidden={cartItemCount === 0}>`: appendBadgeOptions()
