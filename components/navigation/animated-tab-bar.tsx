@@ -143,20 +143,10 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
         <Animated.View
           style={[
             styles.slidingIndicator,
-            { width: itemWidth },
+            { width: itemWidth, backgroundColor: colors.primary },
             slidingIndicatorStyle,
           ]}
-        >
-          {/* Viên nền tab đang chọn: kính pha màu thương hiệu, trôi theo cùng
-              animation với indicator. Nền đặc cũng phải cam thương hiệu nên
-              color và tint đều là colors.primary. */}
-          <GlassSurface
-            color={colors.primary}
-            tint={colors.primary}
-            radius={9999}
-            style={StyleSheet.absoluteFill}
-          />
-        </Animated.View>
+        />
         {tabConfigs.map(({ Icon, href, label }, index) => (
           <AnimatedTabButton
             key={href}

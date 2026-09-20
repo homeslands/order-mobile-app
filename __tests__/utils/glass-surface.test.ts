@@ -22,4 +22,19 @@ describe('glassTint', () => {
   it('làm tròn độ đục về 2 chữ số để tránh rgba dài dòng', () => {
     expect(glassTint('#ffffff', 0.333)).toBe('rgba(255, 255, 255, 0.67)')
   })
+
+  it('tintOverride khác color không bao giờ xuống dưới TINT_FLOOR, kể cả ở mức 1', () => {
+    expect(glassTint('#ffffff', 1, '#F7A737')).toBe('rgba(247, 167, 55, 0.5)')
+  })
+
+  it('tintOverride khác color giữ floor ở mức cao gần 1 (0.8)', () => {
+    expect(glassTint('#ffffff', 0.8, '#F7A737')).toBe('rgba(247, 167, 55, 0.5)')
+  })
+
+  it('tintOverride bằng color coi như không có override, giữ hành vi cũ', () => {
+    expect(glassTint('#ffffff', 1, '#ffffff')).toBeUndefined()
+    expect(glassTint('#ffffff', 0.75, '#ffffff')).toBe(
+      'rgba(255, 255, 255, 0.25)',
+    )
+  })
 })
