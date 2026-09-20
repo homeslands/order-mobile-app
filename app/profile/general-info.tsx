@@ -220,10 +220,7 @@ export default function GeneralInfo() {
   const setLogout = useAuthStore((state) => state.setLogout)
   const removeUserInfo = useUserStore((state) => state.removeUserInfo)
   const handleBack = useCallback(() => router.back(), [router])
-  const handleEdit = useCallback(
-    () => router.push('/(tabs)/profile/edit'),
-    [router],
-  )
+  const handleEdit = useCallback(() => router.push('/profile/edit'), [router])
   const isLoggingOutRef = useRef(false)
   const openLogoutSheet = useLogoutSheetStore((s) => s.open)
 

@@ -1,145 +1,594 @@
-import { ArrowLeft } from 'lucide-react-native'
-import React, { useState } from 'react'
-import { useTranslation } from 'react-i18next'
-import { ScrollView, View, useColorScheme } from 'react-native'
-import { ScreenContainer } from '@/components/layout'
-
-import { Button, Input } from '@/components/ui'
-import { colors } from '@/constants'
-import { navigateNative } from '@/lib/navigation'
+/**
+ * Trang cập nhật thông tin cá nhân.
+ * Header: Huỷ bỏ (quay về thông tin cá nhân), tiêu đề, Xác nhận (mở bottom sheet).
+ * Các trường chia theo mục. DOB chọn bằng 3 cuộn ngày-tháng-năm.
+ */
+import { getProfile, updateProfile } from '@/api/profile'
+import {
+  ConfirmUpdateProfileBottomSheet,
+  type ConfirmUpdateProfileBottomSheetRef,
+  DobExpandablePicker,
+} from '@/components/profile'
+import { Input } from '@/components/ui'
+import { colors } from '@/constants/colors.constant'
+import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useUserStore } from '@/stores'
+import type { IUserInfo } from '@/types'
 import { showToast } from '@/utils'
+import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+import { LinearGradient } from 'expo-linear-gradient'
+import { useRouter } from 'expo-router'
+import { Check } from 'lucide-react-native'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useTranslation } from 'react-i18next'
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+  useColorScheme,
+} from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Text } from '@/components/ui/text'
 
-function EditProfileScreen() {
-  const { t } = useTranslation('profile')
-  const colorScheme = useColorScheme()
-  const isDark = colorScheme === 'dark'
-  const primaryColor = isDark ? colors.primary.dark : colors.primary.light
+dayjs.extend(customParseFormat)
 
-  const userInfo = useUserStore((state) => state.userInfo)
+/** Chuẩn hóa dob từ API (DD/MM/YYYY hoặc YYYY-MM-DD) sang YYYY-MM-DD */
+function normalizeDob(value: string | null | undefined): string {
+  if (!value || typeof value !== 'string') return ''
+  const ddmmyyyy = dayjs(value, 'DD/MM/YYYY', true)
+  const yyyymmdd = dayjs(value, 'YYYY-MM-DD', true)
+  if (ddmmyyyy.isValid()) return ddmmyyyy.format('YYYY-MM-DD')
+  if (yyyymmdd.isValid()) return yyyymmdd.format('YYYY-MM-DD')
+  return ''
+}
 
-  const [firstName, setFirstName] = useState(userInfo?.firstName ?? '')
-  const [lastName, setLastName] = useState(userInfo?.lastName ?? '')
-  const [address, setAddress] = useState(userInfo?.address ?? '')
+const PROFILE_THEME = {
+  light: {
+    bg: colors.background.light,
+    card: colors.white.light,
+    text: colors.foreground.light,
+    textMuted: colors.mutedForeground.light,
+    editBtn: colors.border.light,
+  },
+  dark: {
+    bg: colors.background.dark,
+    card: colors.card.dark,
+    text: colors.foreground.dark,
+    textMuted: colors.mutedForeground.dark,
+    editBtn: colors.border.dark,
+  },
+} as const
 
-  if (!userInfo) {
-    navigateNative.back()
-    return null
-  }
-
-  const handleSave = () => {
-    // TODO: Gọi API cập nhật profile và sync lại store
-    showToast('Cập nhật thông tin cá nhân (demo). Vui lòng nối API backend.')
-    navigateNative.back()
-  }
+/** Isolated text field — only this component re-renders on keystroke */
+const FormField = React.memo(function FormField({
+  label,
+  value: initialValue,
+  onChangeRef,
+  placeholder,
+  labelColor,
+  editable = true,
+  optional,
+  autoCapitalize,
+  inputClassName,
+  onChange,
+}: {
+  label: string
+  value: string
+  onChangeRef: React.MutableRefObject<string>
+  placeholder?: string
+  labelColor: string
+  editable?: boolean
+  optional?: boolean
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters'
+  inputClassName?: string
+  onChange?: () => void
+}) {
+  const [localValue, setLocalValue] = useState(initialValue)
+  const handleChange = useCallback(
+    (text: string) => {
+      setLocalValue(text)
+      onChangeRef.current = text
+      onChange?.()
+    },
+    [onChangeRef, onChange],
+  )
 
   return (
-    <ScreenContainer
-      edges={['top', 'bottom']}
-      className="flex-1 bg-gray-50 dark:bg-[#121212]"
-    >
-      {/* Header */}
-      <View className="flex-row items-center border-b border-gray-200 bg-white px-4 py-3 dark:border-[#2e2e2e] dark:bg-[#1c1c1e]">
-        <Button
-          variant="ghost"
-          className="mr-2 h-10 min-h-0 w-10 items-center justify-center rounded-full px-0"
-          onPress={() => navigateNative.back()}
-        >
-          <ArrowLeft
-            size={22}
-            color={
-              isDark
-                ? colors.mutedForeground.dark
-                : colors.mutedForeground.light
-            }
-          />
-        </Button>
-        <Text className="text-lg font-semibold text-gray-900 dark:text-gray-50">
-          {t('contactInfo.edit')}
-        </Text>
+    <View style={editFieldStyles.field}>
+      <Text style={[editFieldStyles.label, { color: labelColor }]}>
+        {label}
+        {optional && (
+          <Text style={editFieldStyles.optionalText}> (Không bắt buộc)</Text>
+        )}
+      </Text>
+      <Input
+        value={localValue}
+        onChangeText={editable ? handleChange : undefined}
+        placeholder={placeholder}
+        editable={editable}
+        autoCapitalize={autoCapitalize}
+        className={inputClassName}
+      />
+    </View>
+  )
+})
+
+const editFieldStyles = StyleSheet.create({
+  field: { marginBottom: 16 },
+  label: { fontSize: 12, marginBottom: 6 },
+  optionalText: { fontSize: 12, color: '#9ca3af' },
+})
+
+function EditHeader({
+  title,
+  onCancel,
+  onConfirm,
+  isDirty,
+  isDark,
+}: {
+  title: string
+  onCancel: () => void
+  onConfirm: () => void
+  isDirty: boolean
+  isDark: boolean
+}) {
+  const { t } = useTranslation('profile')
+  const pageBg = isDark ? colors.background.dark : colors.background.light
+  const gradientColors = useMemo(
+    () =>
+      [
+        pageBg,
+        `${pageBg}E6`,
+        `${pageBg}B0`,
+        `${pageBg}50`,
+        `${pageBg}00`,
+      ] as const,
+    [pageBg],
+  )
+  const confirmBg = isDirty
+    ? isDark
+      ? colors.primary.dark
+      : colors.primary.light
+    : isDark
+      ? colors.gray[800]
+      : colors.white.light
+  const confirmIconColor = isDirty
+    ? '#fff'
+    : isDark
+      ? colors.gray[500]
+      : colors.gray[300]
+
+  return (
+    <View style={ehStyles.container} pointerEvents="box-none">
+      <View style={StyleSheet.absoluteFill} pointerEvents="none">
+        <LinearGradient
+          colors={gradientColors}
+          locations={[0, 0.3, 0.62, 0.85, 1]}
+          style={StyleSheet.absoluteFill}
+        />
       </View>
-
-      <ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+      <View
+        style={[ehStyles.row, { paddingTop: STATIC_TOP_INSET + 10 }]}
+        pointerEvents="auto"
       >
-        <View className="rounded-xl border border-gray-100 bg-white p-4 dark:border-[#2e2e2e] dark:bg-[#1c1c1e]">
-          <View className="mb-4">
-            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
-              {t('lastName')}
-            </Text>
-            <Input
-              value={firstName}
-              onChangeText={setFirstName}
-              placeholder={t('enterLastName')}
-              autoCapitalize="words"
-            />
-          </View>
-
-          <View className="mb-4">
-            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
-              {t('firstName')}
-            </Text>
-            <Input
-              value={lastName}
-              onChangeText={setLastName}
-              placeholder={t('enterFirstName')}
-              autoCapitalize="words"
-            />
-          </View>
-
-          <View className="mb-4">
-            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
-              {t('address')}
-            </Text>
-            <Input
-              value={address}
-              onChangeText={setAddress}
-              placeholder={t('enterAddress')}
-            />
-          </View>
-
-          {/* Email / số điện thoại có thể để readonly vì liên quan xác minh & đăng nhập */}
-          <View className="mb-4">
-            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
-              {t('phoneNoEdit')}
-            </Text>
-            <Input
-              value={userInfo.phonenumber}
-              editable={false}
-              className="bg-gray-100 dark:bg-[#2e2e2e]"
-            />
-          </View>
-
-          <View className="mb-4">
-            <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
-              {t('emailNoEdit')}
-            </Text>
-            <Input
-              value={userInfo.email}
-              editable={false}
-              className="bg-gray-100 dark:bg-[#2e2e2e]"
-            />
-          </View>
-        </View>
-
-        <View className="mt-6">
-          <Button
-            className="h-11 w-full rounded-lg"
-            style={{ backgroundColor: primaryColor }}
-            onPress={handleSave}
+        <Pressable
+          onPress={onCancel}
+          hitSlop={8}
+          style={[
+            ehStyles.cancelBtn,
+            { backgroundColor: isDark ? colors.card.dark : colors.white.light },
+            ehStyles.shadow,
+          ]}
+        >
+          <Text
+            style={[
+              ehStyles.cancelText,
+              { color: isDark ? colors.gray[50] : colors.gray[900] },
+            ]}
           >
-            <Text className="text-sm font-semibold text-white">
-              {t('saveChanges')}
-            </Text>
-          </Button>
+            {t('profile.cancel')}
+          </Text>
+        </Pressable>
+        <View
+          style={[ehStyles.titleAbsolute, { top: STATIC_TOP_INSET + 10 }]}
+          pointerEvents="none"
+        >
+          <Text
+            style={[
+              ehStyles.title,
+              { color: isDark ? colors.gray[50] : colors.gray[900] },
+            ]}
+            numberOfLines={1}
+          >
+            {title}
+          </Text>
         </View>
-      </ScrollView>
-    </ScreenContainer>
+        <Pressable
+          onPress={isDirty ? onConfirm : undefined}
+          hitSlop={8}
+          style={[
+            ehStyles.circleBtn,
+            { backgroundColor: confirmBg },
+            ehStyles.shadow,
+          ]}
+        >
+          <Check size={20} color={confirmIconColor} />
+        </Pressable>
+      </View>
+    </View>
   )
 }
 
-EditProfileScreen.displayName = 'EditProfileScreen'
-export default React.memo(EditProfileScreen)
+const ehStyles = StyleSheet.create({
+  container: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 20,
+    paddingBottom: 24,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+  },
+  circleBtn: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelBtn: {
+    height: 42,
+    borderRadius: 21,
+    paddingHorizontal: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  cancelText: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  shadow: {
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 24,
+    elevation: 2,
+  },
+  title: { fontSize: 17, fontWeight: '700' },
+  titleAbsolute: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    height: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+})
+
+const ProfileEditForm = React.memo(function ProfileEditForm({
+  userInfo,
+}: {
+  userInfo: IUserInfo
+}) {
+  const router = useRouter()
+  const insets = useSafeAreaInsets()
+  const colorScheme = useColorScheme()
+  const isDark = colorScheme === 'dark'
+  const theme = PROFILE_THEME[isDark ? 'dark' : 'light']
+  const { t } = useTranslation('profile')
+  const setUserInfo = useUserStore((state) => state.setUserInfo)
+
+  // Refs hold current form values — no parent re-render on keystroke
+  const firstNameRef = useRef(userInfo.firstName ?? '')
+  const lastNameRef = useRef(userInfo.lastName ?? '')
+  const addressRef = useRef(userInfo.address ?? '')
+  const [dob, setDob] = useState(
+    normalizeDob(userInfo.dob) || (userInfo.dob ?? ''),
+  )
+  const dobRef = useRef(dob)
+
+  const [isDirty, setIsDirty] = useState(false)
+
+  const initialValues = useRef({
+    firstName: userInfo.firstName ?? '',
+    lastName: userInfo.lastName ?? '',
+    address: userInfo.address ?? '',
+    dob: normalizeDob(userInfo.dob) || (userInfo.dob ?? ''),
+  })
+
+  const confirmSheetRef = useRef<ConfirmUpdateProfileBottomSheetRef>(null)
+
+  const { t: tToast } = useTranslation('toast')
+
+  const checkDirty = useCallback(() => {
+    const iv = initialValues.current
+    setIsDirty(
+      firstNameRef.current !== iv.firstName ||
+        lastNameRef.current !== iv.lastName ||
+        addressRef.current !== iv.address ||
+        dobRef.current !== iv.dob,
+    )
+  }, [])
+
+  const handleDobChange = useCallback((newDob: string) => {
+    dobRef.current = newDob
+    setDob(newDob)
+    const iv = initialValues.current
+    setIsDirty(
+      firstNameRef.current !== iv.firstName ||
+        lastNameRef.current !== iv.lastName ||
+        addressRef.current !== iv.address ||
+        newDob !== iv.dob,
+    )
+  }, [])
+
+  const handleCancel = useCallback(() => {
+    router.back()
+  }, [router])
+
+  const handleConfirmPress = useCallback(() => {
+    confirmSheetRef.current?.open()
+  }, [])
+
+  const [isUpdating, setIsUpdating] = useState(false)
+  const isUpdatingRef = useRef(false)
+
+  const handleConfirmUpdate = useCallback(async () => {
+    if (isUpdatingRef.current) return
+    isUpdatingRef.current = true
+    const rawDob = dobRef.current || userInfo.dob || ''
+    const normalized = rawDob ? normalizeDob(rawDob) : ''
+    const dobPayload = normalized
+      ? dayjs(normalized, 'YYYY-MM-DD').format('DD/MM/YYYY')
+      : undefined
+    const payload = {
+      firstName: firstNameRef.current || null,
+      lastName: lastNameRef.current || null,
+      address: addressRef.current || null,
+      dob: dobPayload ?? null,
+    }
+    setIsUpdating(true)
+    try {
+      const res: Awaited<ReturnType<typeof updateProfile>> =
+        await updateProfile(payload)
+      if (res?.result) setUserInfo?.(res.result)
+      else
+        setUserInfo?.({
+          ...userInfo,
+          firstName: payload.firstName ?? '',
+          lastName: payload.lastName ?? '',
+          address: payload.address ?? '',
+          ...(payload.dob !== undefined
+            ? { dob: payload.dob ?? undefined }
+            : {}),
+        })
+      showToast(tToast('toast.updateProfileSuccess'))
+      router.back()
+    } catch {
+      showToast(tToast('toast.updateProfileFailed'), 'error')
+    } finally {
+      isUpdatingRef.current = false
+      setIsUpdating(false)
+    }
+  }, [userInfo, setUserInfo, router, tToast])
+
+  return (
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
+      <KeyboardAvoidingView
+        style={styles.flex1}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <ScrollView
+          style={styles.scrollView}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={[
+            styles.scrollContent,
+            {
+              paddingBottom: insets.bottom + 40,
+              paddingTop: STATIC_TOP_INSET + 76,
+            },
+          ]}
+          keyboardShouldPersistTaps="handled"
+        >
+          {/* Mục: Thông tin cơ bản */}
+          <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
+            {t('profile.generalInfo.basicInfo')}
+          </Text>
+          <View style={[styles.section, { backgroundColor: theme.card }]}>
+            <FormField
+              label={t('profile.lastName')}
+              value={userInfo.lastName ?? ''}
+              onChangeRef={lastNameRef}
+              placeholder={t('profile.enterLastName')}
+              labelColor={theme.textMuted}
+              autoCapitalize="words"
+              optional
+              onChange={checkDirty}
+            />
+            <FormField
+              label={t('profile.firstName')}
+              value={userInfo.firstName ?? ''}
+              onChangeRef={firstNameRef}
+              placeholder={t('profile.enterFirstName')}
+              labelColor={theme.textMuted}
+              autoCapitalize="words"
+              optional
+              onChange={checkDirty}
+            />
+            <View style={styles.field}>
+              <Text style={[styles.label, { color: theme.textMuted }]}>
+                {t('profile.dob')}
+              </Text>
+              <DobExpandablePicker
+                value={dob}
+                onSelect={handleDobChange}
+                theme={{
+                  bg: theme.card,
+                  editBtn: theme.editBtn,
+                  text: theme.text,
+                  textMuted: theme.textMuted,
+                }}
+                placeholder={t('profile.enterDob')}
+              />
+            </View>
+          </View>
+
+          {/* Mục: Số điện thoại & Email (chỉ đọc) */}
+          <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
+            {t('profile.contactInfo.title')}
+          </Text>
+          <View style={[styles.section, { backgroundColor: theme.card }]}>
+            <View style={styles.field}>
+              <Text style={[styles.label, { color: theme.textMuted }]}>
+                {t('profile.contactInfo.phone')}
+              </Text>
+              <Input
+                value={userInfo.phonenumber ?? ''}
+                editable={false}
+                className="bg-gray-100 opacity-90 dark:bg-[#2e2e2e]"
+              />
+            </View>
+            <View style={styles.field}>
+              <Text style={[styles.label, { color: theme.textMuted }]}>
+                {t('profile.contactInfo.email')}
+              </Text>
+              <Input
+                value={userInfo.email ?? ''}
+                editable={false}
+                className="bg-gray-100 opacity-90 dark:bg-[#2e2e2e]"
+              />
+            </View>
+          </View>
+
+          {/* Mục: Địa chỉ */}
+          <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
+            {t('profile.addressInfo')}
+          </Text>
+          <View style={[styles.section, { backgroundColor: theme.card }]}>
+            <FormField
+              label={t('profile.contactInfo.address')}
+              value={userInfo.address ?? ''}
+              onChangeRef={addressRef}
+              placeholder={t('profile.enterAddress')}
+              labelColor={theme.textMuted}
+              optional
+              onChange={checkDirty}
+            />
+          </View>
+        </ScrollView>
+      </KeyboardAvoidingView>
+
+      <ConfirmUpdateProfileBottomSheet
+        ref={confirmSheetRef}
+        onConfirm={handleConfirmUpdate}
+        isLoading={isUpdating}
+      />
+
+      <EditHeader
+        title={t('profile.contactInfo.edit')}
+        onCancel={handleCancel}
+        onConfirm={handleConfirmPress}
+        isDirty={isDirty}
+        isDark={isDark}
+      />
+    </View>
+  )
+})
+
+export default function ProfileEditScreen() {
+  const router = useRouter()
+  const userInfo = useUserStore((state) => state.userInfo)
+  const setUserInfo = useUserStore((state) => state.setUserInfo)
+  const [dataVersion, setDataVersion] = useState(0)
+
+  useEffect(() => {
+    if (!userInfo) {
+      router.replace('/(tabs)/profile')
+      return
+    }
+    // Lấy dữ liệu mới nhất từ tài khoản để điền mặc định
+    let cancelled = false
+    const snapshot = {
+      firstName: userInfo.firstName,
+      lastName: userInfo.lastName,
+      address: userInfo.address,
+      dob: userInfo.dob,
+    }
+    getProfile()
+      .then((res) => {
+        if (cancelled) return
+        if (res?.result) {
+          const profile = {
+            ...res.result,
+            dob: normalizeDob(res.result.dob) || res.result.dob,
+            address: res.result.address ?? '',
+          }
+          setUserInfo(profile)
+          // Only force-remount the form when the server returned different data
+          // (e.g. edited from another device). Avoids unnecessary unmount/remount
+          // on every navigation which would discard any typing already done.
+          if (
+            profile.firstName !== snapshot.firstName ||
+            profile.lastName !== snapshot.lastName ||
+            profile.address !== snapshot.address ||
+            profile.dob !== snapshot.dob
+          ) {
+            setDataVersion((v) => v + 1)
+          }
+        }
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+    // Chỉ fetch khi slug đổi (đổi user); không thêm userInfo để tránh loop khi setUserInfo
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userInfo?.slug, router, setUserInfo])
+
+  if (!userInfo) {
+    return null
+  }
+
+  return (
+    <ProfileEditForm
+      key={`${userInfo.slug}-${dataVersion}`}
+      userInfo={userInfo}
+    />
+  )
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  flex1: { flex: 1 },
+  scrollView: { flex: 1 },
+  scrollContent: {
+    paddingHorizontal: 16,
+  },
+  section: {
+    borderRadius: 18,
+    padding: 16,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+    marginTop: 4,
+  },
+  field: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 12,
+    marginBottom: 6,
+  },
+})

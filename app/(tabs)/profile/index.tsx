@@ -494,7 +494,7 @@ const ProfileTest = () => {
   const openQRSelection = useQRSelectionSheetStore((s) => s.open)
 
   const openEdit = useCallback(() => {
-    router.push('/(tabs)/profile/edit')
+    router.push('/profile/edit')
   }, [router])
 
   const [isAvatarSheetOpen, setIsAvatarSheetOpen] = useState(false)
@@ -563,19 +563,19 @@ const ProfileTest = () => {
   }, [uploadAvatarAsset])
 
   const openGeneralInfo = useCallback(() => {
-    router.push('/(tabs)/profile/general-info')
+    router.push('/profile/general-info')
   }, [router])
 
   const openPoints = useCallback(() => {
-    router.push('/(tabs)/profile/loyalty-point-hub' as never)
+    router.push('/profile/loyalty-point-hub' as never)
   }, [router])
 
   const openOrdersHistory = useCallback(() => {
-    router.push('/(tabs)/profile/orders-history-placeholder')
+    router.push('/profile/history')
   }, [router])
 
   const openGiftCard = useCallback(() => {
-    router.push('/(tabs)/profile/gift-card-hub' as never)
+    router.push('/profile/gift-card-hub' as never)
   }, [router])
 
   const { t: tToast } = useTranslation('toast')
