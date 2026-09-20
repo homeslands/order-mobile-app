@@ -7,13 +7,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, useColorScheme, View } from 'react-native'
 
-import { colors, TableStatus } from '@/constants'
+import { TableStatus } from '@/constants'
 import { TABLE_SELECT_ITEM_HEIGHT } from '@/constants/list-item-sizes'
 import { useTables } from '@/hooks'
 import { useOrderFlowStore } from '@/stores'
 import { ITable } from '@/types'
 
 import { TableItem } from './table-item'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 let sheetRef: BottomSheet | null = null
@@ -225,10 +226,6 @@ function TableSelectSheet({
 
   const keyExtractor = useCallback((item: ITable) => item.slug, [])
 
-  const backgroundStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : '#ffffff' }),
-    [isDark],
-  )
   const containerStyle = useMemo(() => ({ zIndex: 9999, elevation: 9999 }), [])
 
   return (
@@ -240,7 +237,7 @@ function TableSelectSheet({
       enablePanDownToClose
       enableContentPanningGesture={false}
       backdropComponent={renderBackdrop}
-      backgroundStyle={backgroundStyle}
+      backgroundComponent={GlassSheetBackground}
       containerStyle={containerStyle}
     >
       <View className="border-b border-gray-200 px-4 py-3 dark:border-[#2e2e2e]">
