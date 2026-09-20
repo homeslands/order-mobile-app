@@ -23,14 +23,23 @@ let emitChange: ((value: boolean) => void) | undefined
 jest
   .spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled')
   .mockImplementation(() => Promise.resolve(initialReduceTransparency))
-jest
-  .spyOn(AccessibilityInfo, 'addEventListener')
-  .mockImplementation((event, handler) => {
-    if (event === 'reduceTransparencyChanged') {
-      emitChange = handler as (value: boolean) => void
-    }
-    return { remove: jest.fn() } as never
-  })
+// jest.spyOn suy ra kiểu từ overload đầu tiên của addEventListener
+// (announcementFinished), nên phải ép kiểu về đúng overload đang dùng
+// (reduceTransparencyChanged) để tsc không báo sai kiểu tham số.
+const addEventListener = jest.spyOn(
+  AccessibilityInfo,
+  'addEventListener',
+) as unknown as jest.SpyInstance<
+  { remove: () => void },
+  [string, (value: boolean) => void]
+>
+
+addEventListener.mockImplementation((event, handler) => {
+  if (event === 'reduceTransparencyChanged') {
+    emitChange = handler
+  }
+  return { remove: jest.fn() }
+})
 
 beforeEach(() => {
   mockHasGlass = true
