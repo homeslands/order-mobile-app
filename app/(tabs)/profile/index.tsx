@@ -1,5 +1,5 @@
 import { LoginPanel } from '@/components/auth'
-import { ScreenContainer } from '@/components/layout'
+import { ScreenContainer, useTabBarBottomPadding } from '@/components/layout'
 import {
   DeleteAccountSheet,
   FontSizeSheet,
@@ -434,6 +434,7 @@ const ProfileTest = () => {
   const handleBack = useCallback(() => router.back(), [router])
   const { animatedStyle, panGesture, resetPosition } =
     useProfileAnimation(handleBack)
+  const bottomPadding = useTabBarBottomPadding()
 
   // Reset translateX về 0 mỗi khi profile tab gains focus.
   // Tránh stuck state: nếu gesture trước bị cancel giữa chừng (rapid tab
@@ -673,7 +674,7 @@ const ProfileTest = () => {
           <GestureScrollView
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={{ paddingBottom: bottomPadding }}
           >
             {/* Avatar + tên + sđt — scroll cùng nội dung */}
             <View
@@ -952,7 +953,6 @@ const styles = StyleSheet.create({
     overflow: 'visible',
   },
   scrollView: { flex: 1 },
-  scrollContent: { paddingBottom: 120 },
   profileHero: {
     alignItems: 'center',
     gap: 6,

@@ -16,7 +16,10 @@ import { useTranslation } from 'react-i18next'
 import { Platform, View, useColorScheme } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { NATIVE_TAB_BAR_HEIGHT } from '@/components/layout/tab-screen-layout'
+import {
+  CART_BUTTON_BOTTOM_GAP,
+  NATIVE_TAB_BAR_HEIGHT,
+} from '@/components/layout/tab-screen-layout'
 import { shouldHideCartButton } from '@/components/navigation/cart-button-visibility'
 import { FloatingCartButton } from '@/components/navigation/floating-cart-button'
 import { OrderReadyPickupSheet } from '@/components/notification/order-ready-pickup-sheet'
@@ -115,7 +118,8 @@ export default function TabsLayout() {
 
   const colors = useMemo(() => getThemeColor(isDark), [isDark])
   const insets = useSafeAreaInsets()
-  const cartButtonBottom = insets.bottom + NATIVE_TAB_BAR_HEIGHT + 12
+  const cartButtonBottom =
+    insets.bottom + NATIVE_TAB_BAR_HEIGHT + CART_BUTTON_BOTTOM_GAP
 
   return (
     <View style={{ flex: 1 }}>
@@ -125,7 +129,10 @@ export default function TabsLayout() {
           default: colors.mutedForeground,
           selected: isAndroid ? '#ffffff' : colors.primary,
         }}
-        backgroundColor={colors.card}
+        // iOS: undefined để giữ kính Liquid Glass gốc của UITabBarAppearance —
+        // đặt màu đặc ở đây sẽ làm mất hiệu ứng trong suốt. Android: bắt buộc
+        // đặt màu, nếu không nó lấy màu Material You theo hình nền máy.
+        backgroundColor={isAndroid ? colors.card : undefined}
         labelVisibilityMode="labeled"
         indicatorColor={colors.primary}
         minimizeBehavior="onScrollDown"

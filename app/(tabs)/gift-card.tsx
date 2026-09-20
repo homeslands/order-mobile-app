@@ -44,7 +44,6 @@ import {
   View,
 } from 'react-native'
 import { useFocusEffect } from '@react-navigation/native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { Images } from '@/assets/images'
 
@@ -57,7 +56,7 @@ import {
 import { Skeleton } from '@/components/ui'
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
-import { TabScreenLayout } from '@/components/layout'
+import { TabScreenLayout, useTabBarBottomPadding } from '@/components/layout'
 import { showErrorToastMessage } from '@/utils/toast'
 import { useGiftCards } from '@/hooks/use-gift-cards'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
@@ -142,7 +141,7 @@ export default function GiftCardScreen() {
   const isDark = useColorScheme() === 'dark'
   const primaryColor = usePrimaryColor()
   const router = useRouter()
-  const insets = useSafeAreaInsets()
+  const bottomPadding = useTabBarBottomPadding()
 
   const [allowFetch, setAllowFetch] = useState(false)
   const [sortOrder, setSortOrder] = useState<SortOrder>(null)
@@ -295,10 +294,11 @@ export default function GiftCardScreen() {
     }
   }, [sortOrder])
 
-  // BAR_HEIGHT(64) + BAR_PADDING(8) + FADE_HEIGHT(120) + insets.bottom
+  // Đệm đáy đủ để nội dung cuộn xuống cuối không bị nút giỏ hàng nổi che —
+  // tính chung với các tab khác qua useTabBarBottomPadding().
   const listContentStyle = useMemo(
-    () => ({ paddingTop: 12, paddingBottom: insets.bottom + 200 }),
-    [insets.bottom],
+    () => ({ paddingTop: 12, paddingBottom: bottomPadding }),
+    [bottomPadding],
   )
 
   return (
@@ -435,7 +435,10 @@ export default function GiftCardScreen() {
             accessibilityLabel={t('menu.retry')}
             style={[
               s.retryBtn,
-              { backgroundColor: primaryColor, opacity: isRefetching ? 0.5 : 1 },
+              {
+                backgroundColor: primaryColor,
+                opacity: isRefetching ? 0.5 : 1,
+              },
             ]}
           >
             <Text style={s.retryBtnText}>{t('menu.retry')}</Text>

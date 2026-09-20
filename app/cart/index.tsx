@@ -299,8 +299,11 @@ export default function CartScreen() {
   useRunAfterTransition(showContent, [], { androidDelayMs: 40 })
 
   const handleBack = useCallback(() => {
+    // dismissTo thay vì replace: cart/index.tsx nằm ở root stack,
+    // replace('/(tabs)/…') ở root stack sẽ push thêm một bộ tab mới thay vì
+    // đổi tab hiện có.
     if (router.canGoBack()) router.back()
-    else router.replace(TAB_ROUTES.MENU)
+    else router.dismissTo(TAB_ROUTES.MENU)
   }, [router])
 
   const handleOpenClearSheet = useCallback(() => setClearSheetVisible(true), [])

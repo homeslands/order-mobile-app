@@ -512,7 +512,9 @@ export default function ProfileEditScreen() {
 
   useEffect(() => {
     if (!userInfo) {
-      router.replace('/(tabs)/profile')
+      // dismissTo thay vì replace: edit.tsx nằm ở root stack, replace('/(tabs)/…')
+      // ở root stack sẽ push thêm một bộ tab mới thay vì đổi tab hiện có.
+      router.dismissTo('/(tabs)/profile')
       return
     }
     // Lấy dữ liệu mới nhất từ tài khoản để điền mặc định
