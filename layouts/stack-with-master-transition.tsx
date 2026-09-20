@@ -103,7 +103,6 @@ export function NativeStackWithMasterTransition() {
           },
         }}
       />
-      <Stack.Screen name="cart" options={{ headerShown: false }} />
       <Stack.Screen name="product" options={{ headerShown: false }} />
       <Stack.Screen name="system/payment" options={{ headerShown: false }} />
       <Stack.Screen name="update-order" options={{ headerShown: false }} />

@@ -12,7 +12,7 @@ import type { NativeStackNavigationOptions } from '@react-navigation/native-stac
 export const TAB_ROUTES = {
   HOME: '/(tabs)/home',
   MENU: '/(tabs)/menu',
-  CART: '/cart',
+  CART: '/(tabs)/cart',
   GIFT_CARD: '/(tabs)/gift-card',
   PROFILE: '/(tabs)/profile',
 } as const

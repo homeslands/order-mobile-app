@@ -251,7 +251,12 @@ function ProductDetailContent() {
   }, [refetchMenuItem])
 
   const handleBack = useCallback(() => router.back(), [router])
-  const handleCart = useCallback(() => router.push(TAB_ROUTES.CART), [router])
+  const handleCart = useCallback(() => {
+    // dismissTo thay vì push: product/[id].tsx nằm ở root stack,
+    // push('/(tabs)/…') ở root stack sẽ push thêm một bộ tab mới thay vì
+    // đổi tab hiện có.
+    router.dismissTo(TAB_ROUTES.CART)
+  }, [router])
 
   const handleAddToCart = useCallback(() => {
     if (!useUserStore.getState().userInfo) {

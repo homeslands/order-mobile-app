@@ -2,6 +2,7 @@
   "tabs": {
     "home": "Home",
     "menu": "Menu",
+    "cart": "Cart",
     "giftCard": "Gift Card",
     "profile": "Account"
   }

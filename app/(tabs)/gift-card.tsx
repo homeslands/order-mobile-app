@@ -294,7 +294,7 @@ export default function GiftCardScreen() {
     }
   }, [sortOrder])
 
-  // Đệm đáy đủ để nội dung cuộn xuống cuối không bị nút giỏ hàng nổi che —
+  // Đệm đáy đủ để nội dung cuộn xuống cuối không bị thanh tab che —
   // tính chung với các tab khác qua useTabBarBottomPadding().
   const listContentStyle = useMemo(
     () => ({ paddingTop: 12, paddingBottom: bottomPadding }),

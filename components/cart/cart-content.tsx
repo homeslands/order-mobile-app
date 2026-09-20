@@ -122,9 +122,7 @@ export default function CartContent() {
   const handleSizeClose = useCallback(() => setSizeSheetItemId(null), [])
 
   const handleBrowse = useCallback(() => {
-    // dismissTo thay vì replace: cart nằm ở root stack, replace('/(tabs)/…')
-    // ở root stack sẽ push thêm một bộ tab mới thay vì đổi tab hiện có.
-    router.dismissTo('/(tabs)/menu')
+    router.replace('/(tabs)/menu')
   }, [router])
 
   const handleDelete = useCallback(

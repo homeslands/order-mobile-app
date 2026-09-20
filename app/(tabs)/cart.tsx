@@ -1,10 +1,13 @@
-/** Màn giỏ hàng — stack gốc, phủ lên thanh tab. */
+/**
+ * Tab Cart — Perf UI, defer shell → content sau transition.
+ * Header: back (left) + "Giỏ hàng (N)" (center) + clear all (right).
+ */
 import {
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
   BottomSheetModal,
 } from '@gorhom/bottom-sheet'
-import { Stack, useRouter } from 'expo-router'
+import { useRouter } from 'expo-router'
 import { Trash2 } from 'lucide-react-native'
 import React, {
   Suspense,
@@ -22,6 +25,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '@/constants'
 import { TAB_ROUTES } from '@/constants/navigation.config'
+import { TabScreenLayout } from '@/components/layout'
 import { FloatingHeader } from '@/components/navigation/floating-header'
 import { useRunAfterTransition } from '@/hooks'
 import { useOrderFlowStore } from '@/stores'
@@ -299,11 +303,8 @@ export default function CartScreen() {
   useRunAfterTransition(showContent, [], { androidDelayMs: 40 })
 
   const handleBack = useCallback(() => {
-    // dismissTo thay vì replace: cart/index.tsx nằm ở root stack,
-    // replace('/(tabs)/…') ở root stack sẽ push thêm một bộ tab mới thay vì
-    // đổi tab hiện có.
     if (router.canGoBack()) router.back()
-    else router.dismissTo(TAB_ROUTES.MENU)
+    else router.replace(TAB_ROUTES.MENU)
   }, [router])
 
   const handleOpenClearSheet = useCallback(() => setClearSheetVisible(true), [])
@@ -316,16 +317,7 @@ export default function CartScreen() {
   }, [clearCart])
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: isDark
-          ? colors.background.dark
-          : colors.background.light,
-      }}
-    >
-      <Stack.Screen options={{ statusBarStyle: isDark ? 'light' : 'dark' }} />
-
+    <TabScreenLayout>
       {contentReady ? (
         <>
           <Suspense
@@ -355,6 +347,6 @@ export default function CartScreen() {
         onConfirm={handleConfirmClear}
         isDark={isDark}
       />
-    </View>
+    </TabScreenLayout>
   )
 }

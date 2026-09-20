@@ -1,11 +1,12 @@
 /**
- * Tabs layout — Home, Menu, Gift Card, Profile (native tabs).
+ * Tabs layout — Home, Menu, Cart, Gift Card, Profile (native tabs).
  */
 import MaterialIcons from '@expo/vector-icons/MaterialIcons'
 import { useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
 import { usePathname } from 'expo-router'
 import {
+  Badge,
   Icon,
   Label,
   NativeTabs,
@@ -14,14 +15,7 @@ import {
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Platform, View, useColorScheme } from 'react-native'
-import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import {
-  CART_BUTTON_BOTTOM_GAP,
-  NATIVE_TAB_BAR_HEIGHT,
-} from '@/components/layout/tab-screen-layout'
-import { shouldHideCartButton } from '@/components/navigation/cart-button-visibility'
-import { FloatingCartButton } from '@/components/navigation/floating-cart-button'
 import { OrderReadyPickupSheet } from '@/components/notification/order-ready-pickup-sheet'
 import { usePredictivePrefetch } from '@/hooks'
 import { useNotifications } from '@/hooks/use-notification'
@@ -33,6 +27,7 @@ import {
   useMenuFilterStore,
   useUserStore,
 } from '@/stores'
+import { useOrderFlowCartItemCount } from '@/stores/selectors'
 import { useNotificationStore } from '@/stores/notification.store'
 // import { ProfileNudgePopup } from '@/components/profile'
 
@@ -117,9 +112,7 @@ export default function TabsLayout() {
   }, [pathname, masterTransition, queryClient, isAuthenticated])
 
   const colors = useMemo(() => getThemeColor(isDark), [isDark])
-  const insets = useSafeAreaInsets()
-  const cartButtonBottom =
-    insets.bottom + NATIVE_TAB_BAR_HEIGHT + CART_BUTTON_BOTTOM_GAP
+  const cartItemCount = useOrderFlowCartItemCount()
 
   return (
     <View style={{ flex: 1 }}>
@@ -155,6 +148,17 @@ export default function TabsLayout() {
           )}
           <Label>{t('tabs.menu', 'Thực đơn')}</Label>
         </NativeTabs.Trigger>
+        <NativeTabs.Trigger name="cart">
+          {isAndroid ? (
+            <Icon
+              src={<VectorIcon family={MaterialIcons} name="shopping-cart" />}
+            />
+          ) : (
+            <Icon sf={{ default: 'cart', selected: 'cart.fill' }} />
+          )}
+          <Label>{t('tabs.cart', 'Giỏ hàng')}</Label>
+          {cartItemCount > 0 && <Badge>{String(cartItemCount)}</Badge>}
+        </NativeTabs.Trigger>
         <NativeTabs.Trigger name="gift-card">
           {isAndroid ? (
             <Icon
@@ -174,19 +178,6 @@ export default function TabsLayout() {
           <Label>{t('tabs.profile', 'Tài khoản')}</Label>
         </NativeTabs.Trigger>
       </NativeTabs>
-
-      {!shouldHideCartButton(pathname, isAuthenticated) && (
-        <View
-          style={{
-            position: 'absolute',
-            right: 16,
-            bottom: cartButtonBottom,
-          }}
-          pointerEvents="box-none"
-        >
-          <FloatingCartButton primaryColor={colors.primary} />
-        </View>
-      )}
 
       <OrderReadyPickupSheet />
       {/* <ProfileNudgePopup /> */}
