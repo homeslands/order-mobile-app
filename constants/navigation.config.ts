@@ -3,6 +3,13 @@ import type { NativeStackNavigationOptions } from '@react-navigation/native-stac
 
 const LAZY_DEBUG = process.env.EXPO_PUBLIC_PHASE4_LAZY_DEBUG === 'true'
 
+/**
+ * QUAN TRỌNG: expo-router's usePathname() strip group segment — pathname
+ * thật trả về '/home', '/menu', '/menu/product/xxx' (KHÔNG có '/(tabs)/'
+ * prefix). Xem node_modules/expo-router/build/matchers.js
+ * stripGroupSegmentsFromPath. So khớp bằng '/(tabs)/home' sẽ không bao giờ
+ * match — đã dính bug này 3 lần trước đây.
+ */
 /** Tab paths — dùng router.replace() để đổi tab. */
 export const TAB_ROUTES = {
   HOME: '/(tabs)/home',

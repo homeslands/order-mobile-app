@@ -15,10 +15,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Platform, View, useColorScheme } from 'react-native'
 
-import { getGiftCards } from '@/api'
-import { getLoyaltyPoints } from '@/api/loyalty-point'
 import { OrderReadyPickupSheet } from '@/components/notification/order-ready-pickup-sheet'
-import { QUERYKEY } from '@/constants'
 import { usePredictivePrefetch } from '@/hooks'
 import { useNotifications } from '@/hooks/use-notification'
 import { useMasterTransitionOptional } from '@/lib/navigation'
@@ -112,38 +109,6 @@ export default function TabsLayout() {
     }
   }, [pathname, masterTransition, queryClient, isAuthenticated])
 
-  // Prefetch Thẻ quà / điểm thưởng khi user vào đúng tab đó — trước đây chạy
-  // lúc ngón tay chạm xuống nút tab (onPressInTabSwitch), giờ thanh tab là
-  // native nên không còn press-in event của mình để hook vào; chuyển sang
-  // chạy theo pathname sau khi tab đã active.
-  useEffect(() => {
-    if (pathname?.includes('/gift-card') && isAuthenticated) {
-      const giftCardKey = [QUERYKEY.giftCards, undefined]
-      if (!queryClient.getQueryData(giftCardKey)) {
-        queryClient
-          .prefetchQuery({
-            queryKey: giftCardKey,
-            queryFn: () => getGiftCards(),
-          })
-          .catch(() => {})
-      }
-    }
-    if (pathname?.includes('/profile') && userSlug) {
-      const loyaltyKey = [QUERYKEY.loyaltyPoints, 'total', { slug: userSlug }]
-      if (!queryClient.getQueryData(loyaltyKey)) {
-        queryClient
-          .prefetchQuery({
-            queryKey: loyaltyKey,
-            queryFn: async () => {
-              const res = await getLoyaltyPoints(userSlug)
-              return res.result
-            },
-          })
-          .catch(() => {})
-      }
-    }
-  }, [pathname, isAuthenticated, userSlug, queryClient])
-
   const colors = useMemo(() => getThemeColor(isDark), [isDark])
 
   return (
@@ -195,10 +160,6 @@ export default function TabsLayout() {
           )}
           <Label>{t('tabs.profile', 'Tài khoản')}</Label>
         </NativeTabs.Trigger>
-
-        {/* Route con của (tabs) nhưng không phải tab */}
-        <NativeTabs.Trigger name="menu-detail" hidden />
-        <NativeTabs.Trigger name="screens" hidden />
       </NativeTabs>
 
       <OrderReadyPickupSheet />
