@@ -91,4 +91,13 @@ describe('GlassSurface', () => {
 
     expect(screen.getByTestId('glass-view').props.pointerEvents).toBe('none')
   })
+
+  it('prop level thắng giá trị từ hook (dùng cho ô xem trước)', () => {
+    mockLevel = 1
+    render(<GlassSurface color="#ffffff" level={0.25} testID="surface" />)
+
+    expect(screen.getByTestId('glass-view').props.tintColor).toBe(
+      'rgba(255, 255, 255, 0.75)',
+    )
+  })
 })

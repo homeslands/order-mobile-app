@@ -107,7 +107,12 @@ export const GlassSheet = memo(function GlassSheet({
             end={{ x: 1, y: 1 }}
             style={StyleSheet.absoluteFill}
           />
-          <GlassSurface color={cardColor} radius={14} style={s.previewGlass}>
+          <GlassSurface
+            color={cardColor}
+            radius={14}
+            level={shown}
+            style={s.previewGlass}
+          >
             <Text style={[s.previewText, { color: textColor }]}>
               {t('profile.glass.preview', 'Xem trước')}
             </Text>

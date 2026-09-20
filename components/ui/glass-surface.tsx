@@ -23,6 +23,8 @@ type GlassSurfaceProps = {
   tint?: string
   /** Biến dạng khi chạm — chỉ dùng cho nút bấm. */
   interactive?: boolean
+  /** Ghi đè mức từ hook — chỉ dùng cho ô xem trước. */
+  level?: number
   style?: StyleProp<ViewStyle>
   children?: ReactNode
   testID?: string
@@ -33,11 +35,13 @@ export const GlassSurface = memo(function GlassSurface({
   radius,
   tint,
   interactive,
+  level: levelProp,
   style,
   children,
   testID,
 }: GlassSurfaceProps) {
-  const level = useGlassLevel()
+  const hookLevel = useGlassLevel()
+  const level = levelProp ?? hookLevel
 
   if (level <= 0) {
     return (
