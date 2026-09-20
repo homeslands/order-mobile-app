@@ -10,11 +10,10 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSequence,
-  withSpring,
-  withTiming,
 } from 'react-native-reanimated'
 
 import { SPRING_CONFIGS } from '@/constants'
+import { withFrameCappedTiming } from '@/lib/transitions/frame-capped-timing'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { AnimatedTabButton } from './animated-tab-button'
 
@@ -114,15 +113,23 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
         Math.abs(targetX - indicatorX.value) / slotWidth,
         MAX_STRETCH_SLOTS,
       )
+      // Độ giãn dùng chung đồng hồ theo khung với vị trí, nếu không nó sẽ co
+      // lại xong trong lúc viên cam còn đang đi.
       indicatorStretch.value = withSequence(
-        withTiming(1 + slots * STRETCH_PER_SLOT, {
+        withFrameCappedTiming(1 + slots * STRETCH_PER_SLOT, {
           duration: STRETCH_RISE_MS,
+          maxFrameMs: SPRING_CONFIGS.tabIndicator.maxFrameMs,
         }),
-        withSpring(1, SPRING_CONFIGS.tabIndicatorStretch),
+        withFrameCappedTiming(1, SPRING_CONFIGS.tabIndicatorStretch),
       )
-      indicatorX.value = withSpring(targetX, SPRING_CONFIGS.tabIndicator)
+      indicatorX.value = withFrameCappedTiming(
+        targetX,
+        SPRING_CONFIGS.tabIndicator,
+      )
     },
-    [indicatorX, indicatorStretch, indicatorTarget],
+    // Shared value là ref ổn định, không cần nằm trong deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
   )
 
   useEffect(() => {

@@ -95,19 +95,21 @@ export const SPRING_CONFIGS = {
   } as const,
 
   /**
-   * Tab bar sliding indicator — đường cong kiểu thanh tab iOS 26: trôi mượt,
-   * vượt đích một chút rồi lắng. Không kẹp overshoot, vì chính cái nảy nhẹ đó
-   * làm chuyển động "có trọng lượng" thay vì giật cục như bản snappy cũ.
+   * Tab bar sliding indicator — chạy qua `withFrameCappedTiming`, không phải
+   * `withSpring`: đổi tab làm luồng UI đơ cả trăm mili giây, mà animation theo
+   * đồng hồ thật sẽ nhảy vọt qua chỗ đơ đó. `maxFrameMs` = 20 (nhỉnh hơn một
+   * khung ở 60Hz) nên chạy bình thường không bị ghìm, còn một cú đơ 100ms chỉ
+   * ăn mất một bước thay vì cả quãng đường.
    */
   tabIndicator: {
     duration: 380,
-    dampingRatio: 0.8,
+    maxFrameMs: 20,
   } as const,
 
   /** Độ giãn ngang của indicator co lại sau khi trượt — nhanh hơn cú trượt. */
   tabIndicatorStretch: {
     duration: 260,
-    dampingRatio: 0.72,
+    maxFrameMs: 20,
   } as const,
 
   /** Tab button scale/translate active — mild lift, gentle settle. */
