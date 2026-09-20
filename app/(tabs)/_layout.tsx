@@ -29,6 +29,7 @@ import {
 } from '@/stores'
 import { useOrderFlowCartItemCount } from '@/stores/selectors'
 import { useNotificationStore } from '@/stores/notification.store'
+import { supportsDetachedSearchTab as computeSupportsDetachedSearchTab } from '@/utils/platform-version'
 // import { ProfileNudgePopup } from '@/components/profile'
 
 const isAndroid = Platform.OS === 'android'
@@ -41,12 +42,15 @@ const isAndroid = Platform.OS === 'android'
 // ("Tìm kiếm"/"Search"), bỏ qua <Label> (xem RNSBottomTabsScreenComponentView.mm,
 // updateTabBarItem: khi _systemItem != None thì không gán tabBarItem.title).
 // Nếu không rào ở đây, người dùng iOS 15–18 sẽ thấy icon giỏ hàng kèm chữ
-// "Tìm kiếm" thay vì "Giỏ hàng". Platform.Version trên iOS là string (vd.
-// "17.4.1"), không phải number như Android (xem PlatformIOSStatic trong
-// react-native/Libraries/Utilities/Platform.d.ts) — parseInt lấy major
-// version rồi so sánh.
-const supportsDetachedSearchTab =
-  Platform.OS === 'ios' && parseInt(Platform.Version, 10) >= 26
+// "Tìm kiếm" thay vì "Giỏ hàng". Phép so sánh phiên bản (Platform.Version là
+// string trên iOS, vd. "17.4.1", khác Android — xem PlatformIOSStatic trong
+// react-native/Libraries/Utilities/Platform.d.ts) được tách thành hàm thuần
+// `supportsDetachedSearchTab` trong utils/platform-version.ts để test độc
+// lập với các chuỗi phiên bản (xem __tests__/utils/platform-version.test.ts).
+const supportsDetachedSearchTab = computeSupportsDetachedSearchTab(
+  Platform.OS,
+  Platform.Version,
+)
 
 export default function TabsLayout() {
   const { t } = useTranslation('tabs')
