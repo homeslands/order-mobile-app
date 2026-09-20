@@ -27,6 +27,8 @@ type AnimatedTabButtonProps = {
   buttonIndex: number
   buttonPaddingH: number
   indicatorWidth: number
+  /** Worklet: dời indicator ngay lúc nhả tay, không đợi route đổi. */
+  onMoveIndicator: (targetX: number, slotWidth: number) => void
 }
 
 export const AnimatedTabButton = React.memo(function AnimatedTabButton({
@@ -42,10 +44,22 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
   buttonIndex,
   buttonPaddingH,
   indicatorWidth,
+  onMoveIndicator,
 }: AnimatedTabButtonProps) {
   const handlePressIn = useCallback(() => {
     onPressIn?.(href)
   }, [href, onPressIn])
+
+  // Chuyển tab bằng `navigate` không qua navigation lock nên lần chạm nào được
+  // công nhận cũng dẫn tới điều hướng — dời indicator ngay tại đây là an toàn,
+  // và nhờ vậy nó không phải chờ router dựng xong màn mới bắt đầu chạy.
+  const handleTap = useCallback(() => {
+    'worklet'
+    onMoveIndicator(
+      buttonPaddingH + buttonIndex * indicatorWidth,
+      indicatorWidth,
+    )
+  }, [onMoveIndicator, buttonPaddingH, buttonIndex, indicatorWidth])
 
   // 1 when indicator covers this button, 0 when ≥1 slot away — all on UI thread
   const activeFraction = useDerivedValue(() => {
@@ -83,6 +97,7 @@ export const AnimatedTabButton = React.memo(function AnimatedTabButton({
     <NativeGesturePressable
       navigation={{ type: 'navigate', href }}
       onPressIn={handlePressIn}
+      onTapWorklet={handleTap}
       disabled={active}
       style={styles.container}
     >

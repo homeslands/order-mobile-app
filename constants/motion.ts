@@ -94,12 +94,20 @@ export const SPRING_CONFIGS = {
     energyThreshold: 0.1,
   } as const,
 
-  /** Tab bar sliding indicator — snappy, ~100ms settle. */
+  /**
+   * Tab bar sliding indicator — đường cong kiểu thanh tab iOS 26: trôi mượt,
+   * vượt đích một chút rồi lắng. Không kẹp overshoot, vì chính cái nảy nhẹ đó
+   * làm chuyển động "có trọng lượng" thay vì giật cục như bản snappy cũ.
+   */
   tabIndicator: {
-    stiffness: 500,
-    damping: 32,
-    mass: 0.25,
-    overshootClamping: true,
+    duration: 380,
+    dampingRatio: 0.8,
+  } as const,
+
+  /** Độ giãn ngang của indicator co lại sau khi trượt — nhanh hơn cú trượt. */
+  tabIndicatorStretch: {
+    duration: 260,
+    dampingRatio: 0.72,
   } as const,
 
   /** Tab button scale/translate active — mild lift, gentle settle. */

@@ -6,9 +6,12 @@ import { Gift, Home, Menu, User } from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { LayoutChangeEvent, StyleSheet, View } from 'react-native'
 import Animated, {
+  runOnUI,
   useAnimatedStyle,
   useSharedValue,
+  withSequence,
   withSpring,
+  withTiming,
 } from 'react-native-reanimated'
 
 import { SPRING_CONFIGS } from '@/constants'
@@ -21,6 +24,16 @@ const PADDING_V = 4
 const CONTENT_HEIGHT = 32 + 14 + 12
 const PILL_RADIUS = (PADDING_V * 2 + CONTENT_HEIGHT) / 2
 const PADDING_H_DEFAULT = 10
+
+/**
+ * Indicator giãn ngang trong lúc trượt rồi co lại — chỗ trượt càng xa thì giãn
+ * càng nhiều, giống viên kính kéo dài theo hướng đi trên iOS 26. Nhân với số ô
+ * đi qua (kẹp ở 3, tức đi hết chiều ngang thanh tab).
+ */
+const STRETCH_PER_SLOT = 0.06
+const MAX_STRETCH_SLOTS = 3
+/** Thời gian giãn ra; ngắn hơn cú trượt để bắt kịp lúc indicator tăng tốc. */
+const STRETCH_RISE_MS = 130
 
 type Colors = {
   primary: string
@@ -61,6 +74,14 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   })
   const { pillWidth, paddingH } = layout
   const indicatorX = useSharedValue(0)
+  const indicatorStretch = useSharedValue(1)
+  /**
+   * Đích cuối cùng đã ra lệnh cho `indicatorX`. Cú chạm và effect theo route
+   * đều gọi `moveIndicator`, nên cần mốc này để lần gọi thứ hai (effect, chậm
+   * hơn một hai frame) không khởi động lại lò xo đang chạy — khởi động lại sẽ
+   * đặt vận tốc về 0 và tạo ra đúng cái khựng cần tránh.
+   */
+  const indicatorTarget = useSharedValue(-1)
 
   const hasAnimatedRef = useRef(false)
 
@@ -79,16 +100,50 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
 
   const itemWidth = pillWidth > 0 ? (pillWidth - 2 * paddingH) / 4 : ITEM_WIDTH
 
+  /**
+   * Chạy trên UI thread. Gọi từ hai nơi: lúc ngón tay nhả ra (chạy ngay, không
+   * đợi router) và từ effect theo route (chốt lại khi màn đã đổi).
+   */
+  const moveIndicator = useCallback(
+    (targetX: number, slotWidth: number) => {
+      'worklet'
+      if (indicatorTarget.value === targetX) return
+      indicatorTarget.value = targetX
+
+      const slots = Math.min(
+        Math.abs(targetX - indicatorX.value) / slotWidth,
+        MAX_STRETCH_SLOTS,
+      )
+      indicatorStretch.value = withSequence(
+        withTiming(1 + slots * STRETCH_PER_SLOT, {
+          duration: STRETCH_RISE_MS,
+        }),
+        withSpring(1, SPRING_CONFIGS.tabIndicatorStretch),
+      )
+      indicatorX.value = withSpring(targetX, SPRING_CONFIGS.tabIndicator)
+    },
+    [indicatorX, indicatorStretch, indicatorTarget],
+  )
+
   useEffect(() => {
     if (pillWidth <= 0 || activeIndex < 0) return
     const targetX = paddingH + activeIndex * itemWidth
     if (!hasAnimatedRef.current) {
       indicatorX.value = targetX
+      indicatorTarget.value = targetX
       hasAnimatedRef.current = true
-    } else {
-      indicatorX.value = withSpring(targetX, SPRING_CONFIGS.tabIndicator)
+      return
     }
-  }, [activeIndex, paddingH, itemWidth, pillWidth, indicatorX])
+    runOnUI(moveIndicator)(targetX, itemWidth)
+  }, [
+    activeIndex,
+    paddingH,
+    itemWidth,
+    pillWidth,
+    indicatorX,
+    indicatorTarget,
+    moveIndicator,
+  ])
 
   const onPillLayout = useCallback((e: LayoutChangeEvent) => {
     const w = e.nativeEvent.layout.width
@@ -99,7 +154,10 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   }, [])
 
   const slidingIndicatorStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: indicatorX.value }],
+    transform: [
+      { translateX: indicatorX.value },
+      { scaleX: indicatorStretch.value },
+    ],
   }))
 
   // Static config — no tabState dep; rebuilds only when routes/translations change
@@ -162,6 +220,7 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
             buttonIndex={index}
             buttonPaddingH={paddingH}
             indicatorWidth={itemWidth}
+            onMoveIndicator={moveIndicator}
           />
         ))}
       </View>
