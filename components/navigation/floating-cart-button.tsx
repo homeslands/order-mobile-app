@@ -1,9 +1,11 @@
 import { ShoppingCart } from 'lucide-react-native'
 import React, { useMemo } from 'react'
-import { View } from 'react-native'
+import { GlassView } from 'expo-glass-effect'
+import { StyleSheet, View } from 'react-native'
 
 import { TAB_ROUTES } from '@/constants/navigation.config'
 import { useOrderFlowCartItemCount } from '@/stores/selectors'
+import { HAS_LIQUID_GLASS } from '@/utils/liquid-glass'
 
 import { NativeGesturePressable } from './native-gesture-pressable'
 import { Text } from '@/components/ui/text'
@@ -29,7 +31,10 @@ const FloatingCartButton = React.memo(function FloatingCartButton({
       width: 64,
       height: 64,
       borderRadius: 32,
-      backgroundColor: primaryColor,
+      // Kính pha màu thương hiệu; máy không có kính giữ nền cam đặc.
+      ...(HAS_LIQUID_GLASS
+        ? { overflow: 'hidden' as const }
+        : { backgroundColor: primaryColor }),
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
       shadowColor: primaryColor,
@@ -46,6 +51,15 @@ const FloatingCartButton = React.memo(function FloatingCartButton({
       navigation={{ type: 'push', href: href ?? TAB_ROUTES.CART }}
       style={buttonStyle}
     >
+      {HAS_LIQUID_GLASS ? (
+        <GlassView
+          style={[StyleSheet.absoluteFill, { borderRadius: 32 }]}
+          glassEffectStyle="regular"
+          tintColor={primaryColor}
+          isInteractive
+          pointerEvents="none"
+        />
+      ) : null}
       <ShoppingCart size={24} color="#ffffff" />
       {cartItemCount > 0 && (
         <View

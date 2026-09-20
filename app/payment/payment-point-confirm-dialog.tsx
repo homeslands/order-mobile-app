@@ -5,6 +5,7 @@
  * Memo'd: parent re-renders (order refetch, focus effects) do not re-render this
  * modal as long as its props are stable.
  */
+import { GlassView } from 'expo-glass-effect'
 import { memo, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, View } from 'react-native'
@@ -12,6 +13,7 @@ import { Pressable, StyleSheet, View } from 'react-native'
 import { LightweightDialog } from '@/components/ui/lightweight-dialog'
 import { colors } from '@/constants'
 import { formatCurrency } from '@/utils'
+import { HAS_LIQUID_GLASS } from '@/utils/liquid-glass'
 import { Text } from '@/components/ui/text'
 
 type Props = {
@@ -39,9 +41,9 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
   // Stable theme-dependent style objects
   const theme = useMemo(
     () => ({
-      card: {
-        backgroundColor: isDark ? colors.card.dark : colors.white.light,
-      },
+      card: HAS_LIQUID_GLASS
+        ? { overflow: 'hidden' as const }
+        : { backgroundColor: isDark ? colors.card.dark : colors.white.light },
       title: { color: isDark ? colors.gray[50] : colors.gray[900] },
       label: { color: isDark ? colors.gray[400] : colors.gray[500] },
       value: { color: isDark ? colors.gray[50] : colors.gray[900] },
@@ -65,6 +67,13 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
     <LightweightDialog visible={visible} onClose={onClose}>
       {(dismiss) => (
         <View style={[s.card, theme.card]}>
+          {HAS_LIQUID_GLASS ? (
+            <GlassView
+              style={[StyleSheet.absoluteFill, s.cardGlass]}
+              glassEffectStyle="regular"
+              pointerEvents="none"
+            />
+          ) : null}
           <Text style={[s.title, theme.title]}>
             {t(
               'paymentMethod.confirmPointPaymentTitle',
@@ -126,6 +135,7 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
 
 const s = StyleSheet.create({
   card: { width: '100%', borderRadius: 16, padding: 24, gap: 20 },
+  cardGlass: { borderRadius: 16 },
   title: { fontSize: 17, fontWeight: '700', textAlign: 'center' },
   body: { gap: 12 },
   row: {
