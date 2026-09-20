@@ -1,7 +1,6 @@
 /**
  * AnimatedTabBar — Pill full width, sliding indicator khi chuyển tab.
  */
-import { GlassView } from 'expo-glass-effect'
 import type { TFunction } from 'i18next'
 import { Gift, Home, Menu, User } from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -13,7 +12,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { SPRING_CONFIGS } from '@/constants'
-import { useLiquidGlass } from '@/hooks/use-liquid-glass'
+import { GlassSurface } from '@/components/ui/glass-surface'
 import { AnimatedTabButton } from './animated-tab-button'
 
 const ICON_SIZE = 32
@@ -56,7 +55,6 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   tabRoutes,
   onPressInTabSwitch,
 }: AnimatedTabBarProps) {
-  const glass = useLiquidGlass()
   const [layout, setLayout] = useState({
     pillWidth: 0,
     paddingH: PADDING_H_DEFAULT,
@@ -134,41 +132,30 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   return (
     <View style={[styles.tabBar, { backgroundColor: 'transparent' }]}>
       <View
-        style={[
-          styles.pill,
-          { paddingHorizontal: paddingH },
-          // Kính thay nền pill; máy không có kính giữ nguyên nền card đặc.
-          glass ? styles.pillGlassClip : { backgroundColor: colors.card },
-        ]}
+        style={[styles.pill, { paddingHorizontal: paddingH }]}
         onLayout={onPillLayout}
       >
-        {glass ? (
-          <GlassView
-            style={[StyleSheet.absoluteFill, styles.pillGlassClip]}
-            glassEffectStyle="regular"
-            pointerEvents="none"
-          />
-        ) : null}
+        <GlassSurface
+          color={colors.card}
+          radius={9999}
+          style={StyleSheet.absoluteFill}
+        />
         <Animated.View
           style={[
             styles.slidingIndicator,
             { width: itemWidth },
-            glass
-              ? styles.indicatorGlassClip
-              : { backgroundColor: colors.primary },
             slidingIndicatorStyle,
           ]}
         >
           {/* Viên nền tab đang chọn: kính pha màu thương hiệu, trôi theo cùng
-              animation với indicator. */}
-          {glass ? (
-            <GlassView
-              style={[StyleSheet.absoluteFill, styles.indicatorGlassClip]}
-              glassEffectStyle="regular"
-              tintColor={colors.primary}
-              pointerEvents="none"
-            />
-          ) : null}
+              animation với indicator. Nền đặc cũng phải cam thương hiệu nên
+              color và tint đều là colors.primary. */}
+          <GlassSurface
+            color={colors.primary}
+            tint={colors.primary}
+            radius={9999}
+            style={StyleSheet.absoluteFill}
+          />
         </Animated.View>
         {tabConfigs.map(({ Icon, href, label }, index) => (
           <AnimatedTabButton
@@ -199,8 +186,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pillGlassClip: { borderRadius: 9999, overflow: 'hidden' },
-  indicatorGlassClip: { borderRadius: 9999, overflow: 'hidden' },
   pill: {
     flex: 1,
     flexDirection: 'row',

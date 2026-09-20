@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { BackHandler, Platform, Pressable, StyleSheet } from 'react-native'
 
-import { useLiquidGlass } from '@/hooks/use-liquid-glass'
+import { useGlassLevel } from '@/hooks/use-glass-level'
 import Animated, {
   cancelAnimation,
   runOnJS,
@@ -66,7 +66,7 @@ export const LightweightDialog = memo(function LightweightDialog({
     return () => sub.remove()
   }, [show, dismiss])
 
-  const glass = useLiquidGlass()
+  const glass = useGlassLevel() > 0
 
   const backdropStyle = useAnimatedStyle(() => ({
     opacity: progress.value,

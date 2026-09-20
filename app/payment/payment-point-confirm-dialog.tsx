@@ -5,15 +5,14 @@
  * Memo'd: parent re-renders (order refetch, focus effects) do not re-render this
  * modal as long as its props are stable.
  */
-import { GlassView } from 'expo-glass-effect'
 import { memo, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, View } from 'react-native'
 
 import { LightweightDialog } from '@/components/ui/lightweight-dialog'
 import { colors } from '@/constants'
-import { useLiquidGlass } from '@/hooks/use-liquid-glass'
 import { formatCurrency } from '@/utils'
+import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
 
 type Props = {
@@ -37,14 +36,11 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
 }: Props) {
   const { t } = useTranslation('menu')
   const unit = t('paymentMethod.coinUnit', 'xu')
-  const glass = useLiquidGlass()
 
   // Stable theme-dependent style objects
   const theme = useMemo(
     () => ({
-      card: glass
-        ? { overflow: 'hidden' as const }
-        : { backgroundColor: isDark ? colors.card.dark : colors.white.light },
+      cardColor: isDark ? colors.card.dark : colors.white.light,
       title: { color: isDark ? colors.gray[50] : colors.gray[900] },
       label: { color: isDark ? colors.gray[400] : colors.gray[500] },
       value: { color: isDark ? colors.gray[50] : colors.gray[900] },
@@ -59,7 +55,7 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
       },
       cancelText: { color: isDark ? colors.gray[200] : colors.gray[700] },
     }),
-    [glass, isDark],
+    [isDark],
   )
 
   if (!visible) return null
@@ -67,14 +63,12 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
   return (
     <LightweightDialog visible={visible} onClose={onClose}>
       {(dismiss) => (
-        <View style={[s.card, theme.card]}>
-          {glass ? (
-            <GlassView
-              style={[StyleSheet.absoluteFill, s.cardGlass]}
-              glassEffectStyle="regular"
-              pointerEvents="none"
-            />
-          ) : null}
+        <View style={s.card}>
+          <GlassSurface
+            color={theme.cardColor}
+            radius={16}
+            style={StyleSheet.absoluteFill}
+          />
           <Text style={[s.title, theme.title]}>
             {t(
               'paymentMethod.confirmPointPaymentTitle',
@@ -136,7 +130,6 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
 
 const s = StyleSheet.create({
   card: { width: '100%', borderRadius: 16, padding: 24, gap: 20 },
-  cardGlass: { borderRadius: 16 },
   title: { fontSize: 17, fontWeight: '700', textAlign: 'center' },
   body: { gap: 12 },
   row: {

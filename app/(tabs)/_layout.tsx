@@ -26,7 +26,7 @@ import Animated, {
 import { getGiftCards } from '@/api'
 import { getLoyaltyPoints } from '@/api/loyalty-point'
 import { AnimatedTabBar, FloatingCartButton } from '@/components/navigation'
-import { useLiquidGlass } from '@/hooks/use-liquid-glass'
+import { useGlassLevel } from '@/hooks/use-glass-level'
 import { OrderReadyPickupSheet } from '@/components/notification/order-ready-pickup-sheet'
 import { MOTION, QUERYKEY, tabsScreenOptions } from '@/constants'
 import { colors as palette } from '@/constants'
@@ -158,7 +158,7 @@ export default function TabsLayout() {
     isStackRoute
 
   const colors = useMemo(() => getThemeColor(isDark), [isDark])
-  const glass = useLiquidGlass()
+  const glass = useGlassLevel() > 0
 
   const tabColors = useMemo(
     () => ({

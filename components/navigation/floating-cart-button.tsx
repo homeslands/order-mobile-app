@@ -1,13 +1,13 @@
 import { ShoppingCart } from 'lucide-react-native'
 import React, { useMemo } from 'react'
-import { GlassView } from 'expo-glass-effect'
 import { StyleSheet, View } from 'react-native'
 
 import { TAB_ROUTES } from '@/constants/navigation.config'
-import { useLiquidGlass } from '@/hooks/use-liquid-glass'
+import { useGlassLevel } from '@/hooks/use-glass-level'
 import { useOrderFlowCartItemCount } from '@/stores/selectors'
 
 import { NativeGesturePressable } from './native-gesture-pressable'
+import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
 
 type Props = {
@@ -23,7 +23,7 @@ const FloatingCartButton = React.memo(function FloatingCartButton({
   href,
   countOverride,
 }: Props) {
-  const glass = useLiquidGlass()
+  const level = useGlassLevel()
   const orderFlowCount = useOrderFlowCartItemCount()
   const cartItemCount = countOverride ?? orderFlowCount
 
@@ -32,19 +32,17 @@ const FloatingCartButton = React.memo(function FloatingCartButton({
       width: 64,
       height: 64,
       borderRadius: 32,
-      // Kính pha màu thương hiệu; máy không có kính giữ nền cam đặc.
-      ...(glass
-        ? { overflow: 'hidden' as const }
-        : { backgroundColor: primaryColor }),
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
-      shadowColor: primaryColor,
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.15,
-      shadowRadius: 12,
-      elevation: 8,
+      ...(level === 0 && {
+        shadowColor: primaryColor,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.15,
+        shadowRadius: 12,
+        elevation: 8,
+      }),
     }),
-    [glass, primaryColor],
+    [level, primaryColor],
   )
 
   return (
@@ -52,15 +50,13 @@ const FloatingCartButton = React.memo(function FloatingCartButton({
       navigation={{ type: 'push', href: href ?? TAB_ROUTES.CART }}
       style={buttonStyle}
     >
-      {glass ? (
-        <GlassView
-          style={[StyleSheet.absoluteFill, { borderRadius: 32 }]}
-          glassEffectStyle="regular"
-          tintColor={primaryColor}
-          isInteractive
-          pointerEvents="none"
-        />
-      ) : null}
+      <GlassSurface
+        color={primaryColor}
+        tint={primaryColor}
+        radius={32}
+        interactive
+        style={StyleSheet.absoluteFill}
+      />
       <ShoppingCart size={24} color="#ffffff" />
       {cartItemCount > 0 && (
         <View

@@ -6,7 +6,6 @@
  * BlurView (iOS) + LinearGradient fade, absolute positioned.
  */
 import { BlurView } from 'expo-blur'
-import { GlassView } from 'expo-glass-effect'
 import { LinearGradient } from 'expo-linear-gradient'
 import { ChevronLeft } from 'lucide-react-native'
 import React, { memo, useMemo } from 'react'
@@ -20,8 +19,9 @@ import {
 
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
-import { useLiquidGlass } from '@/hooks/use-liquid-glass'
+import { useGlassLevel } from '@/hooks/use-glass-level'
 import { navigateNative } from '@/lib/navigation'
+import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
 
 interface FloatingHeaderProps {
@@ -42,27 +42,18 @@ const CircleButton = memo(function CircleButton({
   onPress?: () => void
   children: React.ReactNode
 }) {
-  const glass = useLiquidGlass()
+  const level = useGlassLevel()
   const solidBg = isDark ? colors.card.dark : colors.white.light
 
   return (
     <Pressable
       onPress={onPress}
       hitSlop={8}
-      style={[
-        s.circleBtn,
-        !glass && { backgroundColor: solidBg },
-        !glass && s.shadow,
-      ]}
+      style={[s.circleBtnWrap, level === 0 && s.shadow]}
     >
-      {glass ? (
-        <GlassView
-          style={[StyleSheet.absoluteFill, s.circleGlass]}
-          glassEffectStyle="regular"
-          isInteractive
-        />
-      ) : null}
-      {children}
+      <GlassSurface color={solidBg} radius={19} interactive style={s.circleBtn}>
+        {children}
+      </GlassSurface>
     </Pressable>
   )
 })
@@ -171,15 +162,17 @@ const s = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
   },
+  circleBtnWrap: {
+    width: 38,
+    height: 38,
+  },
   circleBtn: {
     width: 38,
     height: 38,
     borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
-    overflow: 'hidden',
   },
-  circleGlass: { borderRadius: 19 },
   shadow: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
