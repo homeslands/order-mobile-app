@@ -26,6 +26,7 @@ import Animated, {
 import { getGiftCards } from '@/api'
 import { getLoyaltyPoints } from '@/api/loyalty-point'
 import { AnimatedTabBar, FloatingCartButton } from '@/components/navigation'
+import { HAS_LIQUID_GLASS } from '@/utils/liquid-glass'
 import { OrderReadyPickupSheet } from '@/components/notification/order-ready-pickup-sheet'
 import { MOTION, QUERYKEY, tabsScreenOptions } from '@/constants'
 import { STATIC_BOTTOM_INSET } from '@/constants/status-bar'
@@ -343,19 +344,24 @@ export default function TabsLayout() {
           ]}
           pointerEvents={shouldHideBottomBar ? 'none' : 'box-none'}
         >
+          {/* Gradient chỉ để nội dung cuộn dưới thanh tab đỡ chói. Máy có
+              Liquid Glass thì bỏ, vì kính tự lo phần nền — và có nền mờ phía
+              sau thì kính gần như không thấy gì để khúc xạ. */}
           <View
             style={{
               height: totalBottomHeight,
               pointerEvents: 'none',
             }}
           >
-            <LinearGradient
-              colors={
-                gradientColors as unknown as [string, string, ...string[]]
-              }
-              locations={[0, 0.3, 0.65, 1]}
-              style={{ flex: 1 }}
-            />
+            {HAS_LIQUID_GLASS ? null : (
+              <LinearGradient
+                colors={
+                  gradientColors as unknown as [string, string, ...string[]]
+                }
+                locations={[0, 0.3, 0.65, 1]}
+                style={{ flex: 1 }}
+              />
+            )}
           </View>
           <View
             style={{

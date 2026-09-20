@@ -6,7 +6,7 @@
  * BlurView (iOS) + LinearGradient fade, absolute positioned.
  */
 import { BlurView } from 'expo-blur'
-import { GlassView, isLiquidGlassAvailable } from 'expo-glass-effect'
+import { GlassView } from 'expo-glass-effect'
 import { LinearGradient } from 'expo-linear-gradient'
 import { ChevronLeft } from 'lucide-react-native'
 import React, { memo, useMemo } from 'react'
@@ -21,6 +21,7 @@ import {
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { navigateNative } from '@/lib/navigation'
+import { HAS_LIQUID_GLASS } from '@/utils/liquid-glass'
 import { Text } from '@/components/ui/text'
 
 interface FloatingHeaderProps {
@@ -31,15 +32,7 @@ interface FloatingHeaderProps {
   disableBlur?: boolean
 }
 
-/**
- * Nút tròn của header: kính thật trên iOS 26+, nền đặc ở mọi nơi khác.
- *
- * `isLiquidGlassAvailable()` chỉ hỏi hệ thống một lần, không phải hook. Khi
- * không có kính, `GlassView` rơi về View trơn và mất luôn nền, nên nhánh
- * fallback phải tự tô nền — không được bỏ trống.
- */
-const HAS_LIQUID_GLASS = isLiquidGlassAvailable()
-
+/** Nút tròn của header: kính thật trên iOS 26+, nền đặc ở mọi nơi khác. */
 const CircleButton = memo(function CircleButton({
   isDark,
   onPress,

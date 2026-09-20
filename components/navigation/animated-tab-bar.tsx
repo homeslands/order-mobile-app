@@ -1,6 +1,7 @@
 /**
  * AnimatedTabBar — Pill full width, sliding indicator khi chuyển tab.
  */
+import { GlassView } from 'expo-glass-effect'
 import type { TFunction } from 'i18next'
 import { Gift, Home, Menu, User } from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -12,6 +13,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { SPRING_CONFIGS } from '@/constants'
+import { HAS_LIQUID_GLASS } from '@/utils/liquid-glass'
 import { AnimatedTabButton } from './animated-tab-button'
 
 const ICON_SIZE = 32
@@ -133,10 +135,21 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
       <View
         style={[
           styles.pill,
-          { paddingHorizontal: paddingH, backgroundColor: colors.card },
+          { paddingHorizontal: paddingH },
+          // Kính thay nền pill; máy không có kính giữ nguyên nền card đặc.
+          HAS_LIQUID_GLASS
+            ? styles.pillGlassClip
+            : { backgroundColor: colors.card },
         ]}
         onLayout={onPillLayout}
       >
+        {HAS_LIQUID_GLASS ? (
+          <GlassView
+            style={[StyleSheet.absoluteFill, styles.pillGlassClip]}
+            glassEffectStyle="regular"
+            pointerEvents="none"
+          />
+        ) : null}
         <Animated.View
           style={[
             styles.slidingIndicator,
@@ -173,6 +186,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  pillGlassClip: { borderRadius: 9999, overflow: 'hidden' },
   pill: {
     flex: 1,
     flexDirection: 'row',
