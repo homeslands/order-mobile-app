@@ -75,4 +75,20 @@ describe('GlassSurface', () => {
 
     expect(screen.getByTestId('glass-view').props.isInteractive).toBe(true)
   })
+
+  it('interactive: GlassView không bị pointerEvents "none" chặn chạm', () => {
+    mockLevel = 1
+    render(<GlassSurface color="#ffffff" interactive testID="surface" />)
+
+    expect(screen.getByTestId('glass-view').props.pointerEvents).not.toBe(
+      'none',
+    )
+  })
+
+  it('không interactive: GlassView vẫn giữ pointerEvents "none"', () => {
+    mockLevel = 1
+    render(<GlassSurface color="#ffffff" testID="surface" />)
+
+    expect(screen.getByTestId('glass-view').props.pointerEvents).toBe('none')
+  })
 })

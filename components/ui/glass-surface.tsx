@@ -43,7 +43,10 @@ export const GlassSurface = memo(function GlassSurface({
     return (
       <View
         testID={testID}
-        style={[style, { backgroundColor: color, borderRadius: radius }]}
+        style={[
+          style,
+          { backgroundColor: color, borderRadius: radius, overflow: 'hidden' },
+        ]}
       >
         {children}
       </View>
@@ -60,7 +63,10 @@ export const GlassSurface = memo(function GlassSurface({
         glassEffectStyle="regular"
         tintColor={glassTint(color, level, tint)}
         isInteractive={interactive}
-        pointerEvents="none"
+        // Nút bấm (interactive) cần tự nhận chạm để morph kính chạy — pointerEvents
+        // "none" sẽ loại view này khỏi hit-testing và chặn luôn hiệu ứng đó.
+        // Không interactive thì giữ "none" để chạm xuyên xuống Pressable cha.
+        pointerEvents={interactive ? undefined : 'none'}
       />
       {children}
     </View>

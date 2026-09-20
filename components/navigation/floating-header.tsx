@@ -49,7 +49,14 @@ const CircleButton = memo(function CircleButton({
     <Pressable
       onPress={onPress}
       hitSlop={8}
-      style={[s.circleBtnWrap, level === 0 && s.shadow]}
+      style={[
+        s.circleBtnWrap,
+        // Nền đặc + bo tròn ngay trên view mang shadow — nếu không, shadow đổ
+        // từ một layer vuông trong suốt, ra bóng vuông (iOS) hoặc mất bóng
+        // (Android elevation cần outline khớp hình dạng nội dung).
+        level === 0 && { backgroundColor: solidBg },
+        level === 0 && s.shadow,
+      ]}
     >
       <GlassSurface color={solidBg} radius={19} interactive style={s.circleBtn}>
         {children}
@@ -165,6 +172,7 @@ const s = StyleSheet.create({
   circleBtnWrap: {
     width: 38,
     height: 38,
+    borderRadius: 19,
   },
   circleBtn: {
     width: 38,
