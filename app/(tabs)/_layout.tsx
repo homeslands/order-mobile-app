@@ -14,7 +14,11 @@ import {
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Platform, View, useColorScheme } from 'react-native'
+import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { NATIVE_TAB_BAR_HEIGHT } from '@/components/layout/tab-screen-layout'
+import { shouldHideCartButton } from '@/components/navigation/cart-button-visibility'
+import { FloatingCartButton } from '@/components/navigation/floating-cart-button'
 import { OrderReadyPickupSheet } from '@/components/notification/order-ready-pickup-sheet'
 import { usePredictivePrefetch } from '@/hooks'
 import { useNotifications } from '@/hooks/use-notification'
@@ -110,6 +114,8 @@ export default function TabsLayout() {
   }, [pathname, masterTransition, queryClient, isAuthenticated])
 
   const colors = useMemo(() => getThemeColor(isDark), [isDark])
+  const insets = useSafeAreaInsets()
+  const cartButtonBottom = insets.bottom + NATIVE_TAB_BAR_HEIGHT + 12
 
   return (
     <View style={{ flex: 1 }}>
@@ -161,6 +167,19 @@ export default function TabsLayout() {
           <Label>{t('tabs.profile', 'Tài khoản')}</Label>
         </NativeTabs.Trigger>
       </NativeTabs>
+
+      {!shouldHideCartButton(pathname) && (
+        <View
+          style={{
+            position: 'absolute',
+            right: 16,
+            bottom: cartButtonBottom,
+          }}
+          pointerEvents="box-none"
+        >
+          <FloatingCartButton primaryColor={colors.primary} />
+        </View>
+      )}
 
       <OrderReadyPickupSheet />
       {/* <ProfileNudgePopup /> */}

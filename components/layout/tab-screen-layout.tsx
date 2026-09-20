@@ -19,30 +19,31 @@
  *   </TabScreenLayout>
  */
 import React, { memo } from 'react'
-import { StyleSheet, View, useColorScheme } from 'react-native'
+import { Platform, StyleSheet, View, useColorScheme } from 'react-native'
 import type { StyleProp, ViewStyle } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '@/constants'
 
 /**
- * Chiều cao tab bar vật lý: BAR_HEIGHT(64) + BAR_PADDING(8) + MIN_GAP(8) + FADE buffer(8).
- * Đây là phần cố định — không phụ thuộc safe area.
+ * Chiều cao thanh tab gốc, KHÔNG gồm safe area đáy.
+ * Đo trên máy thật ngày 2026-09-20: iOS 49pt (chuẩn UIKit), Android 80dp
+ * (chuẩn Material 3, đo bằng `uiautomator dump`).
+ * Safe area của màn con KHÔNG chứa chiều cao này trên cả hai nền tảng —
+ * đã kiểm bằng cách in `useSafeAreaInsets().bottom` ngay trong một tab.
  */
-const TAB_BAR_HEIGHT = 88
+export const NATIVE_TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 49 : 80
 
 /**
  * Hook trả về padding bottom chính xác theo thiết bị.
  * Tính bằng tab bar height + insets.bottom thực tế của device.
  *
- * - iPhone 16 Pro Max: 88 + 34 = 122
- * - iPhone SE:         88 + 0  = 88
- * - iPad:              88 + 20 = 108
- * - Android gesture:  88 + 24 = 112 (thay đổi theo system setting)
+ * - iPhone (iOS):      49 + insets.bottom (34 ở iPhone có home indicator)
+ * - Android gesture:   80 + insets.bottom (24 ở thanh cử chỉ)
  */
 export function useTabBarBottomPadding(extra = 0): number {
   const { bottom } = useSafeAreaInsets()
-  return TAB_BAR_HEIGHT + bottom + extra
+  return NATIVE_TAB_BAR_HEIGHT + bottom + extra
 }
 
 export interface TabScreenLayoutProps {
