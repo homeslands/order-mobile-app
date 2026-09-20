@@ -24,6 +24,7 @@ import { TouchableOpacity as GHTouchable } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors, GiftCardUsageStatus } from '@/constants'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -101,7 +102,6 @@ export const GiftCardFilterSheet = memo(function GiftCardFilterSheet({
   const [fromPickerOpen, setFromPickerOpen] = useState(false)
   const [toPickerOpen, setToPickerOpen] = useState(false)
 
-  const bg = isDark ? colors.card.dark : colors.white.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
   const chipBg = isDark ? colors.border.dark : colors.gray[100]
@@ -144,7 +144,7 @@ export const GiftCardFilterSheet = memo(function GiftCardFilterSheet({
       enableContentPanningGesture={false}
       enableHandlePanningGesture
       backdropComponent={renderBackdrop}
-      backgroundStyle={{ backgroundColor: bg }}
+      backgroundComponent={GlassSheetBackground}
       handleIndicatorStyle={{
         backgroundColor: isDark ? colors.gray[600] : colors.gray[300],
       }}

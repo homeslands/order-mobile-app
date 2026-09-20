@@ -29,6 +29,7 @@ import { useRedeemGiftCard } from '@/hooks/use-redeem-gift-card'
 import { useUserStore } from '@/stores'
 import { formatPoints } from '@/utils'
 import { showErrorToast, showToast } from '@/utils/toast'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -198,7 +199,6 @@ export const GiftCardDetailSheet = memo(function GiftCardDetailSheet({
   }, [card, userSlug, redeem, onClose, t])
 
   // Derived
-  const bg = isDark ? colors.card.dark : colors.white.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
   const borderColor = isDark ? colors.border.dark : colors.gray[200]
@@ -249,7 +249,7 @@ export const GiftCardDetailSheet = memo(function GiftCardDetailSheet({
       enablePanDownToClose
       enableDynamicSizing={false}
       backdropComponent={renderBackdrop}
-      backgroundStyle={{ backgroundColor: bg }}
+      backgroundComponent={GlassSheetBackground}
       handleIndicatorStyle={{
         backgroundColor: isDark ? colors.gray[600] : colors.gray[300],
       }}
