@@ -22,6 +22,7 @@ import {
   useDetailSelectedVariant,
 } from '@/stores/selectors'
 import { formatCurrency } from '@/utils'
+import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
 
 /**
@@ -64,10 +65,7 @@ export const ProductPriceFooter = React.memo(function ProductPriceFooter({
       pointerEvents="box-none"
       style={[
         styles.wrapper,
-        {
-          paddingBottom: insets.bottom + FOOTER_BOTTOM_EXTRA,
-          backgroundColor: bgColor,
-        },
+        { paddingBottom: insets.bottom + FOOTER_BOTTOM_EXTRA },
         isDark ? styles.borderDark : styles.borderLight,
         Platform.select({
           ios: {
@@ -80,6 +78,7 @@ export const ProductPriceFooter = React.memo(function ProductPriceFooter({
         }),
       ]}
     >
+      <GlassSurface color={bgColor} style={StyleSheet.absoluteFill} />
       <View style={styles.row}>
         {/* Price column */}
         <View style={styles.priceCol}>
