@@ -1,7 +1,9 @@
 import { render, screen } from '@testing-library/react-native'
+import { StyleSheet } from 'react-native'
 
 import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 
+// Nền sheet phải đặc, nên không được đi qua GlassSurface ở bất kỳ mức nào.
 jest.mock('@/components/ui/glass-surface', () => ({
   GlassSurface: (props: Record<string, unknown>) => {
     /* eslint-disable @typescript-eslint/no-require-imports */
@@ -13,7 +15,7 @@ jest.mock('@/components/ui/glass-surface', () => ({
 }))
 
 describe('GlassSheetBackground', () => {
-  it('bo góc trên của sheet và nhận style do gorhom truyền vào', () => {
+  it('nền đặc, không dùng kính, bo góc theo quy ước sheet của app', () => {
     render(
       <GlassSheetBackground
         style={{ backgroundColor: 'red' }}
@@ -22,9 +24,13 @@ describe('GlassSheetBackground', () => {
       />,
     )
 
-    const surface = screen.getByTestId('glass-surface')
-    expect(surface.props.radius).toBe(24)
-    expect(surface.props.color).toBeDefined()
+    expect(screen.queryByTestId('glass-surface')).toBeNull()
+
+    const root = screen.getByLabelText('Bottom Sheet')
+    const flat = StyleSheet.flatten(root.props.style)
+    expect(flat.borderRadius).toBe(24)
+    // Màu nền của app đè lên màu gorhom truyền vào.
+    expect(flat.backgroundColor).not.toBe('red')
   })
 
   it('giữ đúng accessibility + pointerEvents của nền mặc định gorhom', () => {

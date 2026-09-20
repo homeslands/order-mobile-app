@@ -1,14 +1,19 @@
 /**
- * Nền kính cho bottom sheet của gorhom.
+ * Nền cho bottom sheet của gorhom.
+ *
+ * Nền sheet **không dùng Liquid Glass**: trên iOS 26 Apple để kính cho lớp
+ * điều khiển nổi trên nội dung (thanh tab, thanh công cụ, nút), còn nền của
+ * sheet vẫn là nền đặc. Kính ở đây chỉ làm chữ khó đọc và bị lớp mờ phía sau
+ * của sheet nhuộm thành đục sữa. Vì vậy nền này đặc ở mọi mức độ trong người
+ * dùng chọn.
  *
  * Gắn qua prop `backgroundComponent`; gorhom sẽ không tự vẽ nền nữa, nên
- * `backgroundStyle` của sheet phải bỏ đi (nếu giữ, nó vẽ đè lên kính).
+ * `backgroundStyle` của sheet phải bỏ đi (nếu giữ, nó vẽ đè lên nền này).
  */
 import type { BottomSheetBackgroundProps } from '@gorhom/bottom-sheet'
 import { memo } from 'react'
 import { StyleSheet, useColorScheme, View } from 'react-native'
 
-import { GlassSurface } from '@/components/ui/glass-surface'
 import { colors } from '@/constants'
 
 /**
@@ -29,22 +34,23 @@ export const GlassSheetBackground = memo(function GlassSheetBackground({
   const color = isDark ? colors.card.dark : colors.white.light
 
   return (
-    // GlassSurface không nhận prop accessibility/pointerEvents, nên bọc
-    // ngoài bằng View thường để giữ đúng hành vi nền mặc định của gorhom
-    // (`BottomSheetBackground`): accessible, accessibilityRole, label, và
-    // pointerEvents gorhom truyền xuống ("none" — chạm xuyên qua nền).
+    // Giữ đúng hành vi nền mặc định của gorhom (`BottomSheetBackground`):
+    // accessible, accessibilityRole, label, và pointerEvents gorhom truyền
+    // xuống ("none" — chạm xuyên qua nền).
     <View
       pointerEvents={pointerEvents}
       accessible
       accessibilityRole="adjustable"
       accessibilityLabel="Bottom Sheet"
-      style={[style, StyleSheet.absoluteFill]}
-    >
-      <GlassSurface
-        color={color}
-        radius={SHEET_RADIUS}
-        style={StyleSheet.absoluteFill}
-      />
-    </View>
+      style={[
+        style,
+        StyleSheet.absoluteFill,
+        {
+          backgroundColor: color,
+          borderRadius: SHEET_RADIUS,
+          overflow: 'hidden',
+        },
+      ]}
+    />
   )
 })
