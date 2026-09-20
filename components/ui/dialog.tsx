@@ -40,6 +40,11 @@ interface DialogContentProps extends BaseProps {
   onClose?: () => void
   onExitComplete?: () => void
   open?: boolean
+  /**
+   * Bo góc của lớp kính nền — phải khớp bo góc thật của thẻ, vì `className`
+   * (vd. `rounded-md`) chỉ đổi bo góc hiển thị, không đổi bo góc kính.
+   */
+  radius?: number
 }
 
 /* -------------------------------------------------------------------------- */
@@ -98,6 +103,7 @@ function Dialog({ open, onOpenChange, children }: DialogProps) {
 const SPRING = SPRING_CONFIGS.modal
 
 // rounded-lg NativeWind = var(--radius) = 0.5rem = 8px (xem app/global.css)
+// Mặc định khi nơi gọi không truyền `radius` để đổi theo `className` riêng.
 const DIALOG_RADIUS = 8
 
 function DialogContent({
@@ -106,6 +112,7 @@ function DialogContent({
   onClose,
   onExitComplete,
   open = true,
+  radius = DIALOG_RADIUS,
 }: DialogContentProps) {
   const isDark = useColorScheme() === 'dark'
   const cardColor = isDark ? colors.card.dark : colors.card.light
@@ -207,7 +214,7 @@ function DialogContent({
         >
           <GlassSurface
             color={cardColor}
-            radius={DIALOG_RADIUS}
+            radius={radius}
             style={StyleSheet.absoluteFill}
           />
           {children}
