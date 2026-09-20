@@ -42,6 +42,7 @@ import {
   ProductPriceFooter,
 } from '@/components/product/product-price-footer'
 import { OrderFlowStep, colors } from '@/constants'
+import { TAB_ROUTES } from '@/constants/navigation.config'
 import { useSpecificMenuItem } from '@/hooks'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { useOrderFlowStore, useUserStore } from '@/stores'
@@ -250,10 +251,7 @@ function ProductDetailContent() {
   }, [refetchMenuItem])
 
   const handleBack = useCallback(() => router.back(), [router])
-  const handleCart = useCallback(
-    () => router.push('/(tabs)/menu/cart'),
-    [router],
-  )
+  const handleCart = useCallback(() => router.push(TAB_ROUTES.CART), [router])
 
   const handleAddToCart = useCallback(() => {
     if (!useUserStore.getState().userInfo) {

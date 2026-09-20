@@ -7,13 +7,10 @@ const LAZY_DEBUG = process.env.EXPO_PUBLIC_PHASE4_LAZY_DEBUG === 'true'
 export const TAB_ROUTES = {
   HOME: '/(tabs)/home',
   MENU: '/(tabs)/menu',
-  CART: '/(tabs)/cart',
+  CART: '/cart',
   GIFT_CARD: '/(tabs)/gift-card',
   PROFILE: '/(tabs)/profile',
 } as const
-
-/** Push từ Product Detail (menu stack) — slide, back về chi tiết món. */
-export const MENU_STACK_CART = '/(tabs)/menu/cart' as const
 
 export type TabRouteKey = keyof typeof TAB_ROUTES
 
