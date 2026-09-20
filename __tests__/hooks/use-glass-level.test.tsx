@@ -19,6 +19,7 @@ jest.mock('@/utils/liquid-glass', () => ({
 
 const initialReduceTransparency = false
 let emitChange: ((value: boolean) => void) | undefined
+const removeListener = jest.fn()
 
 jest
   .spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled')
@@ -38,7 +39,7 @@ addEventListener.mockImplementation((event, handler) => {
   if (event === 'reduceTransparencyChanged') {
     emitChange = handler
   }
-  return { remove: jest.fn() }
+  return { remove: removeListener }
 })
 
 beforeEach(() => {
@@ -115,5 +116,15 @@ describe('useReduceTransparency', () => {
       emitChange?.(false)
     })
     expect(result.current).toBe(false)
+  })
+
+  it('gỡ listener của hệ thống khi component unmount', async () => {
+    removeListener.mockClear()
+    const { unmount } = renderHook(() => useReduceTransparency())
+    await act(async () => {})
+
+    unmount()
+
+    expect(removeListener).toHaveBeenCalled()
   })
 })
