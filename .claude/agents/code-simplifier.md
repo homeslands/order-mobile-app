@@ -83,10 +83,10 @@ export const useOrderFlowStore = create((...args) => ({
 ## Component split patterns
 
 ```
-// Before: app/(tabs)/cart/index.tsx (300 lines — fetching + layout + logic)
+// Before: app/(tabs)/cart.tsx (300 lines — fetching + layout + logic)
 
 // After:
-// app/(tabs)/cart/index.tsx          → thin screen, only composes sub-components
+// app/(tabs)/cart.tsx                → thin screen, only composes sub-components
 // components/cart/cart-summary.tsx   → price breakdown UI
 // components/cart/cart-actions.tsx   → checkout button + validation logic
 // hooks/use-cart-checkout.ts         → checkout flow (mutation + navigation)

@@ -94,10 +94,10 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ### Routing (Expo Router - file-based)
 
-- `app/_layout.tsx` — Root layout with all global providers (QueryClient, GestureHandler, BottomSheet, MasterTransition, SharedElement, Toast, I18n, GhostMount)
-- `app/(tabs)/_layout.tsx` — Tab navigator with animated tab bar and floating cart button
-- Main tabs: home, menu, cart, gift-card, profile, perf (dev)
-- Nested routes: `/(tabs)/menu/product/[id]`, `/auth/*`, `/payment/[order]`, `/update-order/[order]`
+- `app/_layout.tsx` — Root layout with all global providers (QueryClient, GestureHandler, BottomSheet, MasterTransition, SharedElement, Toast, I18n)
+- `app/(tabs)/_layout.tsx` — Tab navigator using the OS-native tab bar (`expo-router/unstable-native-tabs`)
+- Main tabs (in order): home, menu, gift-card, profile, cart — cart is the last tab (renders as a detached pill via `role="search"` on iOS 26+)
+- Nested routes: `/product/[id]`, `/profile/edit`, `/auth/*`, `/payment/[order]`, `/update-order/[order]`
 
 ### State Management
 
@@ -111,7 +111,6 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 Custom navigation layer on top of Expo Router with:
 
 - **MasterTransitionProvider** — Syncs native stack animation progress with Reanimated shared values
-- **GhostMountProvider** — Pre-mounts routes (e.g., menu) for instant navigation
 - **Navigation locking** — Prevents concurrent navigations from causing animation conflicts
 - **Transition task queue** — Schedules store updates safely during transitions
 - **Loading overlay** — Shows during slow navigations, skipped when QueryClient has cached data
@@ -192,8 +191,9 @@ const insets = useSafeAreaInsets()
 paddingBottom: insets.bottom + 16   // dynamic vì bottom có thể thay đổi
 
 // ✅ ĐÚNG — tab screen scroll content
-import { TAB_BAR_BOTTOM_PADDING } from '@/components/layout'
-contentContainerStyle={{ paddingBottom: TAB_BAR_BOTTOM_PADDING }}
+import { useTabBarBottomPadding } from '@/components/layout'
+const bottomPadding = useTabBarBottomPadding()
+contentContainerStyle={{ paddingBottom: bottomPadding }}
 ```
 
 ### Background color

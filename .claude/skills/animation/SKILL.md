@@ -189,7 +189,7 @@ export const ProductCard = memo(({ product }: { product: IProduct }) => {
       onPressIn={capture} // ✅ Capture layout BEFORE navigation starts
       onPress={() =>
         router.push({
-          pathname: '/(tabs)/menu/product/[id]',
+          pathname: '/product/[id]',
           params: { id: product.id },
         })
       }
