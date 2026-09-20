@@ -148,17 +148,6 @@ export default function TabsLayout() {
           )}
           <Label>{t('tabs.menu', 'Thực đơn')}</Label>
         </NativeTabs.Trigger>
-        <NativeTabs.Trigger name="cart">
-          {isAndroid ? (
-            <Icon
-              src={<VectorIcon family={MaterialIcons} name="shopping-cart" />}
-            />
-          ) : (
-            <Icon sf={{ default: 'cart', selected: 'cart.fill' }} />
-          )}
-          <Label>{t('tabs.cart', 'Giỏ hàng')}</Label>
-          {cartItemCount > 0 && <Badge>{String(cartItemCount)}</Badge>}
-        </NativeTabs.Trigger>
         <NativeTabs.Trigger name="gift-card">
           {isAndroid ? (
             <Icon
@@ -176,6 +165,46 @@ export default function TabsLayout() {
             <Icon sf={{ default: 'person', selected: 'person.fill' }} />
           )}
           <Label>{t('tabs.profile', 'Tài khoản')}</Label>
+        </NativeTabs.Trigger>
+        {/* role="search" (iOS only) — CHỦ Ý, đã chốt sau khi xem trên máy thật.
+            Đây là cách DUY NHẤT để có dáng nút tròn tách rời bên phải thanh
+            tab theo Apple HIG (iOS 26): nó map thẳng sang
+            `UITabBarItem(tabBarSystemItem: .search)` ở native
+            (xem RCTConvert+RNSBottomTabs.mm trong react-native-screens).
+            Không có prop/API nào khác của NativeTabs tạo được hình dạng này.
+
+            Đánh đổi đã biết và đã CHẤP NHẬN có ý thức (không phải bug):
+            1. Nhãn do hệ thống tự đặt, không ghi đè được — ở bố cục có hiện
+               nhãn cạnh icon search (iPad, cỡ chữ trợ năng lớn) nó sẽ hiện
+               "Tìm kiếm"/"Search" chứ không phải text trong <Label> bên dưới.
+            2. VoiceOver đọc mục tab này là "Search", không phải "Giỏ hàng".
+               convertTabPropsToOptions() trong
+               node_modules/expo-router/build/native-tabs/NativeBottomTabs/NativeTabTrigger.js
+               không nhận/emit accessibilityLabel cho tab item — react-native-screens
+               phía native cũng không có chỗ nhận nó cho system item — nên
+               không có cách nào override từ phía app.
+            Android không có khái niệm "search tab" trong Material You, nên
+            role=undefined ở đó, giữ nguyên tab thường. */}
+        <NativeTabs.Trigger name="cart" role={isAndroid ? undefined : 'search'}>
+          {isAndroid ? (
+            <Icon
+              src={<VectorIcon family={MaterialIcons} name="shopping-cart" />}
+            />
+          ) : (
+            <Icon sf={{ default: 'cart', selected: 'cart.fill' }} />
+          )}
+          {/* <Label> vẫn cần giữ dù iOS bỏ qua nó (dùng nhãn hệ thống của
+              role="search") — Android không có role này nên vẫn hiện nhãn
+              "Giỏ hàng" bình thường. */}
+          <Label>{t('tabs.cart', 'Giỏ hàng')}</Label>
+          {/* Giữ nguyên dạng `cartItemCount > 0 && <Badge>`, KHÔNG đổi sang
+              `<Badge hidden={cartItemCount === 0}>`: appendBadgeOptions()
+              trong node_modules/expo-router/build/native-tabs/NativeBottomTabs/NativeTabTrigger.js
+              cố tình set badgeValue = ' ' (một khoảng trắng) bất cứ khi nào
+              `!props.children && !props.hidden` — tức Badge vẫn render
+              children rỗng nhưng hidden=false sẽ hiện một badge trống thay
+              vì ẩn hẳn. */}
+          {cartItemCount > 0 && <Badge>{String(cartItemCount)}</Badge>}
         </NativeTabs.Trigger>
       </NativeTabs>
 
