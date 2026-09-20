@@ -20,8 +20,8 @@ import {
 
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
+import { useLiquidGlass } from '@/hooks/use-liquid-glass'
 import { navigateNative } from '@/lib/navigation'
-import { HAS_LIQUID_GLASS } from '@/utils/liquid-glass'
 import { Text } from '@/components/ui/text'
 
 interface FloatingHeaderProps {
@@ -42,6 +42,7 @@ const CircleButton = memo(function CircleButton({
   onPress?: () => void
   children: React.ReactNode
 }) {
+  const glass = useLiquidGlass()
   const solidBg = isDark ? colors.card.dark : colors.white.light
 
   return (
@@ -50,11 +51,11 @@ const CircleButton = memo(function CircleButton({
       hitSlop={8}
       style={[
         s.circleBtn,
-        !HAS_LIQUID_GLASS && { backgroundColor: solidBg },
-        !HAS_LIQUID_GLASS && s.shadow,
+        !glass && { backgroundColor: solidBg },
+        !glass && s.shadow,
       ]}
     >
-      {HAS_LIQUID_GLASS ? (
+      {glass ? (
         <GlassView
           style={[StyleSheet.absoluteFill, s.circleGlass]}
           glassEffectStyle="regular"

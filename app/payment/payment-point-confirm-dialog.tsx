@@ -12,8 +12,8 @@ import { Pressable, StyleSheet, View } from 'react-native'
 
 import { LightweightDialog } from '@/components/ui/lightweight-dialog'
 import { colors } from '@/constants'
+import { useLiquidGlass } from '@/hooks/use-liquid-glass'
 import { formatCurrency } from '@/utils'
-import { HAS_LIQUID_GLASS } from '@/utils/liquid-glass'
 import { Text } from '@/components/ui/text'
 
 type Props = {
@@ -37,11 +37,12 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
 }: Props) {
   const { t } = useTranslation('menu')
   const unit = t('paymentMethod.coinUnit', 'xu')
+  const glass = useLiquidGlass()
 
   // Stable theme-dependent style objects
   const theme = useMemo(
     () => ({
-      card: HAS_LIQUID_GLASS
+      card: glass
         ? { overflow: 'hidden' as const }
         : { backgroundColor: isDark ? colors.card.dark : colors.white.light },
       title: { color: isDark ? colors.gray[50] : colors.gray[900] },
@@ -58,7 +59,7 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
       },
       cancelText: { color: isDark ? colors.gray[200] : colors.gray[700] },
     }),
-    [isDark],
+    [glass, isDark],
   )
 
   if (!visible) return null
@@ -67,7 +68,7 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
     <LightweightDialog visible={visible} onClose={onClose}>
       {(dismiss) => (
         <View style={[s.card, theme.card]}>
-          {HAS_LIQUID_GLASS ? (
+          {glass ? (
             <GlassView
               style={[StyleSheet.absoluteFill, s.cardGlass]}
               glassEffectStyle="regular"

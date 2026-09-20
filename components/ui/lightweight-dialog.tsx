@@ -1,7 +1,7 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { BackHandler, Platform, Pressable, StyleSheet } from 'react-native'
 
-import { HAS_LIQUID_GLASS } from '@/utils/liquid-glass'
+import { useLiquidGlass } from '@/hooks/use-liquid-glass'
 import Animated, {
   cancelAnimation,
   runOnJS,
@@ -66,6 +66,8 @@ export const LightweightDialog = memo(function LightweightDialog({
     return () => sub.remove()
   }, [show, dismiss])
 
+  const glass = useLiquidGlass()
+
   const backdropStyle = useAnimatedStyle(() => ({
     opacity: progress.value,
   }))
@@ -94,8 +96,7 @@ export const LightweightDialog = memo(function LightweightDialog({
         renderToHardwareTextureAndroid
         // Rasterize chụp thẻ thành ảnh tĩnh — kính bên trong sẽ đứng hình,
         // nên chỉ bật khi máy không có Liquid Glass.
-        {...(Platform.OS === 'ios' &&
-          !HAS_LIQUID_GLASS && { shouldRasterizeIOS: true })}
+        {...(Platform.OS === 'ios' && !glass && { shouldRasterizeIOS: true })}
       >
         {typeof children === 'function' ? children(dismiss) : children}
       </Animated.View>

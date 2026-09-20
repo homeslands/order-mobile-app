@@ -13,7 +13,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { SPRING_CONFIGS } from '@/constants'
-import { HAS_LIQUID_GLASS } from '@/utils/liquid-glass'
+import { useLiquidGlass } from '@/hooks/use-liquid-glass'
 import { AnimatedTabButton } from './animated-tab-button'
 
 const ICON_SIZE = 32
@@ -56,6 +56,7 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
   tabRoutes,
   onPressInTabSwitch,
 }: AnimatedTabBarProps) {
+  const glass = useLiquidGlass()
   const [layout, setLayout] = useState({
     pillWidth: 0,
     paddingH: PADDING_H_DEFAULT,
@@ -137,13 +138,11 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
           styles.pill,
           { paddingHorizontal: paddingH },
           // Kính thay nền pill; máy không có kính giữ nguyên nền card đặc.
-          HAS_LIQUID_GLASS
-            ? styles.pillGlassClip
-            : { backgroundColor: colors.card },
+          glass ? styles.pillGlassClip : { backgroundColor: colors.card },
         ]}
         onLayout={onPillLayout}
       >
-        {HAS_LIQUID_GLASS ? (
+        {glass ? (
           <GlassView
             style={[StyleSheet.absoluteFill, styles.pillGlassClip]}
             glassEffectStyle="regular"
@@ -154,7 +153,7 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
           style={[
             styles.slidingIndicator,
             { width: itemWidth },
-            HAS_LIQUID_GLASS
+            glass
               ? styles.indicatorGlassClip
               : { backgroundColor: colors.primary },
             slidingIndicatorStyle,
@@ -162,7 +161,7 @@ export const AnimatedTabBar = React.memo(function AnimatedTabBar({
         >
           {/* Viên nền tab đang chọn: kính pha màu thương hiệu, trôi theo cùng
               animation với indicator. */}
-          {HAS_LIQUID_GLASS ? (
+          {glass ? (
             <GlassView
               style={[StyleSheet.absoluteFill, styles.indicatorGlassClip]}
               glassEffectStyle="regular"

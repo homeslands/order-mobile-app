@@ -26,7 +26,7 @@ import Animated, {
 import { getGiftCards } from '@/api'
 import { getLoyaltyPoints } from '@/api/loyalty-point'
 import { AnimatedTabBar, FloatingCartButton } from '@/components/navigation'
-import { HAS_LIQUID_GLASS } from '@/utils/liquid-glass'
+import { useLiquidGlass } from '@/hooks/use-liquid-glass'
 import { OrderReadyPickupSheet } from '@/components/notification/order-ready-pickup-sheet'
 import { MOTION, QUERYKEY, tabsScreenOptions } from '@/constants'
 import { colors as palette } from '@/constants'
@@ -158,13 +158,14 @@ export default function TabsLayout() {
     isStackRoute
 
   const colors = useMemo(() => getThemeColor(isDark), [isDark])
+  const glass = useLiquidGlass()
 
   const tabColors = useMemo(
     () => ({
       primary: colors.primary,
       // Trên nền kính, xám nhạt mặc định chìm vào nội dung phía sau nên tab
       // chưa chọn khó đọc. Đổi sang mực đậm; nền đặc vẫn giữ xám như cũ.
-      mutedForeground: HAS_LIQUID_GLASS
+      mutedForeground: glass
         ? isDark
           ? palette.gray[200]
           : palette.gray[800]
@@ -177,6 +178,7 @@ export default function TabsLayout() {
       colors.mutedForeground,
       colors.background,
       colors.card,
+      glass,
       isDark,
     ],
   )
@@ -366,7 +368,7 @@ export default function TabsLayout() {
               pointerEvents: 'none',
             }}
           >
-            {HAS_LIQUID_GLASS ? null : (
+            {glass ? null : (
               <LinearGradient
                 colors={
                   gradientColors as unknown as [string, string, ...string[]]

@@ -4,8 +4,8 @@ import { GlassView } from 'expo-glass-effect'
 import { StyleSheet, View } from 'react-native'
 
 import { TAB_ROUTES } from '@/constants/navigation.config'
+import { useLiquidGlass } from '@/hooks/use-liquid-glass'
 import { useOrderFlowCartItemCount } from '@/stores/selectors'
-import { HAS_LIQUID_GLASS } from '@/utils/liquid-glass'
 
 import { NativeGesturePressable } from './native-gesture-pressable'
 import { Text } from '@/components/ui/text'
@@ -23,6 +23,7 @@ const FloatingCartButton = React.memo(function FloatingCartButton({
   href,
   countOverride,
 }: Props) {
+  const glass = useLiquidGlass()
   const orderFlowCount = useOrderFlowCartItemCount()
   const cartItemCount = countOverride ?? orderFlowCount
 
@@ -32,7 +33,7 @@ const FloatingCartButton = React.memo(function FloatingCartButton({
       height: 64,
       borderRadius: 32,
       // Kính pha màu thương hiệu; máy không có kính giữ nền cam đặc.
-      ...(HAS_LIQUID_GLASS
+      ...(glass
         ? { overflow: 'hidden' as const }
         : { backgroundColor: primaryColor }),
       alignItems: 'center' as const,
@@ -43,7 +44,7 @@ const FloatingCartButton = React.memo(function FloatingCartButton({
       shadowRadius: 12,
       elevation: 8,
     }),
-    [primaryColor],
+    [glass, primaryColor],
   )
 
   return (
@@ -51,7 +52,7 @@ const FloatingCartButton = React.memo(function FloatingCartButton({
       navigation={{ type: 'push', href: href ?? TAB_ROUTES.CART }}
       style={buttonStyle}
     >
-      {HAS_LIQUID_GLASS ? (
+      {glass ? (
         <GlassView
           style={[StyleSheet.absoluteFill, { borderRadius: 32 }]}
           glassEffectStyle="regular"
