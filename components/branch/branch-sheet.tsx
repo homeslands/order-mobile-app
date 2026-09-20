@@ -14,6 +14,7 @@ import { colors } from '@/constants'
 import { useBranch } from '@/hooks'
 import { useBranchStore } from '@/stores'
 import type { IBranch } from '@/types'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 const SNAP_POINTS = ['40%']
@@ -132,13 +133,6 @@ export const BranchSheet = memo(function BranchSheet({
     [setBranch],
   )
 
-  const bgStyle = useMemo(
-    () => ({
-      backgroundColor: isDark ? colors.card.dark : colors.white.light,
-    }),
-    [isDark],
-  )
-
   const indicatorStyle = useMemo(
     () => ({ backgroundColor: isDark ? colors.gray[600] : colors.gray[300] }),
     [isDark],
@@ -168,7 +162,7 @@ export const BranchSheet = memo(function BranchSheet({
       enableHandlePanningGesture
       enableDynamicSizing={false}
       backdropComponent={renderBackdrop}
-      backgroundStyle={bgStyle}
+      backgroundComponent={GlassSheetBackground}
       handleIndicatorStyle={indicatorStyle}
       onDismiss={onClose}
     >

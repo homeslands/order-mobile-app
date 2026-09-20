@@ -46,6 +46,7 @@ import {
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import type { IAddressSuggestion } from '@/types'
 import { decodePolyline, showToast } from '@/utils'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 const MAP_HEIGHT = Dimensions.get('window').height * 0.38
@@ -529,11 +530,6 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
 
   const canConfirm = !!actions.currentAddress && phoneIsValid
 
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
-  )
-
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
@@ -624,7 +620,7 @@ export const DeliveryAddressSheet = memo(function DeliveryAddressSheet({
       enableHandlePanningGesture
       enableDynamicSizing={false}
       backdropComponent={renderBackdrop}
-      backgroundStyle={bgStyle}
+      backgroundComponent={GlassSheetBackground}
       onDismiss={onClose}
       keyboardBehavior="extend"
       keyboardBlurBehavior="restore"

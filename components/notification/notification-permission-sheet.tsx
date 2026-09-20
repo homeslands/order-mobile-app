@@ -11,7 +11,7 @@ import {
   BottomSheetModal,
 } from '@gorhom/bottom-sheet'
 import { Bell, Settings } from 'lucide-react-native'
-import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
+import { memo, useCallback, useEffect, useRef } from 'react'
 import {
   Linking,
   Platform,
@@ -24,6 +24,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 
 import { colors } from '@/constants'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 const SNAP = ['38%']
@@ -39,13 +40,6 @@ export const NotificationPermissionSheet = memo(
     const sheetRef = useRef<BottomSheetModal>(null)
     const isDark = useColorScheme() === 'dark'
     const { bottom: bottomInset } = useSafeAreaInsets()
-
-    const bgStyle = useMemo(
-      () => ({
-        backgroundColor: isDark ? colors.card.dark : colors.white.light,
-      }),
-      [isDark],
-    )
 
     useEffect(() => {
       if (visible) {
@@ -82,7 +76,7 @@ export const NotificationPermissionSheet = memo(
         enableHandlePanningGesture
         enableDynamicSizing={false}
         backdropComponent={renderBackdrop}
-        backgroundStyle={bgStyle}
+        backgroundComponent={GlassSheetBackground}
         onDismiss={onClose}
       >
         <View style={[s.content, { paddingBottom: bottomInset + 8 }]}>
