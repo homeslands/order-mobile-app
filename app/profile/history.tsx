@@ -53,6 +53,7 @@ import { calculateOrderDisplayAndTotals } from '@/utils'
 import OrderCard from './order-card'
 import type { OrderDisplayData } from './order-card'
 import { OrderHistorySkeleton } from './order-history-skeleton'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 // ─── Module-level FIFO cache for order display data ─────────────────────────
@@ -175,7 +176,6 @@ const HistoryDateFilterSheet = memo(function HistoryDateFilterSheet({
   const [toOpen, setToOpen] = useState(false)
   const defaultNow = useMemo(() => new Date(), [])
 
-  const bg = isDark ? colors.card.dark : colors.white.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
   const chipBg = isDark ? colors.border.dark : colors.gray[100]
@@ -219,7 +219,7 @@ const HistoryDateFilterSheet = memo(function HistoryDateFilterSheet({
       enableContentPanningGesture={false}
       enableHandlePanningGesture
       backdropComponent={renderBackdrop}
-      backgroundStyle={{ backgroundColor: bg }}
+      backgroundComponent={GlassSheetBackground}
       handleIndicatorStyle={{
         backgroundColor: isDark ? colors.gray[600] : colors.gray[300],
       }}

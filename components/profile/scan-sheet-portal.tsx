@@ -5,7 +5,7 @@ import {
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet'
 import { X } from 'lucide-react-native'
-import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
+import { memo, useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, View, useColorScheme } from 'react-native'
 import QRCode from 'react-native-qrcode-svg'
@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '@/constants'
 import { useUserStore } from '@/stores'
 import { useScanSheetStore } from '@/stores/scan-sheet.store'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 const QR_SIZE = 220
@@ -110,11 +111,6 @@ const ScanSheetPortal = memo(function ScanSheetPortal() {
     }
   }, [visible])
 
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
-  )
-
   const handleClose = useCallback(() => {
     userDismissedRef.current = true
     sheetRef.current?.dismiss()
@@ -162,7 +158,7 @@ const ScanSheetPortal = memo(function ScanSheetPortal() {
       enableHandlePanningGesture
       enableDynamicSizing={false}
       backdropComponent={renderBackdrop}
-      backgroundStyle={bgStyle}
+      backgroundComponent={GlassSheetBackground}
       onDismiss={handleDismiss}
     >
       <BottomSheetScrollView

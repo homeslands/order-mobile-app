@@ -16,6 +16,7 @@ import {
   type FontScalePreset,
   useFontScaleStore,
 } from '@/stores/font-scale.store'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 
 const PRESETS: {
   preset: FontScalePreset
@@ -46,10 +47,6 @@ export const FontSizeSheet = memo(function FontSizeSheet({
   const setPreset = useFontScaleStore((s) => s.setPreset)
 
   const snapPoints = useMemo(() => [240 + bottom], [bottom])
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
-  )
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -89,7 +86,7 @@ export const FontSizeSheet = memo(function FontSizeSheet({
       enableHandlePanningGesture
       enableDynamicSizing={false}
       backdropComponent={renderBackdrop}
-      backgroundStyle={bgStyle}
+      backgroundComponent={GlassSheetBackground}
       onDismiss={onClose}
     >
       <View style={[s.content, { paddingBottom: bottom + 8 }]}>
@@ -107,9 +104,7 @@ export const FontSizeSheet = memo(function FontSizeSheet({
           return (
             <View key={preset}>
               {idx > 0 && (
-                <View
-                  style={[s.divider, { backgroundColor: dividerColor }]}
-                />
+                <View style={[s.divider, { backgroundColor: dividerColor }]} />
               )}
               <TouchableOpacity
                 style={s.row}

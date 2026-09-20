@@ -21,6 +21,7 @@ import { colors } from '@/constants'
 import { useAuthStore } from '@/stores'
 import { useQRSelectionSheetStore } from '@/stores/qr-selection-sheet.store'
 import { useScanSheetStore } from '@/stores/scan-sheet.store'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 const SNAP_POINTS = ['50%']
@@ -86,11 +87,6 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
       sheetRef.current?.dismiss()
     }
   }, [visible])
-
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
-  )
 
   // Same willUnmount race as ScanSheetPortal: pressBehavior="close" calls
   // BottomSheet.close() without willUnmountSheet(). Add onPress to fire
@@ -173,7 +169,7 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
       enableContentPanningGesture={false}
       enableHandlePanningGesture
       backdropComponent={renderBackdrop}
-      backgroundStyle={bgStyle}
+      backgroundComponent={GlassSheetBackground}
       onDismiss={handleSheetDismiss}
     >
       <BottomSheetScrollView

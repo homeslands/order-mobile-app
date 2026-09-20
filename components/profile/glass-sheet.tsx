@@ -20,6 +20,7 @@ import { useTranslation } from 'react-i18next'
 import { StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
 import { colors } from '@/constants'
@@ -47,10 +48,6 @@ export const GlassSheet = memo(function GlassSheet({
   const reduced = useReduceTransparency()
 
   const snapPoints = useMemo(() => [330 + bottom], [bottom])
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
-  )
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -92,7 +89,7 @@ export const GlassSheet = memo(function GlassSheet({
       enableHandlePanningGesture
       enableDynamicSizing={false}
       backdropComponent={renderBackdrop}
-      backgroundStyle={bgStyle}
+      backgroundComponent={GlassSheetBackground}
       onDismiss={onClose}
     >
       <View style={[s.content, { paddingBottom: bottom + 8 }]}>
