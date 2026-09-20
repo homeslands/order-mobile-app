@@ -595,7 +595,7 @@ export default function MenuPage() {
       useTransientNavStore.getState().setHeroImageUrls(heroImageUrls)
 
       router.push({
-        pathname: '/(tabs)/menu/product/[id]',
+        pathname: '/product/[id]',
         params: {
           id: selectedItem.id,
           name: selectedItem.name,
