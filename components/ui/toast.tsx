@@ -13,7 +13,6 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors, SPRING_CONFIGS } from '@/constants'
-import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
 
 interface ToastData {
@@ -82,13 +81,23 @@ const ToastItem = React.memo(function ToastItem({
       style={[s.container, { top: insets.top + 12 }, animatedStyle]}
       pointerEvents="none"
     >
-      <View style={s.pill}>
-        <GlassSurface
-          color={bg}
-          tint={bg}
-          radius={999}
-          style={StyleSheet.absoluteFill}
-        />
+      {/* Toast KHÔNG dùng Liquid Glass — đã thử hai lần trên iOS 26+ và cả
+          hai đều ra viên trống không nền:
+          1. GlassSurface là lớp phủ absoluteFill rỗng (commit 047f830)
+          2. GlassSurface bọc luôn nội dung, đúng cách CircleButton ở
+             components/navigation/floating-header.tsx đang dùng (commit 97aac83)
+          Khác biệt cấu trúc còn lại so với các chỗ dùng kính chạy được: view
+          cha của toast chạy animation opacity từ 0 lên 1, mà Apple ghi rõ
+          alpha < 1 trên chính visual effect view HOẶC bất kỳ superview nào sẽ
+          làm hiệu ứng không hiện ra. GlassView gắn hiệu ứng trong
+          layoutSubviews(), đúng lúc alpha của cha đang bằng 0. Chưa kiểm
+          chứng được giả thuyết đó nên giữ nền đặc: toast là thông báo thoáng
+          qua nổi trên nội dung bất kỳ, phải luôn đọc được.
+
+          Nền đặc + shadow nằm ngay trên view bo tròn: shadow đổ từ layer
+          trong suốt sẽ ra bóng vuông (iOS) hoặc mất hẳn (Android elevation
+          cần outline khớp hình dạng). */}
+      <View style={[s.pill, { backgroundColor: bg }]}>
         {ICON_MAP[toast.type]}
         {toast.message ? (
           <Text style={[s.message, { color: textColor }]} numberOfLines={2}>
@@ -116,7 +125,6 @@ const s = StyleSheet.create({
     paddingVertical: 11,
     borderRadius: 999,
     maxWidth: 320,
-    // Shadow
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
