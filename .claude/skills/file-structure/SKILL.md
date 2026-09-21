@@ -18,11 +18,10 @@ mobile-movie-app/
 │   │   ├── menu/
 │   │   ├── cart/
 │   │   ├── gift-card/
-│   │   ├── profile/
-│   │   └── perf/                # Dev-only performance tab
+│   │   └── profile/
 │   ├── auth/                    # Auth screens (outside tabs)
 │   ├── payment/[order].tsx      # Dynamic payment screen
-│   ├── update-order/[order].tsx # Update order screen
+│   ├── update-order/[slug].tsx  # Update order screen
 │   └── ...
 ├── components/                   # Reusable UI components
 │   ├── ui/                      # Atomic UI components (button, input, card, etc.)
@@ -75,7 +74,6 @@ mobile-movie-app/
 ├── lib/                          # Internal libraries & configs
 │   ├── navigation/              # Navigation engine
 │   │   ├── master-transition-provider.tsx
-│   │   ├── ghost-mount-provider.tsx
 │   │   └── ...
 │   ├── http-setup.ts            # Bootstrap HTTP auth
 │   ├── shared-element/          # Shared element transitions
@@ -254,7 +252,7 @@ export async function createOrder(
 
 **Subfolders**:
 
-- `navigation/` — Custom navigation engine (MasterTransition, GhostMount)
+- `navigation/` — Custom navigation engine (MasterTransition)
 - `shared-element/` — Shared element transition logic
 - `transitions/` — Animation configs
 - `http-setup.ts` — Bootstrap HTTP auth interceptor

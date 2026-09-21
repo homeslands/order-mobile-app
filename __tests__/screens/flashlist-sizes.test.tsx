@@ -175,7 +175,6 @@ jest.mock('@/components/ui', () => ({
 }))
 jest.mock('@/components/layout', () => ({
   ScreenContainer: ({ children }: { children: React.ReactNode }) => children,
-  TAB_BAR_BOTTOM_PADDING: 80,
 }))
 jest.mock('@/components/gift-card/gift-card-detail-sheet', () => ({
   GiftCardDetailSheet: () => null,

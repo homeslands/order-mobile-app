@@ -1,5 +1,5 @@
 import { LoginPanel } from '@/components/auth'
-import { ScreenContainer } from '@/components/layout'
+import { ScreenContainer, useTabBarBottomPadding } from '@/components/layout'
 import {
   DeleteAccountSheet,
   FontSizeSheet,
@@ -434,6 +434,7 @@ const ProfileTest = () => {
   const handleBack = useCallback(() => router.back(), [router])
   const { animatedStyle, panGesture, resetPosition } =
     useProfileAnimation(handleBack)
+  const bottomPadding = useTabBarBottomPadding()
 
   // Reset translateX về 0 mỗi khi profile tab gains focus.
   // Tránh stuck state: nếu gesture trước bị cancel giữa chừng (rapid tab
@@ -494,7 +495,7 @@ const ProfileTest = () => {
   const openQRSelection = useQRSelectionSheetStore((s) => s.open)
 
   const openEdit = useCallback(() => {
-    router.push('/(tabs)/profile/edit')
+    router.push('/profile/edit')
   }, [router])
 
   const [isAvatarSheetOpen, setIsAvatarSheetOpen] = useState(false)
@@ -563,19 +564,19 @@ const ProfileTest = () => {
   }, [uploadAvatarAsset])
 
   const openGeneralInfo = useCallback(() => {
-    router.push('/(tabs)/profile/general-info')
+    router.push('/profile/general-info')
   }, [router])
 
   const openPoints = useCallback(() => {
-    router.push('/(tabs)/profile/loyalty-point-hub' as never)
+    router.push('/profile/loyalty-point-hub' as never)
   }, [router])
 
   const openOrdersHistory = useCallback(() => {
-    router.push('/(tabs)/profile/orders-history-placeholder')
+    router.push('/profile/history')
   }, [router])
 
   const openGiftCard = useCallback(() => {
-    router.push('/(tabs)/profile/gift-card-hub' as never)
+    router.push('/profile/gift-card-hub' as never)
   }, [router])
 
   const { t: tToast } = useTranslation('toast')
@@ -673,7 +674,7 @@ const ProfileTest = () => {
           <GestureScrollView
             style={styles.scrollView}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.scrollContent}
+            contentContainerStyle={{ paddingBottom: bottomPadding }}
           >
             {/* Avatar + tên + sđt — scroll cùng nội dung */}
             <View
@@ -952,7 +953,6 @@ const styles = StyleSheet.create({
     overflow: 'visible',
   },
   scrollView: { flex: 1 },
-  scrollContent: { paddingBottom: 120 },
   profileHero: {
     alignItems: 'center',
     gap: 6,

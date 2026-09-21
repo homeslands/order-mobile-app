@@ -3,6 +3,13 @@ import type { NativeStackNavigationOptions } from '@react-navigation/native-stac
 
 const LAZY_DEBUG = process.env.EXPO_PUBLIC_PHASE4_LAZY_DEBUG === 'true'
 
+/**
+ * QUAN TRỌNG: expo-router's usePathname() strip group segment — pathname
+ * thật trả về '/home', '/menu', '/menu/product/xxx' (KHÔNG có '/(tabs)/'
+ * prefix). Xem node_modules/expo-router/build/matchers.js
+ * stripGroupSegmentsFromPath. So khớp bằng '/(tabs)/home' sẽ không bao giờ
+ * match — đã dính bug này 3 lần trước đây.
+ */
 /** Tab paths — dùng router.replace() để đổi tab. */
 export const TAB_ROUTES = {
   HOME: '/(tabs)/home',
@@ -11,9 +18,6 @@ export const TAB_ROUTES = {
   GIFT_CARD: '/(tabs)/gift-card',
   PROFILE: '/(tabs)/profile',
 } as const
-
-/** Push từ Product Detail (menu stack) — slide, back về chi tiết món. */
-export const MENU_STACK_CART = '/(tabs)/menu/cart' as const
 
 export type TabRouteKey = keyof typeof TAB_ROUTES
 
@@ -34,7 +38,10 @@ export const stackScreenOptions: NativeStackNavigationOptions = {
   contentStyle: { backgroundColor: '#ffffff' },
 }
 
-/** Bottom Tabs: no animation (instant switch), freezeOnBlur. Tránh flash màn cũ. */
+/**
+ * Bottom Tabs (Android): no animation (instant switch), freezeOnBlur.
+ * Tránh flash màn cũ. iOS dùng NativeTabs nên không đọc tới đây.
+ */
 export const tabsScreenOptions = {
   headerShown: false,
   lazy: !LAZY_DEBUG,

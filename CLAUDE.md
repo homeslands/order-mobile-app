@@ -94,10 +94,12 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ### Routing (Expo Router - file-based)
 
-- `app/_layout.tsx` — Root layout with all global providers (QueryClient, GestureHandler, BottomSheet, MasterTransition, SharedElement, Toast, I18n, GhostMount)
-- `app/(tabs)/_layout.tsx` — Tab navigator with animated tab bar and floating cart button
-- Main tabs: home, menu, cart, gift-card, profile, perf (dev)
-- Nested routes: `/(tabs)/menu/product/[id]`, `/auth/*`, `/payment/[order]`, `/update-order/[order]`
+- `app/_layout.tsx` — Root layout with all global providers (QueryClient, GestureHandler, BottomSheet, MasterTransition, SharedElement, Toast, I18n)
+- `app/(tabs)/_layout.tsx` — Tab navigator, split by platform:
+  - **iOS/web**: OS-native tab bar (`expo-router/unstable-native-tabs`). Cart is the 5th tab and renders as a detached pill via `role="search"` on iOS 26+.
+  - **Android**: custom-drawn bar (`components/navigation/android-tabs-navigator.tsx` + `AnimatedTabBar`) over expo-router's `<Tabs>`. The native Material 3 bar cannot draw the app's active pill — its indicator wraps the icon only, never the label (`NavigationBarItemView`, material 1.12.0).
+- Main tabs (in order): home, menu, gift-card, profile, cart — on Android the cart is a floating circular button beside the bar, not a tab.
+- Nested routes: `/product/[id]`, `/profile/edit`, `/auth/*`, `/payment/[order]`, `/update-order/[slug]`
 
 ### State Management
 
@@ -111,7 +113,6 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 Custom navigation layer on top of Expo Router with:
 
 - **MasterTransitionProvider** — Syncs native stack animation progress with Reanimated shared values
-- **GhostMountProvider** — Pre-mounts routes (e.g., menu) for instant navigation
 - **Navigation locking** — Prevents concurrent navigations from causing animation conflicts
 - **Transition task queue** — Schedules store updates safely during transitions
 - **Loading overlay** — Shows during slow navigations, skipped when QueryClient has cached data
@@ -192,8 +193,9 @@ const insets = useSafeAreaInsets()
 paddingBottom: insets.bottom + 16   // dynamic vì bottom có thể thay đổi
 
 // ✅ ĐÚNG — tab screen scroll content
-import { TAB_BAR_BOTTOM_PADDING } from '@/components/layout'
-contentContainerStyle={{ paddingBottom: TAB_BAR_BOTTOM_PADDING }}
+import { useTabBarBottomPadding } from '@/components/layout'
+const bottomPadding = useTabBarBottomPadding()
+contentContainerStyle={{ paddingBottom: bottomPadding }}
 ```
 
 ### Background color

@@ -14,52 +14,59 @@ This project uses **Expo Router** (file-based routing) with a **custom navigatio
 ```
 app/
 ├── _layout.tsx              # Root layout + global providers
-├── (tabs)/                  # Tab group (visible in bottom bar)
-│   ├── _layout.tsx         # Tab navigator
-│   ├── home/
-│   │   └── index.tsx
+├── (tabs)/                  # Tab group — iOS: native tab bar; Android: custom bar
+│   ├── _layout.tsx         # home, menu, gift-card, profile, cart (in this order)
+│   ├── home.tsx
 │   ├── menu/
-│   │   ├── _layout.tsx     # Menu nested layout
+│   │   ├── _layout.tsx     # Menu nested layout (index only — product moved to root stack)
 │   │   ├── index.tsx
 │   │   ├── menu-item-row.tsx
-│   │   ├── menu-filter-bar.tsx
-│   │   └── product/
-│   │       └── [id].tsx    # Dynamic product detail
-│   ├── cart/
-│   │   └── index.tsx
-│   ├── gift-card/
-│   │   └── index.tsx
-│   ├── profile/
-│   │   ├── index.tsx
-│   │   ├── history.tsx
-│   │   └── order-card.tsx
-│   └── perf/               # Dev-only performance tab
+│   │   └── menu-filter-bar.tsx
+│   ├── menu-detail/
+│   │   ├── _layout.tsx
+│   │   └── [slug].tsx
+│   ├── gift-card.tsx
+│   ├── cart.tsx             # Cart tab — last tab, role="search" detached pill on iOS 26+
+│   └── profile/
+│       ├── _layout.tsx
+│       ├── index.tsx       # Profile tab screen — sub-routes below live in root app/profile/
+│       └── profile-item.tsx
+├── product/
+│   └── [id].tsx             # Product detail — root stack, NOT nested under (tabs)/menu anymore
+├── profile/                  # Account sub-routes — root stack, NOT nested under (tabs)/profile anymore
+│   ├── _layout.tsx
+│   ├── edit.tsx
+│   ├── general-info.tsx
+│   ├── gift-card-hub.tsx
+│   ├── loyalty-point-hub.tsx
+│   ├── history.tsx
+│   └── ...
 ├── auth/                    # Auth screens (outside tabs)
 │   ├── _layout.tsx
 │   ├── login.tsx
-│   ├── register.tsx
-│   └── reset-password.tsx
+│   ├── forgot-password.tsx
+│   └── register/
 ├── payment/
 │   └── [order].tsx         # Payment flow for order
 ├── update-order/
-│   └── [order].tsx         # Update order flow
+│   └── [slug].tsx          # Update order flow
 └── ...
 ```
 
 ### Route Naming Convention
 
-| Screen Type  | Pattern                | Example                     |
-| ------------ | ---------------------- | --------------------------- |
-| Tab screen   | `/(tabs)/[name]`       | `/(tabs)/home`              |
-| Nested route | `/(tabs)/[tab]/[name]` | `/(tabs)/menu/product/[id]` |
-| Standalone   | `/[name]`              | `/payment/[order]`          |
-| Dynamic      | `/[name]/[param]`      | `/product/[id]`             |
+| Screen Type  | Pattern                | Example                          |
+| ------------ | ---------------------- | --------------------------------- |
+| Tab screen   | `/(tabs)/[name]`       | `/(tabs)/home`                   |
+| Nested route (inside a tab) | `/(tabs)/[tab]/[name]` | `/(tabs)/menu-detail/[slug]` |
+| Standalone (root stack) | `/[name]`  | `/payment/[order]`, `/product/[id]` |
+| Dynamic      | `/[name]/[param]`      | `/product/[id]`                  |
 
 ## Navigation Object
 
 ### Tab Routes
 
-**Defined in**: `app/(tabs)/_layout.tsx`
+**Defined in**: `constants/navigation.config.ts`
 
 ```tsx
 const TAB_ROUTES = {
@@ -83,7 +90,7 @@ router.push(TAB_ROUTES.MENU)
 
 // Navigate with params
 router.push({
-  pathname: '/(tabs)/menu/product/[id]',
+  pathname: '/product/[id]',
   params: { id: '123' },
 })
 
@@ -130,7 +137,7 @@ const { params } = route
 
 ### File-based Dynamic Segments
 
-**File**: `app/(tabs)/menu/product/[id].tsx`
+**File**: `app/product/[id].tsx`
 
 ```tsx
 import { useLocalSearchParams } from 'expo-router'
@@ -153,7 +160,7 @@ export default function ProductDetailScreen() {
 
 ```tsx
 router.push({
-  pathname: '/(tabs)/menu/product/[id]',
+  pathname: '/product/[id]',
   params: { id: productId },
 })
 ```
@@ -177,19 +184,17 @@ export default function RootLayout() {
       <GestureHandlerRootView>
         <SafeAreaProvider>
           <MasterTransitionProvider>
-            <GhostMountProvider>
-              <BottomSheetModalProvider>
-                <AppToastProvider>
-                  <I18nProvider>
-                    <NavigationEngineProvider>
-                      <SharedElementProvider>
-                        <Stack /* or Tabs */ />
-                      </SharedElementProvider>
-                    </NavigationEngineProvider>
-                  </I18nProvider>
-                </AppToastProvider>
-              </BottomSheetModalProvider>
-            </GhostMountProvider>
+            <BottomSheetModalProvider>
+              <AppToastProvider>
+                <I18nProvider>
+                  <NavigationEngineProvider>
+                    <SharedElementProvider>
+                      <Stack /* or Tabs */ />
+                    </SharedElementProvider>
+                  </NavigationEngineProvider>
+                </I18nProvider>
+              </AppToastProvider>
+            </BottomSheetModalProvider>
           </MasterTransitionProvider>
         </SafeAreaProvider>
       </GestureHandlerRootView>
@@ -202,60 +207,86 @@ export default function RootLayout() {
 
 **File**: `app/(tabs)/_layout.tsx`
 
-Defines tab navigator:
+Splits by platform. iOS and web use the OS-native tab bar; Android uses a
+custom-drawn bar:
 
 ```tsx
+import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs'
+import { AndroidTabsNavigator } from '@/components/navigation/android-tabs-navigator'
+
 export default function TabsLayout() {
+  if (Platform.OS === 'android') return <AndroidTabsNavigator />
+
   return (
-    <Tabs
-      screenOptions={tabsScreenOptions}
-      tabBar={(props) => <AnimatedTabBar {...props} />}
-    >
-      <Tabs.Screen
-        name="home"
-        options={{
-          title: t('home'),
-          href: '/(tabs)/home',
-        }}
-      />
-      {/* More tabs... */}
-    </Tabs>
+    <NativeTabs tintColor={colors.primary} labelVisibilityMode="labeled">
+      <NativeTabs.Trigger name="home">
+        <Icon sf={{ default: 'house', selected: 'house.fill' }} />
+        <Label>{t('tabs.home')}</Label>
+      </NativeTabs.Trigger>
+      {/* menu, gift-card, profile... */}
+      <NativeTabs.Trigger
+        name="cart"
+        role={supportsDetachedSearchTab ? 'search' : undefined}
+      >
+        <Icon sf={{ default: 'cart', selected: 'cart.fill' }} />
+        <Label>{t('tabs.cart')}</Label>
+      </NativeTabs.Trigger>
+    </NativeTabs>
   )
 }
 ```
+
+**Why Android is different:** the app's active pill wraps the icon AND the
+label, stacked. Material 3's bar cannot draw that — `activeIndicatorView`
+lives inside `iconContainer` while `labelGroup` is a sibling view
+(`NavigationBarItemView`, material 1.12.0), so the indicator only ever wraps
+the icon. Material 1.14 adds `setItemIconGravity(START)`, which wraps both but
+lays them out horizontally. Android therefore keeps the custom bar; the
+trade-off is that tab switching runs through JS instead of natively.
+
+On iOS, cart is the last tab. On iOS 26+, giving its trigger `role="search"`
+renders it as a detached pill per Apple HIG — see the version-gating comment
+in `app/(tabs)/_layout.tsx` for why this must NOT apply below iOS 26. On
+Android, cart is a `FloatingCartButton` beside the bar, not a tab.
 
 ### Nested Layout Example
 
 **File**: `app/(tabs)/menu/_layout.tsx`
 
-If you need nested navigation within a tab:
+Nested navigation within a tab — the menu tab only has `index` now; `product/[id]` moved out to the root stack (see `app/product/[id].tsx`), so it is no longer declared here:
 
 ```tsx
 import { Stack } from 'expo-router'
 
 export default function MenuLayout() {
-  return (
-    <Stack>
-      <Stack.Screen name="index" options={{ headerShown: false }} />
-      <Stack.Screen name="product/[id]" options={{ presentation: 'card' }} />
-    </Stack>
-  )
+  return <Stack screenOptions={menuScreenOptions} />
 }
 ```
 
 ## Screen Options & Headers
 
-### Tab Screen Options
+### Tab Bar Styling
 
-**File**: `constants/navigation.config.ts`
+**File**: `app/(tabs)/_layout.tsx`
+
+iOS: `NativeTabs` is styled with props directly on the component.
+`backgroundColor` stays `undefined` so UITabBarAppearance keeps its Liquid
+Glass — setting a solid colour there kills the effect:
 
 ```tsx
-export const tabsScreenOptions: BottomTabNavigationOptions = {
-  headerShown: false,
-  tabBarActiveTintColor: colors.primary.light,
-  tabBarInactiveTintColor: colors.gray[500],
-}
+<NativeTabs
+  tintColor={colors.primary}
+  iconColor={{ default: colors.mutedForeground, selected: colors.primary }}
+  backgroundColor={undefined}
+  labelVisibilityMode="labeled"
+  indicatorColor={colors.primary}
+  minimizeBehavior="onScrollDown"
+>
 ```
+
+Android: the visible bar is `AnimatedTabBar`; expo-router's `<Tabs>` bar
+underneath is collapsed to zero height and transparent. Its screen options
+come from `tabsScreenOptions` in `constants/navigation.config.ts`.
 
 ### Custom Header
 
@@ -319,18 +350,6 @@ const cached = queryClient.getQueryData(cacheKey)
 if (cached) return // Skip loading overlay
 ```
 
-### GhostMount Provider
-
-**Pre-mounts routes** for instant navigation:
-
-**File**: `lib/navigation/ghost-mount-provider.tsx`
-
-```tsx
-// Menu screen pre-mounted (out of view)
-// When user taps menu tab, it's already ready
-// Navigation feels instant
-```
-
 ### Navigation Locking
 
 Prevents concurrent navigations from causing animation conflicts:
@@ -345,7 +364,7 @@ Prevents concurrent navigations from causing animation conflicts:
 ### Deep Link Format
 
 ```
-https://app.example.com/(tabs)/menu/product/123
+https://app.example.com/product/123
 ```
 
 ### Configure in `app.json`
@@ -491,7 +510,7 @@ export function MenuList({ items }: { items: IMenuItem[] }) {
           onPressIn={() => prefetchOrder(item.id)}
           onPress={() =>
             router.push({
-              pathname: '/(tabs)/menu/product/[id]',
+              pathname: '/product/[id]',
               params: { id: item.id },
             })
           }
@@ -527,7 +546,7 @@ router.push({
 // Detect product in menu → open detail
 const handleSelectProduct = (productId: string) => {
   router.push({
-    pathname: '/(tabs)/menu/product/[id]',
+    pathname: '/product/[id]',
     params: { id: productId },
   })
 }
@@ -602,6 +621,20 @@ router.replace('/(tabs)/home')
 router.push('/(tabs)/home')
 ```
 
+### dismissTo — Back to a Tab from a Root-Stack Screen
+
+**Trap**: screens like `app/product/[id].tsx` and `app/profile/edit.tsx` live in the root stack, outside `(tabs)`. From there, `router.push('/(tabs)/...')` or `router.replace('/(tabs)/...')` does NOT switch the existing tab — it pushes a whole new tab set on top of the root stack, duplicating it. Use `router.dismissTo(...)` instead: it pops the root-stack screen(s) and lands back on the existing tab set.
+
+```tsx
+// app/product/[id].tsx — after adding to cart, go back to the Cart tab
+router.dismissTo(TAB_ROUTES.CART)
+
+// app/profile/edit.tsx — bail out to the Profile tab if userInfo is missing
+router.dismissTo('/(tabs)/profile')
+```
+
+This only applies when navigating from a root-stack screen back into `(tabs)`. Navigating between tab screens, or from `(tabs)` into a root-stack screen, still uses `push`/`replace` as usual.
+
 ## Accessibility
 
 ### testID
@@ -626,12 +659,11 @@ router.push('/(tabs)/home')
 
 ## Performance Tips
 
-1. **Use GhostMount** for pre-loading screens
-2. **Prefetch data** before navigation (usePredictivePrefetch)
-3. **Check cache** before showing loading overlay
-4. **Use Stack screens carefully** — avoid deep nesting
-5. **Lazy load** heavy screens/components
-6. **Memoize** navigation callbacks with `useCallback`
+1. **Prefetch data** before navigation (usePredictivePrefetch)
+2. **Check cache** before showing loading overlay
+3. **Use Stack screens carefully** — avoid deep nesting
+4. **Lazy load** heavy screens/components
+5. **Memoize** navigation callbacks with `useCallback`
 
 ---
 

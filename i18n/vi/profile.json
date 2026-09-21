@@ -438,7 +438,7 @@
     },
     "glass": {
       "title": "Độ trong của kính",
-      "subtitle": "Kéo để chỉnh mức trong suốt của thanh điều hướng, bảng và hộp thoại.",
+      "subtitle": "Kéo để chỉnh mức trong suốt của thanh tiêu đề, bảng và hộp thoại.",
       "solid": "Đặc",
       "clear": "Trong",
       "preview": "Xem trước",

@@ -1,62 +1,61 @@
 /**
- * Tabs layout — Home, Menu, Cart, Gift Card, Profile (animated tab bar + floating cart).
+ * Tabs layout — Home, Menu, Gift Card, Profile, Cart.
+ *
+ * iOS (và web): thanh tab gốc của hệ điều hành (NativeTabs). Cart là tab thứ
+ * 5, mang dáng ô tròn tách rời bên phải trên iOS 26+ qua role="search".
+ *
+ * Android: thanh tab tự vẽ — xem AndroidTabsNavigator để biết vì sao thanh
+ * gốc Material 3 không dựng được thiết kế của app.
  */
 import { useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
-import { LinearGradient } from 'expo-linear-gradient'
-import { Tabs, usePathname } from 'expo-router'
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import { usePathname } from 'expo-router'
+import {
+  Badge,
+  Icon,
+  Label,
+  NativeTabs,
+} from 'expo-router/unstable-native-tabs'
+import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Dimensions, Platform, View, useColorScheme } from 'react-native'
-import Animated, {
-  Easing,
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated'
+import { Platform, View, useColorScheme } from 'react-native'
 
-import { getGiftCards } from '@/api'
-import { getLoyaltyPoints } from '@/api/loyalty-point'
-import { AnimatedTabBar, FloatingCartButton } from '@/components/navigation'
-import { useGlassLevel } from '@/hooks/use-glass-level'
+import { AndroidTabsNavigator } from '@/components/navigation/android-tabs-navigator'
 import { OrderReadyPickupSheet } from '@/components/notification/order-ready-pickup-sheet'
-import { MOTION, QUERYKEY, tabsScreenOptions } from '@/constants'
-import { colors as palette } from '@/constants'
-import { STATIC_BOTTOM_INSET } from '@/constants/status-bar'
 import { usePredictivePrefetch } from '@/hooks'
 import { useNotifications } from '@/hooks/use-notification'
 import { useMasterTransitionOptional } from '@/lib/navigation'
-import { getThemeColor, hexToRgba } from '@/lib/utils'
+import { getThemeColor } from '@/lib/utils'
 import {
   useAuthStore,
   useBranchStore,
   useMenuFilterStore,
   useUserStore,
 } from '@/stores'
+import { useOrderFlowCartItemCount } from '@/stores/selectors'
 import { useNotificationStore } from '@/stores/notification.store'
+import { supportsDetachedSearchTab as computeSupportsDetachedSearchTab } from '@/utils/platform-version'
 // import { ProfileNudgePopup } from '@/components/profile'
-const TAB_ROUTES = {
-  HOME: '/(tabs)/home',
-  MENU: '/(tabs)/menu',
-  CART: '/(tabs)/cart',
-  GIFT_CARD: '/(tabs)/gift-card',
-  PROFILE: '/(tabs)/profile',
-} as const
 
-const { width: screenWidth } = Dimensions.get('window')
+const isAndroid = Platform.OS === 'android'
 
-const BAR_HEIGHT = 64
-const BAR_PADDING = 8
-const FADE_HEIGHT = 120
-const SLIDE_EASING = Easing.bezier(0.33, 1, 0.68, 1)
+// role="search" map thẳng sang UITabBarItem.SystemItem.search — API này tồn
+// tại từ rất lâu, KHÔNG chỉ trên iOS 26, nên tự nó không rào theo phiên bản.
+// Dáng ô tròn tách rời chỉ xuất hiện trên thanh tab kiểu iOS 26; ở bản thấp
+// hơn (app hỗ trợ tối thiểu 15.1, xem ios/Podfile) thanh tab là dạng cổ điển
+// và LUÔN hiện nhãn dưới icon — nhãn đó do hệ thống tự đặt cho system item
+// ("Tìm kiếm"/"Search"), bỏ qua <Label> (xem RNSBottomTabsScreenComponentView.mm,
+// updateTabBarItem: khi _systemItem != None thì không gán tabBarItem.title).
+// Nếu không rào ở đây, người dùng iOS 15–18 sẽ thấy icon giỏ hàng kèm chữ
+// "Tìm kiếm" thay vì "Giỏ hàng". Phép so sánh phiên bản (Platform.Version là
+// string trên iOS, vd. "17.4.1", khác Android — xem PlatformIOSStatic trong
+// react-native/Libraries/Utilities/Platform.d.ts) được tách thành hàm thuần
+// `supportsDetachedSearchTab` trong utils/platform-version.ts để test độc
+// lập với các chuỗi phiên bản (xem __tests__/utils/platform-version.test.ts).
+const supportsDetachedSearchTab = computeSupportsDetachedSearchTab(
+  Platform.OS,
+  Platform.Version,
+)
 
 export default function TabsLayout() {
   const { t } = useTranslation('tabs')
@@ -136,345 +135,86 @@ export default function TabsLayout() {
     }
   }, [pathname, masterTransition, queryClient, isAuthenticated])
 
-  const isCartPage = pathname?.includes('/cart')
-  const isProfileLoginForm = pathname?.includes('/profile') && !isAuthenticated
-  const isProfileSubRoute = isAuthenticated && pathname?.includes('/profile/')
-  const isProductDetail = pathname?.includes('/product')
-  // Stack screens ngoài /(tabs)/ — tab bar không nên visible vì user không
-  // ở trong context tab. Trước đây tab bar hiện lên và indicator trỏ sai
-  // (isHomeActive fallback = true) → visible desync.
-  const isStackRoute =
-    pathname?.startsWith('/update-order/') ||
-    pathname?.startsWith('/payment/') ||
-    pathname?.startsWith('/notification') ||
-    pathname?.startsWith('/auth/') ||
-    pathname?.startsWith('/system/')
-  /** Ẩn bar khi ở product detail, form đăng nhập profile, route con của profile, giỏ hàng, hoặc bất kỳ stack screen nào ngoài tabs. */
-  const shouldHideBottomBar =
-    isProductDetail ||
-    isCartPage ||
-    isProfileLoginForm ||
-    isProfileSubRoute ||
-    isStackRoute
-
   const colors = useMemo(() => getThemeColor(isDark), [isDark])
-  const glass = useGlassLevel() > 0
-
-  const tabColors = useMemo(
-    () => ({
-      primary: colors.primary,
-      // Trên nền kính, xám nhạt mặc định chìm vào nội dung phía sau nên tab
-      // chưa chọn khó đọc. Đổi sang mực đậm; nền đặc vẫn giữ xám như cũ.
-      mutedForeground: glass
-        ? isDark
-          ? palette.gray[200]
-          : palette.gray[800]
-        : colors.mutedForeground,
-      background: colors.background,
-      card: colors.card,
-    }),
-    [
-      colors.primary,
-      colors.mutedForeground,
-      colors.background,
-      colors.card,
-      glass,
-      isDark,
-    ],
-  )
-
-  const gradientColors = useMemo(
-    () => [
-      // KHÔNG dùng 'transparent': trong RN nó là rgba(0,0,0,0) — tức ĐEN trong
-      // suốt. Gradient nội suy cả kênh RGB nên nó chạy đen → màu nền, tạo ra
-      // dải xám mờ ngang phía trên nav bar. Dùng chính màu nền với alpha 0 để
-      // chỉ alpha thay đổi, RGB giữ nguyên → fade sạch, không ám xám.
-      hexToRgba(colors.background, 0),
-      hexToRgba(colors.background, 0.15),
-      hexToRgba(colors.background, 0.55),
-      colors.background,
-    ],
-    [colors.background],
-  )
-
-  const onPressInTabSwitch = useCallback(
-    (href: string) => {
-      // Menu press-in prefetch removed: Menu tab now fetches per-catalog via
-      // `useQueries` (queryKey ['specific-menu', { ...request, catalog: slug }]).
-      // No catalog list is available here to build a matching key, so a
-      // single-key prefetch would just populate a cache entry the Menu
-      // screen never reads.
-      if (href?.includes('/gift-card') && isAuthenticated) {
-        const giftCardKey = [QUERYKEY.giftCards, undefined]
-        if (!queryClient.getQueryData(giftCardKey)) {
-          queryClient
-            .prefetchQuery({
-              queryKey: giftCardKey,
-              queryFn: () => getGiftCards(),
-            })
-            .catch(() => {})
-        }
-      }
-      if (href?.includes('/profile') && userSlug) {
-        const loyaltyKey = [QUERYKEY.loyaltyPoints, 'total', { slug: userSlug }]
-        if (!queryClient.getQueryData(loyaltyKey)) {
-          queryClient
-            .prefetchQuery({
-              queryKey: loyaltyKey,
-              queryFn: async () => {
-                const res = await getLoyaltyPoints(userSlug)
-                return res.result
-              },
-            })
-            .catch(() => {})
-        }
-      }
-    },
-    [isAuthenticated, userSlug, queryClient],
-  )
-
-  // Exhaustive match — không dùng fallback `isHomeActive = !others`.
-  //
-  // QUAN TRỌNG: expo-router's usePathname() strip group segments — pathname
-  // trả về '/home', '/menu', '/menu/product/xxx' (KHÔNG có '/(tabs)/' prefix).
-  // Xem node_modules/expo-router/build/matchers.js stripGroupSegmentsFromPath.
-  //
-  // Trước đây dùng '/(tabs)/menu' → không bao giờ match → indicator stuck.
-  // Trước đó nữa dùng fallback isHomeActive = !others → khi ở /cart hay
-  // /update-order/xxx, indicator trỏ sai HOME.
-  //
-  // Giờ match chính xác theo path sau strip group. activeIndex=-1 khi không
-  // match tab nào (vd: /update-order/, /payment/) → indicator giữ position cũ.
-  const resolvedTabState = useMemo(() => {
-    const p = pathname ?? ''
-    const isHomeActive = p === '/' || p === '/home' || p.startsWith('/home/')
-    const isMenuActive = p === '/menu' || p.startsWith('/menu/')
-    const isGiftCardActive = p === '/gift-card' || p.startsWith('/gift-card/')
-    const isProfileActive = p === '/profile' || p.startsWith('/profile/')
-    return {
-      isHomeActive,
-      isMenuActive,
-      isGiftCardActive,
-      isProfileActive,
-    }
-  }, [pathname])
-
-  const tabRoutes = useMemo(
-    () => ({
-      home: TAB_ROUTES.HOME,
-      menu: TAB_ROUTES.MENU,
-      giftCard: TAB_ROUTES.GIFT_CARD,
-      profile: TAB_ROUTES.PROFILE,
-    }),
-    [],
-  )
-
-  const { totalBottomHeight, bottomGap } = useMemo(() => {
-    // STATIC_BOTTOM_INSET = chiều cao của vùng system UI ở đáy màn (home indicator / gesture nav).
-    // Cộng thêm VISUAL_GAP để pill nổi rõ cách vùng đó, không bị dính sát.
-    //
-    // Dùng STATIC_BOTTOM_INSET (tính 1 lần lúc khởi động) thay vì useSafeAreaInsets()
-    // để tránh re-render tab bar trong lúc transition đang chạy.
-    //
-    // targetSdk=35 → Android 15 enforce edge-to-edge → inset đã bao gồm gesture bar.
-    // iOS home indicator (~34px) dày hơn Android gesture bar (~24px). Nếu cộng
-    // VISUAL_GAP=10 cho cả 2, tab bar iOS sẽ cao hơn Android ~10px → cảm giác
-    // lệch. Trên iPhone notch/Dynamic Island, inset đã đủ breathing room nên
-    // bỏ VISUAL_GAP để match Android. iPhone SE (inset=0) vẫn cần gap.
-    // iPhone notch/Dynamic Island: kéo pill xuống gần home indicator hơn để
-    // đỡ cao so với Android gesture nav — VISUAL_GAP âm cho phép pill overlap
-    // vào vùng safe area (home indicator do system vẽ đè lên, không bị che).
-    const hasHomeIndicator = Platform.OS === 'ios' && STATIC_BOTTOM_INSET > 0
-    const VISUAL_GAP = hasHomeIndicator ? -8 : 10
-    const gap = STATIC_BOTTOM_INSET + VISUAL_GAP
-    const bgHeight = BAR_HEIGHT + BAR_PADDING + gap
-    return {
-      bottomGap: gap,
-      totalBottomHeight: FADE_HEIGHT + bgHeight,
-    }
-  }, [])
-
-  const barTranslateX = useSharedValue(shouldHideBottomBar ? -screenWidth : 0)
-  // Unmount toàn bộ bar + gradient khi ẩn xong để iOS compositor không phải
-  // blend gradient 8-stop full-width trên Cart/Product/Payment/Auth screens.
-  // Giữ mounted trong lúc slide-out (để animation chạy), chỉ unmount sau khi
-  // translateX đạt -screenWidth. Khi hiển thị lại, reset ngay trong render
-  // để mount trước, rồi slide-in trong effect.
-  const [hasFadedOut, setHasFadedOut] = useState(shouldHideBottomBar)
-  // "Adjust state during render" pattern (React docs) — khi user quay lại tab
-  // visible, reset cờ ngay lập tức để mount component cùng render đó, tránh
-  // delay 1 frame nếu làm trong useEffect.
-  if (!shouldHideBottomBar && hasFadedOut) {
-    setHasFadedOut(false)
-  }
-  const isBarMounted = !hasFadedOut
-  useEffect(() => {
-    // Tab switch (animation:'none') → màn đổi instant → bar cũng instant.
-    // Native stack push/pop → isTransitioning=true → slide 360ms.
-    const isNativeTransition = masterTransition?.isTransitioning.value ?? false
-    if (shouldHideBottomBar) {
-      if (!isNativeTransition) {
-        barTranslateX.value = -screenWidth
-        runOnJS(setHasFadedOut)(true)
-      } else {
-        barTranslateX.value = withTiming(
-          -screenWidth,
-          { duration: MOTION.nativeStack.durationMs, easing: SLIDE_EASING },
-          (finished) => {
-            if (finished) runOnJS(setHasFadedOut)(true)
-          },
-        )
-      }
-    } else {
-      barTranslateX.value = isNativeTransition
-        ? withTiming(0, {
-            duration: MOTION.nativeStack.durationMs,
-            easing: SLIDE_EASING,
-          })
-        : 0
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shouldHideBottomBar])
-
-  const barAnimatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: barTranslateX.value }],
-  }))
+  const cartItemCount = useOrderFlowCartItemCount()
 
   return (
     <View style={{ flex: 1 }}>
-      {/* Không dùng shouldRasterizeIOS/renderToHardwareTextureAndroid ở đây:
-            indicator trong AnimatedTabBar animate mỗi frame spring, cache bitmap
-            sẽ bị invalidate liên tục → ngược tác dụng. */}
-      {isBarMounted && (
-        <Animated.View
-          style={[
-            {
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              zIndex: 10,
-            },
-            barAnimatedStyle,
-          ]}
-          pointerEvents={shouldHideBottomBar ? 'none' : 'box-none'}
+      {isAndroid ? (
+        <AndroidTabsNavigator />
+      ) : (
+        <NativeTabs
+          tintColor={colors.primary}
+          iconColor={{
+            default: colors.mutedForeground,
+            selected: colors.primary,
+          }}
+          // undefined để giữ kính Liquid Glass gốc của UITabBarAppearance —
+          // đặt màu đặc ở đây sẽ làm mất hiệu ứng trong suốt.
+          backgroundColor={undefined}
+          labelVisibilityMode="labeled"
+          indicatorColor={colors.primary}
+          minimizeBehavior="onScrollDown"
         >
-          {/* Gradient chỉ để nội dung cuộn dưới thanh tab đỡ chói. Máy có
-              Liquid Glass thì bỏ, vì kính tự lo phần nền — và có nền mờ phía
-              sau thì kính gần như không thấy gì để khúc xạ. */}
-          <View
-            style={{
-              height: totalBottomHeight,
-              pointerEvents: 'none',
-            }}
+          <NativeTabs.Trigger name="home">
+            <Icon sf={{ default: 'house', selected: 'house.fill' }} />
+            <Label>{t('tabs.home', 'Trang chủ')}</Label>
+          </NativeTabs.Trigger>
+          <NativeTabs.Trigger name="menu">
+            <Icon sf="fork.knife" />
+            <Label>{t('tabs.menu', 'Thực đơn')}</Label>
+          </NativeTabs.Trigger>
+          <NativeTabs.Trigger name="gift-card">
+            <Icon sf={{ default: 'gift', selected: 'gift.fill' }} />
+            <Label>{t('tabs.giftCard', 'Thẻ quà')}</Label>
+          </NativeTabs.Trigger>
+          <NativeTabs.Trigger name="profile">
+            <Icon sf={{ default: 'person', selected: 'person.fill' }} />
+            <Label>{t('tabs.profile', 'Tài khoản')}</Label>
+          </NativeTabs.Trigger>
+          {/* role="search" (iOS 26+ only) — CHỦ Ý, đã chốt sau khi xem trên máy
+              thật. Đây là cách DUY NHẤT để có dáng nút tròn tách rời bên phải
+              thanh tab theo Apple HIG (iOS 26): nó map thẳng sang
+              `UITabBarItem(tabBarSystemItem: .search)` ở native
+              (xem RCTConvert+RNSBottomTabs.mm trong react-native-screens).
+              Không có prop/API nào khác của NativeTabs tạo được hình dạng này.
+
+              RÀO PHIÊN BẢN — xem chú thích ở supportsDetachedSearchTab phía
+              trên: iOS < 26 vẫn vẽ thanh tab cổ điển kèm nhãn hệ thống
+              "Tìm kiếm", nên chỉ bật role này từ iOS 26.
+
+              Đánh đổi đã biết và đã CHẤP NHẬN có ý thức (chỉ áp dụng khi
+              supportsDetachedSearchTab = true):
+              1. Nhãn do hệ thống tự đặt, không ghi đè được — ở bố cục có hiện
+                 nhãn cạnh icon search (iPad, cỡ chữ trợ năng lớn) nó sẽ hiện
+                 "Tìm kiếm"/"Search" chứ không phải text trong <Label> bên dưới.
+              2. VoiceOver đọc mục tab này là "Search", không phải "Giỏ hàng".
+                 convertTabPropsToOptions() trong
+                 node_modules/expo-router/build/native-tabs/NativeBottomTabs/NativeTabTrigger.js
+                 không nhận/emit accessibilityLabel cho tab item — react-native-screens
+                 phía native cũng không có chỗ nhận nó cho system item — nên
+                 không có cách nào override từ phía app. */}
+          <NativeTabs.Trigger
+            name="cart"
+            role={supportsDetachedSearchTab ? 'search' : undefined}
           >
-            {glass ? null : (
-              <LinearGradient
-                colors={
-                  gradientColors as unknown as [string, string, ...string[]]
-                }
-                locations={[0, 0.3, 0.65, 1]}
-                style={{ flex: 1 }}
-              />
-            )}
-          </View>
-          <View
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              left: 0,
-              right: 0,
-              paddingBottom: bottomGap,
-              paddingHorizontal: 16,
-              paddingTop: 8,
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 12,
-            }}
-          >
-            <AnimatedTabBar
-              t={t}
-              colors={tabColors}
-              tabState={resolvedTabState}
-              tabRoutes={tabRoutes}
-              onPressInTabSwitch={onPressInTabSwitch}
-            />
-            <FloatingCartButton primaryColor={colors.primary} />
-          </View>
-        </Animated.View>
+            <Icon sf={{ default: 'cart', selected: 'cart.fill' }} />
+            {/* <Label> vẫn cần giữ dù iOS 26+ bỏ qua nó (dùng nhãn hệ thống của
+                role="search") — iOS < 26 không có role này nên vẫn hiện nhãn
+                "Giỏ hàng" bình thường. */}
+            <Label>{t('tabs.cart', 'Giỏ hàng')}</Label>
+            {/* Giữ nguyên dạng `cartItemCount > 0 && <Badge>`, KHÔNG đổi sang
+                `<Badge hidden={cartItemCount === 0}>`: appendBadgeOptions()
+                trong node_modules/expo-router/build/native-tabs/NativeBottomTabs/NativeTabTrigger.js
+                cố tình set badgeValue = ' ' (một khoảng trắng) bất cứ khi nào
+                `!props.children && !props.hidden` — tức Badge vẫn render
+                children rỗng nhưng hidden=false sẽ hiện một badge trống thay
+                vì ẩn hẳn. */}
+            {cartItemCount > 0 && <Badge>{String(cartItemCount)}</Badge>}
+          </NativeTabs.Trigger>
+        </NativeTabs>
       )}
 
-      {/* detachInactiveScreens=false — trade RAM ~100MB để fix stuck bug với
-          nested CustomStack trong profile tab. Rapid tab switch gây detach queue
-          race trong react-native-screens (expo/expo#35116): sau ~3 lần switch,
-          profile's inner stack view stuck visible dù outer tab đã inactive.
-          Nested stack + panGesture + BottomSheetModal làm profile tab dễ trigger
-          bug này nhất (menu có nested stack nhưng không có gesture layer). */}
-      <Tabs
-        detachInactiveScreens={false}
-        screenOptions={{
-          ...tabsScreenOptions,
-          headerShown: false,
-          animation: 'none',
-          tabBarActiveTintColor: colors.primary,
-          tabBarInactiveTintColor: colors.mutedForeground,
-          lazy: true,
-          tabBarStyle: {
-            backgroundColor: 'transparent',
-            borderTopWidth: 0,
-            height: 0,
-            paddingBottom: 0,
-            paddingTop: 0,
-            elevation: 0,
-            shadowOpacity: 0,
-          },
-          tabBarLabelStyle: { display: 'none' },
-          tabBarIconStyle: { display: 'none' },
-        }}
-      >
-        <Tabs.Screen
-          name="home"
-          options={{
-            headerShown: false,
-            title: t('tabs.home', 'Trang chủ'),
-            tabBarButton: () => null,
-          }}
-        />
-        <Tabs.Screen
-          name="menu"
-          options={{
-            headerShown: false,
-            title: t('tabs.menu', 'Thực đơn'),
-            tabBarButton: () => null,
-          }}
-        />
-        <Tabs.Screen
-          name="cart"
-          options={{
-            headerShown: false,
-            title: t('tabs.cart', 'Giỏ hàng'),
-            tabBarButton: () => null,
-            lazy: false,
-          }}
-        />
-        <Tabs.Screen
-          name="gift-card"
-          options={{
-            headerShown: false,
-            title: t('tabs.giftCard', 'Thẻ quà tặng'),
-            tabBarButton: () => null,
-          }}
-        />
-        <Tabs.Screen
-          name="profile"
-          options={{
-            headerShown: false,
-            title: t('tabs.profile', 'Tài khoản'),
-            tabBarButton: () => null,
-          }}
-        />
-      </Tabs>
       <OrderReadyPickupSheet />
       {/* <ProfileNudgePopup /> */}
     </View>

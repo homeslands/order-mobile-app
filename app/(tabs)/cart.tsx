@@ -1,7 +1,6 @@
 /**
  * Tab Cart — Perf UI, defer shell → content sau transition.
  * Header: back (left) + "Giỏ hàng (N)" (center) + clear all (right).
- * Same UI as menu/cart.tsx but as a standalone tab.
  */
 import {
   BottomSheetBackdrop,
@@ -130,7 +129,9 @@ function ClearCartSheet({
               style={[
                 confirmStyles.btn,
                 {
-                  backgroundColor: isDark ? colors.gray[700] : colors.gray[100],
+                  backgroundColor: isDark
+                    ? colors.border.dark
+                    : colors.gray[100],
                 },
               ]}
             >
@@ -215,7 +216,6 @@ function CartClearBtn({
 }: {
   itemCount: number
   onClearAll: () => void
-  isDark: boolean
 }) {
   if (itemCount === 0) return <View style={clearBtnStyles.placeholder} />
   return (
@@ -333,7 +333,6 @@ export default function CartScreen() {
               <CartClearBtn
                 itemCount={itemCount}
                 onClearAll={handleOpenClearSheet}
-                isDark={isDark}
               />
             }
           />

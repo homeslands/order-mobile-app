@@ -438,7 +438,7 @@
     },
     "glass": {
       "title": "Glass transparency",
-      "subtitle": "Drag to set how transparent bars, sheets and dialogs look.",
+      "subtitle": "Drag to set how transparent headers, sheets and dialogs look.",
       "solid": "Solid",
       "clear": "Clear",
       "preview": "Preview",

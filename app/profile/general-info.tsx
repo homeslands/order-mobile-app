@@ -220,10 +220,7 @@ export default function GeneralInfo() {
   const setLogout = useAuthStore((state) => state.setLogout)
   const removeUserInfo = useUserStore((state) => state.removeUserInfo)
   const handleBack = useCallback(() => router.back(), [router])
-  const handleEdit = useCallback(
-    () => router.push('/(tabs)/profile/edit'),
-    [router],
-  )
+  const handleEdit = useCallback(() => router.push('/profile/edit'), [router])
   const isLoggingOutRef = useRef(false)
   const openLogoutSheet = useLogoutSheetStore((s) => s.open)
 
@@ -239,7 +236,10 @@ export default function GeneralInfo() {
     useNotificationStore.getState().clearAll()
     setLogout()
     removeUserInfo()
-    router.replace('/(tabs)/home' as never)
+    // dismissTo thay vì replace: general-info.tsx nằm ở root stack,
+    // replace('/(tabs)/…') ở root stack sẽ push thêm một bộ tab mới thay vì
+    // đổi tab hiện có.
+    router.dismissTo('/(tabs)/home' as never)
     showToast(tToast('logoutSuccess', 'Đăng xuất thành công'))
   }, [queryClient, removeUserInfo, router, setLogout, tToast])
 

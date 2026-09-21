@@ -10,7 +10,7 @@ import {
 } from '@/api/menu'
 import { Images } from '@/assets/images'
 import { SelectBranchDropdown } from '@/components/branch'
-import { TabScreenLayout } from '@/components/layout'
+import { TabScreenLayout, useTabBarBottomPadding } from '@/components/layout'
 import { PriceFilterSheet } from '@/components/menu/price-sheet'
 import { PressableWithFeedback } from '@/components/navigation/pressable-with-feedback'
 import { NotificationBell } from '@/components/notification/notification-bell'
@@ -117,6 +117,7 @@ export default function MenuPage() {
   const { userSlug, isAuthenticated, menuFilter, branchSlug } =
     useMenuScreenState()
   const setMenuFilter = useSetMenuFilter()
+  const bottomPadding = useTabBarBottomPadding()
   const [allowFetch, setAllowFetch] = useState(false)
   const [imagePhaseCount, setImagePhaseCount] = useState(0)
 
@@ -595,7 +596,7 @@ export default function MenuPage() {
       useTransientNavStore.getState().setHeroImageUrls(heroImageUrls)
 
       router.push({
-        pathname: '/(tabs)/menu/product/[id]',
+        pathname: '/product/[id]',
         params: {
           id: selectedItem.id,
           name: selectedItem.name,
@@ -886,7 +887,10 @@ export default function MenuPage() {
             }
             viewabilityConfig={menuViewabilityConfig}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContent}
+            contentContainerStyle={[
+              styles.listContent,
+              { paddingBottom: bottomPadding },
+            ]}
             ListEmptyComponent={listEmptyComponent}
           />
         </MenuImagePhaseContext.Provider>
@@ -937,7 +941,6 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingTop: 8,
-    paddingBottom: 160,
   },
   emptyBox: {
     margin: 16,

@@ -17,6 +17,7 @@ import {
   Ticket,
   Wallet,
 } from 'lucide-react-native'
+import { useRouter } from 'expo-router'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -65,6 +66,7 @@ export default function GiftCardHubScreen() {
   const isDark = useColorScheme() === 'dark'
   const primaryColor = usePrimaryColor()
   const insets = useSafeAreaInsets()
+  const router = useRouter()
 
   const SECTIONS: MenuSection[] = useMemo(
     () => [
@@ -207,13 +209,24 @@ export default function GiftCardHubScreen() {
                     <View key={item.key}>
                       <TouchableOpacity
                         style={s.menuItem}
-                        onPress={() =>
-                          navigateNative.push(
-                            item.route as Parameters<
-                              typeof navigateNative.push
-                            >[0],
-                          )
-                        }
+                        onPress={() => {
+                          // gift-card-hub nằm ở root stack — push('/(tabs)/…')
+                          // ở root stack sẽ nhân đôi bộ tab thay vì đổi tab
+                          // hiện có, nên đích tab dùng dismissTo thay vì push.
+                          if (item.route.startsWith('/(tabs)/')) {
+                            router.dismissTo(
+                              item.route as Parameters<
+                                typeof router.dismissTo
+                              >[0],
+                            )
+                          } else {
+                            navigateNative.push(
+                              item.route as Parameters<
+                                typeof navigateNative.push
+                              >[0],
+                            )
+                          }
+                        }}
                         activeOpacity={0.7}
                       >
                         <View
