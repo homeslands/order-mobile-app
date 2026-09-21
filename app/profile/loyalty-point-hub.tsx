@@ -44,6 +44,7 @@ import {
 } from '@/components/loyalty-point/loyalty-point-filter-sheet'
 import { LoyaltyPointTransactionCard } from '@/components/loyalty-point/loyalty-point-transaction-card'
 import { Skeleton } from '@/components/ui'
+import { GlassHeaderButton } from '@/components/navigation/glass-header-button'
 import { colors, LoyaltyPointHistoryType } from '@/constants'
 import { LOYALTY_HUB_ITEM_HEIGHT } from '@/constants/list-item-sizes'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
@@ -353,9 +354,16 @@ export default function LoyaltyPointHubScreen() {
       <View
         style={[s.hero, { height: HERO_HEIGHT, backgroundColor: primaryColor }]}
       >
-        <Pressable
+        {/* Nút này nằm trên hero màu thương hiệu, không phải trên nội dung
+            trang — nên nền đặc của nó là lớp trắng mờ chứ không phải màu
+            thẻ, giữ nguyên như trước khi có kính. */}
+        <GlassHeaderButton
+          isDark={isDark}
           onPress={navigateNative.back}
           hitSlop={12}
+          size={36}
+          solidColor="rgba(255,255,255,0.18)"
+          withoutShadow
           style={[s.backBtn, { top: STATIC_TOP_INSET + 8 }]}
         >
           <ChevronRight
@@ -363,7 +371,7 @@ export default function LoyaltyPointHubScreen() {
             color={colors.white.light}
             style={{ transform: [{ rotate: '180deg' }] }}
           />
-        </Pressable>
+        </GlassHeaderButton>
 
         <View style={[s.heroContent, { paddingTop: STATIC_TOP_INSET + 44 }]}>
           <Text style={s.balanceLabel}>
@@ -505,12 +513,6 @@ const s = StyleSheet.create({
     position: 'absolute',
     left: 16,
     zIndex: 2,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
 
   heroContent: {

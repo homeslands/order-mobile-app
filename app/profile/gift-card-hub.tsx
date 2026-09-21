@@ -30,6 +30,7 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import { GlassHeaderButton } from '@/components/navigation/glass-header-button'
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useCoinBalance } from '@/hooks/use-coin-balance'
@@ -146,9 +147,16 @@ export default function GiftCardHubScreen() {
       />
 
       {/* ── Back button ─────────────────────────────────────────────────── */}
-      <Pressable
+      {/* Nút này nằm trên hero màu thương hiệu, không phải trên nội dung
+          trang — nên nền đặc của nó là lớp trắng mờ chứ không phải màu thẻ,
+          giữ nguyên như trước khi có kính. */}
+      <GlassHeaderButton
+        isDark={isDark}
         onPress={navigateNative.back}
         hitSlop={12}
+        size={36}
+        solidColor="rgba(255,255,255,0.18)"
+        withoutShadow
         style={[s.backBtn, { top: STATIC_TOP_INSET + 8 }]}
       >
         <ChevronRight
@@ -156,7 +164,7 @@ export default function GiftCardHubScreen() {
           color={colors.white.light}
           style={{ transform: [{ rotate: '180deg' }] }}
         />
-      </Pressable>
+      </GlassHeaderButton>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
@@ -274,13 +282,7 @@ const s = StyleSheet.create({
   backBtn: {
     position: 'absolute',
     left: 16,
-    zIndex: 10,
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: 'rgba(255,255,255,0.18)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    zIndex: 2,
   },
 
   // Hero / balance zone

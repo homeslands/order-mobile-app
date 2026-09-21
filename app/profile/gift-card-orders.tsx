@@ -45,6 +45,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { GiftCardOrderDetailSheet } from '@/components/gift-card/gift-card-order-detail-sheet'
 import { FloatingHeader } from '@/components/navigation/floating-header'
+import { GlassHeaderButton } from '@/components/navigation/glass-header-button'
 import { Skeleton } from '@/components/ui'
 import { colors, GiftCardType } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
@@ -850,19 +851,20 @@ export default function GiftCardOrdersScreen() {
       <FloatingHeader
         title={t('orders.title')}
         disableBlur
+        // Đang lọc thì nút mang nền nhấn màu thương hiệu, nên bỏ kính để màu
+        // đó không bị pha loãng.
         rightElement={
-          <Pressable
+          <GlassHeaderButton
+            isDark={isDark}
             onPress={handleFilterOpen}
-            style={[
-              s.headerIconBtn,
-              {
-                backgroundColor: isDateActive
-                  ? `${primaryColor}15`
-                  : isDark
-                    ? colors.border.dark
-                    : colors.white.light,
-              },
-            ]}
+            solidColor={
+              isDateActive
+                ? `${primaryColor}15`
+                : isDark
+                  ? colors.border.dark
+                  : colors.white.light
+            }
+            withoutShadow
           >
             <SlidersHorizontal
               size={16}
@@ -877,7 +879,7 @@ export default function GiftCardOrdersScreen() {
             {isDateActive && (
               <View style={[s.activeDot, { backgroundColor: primaryColor }]} />
             )}
-          </Pressable>
+          </GlassHeaderButton>
         }
       />
 
@@ -1002,13 +1004,6 @@ const s = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   filterRow: { flexDirection: 'row', alignItems: 'center', paddingRight: 12 },
-  headerIconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   activeDot: {
     width: 6,
     height: 6,
