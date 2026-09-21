@@ -1,16 +1,24 @@
 diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHost.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHost.kt
-index 73ac57d..8194f15 100644
+index 73ac57d..6b772dd 100644
 --- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHost.kt
 +++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHost.kt
-@@ -8,6 +8,7 @@ import android.widget.LinearLayout
+@@ -3,11 +3,15 @@ package com.swmansion.rnscreens.gamma.tabs
+ import android.content.res.Configuration
+ import android.view.Choreographer
+ import android.view.MenuItem
++import android.view.ViewGroup.MarginLayoutParams
+ import android.widget.FrameLayout
+ import android.widget.LinearLayout
  import androidx.appcompat.view.ContextThemeWrapper
++import androidx.core.view.ViewCompat
++import androidx.core.view.WindowInsetsCompat
  import androidx.fragment.app.FragmentManager
  import com.facebook.react.modules.core.ReactChoreographer
 +import com.facebook.react.uimanager.PixelUtil
  import com.facebook.react.uimanager.ThemedReactContext
  import com.google.android.material.bottomnavigation.BottomNavigationView
  import com.swmansion.rnscreens.BuildConfig
-@@ -93,7 +94,24 @@ class TabsHost(
+@@ -93,7 +97,43 @@ class TabsHost(
  
      private val bottomNavigationView: BottomNavigationView =
          BottomNavigationView(wrappedContext).apply {
@@ -33,11 +41,30 @@ index 73ac57d..8194f15 100644
 +                    setMargins(left, 0, right, bottom)
 +                }
 +            elevation = PixelUtil.toPixelFromDIP(8f)
++            // Thanh nổi nên nó nằm TRÊN vùng cử chỉ chứ không chạm đáy màn.
++            // Material mặc định cộng inset cử chỉ vào PADDING đáy của thanh —
++            // thanh phình lên 104dp và chừa một dải trống dưới nhãn. Đổi chỗ
++            // inset đó sang LỀ đáy: thanh giữ đúng 80dp của Material 3 và vẫn
++            // nằm trên vạch cử chỉ, cùng mốc với FloatingCartButton phía JS
++            // (insets.bottom + 10dp).
++            ViewCompat.setOnApplyWindowInsetsListener(this) { view, insets ->
++                val systemBottom =
++                    insets.getInsets(WindowInsetsCompat.Type.systemBars()).bottom
++                view.setPadding(0, 0, 0, 0)
++                (view.layoutParams as? MarginLayoutParams)?.let {
++                    val gap = PixelUtil.toPixelFromDIP(10f).toInt()
++                    if (it.bottomMargin != systemBottom + gap) {
++                        it.bottomMargin = systemBottom + gap
++                        view.requestLayout()
++                    }
++                }
++                WindowInsetsCompat.CONSUMED
++            }
          }
  
      private val contentView: FrameLayout =
 diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostAppearanceApplicator.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostAppearanceApplicator.kt
-index 1f75d24..3354623 100644
+index 1f75d24..915ce00 100644
 --- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostAppearanceApplicator.kt
 +++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostAppearanceApplicator.kt
 @@ -2,6 +2,7 @@ package com.swmansion.rnscreens.gamma.tabs
@@ -62,7 +89,7 @@ index 1f75d24..3354623 100644
 +        bottomNavigationView.background =
 +            GradientDrawable().apply {
 +                shape = GradientDrawable.RECTANGLE
-+                cornerRadius = PixelUtil.toPixelFromDIP(28f)
++                cornerRadius = PixelUtil.toPixelFromDIP(40f)
 +                setColor(
 +                    tabsHost.tabBarBackgroundColor
 +                        ?: resolveColorAttr(com.google.android.material.R.attr.colorSurfaceContainer),
