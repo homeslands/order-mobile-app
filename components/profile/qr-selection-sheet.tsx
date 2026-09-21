@@ -5,7 +5,7 @@ import {
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet'
 import { useRouter } from 'expo-router'
-import { QrCode, ScanLine } from 'lucide-react-native'
+import { QrCode, ScanLine, ScanQrCode } from 'lucide-react-native'
 import { scheduleTransitionTask } from '@/lib/navigation'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -18,11 +18,12 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '@/constants'
+import { useAuthStore } from '@/stores'
 import { useQRSelectionSheetStore } from '@/stores/qr-selection-sheet.store'
 import { useScanSheetStore } from '@/stores/scan-sheet.store'
 import { Text } from '@/components/ui/text'
 
-const SNAP_POINTS = ['38%']
+const SNAP_POINTS = ['50%']
 
 // ─── Option Card ──────────────────────────────────────────────────────────────
 
@@ -135,6 +136,18 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [close, closeScanSheet])
 
+  const handleScanPay = useCallback(() => {
+    close()
+    closeScanSheet()
+    // Chưa đăng nhập thì sang login trước, để khỏi mở camera rồi nhận 401.
+    const target = useAuthStore.getState().isAuthenticated()
+      ? '/payment/scan-point'
+      : '/auth/login'
+    scheduleTransitionTask(() => router.push(target as never))
+    // router intentionally omitted — same reason as handlePaymentQR
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [close, closeScanSheet])
+
   const contentStyle = useMemo(
     () => [s.content, { paddingBottom: bottom + 24 }],
     [bottom],
@@ -190,6 +203,16 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
             title={t('profile.qr.coinPayment')}
             desc={t('profile.qr.coinPaymentDesc')}
             onPress={handlePaymentQR}
+            primary={primary}
+            textColor={textColor}
+            mutedColor={mutedColor}
+            cardBg={cardBg}
+          />
+          <OptionCard
+            icon={ScanQrCode}
+            title={t('profile.qr.scanPay')}
+            desc={t('profile.qr.scanPayDesc')}
+            onPress={handleScanPay}
             primary={primary}
             textColor={textColor}
             mutedColor={mutedColor}

@@ -38,12 +38,13 @@ import { TouchableOpacity as GHTouchable } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { getOrderBySlug } from '@/api'
-import { colors, NotificationMessageCode } from '@/constants'
+import { colors } from '@/constants'
 import { ORDER_HISTORY_ITEM_HEIGHT } from '@/constants/list-item-sizes'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useOrders, useRunAfterTransition } from '@/hooks'
 import { navigateNative } from '@/lib/navigation'
 import { useNotificationStore, useUserStore } from '@/stores'
+import { firstUnreadOrderPaidSlug } from '@/stores/selectors/notification.selectors'
 import type { IOrder } from '@/types'
 import { OrderStatus } from '@/types'
 import { paymentStatus } from '@/constants'
@@ -471,15 +472,15 @@ function OrderHistoryPage() {
 
   // ── Auto-refetch on FCM ORDER_PAID notification ──
   const processedRef = useRef<Set<string>>(new Set())
-  const latestNotification = useNotificationStore((s) => s.notifications[0])
+  const paidNotificationSlug = useNotificationStore((s) =>
+    firstUnreadOrderPaidSlug(s.notifications),
+  )
   useEffect(() => {
-    if (!latestNotification || latestNotification.isRead) return
-    if (processedRef.current.has(latestNotification.slug)) return
-    if (latestNotification.message === NotificationMessageCode.ORDER_PAID) {
-      processedRef.current.add(latestNotification.slug)
-      refetch()
-    }
-  }, [latestNotification, refetch])
+    if (!paidNotificationSlug) return
+    if (processedRef.current.has(paidNotificationSlug)) return
+    processedRef.current.add(paidNotificationSlug)
+    refetch()
+  }, [paidNotificationSlug, refetch])
 
   const orders = useMemo(
     () => orderResponse?.items || [],

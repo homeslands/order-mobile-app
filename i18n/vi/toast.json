@@ -432,6 +432,14 @@
     "findOneVoucherFailed": "Không tìm thấy voucher",
     "invoiceExportError": "Lỗi khi xuất hóa đơn",
     "voucherAutoRemoved": "Voucher không còn hợp lệ, đã tự động gỡ",
-    "pressBackToExit": "Nhấn lại để thoát"
+    "pressBackToExit": "Nhấn lại để thoát",
+    "pointQrNotFound": "Không tìm thấy mã thanh toán xu",
+    "pointQrAlreadyPaid": "Mã thanh toán xu đã được thanh toán",
+    "pointQrCancelled": "Mã thanh toán xu đã bị huỷ",
+    "pointQrOrderNotPayable": "Đơn không còn thanh toán được",
+    "pointQrMissingData": "Thiếu dữ liệu mã QR",
+    "pointQrCreateFailed": "Không tạo được mã thanh toán xu",
+    "pointQrInvalid": "Mã QR không hợp lệ",
+    "pointQrMismatch": "Mã QR không khớp với đơn"
   }
 }
