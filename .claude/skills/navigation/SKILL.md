@@ -14,8 +14,8 @@ This project uses **Expo Router** (file-based routing) with a **custom navigatio
 ```
 app/
 ├── _layout.tsx              # Root layout + global providers
-├── (tabs)/                  # Tab group — OS-native tab bar (expo-router/unstable-native-tabs)
-│   ├── _layout.tsx         # NativeTabs config — home, menu, gift-card, profile, cart (in this order)
+├── (tabs)/                  # Tab group — iOS: native tab bar; Android: custom bar
+│   ├── _layout.tsx         # home, menu, gift-card, profile, cart (in this order)
 │   ├── home.tsx
 │   ├── menu/
 │   │   ├── _layout.tsx     # Menu nested layout (index only — product moved to root stack)
@@ -207,12 +207,16 @@ export default function RootLayout() {
 
 **File**: `app/(tabs)/_layout.tsx`
 
-Defines the tab navigator — the OS-native tab bar via `expo-router/unstable-native-tabs`, NOT a custom-drawn tab bar:
+Splits by platform. iOS and web use the OS-native tab bar; Android uses a
+custom-drawn bar:
 
 ```tsx
 import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs'
+import { AndroidTabsNavigator } from '@/components/navigation/android-tabs-navigator'
 
 export default function TabsLayout() {
+  if (Platform.OS === 'android') return <AndroidTabsNavigator />
+
   return (
     <NativeTabs tintColor={colors.primary} labelVisibilityMode="labeled">
       <NativeTabs.Trigger name="home">
@@ -232,7 +236,18 @@ export default function TabsLayout() {
 }
 ```
 
-Cart is a tab (last one) rather than a floating button. On iOS 26+, giving its trigger `role="search"` renders it as a detached pill per Apple HIG — see the version-gating comment in `app/(tabs)/_layout.tsx` for why this must NOT apply below iOS 26.
+**Why Android is different:** the app's active pill wraps the icon AND the
+label, stacked. Material 3's bar cannot draw that — `activeIndicatorView`
+lives inside `iconContainer` while `labelGroup` is a sibling view
+(`NavigationBarItemView`, material 1.12.0), so the indicator only ever wraps
+the icon. Material 1.14 adds `setItemIconGravity(START)`, which wraps both but
+lays them out horizontally. Android therefore keeps the custom bar; the
+trade-off is that tab switching runs through JS instead of natively.
+
+On iOS, cart is the last tab. On iOS 26+, giving its trigger `role="search"`
+renders it as a detached pill per Apple HIG — see the version-gating comment
+in `app/(tabs)/_layout.tsx` for why this must NOT apply below iOS 26. On
+Android, cart is a `FloatingCartButton` beside the bar, not a tab.
 
 ### Nested Layout Example
 
@@ -254,18 +269,24 @@ export default function MenuLayout() {
 
 **File**: `app/(tabs)/_layout.tsx`
 
-`NativeTabs` is styled with props directly on the component — there is no separate `tabsScreenOptions` constant:
+iOS: `NativeTabs` is styled with props directly on the component.
+`backgroundColor` stays `undefined` so UITabBarAppearance keeps its Liquid
+Glass — setting a solid colour there kills the effect:
 
 ```tsx
 <NativeTabs
   tintColor={colors.primary}
   iconColor={{ default: colors.mutedForeground, selected: colors.primary }}
-  backgroundColor={isAndroid ? colors.card : undefined}
+  backgroundColor={undefined}
   labelVisibilityMode="labeled"
   indicatorColor={colors.primary}
   minimizeBehavior="onScrollDown"
 >
 ```
+
+Android: the visible bar is `AnimatedTabBar`; expo-router's `<Tabs>` bar
+underneath is collapsed to zero height and transparent. Its screen options
+come from `tabsScreenOptions` in `constants/navigation.config.ts`.
 
 ### Custom Header
 
