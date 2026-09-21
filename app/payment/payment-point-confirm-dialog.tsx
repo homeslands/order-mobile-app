@@ -12,6 +12,7 @@ import { Pressable, StyleSheet, View } from 'react-native'
 import { LightweightDialog } from '@/components/ui/lightweight-dialog'
 import { colors } from '@/constants'
 import { formatCurrency } from '@/utils'
+import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
 
 type Props = {
@@ -39,9 +40,7 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
   // Stable theme-dependent style objects
   const theme = useMemo(
     () => ({
-      card: {
-        backgroundColor: isDark ? colors.card.dark : colors.white.light,
-      },
+      cardColor: isDark ? colors.card.dark : colors.white.light,
       title: { color: isDark ? colors.gray[50] : colors.gray[900] },
       label: { color: isDark ? colors.gray[400] : colors.gray[500] },
       value: { color: isDark ? colors.gray[50] : colors.gray[900] },
@@ -64,7 +63,12 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
   return (
     <LightweightDialog visible={visible} onClose={onClose}>
       {(dismiss) => (
-        <View style={[s.card, theme.card]}>
+        <View style={s.card}>
+          <GlassSurface
+            color={theme.cardColor}
+            radius={16}
+            style={StyleSheet.absoluteFill}
+          />
           <Text style={[s.title, theme.title]}>
             {t(
               'paymentMethod.confirmPointPaymentTitle',

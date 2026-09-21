@@ -8,7 +8,7 @@ import {
   BottomSheetView,
 } from '@gorhom/bottom-sheet'
 import { TriangleAlert } from 'lucide-react-native'
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   ActivityIndicator,
@@ -23,6 +23,7 @@ import { PasswordInputField } from '@/components/input/password-input-field'
 import { colors } from '@/constants'
 import { useDeleteAccount } from '@/hooks/use-auth'
 import { showErrorToast, showToast } from '@/utils'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 interface Props {
@@ -220,11 +221,6 @@ export const DeleteAccountSheet = memo(function DeleteAccountSheet({
     ],
   )
 
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : '#ffffff' }),
-    [isDark],
-  )
-
   return (
     <BottomSheetModal
       ref={sheetRef}
@@ -234,7 +230,7 @@ export const DeleteAccountSheet = memo(function DeleteAccountSheet({
       keyboardBlurBehavior="restore"
       backdropComponent={renderBackdrop}
       footerComponent={renderFooter}
-      backgroundStyle={bgStyle}
+      backgroundComponent={GlassSheetBackground}
       onDismiss={handleDismiss}
     >
       <BottomSheetView style={styles.content}>

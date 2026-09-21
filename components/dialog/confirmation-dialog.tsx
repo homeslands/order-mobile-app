@@ -61,7 +61,11 @@ export function ConfirmationDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <Dialog.Content className="max-w-[22rem] rounded-md sm:max-w-[32rem]">
+      {/* radius={6} khớp rounded-md ở className (calc(var(--radius) - 2px)) */}
+      <Dialog.Content
+        className="max-w-[22rem] rounded-md sm:max-w-[32rem]"
+        radius={6}
+      >
         <Dialog.Header>
           <Dialog.Title className={titleClassName || defaultTitleClassName}>
             {icon}

@@ -32,6 +32,7 @@ import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { navigateNative } from '@/lib/navigation'
 import { showToastInternal } from '@/providers/toast-provider'
 import { useNotificationStore } from '@/stores/notification.store'
+import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
 
 const BAR_TOP = STATIC_TOP_INSET + TAB_HEADER_CONTENT_HEIGHT
@@ -114,7 +115,12 @@ export const OrderReadyAmbientBar = memo(function OrderReadyAmbientBar() {
       pointerEvents={visible ? 'auto' : 'none'}
       style={[s.wrapper, { top: BAR_TOP }, animatedStyle]}
     >
-      <View style={[s.bar, { backgroundColor: primaryColor }]}>
+      <View style={s.bar}>
+        <GlassSurface
+          color={primaryColor}
+          tint={primaryColor}
+          style={StyleSheet.absoluteFill}
+        />
         {/* tapArea: full-width minus the close button, no nesting */}
         <Pressable
           style={s.tapArea}

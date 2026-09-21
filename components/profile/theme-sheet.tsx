@@ -12,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '@/constants'
 import { applyTheme, type ThemeMode, useThemeStore } from '@/stores/theme.store'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 const THEME_OPTIONS: {
@@ -53,10 +54,6 @@ export const ThemeSheet = memo(function ThemeSheet({
   const setTheme = useThemeStore((s) => s.setTheme)
 
   const snapPoints = useMemo(() => [220 + bottom], [bottom])
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
-  )
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
@@ -96,7 +93,7 @@ export const ThemeSheet = memo(function ThemeSheet({
       enableHandlePanningGesture
       enableDynamicSizing={false}
       backdropComponent={renderBackdrop}
-      backgroundStyle={bgStyle}
+      backgroundComponent={GlassSheetBackground}
       onDismiss={onClose}
     >
       <View style={[s.content, { paddingBottom: bottom + 8 }]}>

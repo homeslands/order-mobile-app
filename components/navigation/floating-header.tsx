@@ -19,7 +19,9 @@ import {
 
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
+import { useGlassLevel } from '@/hooks/use-glass-level'
 import { navigateNative } from '@/lib/navigation'
+import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
 
 interface FloatingHeaderProps {
@@ -29,6 +31,39 @@ interface FloatingHeaderProps {
   /** iOS only: bỏ BlurView, chỉ dùng LinearGradient fade thuần */
   disableBlur?: boolean
 }
+
+/** Nút tròn của header: kính thật trên iOS 26+, nền đặc ở mọi nơi khác. */
+const CircleButton = memo(function CircleButton({
+  isDark,
+  onPress,
+  children,
+}: {
+  isDark: boolean
+  onPress?: () => void
+  children: React.ReactNode
+}) {
+  const level = useGlassLevel()
+  const solidBg = isDark ? colors.card.dark : colors.white.light
+
+  return (
+    <Pressable
+      onPress={onPress}
+      hitSlop={8}
+      style={[
+        s.circleBtnWrap,
+        // Nền đặc + bo tròn ngay trên view mang shadow — nếu không, shadow đổ
+        // từ một layer vuông trong suốt, ra bóng vuông (iOS) hoặc mất bóng
+        // (Android elevation cần outline khớp hình dạng nội dung).
+        level === 0 && { backgroundColor: solidBg },
+        level === 0 && s.shadow,
+      ]}
+    >
+      <GlassSurface color={solidBg} radius={19} interactive style={s.circleBtn}>
+        {children}
+      </GlassSurface>
+    </Pressable>
+  )
+})
 
 export const FloatingHeader = memo(function FloatingHeader({
   title,
@@ -93,20 +128,12 @@ export const FloatingHeader = memo(function FloatingHeader({
         style={[s.row, { paddingTop: STATIC_TOP_INSET + 10 }]}
         pointerEvents="auto"
       >
-        <Pressable
-          onPress={handleBack}
-          hitSlop={8}
-          style={[
-            s.circleBtn,
-            { backgroundColor: isDark ? colors.card.dark : colors.white.light },
-            s.shadow,
-          ]}
-        >
+        <CircleButton isDark={isDark} onPress={handleBack}>
           <ChevronLeft
             size={20}
             color={isDark ? colors.gray[50] : colors.gray[900]}
           />
-        </Pressable>
+        </CircleButton>
 
         {rightElement ?? <View style={s.circleBtn} />}
       </View>
@@ -141,6 +168,11 @@ const s = StyleSheet.create({
   title: {
     fontSize: 17,
     fontWeight: '700',
+  },
+  circleBtnWrap: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
   },
   circleBtn: {
     width: 38,

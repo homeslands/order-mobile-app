@@ -436,6 +436,14 @@
       "large": "Lớn",
       "preview": "Văn bản mẫu"
     },
+    "glass": {
+      "title": "Độ trong của kính",
+      "subtitle": "Kéo để chỉnh mức trong suốt của thanh điều hướng, bảng và hộp thoại.",
+      "solid": "Đặc",
+      "clear": "Trong",
+      "preview": "Xem trước",
+      "reduceTransparencyNote": "Đang tắt do cài đặt Giảm độ trong suốt của máy."
+    },
     "dobPicker": {
       "confirm": "Xác nhận",
       "months": [

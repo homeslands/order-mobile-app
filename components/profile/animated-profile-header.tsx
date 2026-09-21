@@ -10,7 +10,9 @@ import type { SharedValue } from 'react-native-reanimated'
 
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
+import { useGlassLevel } from '@/hooks/use-glass-level'
 import { AnimatedText } from '@/components/ui/animated-text'
+import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
 
 interface AnimatedProfileHeaderProps {
@@ -39,6 +41,8 @@ export const AnimatedProfileHeader = ({
 }: AnimatedProfileHeaderProps) => {
   const isDark = useColorScheme() === 'dark'
   const topInset = STATIC_TOP_INSET
+  const level = useGlassLevel()
+  const bgColor = isDark ? colors.background.dark : colors.background.light
 
   const headerBackgroundStyle = useAnimatedStyle(() => {
     'worklet'
@@ -143,16 +147,20 @@ export const AnimatedProfileHeader = ({
           },
         ]}
       >
-        <BlurView intensity={80} style={StyleSheet.absoluteFill}>
-          <View
-            style={{
-              flex: 1,
-              backgroundColor: isDark
-                ? 'rgba(17, 24, 39, 0.5)'
-                : 'rgba(255, 255, 255, 0.5)',
-            }}
-          />
-        </BlurView>
+        {level > 0 ? (
+          <GlassSurface color={bgColor} style={StyleSheet.absoluteFill} />
+        ) : (
+          <BlurView intensity={80} style={StyleSheet.absoluteFill}>
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: isDark
+                  ? 'rgba(17, 24, 39, 0.5)'
+                  : 'rgba(255, 255, 255, 0.5)',
+              }}
+            />
+          </BlurView>
+        )}
 
         {/* Gradient fade bottom edge */}
         <View

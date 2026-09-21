@@ -26,8 +26,10 @@ import Animated, {
 import { getGiftCards } from '@/api'
 import { getLoyaltyPoints } from '@/api/loyalty-point'
 import { AnimatedTabBar, FloatingCartButton } from '@/components/navigation'
+import { useGlassLevel } from '@/hooks/use-glass-level'
 import { OrderReadyPickupSheet } from '@/components/notification/order-ready-pickup-sheet'
 import { MOTION, QUERYKEY, tabsScreenOptions } from '@/constants'
+import { colors as palette } from '@/constants'
 import { STATIC_BOTTOM_INSET } from '@/constants/status-bar'
 import { usePredictivePrefetch } from '@/hooks'
 import { useNotifications } from '@/hooks/use-notification'
@@ -156,15 +158,29 @@ export default function TabsLayout() {
     isStackRoute
 
   const colors = useMemo(() => getThemeColor(isDark), [isDark])
+  const glass = useGlassLevel() > 0
 
   const tabColors = useMemo(
     () => ({
       primary: colors.primary,
-      mutedForeground: colors.mutedForeground,
+      // Trên nền kính, xám nhạt mặc định chìm vào nội dung phía sau nên tab
+      // chưa chọn khó đọc. Đổi sang mực đậm; nền đặc vẫn giữ xám như cũ.
+      mutedForeground: glass
+        ? isDark
+          ? palette.gray[200]
+          : palette.gray[800]
+        : colors.mutedForeground,
       background: colors.background,
       card: colors.card,
     }),
-    [colors.primary, colors.mutedForeground, colors.background, colors.card],
+    [
+      colors.primary,
+      colors.mutedForeground,
+      colors.background,
+      colors.card,
+      glass,
+      isDark,
+    ],
   )
 
   const gradientColors = useMemo(
@@ -343,19 +359,24 @@ export default function TabsLayout() {
           ]}
           pointerEvents={shouldHideBottomBar ? 'none' : 'box-none'}
         >
+          {/* Gradient chỉ để nội dung cuộn dưới thanh tab đỡ chói. Máy có
+              Liquid Glass thì bỏ, vì kính tự lo phần nền — và có nền mờ phía
+              sau thì kính gần như không thấy gì để khúc xạ. */}
           <View
             style={{
               height: totalBottomHeight,
               pointerEvents: 'none',
             }}
           >
-            <LinearGradient
-              colors={
-                gradientColors as unknown as [string, string, ...string[]]
-              }
-              locations={[0, 0.3, 0.65, 1]}
-              style={{ flex: 1 }}
-            />
+            {glass ? null : (
+              <LinearGradient
+                colors={
+                  gradientColors as unknown as [string, string, ...string[]]
+                }
+                locations={[0, 0.3, 0.65, 1]}
+                style={{ flex: 1 }}
+              />
+            )}
           </View>
           <View
             style={{

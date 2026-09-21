@@ -13,6 +13,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors, SPRING_CONFIGS } from '@/constants'
+import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
 
 interface ToastData {
@@ -81,7 +82,13 @@ const ToastItem = React.memo(function ToastItem({
       style={[s.container, { top: insets.top + 12 }, animatedStyle]}
       pointerEvents="none"
     >
-      <View style={[s.pill, { backgroundColor: bg }]}>
+      <View style={s.pill}>
+        <GlassSurface
+          color={bg}
+          tint={bg}
+          radius={999}
+          style={StyleSheet.absoluteFill}
+        />
         {ICON_MAP[toast.type]}
         {toast.message ? (
           <Text style={[s.message, { color: textColor }]} numberOfLines={2}>

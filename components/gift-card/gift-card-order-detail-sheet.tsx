@@ -35,6 +35,7 @@ import { useCardOrderBySlug } from '@/hooks/use-card-order'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { navigateNative } from '@/lib/navigation'
 import { formatCurrency } from '@/utils'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -205,7 +206,6 @@ export const GiftCardOrderDetailSheet = memo(function GiftCardOrderDetailSheet({
   )
 
   // Derived
-  const bg = isDark ? colors.card.dark : colors.white.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
   const borderColor = isDark ? colors.border.dark : colors.gray[200]
@@ -293,7 +293,7 @@ export const GiftCardOrderDetailSheet = memo(function GiftCardOrderDetailSheet({
       enablePanDownToClose
       enableDynamicSizing={false}
       backdropComponent={renderBackdrop}
-      backgroundStyle={{ backgroundColor: bg }}
+      backgroundComponent={GlassSheetBackground}
       handleIndicatorStyle={{
         backgroundColor: isDark ? colors.gray[600] : colors.gray[300],
       }}

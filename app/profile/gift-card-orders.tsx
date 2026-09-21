@@ -55,6 +55,7 @@ import { useRunAfterTransition } from '@/hooks/use-run-after-transition'
 import { useUserStore } from '@/stores'
 import type { ICardOrderResponse } from '@/types'
 import { formatCurrency } from '@/utils'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 // ─── Filter bar ───────────────────────────────────────────────────────────────
@@ -310,7 +311,6 @@ const DateFilterSheet = memo(function DateFilterSheet({
   const [fromOpen, setFromOpen] = useState(false)
   const [toOpen, setToOpen] = useState(false)
 
-  const bg = isDark ? colors.card.dark : colors.white.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
   const chipBg = isDark ? colors.border.dark : colors.gray[100]
@@ -376,7 +376,7 @@ const DateFilterSheet = memo(function DateFilterSheet({
       enableContentPanningGesture={false}
       enableHandlePanningGesture
       backdropComponent={renderBackdrop}
-      backgroundStyle={{ backgroundColor: bg }}
+      backgroundComponent={GlassSheetBackground}
       handleIndicatorStyle={{
         backgroundColor: isDark ? colors.gray[600] : colors.gray[300],
       }}

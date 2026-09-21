@@ -6,11 +6,12 @@ import BottomSheet, {
 import { ShoppingBag } from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { TouchableOpacity, useColorScheme, View } from 'react-native'
+import { TouchableOpacity, View } from 'react-native'
 
 import { colors } from '@/constants/colors.constant'
 import { useOrderTypeOptions } from '@/hooks'
 import { cn } from '@/lib/utils'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 let sheetRef: BottomSheet | null = null
@@ -38,7 +39,6 @@ function OrderTypeSheet({
   openOnMount,
 }: OrderTypeSheetProps) {
   const { t } = useTranslation('menu')
-  const isDark = useColorScheme() === 'dark'
   const bottomSheetRef = useRef<BottomSheet>(null)
   const { orderTypes, selectedType, handleChange } = useOrderTypeOptions({
     enabled: fetchEnabled,
@@ -236,10 +236,6 @@ function OrderTypeSheet({
     [handleChange, selectedType?.value],
   )
 
-  const backgroundStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : '#ffffff' }),
-    [isDark],
-  )
   const containerStyle = useMemo(() => ({ zIndex: 9999, elevation: 9999 }), [])
 
   return (
@@ -253,7 +249,7 @@ function OrderTypeSheet({
       enableDynamicSizing={false}
       backdropComponent={renderBackdrop}
       android_keyboardInputMode="adjustResize"
-      backgroundStyle={backgroundStyle}
+      backgroundComponent={GlassSheetBackground}
       containerStyle={containerStyle}
     >
       <View className="border-b border-gray-200 px-4 py-3 dark:border-[#2e2e2e]">

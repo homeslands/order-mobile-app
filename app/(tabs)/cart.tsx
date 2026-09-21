@@ -31,6 +31,7 @@ import { FloatingHeader } from '@/components/navigation/floating-header'
 import { useRunAfterTransition } from '@/hooks'
 import { useOrderFlowStore } from '@/stores'
 import { useOrderFlowCartItemCount } from '@/stores/selectors'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 const CartContent = lazy(() => import('@/components/cart/cart-content'))
@@ -53,10 +54,6 @@ function ClearCartSheet({
   const { t } = useTranslation('menu')
   const snapPoints = useMemo(() => [220 + insets.bottom], [insets.bottom])
 
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
-  )
   const handleIndicator = useMemo(
     () => ({ backgroundColor: isDark ? colors.gray[600] : colors.gray[300] }),
     [isDark],
@@ -98,7 +95,7 @@ function ClearCartSheet({
       activeOffsetY={[-10, 10]}
       failOffsetX={[-5, 5]}
       backdropComponent={renderBackdrop}
-      backgroundStyle={bgStyle}
+      backgroundComponent={GlassSheetBackground}
       handleIndicatorStyle={handleIndicator}
       onDismiss={onClose}
     >

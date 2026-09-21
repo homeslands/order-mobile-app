@@ -7,6 +7,7 @@ import { VoucherQrScanner } from '@/components/scan/voucher-qr-scanner'
 import { VoucherCard } from './voucher-card'
 import { VoucherConditionModal } from './voucher-condition-modal'
 import { colors } from '@/constants'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import {
   usePublicVouchersForOrder,
   useSpecificPublicVoucher,
@@ -293,10 +294,6 @@ export const VoucherSheet = memo(function VoucherSheet({
     return { validVouchers: valid, invalidVouchers: invalid }
   }, [processed])
 
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
-  )
   const indicatorStyle = useMemo(
     () => ({ backgroundColor: isDark ? colors.gray[600] : colors.gray[300] }),
     [isDark],
@@ -584,7 +581,7 @@ export const VoucherSheet = memo(function VoucherSheet({
         activeOffsetY={[-10, 10]}
         failOffsetX={[-5, 5]}
         backdropComponent={renderBackdrop}
-        backgroundStyle={bgStyle}
+        backgroundComponent={GlassSheetBackground}
         handleIndicatorStyle={indicatorStyle}
         onDismiss={handleDismiss}
         footerComponent={renderFooter}
@@ -870,7 +867,6 @@ export const VoucherSheet = memo(function VoucherSheet({
         onClose={handleCloseConditionModal}
         isDark={isDark}
         primaryColor={primaryColor}
-        bgStyle={bgStyle}
         indicatorStyle={indicatorStyle}
         bottomInset={insets.bottom}
       />

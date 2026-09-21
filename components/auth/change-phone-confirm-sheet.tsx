@@ -4,12 +4,13 @@ import {
   BottomSheetModal,
 } from '@gorhom/bottom-sheet'
 import { TriangleAlert } from 'lucide-react-native'
-import { useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, useColorScheme, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '@/constants'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 const SNAP_POINTS = ['38%']
@@ -49,11 +50,6 @@ function ChangePhoneConfirmSheetComponent({
     onOpenChange(false)
   }, [onConfirm, onOpenChange])
 
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
-  )
-
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
@@ -81,7 +77,7 @@ function ChangePhoneConfirmSheetComponent({
       enablePanDownToClose
       enableDynamicSizing={false}
       backdropComponent={renderBackdrop}
-      backgroundStyle={bgStyle}
+      backgroundComponent={GlassSheetBackground}
       handleIndicatorStyle={{
         backgroundColor: isDark ? colors.gray[600] : colors.gray[300],
       }}

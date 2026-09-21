@@ -1,5 +1,7 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { BackHandler, Platform, Pressable, StyleSheet } from 'react-native'
+
+import { useGlassLevel } from '@/hooks/use-glass-level'
 import Animated, {
   cancelAnimation,
   runOnJS,
@@ -64,6 +66,8 @@ export const LightweightDialog = memo(function LightweightDialog({
     return () => sub.remove()
   }, [show, dismiss])
 
+  const glass = useGlassLevel() > 0
+
   const backdropStyle = useAnimatedStyle(() => ({
     opacity: progress.value,
   }))
@@ -90,7 +94,9 @@ export const LightweightDialog = memo(function LightweightDialog({
         style={[ld.center, cardStyle]}
         pointerEvents="box-none"
         renderToHardwareTextureAndroid
-        {...(Platform.OS === 'ios' && { shouldRasterizeIOS: true })}
+        // Rasterize chụp thẻ thành ảnh tĩnh — kính bên trong sẽ đứng hình,
+        // nên chỉ bật khi máy không có Liquid Glass.
+        {...(Platform.OS === 'ios' && !glass && { shouldRasterizeIOS: true })}
       >
         {typeof children === 'function' ? children(dismiss) : children}
       </Animated.View>
