@@ -1,5 +1,6 @@
 import { LoginPanel } from '@/components/auth'
 import { ScreenContainer, useTabBarBottomPadding } from '@/components/layout'
+import { GlassHeaderButton } from '@/components/navigation/glass-header-button'
 import { ProfileMenuItem, profileCardStyles } from '@/components/profile'
 import { colors, publicFileURL, QUERYKEY } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
@@ -34,10 +35,8 @@ import {
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  Alert,
   AppState,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -276,28 +275,17 @@ const ProfileHeader = React.memo(function ProfileHeader({
         style={[phStyles.row, { paddingTop: STATIC_TOP_INSET + 10 }]}
         pointerEvents="auto"
       >
-        <Pressable
-          onPress={onScan}
-          hitSlop={8}
-          style={[
-            phStyles.circleBtn,
-            { backgroundColor: isDark ? colors.card.dark : colors.white.light },
-            phStyles.shadow,
-          ]}
-        >
+        <GlassHeaderButton isDark={isDark} onPress={onScan} size={42}>
           <ScanLine
             size={20}
             color={isDark ? colors.gray[50] : colors.gray[900]}
           />
-        </Pressable>
-        <Pressable
+        </GlassHeaderButton>
+        <GlassHeaderButton
+          isDark={isDark}
           onPress={onEdit}
-          hitSlop={8}
-          style={[
-            phStyles.editPill,
-            { backgroundColor: isDark ? colors.card.dark : colors.white.light },
-            phStyles.shadow,
-          ]}
+          size={42}
+          paddingHorizontal={16}
         >
           <Text
             style={[
@@ -307,7 +295,7 @@ const ProfileHeader = React.memo(function ProfileHeader({
           >
             {t('profile.generalInfo.edit', 'Sửa')}
           </Text>
-        </Pressable>
+        </GlassHeaderButton>
       </View>
     </View>
   )
@@ -327,27 +315,6 @@ const phStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-  },
-  circleBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  editPill: {
-    height: 42,
-    borderRadius: 21,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  shadow: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 24,
-    elevation: 2,
   },
   editText: {
     fontSize: 15,
@@ -785,40 +752,9 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     overflow: 'hidden',
   },
-  menuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-  },
   menuItemDivider: {
     height: StyleSheet.hairlineWidth,
     marginLeft: 46,
-  },
-  menuIconWrap: {
-    width: 30,
-    height: 30,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 14,
-  },
-  menuIconBare: {
-    width: 30,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 14,
-  },
-  menuTitle: {
-    flex: 1,
-    fontSize: 16,
-  },
-  menuTitleThin: {
-    fontWeight: '400',
-  },
-  menuValue: {
-    fontSize: 15,
-    marginRight: 8,
   },
   logoutButton: {
     marginTop: 24,

@@ -1,7 +1,7 @@
 /**
  * Thông tin cá nhân — UI giống Profile: avatar, 2 nút header, các trường thông tin bên dưới.
  */
-import { FloatingHeader } from '@/components/navigation'
+import { FloatingHeader, GlassHeaderButton } from '@/components/navigation'
 import { colors, publicFileURL, QUERYKEY } from '@/constants'
 import { ROUTE } from '@/constants/route.contstant'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
@@ -77,21 +77,7 @@ const ICON_COLORS = {
   green: '#4CAF50',
 }
 
-// Edit pill cho rightElement của FloatingHeader — giữ style cũ (pill bo tròn
-// + text "Sửa") để không phá layout hiện tại của màn hình.
 const hStyles = StyleSheet.create({
-  editPill: {
-    height: 38,
-    borderRadius: 19,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 24,
-    elevation: 2,
-  },
   editText: {
     fontSize: 15,
     fontWeight: '600',
@@ -460,15 +446,11 @@ export default function GeneralInfo() {
         disableBlur
         onBack={handleBack}
         rightElement={
-          <Pressable
+          <GlassHeaderButton
+            isDark={isDark}
             onPress={handleEdit}
-            hitSlop={8}
-            style={[
-              hStyles.editPill,
-              {
-                backgroundColor: isDark ? colors.gray[800] : colors.white.light,
-              },
-            ]}
+            paddingHorizontal={16}
+            solidColor={isDark ? colors.gray[800] : colors.white.light}
           >
             <Text
               style={[
@@ -478,7 +460,7 @@ export default function GeneralInfo() {
             >
               {t('profile.edit', 'Sửa')}
             </Text>
-          </Pressable>
+          </GlassHeaderButton>
         }
       />
     </View>

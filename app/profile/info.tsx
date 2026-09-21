@@ -17,7 +17,7 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
-import { FloatingHeader } from '@/components/navigation'
+import { FloatingHeader, GlassHeaderButton } from '@/components/navigation'
 import { Button } from '@/components/ui'
 import { ROUTE, colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
@@ -267,22 +267,15 @@ function ProfileInfoScreen() {
         title={t('profile.generalInfo.title')}
         disableBlur
         rightElement={
-          <Pressable
+          <GlassHeaderButton
+            isDark={isDark}
             onPress={() => navigateNative.push(ROUTE.CLIENT_PROFILE_EDIT)}
-            hitSlop={8}
-            style={[
-              headerRightStyles.circleBtn,
-              {
-                backgroundColor: isDark ? colors.card.dark : colors.white.light,
-              },
-              headerRightStyles.shadow,
-            ]}
           >
             <SquarePen
               size={20}
               color={isDark ? colors.gray[50] : colors.gray[900]}
             />
-          </Pressable>
+          </GlassHeaderButton>
         }
       />
     </View>
@@ -294,19 +287,3 @@ export default React.memo(ProfileInfoScreen)
 
 // Style nút phải của FloatingHeader — match kích thước + shadow của nút back
 // (38x38 circle) để 2 bên header cân xứng.
-const headerRightStyles = StyleSheet.create({
-  circleBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  shadow: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 24,
-    elevation: 2,
-  },
-})

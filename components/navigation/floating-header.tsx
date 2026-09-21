@@ -18,10 +18,9 @@ import {
 } from 'react-native'
 
 import { colors } from '@/constants'
+import { GlassHeaderButton } from './glass-header-button'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
-import { useGlassEnabled } from '@/hooks/use-glass'
 import { navigateNative } from '@/lib/navigation'
-import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
 
 interface FloatingHeaderProps {
@@ -31,39 +30,6 @@ interface FloatingHeaderProps {
   /** iOS only: bỏ BlurView, chỉ dùng LinearGradient fade thuần */
   disableBlur?: boolean
 }
-
-/** Nút tròn của header: kính thật trên iOS 26+, nền đặc ở mọi nơi khác. */
-const CircleButton = memo(function CircleButton({
-  isDark,
-  onPress,
-  children,
-}: {
-  isDark: boolean
-  onPress?: () => void
-  children: React.ReactNode
-}) {
-  const glass = useGlassEnabled()
-  const solidBg = isDark ? colors.card.dark : colors.white.light
-
-  return (
-    <Pressable
-      onPress={onPress}
-      hitSlop={8}
-      style={[
-        s.circleBtnWrap,
-        // Nền đặc + bo tròn ngay trên view mang shadow — nếu không, shadow đổ
-        // từ một layer vuông trong suốt, ra bóng vuông (iOS) hoặc mất bóng
-        // (Android elevation cần outline khớp hình dạng nội dung).
-        !glass && { backgroundColor: solidBg },
-        !glass && s.shadow,
-      ]}
-    >
-      <GlassSurface color={solidBg} radius={19} interactive style={s.circleBtn}>
-        {children}
-      </GlassSurface>
-    </Pressable>
-  )
-})
 
 export const FloatingHeader = memo(function FloatingHeader({
   title,
@@ -128,14 +94,15 @@ export const FloatingHeader = memo(function FloatingHeader({
         style={[s.row, { paddingTop: STATIC_TOP_INSET + 10 }]}
         pointerEvents="auto"
       >
-        <CircleButton isDark={isDark} onPress={handleBack}>
+        <GlassHeaderButton isDark={isDark} onPress={handleBack}>
           <ChevronLeft
             size={20}
             color={isDark ? colors.gray[50] : colors.gray[900]}
           />
-        </CircleButton>
+        </GlassHeaderButton>
 
-        {rightElement ?? <View style={s.circleBtn} />}
+        {/* Ô giữ chỗ cùng cỡ nút back, để tiêu đề ở giữa không bị lệch. */}
+        {rightElement ?? <View style={s.rightPlaceholder} />}
       </View>
     </View>
   )
@@ -169,23 +136,8 @@ const s = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
   },
-  circleBtnWrap: {
+  rightPlaceholder: {
     width: 38,
     height: 38,
-    borderRadius: 19,
-  },
-  circleBtn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  shadow: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 24,
-    elevation: 2,
   },
 })

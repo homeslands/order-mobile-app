@@ -41,6 +41,7 @@ import {
   isFilterActive,
 } from '@/components/gift-card/gift-card-filter-sheet'
 import { FloatingHeader } from '@/components/navigation/floating-header'
+import { GlassHeaderButton } from '@/components/navigation/glass-header-button'
 import { Skeleton } from '@/components/ui'
 import { colors, GiftCardUsageStatus } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
@@ -539,11 +540,11 @@ export default function GiftCardsScreen() {
         title={t('list.title')}
         rightElement={
           <View style={s.headerActions}>
-            {/* Filter button */}
-            <Pressable
+            {/* Hai nút này trước đây là icon trần, đứng cạnh nút back đã là
+                ô tròn kính nên nhìn lệch hẳn. Cho cùng dáng với nút back. */}
+            <GlassHeaderButton
+              isDark={isDark}
               onPress={() => setFilterSheetOpen(true)}
-              hitSlop={8}
-              style={s.headerBtn}
             >
               <SlidersHorizontal
                 size={20}
@@ -554,10 +555,10 @@ export default function GiftCardsScreen() {
                   style={[s.filterDot, { backgroundColor: primaryColor }]}
                 />
               )}
-            </Pressable>
+            </GlassHeaderButton>
 
-            {/* History button */}
-            <Pressable
+            <GlassHeaderButton
+              isDark={isDark}
               onPress={() =>
                 navigateNative.push(
                   '/profile/gift-card-orders' as Parameters<
@@ -565,11 +566,9 @@ export default function GiftCardsScreen() {
                   >[0],
                 )
               }
-              hitSlop={8}
-              style={s.headerBtn}
             >
               <History size={20} color={subColor} />
-            </Pressable>
+            </GlassHeaderButton>
           </View>
         }
         disableBlur
@@ -643,13 +642,7 @@ const s = StyleSheet.create({
   statusFilterBar: {
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  headerActions: { flexDirection: 'row', gap: 4 },
-  headerBtn: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
+  headerActions: { flexDirection: 'row', gap: 8 },
   filterDot: {
     position: 'absolute',
     top: 4,
