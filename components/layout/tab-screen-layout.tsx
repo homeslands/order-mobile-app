@@ -26,34 +26,27 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { colors } from '@/constants'
 
 /**
- * Chiều cao thanh tab gốc, KHÔNG gồm safe area đáy và KHÔNG gồm khoảng hở
- * nổi trên Android (xem ANDROID_FLOATING_TAB_BAR_MARGIN bên dưới).
- * Đo trên máy thật ngày 2026-09-20: iOS 49pt (chuẩn UIKit), Android 80dp
- * (chuẩn Material 3, đo bằng `uiautomator dump`).
- * Safe area của màn con KHÔNG chứa chiều cao này trên cả hai nền tảng —
- * đã kiểm bằng cách in `useSafeAreaInsets().bottom` ngay trong một tab.
+ * Chiều cao thanh tab, KHÔNG gồm safe area đáy.
+ *
+ * iOS: 49pt — thanh tab gốc của hệ điều hành (chuẩn UIKit), đo trên máy thật
+ * ngày 2026-09-20.
+ * Android: 88 = BAR_HEIGHT(64) + BAR_PADDING(8) + VISUAL_GAP(10) + đệm fade(6)
+ * của thanh tự vẽ — xem components/navigation/android-tabs-navigator.tsx.
+ *
+ * Safe area của màn con KHÔNG chứa chiều cao này trên cả hai nền tảng — đã
+ * kiểm bằng cách in `useSafeAreaInsets().bottom` ngay trong một tab.
  */
-export const NATIVE_TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 49 : 80
-
-/**
- * Android: thanh tab giờ nổi, cách đáy safe area 10dp thay vì dính sát đáy —
- * khớp lề `bottom` đặt cho BottomNavigationView trong
- * patches/react-native-screens+4.16.0.patch (TabsHost.kt). iOS không đổi,
- * thanh tab vẫn dính đáy (giá trị này = 0).
- */
-const ANDROID_FLOATING_TAB_BAR_MARGIN = Platform.OS === 'android' ? 10 : 0
+export const NATIVE_TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 49 : 88
 
 /**
  * Hook trả về padding bottom chính xác theo thiết bị.
  *
  * - iPhone (iOS):      49 + insets.bottom (34 ở iPhone có home indicator)
- * - Android gesture:   80 + 10 (lề nổi) + insets.bottom (24 ở thanh cử chỉ)
+ * - Android gesture:   88 + insets.bottom (24 ở thanh cử chỉ)
  */
 export function useTabBarBottomPadding(extra = 0): number {
   const { bottom } = useSafeAreaInsets()
-  return (
-    NATIVE_TAB_BAR_HEIGHT + ANDROID_FLOATING_TAB_BAR_MARGIN + bottom + extra
-  )
+  return NATIVE_TAB_BAR_HEIGHT + bottom + extra
 }
 
 export interface TabScreenLayoutProps {

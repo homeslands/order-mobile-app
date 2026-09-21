@@ -94,6 +94,14 @@ export const SPRING_CONFIGS = {
     energyThreshold: 0.1,
   } as const,
 
+  /** Tab bar sliding indicator — snappy, ~100ms settle. */
+  tabIndicator: {
+    stiffness: 500,
+    damping: 32,
+    mass: 0.25,
+    overshootClamping: true,
+  } as const,
+
   /** Tab button scale/translate active — mild lift, gentle settle. */
   tabButton: {
     stiffness: 180,

@@ -1,0 +1,157 @@
+import type { LucideIcon } from 'lucide-react-native'
+import React, { useCallback } from 'react'
+import { StyleSheet, View } from 'react-native'
+import Animated, {
+  Extrapolation,
+  interpolate,
+  interpolateColor,
+  useAnimatedStyle,
+  useDerivedValue,
+} from 'react-native-reanimated'
+import type { SharedValue } from 'react-native-reanimated'
+
+import { AnimatedText } from '@/components/ui/animated-text'
+import { NativeGesturePressable } from './native-gesture-pressable'
+
+type AnimatedTabButtonProps = {
+  href: string
+  iconSize?: number
+  itemWidth?: number
+  label?: string
+  Icon: LucideIcon
+  active: boolean
+  mutedColor: string
+  onPressIn?: (href: string) => void
+  // UI-thread animation — passed from AnimatedTabBar
+  indicatorX: SharedValue<number>
+  buttonIndex: number
+  buttonPaddingH: number
+  indicatorWidth: number
+  /** Worklet: dời indicator ngay lúc nhả tay, không đợi route đổi. */
+  onMoveIndicator: (targetX: number) => void
+}
+
+export const AnimatedTabButton = React.memo(function AnimatedTabButton({
+  href,
+  iconSize = 36,
+  itemWidth = 70,
+  label,
+  Icon,
+  active,
+  mutedColor,
+  onPressIn,
+  indicatorX,
+  buttonIndex,
+  buttonPaddingH,
+  indicatorWidth,
+  onMoveIndicator,
+}: AnimatedTabButtonProps) {
+  const handlePressIn = useCallback(() => {
+    onPressIn?.(href)
+  }, [href, onPressIn])
+
+  // Chuyển tab bằng `navigate` không qua navigation lock nên lần chạm nào được
+  // công nhận cũng dẫn tới điều hướng — dời indicator ngay tại đây là an toàn,
+  // và nhờ vậy nó không phải chờ router dựng xong màn mới bắt đầu chạy.
+  const handleTap = useCallback(() => {
+    'worklet'
+    onMoveIndicator(buttonPaddingH + buttonIndex * indicatorWidth)
+  }, [onMoveIndicator, buttonPaddingH, buttonIndex, indicatorWidth])
+
+  // 1 when indicator covers this button, 0 when ≥1 slot away — all on UI thread
+  const activeFraction = useDerivedValue(() => {
+    const buttonLeft = buttonPaddingH + buttonIndex * indicatorWidth
+    const dist = Math.abs(indicatorX.value - buttonLeft)
+    return interpolate(dist, [0, indicatorWidth], [1, 0], Extrapolation.CLAMP)
+  })
+
+  const liftStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateY: activeFraction.value * -3 },
+      { scale: 1 + activeFraction.value * 0.06 },
+    ],
+  }))
+
+  const labelStyle = useAnimatedStyle(() => ({
+    color: interpolateColor(
+      activeFraction.value,
+      [0, 1],
+      [mutedColor, '#ffffff'],
+    ),
+  }))
+
+  const activeIconOpacity = useAnimatedStyle(() => ({
+    opacity: activeFraction.value,
+  }))
+
+  const mutedIconOpacity = useAnimatedStyle(() => ({
+    opacity: 1 - activeFraction.value,
+  }))
+
+  const iconPx = iconSize * 0.55
+
+  return (
+    <NativeGesturePressable
+      navigation={{ type: 'navigate', href }}
+      onPressIn={handlePressIn}
+      onTapWorklet={handleTap}
+      disabled={active}
+      style={styles.container}
+    >
+      <Animated.View style={[styles.content, { width: itemWidth }, liftStyle]}>
+        {/* Cross-fade two icons so strokes never overlap — avoids dark fringing */}
+        <View style={{ width: iconPx, height: iconPx }}>
+          <Animated.View
+            style={[
+              StyleSheet.absoluteFill,
+              styles.iconOverlay,
+              mutedIconOpacity,
+            ]}
+          >
+            <Icon color={mutedColor} size={iconPx} />
+          </Animated.View>
+          <Animated.View
+            style={[
+              StyleSheet.absoluteFill,
+              styles.iconOverlay,
+              activeIconOpacity,
+            ]}
+          >
+            <Icon color="#ffffff" size={iconPx} />
+          </Animated.View>
+        </View>
+        {label ? (
+          <AnimatedText
+            style={[styles.label, { maxWidth: itemWidth - 20 }, labelStyle]}
+            numberOfLines={1}
+          >
+            {label}
+          </AnimatedText>
+        ) : null}
+      </Animated.View>
+    </NativeGesturePressable>
+  )
+})
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  content: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+  },
+  label: {
+    fontSize: 10,
+    textAlign: 'center',
+    marginTop: 2,
+  },
+  iconOverlay: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+})
