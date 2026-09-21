@@ -1,15 +1,20 @@
 import { useSyncExternalStore } from 'react'
 import { AccessibilityInfo } from 'react-native'
 
-import { useGlassStore } from '@/stores/glass.store'
 import { HAS_LIQUID_GLASS } from '@/utils/liquid-glass'
 
 /**
- * Mức độ trong của Liquid Glass đang áp dụng, 0 đến 1.
+ * Độ trong của kính do HỆ ĐIỀU HÀNH quyết, app không chỉnh.
+ *
+ * iOS 26 đã có sẵn núm này ở Cài đặt (Clear ↔ Tinted) và `UIGlassEffect`
+ * kiểu `.regular` tự bám theo lựa chọn đó — miễn là mình KHÔNG gán
+ * `tintColor`. App từng có thanh kéo riêng; nó chỉ làm đúng một việc là gán
+ * tintColor, tức tắt hành vi của hệ thống rồi thay bằng một thang đo mà quá
+ * nửa khoảng kéo không đổi gì nhìn thấy được. Đã gỡ.
  *
  * `isLiquidGlassAvailable()` chỉ nói máy có hỗ trợ; nó vẫn trả true khi
- * người dùng bật "Reduce Transparency" trong Trợ năng. Người bật tuỳ chọn đó
- * muốn nền đặc, nên hook trả 0 và mọi bề mặt quay về giao diện cũ.
+ * người dùng bật "Giảm độ trong suốt" trong Trợ năng. Người bật tuỳ chọn đó
+ * muốn nền đặc, nên hook trả false và mọi bề mặt quay về giao diện cũ.
  *
  * Trạng thái trợ năng nằm ở cấp module và chia chung cho mọi màn: chỉ một
  * subscription tới hệ thống, mọi component đọc cùng một giá trị.
@@ -51,12 +56,7 @@ function getReduceTransparency() {
   return reduceTransparency
 }
 
-/** Máy có hỗ trợ Liquid Glass hay không — dùng để ẩn/hiện mục cài đặt. */
-export function useGlassSupported(): boolean {
-  return HAS_LIQUID_GLASS
-}
-
-/** Người dùng có đang bật Giảm độ trong suốt hay không. */
+/** Người dùng có đang bật "Giảm độ trong suốt" hay không. */
 export function useReduceTransparency(): boolean {
   return useSyncExternalStore(
     subscribe,
@@ -65,9 +65,8 @@ export function useReduceTransparency(): boolean {
   )
 }
 
-export function useGlassLevel(): number {
-  const level = useGlassStore((s) => s.level)
+/** Bề mặt có được vẽ bằng Liquid Glass hay không. */
+export function useGlassEnabled(): boolean {
   const reduced = useReduceTransparency()
-  if (!HAS_LIQUID_GLASS || reduced) return 0
-  return level
+  return HAS_LIQUID_GLASS && !reduced
 }

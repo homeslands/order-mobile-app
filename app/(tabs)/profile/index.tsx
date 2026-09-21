@@ -1,16 +1,9 @@
 import { LoginPanel } from '@/components/auth'
 import { ScreenContainer, useTabBarBottomPadding } from '@/components/layout'
-import {
-  DeleteAccountSheet,
-  FontSizeSheet,
-  GlassSheet,
-  LanguageSheet,
-  ThemeSheet,
-} from '@/components/profile'
+import { ProfileMenuItem, profileCardStyles } from '@/components/profile'
 import { colors, publicFileURL, QUERYKEY } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { clearOrderDisplayCache } from '@/app/profile/history'
-import { useGlassSupported } from '@/hooks/use-glass-level'
 import { useUploadAvatar } from '@/hooks'
 import { useAuthStore, useUserStore } from '@/stores'
 import { useNotificationStore } from '@/stores/notification.store'
@@ -30,17 +23,12 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useFocusEffect, useRouter } from 'expo-router'
 import {
   Camera,
-  ChevronRight,
   ClipboardList,
   Gift,
   ImageIcon,
-  Languages,
   ScanLine,
-  Sparkles,
-  SunMoon,
-  Trash2,
+  Settings,
   Trophy,
-  Type,
   User,
 } from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -103,61 +91,6 @@ const ICON_COLORS = {
   teal: '#14B8A6',
   indigo: '#6366F1',
 }
-
-interface MenuItemProps {
-  icon: React.ElementType
-  iconColor: string
-  title: string
-  value?: string
-  onPress?: () => void
-  textColor: string
-  textMuted: string
-  variant?: 'primary' | 'default'
-  primaryColor?: string
-}
-
-const MenuItem = React.memo(function MenuItem({
-  icon: Icon,
-  iconColor,
-  title,
-  value,
-  onPress,
-  textColor,
-  textMuted,
-  variant = 'default',
-  primaryColor,
-}: MenuItemProps) {
-  const isPrimary = variant === 'primary'
-  const titleColor = isPrimary ? (primaryColor ?? textColor) : textColor
-  const iconColorFinal = isPrimary ? (primaryColor ?? iconColor) : iconColor
-
-  return (
-    <TouchableOpacity
-      style={styles.menuItem}
-      onPress={onPress}
-      activeOpacity={0.7}
-    >
-      {isPrimary ? (
-        <View style={styles.menuIconBare}>
-          <Icon size={24} color={iconColorFinal} />
-        </View>
-      ) : (
-        <View style={[styles.menuIconWrap, { backgroundColor: iconColor }]}>
-          <Icon size={18} color="#ffffff" />
-        </View>
-      )}
-      <Text
-        style={[styles.menuTitle, styles.menuTitleThin, { color: titleColor }]}
-      >
-        {title}
-      </Text>
-      {value ? (
-        <Text style={[styles.menuValue, { color: textMuted }]}>{value}</Text>
-      ) : null}
-      {!isPrimary && <ChevronRight size={20} color={textMuted} />}
-    </TouchableOpacity>
-  )
-})
 
 // ─── Avatar Picker Sheet ──────────────────────────────────────────────────────
 
@@ -472,25 +405,9 @@ const ProfileTest = () => {
     return `${first}${last}`.toUpperCase()
   }, [userInfo?.firstName, userInfo?.lastName])
 
-  const [isLangSheetOpen, setIsLangSheetOpen] = useState(false)
-  const openLangSheet = useCallback(() => setIsLangSheetOpen(true), [])
-  const closeLangSheet = useCallback(() => setIsLangSheetOpen(false), [])
-
-  const [isThemeSheetOpen, setIsThemeSheetOpen] = useState(false)
-  const openThemeSheet = useCallback(() => setIsThemeSheetOpen(true), [])
-  const closeThemeSheet = useCallback(() => setIsThemeSheetOpen(false), [])
-
-  const [isFontSizeSheetOpen, setIsFontSizeSheetOpen] = useState(false)
-  const openFontSizeSheet = useCallback(() => setIsFontSizeSheetOpen(true), [])
-  const closeFontSizeSheet = useCallback(
-    () => setIsFontSizeSheetOpen(false),
-    [],
-  )
-
-  const [isGlassSheetOpen, setIsGlassSheetOpen] = useState(false)
-  const openGlassSheet = useCallback(() => setIsGlassSheetOpen(true), [])
-  const closeGlassSheet = useCallback(() => setIsGlassSheetOpen(false), [])
-  const glassSupported = useGlassSupported()
+  const openSettings = useCallback(() => {
+    router.push('/profile/settings')
+  }, [router])
 
   const openQRSelection = useQRSelectionSheetStore((s) => s.open)
 
@@ -606,42 +523,6 @@ const ProfileTest = () => {
     openLogoutSheet(handleLogoutConfirm)
   }, [openLogoutSheet, handleLogoutConfirm])
 
-  const [showDeleteSheet, setShowDeleteSheet] = useState(false)
-
-  const handleDeletePress = useCallback(() => {
-    Alert.alert(
-      t('profile.deleteAccount.title'),
-      t('profile.deleteAccount.warning'),
-      [
-        { text: t('profile.deleteAccount.cancel'), style: 'cancel' },
-        {
-          text: t('profile.deleteAccount.continue'),
-          style: 'destructive',
-          onPress: () => setShowDeleteSheet(true),
-        },
-      ],
-    )
-  }, [t])
-
-  const handleDeleteSuccess = useCallback(() => {
-    resetHttpState()
-    queryClient.removeQueries({ queryKey: [QUERYKEY.loyaltyPoints] })
-    // Capture token BEFORE removeUserInfo() clears it — avoids race condition
-    // where cleanupTokenOnLogout() reads null and skips server unregister
-    const capturedToken = useUserStore.getState().deviceToken
-    setLogout()
-    removeUserInfo()
-    useNotificationStore.getState().clearAll()
-    router.replace('/(tabs)/home' as never)
-    // FCM cleanup runs in background — không block navigation
-    void import('@/lib/fcm-token-manager').then(({ cleanupTokenOnLogout }) =>
-      Promise.race([
-        cleanupTokenOnLogout(capturedToken ?? undefined),
-        new Promise<void>((r) => setTimeout(r, 3000)),
-      ]).catch(() => {}),
-    )
-  }, [removeUserInfo, setLogout, router, queryClient])
-
   if (needsUserInfo || !userInfo) {
     return (
       <ScreenContainer
@@ -739,7 +620,7 @@ const ProfileTest = () => {
             </View>
             {/* Group 1: Profile customization */}
             <View style={[styles.card, { backgroundColor: theme.card }]}>
-              <MenuItem
+              <ProfileMenuItem
                 icon={Camera}
                 iconColor={ICON_COLORS.blue}
                 title={t('profile.changeAvatar')}
@@ -755,7 +636,7 @@ const ProfileTest = () => {
 
             {/* Group 2: Personal page */}
             <View style={[styles.card, { backgroundColor: theme.card }]}>
-              <MenuItem
+              <ProfileMenuItem
                 icon={User}
                 iconColor={ICON_COLORS.red}
                 title={t('profile.generalInfo.title', 'Thông tin cá nhân')}
@@ -767,7 +648,7 @@ const ProfileTest = () => {
 
             {/* Group 3: General features */}
             <View style={[styles.card, { backgroundColor: theme.card }]}>
-              <MenuItem
+              <ProfileMenuItem
                 icon={ClipboardList}
                 iconColor={ICON_COLORS.purple}
                 title={t('profile.orderHistory.title', 'Lịch sử đơn hàng')}
@@ -781,7 +662,7 @@ const ProfileTest = () => {
                   { backgroundColor: theme.divider },
                 ]}
               />
-              <MenuItem
+              <ProfileMenuItem
                 icon={Gift}
                 iconColor={ICON_COLORS.orange}
                 title={t('profile.giftCard.title', 'Thẻ quà tặng & Xu')}
@@ -796,7 +677,7 @@ const ProfileTest = () => {
                     { backgroundColor: theme.divider },
                   ]}
                 />
-                <MenuItem
+                <ProfileMenuItem
                   icon={Trophy}
                   iconColor={ICON_COLORS.green}
                   title={t('profile.loyaltyPoint.title', 'Điểm tích lũy')}
@@ -807,73 +688,17 @@ const ProfileTest = () => {
               </>
             </View>
 
-            {/* Group 4: Settings */}
-            <View style={[styles.card, { backgroundColor: theme.card }]}>
-              <MenuItem
-                icon={Languages}
-                iconColor={ICON_COLORS.teal}
-                title={t('profile.language.title', 'Ngôn ngữ')}
-                onPress={openLangSheet}
-                textColor={theme.text}
-                textMuted={theme.textMuted}
-              />
-              <View
-                style={[
-                  styles.menuItemDivider,
-                  { backgroundColor: theme.divider },
-                ]}
-              />
-              <MenuItem
-                icon={SunMoon}
+            {/* Group 4: Cài đặt — bốn mục tuỳ chọn app (ngôn ngữ, giao diện,
+                cỡ chữ, xoá tài khoản) đã chuyển sang app/profile/settings.tsx.
+                Màn này giữ phần dữ liệu tài khoản, không trộn tuỳ chọn app. */}
+            <View
+              style={[profileCardStyles.card, { backgroundColor: theme.card }]}
+            >
+              <ProfileMenuItem
+                icon={Settings}
                 iconColor={ICON_COLORS.indigo}
-                title={t('profile.theme.title', 'Giao diện')}
-                onPress={openThemeSheet}
-                textColor={theme.text}
-                textMuted={theme.textMuted}
-              />
-              <View
-                style={[
-                  styles.menuItemDivider,
-                  { backgroundColor: theme.divider },
-                ]}
-              />
-              <MenuItem
-                icon={Type}
-                iconColor={ICON_COLORS.teal}
-                title={t('profile.fontSize.title', 'Cỡ chữ')}
-                onPress={openFontSizeSheet}
-                textColor={theme.text}
-                textMuted={theme.textMuted}
-              />
-              <View
-                style={[
-                  styles.menuItemDivider,
-                  { backgroundColor: theme.divider },
-                ]}
-              />
-              {glassSupported ? (
-                <>
-                  <MenuItem
-                    icon={Sparkles}
-                    iconColor={ICON_COLORS.indigo}
-                    title={t('profile.glass.title', 'Độ trong của kính')}
-                    onPress={openGlassSheet}
-                    textColor={theme.text}
-                    textMuted={theme.textMuted}
-                  />
-                  <View
-                    style={[
-                      styles.menuItemDivider,
-                      { backgroundColor: theme.divider },
-                    ]}
-                  />
-                </>
-              ) : null}
-              <MenuItem
-                icon={Trash2}
-                iconColor={ICON_COLORS.red}
-                title={t('profile.deleteAccount.title', 'Xoá tài khoản')}
-                onPress={handleDeletePress}
+                title={t('profile.settings', 'Cài đặt')}
+                onPress={openSettings}
                 textColor={theme.text}
                 textMuted={theme.textMuted}
               />
@@ -910,37 +735,6 @@ const ProfileTest = () => {
         onCamera={handleAvatarCamera}
         onLibrary={handleAvatarLibrary}
         isDark={isDark}
-      />
-      <LanguageSheet
-        visible={isLangSheetOpen}
-        onClose={closeLangSheet}
-        isDark={isDark}
-        primaryColor={isDark ? colors.primary.dark : colors.primary.light}
-      />
-      <ThemeSheet
-        visible={isThemeSheetOpen}
-        onClose={closeThemeSheet}
-        isDark={isDark}
-        primaryColor={isDark ? colors.primary.dark : colors.primary.light}
-      />
-      <FontSizeSheet
-        visible={isFontSizeSheetOpen}
-        onClose={closeFontSizeSheet}
-        isDark={isDark}
-        primaryColor={isDark ? colors.primary.dark : colors.primary.light}
-      />
-      {glassSupported ? (
-        <GlassSheet
-          visible={isGlassSheetOpen}
-          onClose={closeGlassSheet}
-          isDark={isDark}
-          primaryColor={isDark ? colors.primary.dark : colors.primary.light}
-        />
-      ) : null}
-      <DeleteAccountSheet
-        visible={showDeleteSheet}
-        onClose={() => setShowDeleteSheet(false)}
-        onSuccess={handleDeleteSuccess}
       />
     </View>
   )

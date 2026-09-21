@@ -12,8 +12,8 @@ import { GlassView } from 'expo-glass-effect'
 import { memo, type ReactNode } from 'react'
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native'
 
-import { useGlassLevel } from '@/hooks/use-glass-level'
-import { glassTint } from '@/utils/glass-surface'
+import { useGlassEnabled } from '@/hooks/use-glass'
+import { glassTintColor } from '@/utils/glass-surface'
 
 type GlassSurfaceProps = {
   /** Màu nền đặc của bề mặt — cũng là màu pha, và là đường lui khi không kính. */
@@ -23,8 +23,6 @@ type GlassSurfaceProps = {
   tint?: string
   /** Biến dạng khi chạm — chỉ dùng cho nút bấm. */
   interactive?: boolean
-  /** Ghi đè mức từ hook — chỉ dùng cho ô xem trước. */
-  level?: number
   style?: StyleProp<ViewStyle>
   children?: ReactNode
   testID?: string
@@ -35,15 +33,13 @@ export const GlassSurface = memo(function GlassSurface({
   radius,
   tint,
   interactive,
-  level: levelProp,
   style,
   children,
   testID,
 }: GlassSurfaceProps) {
-  const hookLevel = useGlassLevel()
-  const level = levelProp ?? hookLevel
+  const glass = useGlassEnabled()
 
-  if (level <= 0) {
+  if (!glass) {
     return (
       <View
         testID={testID}
@@ -65,7 +61,7 @@ export const GlassSurface = memo(function GlassSurface({
       <GlassView
         style={[StyleSheet.absoluteFill, { borderRadius: radius }]}
         glassEffectStyle="regular"
-        tintColor={glassTint(color, level, tint)}
+        tintColor={glassTintColor(tint)}
         isInteractive={interactive}
         // Nút bấm (interactive) cần tự nhận chạm để morph kính chạy — pointerEvents
         // "none" sẽ loại view này khỏi hit-testing và chặn luôn hiệu ứng đó.

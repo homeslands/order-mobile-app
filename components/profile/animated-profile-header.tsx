@@ -10,7 +10,7 @@ import type { SharedValue } from 'react-native-reanimated'
 
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
-import { useGlassLevel } from '@/hooks/use-glass-level'
+import { useGlassEnabled } from '@/hooks/use-glass'
 import { AnimatedText } from '@/components/ui/animated-text'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
@@ -41,7 +41,7 @@ export const AnimatedProfileHeader = ({
 }: AnimatedProfileHeaderProps) => {
   const isDark = useColorScheme() === 'dark'
   const topInset = STATIC_TOP_INSET
-  const level = useGlassLevel()
+  const glass = useGlassEnabled()
   const bgColor = isDark ? colors.background.dark : colors.background.light
 
   const headerBackgroundStyle = useAnimatedStyle(() => {
@@ -147,7 +147,7 @@ export const AnimatedProfileHeader = ({
           },
         ]}
       >
-        {level > 0 ? (
+        {glass ? (
           <GlassSurface color={bgColor} style={StyleSheet.absoluteFill} />
         ) : (
           <BlurView intensity={80} style={StyleSheet.absoluteFill}>

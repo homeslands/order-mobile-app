@@ -22,7 +22,7 @@ import { getLoyaltyPoints } from '@/api/loyalty-point'
 import { QUERYKEY, TAB_ROUTES, tabsScreenOptions } from '@/constants'
 import { colors as palette } from '@/constants'
 import { STATIC_BOTTOM_INSET } from '@/constants/status-bar'
-import { useGlassLevel } from '@/hooks/use-glass-level'
+import { useGlassEnabled } from '@/hooks/use-glass'
 import { getThemeColor, hexToRgba } from '@/lib/utils'
 import { useAuthStore, useUserStore } from '@/stores'
 import { useQueryClient } from '@tanstack/react-query'
@@ -47,7 +47,7 @@ export function AndroidTabsNavigator() {
   const userSlug = useUserStore((s) => s.userInfo?.slug)
 
   const colors = useMemo(() => getThemeColor(isDark), [isDark])
-  const glass = useGlassLevel() > 0
+  const glass = useGlassEnabled()
 
   const tabColors = useMemo(
     () => ({

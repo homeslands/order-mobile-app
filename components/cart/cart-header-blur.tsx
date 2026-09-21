@@ -4,7 +4,7 @@
  */
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
-import { useGlassLevel } from '@/hooks/use-glass-level'
+import { useGlassEnabled } from '@/hooks/use-glass'
 import { ChevronLeft, Trash2 } from 'lucide-react-native'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
@@ -29,7 +29,7 @@ export function CartHeaderBlur({
   isDark = false,
 }: CartHeaderBlurProps) {
   const { t } = useTranslation('menu')
-  const level = useGlassLevel()
+  const glass = useGlassEnabled()
   const iconColor = isDark
     ? colors.mutedForeground.dark
     : colors.mutedForeground.light
@@ -51,7 +51,7 @@ export function CartHeaderBlur({
         },
       ]}
     >
-      {level > 0 ? (
+      {glass ? (
         <GlassSurface color={bgColor} style={StyleSheet.absoluteFillObject} />
       ) : (
         <BlurView

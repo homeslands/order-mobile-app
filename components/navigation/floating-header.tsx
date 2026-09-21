@@ -19,7 +19,7 @@ import {
 
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
-import { useGlassLevel } from '@/hooks/use-glass-level'
+import { useGlassEnabled } from '@/hooks/use-glass'
 import { navigateNative } from '@/lib/navigation'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
@@ -42,7 +42,7 @@ const CircleButton = memo(function CircleButton({
   onPress?: () => void
   children: React.ReactNode
 }) {
-  const level = useGlassLevel()
+  const glass = useGlassEnabled()
   const solidBg = isDark ? colors.card.dark : colors.white.light
 
   return (
@@ -54,8 +54,8 @@ const CircleButton = memo(function CircleButton({
         // Nền đặc + bo tròn ngay trên view mang shadow — nếu không, shadow đổ
         // từ một layer vuông trong suốt, ra bóng vuông (iOS) hoặc mất bóng
         // (Android elevation cần outline khớp hình dạng nội dung).
-        level === 0 && { backgroundColor: solidBg },
-        level === 0 && s.shadow,
+        !glass && { backgroundColor: solidBg },
+        !glass && s.shadow,
       ]}
     >
       <GlassSurface color={solidBg} radius={19} interactive style={s.circleBtn}>
