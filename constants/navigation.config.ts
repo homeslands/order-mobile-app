@@ -1,4 +1,5 @@
 /** Native Stack + Tabs. Bootstrap: lib/navigation-setup.ts */
+import { Platform } from 'react-native'
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack'
 
 /**
@@ -12,7 +13,12 @@ import type { NativeStackNavigationOptions } from '@react-navigation/native-stac
 export const TAB_ROUTES = {
   HOME: '/(tabs)/home',
   MENU: '/(tabs)/menu',
-  CART: '/(tabs)/cart',
+  // Android: giỏ hàng KHÔNG nằm trong (tabs) — thanh tab gốc không cho ẩn
+  // một tab mà vẫn điều hướng tới (trigger `hidden` bị lọc khỏi navigator,
+  // xem node_modules/expo-router/build/useScreens.js:123), nên màn giỏ hàng
+  // ở stack gốc '/cart' (vỏ tại app/cart/index.tsx, re-export
+  // app/(tabs)/cart.tsx). iOS giữ tab thứ 5 '/(tabs)/cart' với role="search".
+  CART: Platform.OS === 'android' ? '/cart' : '/(tabs)/cart',
   GIFT_CARD: '/(tabs)/gift-card',
   PROFILE: '/(tabs)/profile',
 } as const

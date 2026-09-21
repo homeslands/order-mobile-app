@@ -1,3 +1,76 @@
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHost.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHost.kt
+index 73ac57d..8194f15 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHost.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHost.kt
+@@ -8,6 +8,7 @@ import android.widget.LinearLayout
+ import androidx.appcompat.view.ContextThemeWrapper
+ import androidx.fragment.app.FragmentManager
+ import com.facebook.react.modules.core.ReactChoreographer
++import com.facebook.react.uimanager.PixelUtil
+ import com.facebook.react.uimanager.ThemedReactContext
+ import com.google.android.material.bottomnavigation.BottomNavigationView
+ import com.swmansion.rnscreens.BuildConfig
+@@ -93,7 +94,24 @@ class TabsHost(
+ 
+     private val bottomNavigationView: BottomNavigationView =
+         BottomNavigationView(wrappedContext).apply {
+-            layoutParams = LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT)
++            // PATCH (Android-only, xem patches/react-native-screens+4.16.0.patch
++            // trong repo app) — thanh tab nổi: lề trái/phải + đáy thay vì dính
++            // sát các cạnh, để khớp bố cục "thanh tab nổi" của app. Lề phải
++            // rộng hơn lề trái để chừa chỗ cho FloatingCartButton — nút tròn
++            // 64dp tự vẽ phía JS (xem components/navigation/floating-cart-button.tsx
++            // và app/(tabs)/_layout.tsx trong repo app), nổi cùng hàng bên
++            // phải thanh tab trên Android. Không ảnh hưởng iOS — file này chỉ
++            // build trên Android.
++            layoutParams =
++                LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT).apply {
++                    val left = PixelUtil.toPixelFromDIP(12f).toInt()
++                    // 12 (lề gốc, khớp lề trái) + 64 (bề rộng FloatingCartButton) +
++                    // 12 (khoảng hở giữa thanh tab và nút) = 88dp.
++                    val right = PixelUtil.toPixelFromDIP(88f).toInt()
++                    val bottom = PixelUtil.toPixelFromDIP(10f).toInt()
++                    setMargins(left, 0, right, bottom)
++                }
++            elevation = PixelUtil.toPixelFromDIP(8f)
+         }
+ 
+     private val contentView: FrameLayout =
+diff --git a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostAppearanceApplicator.kt b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostAppearanceApplicator.kt
+index 1f75d24..3354623 100644
+--- a/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostAppearanceApplicator.kt
++++ b/node_modules/react-native-screens/android/src/main/java/com/swmansion/rnscreens/gamma/tabs/TabsHostAppearanceApplicator.kt
+@@ -2,6 +2,7 @@ package com.swmansion.rnscreens.gamma.tabs
+ 
+ import android.annotation.SuppressLint
+ import android.content.res.ColorStateList
++import android.graphics.drawable.GradientDrawable
+ import android.util.TypedValue
+ import android.view.MenuItem
+ import android.view.ViewGroup
+@@ -27,10 +28,18 @@ class TabsHostAppearanceApplicator(
+ 
+     fun updateSharedAppearance(tabsHost: TabsHost) {
+         bottomNavigationView.isVisible = true
+-        bottomNavigationView.setBackgroundColor(
+-            tabsHost.tabBarBackgroundColor
+-                ?: resolveColorAttr(com.google.android.material.R.attr.colorSurfaceContainer),
+-        )
++        // PATCH (Android-only, xem patches/react-native-screens+4.16.0.patch
++        // trong repo app) — nền bo góc cho thanh tab nổi, đi cùng lề trong
++        // TabsHost.kt. Không ảnh hưởng iOS — file này chỉ build trên Android.
++        bottomNavigationView.background =
++            GradientDrawable().apply {
++                shape = GradientDrawable.RECTANGLE
++                cornerRadius = PixelUtil.toPixelFromDIP(28f)
++                setColor(
++                    tabsHost.tabBarBackgroundColor
++                        ?: resolveColorAttr(com.google.android.material.R.attr.colorSurfaceContainer),
++                )
++            }
+ 
+         val states =
+             arrayOf(
 diff --git a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_no_animation_medium.xml b/node_modules/react-native-screens/android/src/main/res/base/anim/rns_no_animation_medium.xml
 index 560eda6..f61d3a0 100644
 --- a/node_modules/react-native-screens/android/src/main/res/base/anim/rns_no_animation_medium.xml

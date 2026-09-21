@@ -1,6 +1,7 @@
 export { FloatingHeader } from './floating-header'
 export { CartBadge } from './cart-badge'
 export { DeferredReanimatedEntering } from './deferred-reanimated-entering'
+export { FloatingCartButton } from './floating-cart-button'
 export { MapsPressable } from './maps-pressable'
 export { NativeGesturePressable } from './native-gesture-pressable'
 export { NativeNavigationTouchable } from './native-navigation-touchable'
