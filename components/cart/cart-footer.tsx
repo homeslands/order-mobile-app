@@ -42,6 +42,7 @@ import { SimpleOrderTypeSheet } from './cart-order-type-sheet'
 import { SimpleTableSheet } from './cart-table-sheet'
 import { VoucherSheet } from './cart-voucher-sheet'
 import { PickupTimeChips } from './pickup-time-chips'
+import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
 
 const ORDER_TYPE_FEATURE_MAP: Partial<Record<string, string>> = {
@@ -221,9 +222,7 @@ export const CartFooter = memo(function CartFooter({
   // Memoize isDark/primaryColor-dependent styles
   const ft = useMemo(
     () => ({
-      containerBg: {
-        backgroundColor: isDark ? colors.card.dark : colors.white.light,
-      },
+      containerBg: isDark ? colors.card.dark : colors.white.light,
       selectBtnBorder: {
         borderColor: isDark ? colors.border.dark : colors.gray[200],
       },
@@ -302,10 +301,10 @@ export const CartFooter = memo(function CartFooter({
       <View
         style={[
           footerStyles.container,
-          ft.containerBg,
           { paddingBottom: bottomInset + FOOTER_BOTTOM_EXTRA },
         ]}
       >
+        <GlassSurface color={ft.containerBg} style={StyleSheet.absoluteFill} />
         {/* Order Type + Table row */}
         <View style={footerStyles.selectRow}>
           <Pressable

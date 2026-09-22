@@ -82,13 +82,9 @@ const ROUTE_CACHE_QUERY_MAP: Array<{
   getQueryKey: (param: string) => unknown[]
 }> = [
   {
-    pattern: /\/menu\/product\/([^/]+)/,
-    getQueryKey: (id) => ['specific-menu-item', id],
-  },
-  {
     pattern: /\/product\/([^/]+)/,
     getQueryKey: (id) => ['specific-menu-item', id],
-  }, // redirect target
+  },
   {
     pattern: /\/update-order\/([^/]+)/,
     getQueryKey: (slug) => ['order', slug],

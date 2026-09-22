@@ -15,6 +15,7 @@ import { TABLE_SELECT_ITEM_HEIGHT } from '@/constants/list-item-sizes'
 import { useTables } from '@/hooks'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import type { ITable } from '@/types'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 const SNAP_POINTS = ['50%']
@@ -153,13 +154,6 @@ export const SimpleTableSheetInUpdateOrder = memo(
 
     const ItemSeparator = useCallback(() => <View style={s.separator} />, [])
 
-    const bgStyle = useMemo(
-      () => ({
-        backgroundColor: isDark ? colors.card.dark : colors.white.light,
-      }),
-      [isDark],
-    )
-
     const renderBackdrop = useCallback(
       (props: BottomSheetBackdropProps) => (
         <BottomSheetBackdrop
@@ -190,7 +184,7 @@ export const SimpleTableSheetInUpdateOrder = memo(
         enableHandlePanningGesture
         enableDynamicSizing={false}
         backdropComponent={renderBackdrop}
-        backgroundStyle={bgStyle}
+        backgroundComponent={GlassSheetBackground}
         onDismiss={onClose}
       >
         <BottomSheetFlashList

@@ -317,3 +317,62 @@ describe('BANK_TRANSFER', () => {
     expect(onPaid).toHaveBeenCalledTimes(1)
   })
 })
+
+// ── FCM sync applies to every method ─────────────────────────────────────────
+// Đơn có thể được người khác trả (QR xu) trong lúc chủ đơn chưa gửi gì hoặc
+// đang chọn phương thức khác.
+describe('FCM sync for any method', () => {
+  const paid = {
+    slug: 'n1',
+    isRead: false,
+    message: NotificationMessageCode.ORDER_PAID,
+    metadata: { order: 'order-1' },
+  }
+
+  it('calls onPaid when nothing was submitted (method = null)', () => {
+    const onPaid = jest.fn()
+    setNotifications([paid])
+    renderHook(() =>
+      usePaymentStatusDetector({
+        ...base,
+        method: null,
+        submittedAt: null,
+        onPaid,
+      }),
+    )
+    expect(onPaid).toHaveBeenCalledTimes(1)
+  })
+
+  it('calls onPaid when CASH is selected', () => {
+    const onPaid = jest.fn()
+    setNotifications([paid])
+    renderHook(() =>
+      usePaymentStatusDetector({
+        ...base,
+        method: PaymentMethod.CASH,
+        submittedAt: 1_000_000,
+        onPaid,
+      }),
+    )
+    expect(onPaid).toHaveBeenCalledTimes(1)
+  })
+
+  it('calls onPaid once when the notification arrives after mount', () => {
+    const onPaid = jest.fn()
+    const { rerender } = renderHook(() =>
+      usePaymentStatusDetector({
+        ...base,
+        method: null,
+        submittedAt: null,
+        onPaid,
+      }),
+    )
+    expect(onPaid).not.toHaveBeenCalled()
+
+    setNotifications([paid])
+    rerender({})
+    rerender({})
+
+    expect(onPaid).toHaveBeenCalledTimes(1)
+  })
+})

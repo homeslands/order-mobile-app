@@ -45,6 +45,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { GiftCardOrderDetailSheet } from '@/components/gift-card/gift-card-order-detail-sheet'
 import { FloatingHeader } from '@/components/navigation/floating-header'
+import { GlassHeaderButton } from '@/components/navigation/glass-header-button'
 import { Skeleton } from '@/components/ui'
 import { colors, GiftCardType } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
@@ -55,6 +56,7 @@ import { useRunAfterTransition } from '@/hooks/use-run-after-transition'
 import { useUserStore } from '@/stores'
 import type { ICardOrderResponse } from '@/types'
 import { formatCurrency } from '@/utils'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 // ─── Filter bar ───────────────────────────────────────────────────────────────
@@ -310,7 +312,6 @@ const DateFilterSheet = memo(function DateFilterSheet({
   const [fromOpen, setFromOpen] = useState(false)
   const [toOpen, setToOpen] = useState(false)
 
-  const bg = isDark ? colors.card.dark : colors.white.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
   const chipBg = isDark ? colors.border.dark : colors.gray[100]
@@ -376,7 +377,7 @@ const DateFilterSheet = memo(function DateFilterSheet({
       enableContentPanningGesture={false}
       enableHandlePanningGesture
       backdropComponent={renderBackdrop}
-      backgroundStyle={{ backgroundColor: bg }}
+      backgroundComponent={GlassSheetBackground}
       handleIndicatorStyle={{
         backgroundColor: isDark ? colors.gray[600] : colors.gray[300],
       }}
@@ -850,19 +851,20 @@ export default function GiftCardOrdersScreen() {
       <FloatingHeader
         title={t('orders.title')}
         disableBlur
+        // Đang lọc thì nút mang nền nhấn màu thương hiệu, nên bỏ kính để màu
+        // đó không bị pha loãng.
         rightElement={
-          <Pressable
+          <GlassHeaderButton
+            isDark={isDark}
             onPress={handleFilterOpen}
-            style={[
-              s.headerIconBtn,
-              {
-                backgroundColor: isDateActive
-                  ? `${primaryColor}15`
-                  : isDark
-                    ? colors.border.dark
-                    : colors.white.light,
-              },
-            ]}
+            solidColor={
+              isDateActive
+                ? `${primaryColor}15`
+                : isDark
+                  ? colors.border.dark
+                  : colors.white.light
+            }
+            withoutShadow
           >
             <SlidersHorizontal
               size={16}
@@ -877,7 +879,7 @@ export default function GiftCardOrdersScreen() {
             {isDateActive && (
               <View style={[s.activeDot, { backgroundColor: primaryColor }]} />
             )}
-          </Pressable>
+          </GlassHeaderButton>
         }
       />
 
@@ -1002,13 +1004,6 @@ const s = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
   filterRow: { flexDirection: 'row', alignItems: 'center', paddingRight: 12 },
-  headerIconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   activeDot: {
     width: 6,
     height: 6,

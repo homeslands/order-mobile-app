@@ -13,6 +13,7 @@ import { Copy } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, View } from 'react-native'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 const CONDITION_SHEET_SNAP = ['60%']
@@ -22,7 +23,6 @@ interface VoucherConditionModalProps {
   onClose: () => void
   isDark: boolean
   primaryColor: string
-  bgStyle: { backgroundColor: string }
   indicatorStyle: { backgroundColor: string }
   bottomInset: number
 }
@@ -32,7 +32,6 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
   onClose,
   isDark,
   primaryColor,
-  bgStyle,
   indicatorStyle,
   bottomInset,
 }: VoucherConditionModalProps) {
@@ -71,7 +70,7 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
       enableContentPanningGesture={false}
       enableHandlePanningGesture
       enableDynamicSizing={false}
-      backgroundStyle={bgStyle}
+      backgroundComponent={GlassSheetBackground}
       handleIndicatorStyle={indicatorStyle}
       onDismiss={onClose}
       backdropComponent={renderBackdrop}

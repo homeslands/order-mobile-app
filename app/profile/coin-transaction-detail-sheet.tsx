@@ -42,6 +42,7 @@ import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { useUserStore } from '@/stores'
 import type { IPointTransaction } from '@/types'
 import { formatPoints } from '@/utils'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -213,7 +214,6 @@ export const CoinTransactionDetailSheet = memo(
 
     const typeColor = isDark ? cfg.darkColor : cfg.color
     const iconBg = isDark ? cfg.bgD : cfg.bgL
-    const bg = isDark ? colors.card.dark : colors.white.light
     const textColor = isDark ? colors.gray[50] : colors.gray[900]
     const subColor = isDark ? colors.gray[400] : colors.gray[500]
     const borderColor = isDark ? colors.border.dark : colors.gray[200]
@@ -261,7 +261,7 @@ export const CoinTransactionDetailSheet = memo(
         enablePanDownToClose
         enableDynamicSizing={false}
         backdropComponent={renderBackdrop}
-        backgroundStyle={{ backgroundColor: bg }}
+        backgroundComponent={GlassSheetBackground}
         handleIndicatorStyle={{
           backgroundColor: isDark ? colors.gray[600] : colors.gray[300],
         }}

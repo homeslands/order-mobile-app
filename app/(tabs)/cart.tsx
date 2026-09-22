@@ -1,7 +1,6 @@
 /**
  * Tab Cart — Perf UI, defer shell → content sau transition.
  * Header: back (left) + "Giỏ hàng (N)" (center) + clear all (right).
- * Same UI as menu/cart.tsx but as a standalone tab.
  */
 import {
   BottomSheetBackdrop,
@@ -31,6 +30,7 @@ import { FloatingHeader } from '@/components/navigation/floating-header'
 import { useRunAfterTransition } from '@/hooks'
 import { useOrderFlowStore } from '@/stores'
 import { useOrderFlowCartItemCount } from '@/stores/selectors'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 const CartContent = lazy(() => import('@/components/cart/cart-content'))
@@ -53,10 +53,6 @@ function ClearCartSheet({
   const { t } = useTranslation('menu')
   const snapPoints = useMemo(() => [220 + insets.bottom], [insets.bottom])
 
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
-  )
   const handleIndicator = useMemo(
     () => ({ backgroundColor: isDark ? colors.gray[600] : colors.gray[300] }),
     [isDark],
@@ -98,7 +94,7 @@ function ClearCartSheet({
       activeOffsetY={[-10, 10]}
       failOffsetX={[-5, 5]}
       backdropComponent={renderBackdrop}
-      backgroundStyle={bgStyle}
+      backgroundComponent={GlassSheetBackground}
       handleIndicatorStyle={handleIndicator}
       onDismiss={onClose}
     >
@@ -133,7 +129,9 @@ function ClearCartSheet({
               style={[
                 confirmStyles.btn,
                 {
-                  backgroundColor: isDark ? colors.gray[700] : colors.gray[100],
+                  backgroundColor: isDark
+                    ? colors.border.dark
+                    : colors.gray[100],
                 },
               ]}
             >
@@ -218,7 +216,6 @@ function CartClearBtn({
 }: {
   itemCount: number
   onClearAll: () => void
-  isDark: boolean
 }) {
   if (itemCount === 0) return <View style={clearBtnStyles.placeholder} />
   return (
@@ -336,7 +333,6 @@ export default function CartScreen() {
               <CartClearBtn
                 itemCount={itemCount}
                 onClearAll={handleOpenClearSheet}
-                isDark={isDark}
               />
             }
           />

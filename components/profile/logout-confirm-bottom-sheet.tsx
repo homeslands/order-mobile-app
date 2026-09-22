@@ -21,7 +21,7 @@ import {
   View,
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
-import { colors } from '@/constants'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 let sheetRef: BottomSheet | null = null
@@ -215,9 +215,7 @@ const LogoutConfirmBottomSheetBase = ({ onConfirm }: Props) => {
         enableContentPanningGesture={false}
         enableDynamicSizing={false}
         backdropComponent={renderBackdrop}
-        backgroundStyle={{
-          backgroundColor: isDark ? colors.card.dark : '#ffffff',
-        }}
+        backgroundComponent={GlassSheetBackground}
         containerStyle={styles.container}
       >
         {content}

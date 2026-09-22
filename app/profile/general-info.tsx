@@ -1,7 +1,7 @@
 /**
  * Thông tin cá nhân — UI giống Profile: avatar, 2 nút header, các trường thông tin bên dưới.
  */
-import { FloatingHeader } from '@/components/navigation'
+import { FloatingHeader, GlassHeaderButton } from '@/components/navigation'
 import { colors, publicFileURL, QUERYKEY } from '@/constants'
 import { ROUTE } from '@/constants/route.contstant'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
@@ -77,21 +77,7 @@ const ICON_COLORS = {
   green: '#4CAF50',
 }
 
-// Edit pill cho rightElement của FloatingHeader — giữ style cũ (pill bo tròn
-// + text "Sửa") để không phá layout hiện tại của màn hình.
 const hStyles = StyleSheet.create({
-  editPill: {
-    height: 38,
-    borderRadius: 19,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 24,
-    elevation: 2,
-  },
   editText: {
     fontSize: 15,
     fontWeight: '600',
@@ -220,10 +206,7 @@ export default function GeneralInfo() {
   const setLogout = useAuthStore((state) => state.setLogout)
   const removeUserInfo = useUserStore((state) => state.removeUserInfo)
   const handleBack = useCallback(() => router.back(), [router])
-  const handleEdit = useCallback(
-    () => router.push('/(tabs)/profile/edit'),
-    [router],
-  )
+  const handleEdit = useCallback(() => router.push('/profile/edit'), [router])
   const isLoggingOutRef = useRef(false)
   const openLogoutSheet = useLogoutSheetStore((s) => s.open)
 
@@ -239,7 +222,10 @@ export default function GeneralInfo() {
     useNotificationStore.getState().clearAll()
     setLogout()
     removeUserInfo()
-    router.replace('/(tabs)/home' as never)
+    // dismissTo thay vì replace: general-info.tsx nằm ở root stack,
+    // replace('/(tabs)/…') ở root stack sẽ push thêm một bộ tab mới thay vì
+    // đổi tab hiện có.
+    router.dismissTo('/(tabs)/home' as never)
     showToast(tToast('logoutSuccess', 'Đăng xuất thành công'))
   }, [queryClient, removeUserInfo, router, setLogout, tToast])
 
@@ -460,15 +446,11 @@ export default function GeneralInfo() {
         disableBlur
         onBack={handleBack}
         rightElement={
-          <Pressable
+          <GlassHeaderButton
+            isDark={isDark}
             onPress={handleEdit}
-            hitSlop={8}
-            style={[
-              hStyles.editPill,
-              {
-                backgroundColor: isDark ? colors.gray[800] : colors.white.light,
-              },
-            ]}
+            paddingHorizontal={16}
+            solidColor={isDark ? colors.gray[800] : colors.white.light}
           >
             <Text
               style={[
@@ -478,7 +460,7 @@ export default function GeneralInfo() {
             >
               {t('profile.edit', 'Sửa')}
             </Text>
-          </Pressable>
+          </GlassHeaderButton>
         }
       />
     </View>

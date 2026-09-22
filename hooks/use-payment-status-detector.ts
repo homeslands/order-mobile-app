@@ -28,7 +28,8 @@ export interface UsePaymentStatusDetectorOptions {
   orderStatus: OrderStatus | undefined
   /**
    * Called when payment is confirmed or when a background sync is needed.
-   * BANK_TRANSFER: called on each poll tick and when FCM arrives.
+   * BANK_TRANSFER: called on each poll tick.
+   * Any method (including none submitted): called once when FCM arrives.
    * POINT: called once for silent background sync after optimistic success.
    */
   onPaid: () => void
@@ -104,21 +105,19 @@ export function usePaymentStatusDetector({
     }
   }, [method, submittedAt, showSuccess])
 
-  // ── BANK_TRANSFER: sync order state when FCM arrives ─────────────────────
+  // ── Sync order state when FCM arrives (every method) ─────────────────────
   // fcmDetected=true already sets showSuccess, but the parent still needs a
   // refetch so invoice/receipt fields are populated in the success screen.
+  // Not limited to BANK_TRANSFER: someone else can pay the order (point QR
+  // paid by another customer) while this screen has nothing submitted.
   // runOnJS is not needed here — useNotificationStore selector fires on JS thread.
   const prevFcmRef = useRef(false)
   useEffect(() => {
-    if (
-      !prevFcmRef.current &&
-      fcmDetected &&
-      method === PaymentMethod.BANK_TRANSFER
-    ) {
+    if (!prevFcmRef.current && fcmDetected) {
       onPaidRef.current()
     }
     prevFcmRef.current = fcmDetected
-  }, [fcmDetected, method])
+  }, [fcmDetected])
 
   // ── POINT: silent background sync ─────────────────────────────────────────
   // Optimistic flag shows success instantly; one refetch syncs order.status

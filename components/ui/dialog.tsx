@@ -1,11 +1,13 @@
 import { cn } from '@/lib/utils'
 import { SPRING_CONFIGS } from '@/constants/motion'
 import { colors } from '@/constants'
+import { GlassSurface } from '@/components/ui/glass-surface'
 import { X } from 'lucide-react-native'
 import React, { ReactNode, useEffect } from 'react'
 import {
   Modal,
   Pressable,
+  StyleSheet,
   TouchableOpacity,
   View,
   useColorScheme,
@@ -38,6 +40,11 @@ interface DialogContentProps extends BaseProps {
   onClose?: () => void
   onExitComplete?: () => void
   open?: boolean
+  /**
+   * Bo góc của lớp kính nền — phải khớp bo góc thật của thẻ, vì `className`
+   * (vd. `rounded-md`) chỉ đổi bo góc hiển thị, không đổi bo góc kính.
+   */
+  radius?: number
 }
 
 /* -------------------------------------------------------------------------- */
@@ -95,13 +102,21 @@ function Dialog({ open, onOpenChange, children }: DialogProps) {
 
 const SPRING = SPRING_CONFIGS.modal
 
+// rounded-lg NativeWind = var(--radius) = 0.5rem = 8px (xem app/global.css)
+// Mặc định khi nơi gọi không truyền `radius` để đổi theo `className` riêng.
+const DIALOG_RADIUS = 8
+
 function DialogContent({
   children,
   className,
   onClose,
   onExitComplete,
   open = true,
+  radius = DIALOG_RADIUS,
 }: DialogContentProps) {
+  const isDark = useColorScheme() === 'dark'
+  const cardColor = isDark ? colors.card.dark : colors.card.light
+
   // Shared values for UI thread animations
   // Apple style: scale 0.95 -> 1, opacity 0 -> 1 đồng thời
   const scale = useSharedValue(0.95)
@@ -193,10 +208,15 @@ function DialogContent({
       >
         <View
           className={cn(
-            'w-full rounded-lg border border-gray-200 bg-white p-6 shadow-lg dark:border-[#2e2e2e] dark:bg-[#1c1c1e]',
+            'w-full rounded-lg border border-gray-200 p-6 shadow-lg dark:border-[#2e2e2e]',
             className,
           )}
         >
+          <GlassSurface
+            color={cardColor}
+            radius={radius}
+            style={StyleSheet.absoluteFill}
+          />
           {children}
         </View>
       </Animated.View>

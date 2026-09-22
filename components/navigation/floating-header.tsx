@@ -18,6 +18,7 @@ import {
 } from 'react-native'
 
 import { colors } from '@/constants'
+import { GlassHeaderButton } from './glass-header-button'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { navigateNative } from '@/lib/navigation'
 import { Text } from '@/components/ui/text'
@@ -93,22 +94,15 @@ export const FloatingHeader = memo(function FloatingHeader({
         style={[s.row, { paddingTop: STATIC_TOP_INSET + 10 }]}
         pointerEvents="auto"
       >
-        <Pressable
-          onPress={handleBack}
-          hitSlop={8}
-          style={[
-            s.circleBtn,
-            { backgroundColor: isDark ? colors.card.dark : colors.white.light },
-            s.shadow,
-          ]}
-        >
+        <GlassHeaderButton isDark={isDark} onPress={handleBack}>
           <ChevronLeft
             size={20}
             color={isDark ? colors.gray[50] : colors.gray[900]}
           />
-        </Pressable>
+        </GlassHeaderButton>
 
-        {rightElement ?? <View style={s.circleBtn} />}
+        {/* Ô giữ chỗ cùng cỡ nút back, để tiêu đề ở giữa không bị lệch. */}
+        {rightElement ?? <View style={s.rightPlaceholder} />}
       </View>
     </View>
   )
@@ -142,18 +136,8 @@ const s = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
   },
-  circleBtn: {
+  rightPlaceholder: {
     width: 38,
     height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  shadow: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 24,
-    elevation: 2,
   },
 })

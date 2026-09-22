@@ -14,7 +14,7 @@ import {
 } from '@gorhom/bottom-sheet'
 import { Image } from 'expo-image'
 import { Gift, Minus, Plus } from 'lucide-react-native'
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -24,6 +24,7 @@ import { useGiftCardStore } from '@/stores'
 import { IGiftCard } from '@/types'
 import { formatCurrency, formatPoints } from '@/utils'
 import { GiftCardExistsWarningDialog } from './gift-card-exists-warning-dialog'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 interface GiftCardSelectedSheetProps {
@@ -137,8 +138,6 @@ export const GiftCardSelectedSheet = memo(function GiftCardSelectedSheet({
     setShowWarning(false)
   }, [])
 
-  const bgStyle = useMemo(() => ({ backgroundColor: colors.white.light }), [])
-
   const totalAmount = card ? card.price * quantity : 0
   const totalPoints = card ? card.points * quantity : 0
   const atValueCap =
@@ -154,7 +153,7 @@ export const GiftCardSelectedSheet = memo(function GiftCardSelectedSheet({
         enablePanDownToClose
         enableDynamicSizing={false}
         backdropComponent={renderBackdrop}
-        backgroundStyle={bgStyle}
+        backgroundComponent={GlassSheetBackground}
         handleIndicatorStyle={{ backgroundColor: colors.gray[300] }}
         onDismiss={onClose}
       >

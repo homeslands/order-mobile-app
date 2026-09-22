@@ -436,6 +436,14 @@
       "large": "Lớn",
       "preview": "Văn bản mẫu"
     },
+    "glass": {
+      "title": "Độ trong của kính",
+      "subtitle": "Kéo để chỉnh mức trong suốt của thanh tiêu đề, bảng và hộp thoại.",
+      "solid": "Đặc",
+      "clear": "Trong",
+      "preview": "Xem trước",
+      "reduceTransparencyNote": "Đang tắt do cài đặt Giảm độ trong suốt của máy."
+    },
     "dobPicker": {
       "confirm": "Xác nhận",
       "months": [
@@ -472,7 +480,9 @@
       "memberId": "Mã định danh",
       "memberIdDesc": "Nhân viên quét mã tại quầy",
       "coinPayment": "Thanh toán Xu",
-      "coinPaymentDesc": "Quét QR để thanh toán bằng xu",
+      "coinPaymentDesc": "Đưa mã cho nhân viên quét để trả bằng xu",
+      "scanPay": "Quét QR trả đơn",
+      "scanPayDesc": "Trả đơn tại quầy bằng xu của bạn",
       "downloadButton": "Lưu QR vào ảnh"
     },
     "orderStatus": {

@@ -39,7 +39,10 @@ const getCartItemType = () => 'cartItem'
 
 const listStyles = StyleSheet.create({
   root: { flex: 1 },
-  content: { paddingTop: STATIC_TOP_INSET + 60, paddingBottom: 200 },
+  content: {
+    paddingTop: STATIC_TOP_INSET + 60,
+    paddingBottom: 200,
+  },
   separator: { height: 10 },
 })
 

@@ -5,6 +5,7 @@
  * Pure StyleSheet styling, memo'd renderItem, minimal subscriptions.
  */
 import { colors } from '@/constants'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { cartActions } from '@/stores/cart.store'
 import { useOrderFlowStore } from '@/stores'
 import type { IProductVariant } from '@/types'
@@ -14,7 +15,7 @@ import {
   BottomSheetFlatList,
   BottomSheetModal,
 } from '@gorhom/bottom-sheet'
-import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
+import { memo, useCallback, useEffect, useRef } from 'react'
 import { useShallow } from 'zustand/react/shallow'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, View } from 'react-native'
@@ -53,11 +54,6 @@ export const CartSizeSheet = memo(function CartSizeSheet({
         selectedSlug: item?.variant?.slug ?? '',
       }
     }),
-  )
-
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
   )
 
   const renderBackdrop = useCallback(
@@ -114,7 +110,7 @@ export const CartSizeSheet = memo(function CartSizeSheet({
       enableHandlePanningGesture
       enableDynamicSizing={false}
       backdropComponent={renderBackdrop}
-      backgroundStyle={bgStyle}
+      backgroundComponent={GlassSheetBackground}
       onDismiss={onClose}
     >
       <View

@@ -34,6 +34,7 @@ import { SearchHeader } from './search-header'
 import { SearchResult } from './search-result'
 import { SheetFooter } from './sheet-footer'
 import { ValidList } from './valid-list'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 
 const SNAP = ['90%']
 const MAX_VOUCHERS = 50
@@ -299,12 +300,6 @@ export const VoucherSheetInUpdateOrder = memo(
     const isNewSelection = !!selectedVoucher && !isCurrentApplied
 
     // ── Sheet callbacks ───────────────────────────────────────────────────────
-    const bgStyle = useMemo(
-      () => ({
-        backgroundColor: isDark ? colors.card.dark : colors.white.light,
-      }),
-      [isDark],
-    )
     const indicatorStyle = useMemo(
       () => ({ backgroundColor: isDark ? colors.gray[600] : colors.gray[300] }),
       [isDark],
@@ -489,7 +484,7 @@ export const VoucherSheetInUpdateOrder = memo(
           activeOffsetY={[-10, 10]}
           failOffsetX={[-5, 5]}
           backdropComponent={renderBackdrop}
-          backgroundStyle={bgStyle}
+          backgroundComponent={GlassSheetBackground}
           handleIndicatorStyle={indicatorStyle}
           onDismiss={handleDismiss}
           keyboardBehavior="extend"
@@ -565,7 +560,6 @@ export const VoucherSheetInUpdateOrder = memo(
           onClose={() => setConditionVoucher(null)}
           isDark={isDark}
           primaryColor={primaryColor}
-          bgStyle={bgStyle}
           indicatorStyle={indicatorStyle}
           bottomInset={insets.bottom}
         />

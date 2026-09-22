@@ -16,6 +16,7 @@ import { colors } from '@/constants'
 import { useUpdateLanguage } from '@/hooks'
 import { useUserStore } from '@/stores'
 import { showToast } from '@/utils'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 const FLAG_W = 36
@@ -83,10 +84,6 @@ export const LanguageSheet = memo(function LanguageSheet({
   const currentLang = userInfo?.language ?? i18n.language ?? 'vi'
 
   const snapPoints = useMemo(() => [180 + bottom], [bottom])
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
-  )
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
@@ -151,7 +148,7 @@ export const LanguageSheet = memo(function LanguageSheet({
       enableHandlePanningGesture
       enableDynamicSizing={false}
       backdropComponent={renderBackdrop}
-      backgroundStyle={bgStyle}
+      backgroundComponent={GlassSheetBackground}
       onDismiss={onClose}
     >
       <View style={[s.content, { paddingBottom: bottom + 8 }]}>

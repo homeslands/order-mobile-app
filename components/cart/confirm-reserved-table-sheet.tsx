@@ -1,5 +1,6 @@
 import { colors } from '@/constants'
 import { Text } from '@/components/ui/text'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import {
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
@@ -7,7 +8,7 @@ import {
   type BottomSheetFooterProps,
   BottomSheetModal,
 } from '@gorhom/bottom-sheet'
-import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
+import { memo, useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { TouchableOpacity, useColorScheme, View } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -50,13 +51,6 @@ export const ConfirmReservedTableSheet = memo(
         />
       ),
       [],
-    )
-
-    const bgStyle = useMemo(
-      () => ({
-        backgroundColor: isDark ? colors.card.dark : colors.white.light,
-      }),
-      [isDark],
     )
 
     const renderFooter = useCallback(
@@ -108,16 +102,13 @@ export const ConfirmReservedTableSheet = memo(
         enableHandlePanningGesture
         enableDynamicSizing={false}
         backdropComponent={renderBackdrop}
-        backgroundStyle={bgStyle}
+        backgroundComponent={GlassSheetBackground}
         footerComponent={renderFooter}
         onDismiss={onCancel}
       >
         {/* paddingBottom clears the absolute-positioned BottomSheetFooter
             (footer height ~76: pt-3 12 + button 48 + pb-4 16) + safe-area bottom. */}
-        <View
-          className="px-5 pt-4"
-          style={{ paddingBottom: bottom + 76 + 16 }}
-        >
+        <View className="px-5 pt-4" style={{ paddingBottom: bottom + 76 + 16 }}>
           <Text className="mb-2 text-base font-semibold text-gray-900 dark:text-gray-50">
             {t('table.confirmReservedTitle')}
           </Text>

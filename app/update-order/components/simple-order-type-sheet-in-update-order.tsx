@@ -11,6 +11,7 @@ import { Pressable, StyleSheet, View } from 'react-native'
 import { colors } from '@/constants'
 import { useOrderFlowStore } from '@/stores'
 import { OrderTypeEnum } from '@/types'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 const SNAP_POINTS = [300]
@@ -43,13 +44,6 @@ export const SimpleOrderTypeSheetInUpdateOrder = memo(
         { value: OrderTypeEnum.DELIVERY, label: t('menu.delivery') },
       ],
       [t],
-    )
-
-    const bgStyle = useMemo(
-      () => ({
-        backgroundColor: isDark ? colors.card.dark : colors.white.light,
-      }),
-      [isDark],
     )
 
     const renderBackdrop = useCallback(
@@ -91,7 +85,7 @@ export const SimpleOrderTypeSheetInUpdateOrder = memo(
         enableHandlePanningGesture
         enableDynamicSizing={false}
         backdropComponent={renderBackdrop}
-        backgroundStyle={bgStyle}
+        backgroundComponent={GlassSheetBackground}
         onDismiss={onClose}
       >
         <View style={s.content}>

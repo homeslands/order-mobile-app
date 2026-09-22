@@ -36,6 +36,7 @@ import {
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { LoyaltyPointTransactionCard } from '@/components/loyalty-point/loyalty-point-transaction-card'
 import { FloatingHeader } from '@/components/navigation/floating-header'
+import { GlassHeaderButton } from '@/components/navigation/glass-header-button'
 import { Skeleton } from '@/components/ui'
 import { colors, LoyaltyPointHistoryType } from '@/constants'
 import { LOYALTY_POINT_ITEM_HEIGHT } from '@/constants/list-item-sizes'
@@ -476,10 +477,9 @@ export default function LoyaltyPointScreen() {
       <FloatingHeader
         title={t('profile.loyaltyPoint.title')}
         rightElement={
-          <Pressable
+          <GlassHeaderButton
+            isDark={isDark}
             onPress={() => setFilterSheetOpen(true)}
-            hitSlop={8}
-            style={sc.filterBtn}
           >
             <SlidersHorizontal
               size={20}
@@ -488,7 +488,7 @@ export default function LoyaltyPointScreen() {
             {isActive && (
               <View style={[sc.filterDot, { backgroundColor: primaryColor }]} />
             )}
-          </Pressable>
+          </GlassHeaderButton>
         }
         disableBlur
       />
@@ -545,12 +545,6 @@ export default function LoyaltyPointScreen() {
 
 const sc = StyleSheet.create({
   container: { flex: 1 },
-  filterBtn: {
-    width: 36,
-    height: 36,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   filterDot: {
     position: 'absolute',
     top: 4,
