@@ -84,3 +84,38 @@ index a00332b..f5de8cf 100644
 +    android:interpolator="@android:interpolator/accelerate_decelerate"
      android:fromXDelta="0%"
      android:toXDelta="100%"/>
+diff --git a/node_modules/react-native-screens/ios/bottom-tabs/RNSTabBarController.mm b/node_modules/react-native-screens/ios/bottom-tabs/RNSTabBarController.mm
+index 1c70eec..9154da7 100644
+--- a/node_modules/react-native-screens/ios/bottom-tabs/RNSTabBarController.mm
++++ b/node_modules/react-native-screens/ios/bottom-tabs/RNSTabBarController.mm
+@@ -156,6 +156,30 @@ - (void)updateSelectedViewController
+ 
+   [selectedViewController.tabScreenComponentView overrideScrollViewBehaviorInFirstDescendantChainIfNeeded];
+   [self setSelectedViewController:selectedViewController];
++
++  // PATCH (iOS-only, xem patches/react-native-screens+4.16.0.patch trong repo
++  // app) — ẩn thanh tab khi đang ở tab giỏ hàng.
++  //
++  // Màn giỏ hàng là một luồng tác vụ có nút hành động chính chạy hết chiều
++  // ngang ở đáy; để thanh tab nằm lại đó thành hai thanh chồng nhau. UIKit
++  // không có đường chính thức: `hidesBottomBarWhenPushed` chỉ áp cho màn được
++  // push, còn tab gốc thì luôn hiện thanh. expo-router có `hidden` nhưng nó
++  // loại HẲN route khỏi navigator (useScreens.js:123) nên không điều hướng
++  // tới được nữa. Vậy nên ép thẳng `tabBar.hidden` ở đây.
++  //
++  // Khớp theo `tabKey` vì đó là route key của React Navigation, dạng
++  // "<tên route>-<id>" (xem tabKey={routeKey} trong
++  // expo-router/build/native-tabs/NativeBottomTabs/NativeTabsView.js). Không
++  // dùng `title` vì tiêu đề đổi theo ngôn ngữ.
++  // Trượt bằng `transform` KHÔNG dùng được: mỗi lần UITabBarController bố trí
++  // lại là nó gán `frame` cho thanh tab và transform bị xoá — trên iOS 26 việc
++  // đó xảy ra liên tục vì thanh nổi còn có cơ chế thu nhỏ. Đã thử và đo trên
++  // máy thật: thanh đứng im, không nhúc nhích. `hidden` thì không bị đụng.
++  // Cũng tuyệt đối không mờ dần bằng `alpha` — Apple ghi rõ alpha < 1 trên
++  // visual effect view (thanh tab iOS 26 chính là một cái) làm hiệu ứng hỏng
++  // hoặc không hiện ra.
++  NSString *_Nullable rnsSelectedTabKey = selectedViewController.tabScreenComponentView.tabKey;
++  self.tabBar.hidden = rnsSelectedTabKey != nil && [rnsSelectedTabKey hasPrefix:@"cart"];
+ }
+ 
+ - (void)updateTabBarAppearanceIfNeeded

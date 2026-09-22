@@ -53,18 +53,22 @@ export const GlassHeaderButton = memo(function GlassHeaderButton({
   const radius = size / 2
   const isPill = paddingHorizontal !== undefined
 
-  const shape = {
+  // Kích thước và lề trong nằm ở lớp kính bên trong; Pressable chỉ ôm lấy nó.
+  // Đặt cả hai lớp cùng `paddingHorizontal` sẽ cộng đôi lề (16 thành 32) và
+  // viên thuốc phình ra không khớp nút tròn đối diện.
+  const inner = {
     height: size,
     borderRadius: radius,
     ...(isPill ? { paddingHorizontal } : { width: size }),
   }
+  const outer = { height: size, borderRadius: radius }
 
   return (
     <Pressable
       onPress={onPress}
       hitSlop={hitSlop}
       style={[
-        shape,
+        outer,
         // Nền đặc + bo tròn ngay trên view mang shadow — nếu không, shadow đổ
         // từ một layer vuông trong suốt, ra bóng vuông (iOS) hoặc mất bóng
         // (Android elevation cần outline khớp hình dạng nội dung).
@@ -77,7 +81,7 @@ export const GlassHeaderButton = memo(function GlassHeaderButton({
         color={solidBg}
         radius={radius}
         interactive
-        style={[shape, s.center]}
+        style={[inner, s.center]}
       >
         {children}
       </GlassSurface>

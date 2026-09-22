@@ -34,7 +34,7 @@ import { formatCurrencyNative } from 'cart-price-calc'
 import { ChevronRight, ShoppingBag, Ticket } from 'lucide-react-native'
 import React, { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Platform, Pressable, StyleSheet, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 
 import { DeliveryAddressSheet, DeliveryInfoRow } from '@/components/delivery'
 import { ConfirmOrderSheet } from './cart-confirm-order-sheet'
@@ -42,7 +42,6 @@ import { SimpleOrderTypeSheet } from './cart-order-type-sheet'
 import { SimpleTableSheet } from './cart-table-sheet'
 import { VoucherSheet } from './cart-voucher-sheet'
 import { PickupTimeChips } from './pickup-time-chips'
-import { NATIVE_TAB_BAR_HEIGHT } from '@/components/layout/tab-screen-layout'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
 
@@ -78,13 +77,7 @@ export const CartFooter = memo(function CartFooter({
   isDark: boolean
 }) {
   const { t } = useTranslation('menu')
-  // Trên iOS, giỏ hàng là tab thứ 5 nên thanh tab gốc vẫn nằm ở đáy màn và
-  // đè lên footer — nội dung tab trải hết xuống dưới thanh, và safe area của
-  // màn con KHÔNG gồm chiều cao thanh tab (đã kiểm, xem chú thích ở
-  // components/layout/tab-screen-layout.tsx). Nên phải tự lùi footer lên trên.
-  // Android không cần: ở đó thanh tab là view tự vẽ và đã ẩn khi vào giỏ hàng.
-  const bottomInset =
-    STATIC_BOTTOM_INSET + (Platform.OS === 'ios' ? NATIVE_TAB_BAR_HEIGHT : 0)
+  const bottomInset = STATIC_BOTTOM_INSET
   const queryClient = useQueryClient()
   const hasUser = useUserStore((s) => !!s.userInfo)
   const total = useCartTotal()

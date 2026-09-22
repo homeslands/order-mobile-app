@@ -4,7 +4,6 @@ import {
   QUERYKEY,
   SystemLockFeatureGroup,
 } from '@/constants'
-import { NATIVE_TAB_BAR_HEIGHT } from '@/components/layout/tab-screen-layout'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { shouldAutoRemoveVoucher } from '@/components/sheet/voucher-validation'
 import { useCartValidation } from '@/hooks/use-cart-validation'
@@ -22,7 +21,7 @@ import { useRouter } from 'expo-router'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 
-import { Platform, StyleSheet, useColorScheme, View } from 'react-native'
+import { StyleSheet, useColorScheme, View } from 'react-native'
 
 import { type CartDisplayItem, toDisplayItem } from './cart-display-item'
 import { CartItemRow } from './cart-item-row'
@@ -42,9 +41,7 @@ const listStyles = StyleSheet.create({
   root: { flex: 1 },
   content: {
     paddingTop: STATIC_TOP_INSET + 60,
-    // 200 chừa chỗ cho CartFooter dính đáy; trên iOS footer còn phải lùi lên
-    // trên thanh tab gốc (giỏ hàng là tab thứ 5) nên cộng thêm chiều cao đó.
-    paddingBottom: 200 + (Platform.OS === 'ios' ? NATIVE_TAB_BAR_HEIGHT : 0),
+    paddingBottom: 200,
   },
   separator: { height: 10 },
 })

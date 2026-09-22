@@ -19,24 +19,29 @@
  *   </TabScreenLayout>
  */
 import React, { memo } from 'react'
-import { Platform, StyleSheet, View, useColorScheme } from 'react-native'
+import { StyleSheet, View, useColorScheme } from 'react-native'
 import type { StyleProp, ViewStyle } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '@/constants'
+import { HAS_LIQUID_GLASS } from '@/utils/liquid-glass'
 
 /**
  * Chiều cao thanh tab, KHÔNG gồm safe area đáy.
  *
- * iOS: 49pt — thanh tab gốc của hệ điều hành (chuẩn UIKit), đo trên máy thật
- * ngày 2026-09-20.
- * Android: 88 = BAR_HEIGHT(64) + BAR_PADDING(8) + VISUAL_GAP(10) + đệm fade(6)
- * của thanh tự vẽ — xem components/navigation/android-tabs-navigator.tsx.
+ * Có kính (iOS 26+): 49pt — thanh tab gốc của hệ điều hành (chuẩn UIKit), đo
+ * trên máy thật ngày 2026-09-20.
+ * Không kính (Android và iOS dưới 26): 88 = BAR_HEIGHT(64) + BAR_PADDING(8) +
+ * VISUAL_GAP(10) + đệm fade(6) của thanh tự vẽ — xem
+ * components/navigation/custom-tabs-navigator.tsx.
  *
- * Safe area của màn con KHÔNG chứa chiều cao này trên cả hai nền tảng — đã
- * kiểm bằng cách in `useSafeAreaInsets().bottom` ngay trong một tab.
+ * Rẽ theo HAS_LIQUID_GLASS chứ không theo nền tảng, khớp với cách
+ * app/(tabs)/_layout.tsx chọn navigator.
+ *
+ * Safe area của màn con KHÔNG chứa chiều cao này ở cả hai nhánh — đã kiểm
+ * bằng cách in `useSafeAreaInsets().bottom` ngay trong một tab.
  */
-export const NATIVE_TAB_BAR_HEIGHT = Platform.OS === 'ios' ? 49 : 88
+export const NATIVE_TAB_BAR_HEIGHT = HAS_LIQUID_GLASS ? 49 : 88
 
 /**
  * Hook trả về padding bottom chính xác theo thiết bị.

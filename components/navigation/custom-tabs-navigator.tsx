@@ -1,21 +1,28 @@
 /**
- * Thanh tab tự vẽ cho Android.
+ * Thanh tab tự vẽ — dùng ở mọi nơi KHÔNG có Liquid Glass.
  *
- * iOS dùng thanh tab gốc của hệ điều hành (NativeTabs, xem
- * app/(tabs)/_layout.tsx). Android thì không: thanh gốc Material 3 vẽ viên
- * chỉ báo BỌC RIÊNG ICON — `activeIndicatorView` nằm trong `iconContainer`,
- * còn `labelGroup` là view anh em (xem NavigationBarItemView trong
+ * Tức Android và iOS dưới 26. Chỉ iOS 26+ mới dùng thanh tab gốc (NativeTabs,
+ * xem app/(tabs)/_layout.tsx); rẽ nhánh theo HAS_LIQUID_GLASS chứ không theo
+ * nền tảng.
+ *
+ * Vì sao Android không dùng thanh gốc: Material 3 vẽ viên chỉ báo BỌC RIÊNG
+ * ICON — `activeIndicatorView` nằm trong `iconContainer`, còn `labelGroup` là
+ * view anh em (xem NavigationBarItemView trong
  * com.google.android.material:material:1.12.0). Thiết kế của app cần viên bọc
- * CẢ icon lẫn nhãn xếp dọc, nên thanh gốc không dựng được. Bản 1.14 có thêm
- * `setItemIconGravity(START)` cho viên bọc cả hai nhưng nằm NGANG — vẫn khác.
- * Vì vậy Android giữ thanh tự vẽ; đánh đổi là chuyển tab chạy qua JS thay vì
- * native.
+ * CẢ icon lẫn nhãn xếp dọc. Bản 1.14 có `setItemIconGravity(START)` cho viên
+ * bọc cả hai nhưng nằm NGANG — vẫn khác.
+ *
+ * Vì sao iOS dưới 26 cũng dùng bản này: `UITabBar` ở đó là thanh chạy hết
+ * chiều ngang, không có API nào làm nó thành viên nổi — viên nổi là thiết kế
+ * riêng của iOS 26.
+ *
+ * Đánh đổi chung: chuyển tab chạy qua JS thay vì native.
  */
 import { LinearGradient } from 'expo-linear-gradient'
 import { Tabs, usePathname } from 'expo-router'
 import { useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { View, useColorScheme } from 'react-native'
+import { Platform, View, useColorScheme } from 'react-native'
 
 import { getGiftCards } from '@/api'
 import { getLoyaltyPoints } from '@/api/loyalty-point'
@@ -35,10 +42,17 @@ const BAR_HEIGHT = 64
 const BAR_PADDING = 8
 const FADE_HEIGHT = 120
 
-/** Khoảng hở giữa thanh tab và vùng cử chỉ của hệ thống. */
-const VISUAL_GAP = 10
+/**
+ * Khoảng hở giữa thanh tab và vùng cử chỉ của hệ thống.
+ *
+ * iPhone có home indicator: safe area (~34) đã đủ thoáng, còn cộng thêm nữa
+ * thì thanh đội lên cao hơn hẳn Android (~24). Gap âm cho phép viên lấn vào
+ * vùng safe area — home indicator do hệ thống vẽ đè lên nên không bị che.
+ * iPhone SE (inset = 0) và Android vẫn cần gap dương.
+ */
+const VISUAL_GAP = Platform.OS === 'ios' && STATIC_BOTTOM_INSET > 0 ? -8 : 10
 
-export function AndroidTabsNavigator() {
+export function CustomTabsNavigator() {
   const { t } = useTranslation('tabs')
   const pathname = usePathname()
   const isDark = useColorScheme() === 'dark'

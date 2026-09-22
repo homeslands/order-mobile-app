@@ -1,11 +1,12 @@
 /**
  * Tabs layout — Home, Menu, Gift Card, Profile, Cart.
  *
- * iOS (và web): thanh tab gốc của hệ điều hành (NativeTabs). Cart là tab thứ
- * 5, mang dáng ô tròn tách rời bên phải trên iOS 26+ qua role="search".
+ * Rẽ theo CÓ KÍNH hay không, không theo nền tảng:
  *
- * Android: thanh tab tự vẽ — xem AndroidTabsNavigator để biết vì sao thanh
- * gốc Material 3 không dựng được thiết kế của app.
+ * - iOS 26+ → thanh tab gốc (NativeTabs). Cart là tab thứ 5, mang dáng ô tròn
+ *   tách rời bên phải qua role="search".
+ * - Android và iOS dưới 26 → thanh tự vẽ, xem CustomTabsNavigator để biết vì
+ *   sao thanh gốc ở hai nơi đó đều không dựng được thiết kế của app.
  */
 import { useQueryClient } from '@tanstack/react-query'
 import dayjs from 'dayjs'
@@ -20,9 +21,10 @@ import { useEffect, useLayoutEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Platform, View, useColorScheme } from 'react-native'
 
-import { AndroidTabsNavigator } from '@/components/navigation/android-tabs-navigator'
+import { CustomTabsNavigator } from '@/components/navigation/custom-tabs-navigator'
 import { OrderReadyPickupSheet } from '@/components/notification/order-ready-pickup-sheet'
 import { usePredictivePrefetch } from '@/hooks'
+import { useGlassEnabled } from '@/hooks/use-glass'
 import { useNotifications } from '@/hooks/use-notification'
 import { useMasterTransitionOptional } from '@/lib/navigation'
 import { getThemeColor } from '@/lib/utils'
@@ -34,28 +36,8 @@ import {
 } from '@/stores'
 import { useOrderFlowCartItemCount } from '@/stores/selectors'
 import { useNotificationStore } from '@/stores/notification.store'
-import { supportsDetachedSearchTab as computeSupportsDetachedSearchTab } from '@/utils/platform-version'
+import { HAS_LIQUID_GLASS } from '@/utils/liquid-glass'
 // import { ProfileNudgePopup } from '@/components/profile'
-
-const isAndroid = Platform.OS === 'android'
-
-// role="search" map thẳng sang UITabBarItem.SystemItem.search — API này tồn
-// tại từ rất lâu, KHÔNG chỉ trên iOS 26, nên tự nó không rào theo phiên bản.
-// Dáng ô tròn tách rời chỉ xuất hiện trên thanh tab kiểu iOS 26; ở bản thấp
-// hơn (app hỗ trợ tối thiểu 15.1, xem ios/Podfile) thanh tab là dạng cổ điển
-// và LUÔN hiện nhãn dưới icon — nhãn đó do hệ thống tự đặt cho system item
-// ("Tìm kiếm"/"Search"), bỏ qua <Label> (xem RNSBottomTabsScreenComponentView.mm,
-// updateTabBarItem: khi _systemItem != None thì không gán tabBarItem.title).
-// Nếu không rào ở đây, người dùng iOS 15–18 sẽ thấy icon giỏ hàng kèm chữ
-// "Tìm kiếm" thay vì "Giỏ hàng". Phép so sánh phiên bản (Platform.Version là
-// string trên iOS, vd. "17.4.1", khác Android — xem PlatformIOSStatic trong
-// react-native/Libraries/Utilities/Platform.d.ts) được tách thành hàm thuần
-// `supportsDetachedSearchTab` trong utils/platform-version.ts để test độc
-// lập với các chuỗi phiên bản (xem __tests__/utils/platform-version.test.ts).
-const supportsDetachedSearchTab = computeSupportsDetachedSearchTab(
-  Platform.OS,
-  Platform.Version,
-)
 
 export default function TabsLayout() {
   const { t } = useTranslation('tabs')
@@ -136,12 +118,13 @@ export default function TabsLayout() {
   }, [pathname, masterTransition, queryClient, isAuthenticated])
 
   const colors = useMemo(() => getThemeColor(isDark), [isDark])
+  const glass = useGlassEnabled()
   const cartItemCount = useOrderFlowCartItemCount()
 
   return (
     <View style={{ flex: 1 }}>
-      {isAndroid ? (
-        <AndroidTabsNavigator />
+      {!HAS_LIQUID_GLASS ? (
+        <CustomTabsNavigator />
       ) : (
         <NativeTabs
           tintColor={colors.primary}
@@ -149,9 +132,23 @@ export default function TabsLayout() {
             default: colors.mutedForeground,
             selected: colors.primary,
           }}
-          // undefined để giữ kính Liquid Glass gốc của UITabBarAppearance —
-          // đặt màu đặc ở đây sẽ làm mất hiệu ứng trong suốt.
-          backgroundColor={undefined}
+          // Có kính thì để undefined, cho UITabBarAppearance giữ Liquid Glass
+          // gốc — đặt màu đặc ở đây sẽ làm mất hiệu ứng trong suốt.
+          //
+          // KHÔNG có kính thì BẮT BUỘC đặt màu: undefined ở iOS dưới 26 nghĩa
+          // là không cấu hình nền nào cả, và thanh tab trong suốt hoàn toàn —
+          // nội dung trang trôi xuyên qua sau chữ. Đã thấy trên iPhone 11 Pro
+          // Max chạy iOS 18. Cùng lý do áp cho Android, và cho cả máy iOS 26
+          // đang bật "Giảm độ trong suốt" trong Trợ năng.
+          backgroundColor={glass ? undefined : colors.card}
+          // Bắt buộc khi không có kính. Khi danh sách đang ở đầu trang, iOS
+          // dùng scrollEdgeAppearance, mà expo-router ÉP nó trong suốt ở đó:
+          // `backgroundColor: options.disableTransparentOnScrollEdge ? ... : null`
+          // kèm `blurEffect: 'none'` (xem appearance.js:29-32,
+          // createScrollEdgeAppearanceFromOptions). Trên iOS 26 hệ thống vẫn
+          // vẽ kính nên không lộ; iOS dưới 26 thì trong suốt là trống trơn,
+          // nội dung trang trôi xuyên qua sau chữ.
+          disableTransparentOnScrollEdge={!glass}
           labelVisibilityMode="labeled"
           indicatorColor={colors.primary}
           minimizeBehavior="onScrollDown"
@@ -172,36 +169,30 @@ export default function TabsLayout() {
             <Icon sf={{ default: 'person', selected: 'person.fill' }} />
             <Label>{t('tabs.profile', 'Tài khoản')}</Label>
           </NativeTabs.Trigger>
-          {/* role="search" (iOS 26+ only) — CHỦ Ý, đã chốt sau khi xem trên máy
-              thật. Đây là cách DUY NHẤT để có dáng nút tròn tách rời bên phải
-              thanh tab theo Apple HIG (iOS 26): nó map thẳng sang
-              `UITabBarItem(tabBarSystemItem: .search)` ở native
-              (xem RCTConvert+RNSBottomTabs.mm trong react-native-screens).
-              Không có prop/API nào khác của NativeTabs tạo được hình dạng này.
+          {/* role="search" — CHỦ Ý, đã chốt sau khi xem trên máy thật. Đây là
+              cách DUY NHẤT để có dáng nút tròn tách rời bên phải thanh tab
+              theo Apple HIG: nó map thẳng sang
+              `UITabBarItem(tabBarSystemItem: .search)` ở native (xem
+              RCTConvert+RNSBottomTabs.mm trong react-native-screens). Không có
+              prop/API nào khác của NativeTabs tạo được hình dạng này.
 
-              RÀO PHIÊN BẢN — xem chú thích ở supportsDetachedSearchTab phía
-              trên: iOS < 26 vẫn vẽ thanh tab cổ điển kèm nhãn hệ thống
-              "Tìm kiếm", nên chỉ bật role này từ iOS 26.
+              Không cần rào phiên bản: cả cây NativeTabs này chỉ dựng khi
+              HAS_LIQUID_GLASS, tức iOS 26+.
 
-              Đánh đổi đã biết và đã CHẤP NHẬN có ý thức (chỉ áp dụng khi
-              supportsDetachedSearchTab = true):
+              Đánh đổi đã biết và đã CHẤP NHẬN có ý thức:
               1. Nhãn do hệ thống tự đặt, không ghi đè được — ở bố cục có hiện
-                 nhãn cạnh icon search (iPad, cỡ chữ trợ năng lớn) nó sẽ hiện
-                 "Tìm kiếm"/"Search" chứ không phải text trong <Label> bên dưới.
+                 nhãn cạnh icon search (cỡ chữ trợ năng lớn) nó sẽ hiện
+                 "Tìm kiếm"/"Search" chứ không phải text trong <Label>.
               2. VoiceOver đọc mục tab này là "Search", không phải "Giỏ hàng".
                  convertTabPropsToOptions() trong
                  node_modules/expo-router/build/native-tabs/NativeBottomTabs/NativeTabTrigger.js
                  không nhận/emit accessibilityLabel cho tab item — react-native-screens
                  phía native cũng không có chỗ nhận nó cho system item — nên
                  không có cách nào override từ phía app. */}
-          <NativeTabs.Trigger
-            name="cart"
-            role={supportsDetachedSearchTab ? 'search' : undefined}
-          >
+          <NativeTabs.Trigger name="cart" role="search">
             <Icon sf={{ default: 'cart', selected: 'cart.fill' }} />
-            {/* <Label> vẫn cần giữ dù iOS 26+ bỏ qua nó (dùng nhãn hệ thống của
-                role="search") — iOS < 26 không có role này nên vẫn hiện nhãn
-                "Giỏ hàng" bình thường. */}
+            {/* <Label> bị bỏ qua vì role="search" dùng nhãn hệ thống, nhưng
+                vẫn giữ để expo-router có title cho route. */}
             <Label>{t('tabs.cart', 'Giỏ hàng')}</Label>
             {/* Giữ nguyên dạng `cartItemCount > 0 && <Badge>`, KHÔNG đổi sang
                 `<Badge hidden={cartItemCount === 0}>`: appendBadgeOptions()
