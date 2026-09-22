@@ -95,10 +95,11 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 ### Routing (Expo Router - file-based)
 
 - `app/_layout.tsx` — Root layout with all global providers (QueryClient, GestureHandler, BottomSheet, MasterTransition, SharedElement, Toast, I18n)
-- `app/(tabs)/_layout.tsx` — Tab navigator, split by platform:
-  - **iOS/web**: OS-native tab bar (`expo-router/unstable-native-tabs`). Cart is the 5th tab and renders as a detached pill via `role="search"` on iOS 26+.
-  - **Android**: custom-drawn bar (`components/navigation/android-tabs-navigator.tsx` + `AnimatedTabBar`) over expo-router's `<Tabs>`. The native Material 3 bar cannot draw the app's active pill — its indicator wraps the icon only, never the label (`NavigationBarItemView`, material 1.12.0).
-- Main tabs (in order): home, menu, gift-card, profile, cart — on Android the cart is a floating circular button beside the bar, not a tab.
+- `app/(tabs)/_layout.tsx` — Tab navigator, split by **capability, not platform** (`HAS_LIQUID_GLASS`):
+  - **iOS 26+**: OS-native tab bar (`expo-router/unstable-native-tabs`). Cart is the 5th tab and renders as a detached pill via `role="search"`.
+  - **Everywhere else** (Android, iOS < 26, web): custom-drawn bar (`components/navigation/custom-tabs-navigator.tsx` + `AnimatedTabBar`) over expo-router's `<Tabs>`. Android's Material 3 bar cannot draw the app's active pill — its indicator wraps the icon only, never the label (`NavigationBarItemView`, material 1.12.0); iOS < 26 has no floating-capsule tab bar at all.
+- Main tabs (in order): home, menu, gift-card, profile, cart — on the custom bar the cart is a floating circular button beside the bar, not a tab.
+- `patches/react-native-screens+4.16.0.patch` hides the native tab bar on the cart tab (`RNSTabBarController.mm`). UIKit has no supported way to do this: `hidesBottomBarWhenPushed` only applies to pushed screens, and expo-router's `hidden` drops the route from the navigator entirely.
 - Nested routes: `/product/[id]`, `/profile/edit`, `/auth/*`, `/payment/[order]`, `/update-order/[slug]`
 
 ### State Management

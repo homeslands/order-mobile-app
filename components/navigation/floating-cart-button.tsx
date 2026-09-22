@@ -3,7 +3,7 @@ import React, { useMemo } from 'react'
 import { StyleSheet, View } from 'react-native'
 
 import { TAB_ROUTES } from '@/constants/navigation.config'
-import { useGlassLevel } from '@/hooks/use-glass-level'
+import { useGlassEnabled } from '@/hooks/use-glass'
 import { useOrderFlowCartItemCount } from '@/stores/selectors'
 
 import { NativeGesturePressable } from './native-gesture-pressable'
@@ -23,7 +23,7 @@ const FloatingCartButton = React.memo(function FloatingCartButton({
   href,
   countOverride,
 }: Props) {
-  const level = useGlassLevel()
+  const glass = useGlassEnabled()
   const orderFlowCount = useOrderFlowCartItemCount()
   const cartItemCount = countOverride ?? orderFlowCount
 
@@ -34,7 +34,7 @@ const FloatingCartButton = React.memo(function FloatingCartButton({
       borderRadius: 32,
       alignItems: 'center' as const,
       justifyContent: 'center' as const,
-      ...(level === 0 && {
+      ...(!glass && {
         shadowColor: primaryColor,
         shadowOffset: { width: 0, height: 4 },
         shadowOpacity: 0.15,
@@ -42,7 +42,7 @@ const FloatingCartButton = React.memo(function FloatingCartButton({
         elevation: 8,
       }),
     }),
-    [level, primaryColor],
+    [glass, primaryColor],
   )
 
   return (

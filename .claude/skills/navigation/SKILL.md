@@ -14,7 +14,7 @@ This project uses **Expo Router** (file-based routing) with a **custom navigatio
 ```
 app/
 ├── _layout.tsx              # Root layout + global providers
-├── (tabs)/                  # Tab group — iOS: native tab bar; Android: custom bar
+├── (tabs)/                  # Tab group — iOS 26+: native tab bar; còn lại: custom bar
 │   ├── _layout.tsx         # home, menu, gift-card, profile, cart (in this order)
 │   ├── home.tsx
 │   ├── menu/
@@ -207,15 +207,16 @@ export default function RootLayout() {
 
 **File**: `app/(tabs)/_layout.tsx`
 
-Splits by platform. iOS and web use the OS-native tab bar; Android uses a
+Splits by **capability, not platform**. Only iOS 26+ (where `HAS_LIQUID_GLASS`
+is true) uses the OS-native tab bar; Android, iOS < 26 and web all share one
 custom-drawn bar:
 
 ```tsx
 import { Icon, Label, NativeTabs } from 'expo-router/unstable-native-tabs'
-import { AndroidTabsNavigator } from '@/components/navigation/android-tabs-navigator'
+import { CustomTabsNavigator } from '@/components/navigation/custom-tabs-navigator'
 
 export default function TabsLayout() {
-  if (Platform.OS === 'android') return <AndroidTabsNavigator />
+  if (!HAS_LIQUID_GLASS) return <CustomTabsNavigator />
 
   return (
     <NativeTabs tintColor={colors.primary} labelVisibilityMode="labeled">
@@ -236,8 +237,10 @@ export default function TabsLayout() {
 }
 ```
 
-**Why Android is different:** the app's active pill wraps the icon AND the
-label, stacked. Material 3's bar cannot draw that — `activeIndicatorView`
+**Why the custom bar exists:** the app's active pill wraps the icon AND the
+label, stacked. On iOS < 26 there is no floating-capsule tab bar at all —
+`UITabBar` is edge-to-edge, with no API to change that. On Android, Material 3's
+bar cannot draw the pill — `activeIndicatorView`
 lives inside `iconContainer` while `labelGroup` is a sibling view
 (`NavigationBarItemView`, material 1.12.0), so the indicator only ever wraps
 the icon. Material 1.14 adds `setItemIconGravity(START)`, which wraps both but

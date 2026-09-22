@@ -1,12 +1,7 @@
 import { act, renderHook } from '@testing-library/react-native'
 import { AccessibilityInfo } from 'react-native'
 
-import {
-  useGlassLevel,
-  useGlassSupported,
-  useReduceTransparency,
-} from '@/hooks/use-glass-level'
-import { useGlassStore } from '@/stores/glass.store'
+import { useGlassEnabled, useReduceTransparency } from '@/hooks/use-glass'
 
 // Cờ "máy có kính" đọc qua getter nên đổi được giữa các test mà không phải
 // nạp lại module — nạp lại sẽ kéo theo bản React thứ hai và hook gãy.
@@ -17,13 +12,12 @@ jest.mock('@/utils/liquid-glass', () => ({
   },
 }))
 
-const initialReduceTransparency = false
 let emitChange: ((value: boolean) => void) | undefined
 const removeListener = jest.fn()
 
 jest
   .spyOn(AccessibilityInfo, 'isReduceTransparencyEnabled')
-  .mockImplementation(() => Promise.resolve(initialReduceTransparency))
+  .mockImplementation(() => Promise.resolve(false))
 // jest.spyOn suy ra kiểu từ overload đầu tiên của addEventListener
 // (announcementFinished), nên phải ép kiểu về đúng overload đang dùng
 // (reduceTransparencyChanged) để tsc không báo sai kiểu tham số.
@@ -44,61 +38,36 @@ addEventListener.mockImplementation((event, handler) => {
 
 beforeEach(() => {
   mockHasGlass = true
-  useGlassStore.setState({ level: 1 })
 })
 
-describe('useGlassLevel', () => {
-  it('máy có kính, không bật trợ năng: trả đúng mức trong store', async () => {
-    const { result } = renderHook(() => useGlassLevel())
+describe('useGlassEnabled', () => {
+  it('máy có kính, không bật trợ năng: bật kính', async () => {
+    const { result } = renderHook(() => useGlassEnabled())
     await act(async () => {})
-    expect(result.current).toBe(1)
-
-    await act(async () => {
-      useGlassStore.getState().setLevel(0.35)
-    })
-    expect(result.current).toBe(0.35)
+    expect(result.current).toBe(true)
   })
 
-  it('máy không có kính: luôn 0 dù store khác', async () => {
+  it('máy không có kính: luôn tắt', async () => {
     mockHasGlass = false
-    useGlassStore.setState({ level: 0.8 })
-    const { result } = renderHook(() => useGlassLevel())
+    const { result } = renderHook(() => useGlassEnabled())
     await act(async () => {})
-    expect(result.current).toBe(0)
+    expect(result.current).toBe(false)
   })
 
-  it('bật Reduce Transparency giữa chừng: về 0 ngay', async () => {
-    const { result } = renderHook(() => useGlassLevel())
+  it('bật Giảm độ trong suốt giữa chừng: tắt ngay, tắt lại thì bật lại', async () => {
+    const { result } = renderHook(() => useGlassEnabled())
     await act(async () => {})
-    expect(result.current).toBe(1)
+    expect(result.current).toBe(true)
 
     await act(async () => {
       emitChange?.(true)
     })
-    expect(result.current).toBe(0)
+    expect(result.current).toBe(false)
 
     await act(async () => {
       emitChange?.(false)
     })
-    expect(result.current).toBe(1)
-  })
-})
-
-describe('useGlassSupported', () => {
-  it('chỉ nói máy có hỗ trợ hay không, không quan tâm trợ năng', async () => {
-    const { result } = renderHook(() => useGlassSupported())
-    await act(async () => {})
     expect(result.current).toBe(true)
-
-    await act(async () => {
-      emitChange?.(true)
-    })
-    expect(result.current).toBe(true)
-
-    mockHasGlass = false
-    const second = renderHook(() => useGlassSupported())
-    await act(async () => {})
-    expect(second.result.current).toBe(false)
   })
 })
 
@@ -118,13 +87,10 @@ describe('useReduceTransparency', () => {
     expect(result.current).toBe(false)
   })
 
-  it('gỡ listener của hệ thống khi component unmount', async () => {
-    removeListener.mockClear()
+  it('gỡ listener khi unmount', async () => {
     const { unmount } = renderHook(() => useReduceTransparency())
     await act(async () => {})
-
     unmount()
-
     expect(removeListener).toHaveBeenCalled()
   })
 })

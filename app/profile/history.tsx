@@ -42,6 +42,7 @@ import { colors } from '@/constants'
 import { ORDER_HISTORY_ITEM_HEIGHT } from '@/constants/list-item-sizes'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useOrders, useRunAfterTransition } from '@/hooks'
+import { GlassHeaderButton } from '@/components/navigation/glass-header-button'
 import { navigateNative } from '@/lib/navigation'
 import { useNotificationStore, useUserStore } from '@/stores'
 import { firstUnreadOrderPaidSlug } from '@/stores/selectors/notification.selectors'
@@ -793,24 +794,16 @@ function OrderHistoryPage() {
             ]}
             pointerEvents="auto"
           >
-            <Pressable
+            <GlassHeaderButton
+              isDark={isDark}
               onPress={navigateNative.back}
-              hitSlop={8}
-              style={[
-                pageStyles.circleBtn,
-                {
-                  backgroundColor: isDark
-                    ? colors.card.dark
-                    : colors.white.light,
-                },
-                pageStyles.shadow,
-              ]}
+              size={42}
             >
               <ChevronLeft
                 size={20}
                 color={isDark ? colors.gray[50] : colors.gray[900]}
               />
-            </Pressable>
+            </GlassHeaderButton>
 
             <Text
               style={[
@@ -821,20 +814,15 @@ function OrderHistoryPage() {
               {t('order.history', 'Lịch sử đơn hàng')}
             </Text>
 
-            <Pressable
+            {/* Đang lọc thì nút mang nền nhấn màu thương hiệu, nên bỏ kính
+                và bỏ shadow để màu đó không bị pha loãng. */}
+            <GlassHeaderButton
+              isDark={isDark}
               onPress={handleFilterOpen}
               hitSlop={4}
-              style={[
-                pageStyles.circleBtn,
-                {
-                  backgroundColor: isDateFilterActive
-                    ? `${primaryColor}15`
-                    : isDark
-                      ? colors.card.dark
-                      : colors.white.light,
-                },
-                !isDateFilterActive && pageStyles.shadow,
-              ]}
+              size={42}
+              solidColor={isDateFilterActive ? `${primaryColor}15` : undefined}
+              withoutShadow={isDateFilterActive}
             >
               <SlidersHorizontal
                 size={18}
@@ -854,7 +842,7 @@ function OrderHistoryPage() {
                   ]}
                 />
               )}
-            </Pressable>
+            </GlassHeaderButton>
           </View>
 
           {/* Filter chips */}
@@ -963,20 +951,6 @@ const pageStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-  },
-  circleBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  shadow: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 24,
-    elevation: 2,
   },
   headerTitle: { fontSize: 17, fontWeight: '700' },
   filterRow: { paddingTop: 10, paddingBottom: 4 },

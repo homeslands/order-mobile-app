@@ -22,6 +22,10 @@ export { SettingsItem, SettingsSection } from './settings-item'
 export { LanguageSheet } from './language-sheet'
 export { ThemeSheet } from './theme-sheet'
 export { FontSizeSheet } from './font-size-sheet'
-export { GlassSheet } from './glass-sheet'
 export { DeleteAccountSheet } from './delete-account-sheet'
 export { ProfileNudgePopup } from './dob-nudge-banner'
+export {
+  ProfileMenuItem,
+  profileCardStyles,
+  type ProfileMenuItemProps,
+} from './profile-menu-item'

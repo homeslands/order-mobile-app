@@ -10,6 +10,7 @@ import {
   DobExpandablePicker,
 } from '@/components/profile'
 import { Input } from '@/components/ui'
+import { GlassHeaderButton } from '@/components/navigation/glass-header-button'
 import { colors } from '@/constants/colors.constant'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useUserStore } from '@/stores'
@@ -175,14 +176,11 @@ function EditHeader({
         style={[ehStyles.row, { paddingTop: STATIC_TOP_INSET + 10 }]}
         pointerEvents="auto"
       >
-        <Pressable
+        <GlassHeaderButton
+          isDark={isDark}
           onPress={onCancel}
-          hitSlop={8}
-          style={[
-            ehStyles.cancelBtn,
-            { backgroundColor: isDark ? colors.card.dark : colors.white.light },
-            ehStyles.shadow,
-          ]}
+          size={42}
+          paddingHorizontal={16}
         >
           <Text
             style={[
@@ -192,7 +190,7 @@ function EditHeader({
           >
             {t('profile.cancel')}
           </Text>
-        </Pressable>
+        </GlassHeaderButton>
         <View
           style={[ehStyles.titleAbsolute, { top: STATIC_TOP_INSET + 10 }]}
           pointerEvents="none"
@@ -207,17 +205,18 @@ function EditHeader({
             {title}
           </Text>
         </View>
-        <Pressable
+        {/* Nút xác nhận mang màu trạng thái riêng (primary khi có thay đổi,
+            xám khi chưa) nên luôn dùng nền đặc — phủ kính lên sẽ làm nhạt
+            đúng cái màu đang báo trạng thái. */}
+        <GlassHeaderButton
+          isDark={isDark}
           onPress={isDirty ? onConfirm : undefined}
-          hitSlop={8}
-          style={[
-            ehStyles.circleBtn,
-            { backgroundColor: confirmBg },
-            ehStyles.shadow,
-          ]}
+          size={42}
+          solidColor={confirmBg}
+          withoutShadow
         >
           <Check size={20} color={confirmIconColor} />
-        </Pressable>
+        </GlassHeaderButton>
       </View>
     </View>
   )
@@ -237,20 +236,6 @@ const ehStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-  },
-  circleBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelBtn: {
-    height: 42,
-    borderRadius: 21,
-    paddingHorizontal: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   cancelText: {
     fontSize: 15,
