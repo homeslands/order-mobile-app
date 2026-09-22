@@ -38,12 +38,14 @@ import { TouchableOpacity as GHTouchable } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { getOrderBySlug } from '@/api'
-import { colors, NotificationMessageCode } from '@/constants'
+import { colors } from '@/constants'
 import { ORDER_HISTORY_ITEM_HEIGHT } from '@/constants/list-item-sizes'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useOrders, useRunAfterTransition } from '@/hooks'
+import { GlassHeaderButton } from '@/components/navigation/glass-header-button'
 import { navigateNative } from '@/lib/navigation'
 import { useNotificationStore, useUserStore } from '@/stores'
+import { firstUnreadOrderPaidSlug } from '@/stores/selectors/notification.selectors'
 import type { IOrder } from '@/types'
 import { OrderStatus } from '@/types'
 import { paymentStatus } from '@/constants'
@@ -52,6 +54,7 @@ import { calculateOrderDisplayAndTotals } from '@/utils'
 import OrderCard from './order-card'
 import type { OrderDisplayData } from './order-card'
 import { OrderHistorySkeleton } from './order-history-skeleton'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 // ─── Module-level FIFO cache for order display data ─────────────────────────
@@ -174,7 +177,6 @@ const HistoryDateFilterSheet = memo(function HistoryDateFilterSheet({
   const [toOpen, setToOpen] = useState(false)
   const defaultNow = useMemo(() => new Date(), [])
 
-  const bg = isDark ? colors.card.dark : colors.white.light
   const textColor = isDark ? colors.gray[50] : colors.gray[900]
   const subColor = isDark ? colors.gray[400] : colors.gray[500]
   const chipBg = isDark ? colors.border.dark : colors.gray[100]
@@ -218,7 +220,7 @@ const HistoryDateFilterSheet = memo(function HistoryDateFilterSheet({
       enableContentPanningGesture={false}
       enableHandlePanningGesture
       backdropComponent={renderBackdrop}
-      backgroundStyle={{ backgroundColor: bg }}
+      backgroundComponent={GlassSheetBackground}
       handleIndicatorStyle={{
         backgroundColor: isDark ? colors.gray[600] : colors.gray[300],
       }}
@@ -471,15 +473,15 @@ function OrderHistoryPage() {
 
   // ── Auto-refetch on FCM ORDER_PAID notification ──
   const processedRef = useRef<Set<string>>(new Set())
-  const latestNotification = useNotificationStore((s) => s.notifications[0])
+  const paidNotificationSlug = useNotificationStore((s) =>
+    firstUnreadOrderPaidSlug(s.notifications),
+  )
   useEffect(() => {
-    if (!latestNotification || latestNotification.isRead) return
-    if (processedRef.current.has(latestNotification.slug)) return
-    if (latestNotification.message === NotificationMessageCode.ORDER_PAID) {
-      processedRef.current.add(latestNotification.slug)
-      refetch()
-    }
-  }, [latestNotification, refetch])
+    if (!paidNotificationSlug) return
+    if (processedRef.current.has(paidNotificationSlug)) return
+    processedRef.current.add(paidNotificationSlug)
+    refetch()
+  }, [paidNotificationSlug, refetch])
 
   const orders = useMemo(
     () => orderResponse?.items || [],
@@ -792,24 +794,16 @@ function OrderHistoryPage() {
             ]}
             pointerEvents="auto"
           >
-            <Pressable
+            <GlassHeaderButton
+              isDark={isDark}
               onPress={navigateNative.back}
-              hitSlop={8}
-              style={[
-                pageStyles.circleBtn,
-                {
-                  backgroundColor: isDark
-                    ? colors.card.dark
-                    : colors.white.light,
-                },
-                pageStyles.shadow,
-              ]}
+              size={42}
             >
               <ChevronLeft
                 size={20}
                 color={isDark ? colors.gray[50] : colors.gray[900]}
               />
-            </Pressable>
+            </GlassHeaderButton>
 
             <Text
               style={[
@@ -820,20 +814,15 @@ function OrderHistoryPage() {
               {t('order.history', 'Lịch sử đơn hàng')}
             </Text>
 
-            <Pressable
+            {/* Đang lọc thì nút mang nền nhấn màu thương hiệu, nên bỏ kính
+                và bỏ shadow để màu đó không bị pha loãng. */}
+            <GlassHeaderButton
+              isDark={isDark}
               onPress={handleFilterOpen}
               hitSlop={4}
-              style={[
-                pageStyles.circleBtn,
-                {
-                  backgroundColor: isDateFilterActive
-                    ? `${primaryColor}15`
-                    : isDark
-                      ? colors.card.dark
-                      : colors.white.light,
-                },
-                !isDateFilterActive && pageStyles.shadow,
-              ]}
+              size={42}
+              solidColor={isDateFilterActive ? `${primaryColor}15` : undefined}
+              withoutShadow={isDateFilterActive}
             >
               <SlidersHorizontal
                 size={18}
@@ -853,7 +842,7 @@ function OrderHistoryPage() {
                   ]}
                 />
               )}
-            </Pressable>
+            </GlassHeaderButton>
           </View>
 
           {/* Filter chips */}
@@ -962,20 +951,6 @@ const pageStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-  },
-  circleBtn: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  shadow: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 24,
-    elevation: 2,
   },
   headerTitle: { fontSize: 17, fontWeight: '700' },
   filterRow: { paddingTop: 10, paddingBottom: 4 },

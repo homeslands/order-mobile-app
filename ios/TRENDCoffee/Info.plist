@@ -19,7 +19,7 @@
     <key>CFBundlePackageType</key>
     <string>$(PRODUCT_BUNDLE_PACKAGE_TYPE)</string>
     <key>CFBundleShortVersionString</key>
-    <string>2.6.0</string>
+    <string>2.7.0</string>
     <key>CFBundleSignature</key>
     <string>????</string>
     <key>CFBundleURLTypes</key>
@@ -33,7 +33,7 @@
       </dict>
     </array>
     <key>CFBundleVersion</key>
-    <string>68</string>
+    <string>69</string>
     <key>GMSApiKey</key>
     <string>AIzaSyDWHm2jppI3-aSTsRORXr5R6sFeqRhY9XQ</string>
     <key>ITSAppUsesNonExemptEncryption</key>
@@ -50,7 +50,7 @@
       <true/>
     </dict>
     <key>NSCameraUsageDescription</key>
-    <string>Ứng dụng cần quyền camera để chụp ảnh đại diện và quét mã QR voucher.</string>
+    <string>Ứng dụng cần quyền camera để chụp ảnh đại diện, quét mã QR voucher và mã QR thanh toán xu.</string>
     <key>NSFaceIDUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your Face ID biometric data.</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>

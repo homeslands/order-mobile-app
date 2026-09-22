@@ -94,10 +94,13 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ### Routing (Expo Router - file-based)
 
-- `app/_layout.tsx` — Root layout with all global providers (QueryClient, GestureHandler, BottomSheet, MasterTransition, SharedElement, Toast, I18n, GhostMount)
-- `app/(tabs)/_layout.tsx` — Tab navigator with animated tab bar and floating cart button
-- Main tabs: home, menu, cart, gift-card, profile, perf (dev)
-- Nested routes: `/(tabs)/menu/product/[id]`, `/auth/*`, `/payment/[order]`, `/update-order/[order]`
+- `app/_layout.tsx` — Root layout with all global providers (QueryClient, GestureHandler, BottomSheet, MasterTransition, SharedElement, Toast, I18n)
+- `app/(tabs)/_layout.tsx` — Tab navigator, split by **capability, not platform** (`HAS_LIQUID_GLASS`):
+  - **iOS 26+**: OS-native tab bar (`expo-router/unstable-native-tabs`). Cart is the 5th tab and renders as a detached pill via `role="search"`.
+  - **Everywhere else** (Android, iOS < 26, web): custom-drawn bar (`components/navigation/custom-tabs-navigator.tsx` + `AnimatedTabBar`) over expo-router's `<Tabs>`. Android's Material 3 bar cannot draw the app's active pill — its indicator wraps the icon only, never the label (`NavigationBarItemView`, material 1.12.0); iOS < 26 has no floating-capsule tab bar at all.
+- Main tabs (in order): home, menu, gift-card, profile, cart — on the custom bar the cart is a floating circular button beside the bar, not a tab.
+- `patches/react-native-screens+4.16.0.patch` hides the native tab bar on the cart tab (`RNSTabBarController.mm`). UIKit has no supported way to do this: `hidesBottomBarWhenPushed` only applies to pushed screens, and expo-router's `hidden` drops the route from the navigator entirely.
+- Nested routes: `/product/[id]`, `/profile/edit`, `/auth/*`, `/payment/[order]`, `/update-order/[slug]`
 
 ### State Management
 
@@ -111,7 +114,6 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 Custom navigation layer on top of Expo Router with:
 
 - **MasterTransitionProvider** — Syncs native stack animation progress with Reanimated shared values
-- **GhostMountProvider** — Pre-mounts routes (e.g., menu) for instant navigation
 - **Navigation locking** — Prevents concurrent navigations from causing animation conflicts
 - **Transition task queue** — Schedules store updates safely during transitions
 - **Loading overlay** — Shows during slow navigations, skipped when QueryClient has cached data
@@ -192,8 +194,9 @@ const insets = useSafeAreaInsets()
 paddingBottom: insets.bottom + 16   // dynamic vì bottom có thể thay đổi
 
 // ✅ ĐÚNG — tab screen scroll content
-import { TAB_BAR_BOTTOM_PADDING } from '@/components/layout'
-contentContainerStyle={{ paddingBottom: TAB_BAR_BOTTOM_PADDING }}
+import { useTabBarBottomPadding } from '@/components/layout'
+const bottomPadding = useTabBarBottomPadding()
+contentContainerStyle={{ paddingBottom: bottomPadding }}
 ```
 
 ### Background color

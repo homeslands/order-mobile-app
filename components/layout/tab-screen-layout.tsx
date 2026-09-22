@@ -24,25 +24,34 @@ import type { StyleProp, ViewStyle } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '@/constants'
+import { HAS_LIQUID_GLASS } from '@/utils/liquid-glass'
 
 /**
- * Chiều cao tab bar vật lý: BAR_HEIGHT(64) + BAR_PADDING(8) + MIN_GAP(8) + FADE buffer(8).
- * Đây là phần cố định — không phụ thuộc safe area.
+ * Chiều cao thanh tab, KHÔNG gồm safe area đáy.
+ *
+ * Có kính (iOS 26+): 49pt — thanh tab gốc của hệ điều hành (chuẩn UIKit), đo
+ * trên máy thật ngày 2026-09-20.
+ * Không kính (Android và iOS dưới 26): 88 = BAR_HEIGHT(64) + BAR_PADDING(8) +
+ * VISUAL_GAP(10) + đệm fade(6) của thanh tự vẽ — xem
+ * components/navigation/custom-tabs-navigator.tsx.
+ *
+ * Rẽ theo HAS_LIQUID_GLASS chứ không theo nền tảng, khớp với cách
+ * app/(tabs)/_layout.tsx chọn navigator.
+ *
+ * Safe area của màn con KHÔNG chứa chiều cao này ở cả hai nhánh — đã kiểm
+ * bằng cách in `useSafeAreaInsets().bottom` ngay trong một tab.
  */
-const TAB_BAR_HEIGHT = 88
+export const NATIVE_TAB_BAR_HEIGHT = HAS_LIQUID_GLASS ? 49 : 88
 
 /**
  * Hook trả về padding bottom chính xác theo thiết bị.
- * Tính bằng tab bar height + insets.bottom thực tế của device.
  *
- * - iPhone 16 Pro Max: 88 + 34 = 122
- * - iPhone SE:         88 + 0  = 88
- * - iPad:              88 + 20 = 108
- * - Android gesture:  88 + 24 = 112 (thay đổi theo system setting)
+ * - iPhone (iOS):      49 + insets.bottom (34 ở iPhone có home indicator)
+ * - Android gesture:   88 + insets.bottom (24 ở thanh cử chỉ)
  */
 export function useTabBarBottomPadding(extra = 0): number {
   const { bottom } = useSafeAreaInsets()
-  return TAB_BAR_HEIGHT + bottom + extra
+  return NATIVE_TAB_BAR_HEIGHT + bottom + extra
 }
 
 export interface TabScreenLayoutProps {

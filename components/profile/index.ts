@@ -24,3 +24,8 @@ export { ThemeSheet } from './theme-sheet'
 export { FontSizeSheet } from './font-size-sheet'
 export { DeleteAccountSheet } from './delete-account-sheet'
 export { ProfileNudgePopup } from './dob-nudge-banner'
+export {
+  ProfileMenuItem,
+  profileCardStyles,
+  type ProfileMenuItemProps,
+} from './profile-menu-item'

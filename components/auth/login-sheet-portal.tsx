@@ -4,12 +4,11 @@ import {
   BottomSheetScrollView,
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet'
-import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
-import { useColorScheme } from 'react-native'
+import { memo, useCallback, useEffect, useRef } from 'react'
 
 import { LoginPanel } from '@/components/auth'
-import { colors } from '@/constants'
 import { useLoginSheetStore } from '@/stores/login-sheet.store'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 
 const LOGIN_SHEET_SNAP = ['90%']
 
@@ -18,7 +17,6 @@ const LoginSheetPortalComponent = () => {
   const onSuccess = useLoginSheetStore((s) => s.onSuccess)
   const close = useLoginSheetStore((s) => s.close)
   const sheetRef = useRef<BottomSheetModal>(null)
-  const isDark = useColorScheme() === 'dark'
 
   useEffect(() => {
     if (visible) sheetRef.current?.present()
@@ -29,11 +27,6 @@ const LoginSheetPortalComponent = () => {
     close()
     onSuccess?.()
   }, [close, onSuccess])
-
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
-  )
 
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
@@ -55,7 +48,7 @@ const LoginSheetPortalComponent = () => {
       enablePanDownToClose
       enableDynamicSizing={false}
       backdropComponent={renderBackdrop}
-      backgroundStyle={bgStyle}
+      backgroundComponent={GlassSheetBackground}
       onDismiss={close}
     >
       <BottomSheetScrollView

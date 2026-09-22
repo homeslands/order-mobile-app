@@ -4,7 +4,7 @@ import {
   BottomSheetModal,
 } from '@gorhom/bottom-sheet'
 import { TriangleAlert } from 'lucide-react-native'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   ActivityIndicator,
@@ -21,6 +21,7 @@ import { navigateNative } from '@/lib/navigation'
 import type { IOrder } from '@/types'
 import { showToast } from '@/utils'
 import { useQueryClient } from '@tanstack/react-query'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 const SNAP_POINTS = ['38%']
@@ -74,11 +75,6 @@ function CancelOrderDialogComponent({
     })
   }, [order, isDeleting, deleteOrder, queryClient, tToast])
 
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
-  )
-
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
@@ -120,7 +116,7 @@ function CancelOrderDialogComponent({
         enablePanDownToClose={!isDeleting}
         enableDynamicSizing={false}
         backdropComponent={renderBackdrop}
-        backgroundStyle={bgStyle}
+        backgroundComponent={GlassSheetBackground}
         handleIndicatorStyle={{
           backgroundColor: isDark ? colors.gray[600] : colors.gray[300],
         }}

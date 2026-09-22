@@ -1,4 +1,5 @@
 import { colors } from '@/constants'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import {
   type OrderTypeOption,
   useOrderTypeOptions,
@@ -57,10 +58,6 @@ export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
     () => [ORDER_TYPE_SHEET_BASE_HEIGHT + bottomInset],
     [bottomInset],
   )
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
-  )
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
@@ -101,15 +98,13 @@ export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
       enableHandlePanningGesture
       enableDynamicSizing={false}
       backdropComponent={renderBackdrop}
-      backgroundStyle={bgStyle}
+      backgroundComponent={GlassSheetBackground}
       onDismiss={onClose}
     >
       <View
         style={[orderTypeSheetStyles.content, { paddingBottom: bottomInset }]}
       >
-        <Text
-          style={[orderTypeSheetStyles.title, { color: labelColor }]}
-        >
+        <Text style={[orderTypeSheetStyles.title, { color: labelColor }]}>
           {t('menu.orderType')}
         </Text>
         {orderTypes.length === 0 && (
@@ -126,7 +121,9 @@ export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
         )}
         {orderTypes.map((opt: OrderTypeOption) => {
           const selected = selectedType?.value === opt.value
-          const Icon = ORDER_TYPE_ICONS[opt.value as keyof typeof ORDER_TYPE_ICONS] ?? UtensilsCrossed
+          const Icon =
+            ORDER_TYPE_ICONS[opt.value as keyof typeof ORDER_TYPE_ICONS] ??
+            UtensilsCrossed
           const iconColor = selected ? primaryColor : mutedColor
 
           return (
@@ -153,9 +150,7 @@ export const SimpleOrderTypeSheet = memo(function SimpleOrderTypeSheet({
                 style={[
                   orderTypeSheetStyles.iconWrap,
                   {
-                    backgroundColor: selected
-                      ? `${primaryColor}20`
-                      : iconBg,
+                    backgroundColor: selected ? `${primaryColor}20` : iconBg,
                   },
                 ]}
               >

@@ -21,6 +21,7 @@ import { StyleSheet, TextInput, View } from 'react-native'
 import { colors } from '@/constants'
 import { TouchableOpacity as GHTouchable } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 const PRICE_PRESETS = [
@@ -72,10 +73,6 @@ export const PriceFilterSheet = memo(function PriceFilterSheet({
     currentMax < 300_000 ? String(currentMax) : '',
   )
 
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
-  )
   const handleIndicator = useMemo(
     () => ({ backgroundColor: isDark ? colors.gray[600] : colors.gray[300] }),
     [isDark],
@@ -141,7 +138,7 @@ export const PriceFilterSheet = memo(function PriceFilterSheet({
       activeOffsetY={[-10, 10]}
       failOffsetX={[-5, 5]}
       backdropComponent={renderBackdrop}
-      backgroundStyle={bgStyle}
+      backgroundComponent={GlassSheetBackground}
       handleIndicatorStyle={handleIndicator}
       onDismiss={onClose}
     >

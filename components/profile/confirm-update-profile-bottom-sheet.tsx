@@ -25,6 +25,7 @@ import { TouchableOpacity as GHTouchable } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useTranslation } from 'react-i18next'
 import { colors } from '@/constants'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 export type ConfirmUpdateProfileBottomSheetRef = {
@@ -80,10 +81,6 @@ const ConfirmUpdateProfileBottomSheetBase = forwardRef<
     [],
   )
 
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : '#ffffff' }),
-    [isDark],
-  )
   const handleIndicator = useMemo(
     () => ({ backgroundColor: isDark ? '#4B5563' : '#D1D5DB' }),
     [isDark],
@@ -100,7 +97,7 @@ const ConfirmUpdateProfileBottomSheetBase = forwardRef<
       activeOffsetY={[-10, 10]}
       failOffsetX={[-5, 5]}
       backdropComponent={renderBackdrop}
-      backgroundStyle={bgStyle}
+      backgroundComponent={GlassSheetBackground}
       handleIndicatorStyle={handleIndicator}
       onDismiss={() => setVisible(false)}
     >

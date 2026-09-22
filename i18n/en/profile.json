@@ -436,6 +436,14 @@
       "large": "Large",
       "preview": "Sample text"
     },
+    "glass": {
+      "title": "Glass transparency",
+      "subtitle": "Drag to set how transparent headers, sheets and dialogs look.",
+      "solid": "Solid",
+      "clear": "Clear",
+      "preview": "Preview",
+      "reduceTransparencyNote": "Turned off by the device's Reduce Transparency setting."
+    },
     "dobPicker": {
       "confirm": "Confirm",
       "months": [
@@ -472,7 +480,9 @@
       "memberId": "Member ID",
       "memberIdDesc": "Staff scans code at the counter",
       "coinPayment": "Coin Payment",
-      "coinPaymentDesc": "Scan QR to pay with coins"
+      "coinPaymentDesc": "Show this code to staff to pay with coins",
+      "scanPay": "Scan to pay order",
+      "scanPayDesc": "Pay an order at the counter with your coins"
     },
     "orderStatus": {
       "completed": "Completed",

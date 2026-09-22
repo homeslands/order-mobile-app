@@ -6,7 +6,7 @@ import {
 } from '@gorhom/bottom-sheet'
 import { useQueryClient } from '@tanstack/react-query'
 import { formatCurrencyNative } from 'cart-price-calc'
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   ActivityIndicator,
@@ -37,6 +37,7 @@ import {
   showErrorToastMessage,
   showToast,
 } from '@/utils'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 const SNAP_POINTS = ['65%']
@@ -217,10 +218,6 @@ export default memo(function ConfirmUpdateOrderDialog({
 
   // ── Sheet UI ─────────────────────────────────────────────────────────────────
 
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
-  )
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
@@ -297,7 +294,7 @@ export default memo(function ConfirmUpdateOrderDialog({
         enableHandlePanningGesture
         enableDynamicSizing={false}
         backdropComponent={renderBackdrop}
-        backgroundStyle={bgStyle}
+        backgroundComponent={GlassSheetBackground}
         onDismiss={() => setSheetVisible(false)}
       >
         {/* Header */}

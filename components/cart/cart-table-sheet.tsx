@@ -1,4 +1,5 @@
 import { colors, TableStatus } from '@/constants'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { useTables } from '@/hooks/use-table'
 import { useBranchStore, useOrderFlowStore } from '@/stores'
 import type { ITable } from '@/types'
@@ -198,11 +199,6 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
     [isLoading, isDark],
   )
 
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : colors.white.light }),
-    [isDark],
-  )
-
   const renderBackdrop = useCallback(
     (props: BottomSheetBackdropProps) => (
       <BottomSheetBackdrop
@@ -231,7 +227,7 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
         enableHandlePanningGesture
         enableDynamicSizing={false}
         backdropComponent={renderBackdrop}
-        backgroundStyle={bgStyle}
+        backgroundComponent={GlassSheetBackground}
         onDismiss={onClose}
       >
         <BottomSheetFlashList

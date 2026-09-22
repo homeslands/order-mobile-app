@@ -307,7 +307,11 @@ export default function PlaceOrderDialog({
               id="CreateOrderDialogContent"
               onRender={onReactProfilerRender}
             >
-              <Dialog.Content className="max-w-md gap-0 rounded-md p-0">
+              {/* radius={6} khớp rounded-md ở className (calc(var(--radius) - 2px)) */}
+              <Dialog.Content
+                className="max-w-md gap-0 rounded-md p-0"
+                radius={6}
+              >
                 <Dialog.Close onPress={() => setIsOpen(false)} />
                 <Dialog.Header className="p-4">
                   <View className="border-b border-gray-200 pb-2 dark:border-[#2e2e2e]">

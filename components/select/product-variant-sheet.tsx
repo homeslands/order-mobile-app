@@ -10,6 +10,7 @@ import { useColorScheme, View } from 'react-native'
 import { colors } from '@/constants'
 import { useOrderFlowStore } from '@/stores'
 import { IProductVariant } from '@/types'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 let sheetRef: BottomSheet | null = null
@@ -154,9 +155,7 @@ function ProductVariantSheet({
       enableDynamicSizing={false}
       onChange={handleSheetChanges}
       backdropComponent={renderBackdrop}
-      backgroundStyle={{
-        backgroundColor: isDark ? colors.card.dark : '#ffffff',
-      }}
+      backgroundComponent={GlassSheetBackground}
       containerStyle={{
         zIndex: 9999,
         elevation: 9999,

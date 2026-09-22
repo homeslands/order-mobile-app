@@ -265,18 +265,6 @@ import { PasswordRulesInput } from '@/components/input'
 
 ## Navigation Components
 
-### Animated Tab Button
-
-**File**: `components/navigation/animated-tab-button.tsx`
-
-Used in bottom tab bar — don't use directly.
-
-### Tab Button
-
-**File**: `components/navigation/tab-button.tsx`
-
-Custom tab button with icon + label.
-
 ### Navigate Pressable
 
 **File**: `components/navigation/navigate-pressable.tsx`
@@ -292,44 +280,6 @@ import { NavigatePressable } from '@/components/navigation'
 >
   <Text>Go to Menu</Text>
 </NavigatePressable>
-```
-
-## Data Display Components
-
-### Data Table
-
-**File**: `components/ui/data-table/`
-
-Complex table component for web/desktop:
-
-```tsx
-import { DataTable } from '@/components/ui/data-table'
-;<DataTable columns={columns} data={data} pagination={true} search={true} />
-```
-
-### Carousel
-
-**File**: `components/ui/carousel.tsx`
-
-For image galleries:
-
-```tsx
-import { Carousel } from '@/components/ui/carousel'
-;<Carousel
-  data={images}
-  renderItem={({ item }) => <Image source={{ uri: item.url }} />}
-/>
-```
-
-### Product Image Carousel
-
-**File**: `components/menu/product-image-carousel.tsx`
-
-Optimized for product images with zoom:
-
-```tsx
-import { ProductImageCarousel } from '@/components/menu'
-;<ProductImageCarousel images={product.images} />
 ```
 
 ## Selection Components
@@ -411,7 +361,6 @@ Located in `components/cart/`:
 
 Located in `components/profile/`:
 
-- `profile-header.tsx` — User info section
 - `info-card.tsx` — Info display card
 - `birthday-picker.tsx` — Date picker
 - `settings-item.tsx` — Settings option row

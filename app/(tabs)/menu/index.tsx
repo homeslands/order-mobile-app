@@ -10,7 +10,7 @@ import {
 } from '@/api/menu'
 import { Images } from '@/assets/images'
 import { SelectBranchDropdown } from '@/components/branch'
-import { TabScreenLayout } from '@/components/layout'
+import { TabScreenLayout, useTabBarBottomPadding } from '@/components/layout'
 import { PriceFilterSheet } from '@/components/menu/price-sheet'
 import { PressableWithFeedback } from '@/components/navigation/pressable-with-feedback'
 import { NotificationBell } from '@/components/notification/notification-bell'
@@ -76,6 +76,12 @@ const menuGetItemType = (item: FlatItem) => item._kind
 const MENU_IMAGE_PREFETCH_AHEAD_COUNT = 5
 const MENU_IMAGE_PREFETCH_DEBOUNCE_MS = 100
 const MENU_ENTRY_IMAGE_DELAY_MS = 300
+/**
+ * Hạn chót mở toàn bộ ảnh, tính từ lúc màn nhận focus. Rộng hơn nhiều so với
+ * đường đi bình thường (`runAfterInteractions` + 300ms + một frame) nên không
+ * cướp việc của cơ chế giãn tải; chỉ cứu khi đường đó không bao giờ tới đích.
+ */
+const MENU_IMAGE_REVEAL_MAX_WAIT_MS = 2500
 const ENABLE_SCROLL_PREFETCH = true
 const SEARCH_DEBOUNCE_MS = 300
 const PREFETCH_URL_CACHE_MAX = 256
@@ -111,6 +117,7 @@ export default function MenuPage() {
   const { userSlug, isAuthenticated, menuFilter, branchSlug } =
     useMenuScreenState()
   const setMenuFilter = useSetMenuFilter()
+  const bottomPadding = useTabBarBottomPadding()
   const [allowFetch, setAllowFetch] = useState(false)
   const [imagePhaseCount, setImagePhaseCount] = useState(0)
 
@@ -159,9 +166,21 @@ export default function MenuPage() {
     useCallback(() => {
       setAllowFetch(false)
       const isFirstLoad = !hasLoadedImagesOnceRef.current
-      if (isFirstLoad) setImagePhaseCount(0)
+
+      // Cổng ảnh chỉ để giãn lượt giải mã ở LẦN VÀO ĐẦU. Lần sau quay lại thì
+      // mở hết ngay — vừa đúng ý đồ, vừa là lưới an toàn: nếu lần trước chuỗi
+      // hẹn giờ bị cắt giữa chừng và kẹt ở 4 ảnh đầu, lần này tự chữa.
+      setImagePhaseCount(isFirstLoad ? 0 : Number.MAX_SAFE_INTEGER)
 
       let imageTimer: ReturnType<typeof setTimeout> | null = null
+
+      // Đánh dấu "đã vào một lần" CHỈ khi ảnh đã mở hết. Nếu đặt sớm hơn, một
+      // lần chuyển tab đúng lúc sẽ khoá vĩnh viễn màn ở trạng thái 4 ảnh.
+      const revealAll = () => {
+        hasLoadedImagesOnceRef.current = true
+        startTransition(() => setImagePhaseCount(Number.MAX_SAFE_INTEGER))
+      }
+
       const task = InteractionManager.runAfterInteractions(() => {
         // Enable the data fetch as soon as interactions settle (past the entry
         // animation) — NOT coupled to the image-reveal delay, so a cold cache
@@ -172,19 +191,22 @@ export default function MenuPage() {
         // Defer the image reveal, then stagger it across two frames to avoid a
         // single-commit native decode/texture storm on first entry.
         imageTimer = setTimeout(() => {
-          hasLoadedImagesOnceRef.current = true
           startTransition(() =>
             setImagePhaseCount(MENU_IMAGE_HIGH_PRIORITY_COUNT),
           )
-          requestAnimationFrame(() =>
-            startTransition(() => setImagePhaseCount(Number.MAX_SAFE_INTEGER)),
-          )
+          requestAnimationFrame(revealAll)
         }, MENU_ENTRY_IMAGE_DELAY_MS)
       })
+
+      // Lưới an toàn: `runAfterInteractions` không chạy chừng nào còn một
+      // interaction handle chưa được trả, và `requestAnimationFrame` không chạy
+      // khi app xuống nền. Không để ảnh trắng vĩnh viễn vì hai chuyện đó.
+      const fallbackTimer = setTimeout(revealAll, MENU_IMAGE_REVEAL_MAX_WAIT_MS)
 
       return () => {
         task.cancel()
         if (imageTimer) clearTimeout(imageTimer)
+        clearTimeout(fallbackTimer)
         setAllowFetch(false)
       }
     }, []),
@@ -574,7 +596,7 @@ export default function MenuPage() {
       useTransientNavStore.getState().setHeroImageUrls(heroImageUrls)
 
       router.push({
-        pathname: '/(tabs)/menu/product/[id]',
+        pathname: '/product/[id]',
         params: {
           id: selectedItem.id,
           name: selectedItem.name,
@@ -865,7 +887,10 @@ export default function MenuPage() {
             }
             viewabilityConfig={menuViewabilityConfig}
             showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContent}
+            contentContainerStyle={[
+              styles.listContent,
+              { paddingBottom: bottomPadding },
+            ]}
             ListEmptyComponent={listEmptyComponent}
           />
         </MenuImagePhaseContext.Provider>
@@ -916,7 +941,6 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingTop: 8,
-    paddingBottom: 160,
   },
   emptyBox: {
     margin: 16,

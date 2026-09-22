@@ -12,6 +12,7 @@ import { Pressable, StyleSheet, View } from 'react-native'
 import { LightweightDialog } from '@/components/ui/lightweight-dialog'
 import { colors } from '@/constants'
 import { formatCurrency } from '@/utils'
+import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
 
 type Props = {
@@ -34,13 +35,12 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
   isDark,
 }: Props) {
   const { t } = useTranslation('menu')
+  const unit = t('paymentMethod.coinUnit', 'xu')
 
   // Stable theme-dependent style objects
   const theme = useMemo(
     () => ({
-      card: {
-        backgroundColor: isDark ? colors.card.dark : colors.white.light,
-      },
+      cardColor: isDark ? colors.card.dark : colors.white.light,
       title: { color: isDark ? colors.gray[50] : colors.gray[900] },
       label: { color: isDark ? colors.gray[400] : colors.gray[500] },
       value: { color: isDark ? colors.gray[50] : colors.gray[900] },
@@ -63,7 +63,12 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
   return (
     <LightweightDialog visible={visible} onClose={onClose}>
       {(dismiss) => (
-        <View style={[s.card, theme.card]}>
+        <View style={s.card}>
+          <GlassSurface
+            color={theme.cardColor}
+            radius={16}
+            style={StyleSheet.absoluteFill}
+          />
           <Text style={[s.title, theme.title]}>
             {t(
               'paymentMethod.confirmPointPaymentTitle',
@@ -76,7 +81,7 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
                 {t('paymentMethod.currentBalance', 'Số dư hiện tại')}
               </Text>
               <Text style={[s.value, theme.value]}>
-                {formatCurrency(coinBalance, '')} xu
+                {formatCurrency(coinBalance, '').trim()} {unit}
               </Text>
             </View>
             <View style={s.row}>
@@ -84,7 +89,7 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
                 {t('paymentMethod.deductAmount', 'Số xu thanh toán')}
               </Text>
               <Text style={[s.value, theme.deduct]}>
-                -{formatCurrency(orderSubtotal, '')} xu
+                -{formatCurrency(orderSubtotal, '').trim()} {unit}
               </Text>
             </View>
             <View style={[s.divider, theme.divider]} />
@@ -95,13 +100,13 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
               <Text
                 style={[s.value, { color: primaryColor, fontWeight: '700' }]}
               >
-                {formatCurrency(coinBalance - orderSubtotal, '')} xu
+                {formatCurrency(coinBalance - orderSubtotal, '').trim()} {unit}
               </Text>
             </View>
           </View>
           <View style={s.actions}>
             <Pressable onPress={dismiss} style={[s.btn, theme.cancelBtn]}>
-              <Text style={[s.btnText, theme.cancelText]}>
+              <Text style={[s.btnText, theme.cancelText]} numberOfLines={1}>
                 {t('common:common.cancel', 'Hủy')}
               </Text>
             </Pressable>
@@ -109,8 +114,11 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
               onPress={onConfirm}
               style={[s.btn, { backgroundColor: primaryColor, flex: 1 }]}
             >
-              <Text style={[s.btnText, { color: colors.white.light }]}>
-                {t('paymentMethod.confirmPayment', 'Thanh toán')}
+              <Text
+                style={[s.btnText, { color: colors.white.light }]}
+                numberOfLines={1}
+              >
+                {t('common:common.confirm', 'Xác nhận')}
               </Text>
             </Pressable>
           </View>

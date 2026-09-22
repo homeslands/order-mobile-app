@@ -6,7 +6,7 @@ import {
   BottomSheetModal,
 } from '@gorhom/bottom-sheet'
 import { Image } from 'expo-image'
-import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
+import { memo, useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   StyleSheet,
@@ -21,6 +21,7 @@ import { colors, ROUTE } from '@/constants'
 import { navigateNative } from '@/lib/navigation'
 import { useUserStore } from '@/stores'
 import { getSyncItem, setSyncItem } from '@/utils/storage'
+import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
 const SNAP_POINTS = ['40%']
@@ -114,11 +115,6 @@ export const ProfileNudgePopup = memo(function ProfileNudgePopup() {
     [bottom, handleCTA, isDark, t],
   )
 
-  const bgStyle = useMemo(
-    () => ({ backgroundColor: isDark ? colors.card.dark : '#ffffff' }),
-    [isDark],
-  )
-
   return (
     <BottomSheetModal
       ref={sheetRef}
@@ -128,7 +124,7 @@ export const ProfileNudgePopup = memo(function ProfileNudgePopup() {
       enableDynamicSizing={false}
       backdropComponent={renderBackdrop}
       footerComponent={renderFooter}
-      backgroundStyle={bgStyle}
+      backgroundComponent={GlassSheetBackground}
       onDismiss={handleSheetDismiss}
     >
       <View style={styles.content}>

@@ -22,6 +22,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { AnimatedCountdownText, OTPInput } from '@/components/auth'
 import { Button, Skeleton } from '@/components/ui'
+import { GlassHeaderButton } from '@/components/navigation/glass-header-button'
 import { colors } from '@/constants'
 import { FOOTER_BOTTOM_EXTRA, STATIC_TOP_INSET } from '@/constants/status-bar'
 import {
@@ -84,20 +85,12 @@ const VerifyPhoneHeader = React.memo(function VerifyPhoneHeader({
         style={[headerStyles.row, { paddingTop: STATIC_TOP_INSET + 10 }]}
         pointerEvents="auto"
       >
-        <Pressable
-          onPress={onBack}
-          hitSlop={8}
-          style={[
-            headerStyles.circleBtn,
-            { backgroundColor: isDark ? colors.card.dark : colors.white.light },
-            headerStyles.shadow,
-          ]}
-        >
+        <GlassHeaderButton isDark={isDark} onPress={onBack} size={42}>
           <ChevronLeft
             size={20}
             color={isDark ? colors.gray[50] : colors.gray[900]}
           />
-        </Pressable>
+        </GlassHeaderButton>
         <AnimatedText
           style={[
             headerStyles.title,
@@ -108,7 +101,8 @@ const VerifyPhoneHeader = React.memo(function VerifyPhoneHeader({
         >
           {title}
         </AnimatedText>
-        <View style={headerStyles.circleBtn} />
+        {/* Ô giữ chỗ cùng cỡ nút back, giữ tiêu đề ở chính giữa. */}
+        <View style={headerStyles.rightPlaceholder} />
       </View>
     </View>
   )
@@ -129,19 +123,9 @@ const headerStyles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
   },
-  circleBtn: {
+  rightPlaceholder: {
     width: 42,
     height: 42,
-    borderRadius: 21,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  shadow: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 24,
-    elevation: 2,
   },
   title: {
     fontSize: 17,

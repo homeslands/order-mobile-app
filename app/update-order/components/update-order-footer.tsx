@@ -20,6 +20,7 @@ import { PickupTimeChipsInUpdateOrder } from './pickup-time-chips-in-update-orde
 import { SimpleOrderTypeSheetInUpdateOrder } from './simple-order-type-sheet-in-update-order'
 import { SimpleTableSheetInUpdateOrder } from './simple-table-sheet-in-update-order'
 import { VoucherSheetInUpdateOrder } from './voucher-sheet-in-update-order'
+import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
 
 interface UpdateOrderFooterProps {
@@ -156,9 +157,7 @@ export default memo(function UpdateOrderFooter({
   // Memoised theme-dependent styles
   const ft = useMemo(
     () => ({
-      containerBg: {
-        backgroundColor: isDark ? colors.card.dark : colors.white.light,
-      },
+      containerBg: isDark ? colors.card.dark : colors.white.light,
       selectBtnBorder: {
         borderColor: isDark ? colors.gray[700] : colors.gray[200],
       },
@@ -219,10 +218,10 @@ export default memo(function UpdateOrderFooter({
       <View
         style={[
           f.container,
-          ft.containerBg,
           { paddingBottom: insetBottom + FOOTER_BOTTOM_EXTRA },
         ]}
       >
+        <GlassSurface color={ft.containerBg} style={StyleSheet.absoluteFill} />
         {/* Order Type + Table row */}
         <View style={f.selectRow}>
           <Pressable

@@ -2,7 +2,7 @@
   "expo": {
     "name": "TREND Coffee",
     "slug": "order-mobile-app",
-    "version": "2.6.0",
+    "version": "2.7.0",
     "orientation": "portrait",
     "icon": "./assets/images/trend/logo-icon-padded.png",
     "scheme": "trend",
@@ -12,9 +12,9 @@
       "icon": "./assets/images/trend/logo-icon.png",
       "googleServicesFile": "./GoogleService-Info.plist",
       "supportsTablet": false,
-      "buildNumber": "68",
+      "buildNumber": "69",
       "infoPlist": {
-        "NSCameraUsageDescription": "Ứng dụng cần quyền camera để chụp ảnh đại diện và quét mã QR voucher.",
+        "NSCameraUsageDescription": "Ứng dụng cần quyền camera để chụp ảnh đại diện, quét mã QR voucher và mã QR thanh toán xu.",
         "NSPhotoLibraryUsageDescription": "Cho phép ứng dụng truy cập thư viện ảnh để chọn ảnh đại diện.",
         "NSPhotoLibraryAddUsageDescription": "Cho phép ứng dụng lưu ảnh hoá đơn và mã QR thanh toán vào thư viện ảnh.",
         "ITSAppUsesNonExemptEncryption": false,
@@ -39,7 +39,7 @@
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.POST_NOTIFICATIONS"
       ],
-      "versionCode": 68,
+      "versionCode": 69,
       "package": "com.trendcoffee.order",
       "config": {
         "googleMaps": {
@@ -102,7 +102,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Ứng dụng cần quyền camera để chụp ảnh đại diện và quét mã QR voucher.",
+          "cameraPermission": "Ứng dụng cần quyền camera để chụp ảnh đại diện, quét mã QR voucher và mã QR thanh toán xu.",
           "microphonePermission": false,
           "recordAudioAndroid": false
         }

@@ -89,7 +89,7 @@ In order of risk:
 2. **`stores/cart.store.ts`** — add/remove/update cart items
 3. **`stores/update-order.store.ts`** — order modification flows
 4. **`app/payment/[order].tsx`** — payment screen
-5. **`app/(tabs)/cart/`** — checkout trigger
+5. **`app/(tabs)/cart.tsx`** — checkout trigger
 6. **`app/auth/`** — login, register, verify flows
 7. **`api/`** — all API call sites
 8. **`hooks/`** — mutation hooks (useCreateOrder, useUpdateOrder, etc.)
