@@ -201,9 +201,11 @@ const s = StyleSheet.create({
     gap: 4,
   },
   title: {
-    // 32pt — đo từ ảnh thiết kế (89px trên ảnh rộng 1080). Đây là điểm nhìn
-    // đầu tiên của thẻ, không phải một nhãn phụ.
-    fontSize: 32,
+    // Ảnh thiết kế đo ra 32pt, nhưng ở đó tên voucher là chuỗi ngắn kiểu
+    // "50% Giảm". Dữ liệu thật dài hơn nên 32 nuốt cả thẻ. Chốt 22 sau khi
+    // xem trên máy — vẫn lớn nhất thẻ (mô tả 14, hạn 12) nên giữ được thứ
+    // bậc, nhưng không át phần còn lại.
+    fontSize: 22,
     fontWeight: '700',
   },
   description: {
