@@ -244,6 +244,7 @@
       "openSettings": "Mở Cài đặt"
     },
     "selected": "Đã chọn",
-    "select": "Chọn"
+    "select": "Chọn",
+    "validUntil": "Hiệu lực đến {{date}}"
   }
 }

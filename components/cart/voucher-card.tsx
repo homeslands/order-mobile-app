@@ -75,24 +75,23 @@ export const VoucherCard = memo(function VoucherCard({
     [onViewCondition, voucher],
   )
 
-  // Nền thẻ: tông kem ấm, lấy từ cặp token warning đã có sẵn trong palette
-  // thay vì thêm token mới chỉ dùng một chỗ.
   const surface = isDark ? colors.card.dark : colors.white.light
   const ticketBg = isSelected
     ? isDark
-      ? colors.warning.iconBgDark
-      : colors.warning.iconBgLight
+      ? colors.ticket.bgSelectedDark
+      : colors.ticket.bgSelectedLight
     : isDark
-      ? colors.warning.bgDark
-      : colors.warning.bgLight
-  const borderColor = isSelected
-    ? primaryColor
-    : isDark
-      ? colors.warning.borderDark
-      : colors.warning.borderLight
+      ? colors.ticket.bgDark
+      : colors.ticket.bgLight
+  const headlineColor = isDark
+    ? colors.ticket.headlineDark
+    : colors.ticket.headlineLight
+  const actionColor = isDark
+    ? colors.ticket.actionDark
+    : colors.ticket.actionLight
   const titleColor = isDark ? colors.gray[50] : colors.gray[900]
   const mutedColor = isDark ? colors.gray[400] : colors.gray[600]
-  const dashColor = isDark ? colors.gray[700] : colors.warning.borderLight
+  const dashColor = isDark ? colors.ticket.dashDark : colors.ticket.dashLight
 
   const hasDetails =
     !!minOrder ||
@@ -112,13 +111,16 @@ export const VoucherCard = memo(function VoucherCard({
       onPress={handlePress}
       style={[
         s.card,
-        { backgroundColor: ticketBg, borderColor },
-        isSelected && s.cardSelected,
+        { backgroundColor: ticketBg },
+        // Thiết kế gốc là một khối kem PHẲNG, không viền — viền làm nó trông
+        // như hộp cảnh báo. Chỉ thêm viền khi đang chọn, vì bỏ viền rồi thì
+        // cần một tín hiệu đủ rõ cho trạng thái đó.
+        isSelected && { borderWidth: 1.5, borderColor: primaryColor },
       ]}
     >
       {/* ── Phần trên ─────────────────────────────────────────────── */}
       <View style={s.head}>
-        <Text style={[s.discount, { color: primaryColor }]} numberOfLines={1}>
+        <Text style={[s.discount, { color: headlineColor }]} numberOfLines={1}>
           {discount}
         </Text>
         <Text style={[s.title, { color: titleColor }]} numberOfLines={2}>
@@ -209,7 +211,7 @@ export const VoucherCard = memo(function VoucherCard({
           <Text
             style={[
               s.selectText,
-              { color: isSelected ? primaryColor : mutedColor },
+              { color: isSelected ? primaryColor : actionColor },
               isSelected && s.selectTextOn,
             ]}
           >
@@ -224,11 +226,7 @@ export const VoucherCard = memo(function VoucherCard({
 const s = StyleSheet.create({
   card: {
     marginTop: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-  },
-  cardSelected: {
-    borderWidth: 1.5,
+    borderRadius: 10,
   },
   head: {
     paddingHorizontal: 14,
@@ -236,7 +234,9 @@ const s = StyleSheet.create({
     gap: 2,
   },
   discount: {
-    fontSize: 22,
+    // 32pt — đo từ ảnh thiết kế (89px trên ảnh rộng 1080). Đây là điểm nhìn
+    // đầu tiên của thẻ, không phải một nhãn phụ.
+    fontSize: 32,
     fontWeight: '700',
   },
   title: {
@@ -327,6 +327,7 @@ const s = StyleSheet.create({
   },
   selectText: {
     fontSize: 13,
+    textDecorationLine: 'underline',
   },
   selectTextOn: {
     fontWeight: '700',

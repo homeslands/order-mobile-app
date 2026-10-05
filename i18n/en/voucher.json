@@ -243,6 +243,7 @@
       "openSettings": "Open Settings"
     },
     "selected": "Selected",
-    "select": "Select"
+    "select": "Select",
+    "validUntil": "Valid until {{date}}"
   }
 }

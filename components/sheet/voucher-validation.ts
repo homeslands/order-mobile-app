@@ -137,6 +137,9 @@ export function processVoucherList(
           ? t('samePriceProduct', { value: formatCurrency(v.value) })
           : t('fixedDiscount', { value: formatCurrency(v.value) })
 
+    // Dưới 24 giờ thì đếm ngược — lúc đó cái người dùng cần biết là "còn kịp
+    // dùng không". Xa hơn thì đếm ngược vô nghĩa và dài dòng ("Còn 87 ngày
+    // 15 giờ 1 phút"), nên hiện ngày hết hạn tuyệt đối, theo giờ máy.
     const endDiff = dayjs.utc(v.endDate).diff(now, 'second')
     const expiryText =
       endDiff <= 0
@@ -146,10 +149,8 @@ export function processVoucherList(
               hours: Math.floor(endDiff / 3600),
               minutes: Math.floor((endDiff % 3600) / 60),
             })
-          : t('expiresInDaysHoursMinutes', {
-              days: Math.floor(endDiff / 86400),
-              hours: Math.floor((endDiff % 86400) / 3600),
-              minutes: Math.floor((endDiff % 3600) / 60),
+          : t('validUntil', {
+              date: dayjs(v.endDate).format('DD/MM/YYYY HH:mm'),
             })
 
     const minOrderText = formatCurrency(v.minOrderValue)
