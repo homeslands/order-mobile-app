@@ -13,6 +13,12 @@
  * sách sản phẩm áp dụng dài ngắn rất khác nhau. Bản trước khoá cứng 60% và
  * bọc trong View thường, nên voucher gắn nhiều món thì phần cuối bị cắt và
  * KHÔNG có cách nào đọc tới.
+ *
+ * Nhưng `enableDynamicSizing` một mình thì KHÔNG có trần: voucher gắn vài
+ * chục món đẩy sheet lên che cả thanh trạng thái, tiêu đề đâm vào đồng hồ.
+ * Nên phải chặn bằng `topInset` (chừa thanh trạng thái) và
+ * `maxDynamicContentSize` (trần chiều cao nội dung); quá trần thì cuộn trong
+ * sheet.
  */
 import { colors } from '@/constants'
 import type { VoucherConditionStatus } from '@/components/sheet/voucher-validation'
@@ -30,9 +36,18 @@ import * as Clipboard from 'expo-clipboard'
 import { AlertTriangle, Check, Copy, X } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, StyleSheet, View } from 'react-native'
+import { Dimensions, Pressable, StyleSheet, View } from 'react-native'
 import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
+import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { Text } from '@/components/ui/text'
+
+/**
+ * Trần chiều cao nội dung. Chừa thanh trạng thái cộng một khoảng để vạch kéo
+ * không dính sát mép, và để lộ chút nền phía sau cho người dùng biết đây là
+ * sheet chứ không phải một màn mới.
+ */
+const SHEET_TOP_GAP = STATIC_TOP_INSET + 24
+const MAX_CONTENT_HEIGHT = Dimensions.get('window').height - SHEET_TOP_GAP - 32
 
 interface VoucherConditionModalProps {
   voucher: IVoucher | null
@@ -144,6 +159,8 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
       enableContentPanningGesture
       enableHandlePanningGesture
       enableDynamicSizing
+      maxDynamicContentSize={MAX_CONTENT_HEIGHT}
+      topInset={SHEET_TOP_GAP}
       backgroundComponent={GlassSheetBackground}
       handleIndicatorStyle={indicatorStyle}
       onDismiss={onClose}
