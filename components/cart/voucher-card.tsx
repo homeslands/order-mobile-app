@@ -1,10 +1,36 @@
+/**
+ * Thẻ voucher dạng vé — dùng trong các sheet chọn mã (giỏ hàng, sửa đơn).
+ *
+ * Bố cục ba vùng, theo thiết kế vé giấy:
+ *
+ *   phần trên   giá trị giảm (chữ lớn) + tên + hạn dùng
+ *   phần giữa   chỉ hiện khi có: đơn tối thiểu, tag phương thức thanh toán,
+ *               lượt còn lại, lý do không dùng được
+ *   phần dưới   điều kiện + trạng thái chọn, ngăn bằng đường đứt và hai vết
+ *               khuyết hai bên
+ *
+ * Vùng giữa co lại khi voucher đơn giản, nên thẻ trông gần đúng mẫu thiết kế;
+ * voucher nhiều điều kiện thì cao hơn. Không bỏ được: bộ chọn bắt buộc phải
+ * nói vì sao một mã không dùng được, nếu không người dùng bấm mà không hiểu
+ * sao không ăn.
+ *
+ * Vết khuyết làm bằng hai hình tròn tô MÀU NỀN CỦA SHEET, không phải cắt
+ * thật. Cách này chỉ đúng khi nền phía sau là màu đặc — và đúng là vậy:
+ * cả hai sheet dùng thẻ này đều gắn GlassSheetBackground, vốn luôn đặc
+ * (xem chú thích trong components/ui/glass-sheet-background.tsx). Nếu sau này
+ * đặt thẻ lên nền ảnh hay gradient thì phải chuyển sang vẽ khung bằng SVG,
+ * vì hai hình tròn sẽ lộ ra thành hai chấm.
+ */
 import { colors } from '@/constants'
 import type { IVoucher } from '@/types'
-import { Ticket } from 'lucide-react-native'
+import { Check, Info } from 'lucide-react-native'
 import { memo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { Text } from '@/components/ui/text'
+
+/** Đường kính vết khuyết; nửa nằm ngoài mỗi mép thẻ. */
+const NOTCH = 18
 
 export const VoucherCard = memo(function VoucherCard({
   voucher,
@@ -44,78 +70,84 @@ export const VoucherCard = memo(function VoucherCard({
     [onSelect, voucher.slug],
   )
 
+  const handleCondition = useCallback(
+    () => onViewCondition?.(voucher),
+    [onViewCondition, voucher],
+  )
+
+  // Nền thẻ: tông kem ấm, lấy từ cặp token warning đã có sẵn trong palette
+  // thay vì thêm token mới chỉ dùng một chỗ.
+  const surface = isDark ? colors.card.dark : colors.white.light
+  const ticketBg = isSelected
+    ? isDark
+      ? colors.warning.iconBgDark
+      : colors.warning.iconBgLight
+    : isDark
+      ? colors.warning.bgDark
+      : colors.warning.bgLight
+  const borderColor = isSelected
+    ? primaryColor
+    : isDark
+      ? colors.warning.borderDark
+      : colors.warning.borderLight
+  const titleColor = isDark ? colors.gray[50] : colors.gray[900]
+  const mutedColor = isDark ? colors.gray[400] : colors.gray[600]
+  const dashColor = isDark ? colors.gray[700] : colors.warning.borderLight
+
+  const hasDetails =
+    !!minOrder ||
+    !!errorMessage ||
+    voucher.voucherPaymentMethods?.length > 0 ||
+    voucher.remainingUsage > 0
+
+  const notch = {
+    width: NOTCH,
+    height: NOTCH,
+    borderRadius: NOTCH / 2,
+    backgroundColor: surface,
+  }
+
   return (
     <Pressable
       onPress={handlePress}
       style={[
-        vcStyles.card,
-        {
-          borderColor: isSelected
-            ? primaryColor
-            : isDark
-              ? colors.border.dark
-              : colors.gray[200],
-        },
-        isSelected && {
-          backgroundColor: isDark ? `${primaryColor}20` : `${primaryColor}10`,
-        },
+        s.card,
+        { backgroundColor: ticketBg, borderColor },
+        isSelected && s.cardSelected,
       ]}
     >
-      <View style={vcStyles.row}>
-        {/* Left strip */}
-        <View style={[vcStyles.strip, { backgroundColor: primaryColor }]}>
-          <Ticket size={28} color={colors.white.light} />
-        </View>
+      {/* ── Phần trên ─────────────────────────────────────────────── */}
+      <View style={s.head}>
+        <Text style={[s.discount, { color: primaryColor }]} numberOfLines={1}>
+          {discount}
+        </Text>
+        <Text style={[s.title, { color: titleColor }]} numberOfLines={2}>
+          {voucher.title}
+        </Text>
+        {expiry ? (
+          <Text style={[s.expiry, { color: mutedColor }]} numberOfLines={1}>
+            {expiry}
+          </Text>
+        ) : null}
+      </View>
 
-        {/* Dashed separator */}
-        <View
-          style={[
-            vcStyles.dashed,
-            { borderColor: isDark ? colors.gray[700] : colors.gray[200] },
-          ]}
-        />
-
-        {/* Content */}
-        <View style={vcStyles.content}>
-          <Text
-            style={[
-              vcStyles.cardTitle,
-              { color: isDark ? colors.gray[50] : colors.gray[900] },
-            ]}
-            numberOfLines={2}
-          >
-            {voucher.title}
-          </Text>
-          <Text style={[vcStyles.discountLabel, { color: primaryColor }]}>
-            {discount}
-          </Text>
-          <Text
-            style={[
-              vcStyles.minOrder,
-              { color: isDark ? colors.gray[400] : colors.gray[500] },
-            ]}
-          >
-            {t('minOrderLabel', { value: minOrder })}
-          </Text>
-          {errorMessage ? (
-            <Text style={vcStyles.errorText}>{errorMessage}</Text>
+      {/* ── Phần giữa: chỉ hiện khi voucher có điều kiện kèm theo ──── */}
+      {hasDetails ? (
+        <View style={s.details}>
+          {minOrder ? (
+            <Text style={[s.detailText, { color: mutedColor }]}>
+              {t('minOrderLabel', { value: minOrder })}
+            </Text>
           ) : null}
 
-          {/* Payment method tags */}
-          {voucher.voucherPaymentMethods?.length > 0 && (
-            <View style={vcStyles.pmRow}>
+          {voucher.voucherPaymentMethods?.length > 0 ? (
+            <View style={s.pmRow}>
               {voucher.voucherPaymentMethods.map((pm) => (
                 <View
                   key={pm.slug}
-                  style={[
-                    vcStyles.pmTag,
-                    {
-                      borderColor: primaryColor,
-                      backgroundColor: `${primaryColor}08`,
-                    },
-                  ]}
+                  style={[s.pmTag, { borderColor: primaryColor }]}
                 >
-                  <Text style={[vcStyles.pmTagText, { color: primaryColor }]}>
+                  <Text style={[s.pmTagText, { color: primaryColor }]}>
                     {pm.paymentMethod === 'cash'
                       ? t('paymentMethodShort.cash')
                       : pm.paymentMethod === 'bank-transfer'
@@ -127,164 +159,105 @@ export const VoucherCard = memo(function VoucherCard({
                 </View>
               ))}
             </View>
-          )}
+          ) : null}
 
-          {/* Usage progress */}
-          {voucher.remainingUsage > 0 && (
-            <View style={vcStyles.progressWrap}>
-              <Text
-                style={[
-                  vcStyles.progressLabel,
-                  { color: isDark ? colors.gray[400] : colors.gray[500] },
-                ]}
-              >
+          {voucher.remainingUsage > 0 ? (
+            <View style={s.progressWrap}>
+              <Text style={[s.detailText, { color: mutedColor }]}>
                 {t('remainingUsagePercent', { value: Math.round(usage) })}
               </Text>
-              <View
-                style={[
-                  vcStyles.progressTrack,
-                  {
-                    backgroundColor: isDark
-                      ? colors.gray[700]
-                      : colors.gray[200],
-                  },
-                ]}
-              >
+              <View style={[s.progressTrack, { backgroundColor: dashColor }]}>
                 <View
                   style={[
-                    vcStyles.progressFill,
+                    s.progressFill,
                     { width: `${usage}%`, backgroundColor: primaryColor },
                   ]}
                 />
               </View>
             </View>
-          )}
+          ) : null}
 
-          {/* Expiry + conditions */}
-          <View style={vcStyles.bottomRow}>
-            <View style={[vcStyles.expiryBadge, { borderColor: primaryColor }]}>
-              <Text style={[vcStyles.expiryText, { color: primaryColor }]}>
-                {expiry}
-              </Text>
-            </View>
-            <Pressable onPress={() => onViewCondition?.(voucher)} hitSlop={8}>
-              <Text
-                style={[
-                  vcStyles.conditionLink,
-                  { color: isDark ? colors.gray[400] : colors.gray[500] },
-                ]}
-              >
-                {t('condition')}
-              </Text>
-            </Pressable>
-          </View>
+          {errorMessage ? (
+            <Text style={s.errorText}>{errorMessage}</Text>
+          ) : null}
         </View>
+      ) : null}
 
-        {/* Checkbox circle */}
-        <View style={vcStyles.checkWrap}>
-          <View
+      {/* ── Đường đục lỗ ──────────────────────────────────────────── */}
+      <View style={s.perforation}>
+        <View style={[notch, s.notchLeft]} />
+        <View style={[s.dash, { borderColor: dashColor }]} />
+        <View style={[notch, s.notchRight]} />
+      </View>
+
+      {/* ── Phần dưới ─────────────────────────────────────────────── */}
+      <View style={s.foot}>
+        <Pressable
+          onPress={handleCondition}
+          hitSlop={8}
+          style={s.conditionBtn}
+          disabled={!onViewCondition}
+        >
+          <Info size={13} color={mutedColor} />
+          <Text style={[s.conditionText, { color: mutedColor }]}>
+            {t('condition')}
+          </Text>
+        </Pressable>
+
+        <View style={s.selectWrap}>
+          {isSelected ? <Check size={15} color={primaryColor} /> : null}
+          <Text
             style={[
-              vcStyles.checkCircle,
-              {
-                borderColor: isSelected
-                  ? primaryColor
-                  : isDark
-                    ? colors.gray[600]
-                    : colors.gray[300],
-              },
-              isSelected && { backgroundColor: primaryColor },
+              s.selectText,
+              { color: isSelected ? primaryColor : mutedColor },
+              isSelected && s.selectTextOn,
             ]}
           >
-            {isSelected && <View style={vcStyles.checkDot} />}
-          </View>
+            {isSelected ? t('selected') : t('select')}
+          </Text>
         </View>
       </View>
     </Pressable>
   )
 })
 
-const vcStyles = StyleSheet.create({
+const s = StyleSheet.create({
   card: {
     marginTop: 12,
-    borderRadius: 10,
+    borderRadius: 12,
     borderWidth: 1,
-    overflow: 'hidden',
   },
-  row: {
-    flexDirection: 'row',
+  cardSelected: {
+    borderWidth: 1.5,
   },
-  strip: {
-    width: 64,
-    alignItems: 'center',
-    justifyContent: 'center',
+  head: {
+    paddingHorizontal: 14,
+    paddingTop: 12,
+    gap: 2,
   },
-  dashed: {
-    width: 1,
-    borderStyle: 'dashed',
-    borderLeftWidth: 1.5,
-  },
-  content: {
-    flex: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    gap: 4,
-  },
-  cardTitle: {
-    fontSize: 14,
+  discount: {
+    fontSize: 22,
     fontWeight: '700',
   },
-  discountLabel: {
-    fontSize: 12,
+  title: {
+    fontSize: 14,
     fontWeight: '600',
   },
-  minOrder: {
+  expiry: {
     fontSize: 12,
   },
-  progressWrap: {
-    marginTop: 4,
+  details: {
+    paddingHorizontal: 14,
+    paddingTop: 8,
     gap: 4,
   },
-  progressLabel: {
-    fontSize: 11,
-  },
-  progressTrack: {
-    height: 4,
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 2,
-  },
-  bottomRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 6,
-  },
-  expiryBadge: {
-    borderWidth: 1,
-    borderRadius: 6,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-  },
-  expiryText: {
-    fontSize: 11,
-  },
-  conditionLink: {
-    fontSize: 11,
-  },
-  errorText: {
+  detailText: {
     fontSize: 12,
-    color: colors.destructive.light,
-    fontStyle: 'italic',
-    marginTop: 2,
   },
   pmRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 4,
-    marginTop: 4,
   },
   pmTag: {
     borderRadius: 4,
@@ -296,22 +269,66 @@ const vcStyles = StyleSheet.create({
     fontSize: 10,
     fontWeight: '500',
   },
-  checkWrap: {
-    justifyContent: 'center',
-    paddingRight: 12,
+  progressWrap: {
+    gap: 4,
   },
-  checkCircle: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    borderWidth: 1.5,
+  progressTrack: {
+    height: 4,
+    borderRadius: 2,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    borderRadius: 2,
+  },
+  errorText: {
+    fontSize: 12,
+    color: colors.destructive.light,
+    fontStyle: 'italic',
+  },
+  perforation: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    marginTop: 12,
   },
-  checkDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: colors.white.light,
+  // Nửa vết khuyết thò ra ngoài mép thẻ, nên lề âm bằng nửa đường kính.
+  notchLeft: {
+    marginLeft: -NOTCH / 2,
+  },
+  notchRight: {
+    marginRight: -NOTCH / 2,
+  },
+  dash: {
+    flex: 1,
+    borderTopWidth: 1,
+    borderStyle: 'dashed',
+    marginHorizontal: 6,
+  },
+  foot: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingTop: 8,
+    paddingBottom: 12,
+  },
+  conditionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  conditionText: {
+    fontSize: 12,
+  },
+  selectWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  selectText: {
+    fontSize: 13,
+  },
+  selectTextOn: {
+    fontWeight: '700',
   },
 })

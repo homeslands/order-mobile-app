@@ -242,6 +242,8 @@
       "permDeniedTitle": "Camera đang bị chặn",
       "permDeniedBody": "Vào Cài đặt → Trend → Camera và bật quyền truy cập, rồi quay lại đây để quét mã.",
       "openSettings": "Mở Cài đặt"
-    }
+    },
+    "selected": "Đã chọn",
+    "select": "Chọn"
   }
 }

@@ -241,6 +241,8 @@
       "permDeniedTitle": "Camera is blocked",
       "permDeniedBody": "Open Settings → Trend → Camera, turn on access, then come back to scan.",
       "openSettings": "Open Settings"
-    }
+    },
+    "selected": "Selected",
+    "select": "Select"
   }
 }
