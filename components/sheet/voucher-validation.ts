@@ -13,10 +13,26 @@ dayjs.extend(utc)
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+/**
+ * Trạng thái từng điều kiện so với giỏ hàng HIỆN TẠI, để sheet điều kiện
+ * đánh dấu đạt/không đạt thay vì chỉ liệt kê suông.
+ *
+ * `usage` không có ở đây: số lần mỗi khách được dùng là thông tin mô tả, app
+ * không đối chiếu được với giỏ hàng nên để trung tính.
+ */
+export type VoucherConditionStatus = {
+  minOrder: boolean
+  products: boolean
+  identity: boolean
+  expiry: boolean
+  stock: boolean
+}
+
 export type ProcessedVoucher = {
   voucher: IVoucher
   isValid: boolean
   errorMessage: string
+  conditionStatus: VoucherConditionStatus
   /** Pre-computed display strings — avoids recalc in each card render */
   discountLabel: string
   expiryText: string
@@ -163,6 +179,16 @@ export function processVoucherList(
       voucher: v,
       isValid,
       errorMessage,
+      // Dùng lại chính các biến đã tính ra `isValid` ở trên, không diễn đạt
+      // lại — diễn đạt lại là nguồn gốc của mấy ca "không hợp lệ mà không rõ
+      // lý do" đã phải sửa trước đây.
+      conditionStatus: {
+        minOrder: isValidAmount,
+        products: hasValidProducts,
+        identity: isIdentityValid,
+        expiry: !isExpired && isValidDate,
+        stock: hasUsage,
+      },
       discountLabel,
       expiryText,
       minOrderText,

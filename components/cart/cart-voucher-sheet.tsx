@@ -287,6 +287,16 @@ export const VoucherSheet = memo(function VoucherSheet({
       tVoucher,
     ],
   )
+  // Bản đã qua validate của chính voucher đang mở sheet điều kiện — để sheet
+  // đánh dấu đạt/chưa đạt theo giỏ hàng hiện tại thay vì liệt kê suông.
+  const conditionProcessed = useMemo(
+    () =>
+      conditionVoucher
+        ? processed.find((p) => p.voucher.slug === conditionVoucher.slug)
+        : undefined,
+    [processed, conditionVoucher],
+  )
+
   const { validVouchers, invalidVouchers } = useMemo(() => {
     const valid: typeof processed = []
     const invalid: typeof processed = []
@@ -862,6 +872,8 @@ export const VoucherSheet = memo(function VoucherSheet({
         primaryColor={primaryColor}
         indicatorStyle={indicatorStyle}
         bottomInset={insets.bottom}
+        conditionStatus={conditionProcessed?.conditionStatus}
+        errorMessage={conditionProcessed?.errorMessage}
       />
     </>
   )

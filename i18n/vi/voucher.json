@@ -245,6 +245,10 @@
     },
     "selected": "Đã chọn",
     "select": "Chọn",
-    "validUntil": "Hiệu lực đến {{date}}"
+    "validUntil": "Hiệu lực đến {{date}}",
+    "cannotUseReason": "Chưa dùng được: {{reason}}",
+    "applicableProductsTitle": "Sản phẩm áp dụng",
+    "stockCondition": "Voucher còn lượt sử dụng",
+    "expiryCondition": "Voucher còn hiệu lực"
   }
 }
