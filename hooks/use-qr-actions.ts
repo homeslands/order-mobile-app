@@ -29,6 +29,22 @@ import { useScanSheetStore } from '@/stores/scan-sheet.store'
  */
 const TAP_GUARD_MS = 600
 
+/**
+ * Có phiên đăng nhập dùng được hay không.
+ *
+ * `isAuthenticated()` một mình là SAI ở đây: khi access token hết hạn mà
+ * refresh token còn hạn, nó trả `!isRefreshing` (`stores/auth.store.ts:41`),
+ * tức false trong suốt thời gian interceptor đang refresh
+ * (`utils/http.ts:127`). Khách mở app ở quầy sáng hôm sau vẫn ĐANG đăng nhập,
+ * nhưng sẽ bị đẩy sang màn login rồi redirect ngược về Home — đúng vào lúc
+ * tính năng này cần nhanh nhất. `isTokenValid()` cùng logic nhưng không đọc
+ * `isRefreshing`, nên hai vế cộng lại mới là "phiên còn dùng được".
+ */
+function hasUsableSession(): boolean {
+  const auth = useAuthStore.getState()
+  return auth.isAuthenticated() || auth.isTokenValid()
+}
+
 export function useQrActions(): {
   openMemberId: () => void
   openCoinPayment: () => void
@@ -45,7 +61,12 @@ export function useQrActions(): {
   /** true nếu nhận cú chạm này; false nếu là chạm trùng trong TAP_GUARD_MS. */
   const claimTap = useCallback(() => {
     const now = Date.now()
-    if (now - lastTapRef.current < TAP_GUARD_MS) return false
+    const elapsed = now - lastTapRef.current
+    // `elapsed >= 0` không phải phòng xa: khi NTP hoặc người dùng kéo đồng hồ
+    // LÙI, hiệu ra số âm và cũng < TAP_GUARD_MS, nên nếu thiếu vế này thì cả
+    // ba tile im lặng không làm gì cho tới khi đồng hồ chạy vượt mốc cũ — và
+    // vì return sớm, ref không bao giờ tự chữa.
+    if (elapsed >= 0 && elapsed < TAP_GUARD_MS) return false
     lastTapRef.current = now
     return true
   }, [])
@@ -58,18 +79,24 @@ export function useQrActions(): {
 
   const openMemberId = useCallback(() => {
     if (!claimTap()) return
-    if (!useAuthStore.getState().isAuthenticated()) {
+    // Đóng sheet chọn TRƯỚC khi phân nhánh, không phải sau. Nếu nhánh chưa
+    // đăng nhập return sớm, `/auth/login` bị push XUỐNG DƯỚI sheet đang mở:
+    // QRSelectionSheet mount ở `app/_layout.tsx:131`, ngoài stack navigator,
+    // nên nó vẽ trên mọi screen được push — khách thấy sheet y nguyên và
+    // tưởng cú chạm không ăn.
+    //
+    // Thứ tự vẫn giữ nguyên tính chất cũ: closeSelection() → useEffect →
+    // dismiss() → willUnmountSheet(QRS) chạy đồng bộ. openScanSheet() →
+    // useEffect → present(SSP) xếp hàng qua rAF. rAF chạy sau toàn bộ code
+    // đồng bộ, nên willUnmount=true trên QRS trước khi mountSheet(SSP) chạy —
+    // provider bỏ qua minimize(SSP), không chồng sheet, không delay.
+    closeSelection()
+    if (!hasUsableSession()) {
       // KHÔNG gọi openScanSheet ở nhánh này: ScanSheetPortal mount toàn cục
       // nên nó sẽ bật lên chồng trên màn login với ô QR rỗng.
       pushLogin()
       return
     }
-    // closeSelection() → useEffect → dismiss() → willUnmountSheet(QRS) chạy
-    // đồng bộ. openScanSheet() → useEffect → present(SSP) xếp hàng qua rAF.
-    // rAF chạy sau toàn bộ code đồng bộ, nên willUnmount=true trên QRS trước
-    // khi mountSheet(SSP) chạy — provider bỏ qua minimize(SSP), không chồng
-    // sheet, không delay.
-    closeSelection()
     openScanSheet()
   }, [claimTap, pushLogin, closeSelection, openScanSheet])
 
@@ -77,7 +104,7 @@ export function useQrActions(): {
     if (!claimTap()) return
     closeSelection()
     closeScanSheet()
-    if (!useAuthStore.getState().isAuthenticated()) {
+    if (!hasUsableSession()) {
       pushLogin()
       return
     }
@@ -91,7 +118,7 @@ export function useQrActions(): {
     closeSelection()
     closeScanSheet()
     // Chưa đăng nhập thì sang login trước, để khỏi mở camera rồi nhận 401.
-    if (!useAuthStore.getState().isAuthenticated()) {
+    if (!hasUsableSession()) {
       pushLogin()
       return
     }

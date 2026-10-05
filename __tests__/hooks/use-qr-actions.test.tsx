@@ -16,17 +16,38 @@ jest.mock('@/lib/navigation', () => ({
   scheduleTransitionTask: jest.fn(),
 }))
 
-let mockAuthed = true
+// Hai vị từ, không phải một: `isAuthenticated()` trả false trong SUỐT lúc
+// refresh token đang bay (auth.store.ts:41 → `!isRefreshing`), còn
+// `isTokenValid()` cùng logic nhưng không đọc `isRefreshing`.
+const mockAuth = { authed: true, tokenValid: true }
 jest.mock('@/stores', () => ({
-  useAuthStore: { getState: () => ({ isAuthenticated: () => mockAuthed }) },
+  useAuthStore: {
+    getState: () => ({
+      isAuthenticated: () => mockAuth.authed,
+      isTokenValid: () => mockAuth.tokenValid,
+    }),
+  },
 }))
+
+/** Đăng xuất thật: không token nào dùng được. */
+function setLoggedOut() {
+  mockAuth.authed = false
+  mockAuth.tokenValid = false
+}
+
+/** Access token hết hạn, refresh token còn hạn, refresh đang bay. */
+function setRefreshing() {
+  mockAuth.authed = false
+  mockAuth.tokenValid = true
+}
 
 // Hai store sheet dùng bản THẬT — test cần đọc `visible` để chứng minh
 // sheet nào được mở/đóng.
 
 beforeEach(() => {
   jest.clearAllMocks()
-  mockAuthed = true
+  mockAuth.authed = true
+  mockAuth.tokenValid = true
   useQRSelectionSheetStore.setState({ visible: true })
   useScanSheetStore.setState({ visible: false })
 })
@@ -54,7 +75,7 @@ describe('useQrActions', () => {
   })
 
   it('A2 memberId chưa đăng nhập: đi login, KHÔNG mở scan sheet', () => {
-    mockAuthed = false
+    setLoggedOut()
     const { result } = renderHook(() => useQrActions())
     act(() => {
       result.current.openMemberId()
@@ -77,7 +98,7 @@ describe('useQrActions', () => {
   })
 
   it('B2 coinPayment chưa đăng nhập: push /auth/login', () => {
-    mockAuthed = false
+    setLoggedOut()
     const { result } = renderHook(() => useQrActions())
     act(() => {
       result.current.openCoinPayment()
@@ -96,7 +117,7 @@ describe('useQrActions', () => {
   })
 
   it('C2 scanPay chưa đăng nhập: push /auth/login', () => {
-    mockAuthed = false
+    setLoggedOut()
     const { result } = renderHook(() => useQrActions())
     act(() => {
       result.current.openScanPay()
@@ -127,7 +148,7 @@ describe('useQrActions', () => {
     const { result } = renderHook(() => useQrActions())
     // Đăng xuất SAU khi hook đã render — nếu auth bị đọc lúc render thì
     // test này đi /payment/qr-generate và đỏ.
-    mockAuthed = false
+    setLoggedOut()
     act(() => {
       result.current.openCoinPayment()
     })
@@ -144,5 +165,61 @@ describe('useQrActions', () => {
     expect(useQRSelectionSheetStore.getState().visible).toBe(false)
     runScheduledTask()
     expect(mockPush).toHaveBeenCalledWith('/payment/scan-point')
+  })
+  it('G1 memberId chưa đăng nhập: ĐÓNG sheet chọn trước khi sang login', () => {
+    // Nếu không đóng, `/auth/login` bị push XUỐNG DƯỚI sheet đang mở
+    // (QRSelectionSheet mount ở app/_layout.tsx:131, ngoài stack navigator
+    // nên vẽ trên mọi screen). Khách thấy sheet y nguyên, tưởng chạm không ăn.
+    setLoggedOut()
+    const { result } = renderHook(() => useQrActions())
+    act(() => {
+      result.current.openMemberId()
+    })
+    expect(useQRSelectionSheetStore.getState().visible).toBe(false)
+    runScheduledTask()
+    expect(mockPush).toHaveBeenCalledWith('/auth/login')
+  })
+
+  it('H1 đang refresh token: coinPayment vẫn đi đích thật, không đẩy sang login', () => {
+    // Mở app ở quầy sáng hôm sau: access token hết hạn, refresh còn hạn,
+    // interceptor đang refresh (http.ts:127). Khách VẪN đang đăng nhập.
+    setRefreshing()
+    const { result } = renderHook(() => useQrActions())
+    act(() => {
+      result.current.openCoinPayment()
+    })
+    runScheduledTask()
+    expect(mockPush).toHaveBeenCalledWith('/payment/qr-generate')
+  })
+
+  it('H2 đang refresh token: memberId vẫn mở được mã, không cần mạng', () => {
+    setRefreshing()
+    const { result } = renderHook(() => useQrActions())
+    act(() => {
+      result.current.openMemberId()
+    })
+    expect(useScanSheetStore.getState().visible).toBe(true)
+    expect(mockPush).not.toHaveBeenCalled()
+  })
+
+  it('I1 đồng hồ hệ thống lùi: cú chạm sau vẫn được nhận', () => {
+    // NTP hoặc người dùng kéo đồng hồ lùi. Nếu guard chỉ so `now - last < 600`
+    // thì hiệu âm cũng < 600 → cả ba tile im lặng không làm gì cho tới khi
+    // đồng hồ chạy vượt mốc cũ, và ref không bao giờ tự chữa.
+    const nowSpy = jest.spyOn(Date, 'now')
+    nowSpy.mockReturnValue(10_000_000)
+    const { result } = renderHook(() => useQrActions())
+    act(() => {
+      result.current.openCoinPayment()
+    })
+    expect(scheduleTransitionTask).toHaveBeenCalledTimes(1)
+
+    jest.mocked(scheduleTransitionTask).mockClear()
+    nowSpy.mockReturnValue(10_000_000 - 3_600_000) // lùi 1 giờ
+    act(() => {
+      result.current.openScanPay()
+    })
+    expect(scheduleTransitionTask).toHaveBeenCalledTimes(1)
+    nowSpy.mockRestore()
   })
 })
