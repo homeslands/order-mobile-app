@@ -25,7 +25,7 @@ jest.mock('react-i18next', () => {
   /* eslint-enable */
 })
 
-import { render, screen } from '@testing-library/react-native'
+import { fireEvent, render, screen } from '@testing-library/react-native'
 
 import { VoucherCard } from '@/components/cart/voucher-card'
 import type { IVoucher } from '@/types'
@@ -38,7 +38,8 @@ import type { IVoucher } from '@/types'
  */
 const base = {
   slug: 'v1',
-  title: 'Giảm 50% Người Dùng Mới',
+  title: '50% Giảm',
+  description: 'Giảm 50% Người Dùng Mới',
   voucherPaymentMethods: [],
   remainingUsage: 0,
 } as unknown as IVoucher
@@ -51,73 +52,51 @@ function setup(voucher: IVoucher, props: Record<string, unknown> = {}) {
       primaryColor="#f59e0b"
       isDark={false}
       onSelect={jest.fn()}
-      discountLabel="50% Giảm"
-      expiryText="Hiệu lực đến 14/10/2026"
+      expiryText="Hiệu lực đến 14/10/2026 23:59"
       {...props}
     />,
   )
 }
 
 describe('VoucherCard', () => {
-  it('phần trên luôn có giá trị giảm, tên và hạn dùng', () => {
-    setup(base)
+  it('hiện đúng bốn thông tin: tên, mô tả, hạn dùng, lượt còn lại', () => {
+    setup({ ...base, remainingUsage: 8 } as unknown as IVoucher, {
+      usagePercent: 94,
+    })
 
     expect(screen.getByText('50% Giảm')).toBeTruthy()
     expect(screen.getByText('Giảm 50% Người Dùng Mới')).toBeTruthy()
-    expect(screen.getByText('Hiệu lực đến 14/10/2026')).toBeTruthy()
+    expect(screen.getByText('Hiệu lực đến 14/10/2026 23:59')).toBeTruthy()
+    expect(screen.getByText(/94/)).toBeTruthy()
   })
 
-  it('voucher trơn: không dựng vùng điều kiện', () => {
+  it('không còn lượt thì ẩn thanh tiến độ', () => {
     setup(base)
 
-    expect(screen.queryByText(/Giá trị đơn hàng tối thiểu/)).toBeNull()
     expect(screen.queryByText(/Số lượng còn lại/)).toBeNull()
   })
 
-  it('có đơn tối thiểu thì hiện ra', () => {
-    setup(base, { minOrderText: '50.000đ' })
+  it('voucher không có mô tả vẫn dựng được', () => {
+    setup({ ...base, description: undefined } as unknown as IVoucher)
 
-    expect(screen.getByText(/50\.000đ/)).toBeTruthy()
+    expect(screen.getByText('50% Giảm')).toBeTruthy()
+    expect(screen.queryByText('Giảm 50% Người Dùng Mới')).toBeNull()
   })
 
-  it('lý do không dùng được luôn phải hiện', () => {
-    setup(base, { errorMessage: 'Chưa đạt giá trị đơn tối thiểu' })
+  it('chân thẻ chỉ còn link điều kiện, không có chữ chọn', () => {
+    setup(base)
 
-    expect(screen.getByText('Chưa đạt giá trị đơn tối thiểu')).toBeTruthy()
+    expect(screen.getByText('Điều kiện')).toBeTruthy()
+    expect(screen.queryByText('Chọn')).toBeNull()
+    expect(screen.queryByText('Đã chọn')).toBeNull()
   })
 
-  it('tag phương thức thanh toán hiện khi voucher giới hạn', () => {
-    setup({
-      ...base,
-      voucherPaymentMethods: [{ slug: 'pm1', paymentMethod: 'cash' }],
-    } as unknown as IVoucher)
+  it('chạm vào thẻ là chọn — không cần nút riêng', () => {
+    const onSelect = jest.fn()
+    setup(base, { onSelect })
 
-    expect(screen.getByText('Tiền mặt')).toBeTruthy()
-  })
+    fireEvent.press(screen.getByText('50% Giảm'))
 
-  it('lượt còn lại hiện khi remainingUsage > 0', () => {
-    setup({ ...base, remainingUsage: 8 } as unknown as IVoucher, {
-      usagePercent: 80,
-    })
-
-    expect(screen.getByText(/80/)).toBeTruthy()
-  })
-
-  it('đổi chữ ở chân thẻ theo trạng thái chọn', () => {
-    const { rerender } = setup(base)
-    expect(screen.getByText('Chọn')).toBeTruthy()
-
-    rerender(
-      <VoucherCard
-        voucher={base}
-        isSelected
-        primaryColor="#f59e0b"
-        isDark={false}
-        onSelect={jest.fn()}
-        discountLabel="50% Giảm"
-        expiryText="Hiệu lực đến 14/10/2026"
-      />,
-    )
-    expect(screen.getByText('Đã chọn')).toBeTruthy()
+    expect(onSelect).toHaveBeenCalledWith('v1')
   })
 })

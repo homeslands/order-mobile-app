@@ -67,9 +67,7 @@ export function SearchResult({
       isDark={isDark}
       onSelect={onSelect}
       onViewCondition={onViewCondition}
-      discountLabel={processedFetched.discountLabel}
       expiryText={processedFetched.expiryText}
-      minOrderText={processedFetched.minOrderText}
       usagePercent={processedFetched.usagePercent}
     />
   )

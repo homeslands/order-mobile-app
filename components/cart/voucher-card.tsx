@@ -1,18 +1,11 @@
 /**
  * Thẻ voucher dạng vé — dùng trong các sheet chọn mã (giỏ hàng, sửa đơn).
  *
- * Bố cục ba vùng, theo thiết kế vé giấy:
+ *   phần trên   tên, mô tả, hạn dùng, thanh lượt còn lại
+ *   phần dưới   điều kiện, ngăn bằng đường đứt và hai vết khuyết hai bên
  *
- *   phần trên   giá trị giảm (chữ lớn) + tên + hạn dùng
- *   phần giữa   chỉ hiện khi có: đơn tối thiểu, tag phương thức thanh toán,
- *               lượt còn lại, lý do không dùng được
- *   phần dưới   điều kiện + trạng thái chọn, ngăn bằng đường đứt và hai vết
- *               khuyết hai bên
- *
- * Vùng giữa co lại khi voucher đơn giản, nên thẻ trông gần đúng mẫu thiết kế;
- * voucher nhiều điều kiện thì cao hơn. Không bỏ được: bộ chọn bắt buộc phải
- * nói vì sao một mã không dùng được, nếu không người dùng bấm mà không hiểu
- * sao không ăn.
+ * Chọn mã bằng cách chạm vào CẢ THẺ; thẻ đang chọn viền primary. Không có nút
+ * hay chữ riêng cho việc chọn.
  *
  * Vết khuyết làm bằng hai hình tròn tô MÀU NỀN CỦA SHEET, không phải cắt
  * thật. Cách này chỉ đúng khi nền phía sau là màu đặc — và đúng là vậy:
@@ -23,10 +16,11 @@
  */
 import { colors } from '@/constants'
 import type { IVoucher } from '@/types'
-import { Check, Info } from 'lucide-react-native'
+import { Info } from 'lucide-react-native'
 import { memo, useCallback } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, View } from 'react-native'
+import Svg, { Line } from 'react-native-svg'
 import { Text } from '@/components/ui/text'
 
 /** Đường kính vết khuyết; nửa nằm ngoài mỗi mép thẻ. */
@@ -39,10 +33,7 @@ export const VoucherCard = memo(function VoucherCard({
   isDark,
   onSelect,
   onViewCondition,
-  errorMessage,
-  discountLabel,
   expiryText,
-  minOrderText,
   usagePercent,
 }: {
   voucher: IVoucher
@@ -51,18 +42,13 @@ export const VoucherCard = memo(function VoucherCard({
   isDark: boolean
   onSelect: (slug: string) => void
   onViewCondition?: (voucher: IVoucher) => void
-  errorMessage?: string
   /** Pre-computed from processVoucherList — 0 compute in card */
-  discountLabel?: string
   expiryText?: string
-  minOrderText?: string
   usagePercent?: number
 }) {
   const { t } = useTranslation('voucher')
 
-  const discount = discountLabel ?? ''
   const expiry = expiryText ?? ''
-  const minOrder = minOrderText ?? ''
   const usage = usagePercent ?? 0
 
   const handlePress = useCallback(
@@ -86,18 +72,8 @@ export const VoucherCard = memo(function VoucherCard({
   const headlineColor = isDark
     ? colors.ticket.headlineDark
     : colors.ticket.headlineLight
-  const actionColor = isDark
-    ? colors.ticket.actionDark
-    : colors.ticket.actionLight
-  const titleColor = isDark ? colors.gray[50] : colors.gray[900]
   const mutedColor = isDark ? colors.gray[400] : colors.gray[600]
   const dashColor = isDark ? colors.ticket.dashDark : colors.ticket.dashLight
-
-  const hasDetails =
-    !!minOrder ||
-    !!errorMessage ||
-    voucher.voucherPaymentMethods?.length > 0 ||
-    voucher.remainingUsage > 0
 
   const notch = {
     width: NOTCH,
@@ -112,87 +88,67 @@ export const VoucherCard = memo(function VoucherCard({
       style={[
         s.card,
         { backgroundColor: ticketBg },
-        // Thiết kế gốc là một khối kem PHẲNG, không viền — viền làm nó trông
-        // như hộp cảnh báo. Chỉ thêm viền khi đang chọn, vì bỏ viền rồi thì
-        // cần một tín hiệu đủ rõ cho trạng thái đó.
+        // Thiết kế gốc là một khối kem PHẲNG, không viền. Viền chỉ xuất hiện
+        // khi thẻ đang được chọn — đó là tín hiệu duy nhất cho trạng thái đó,
+        // vì thẻ không còn nút hay chữ "chọn" nào nữa.
         isSelected && { borderWidth: 1.5, borderColor: primaryColor },
       ]}
     >
-      {/* ── Phần trên ─────────────────────────────────────────────── */}
       <View style={s.head}>
-        <Text style={[s.discount, { color: headlineColor }]} numberOfLines={1}>
-          {discount}
-        </Text>
-        <Text style={[s.title, { color: titleColor }]} numberOfLines={2}>
+        <Text style={[s.title, { color: headlineColor }]} numberOfLines={2}>
           {voucher.title}
         </Text>
+
+        {voucher.description ? (
+          <Text style={[s.description, { color: mutedColor }]}>
+            {voucher.description}
+          </Text>
+        ) : null}
+
         {expiry ? (
           <Text style={[s.expiry, { color: mutedColor }]} numberOfLines={1}>
             {expiry}
           </Text>
         ) : null}
+
+        {voucher.remainingUsage > 0 ? (
+          <View style={s.progressWrap}>
+            <Text style={[s.expiry, { color: mutedColor }]}>
+              {t('remainingUsagePercent', { value: Math.round(usage) })}
+            </Text>
+            <View style={[s.progressTrack, { backgroundColor: dashColor }]}>
+              <View
+                style={[
+                  s.progressFill,
+                  { width: `${usage}%`, backgroundColor: primaryColor },
+                ]}
+              />
+            </View>
+          </View>
+        ) : null}
       </View>
 
-      {/* ── Phần giữa: chỉ hiện khi voucher có điều kiện kèm theo ──── */}
-      {hasDetails ? (
-        <View style={s.details}>
-          {minOrder ? (
-            <Text style={[s.detailText, { color: mutedColor }]}>
-              {t('minOrderLabel', { value: minOrder })}
-            </Text>
-          ) : null}
-
-          {voucher.voucherPaymentMethods?.length > 0 ? (
-            <View style={s.pmRow}>
-              {voucher.voucherPaymentMethods.map((pm) => (
-                <View
-                  key={pm.slug}
-                  style={[s.pmTag, { borderColor: primaryColor }]}
-                >
-                  <Text style={[s.pmTagText, { color: primaryColor }]}>
-                    {pm.paymentMethod === 'cash'
-                      ? t('paymentMethodShort.cash')
-                      : pm.paymentMethod === 'bank-transfer'
-                        ? t('paymentMethodShort.bankTransfer')
-                        : pm.paymentMethod === 'point'
-                          ? t('paymentMethodShort.point')
-                          : t('paymentMethodShort.creditCard')}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          ) : null}
-
-          {voucher.remainingUsage > 0 ? (
-            <View style={s.progressWrap}>
-              <Text style={[s.detailText, { color: mutedColor }]}>
-                {t('remainingUsagePercent', { value: Math.round(usage) })}
-              </Text>
-              <View style={[s.progressTrack, { backgroundColor: dashColor }]}>
-                <View
-                  style={[
-                    s.progressFill,
-                    { width: `${usage}%`, backgroundColor: primaryColor },
-                  ]}
-                />
-              </View>
-            </View>
-          ) : null}
-
-          {errorMessage ? (
-            <Text style={s.errorText}>{errorMessage}</Text>
-          ) : null}
-        </View>
-      ) : null}
-
-      {/* ── Đường đục lỗ ──────────────────────────────────────────── */}
+      {/* Đường đục lỗ. Vẽ nét đứt bằng SVG chứ không dùng
+          `borderStyle: 'dashed'` — trên iOS viền 1px kiểu đó render ra thành
+          nét liền. Một node Svg rẻ hơn là xếp vài chục ô vuông nhỏ. */}
       <View style={s.perforation}>
         <View style={[notch, s.notchLeft]} />
-        <View style={[s.dash, { borderColor: dashColor }]} />
+        <View style={s.dashWrap}>
+          <Svg height={1} width="100%">
+            <Line
+              x1="0"
+              y1="0.5"
+              x2="100%"
+              y2="0.5"
+              stroke={dashColor}
+              strokeWidth={1}
+              strokeDasharray="6 5"
+            />
+          </Svg>
+        </View>
         <View style={[notch, s.notchRight]} />
       </View>
 
-      {/* ── Phần dưới ─────────────────────────────────────────────── */}
       <View style={s.foot}>
         <Pressable
           onPress={handleCondition}
@@ -205,19 +161,6 @@ export const VoucherCard = memo(function VoucherCard({
             {t('condition')}
           </Text>
         </Pressable>
-
-        <View style={s.selectWrap}>
-          {isSelected ? <Check size={15} color={primaryColor} /> : null}
-          <Text
-            style={[
-              s.selectText,
-              { color: isSelected ? primaryColor : actionColor },
-              isSelected && s.selectTextOn,
-            ]}
-          >
-            {isSelected ? t('selected') : t('select')}
-          </Text>
-        </View>
       </View>
     </Pressable>
   )
@@ -231,46 +174,23 @@ const s = StyleSheet.create({
   head: {
     paddingHorizontal: 14,
     paddingTop: 12,
-    gap: 2,
+    gap: 4,
   },
-  discount: {
+  title: {
     // 32pt — đo từ ảnh thiết kế (89px trên ảnh rộng 1080). Đây là điểm nhìn
     // đầu tiên của thẻ, không phải một nhãn phụ.
     fontSize: 32,
     fontWeight: '700',
   },
-  title: {
+  description: {
     fontSize: 14,
-    fontWeight: '600',
   },
   expiry: {
     fontSize: 12,
   },
-  details: {
-    paddingHorizontal: 14,
-    paddingTop: 8,
-    gap: 4,
-  },
-  detailText: {
-    fontSize: 12,
-  },
-  pmRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 4,
-  },
-  pmTag: {
-    borderRadius: 4,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderWidth: 1,
-  },
-  pmTagText: {
-    fontSize: 10,
-    fontWeight: '500',
-  },
   progressWrap: {
     gap: 4,
+    marginTop: 2,
   },
   progressTrack: {
     height: 4,
@@ -280,11 +200,6 @@ const s = StyleSheet.create({
   progressFill: {
     height: '100%',
     borderRadius: 2,
-  },
-  errorText: {
-    fontSize: 12,
-    color: colors.destructive.light,
-    fontStyle: 'italic',
   },
   perforation: {
     flexDirection: 'row',
@@ -298,16 +213,13 @@ const s = StyleSheet.create({
   notchRight: {
     marginRight: -NOTCH / 2,
   },
-  dash: {
+  dashWrap: {
     flex: 1,
-    borderTopWidth: 1,
-    borderStyle: 'dashed',
     marginHorizontal: 6,
   },
   foot: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 14,
     paddingTop: 8,
     paddingBottom: 12,
@@ -319,17 +231,5 @@ const s = StyleSheet.create({
   },
   conditionText: {
     fontSize: 12,
-  },
-  selectWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  selectText: {
-    fontSize: 13,
-    textDecorationLine: 'underline',
-  },
-  selectTextOn: {
-    fontWeight: '700',
   },
 })

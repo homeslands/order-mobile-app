@@ -50,10 +50,7 @@ export function InvalidList({
             isDark={isDark}
             onSelect={onSelect}
             onViewCondition={onViewCondition}
-            errorMessage={p.errorMessage}
-            discountLabel={p.discountLabel}
             expiryText={p.expiryText}
-            minOrderText={p.minOrderText}
             usagePercent={p.usagePercent}
           />
         </View>
