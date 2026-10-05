@@ -7,6 +7,11 @@
  * Chọn mã bằng cách chạm vào CẢ THẺ; thẻ đang chọn viền primary. Không có nút
  * hay chữ riêng cho việc chọn.
  *
+ * Viền LUÔN tồn tại, chỉ đổi màu — lúc không chọn thì màu primary alpha 0.
+ * Nếu bật/tắt `borderWidth` thì mỗi lần chọn nội dung bị đẩy vào 1.5px, thấy
+ * rõ thành cú giật. Màu viền và màu nền chuyển bằng Reanimated trên UI
+ * thread, không qua JS.
+ *
  * Vết khuyết làm bằng hai hình tròn tô MÀU NỀN CỦA SHEET, không phải cắt
  * thật. Cách này chỉ đúng khi nền phía sau là màu đặc — và đúng là vậy:
  * cả hai sheet dùng thẻ này đều gắn GlassSheetBackground, vốn luôn đặc
@@ -14,14 +19,23 @@
  * đặt thẻ lên nền ảnh hay gradient thì phải chuyển sang vẽ khung bằng SVG,
  * vì hai hình tròn sẽ lộ ra thành hai chấm.
  */
-import { colors } from '@/constants'
+import { colors, TIMING_CONFIGS } from '@/constants'
+import { hexToRgba } from '@/lib/utils'
 import type { IVoucher } from '@/types'
 import { Info } from 'lucide-react-native'
-import { memo, useCallback } from 'react'
+import { memo, useCallback, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, View } from 'react-native'
+import Animated, {
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated'
 import Svg, { Line } from 'react-native-svg'
 import { Text } from '@/components/ui/text'
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 
 /** Đường kính vết khuyết; nửa nằm ngoài mỗi mép thẻ. */
 const NOTCH = 18
@@ -62,13 +76,10 @@ export const VoucherCard = memo(function VoucherCard({
   )
 
   const surface = isDark ? colors.card.dark : colors.white.light
-  const ticketBg = isSelected
-    ? isDark
-      ? colors.ticket.bgSelectedDark
-      : colors.ticket.bgSelectedLight
-    : isDark
-      ? colors.ticket.bgDark
-      : colors.ticket.bgLight
+  const bgIdle = isDark ? colors.ticket.bgDark : colors.ticket.bgLight
+  const bgOn = isDark
+    ? colors.ticket.bgSelectedDark
+    : colors.ticket.bgSelectedLight
   const headlineColor = isDark
     ? colors.ticket.headlineDark
     : colors.ticket.headlineLight
@@ -82,18 +93,29 @@ export const VoucherCard = memo(function VoucherCard({
     backgroundColor: surface,
   }
 
+  // Pha màu từ primary alpha 0 chứ không từ 'transparent': 'transparent' là
+  // ĐEN alpha 0, nên nội suy sẽ đi qua vùng xám bẩn trước khi ra màu đúng.
+  const borderOff = hexToRgba(primaryColor, 0)
+  const progress = useSharedValue(isSelected ? 1 : 0)
+
+  useEffect(() => {
+    progress.value = withTiming(
+      isSelected ? 1 : 0,
+      TIMING_CONFIGS.selectionFade,
+    )
+  }, [isSelected, progress])
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    borderColor: interpolateColor(
+      progress.value,
+      [0, 1],
+      [borderOff, primaryColor],
+    ),
+    backgroundColor: interpolateColor(progress.value, [0, 1], [bgIdle, bgOn]),
+  }))
+
   return (
-    <Pressable
-      onPress={handlePress}
-      style={[
-        s.card,
-        { backgroundColor: ticketBg },
-        // Thiết kế gốc là một khối kem PHẲNG, không viền. Viền chỉ xuất hiện
-        // khi thẻ đang được chọn — đó là tín hiệu duy nhất cho trạng thái đó,
-        // vì thẻ không còn nút hay chữ "chọn" nào nữa.
-        isSelected && { borderWidth: 1.5, borderColor: primaryColor },
-      ]}
-    >
+    <AnimatedPressable onPress={handlePress} style={[s.card, animatedStyle]}>
       <View style={s.head}>
         <Text style={[s.title, { color: headlineColor }]} numberOfLines={2}>
           {voucher.title}
@@ -162,7 +184,7 @@ export const VoucherCard = memo(function VoucherCard({
           </Text>
         </Pressable>
       </View>
-    </Pressable>
+    </AnimatedPressable>
   )
 })
 
@@ -170,6 +192,8 @@ const s = StyleSheet.create({
   card: {
     marginTop: 12,
     borderRadius: 10,
+    // Viền luôn chiếm chỗ; chỉ màu đổi. Xem chú thích đầu file.
+    borderWidth: 1.5,
   },
   head: {
     paddingHorizontal: 14,
