@@ -17,6 +17,9 @@
     },
     "viewMenu": "View more MENU",
     "viewMore": "View more",
+    "greeting": {
+      "hello": "Hello"
+    },
     "actions": {
       "giftCardRedeem": "Redeem gift card",
       "orderHistory": "Order history",

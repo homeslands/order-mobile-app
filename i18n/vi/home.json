@@ -17,6 +17,9 @@
     },
     "viewMenu": "Xem thêm MENU",
     "viewMore": "Xem thêm",
+    "greeting": {
+      "hello": "Xin chào"
+    },
     "actions": {
       "giftCardRedeem": "Đổi thẻ quà tặng",
       "orderHistory": "Lịch sử đơn",
