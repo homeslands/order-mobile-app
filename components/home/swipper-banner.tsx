@@ -114,7 +114,9 @@ const SlideItem = React.memo(function SlideItem({
         source={source}
         style={StyleSheet.absoluteFill}
         contentFit="cover"
-        contentPosition="center"
+        // Neo mép trên: admin đặt logo/tiêu đề ở mép trên ảnh. Neo giữa thì
+        // khung thấp hơn tỉ lệ ảnh sẽ cắt đều trên lẫn dưới và mất logo.
+        contentPosition="top"
         cachePolicy="memory-disk"
         transition={250}
       />
