@@ -36,6 +36,22 @@ jest.mock('@/components/ui/text', () => ({
 }))
 
 jest.mock('lucide-react-native', () => new Proxy({}, { get: () => () => null }))
+// NativeGesturePressable chạy trên gesture handler; trong test thay bằng một
+// Pressable thường giữ nguyên onPress, và đánh dấu để G12 đếm được.
+jest.mock('@/components/navigation/native-gesture-pressable', () => {
+  /* eslint-disable @typescript-eslint/no-require-imports */
+  const { Pressable } = require('react-native')
+  const { createElement: h } = require('react')
+  /* eslint-enable @typescript-eslint/no-require-imports */
+  return {
+    NativeGesturePressable: (p: { onPress?: () => void; children?: unknown }) =>
+      h(
+        Pressable,
+        { testID: 'press-feedback', onPress: p.onPress },
+        p.children,
+      ),
+  }
+})
 jest.mock(
   '@/components/home/home-icons',
   () => new Proxy({}, { get: () => () => null }),
@@ -206,5 +222,12 @@ describe('HomeActionGrid', () => {
     )
     expect(card.shadowOpacity).toBeLessThanOrEqual(0.05)
     expect(card.elevation).toBeLessThanOrEqual(2)
+  })
+
+  it('G12 cả sáu ô có phản hồi khi chạm (NativeGesturePressable)', () => {
+    // Chuẩn của repo: mọi phần tử chạm được thu nhỏ 0.97 bằng
+    // SPRING_CONFIGS.press. Ô chạm mà không phản hồi gì thì trông "chết".
+    render(<HomeActionGrid />)
+    expect(screen.getAllByTestId('press-feedback')).toHaveLength(6)
   })
 })

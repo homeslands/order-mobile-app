@@ -149,11 +149,17 @@ export default function HomeScreen() {
             entering={FadeInDown.duration(350).delay(140)}
           >
             <View style={s.sectionHeader}>
-              <Text style={[s.sectionTitle, { color: foreground }]}>
+              <Text
+                className="font-sans-semibold"
+                style={[s.sectionTitle, { color: foreground }]}
+              >
                 {t('exploreMenu')}
               </Text>
               <Pressable onPress={goMenu} hitSlop={8}>
-                <Text style={[s.sectionLink, { color: primaryColor }]}>
+                <Text
+                  className="font-sans-medium"
+                  style={[s.sectionLink, { color: primaryColor }]}
+                >
                   {t('viewMore')}
                 </Text>
               </Pressable>
@@ -175,14 +181,14 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 16,
-    marginBottom: 16,
+    marginBottom: 12,
   },
+  // Độ đậm đi qua họ font (font-sans-semibold/-medium), không qua fontWeight:
+  // mỗi độ đậm của BeVietnamPro là một họ font riêng.
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '800',
   },
   sectionLink: {
     fontSize: 14,
-    fontWeight: '500',
   },
 })

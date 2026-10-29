@@ -20,8 +20,11 @@
  */
 import { memo, useCallback, useMemo, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, View, useColorScheme } from 'react-native'
+import { View, useColorScheme } from 'react-native'
 
+// Import thẳng file, không qua barrel @/components/navigation: barrel kéo
+// theo module native và làm vỡ test.
+import { NativeGesturePressable } from '@/components/navigation/native-gesture-pressable'
 import { Text } from '@/components/ui/text'
 import { colors } from '@/constants'
 import { hasUsableSession, useQrActions } from '@/hooks/use-qr-actions'
@@ -47,6 +50,12 @@ type Action = {
 
 type IconTone = Omit<HomeIconProps, 'size'>
 
+/**
+ * Mỗi ô bọc NativeGesturePressable của repo: thu nhỏ 0.97 bằng
+ * SPRING_CONFIGS.press trên UI thread khi chạm — chuẩn phản hồi chạm của app.
+ * testID và nhãn trợ năng nằm ở View bên trong vì NativeGesturePressable
+ * không nhận hai prop đó.
+ */
 const QrActionItem = memo(function QrActionItem({
   action,
   tone,
@@ -58,20 +67,24 @@ const QrActionItem = memo(function QrActionItem({
 }) {
   const { key, label, Icon, onPress } = action
   return (
-    <Pressable
-      testID={`home-action-${key}`}
-      onPress={onPress}
-      className="flex-1 items-center px-1"
-    >
-      <Icon size={36} {...tone} />
-      <Text
-        numberOfLines={2}
-        className="mt-2 text-center"
-        style={{ fontSize: 13.5, color: labelColor }}
+    <NativeGesturePressable onPress={onPress} className="flex-1">
+      <View
+        testID={`home-action-${key}`}
+        accessible
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        className="items-center px-1"
       >
-        {label}
-      </Text>
-    </Pressable>
+        <Icon size={32} {...tone} />
+        <Text
+          numberOfLines={2}
+          className="mt-2 text-center font-sans"
+          style={{ fontSize: 14, color: labelColor }}
+        >
+          {label}
+        </Text>
+      </View>
+    </NativeGesturePressable>
   )
 })
 
@@ -88,30 +101,29 @@ const UtilityItem = memo(function UtilityItem({
 }) {
   const { key, label, Icon, onPress } = action
   return (
-    <Pressable
-      testID={`home-action-${key}`}
-      onPress={onPress}
-      className="flex-1 items-center px-1"
-    >
+    <NativeGesturePressable onPress={onPress} className="flex-1">
       <View
-        className="items-center justify-center"
-        style={{
-          width: 56,
-          height: 56,
-          borderRadius: 17,
-          backgroundColor: boxBg,
-        }}
+        testID={`home-action-${key}`}
+        accessible
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        className="items-center px-1"
       >
-        <Icon size={28} {...tone} />
+        <View
+          className="items-center justify-center rounded-xl"
+          style={{ width: 56, height: 56, backgroundColor: boxBg }}
+        >
+          <Icon size={28} {...tone} />
+        </View>
+        <Text
+          numberOfLines={2}
+          className="mt-2 text-center font-sans"
+          style={{ fontSize: 12, color: labelColor }}
+        >
+          {label}
+        </Text>
       </View>
-      <Text
-        numberOfLines={2}
-        className="mt-2 text-center"
-        style={{ fontSize: 13, color: labelColor }}
-      >
-        {label}
-      </Text>
-    </Pressable>
+    </NativeGesturePressable>
   )
 })
 
@@ -206,7 +218,7 @@ export const HomeActionGrid = memo(function HomeActionGrid() {
     <View>
       <View
         testID="home-qr-card"
-        className="mx-4 mt-3.5 flex-row rounded-[18px] px-1.5 py-[18px]"
+        className="mx-4 mt-3 flex-row rounded-2xl px-2 py-4"
         style={{
           backgroundColor: cardBg,
           borderWidth: isDark ? 1 : 0,
@@ -231,12 +243,12 @@ export const HomeActionGrid = memo(function HomeActionGrid() {
       </View>
 
       <Text
-        className="px-4 pb-3 pt-6 font-extrabold"
-        style={{ fontSize: 18, color: foreground, letterSpacing: -0.2 }}
+        className="px-4 pb-3 pt-6 font-sans-semibold"
+        style={{ fontSize: 18, color: foreground }}
       >
         {t('utilities')}
       </Text>
-      <View testID="home-utilities" className="flex-row px-2.5">
+      <View testID="home-utilities" className="flex-row px-2">
         {utilities.map((a) => (
           <UtilityItem
             key={a.key}

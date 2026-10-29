@@ -66,6 +66,19 @@ jest.mock('@/components/ui/text', () => ({
 
 jest.mock('lucide-react-native', () => new Proxy({}, { get: () => () => null }))
 
+jest.mock('react-native-reanimated', () =>
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  require('react-native-reanimated/mock'),
+)
+
+jest.mock('@/components/ui', () => {
+  /* eslint-disable @typescript-eslint/no-require-imports */
+  const { View } = require('react-native')
+  const { createElement: h } = require('react')
+  /* eslint-enable @typescript-eslint/no-require-imports */
+  return { Skeleton: () => h(View, { testID: 'skeleton' }) }
+})
+
 jest.mock('expo-linear-gradient', () => {
   /* eslint-disable @typescript-eslint/no-require-imports */
   const { View } = require('react-native')
@@ -162,7 +175,7 @@ describe('BalanceCard', () => {
     expect(screen.queryByText(LOGIN_CTA)).toBeNull()
   })
 
-  it('B5 đang tải: không hiện số 0 giả', () => {
+  it('B5 đang tải: skeleton thay chỗ con số, không hiện 0 giả', () => {
     mockUserState.userInfo = { slug: 'u1' }
     // Hook thật trả `data ?? 0` khi chưa có dữ liệu.
     mockCoin.balance = 0
@@ -173,7 +186,8 @@ describe('BalanceCard', () => {
     mockPoints.isLoading = true
     render(<BalanceCard />)
     expect(screen.queryByText(formatPoints(0))).toBeNull()
-    expect(screen.getAllByText('—')).toHaveLength(2)
+    expect(screen.queryByText('—')).toBeNull()
+    expect(screen.getAllByTestId('skeleton')).toHaveLength(2)
   })
 
   it('B6 lỗi API: không hiện số 0 như thể là số dư thật', () => {
@@ -237,5 +251,13 @@ describe('BalanceCard', () => {
       screen.getByTestId('balance-points-footer').props.style,
     )
     expect(footer.backgroundColor).not.toBe(colors.background.light)
+  })
+
+  it('B11 nút mắt đủ vùng chạm 44pt dù icon chỉ 16pt', () => {
+    mockUserState.userInfo = { slug: 'u1' }
+    render(<BalanceCard />)
+    const eye = screen.getByLabelText('Ẩn số dư')
+    // icon 16 + hitSlop mỗi phía ≥ 14 → ≥ 44
+    expect(eye.props.hitSlop).toBeGreaterThanOrEqual(14)
   })
 })

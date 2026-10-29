@@ -1,6 +1,7 @@
 // Dòng lời chào dưới banner trên Home (thay cho header logo): ảnh đại diện,
 // "Xin chào, <tên>", và chuông thông báo.
 import { render, screen } from '@testing-library/react-native'
+import { StyleSheet } from 'react-native'
 
 import { HomeGreeting } from '@/components/home/home-greeting'
 import { publicFileURL } from '@/constants'
@@ -94,5 +95,12 @@ describe('HomeGreeting', () => {
     expect((img.props.source as { uri: string }).uri).toBe(
       `${publicFileURL}/avatars/u1.jpg`,
     )
+  })
+
+  it('GR5 nút chuông đủ vùng chạm 44pt (Apple HIG)', () => {
+    render(<HomeGreeting />)
+    const bell = StyleSheet.flatten(screen.getByTestId('home-bell').props.style)
+    expect(bell.width).toBeGreaterThanOrEqual(44)
+    expect(bell.height).toBeGreaterThanOrEqual(44)
   })
 })

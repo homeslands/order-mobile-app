@@ -43,7 +43,7 @@ export const HomeGreeting = memo(function HomeGreeting() {
   const bellBg = isDark ? colors.card.dark : colors.card.light
 
   return (
-    <View className="flex-row items-center px-4 pb-1 pt-3.5">
+    <View className="flex-row items-center px-4 pb-2 pt-4">
       <View
         className="items-center justify-center overflow-hidden rounded-full"
         style={{
@@ -64,7 +64,10 @@ export const HomeGreeting = memo(function HomeGreeting() {
             cachePolicy="disk"
           />
         ) : (
-          <Text className="font-bold" style={{ fontSize: 16, color: muted }}>
+          <Text
+            className="font-sans-semibold"
+            style={{ fontSize: 16, color: muted }}
+          >
             {firstName ? firstName.charAt(0).toUpperCase() : ''}
           </Text>
         )}
@@ -73,11 +76,11 @@ export const HomeGreeting = memo(function HomeGreeting() {
       <View className="ml-3 flex-1">
         {firstName ? (
           <>
-            <Text style={{ fontSize: 12, color: muted }}>
+            <Text className="font-sans" style={{ fontSize: 12, color: muted }}>
               {`${t('greeting.hello')},`}
             </Text>
             <Text
-              className="font-bold"
+              className="font-sans-semibold"
               style={{ fontSize: 16, color: foreground }}
               numberOfLines={1}
             >
@@ -86,7 +89,7 @@ export const HomeGreeting = memo(function HomeGreeting() {
           </>
         ) : (
           <Text
-            className="font-bold"
+            className="font-sans-semibold"
             style={{ fontSize: 16, color: foreground }}
           >
             {t('greeting.hello')}
@@ -94,9 +97,11 @@ export const HomeGreeting = memo(function HomeGreeting() {
         )}
       </View>
 
+      {/* 44pt: vùng chạm tối thiểu theo Apple HIG. */}
       <View
+        testID="home-bell"
         className="items-center justify-center rounded-full"
-        style={{ width: 40, height: 40, backgroundColor: bellBg }}
+        style={{ width: 44, height: 44, backgroundColor: bellBg }}
       >
         <NotificationBell color={foreground} size={20} />
       </View>
