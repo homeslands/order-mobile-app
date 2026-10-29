@@ -26,6 +26,11 @@
     },
     "viewMenu": "Xem thêm MENU",
     "viewMore": "Xem thêm",
+    "actions": {
+      "giftCardRedeem": "Đổi thẻ quà tặng",
+      "orderHistory": "Lịch sử đơn",
+      "order": "Đặt món"
+    },
     "balance": {
       "coin": "Xu",
       "points": "Điểm tích luỹ",

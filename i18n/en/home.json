@@ -26,6 +26,11 @@
     },
     "viewMenu": "View more MENU",
     "viewMore": "View more",
+    "actions": {
+      "giftCardRedeem": "Redeem gift card",
+      "orderHistory": "Order history",
+      "order": "Order"
+    },
     "balance": {
       "coin": "Coins",
       "points": "Loyalty points",

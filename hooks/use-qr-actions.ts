@@ -40,7 +40,7 @@ const TAP_GUARD_MS = 600
  * tính năng này cần nhanh nhất. `isTokenValid()` cùng logic nhưng không đọc
  * `isRefreshing`, nên hai vế cộng lại mới là "phiên còn dùng được".
  */
-function hasUsableSession(): boolean {
+export function hasUsableSession(): boolean {
   const auth = useAuthStore.getState()
   return auth.isAuthenticated() || auth.isTokenValid()
 }
