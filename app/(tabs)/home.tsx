@@ -6,24 +6,18 @@ import {
   Dimensions,
   Pressable,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   View,
   useColorScheme,
 } from 'react-native'
-import Animated, {
-  Extrapolation,
-  FadeInDown,
-  interpolate,
-  useAnimatedScrollHandler,
-  useAnimatedStyle,
-  useSharedValue,
-} from 'react-native-reanimated'
+import Animated, { FadeInDown } from 'react-native-reanimated'
 
 import {
-  BrandSection,
+  BalanceCard,
   HighlightMenuCarousel,
+  HomeActionGrid,
   SwiperBanner,
-  YouTubeVideoSection,
 } from '@/components/home'
 import {
   TabHeader,
@@ -32,7 +26,7 @@ import {
 } from '@/components/layout'
 import { Skeleton } from '@/components/ui'
 import { NotificationBell } from '@/components/notification/notification-bell'
-import { BannerPage, colors, youtubeVideoId } from '@/constants'
+import { BannerPage, colors } from '@/constants'
 import { useRunAfterTransition } from '@/hooks'
 import { useBanners } from '@/hooks/use-banner'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
@@ -41,8 +35,12 @@ import { Text } from '@/components/ui/text'
 
 const SCREEN_W = Dimensions.get('window').width
 
-/** Banner taller hơn 25% để có room dịch chuyển khi parallax. */
-const BANNER_EXTRA_RATIO = 0.25
+/**
+ * Banner nằm dưới lưới chức năng, không còn là hero trên cùng, nên thấp hơn
+ * tỉ lệ 2:1 cũ. Giữ full bề ngang vì SwiperBanner khoá slide = SCREEN_W và
+ * phân trang theo contentOffset.x / SCREEN_W.
+ */
+const BANNER_H = Math.round(SCREEN_W * 0.45)
 
 const FALLBACK_BANNER: IBanner = {
   slug: 'fallback',
@@ -102,35 +100,6 @@ export default function HomeScreen() {
     [refreshing, handleRefresh, primaryColor],
   )
 
-  // ─── Scroll tracking ─────────────────────────────────────────────
-  const scrollY = useSharedValue(0)
-
-  const scrollHandler = useAnimatedScrollHandler((e) => {
-    'worklet'
-    scrollY.value = e.contentOffset.y // local — banner parallax
-  })
-
-  // Fixed banner height — 2:1 aspect ratio
-  const BANNER_H = Math.round(SCREEN_W / 2)
-  const BANNER_INNER_H = BANNER_H * (1 + BANNER_EXTRA_RATIO)
-
-  /** Parallax: banner dịch xuống chậm hơn scroll → tạo độ sâu */
-  const bannerParallaxStyle = useAnimatedStyle(() => {
-    'worklet'
-    return {
-      transform: [
-        {
-          translateY: interpolate(
-            scrollY.value,
-            [0, BANNER_H],
-            [0, BANNER_H * BANNER_EXTRA_RATIO],
-            Extrapolation.CLAMP,
-          ),
-        },
-      ],
-    }
-  })
-
   const bellColor = isDark ? colors.foreground.dark : colors.foreground.light
 
   return (
@@ -142,34 +111,26 @@ export default function HomeScreen() {
       />
 
       {/* ─── Scrollable content ──────────────────────────────────────── */}
-      <Animated.ScrollView
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
+      <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: bottomPadding }}
         refreshControl={refreshControl}
       >
-        {/* 1. Hero Banner với parallax */}
-        <View style={{ height: BANNER_H, overflow: 'hidden' }}>
+        {/* 1–2. Số dư và lưới chức năng — KHÔNG chờ `ready`: đây là lớp điều
+            khiển dùng ở quầy, chờ transition xong mới hiện là mất ý nghĩa. */}
+        <BalanceCard />
+        <HomeActionGrid />
+
+        {/* 3. Banner khuyến mãi */}
+        <View style={[s.bannerSpacing, { height: BANNER_H }]}>
           {showBannerSkeleton ? (
             <Skeleton className="h-full w-full rounded-none" />
           ) : (
-            <Animated.View
-              style={[{ height: BANNER_INNER_H }, bannerParallaxStyle]}
-            >
-              <SwiperBanner bannerData={banners} height={BANNER_INNER_H} />
-            </Animated.View>
+            <SwiperBanner bannerData={banners} height={BANNER_H} />
           )}
         </View>
 
-        {/* 2. Brand info + store carousel */}
-        {ready && (
-          <Animated.View entering={FadeInDown.duration(350).delay(60)}>
-            <BrandSection />
-          </Animated.View>
-        )}
-
-        {/* 3. Sản phẩm nổi bật */}
+        {/* 4. Sản phẩm nổi bật */}
         {ready && (
           <Animated.View
             style={s.sectionSpacing}
@@ -188,25 +149,15 @@ export default function HomeScreen() {
             <HighlightMenuCarousel primaryColor={primaryColor} />
           </Animated.View>
         )}
-
-        {/* 4. YouTube / Member Guide */}
-        {ready && youtubeVideoId && (
-          <Animated.View
-            style={s.sectionSpacing}
-            entering={FadeInDown.duration(350).delay(220)}
-          >
-            <YouTubeVideoSection
-              videoId={youtubeVideoId}
-              title={t('videoSection.title')}
-            />
-          </Animated.View>
-        )}
-      </Animated.ScrollView>
+      </ScrollView>
     </TabScreenLayout>
   )
 }
 
 const s = StyleSheet.create({
+  bannerSpacing: {
+    marginTop: 20,
+  },
   sectionSpacing: {
     marginTop: 44,
   },

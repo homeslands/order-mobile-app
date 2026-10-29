@@ -18,8 +18,6 @@ export const mail = process.env.EXPO_PUBLIC_TREND_EMAIL
 
 export const fanpageUrl = process.env.EXPO_PUBLIC_TREND_FANPAGE_URL
 
-export const youtubeVideoId = process.env.EXPO_PUBLIC_TREND_YOUTUBE_VIDEO_ID
-
 export const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
   authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,

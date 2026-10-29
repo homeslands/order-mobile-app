@@ -6,8 +6,6 @@
     "description": "Đây là trang chủ",
     "exploreMenu": "Các sản phẩm nổi bật",
     "fanpage": "Facebook",
-    "homeDescription": "Trend Coffee là không gian mang đậm phong cách rustic mộc mạc, nơi hương cà phê hòa quyện cùng cảm giác ấm áp và gần gũi.",
-    "homeDescription2": "Mỗi chi tiết trong quán – từ bàn gỗ thô, ánh đèn vàng nhẹ cho đến mùi cà phê rang mới – đều được chăm chút tỉ mỉ để mang đến trải nghiệm thân thuộc như đang trở về một góc quen thuộc trong thành phố.",
     "learnAboutUs": "Tìm hiểu về chúng tôi",
     "learnMore": "Tìm hiểu thêm",
     "menu": "Thực đơn",
@@ -16,13 +14,6 @@
     "topPromotion": "Khuyến mãi hàng đầu",
     "newsSection": {
       "title": "Tin tức sự kiện"
-    },
-    "videoSection": {
-      "label": "Hướng dẫn",
-      "title": "Đăng ký thành viên",
-      "subtitle": "Xem video hướng dẫn để tích điểm và nhận ưu đãi độc quyền.",
-      "tap": "Nhấn để xem",
-      "cta": "Xem ngay"
     },
     "viewMenu": "Xem thêm MENU",
     "viewMore": "Xem thêm",
@@ -35,13 +26,6 @@
       "coin": "Xu",
       "points": "Điểm tích luỹ",
       "loginCta": "Đăng nhập để xem Xu và điểm tích luỹ"
-    },
-    "loyaltyCard": {
-      "balanceLabel": "Điểm tích luỹ của bạn",
-      "coinUnit": "xu",
-      "loginCta": "Đăng nhập để tích điểm",
-      "loginSubtitle": "Nhận ưu đãi và quà tặng hấp dẫn",
-      "loginButton": "Đăng nhập"
     },
     "highlightMenu": {
       "tea": "Trà",

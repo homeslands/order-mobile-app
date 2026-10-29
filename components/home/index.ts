@@ -1,6 +1,4 @@
-export { BrandSection } from './brand-section'
+export { BalanceCard } from './balance-card'
 export { default as HighlightMenuCarousel } from './highlight-menu'
-export { LoyaltyCard } from './loyalty-card'
-export { default as StoreCarousel } from './store-carousel'
+export { HomeActionGrid } from './home-action-grid'
 export { default as SwiperBanner } from './swipper-banner'
-export { default as YouTubeVideoSection } from './youtube-section'
