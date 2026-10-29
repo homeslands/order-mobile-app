@@ -36,7 +36,10 @@ export const HomeGreeting = memo(function HomeGreeting() {
   const muted = isDark
     ? colors.mutedForeground.dark
     : colors.mutedForeground.light
-  const primary = isDark ? colors.primary.dark : colors.primary.light
+  // Avatar nền kem chữ nâu, không dùng cam: trên Home chỉ thẻ Xu được là
+  // mảng màu đậm.
+  const avatarBg = isDark ? '#3a2f25' : '#f4e9da'
+  const avatarText = isDark ? '#e8b57c' : '#6b3d1b'
   // Nền nút chuông: xám rất nhạt như ZaloPay, tách khỏi nền trang trắng.
   const bellBg = isDark ? colors.card.dark : '#f3f1ee'
 
@@ -47,7 +50,7 @@ export const HomeGreeting = memo(function HomeGreeting() {
         style={{
           width: AVATAR_SIZE,
           height: AVATAR_SIZE,
-          backgroundColor: primary,
+          backgroundColor: avatarBg,
         }}
       >
         {image ? (
@@ -62,7 +65,10 @@ export const HomeGreeting = memo(function HomeGreeting() {
             cachePolicy="disk"
           />
         ) : (
-          <Text className="font-bold" style={{ fontSize: 16, color: '#fff' }}>
+          <Text
+            className="font-bold"
+            style={{ fontSize: 16, color: avatarText }}
+          >
             {firstName ? firstName.charAt(0).toUpperCase() : ''}
           </Text>
         )}

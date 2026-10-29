@@ -1,8 +1,9 @@
 /**
  * BalanceCard — hai thẻ số dư trên Home, theo ngôn ngữ của ZaloPay.
  *
- * Đã đăng nhập: thẻ Xu (to, cam đậm, có nút ẩn số) và thẻ Điểm tích luỹ (nhỏ,
- * nâu cà phê). Mỗi thẻ có một dải chân với lời gọi hành động; chạm vào đâu
+ * Đã đăng nhập: thẻ Xu (to, cam trầm, có nút ẩn số) và thẻ Điểm tích luỹ (nhỏ,
+ * nền kem chữ nâu). Chỉ một mảng màu đậm trên Home — thẻ bên cạnh dịu hẳn đi,
+ * như ZaloPay; hai mảng đậm cạnh nhau là thứ làm màn hình trông như template. Mỗi thẻ có một dải chân với lời gọi hành động; chạm vào đâu
  * trên thẻ cũng mở màn lịch sử của chính con số đó. Chưa đăng nhập: một thẻ
  * mời đăng nhập, không hiện số 0.
  *
@@ -25,8 +26,6 @@ import { navigateNative } from '@/lib/navigation'
 import { useUserStore } from '@/stores'
 import { formatPoints } from '@/utils'
 
-const ON_CARD = colors.white.light
-
 /**
  * Hiện khi chưa có dữ liệu. Hai hook trả `?? 0` khi chưa tải xong hoặc khi lần
  * tải đầu lỗi — hiện số 0 đó ra là nói dối khách rằng họ hết Xu.
@@ -35,24 +34,58 @@ const NO_VALUE = '—'
 /** Cùng cách che số của hai màn hub. */
 const HIDDEN_VALUE = '••••••'
 
-const COIN_GRADIENT = {
-  light: ['#ec9526', '#c46d09'],
-  dark: ['#c47a12', '#8f5205'],
-} as const
-const POINTS_GRADIENT = {
-  light: ['#8d6a4e', '#644732'],
-  dark: ['#6b503b', '#47321f'],
-} as const
+type CardTheme = {
+  /** Hai màu trùng nhau là nền đặc. */
+  gradient: readonly [string, string]
+  label: string
+  text: string
+  footerBg: string
+  footerText: string
+}
 
-/** Khung chung của một thẻ: nền gradient, thân, và dải chân có `›`. */
-const GradientCard = memo(function GradientCard({
-  gradient,
+const COIN_THEME: Record<'light' | 'dark', CardTheme> = {
+  light: {
+    gradient: ['#d9861c', '#a95a08'],
+    label: 'rgba(255,255,255,0.88)',
+    text: colors.white.light,
+    footerBg: 'rgba(0,0,0,0.08)',
+    footerText: colors.white.light,
+  },
+  dark: {
+    gradient: ['#b8730f', '#7d4705'],
+    label: 'rgba(255,255,255,0.85)',
+    text: colors.white.light,
+    footerBg: 'rgba(0,0,0,0.14)',
+    footerText: colors.white.light,
+  },
+}
+
+const POINTS_THEME: Record<'light' | 'dark', CardTheme> = {
+  light: {
+    gradient: ['#f6eee3', '#f6eee3'],
+    label: '#8a6a4c',
+    text: '#4a2e17',
+    footerBg: '#efe3d2',
+    footerText: '#6b3d1b',
+  },
+  dark: {
+    gradient: ['#2b231c', '#2b231c'],
+    label: '#c9b39b',
+    text: '#f3e6d6',
+    footerBg: '#352b22',
+    footerText: '#e8b57c',
+  },
+}
+
+/** Khung chung của một thẻ: nền, thân, và dải chân có `›`. */
+const BalanceTile = memo(function BalanceTile({
+  theme,
   flex,
   onPress,
   footer,
   children,
 }: {
-  gradient: readonly [string, string]
+  theme: CardTheme
   flex: number
   onPress: () => void
   footer: string
@@ -61,7 +94,7 @@ const GradientCard = memo(function GradientCard({
   return (
     <Pressable onPress={onPress} style={{ flex }}>
       <LinearGradient
-        colors={gradient}
+        colors={theme.gradient}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{ borderRadius: 18, overflow: 'hidden' }}
@@ -69,42 +102,46 @@ const GradientCard = memo(function GradientCard({
         <View className="px-3.5 pb-3 pt-3">{children}</View>
         <View
           className="flex-row items-center justify-between px-3.5 py-2.5"
-          style={{ backgroundColor: 'rgba(255,255,255,0.12)' }}
+          style={{ backgroundColor: theme.footerBg }}
         >
           <Text
             className="font-semibold"
-            style={{ fontSize: 12.5, color: ON_CARD }}
+            style={{ fontSize: 13, color: theme.footerText }}
             numberOfLines={1}
           >
             {footer}
           </Text>
-          <ChevronRight size={16} color={ON_CARD} strokeWidth={2.4} />
+          <ChevronRight size={16} color={theme.footerText} strokeWidth={2.4} />
         </View>
       </LinearGradient>
     </Pressable>
   )
 })
 
-const CardLabel = memo(function CardLabel({ children }: { children: string }) {
-  return (
-    <Text style={{ fontSize: 12.5, color: ON_CARD, opacity: 0.92 }}>
-      {children}
-    </Text>
-  )
+const CardLabel = memo(function CardLabel({
+  children,
+  color,
+}: {
+  children: string
+  color: string
+}) {
+  return <Text style={{ fontSize: 12.5, color }}>{children}</Text>
 })
 
 const CardNumber = memo(function CardNumber({
   value,
   unit,
+  color,
 }: {
   value: string
   unit?: string
+  color: string
 }) {
   return (
     <View className="mt-1.5 flex-row" style={{ alignItems: 'baseline' }}>
       <Text
         className="shrink font-extrabold"
-        style={{ fontSize: 22, color: ON_CARD, letterSpacing: -0.3 }}
+        style={{ fontSize: 23, color, letterSpacing: -0.4 }}
         numberOfLines={1}
         // Số dư dài (hàng chục triệu) không được bị cắt "…" — một con số ví
         // bị cắt rất dễ đọc nhầm. Thu nhỏ chữ cho vừa thay vì cắt.
@@ -116,7 +153,7 @@ const CardNumber = memo(function CardNumber({
       {unit ? (
         <Text
           className="ml-1 font-semibold"
-          style={{ fontSize: 13, color: ON_CARD, opacity: 0.85 }}
+          style={{ fontSize: 13, color, opacity: 0.85 }}
         >
           {unit}
         </Text>
@@ -175,16 +212,19 @@ const SignedInBalance = memo(function SignedInBalance({
     : NO_VALUE
   const EyeIcon = coinHidden ? EyeOff : Eye
 
+  const coinTheme = COIN_THEME[scheme]
+  const pointsTheme = POINTS_THEME[scheme]
+
   return (
-    <View className="mx-4 mt-2.5 flex-row gap-2.5">
-      <GradientCard
-        gradient={COIN_GRADIENT[scheme]}
+    <View className="mx-4 mt-3 flex-row gap-2.5">
+      <BalanceTile
+        theme={coinTheme}
         flex={1.55}
         onPress={openCoins}
         footer={t('balance.coinHistory')}
       >
         <View className="flex-row items-center gap-1.5">
-          <CardLabel>{t('balance.coin')}</CardLabel>
+          <CardLabel color={coinTheme.label}>{t('balance.coin')}</CardLabel>
           {/* Pressable lồng: chạm mắt không kéo theo điều hướng của thẻ. */}
           <Pressable
             onPress={toggleCoinHidden}
@@ -194,36 +234,25 @@ const SignedInBalance = memo(function SignedInBalance({
               coinHidden ? t('balance.show') : t('balance.hide')
             }
           >
-            <EyeIcon size={15} color={ON_CARD} strokeWidth={2} />
+            <EyeIcon size={15} color={coinTheme.label} strokeWidth={2} />
           </Pressable>
         </View>
         <CardNumber
           value={coinValue}
           unit={coin.hasData && !coinHidden ? t('balance.coinUnit') : undefined}
+          color={coinTheme.text}
         />
-      </GradientCard>
+      </BalanceTile>
 
-      <GradientCard
-        gradient={POINTS_GRADIENT[scheme]}
+      <BalanceTile
+        theme={pointsTheme}
         flex={1}
         onPress={openPoints}
         footer={t('balance.viewPoints')}
       >
-        <CardLabel>{t('balance.points')}</CardLabel>
-        <CardNumber value={pointsValue} />
-        {/* Đồng xu trang trí — minh hoạ, không mang dữ liệu. */}
-        <View
-          pointerEvents="none"
-          className="absolute right-2.5 top-2.5 rounded-full"
-          style={{
-            width: 30,
-            height: 30,
-            backgroundColor: '#f6c13d',
-            borderWidth: 3,
-            borderColor: 'rgba(255,255,255,0.25)',
-          }}
-        />
-      </GradientCard>
+        <CardLabel color={pointsTheme.label}>{t('balance.points')}</CardLabel>
+        <CardNumber value={pointsValue} color={pointsTheme.text} />
+      </BalanceTile>
     </View>
   )
 })
@@ -239,20 +268,20 @@ const SignInPrompt = memo(function SignInPrompt({
   }, [])
 
   return (
-    <View className="mx-4 mt-2.5 flex-row">
-      <GradientCard
-        gradient={COIN_GRADIENT[isDark ? 'dark' : 'light']}
+    <View className="mx-4 mt-3 flex-row">
+      <BalanceTile
+        theme={COIN_THEME[isDark ? 'dark' : 'light']}
         flex={1}
         onPress={openLogin}
         footer={t('balance.loginAction')}
       >
         <Text
           className="font-semibold"
-          style={{ fontSize: 15, color: ON_CARD, lineHeight: 21 }}
+          style={{ fontSize: 15, color: colors.white.light, lineHeight: 21 }}
         >
           {t('balance.loginCta')}
         </Text>
-      </GradientCard>
+      </BalanceTile>
     </View>
   )
 })
