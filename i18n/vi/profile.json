@@ -481,7 +481,7 @@
       "memberIdDesc": "Nhân viên quét mã tại quầy",
       "coinPayment": "Thanh toán Xu",
       "coinPaymentDesc": "Đưa mã cho nhân viên quét để trả bằng xu",
-      "scanPay": "Quét QR trả đơn",
+      "scanPay": "Quét trả đơn",
       "scanPayDesc": "Trả đơn tại quầy bằng xu của bạn",
       "downloadButton": "Lưu QR vào ảnh"
     },

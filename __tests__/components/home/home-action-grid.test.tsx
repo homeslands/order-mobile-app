@@ -73,7 +73,7 @@ jest.mock('react-i18next', () => {
 
 const LABELS = [
   'Mã định danh',
-  'Quét QR trả đơn',
+  'Quét trả đơn',
   'Thanh toán Xu',
   'Đặt món',
   'Đổi thẻ quà tặng',
@@ -109,7 +109,7 @@ describe('HomeActionGrid', () => {
     render(<HomeActionGrid />)
     fireEvent.press(screen.getByText('Mã định danh'))
     expect(mockMember).toHaveBeenCalledTimes(1)
-    fireEvent.press(screen.getByText('Quét QR trả đơn'))
+    fireEvent.press(screen.getByText('Quét trả đơn'))
     expect(mockScan).toHaveBeenCalledTimes(1)
     fireEvent.press(screen.getByText('Thanh toán Xu'))
     expect(mockCoin).toHaveBeenCalledTimes(1)
@@ -176,4 +176,24 @@ describe('HomeActionGrid', () => {
     const row = screen.getByTestId('home-utilities')
     expect(row.children).toHaveLength(UTILITY_IDS.length)
   })
+
+  it.each(['vi', 'en'])(
+    'G10 nhãn QR (%s) đủ ngắn để vừa một dòng — tấm QR mới cân padding',
+    (lang) => {
+      // Một nhãn xuống hai dòng thì hàng cao theo nó, và hai ô còn lại hở
+      // dưới đáy — tấm QR trông trên thưa dưới dày. Đo bằng
+      // BeVietnamPro_400Regular 13.5pt, ô rộng 102pt trên màn 375pt: nhãn
+      // 13 ký tự dài nhất ("Thanh toán Xu") là 95.5pt; hai nhãn từng gây
+      // lỗi là 15 và 17 ký tự ("Quét QR trả đơn" 107pt, "Scan to pay
+      // order" 119pt). Số ký tự là xấp xỉ, không thay được kiểm mắt.
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const qr = require(`@/i18n/${lang}/profile.json`).profile.qr as Record<
+        string,
+        string
+      >
+      for (const key of ['memberId', 'scanPay', 'coinPayment']) {
+        expect(qr[key].length).toBeLessThanOrEqual(13)
+      }
+    },
+  )
 })
