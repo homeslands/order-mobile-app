@@ -1,4 +1,5 @@
-// Bố cục màn Home: thẻ số dư → lưới sáu ô → banner → sản phẩm nổi bật.
+// Bố cục màn Home (mockup A, ngôn ngữ ZaloPay): banner tràn trên cùng → lời
+// chào → thẻ số dư → nút QR và Tiện ích → sản phẩm nổi bật.
 // Thẻ số dư và lưới KHÔNG chờ `ready` (useRunAfterTransition): đó là lớp điều
 // khiển dùng ở quầy, chờ transition xong mới hiện là mất ý nghĩa.
 import { act, render, screen } from '@testing-library/react-native'
@@ -25,6 +26,7 @@ jest.mock('@/components/home', () => {
   const marker = (label: string) => () => h(Text, null, label)
   return {
     BalanceCard: marker('[BALANCE]'),
+    HomeGreeting: marker('[GREETING]'),
     HomeActionGrid: marker('[GRID]'),
     SwiperBanner: marker('[BANNER]'),
     HighlightMenuCarousel: marker('[FEATURED]'),
@@ -111,20 +113,25 @@ afterEach(() => {
 })
 
 describe('Home layout', () => {
-  it('H1 thứ tự: số dư → lưới → banner → sản phẩm nổi bật', () => {
+  it('H1 thứ tự: banner → lời chào → số dư → lưới → sản phẩm nổi bật', () => {
     mockReady = true
     render(<HomeScreen />)
     const texts = textsInOrder(screen.toJSON())
-    const order = ['[BALANCE]', '[GRID]', '[BANNER]', '[FEATURED]'].map((m) =>
-      texts.indexOf(m),
-    )
+    const order = [
+      '[BANNER]',
+      '[GREETING]',
+      '[BALANCE]',
+      '[GRID]',
+      '[FEATURED]',
+    ].map((m) => texts.indexOf(m))
     order.forEach((i) => expect(i).toBeGreaterThan(-1))
     expect([...order].sort((a, b) => a - b)).toEqual(order)
   })
 
-  it('H2 chưa ready: số dư và lưới đã hiện, sản phẩm nổi bật chưa', () => {
+  it('H2 chưa ready: lời chào, số dư và lưới đã hiện, sản phẩm nổi bật chưa', () => {
     mockReady = false
     render(<HomeScreen />)
+    expect(screen.getByText('[GREETING]')).toBeTruthy()
     expect(screen.getByText('[BALANCE]')).toBeTruthy()
     expect(screen.getByText('[GRID]')).toBeTruthy()
     expect(screen.queryByText('[FEATURED]')).toBeNull()

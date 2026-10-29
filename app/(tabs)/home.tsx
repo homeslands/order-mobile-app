@@ -6,28 +6,32 @@ import { useTranslation } from 'react-i18next'
 import {
   Dimensions,
   Pressable,
+  Platform,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   View,
   useColorScheme,
 } from 'react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
+import Animated, {
+  Extrapolation,
+  FadeInDown,
+  interpolate,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated'
 
 import {
   BalanceCard,
   HighlightMenuCarousel,
   HomeActionGrid,
+  HomeGreeting,
   SwiperBanner,
 } from '@/components/home'
-import {
-  TabHeader,
-  TabScreenLayout,
-  useTabBarBottomPadding,
-} from '@/components/layout'
+import { TabScreenLayout, useTabBarBottomPadding } from '@/components/layout'
 import { Skeleton } from '@/components/ui'
-import { NotificationBell } from '@/components/notification/notification-bell'
 import { BannerPage, QUERYKEY, colors } from '@/constants'
+import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useRunAfterTransition } from '@/hooks'
 import { useBanners } from '@/hooks/use-banner'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
@@ -37,11 +41,13 @@ import { Text } from '@/components/ui/text'
 const SCREEN_W = Dimensions.get('window').width
 
 /**
- * Banner nằm dưới lưới chức năng, không còn là hero trên cùng, nên thấp hơn
- * tỉ lệ 2:1 cũ. Giữ full bề ngang vì SwiperBanner khoá slide = SCREEN_W và
- * phân trang theo contentOffset.x / SCREEN_W.
+ * Banner tràn sát mép trên cùng, chạy cả dưới thanh trạng thái như ZaloPay —
+ * chiều cao này tính cả vùng thanh trạng thái. Full bề ngang vì SwiperBanner
+ * khoá slide = SCREEN_W và phân trang theo contentOffset.x / SCREEN_W.
  */
-const BANNER_H = Math.round(SCREEN_W * 0.45)
+const BANNER_H = Math.round(SCREEN_W * 0.5)
+/** Scrim thanh trạng thái hiện dần trong đoạn cuộn cuối cùng trước khi banner khuất. */
+const SCRIM_FADE = 24
 
 const FALLBACK_BANNER: IBanner = {
   slug: 'fallback',
@@ -106,34 +112,44 @@ export default function HomeScreen() {
         onRefresh={handleRefresh}
         tintColor={primaryColor}
         colors={[primaryColor]}
+        // Android vẽ vòng xoay từ mép trên — đẩy xuống khỏi thanh trạng thái.
+        progressViewOffset={Platform.OS === 'android' ? STATIC_TOP_INSET : 0}
       />
     ),
     [refreshing, handleRefresh, primaryColor],
   )
 
-  const bellColor = isDark ? colors.foreground.dark : colors.foreground.light
+  // Nền trang trắng như ZaloPay (thay cho xám nhạt mặc định của tab).
+  const pageBg = isDark ? colors.background.dark : colors.card.light
+  const foreground = isDark ? colors.foreground.dark : colors.foreground.light
+
+  // Không còn header cố định: banner chạy dưới thanh trạng thái. Khi cuộn qua
+  // banner, nội dung sẽ đè lên giờ/pin — nên một lớp nền cao bằng thanh trạng
+  // thái hiện dần ngay trước khi banner khuất hẳn.
+  const scrollY = useSharedValue(0)
+  const onScroll = useAnimatedScrollHandler((e) => {
+    scrollY.value = e.contentOffset.y
+  })
+  const scrimStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(
+      scrollY.value,
+      [BANNER_H - STATIC_TOP_INSET - SCRIM_FADE, BANNER_H - STATIC_TOP_INSET],
+      [0, 1],
+      Extrapolation.CLAMP,
+    ),
+  }))
 
   return (
-    <TabScreenLayout>
-      {/* ─── Header ─────────────────────────────────────────────────── */}
-      <TabHeader
-        variant="logo"
-        rightActions={<NotificationBell color={bellColor} size={24} />}
-      />
-
-      {/* ─── Scrollable content ──────────────────────────────────────── */}
-      <ScrollView
+    <TabScreenLayout backgroundColor={pageBg}>
+      <Animated.ScrollView
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: bottomPadding }}
         refreshControl={refreshControl}
       >
-        {/* 1–2. Số dư và lưới chức năng — KHÔNG chờ `ready`: đây là lớp điều
-            khiển dùng ở quầy, chờ transition xong mới hiện là mất ý nghĩa. */}
-        <BalanceCard />
-        <HomeActionGrid />
-
-        {/* 3. Banner khuyến mãi */}
-        <View style={[s.bannerSpacing, { height: BANNER_H }]}>
+        {/* 1. Banner khuyến mãi — tràn sát mép, chạy dưới thanh trạng thái */}
+        <View style={{ height: BANNER_H }}>
           {showBannerSkeleton ? (
             <Skeleton className="h-full w-full rounded-none" />
           ) : (
@@ -141,14 +157,21 @@ export default function HomeScreen() {
           )}
         </View>
 
-        {/* 4. Sản phẩm nổi bật */}
+        {/* 2–4. Lời chào, số dư và các nút — KHÔNG chờ `ready`: đây là lớp
+            điều khiển dùng ở quầy, chờ transition xong mới hiện là mất ý
+            nghĩa. */}
+        <HomeGreeting />
+        <BalanceCard />
+        <HomeActionGrid />
+
+        {/* 5. Sản phẩm nổi bật */}
         {ready && (
           <Animated.View
             style={s.sectionSpacing}
             entering={FadeInDown.duration(350).delay(140)}
           >
             <View style={s.sectionHeader}>
-              <Text style={[s.sectionTitle, { color: primaryColor }]}>
+              <Text style={[s.sectionTitle, { color: foreground }]}>
                 {t('exploreMenu')}
               </Text>
               <Pressable onPress={goMenu}>
@@ -160,17 +183,29 @@ export default function HomeScreen() {
             <HighlightMenuCarousel primaryColor={primaryColor} />
           </Animated.View>
         )}
-      </ScrollView>
+      </Animated.ScrollView>
+
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          s.statusScrim,
+          { height: STATIC_TOP_INSET, backgroundColor: pageBg },
+          scrimStyle,
+        ]}
+      />
     </TabScreenLayout>
   )
 }
 
 const s = StyleSheet.create({
-  bannerSpacing: {
-    marginTop: 20,
+  statusScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
   },
   sectionSpacing: {
-    marginTop: 44,
+    marginTop: 28,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -180,7 +215,7 @@ const s = StyleSheet.create({
     marginBottom: 16,
   },
   sectionTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '800',
   },
   sectionLink: {
