@@ -205,16 +205,19 @@ export const HomeActionGrid = memo(function HomeActionGrid() {
   return (
     <View>
       <View
+        testID="home-qr-card"
         className="mx-4 mt-3.5 flex-row rounded-[18px] px-1.5 py-[18px]"
         style={{
           backgroundColor: cardBg,
           borderWidth: isDark ? 1 : 0,
           borderColor: border,
+          // Mức shadow-sm của design-tokens: thẻ trắng trên nền xám đã tự tách
+          // khỏi nền, bóng chỉ để gợi khối chứ không để nổi.
           shadowColor: colors.foreground.light,
-          shadowOpacity: isDark ? 0 : 0.09,
-          shadowRadius: 18,
-          shadowOffset: { width: 0, height: 4 },
-          elevation: isDark ? 0 : 3,
+          shadowOpacity: isDark ? 0 : 0.05,
+          shadowRadius: 8,
+          shadowOffset: { width: 0, height: 1 },
+          elevation: isDark ? 0 : 1,
         }}
       >
         {qrActions.map((a) => (

@@ -3,7 +3,10 @@
 // bằng isAuthenticated() — hàm đó trả false suốt lúc refresh token đang bay.
 import { act, fireEvent, render, screen } from '@testing-library/react-native'
 
+import { StyleSheet } from 'react-native'
+
 import { BalanceCard } from '@/components/home/balance-card'
+import { colors } from '@/constants'
 import { formatPoints } from '@/utils'
 
 const mockUserState: { userInfo: { slug: string } | null } = { userInfo: null }
@@ -223,5 +226,16 @@ describe('BalanceCard', () => {
     expect(mockPush).not.toHaveBeenCalled()
     fireEvent.press(screen.getByLabelText('Hiện số dư'))
     expect(screen.getByText(formatPoints(390600))).toBeTruthy()
+  })
+
+  it('B10 dải chân thẻ Điểm không trùng màu nền trang', () => {
+    // Dải chân từng dùng `background` — đúng màu nền trang — nên nửa dưới thẻ
+    // tan vào nền và thẻ trông như bị cắt cụt.
+    mockUserState.userInfo = { slug: 'u1' }
+    render(<BalanceCard />)
+    const footer = StyleSheet.flatten(
+      screen.getByTestId('balance-points-footer').props.style,
+    )
+    expect(footer.backgroundColor).not.toBe(colors.background.light)
   })
 })

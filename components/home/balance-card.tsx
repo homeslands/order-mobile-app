@@ -17,7 +17,7 @@ import { LinearGradient } from 'expo-linear-gradient'
 import { ChevronRight, Eye, EyeOff } from 'lucide-react-native'
 import { memo, useCallback, useRef, useState, type ReactNode } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, View, useColorScheme } from 'react-native'
+import { Pressable, StyleSheet, View, useColorScheme } from 'react-native'
 
 import { Text } from '@/components/ui/text'
 import { colors } from '@/constants'
@@ -42,6 +42,8 @@ type CardTheme = {
   text: string
   footerBg: string
   footerText: string
+  /** Đường kẻ mảnh giữa thân và dải chân, khi dải chân cùng màu thân thẻ. */
+  divider?: string
 }
 
 // Mọi màu đi từ design token. Thẻ Xu mang màu thương hiệu (cam primary); thẻ
@@ -68,15 +70,19 @@ const POINTS_THEME: Record<'light' | 'dark', CardTheme> = {
     gradient: [colors.card.light, colors.card.light],
     label: colors.mutedForeground.light,
     text: colors.foreground.light,
-    footerBg: colors.background.light,
+    // Dải chân cùng màu thân thẻ, ngăn bằng đường kẻ. Đừng dùng `background`:
+    // đó là màu nền trang, nửa dưới thẻ sẽ tan vào nền.
+    footerBg: colors.card.light,
     footerText: colors.primary.light,
+    divider: colors.border.light,
   },
   dark: {
     gradient: [colors.card.dark, colors.card.dark],
     label: colors.mutedForeground.dark,
     text: colors.foreground.dark,
-    footerBg: colors.border.dark,
+    footerBg: colors.card.dark,
     footerText: colors.primary.dark,
+    divider: colors.border.dark,
   },
 }
 
@@ -86,12 +92,14 @@ const BalanceTile = memo(function BalanceTile({
   flex,
   onPress,
   footer,
+  footerTestID,
   children,
 }: {
   theme: CardTheme
   flex: number
   onPress: () => void
   footer: string
+  footerTestID?: string
   children: ReactNode
 }) {
   return (
@@ -104,8 +112,13 @@ const BalanceTile = memo(function BalanceTile({
       >
         <View className="px-3.5 pb-3 pt-3">{children}</View>
         <View
+          testID={footerTestID}
           className="flex-row items-center justify-between px-3.5 py-2.5"
-          style={{ backgroundColor: theme.footerBg }}
+          style={{
+            backgroundColor: theme.footerBg,
+            borderTopWidth: theme.divider ? StyleSheet.hairlineWidth : 0,
+            borderTopColor: theme.divider,
+          }}
         >
           <Text
             className="font-semibold"
@@ -252,6 +265,7 @@ const SignedInBalance = memo(function SignedInBalance({
         flex={1}
         onPress={openPoints}
         footer={t('balance.viewPoints')}
+        footerTestID="balance-points-footer"
       >
         <CardLabel color={pointsTheme.label}>{t('balance.points')}</CardLabel>
         <CardNumber value={pointsValue} color={pointsTheme.text} />
