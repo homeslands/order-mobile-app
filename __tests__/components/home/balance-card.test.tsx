@@ -1,5 +1,5 @@
-// Thẻ số dư trên Home: hai nửa chạm được khi đã đăng nhập, một dòng mời khi
-// chưa. "Đã đăng nhập" quyết bằng userInfo (cùng tín hiệu với Profile), không
+// Thẻ số dư trên Home: hai thẻ (Xu to, Điểm nhỏ) khi đã đăng nhập, một thẻ mời
+// đăng nhập khi chưa. "Đã đăng nhập" quyết bằng userInfo (cùng tín hiệu với Profile), không
 // bằng isAuthenticated() — hàm đó trả false suốt lúc refresh token đang bay.
 import { act, fireEvent, render, screen } from '@testing-library/react-native'
 
@@ -63,6 +63,17 @@ jest.mock('@/components/ui/text', () => ({
 
 jest.mock('lucide-react-native', () => new Proxy({}, { get: () => () => null }))
 
+jest.mock('expo-linear-gradient', () => {
+  /* eslint-disable @typescript-eslint/no-require-imports */
+  const { View } = require('react-native')
+  const { createElement: h } = require('react')
+  /* eslint-enable @typescript-eslint/no-require-imports */
+  return {
+    LinearGradient: ({ children }: { children?: unknown }) =>
+      h(View, null, children),
+  }
+})
+
 jest.mock('react-i18next', () => ({
   initReactI18next: { type: '3rdParty', init: () => {} },
   useTranslation: () => ({
@@ -109,27 +120,35 @@ describe('BalanceCard', () => {
   it('B1 đã đăng nhập: hiện nhãn và hai con số', () => {
     mockUserState.userInfo = { slug: 'u1' }
     render(<BalanceCard />)
-    expect(screen.getByText('Xu')).toBeTruthy()
+    expect(screen.getByText('Xu của bạn')).toBeTruthy()
     expect(screen.getByText('Điểm tích luỹ')).toBeTruthy()
     expect(screen.getByText(formatPoints(390600))).toBeTruthy()
     expect(screen.getByText(formatPoints(1240))).toBeTruthy()
+    expect(screen.getByText('Lịch sử Xu')).toBeTruthy()
+    expect(screen.getByText('Xem')).toBeTruthy()
   })
 
-  it('B2 chạm từng nửa đi đúng màn lịch sử', () => {
+  it('B2 chạm thẻ hoặc dải chân thẻ đều đi đúng màn lịch sử', () => {
     mockUserState.userInfo = { slug: 'u1' }
     render(<BalanceCard />)
-    fireEvent.press(screen.getByText('Xu'))
+    fireEvent.press(screen.getByText('Xu của bạn'))
+    expect(mockPush).toHaveBeenLastCalledWith('/profile/coin-hub')
+    fireEvent.press(screen.getByText('Lịch sử Xu'))
     expect(mockPush).toHaveBeenLastCalledWith('/profile/coin-hub')
     fireEvent.press(screen.getByText('Điểm tích luỹ'))
+    expect(mockPush).toHaveBeenLastCalledWith('/profile/loyalty-point-hub')
+    fireEvent.press(screen.getByText('Xem'))
     expect(mockPush).toHaveBeenLastCalledWith('/profile/loyalty-point-hub')
   })
 
   it('B3 chưa đăng nhập: chỉ dòng mời, chạm đi login', () => {
     render(<BalanceCard />)
-    expect(screen.queryByText('Xu')).toBeNull()
+    expect(screen.queryByText('Xu của bạn')).toBeNull()
     expect(screen.queryByText(formatPoints(0))).toBeNull()
     fireEvent.press(screen.getByText(LOGIN_CTA))
-    expect(mockPush).toHaveBeenCalledWith('/auth/login')
+    expect(mockPush).toHaveBeenLastCalledWith('/auth/login')
+    fireEvent.press(screen.getByText('Đăng nhập'))
+    expect(mockPush).toHaveBeenLastCalledWith('/auth/login')
   })
 
   it('B4 đang refresh token: vẫn hiện số, không nháy dòng mời', () => {
@@ -191,5 +210,18 @@ describe('BalanceCard', () => {
     expect(screen.getByText(formatPoints(390600))).toBeTruthy()
     expect(screen.getByText(formatPoints(1240))).toBeTruthy()
     expect(screen.queryByText('—')).toBeNull()
+  })
+
+  it('B9 nút mắt ẩn và hiện lại số Xu, không đụng số Điểm', () => {
+    mockUserState.userInfo = { slug: 'u1' }
+    render(<BalanceCard />)
+    fireEvent.press(screen.getByLabelText('Ẩn số dư'))
+    expect(screen.queryByText(formatPoints(390600))).toBeNull()
+    expect(screen.getByText('••••••')).toBeTruthy()
+    expect(screen.getByText(formatPoints(1240))).toBeTruthy()
+    // Chạm mắt không được kéo theo điều hướng của thẻ cha.
+    expect(mockPush).not.toHaveBeenCalled()
+    fireEvent.press(screen.getByLabelText('Hiện số dư'))
+    expect(screen.getByText(formatPoints(390600))).toBeTruthy()
   })
 })

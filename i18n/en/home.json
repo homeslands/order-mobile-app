@@ -26,9 +26,15 @@
       "order": "Order"
     },
     "balance": {
-      "coin": "Coins",
+      "coin": "Your coins",
       "points": "Loyalty points",
-      "loginCta": "Sign in to see your coins and points"
+      "loginCta": "Sign in to see your coins and points",
+      "coinUnit": "coins",
+      "coinHistory": "Coin history",
+      "viewPoints": "View",
+      "hide": "Hide balance",
+      "show": "Show balance",
+      "loginAction": "Sign in"
     },
     "highlightMenu": {
       "tea": "Tea",

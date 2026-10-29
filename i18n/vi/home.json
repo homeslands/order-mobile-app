@@ -26,9 +26,15 @@
       "order": "Đặt món"
     },
     "balance": {
-      "coin": "Xu",
+      "coin": "Xu của bạn",
       "points": "Điểm tích luỹ",
-      "loginCta": "Đăng nhập để xem Xu và điểm tích luỹ"
+      "loginCta": "Đăng nhập để xem Xu và điểm tích luỹ",
+      "coinUnit": "xu",
+      "coinHistory": "Lịch sử Xu",
+      "viewPoints": "Xem",
+      "hide": "Ẩn số dư",
+      "show": "Hiện số dư",
+      "loginAction": "Đăng nhập"
     },
     "highlightMenu": {
       "tea": "Trà",
