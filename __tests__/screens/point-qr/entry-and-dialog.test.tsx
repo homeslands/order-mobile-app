@@ -54,7 +54,15 @@ jest.mock('@/lib/navigation', () => ({
 
 let mockAuthed = true
 jest.mock('@/stores', () => ({
-  useAuthStore: { getState: () => ({ isAuthenticated: () => mockAuthed }) },
+  useAuthStore: {
+    getState: () => ({
+      isAuthenticated: () => mockAuthed,
+      // Soi cùng một cờ: hook dùng `isAuthenticated() || isTokenValid()` vì
+      // `isAuthenticated()` trả false suốt lúc refresh token đang bay. E1/E2
+      // dưới đây không đổi nghĩa — vẫn là "đã đăng nhập" / "chưa đăng nhập".
+      isTokenValid: () => mockAuthed,
+    }),
+  },
 }))
 
 // t(key) trả key; bảng mockDict dịch vài key khi case cần (đơn vị xu).

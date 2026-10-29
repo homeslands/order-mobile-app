@@ -4,9 +4,7 @@ import {
   BottomSheetScrollView,
   type BottomSheetBackdropProps,
 } from '@gorhom/bottom-sheet'
-import { useRouter } from 'expo-router'
 import { QrCode, ScanLine, ScanQrCode } from 'lucide-react-native'
-import { scheduleTransitionTask } from '@/lib/navigation'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -18,9 +16,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { colors } from '@/constants'
-import { useAuthStore } from '@/stores'
+import { useQrActions } from '@/hooks/use-qr-actions'
 import { useQRSelectionSheetStore } from '@/stores/qr-selection-sheet.store'
-import { useScanSheetStore } from '@/stores/scan-sheet.store'
 import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import { Text } from '@/components/ui/text'
 
@@ -71,12 +68,9 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
   // Fix 3: per-slice selectors to avoid full-store subscription
   const visible = useQRSelectionSheetStore((s) => s.visible)
   const close = useQRSelectionSheetStore((s) => s.close)
-  const openScanSheet = useScanSheetStore((s) => s.open)
-  const closeScanSheet = useScanSheetStore((s) => s.close)
   const sheetRef = useRef<BottomSheetModal>(null)
   const isDark = useColorScheme() === 'dark'
   const { bottom } = useSafeAreaInsets()
-  const router = useRouter()
   const userDismissedRef = useRef(false)
 
   useEffect(() => {
@@ -115,34 +109,7 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
     close()
   }, [close])
 
-  const handleMemberCard = useCallback(() => {
-    // close() → useEffect → dismiss() → willUnmountSheet(QRS) runs synchronously.
-    // openScanSheet() → useEffect → present(SSP) queues via rAF.
-    // rAF fires after all sync code, so willUnmount=true on QRS before mountSheet(SSP)
-    // runs — provider skips minimize(SSP), no stacking, no delay.
-    close()
-    openScanSheet()
-  }, [close, openScanSheet])
-
-  const handlePaymentQR = useCallback(() => {
-    close()
-    closeScanSheet()
-    scheduleTransitionTask(() => router.push('/payment/qr-generate'))
-    // router intentionally omitted — push destination is a string literal
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [close, closeScanSheet])
-
-  const handleScanPay = useCallback(() => {
-    close()
-    closeScanSheet()
-    // Chưa đăng nhập thì sang login trước, để khỏi mở camera rồi nhận 401.
-    const target = useAuthStore.getState().isAuthenticated()
-      ? '/payment/scan-point'
-      : '/auth/login'
-    scheduleTransitionTask(() => router.push(target as never))
-    // router intentionally omitted — same reason as handlePaymentQR
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [close, closeScanSheet])
+  const { openMemberId, openCoinPayment, openScanPay } = useQrActions()
 
   const contentStyle = useMemo(
     () => [s.content, { paddingBottom: bottom + 24 }],
@@ -188,7 +155,7 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
             icon={ScanLine}
             title={t('profile.qr.memberId')}
             desc={t('profile.qr.memberIdDesc')}
-            onPress={handleMemberCard}
+            onPress={openMemberId}
             primary={primary}
             textColor={textColor}
             mutedColor={mutedColor}
@@ -198,7 +165,7 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
             icon={QrCode}
             title={t('profile.qr.coinPayment')}
             desc={t('profile.qr.coinPaymentDesc')}
-            onPress={handlePaymentQR}
+            onPress={openCoinPayment}
             primary={primary}
             textColor={textColor}
             mutedColor={mutedColor}
@@ -208,7 +175,7 @@ const QRSelectionSheet = memo(function QRSelectionSheet() {
             icon={ScanQrCode}
             title={t('profile.qr.scanPay')}
             desc={t('profile.qr.scanPayDesc')}
-            onPress={handleScanPay}
+            onPress={openScanPay}
             primary={primary}
             textColor={textColor}
             mutedColor={mutedColor}
