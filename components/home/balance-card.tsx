@@ -1,9 +1,9 @@
 /**
  * BalanceCard — hai thẻ số dư trên Home, theo ngôn ngữ của ZaloPay.
  *
- * Đã đăng nhập: thẻ Xu (to, cam trầm, có nút ẩn số) và thẻ Điểm tích luỹ (nhỏ,
- * nền kem chữ nâu). Chỉ một mảng màu đậm trên Home — thẻ bên cạnh dịu hẳn đi,
- * như ZaloPay; hai mảng đậm cạnh nhau là thứ làm màn hình trông như template. Mỗi thẻ có một dải chân với lời gọi hành động; chạm vào đâu
+ * Đã đăng nhập: thẻ Xu (to, màu thương hiệu, có nút ẩn số) và thẻ Điểm tích
+ * luỹ (nhỏ, thẻ trắng thường của app). Chỉ một mảng màu đậm trên Home — thẻ
+ * bên cạnh dịu hẳn đi, như ZaloPay. Mỗi thẻ có một dải chân với lời gọi hành động; chạm vào đâu
  * trên thẻ cũng mở màn lịch sử của chính con số đó. Chưa đăng nhập: một thẻ
  * mời đăng nhập, không hiện số 0.
  *
@@ -23,6 +23,7 @@ import { Text } from '@/components/ui/text'
 import { colors } from '@/constants'
 import { useCoinBalance, useLoyaltyPoints } from '@/hooks'
 import { navigateNative } from '@/lib/navigation'
+import { hexToRgba } from '@/lib/utils'
 import { useUserStore } from '@/stores'
 import { formatPoints } from '@/utils'
 
@@ -43,37 +44,39 @@ type CardTheme = {
   footerText: string
 }
 
+// Mọi màu đi từ design token. Thẻ Xu mang màu thương hiệu (cam primary); thẻ
+// Điểm là thẻ trắng bình thường của app (`card`) — chỉ một mảng đậm trên Home.
 const COIN_THEME: Record<'light' | 'dark', CardTheme> = {
   light: {
-    gradient: ['#d9861c', '#a95a08'],
-    label: 'rgba(255,255,255,0.88)',
+    gradient: [colors.primary.light, colors.primary.dark],
+    label: hexToRgba(colors.white.light, 0.9),
     text: colors.white.light,
-    footerBg: 'rgba(0,0,0,0.08)',
+    footerBg: hexToRgba(colors.foreground.light, 0.08),
     footerText: colors.white.light,
   },
   dark: {
-    gradient: ['#b8730f', '#7d4705'],
-    label: 'rgba(255,255,255,0.85)',
+    gradient: [colors.primary.dark, colors.primary.dark],
+    label: hexToRgba(colors.white.light, 0.88),
     text: colors.white.light,
-    footerBg: 'rgba(0,0,0,0.14)',
+    footerBg: hexToRgba(colors.foreground.light, 0.16),
     footerText: colors.white.light,
   },
 }
 
 const POINTS_THEME: Record<'light' | 'dark', CardTheme> = {
   light: {
-    gradient: ['#f6eee3', '#f6eee3'],
-    label: '#8a6a4c',
-    text: '#4a2e17',
-    footerBg: '#efe3d2',
-    footerText: '#6b3d1b',
+    gradient: [colors.card.light, colors.card.light],
+    label: colors.mutedForeground.light,
+    text: colors.foreground.light,
+    footerBg: colors.background.light,
+    footerText: colors.primary.light,
   },
   dark: {
-    gradient: ['#2b231c', '#2b231c'],
-    label: '#c9b39b',
-    text: '#f3e6d6',
-    footerBg: '#352b22',
-    footerText: '#e8b57c',
+    gradient: [colors.card.dark, colors.card.dark],
+    label: colors.mutedForeground.dark,
+    text: colors.foreground.dark,
+    footerBg: colors.border.dark,
+    footerText: colors.primary.dark,
   },
 }
 

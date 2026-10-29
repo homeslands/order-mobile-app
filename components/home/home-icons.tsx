@@ -1,8 +1,8 @@
 /**
  * Bộ icon hai tông cho các lối tắt trên Home.
  *
- * Vẽ riêng thay cho bộ lucide có sẵn: nét nâu đậm cho khung, nét cam cho chi
- * tiết nhận diện, mảng kem lót bên trong. Mỗi icon có một chi tiết riêng (thẻ
+ * Vẽ riêng thay cho bộ lucide có sẵn: nét khung, nét nhấn cho chi tiết nhận
+ * diện, và mảng lót bên trong — màu do nơi dùng truyền vào, từ design token. Mỗi icon có một chi tiết riêng (thẻ
  * có hình người, ly có hơi nóng, hộp quà có nơ) — bộ icon nét đều nhau là thứ
  * làm màn hình trông như dựng từ template.
  *

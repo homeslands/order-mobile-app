@@ -38,8 +38,6 @@ const SCREEN_W = Dimensions.get('window').width
  * phân trang theo contentOffset.x / SCREEN_W), tỉ lệ 2:1 như ảnh admin vẽ.
  */
 const BANNER_H = Math.round(SCREEN_W * 0.5)
-/** Link mục tối hơn màu thương hiệu để chữ nhỏ còn đọc được trên nền trắng. */
-const LINK_COLOR = { light: '#b8650a', dark: '#e8a33a' } as const
 
 const FALLBACK_BANNER: IBanner = {
   slug: 'fallback',
@@ -109,8 +107,8 @@ export default function HomeScreen() {
     [refreshing, handleRefresh, primaryColor],
   )
 
-  // Nền trang trắng như ZaloPay (thay cho xám nhạt mặc định của tab).
-  const pageBg = isDark ? colors.background.dark : colors.card.light
+  // Nền trang xám của app, thẻ trắng nổi trên đó — như mọi tab khác.
+  const pageBg = isDark ? colors.background.dark : colors.background.light
   const foreground = isDark ? colors.foreground.dark : colors.foreground.light
 
   return (
@@ -155,12 +153,7 @@ export default function HomeScreen() {
                 {t('exploreMenu')}
               </Text>
               <Pressable onPress={goMenu} hitSlop={8}>
-                <Text
-                  style={[
-                    s.sectionLink,
-                    { color: LINK_COLOR[isDark ? 'dark' : 'light'] },
-                  ]}
-                >
+                <Text style={[s.sectionLink, { color: primaryColor }]}>
                   {t('viewMore')}
                 </Text>
               </Pressable>

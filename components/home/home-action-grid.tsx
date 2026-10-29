@@ -6,7 +6,8 @@
  *    đúng chữ của sheet chọn QR ở Profile để một chức năng không mang hai tên.
  * 2. Mục "Tiện ích": Đặt món, Đổi thẻ quà tặng, Lịch sử đơn — chia đều ba cột.
  *
- * Icon hai tông vẽ riêng (home-icons.tsx), không dùng bộ có sẵn.
+ * Icon hai tông vẽ riêng (home-icons.tsx), không dùng bộ có sẵn. Màu icon đi
+ * từ token: nét khung màu chữ, điểm nhấn và mảng lót màu thương hiệu.
  *
  * "Đổi thẻ quà tặng" và "Lịch sử đơn" tự chặn đăng xuất: hai màn đích chỉ đọc
  * userSlug rỗng rồi tắt query, nên không chặn thì khách rơi vào màn trống.
@@ -25,6 +26,7 @@ import { Text } from '@/components/ui/text'
 import { colors } from '@/constants'
 import { hasUsableSession, useQrActions } from '@/hooks/use-qr-actions'
 import { navigateNative } from '@/lib/navigation'
+import { hexToRgba } from '@/lib/utils'
 
 import {
   CoinPaymentIcon,
@@ -182,20 +184,23 @@ export const HomeActionGrid = memo(function HomeActionGrid() {
   const foreground = isDark ? colors.foreground.dark : colors.foreground.light
   const cardBg = isDark ? colors.card.dark : colors.card.light
   const border = isDark ? colors.border.dark : colors.border.light
-  // Hai tông: nét nâu đậm + điểm nhấn cam + mảng kem. Ở chế độ tối nét đổi
-  // sang sáng và mảng kem thành cam rất trong để còn tương phản.
+  // Hai tông từ token: nét khung màu chữ, điểm nhấn màu thương hiệu, mảng lót
+  // là màu thương hiệu rất trong.
   const tone = useMemo<IconTone>(
     () =>
       isDark
         ? {
             stroke: colors.foreground.dark,
-            accent: '#e8a33a',
-            fill: 'rgba(217,134,28,0.22)',
+            accent: colors.primary.dark,
+            fill: hexToRgba(colors.primary.dark, 0.24),
           }
-        : { stroke: '#3a2412', accent: '#d9861c', fill: '#fbe7cd' },
+        : {
+            stroke: colors.foreground.light,
+            accent: colors.primary.light,
+            fill: hexToRgba(colors.primary.light, 0.16),
+          },
     [isDark],
   )
-  const utilityBoxBg = isDark ? colors.card.dark : '#faf5ee'
 
   return (
     <View>
@@ -205,7 +210,7 @@ export const HomeActionGrid = memo(function HomeActionGrid() {
           backgroundColor: cardBg,
           borderWidth: isDark ? 1 : 0,
           borderColor: border,
-          shadowColor: '#3a2a1a',
+          shadowColor: colors.foreground.light,
           shadowOpacity: isDark ? 0 : 0.09,
           shadowRadius: 18,
           shadowOffset: { width: 0, height: 4 },
@@ -235,7 +240,7 @@ export const HomeActionGrid = memo(function HomeActionGrid() {
             action={a}
             tone={tone}
             labelColor={foreground}
-            boxBg={utilityBoxBg}
+            boxBg={cardBg}
           />
         ))}
       </View>

@@ -36,12 +36,11 @@ export const HomeGreeting = memo(function HomeGreeting() {
   const muted = isDark
     ? colors.mutedForeground.dark
     : colors.mutedForeground.light
-  // Avatar nền kem chữ nâu, không dùng cam: trên Home chỉ thẻ Xu được là
-  // mảng màu đậm.
-  const avatarBg = isDark ? '#3a2f25' : '#f4e9da'
-  const avatarText = isDark ? '#e8b57c' : '#6b3d1b'
-  // Nền nút chuông: xám rất nhạt như ZaloPay, tách khỏi nền trang trắng.
-  const bellBg = isDark ? colors.card.dark : '#f3f1ee'
+  // Avatar dự phòng giống hệt màn Profile (nền border, chữ muted) — không
+  // dùng cam: trên Home chỉ thẻ Xu được là mảng màu đậm.
+  const avatarBg = isDark ? colors.card.dark : colors.border.light
+  // Nút chuông là vòng tròn thẻ trắng trên nền trang xám.
+  const bellBg = isDark ? colors.card.dark : colors.card.light
 
   return (
     <View className="flex-row items-center px-4 pb-1 pt-3.5">
@@ -65,10 +64,7 @@ export const HomeGreeting = memo(function HomeGreeting() {
             cachePolicy="disk"
           />
         ) : (
-          <Text
-            className="font-bold"
-            style={{ fontSize: 16, color: avatarText }}
-          >
+          <Text className="font-bold" style={{ fontSize: 16, color: muted }}>
             {firstName ? firstName.charAt(0).toUpperCase() : ''}
           </Text>
         )}
