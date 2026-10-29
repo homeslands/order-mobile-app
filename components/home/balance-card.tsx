@@ -10,8 +10,9 @@
  * refresh token đang bay, nên thẻ sẽ nháy dòng mời đăng nhập mỗi lần mở app
  * sau khi access token hết hạn.
  */
+import { useFocusEffect } from '@react-navigation/native'
 import { ChevronRight } from 'lucide-react-native'
-import { memo, useCallback } from 'react'
+import { memo, useCallback, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, View, useColorScheme } from 'react-native'
 
@@ -23,6 +24,12 @@ import { useUserStore } from '@/stores'
 import { formatPoints } from '@/utils'
 
 const ON_PRIMARY = colors.white.light
+
+/**
+ * Hiện khi chưa có dữ liệu. Hai hook trả `?? 0` khi chưa tải xong hoặc khi lần
+ * tải đầu lỗi — hiện số 0 đó ra là nói dối khách rằng họ hết Xu.
+ */
+const NO_VALUE = '—'
 
 const BalanceHalf = memo(function BalanceHalf({
   label,
@@ -61,8 +68,25 @@ const SignedInBalance = memo(function SignedInBalance({
   slug: string
 }) {
   const { t } = useTranslation('home')
-  const { balance } = useCoinBalance()
-  const { totalPoints } = useLoyaltyPoints(slug)
+  const coin = useCoinBalance()
+  const points = useLoyaltyPoints(slug)
+  const refetchCoin = coin.refetch
+  const refetchPoints = points.refetch
+
+  // Làm mới mỗi lần quay lại Home: refetchOnWindowFocus đang tắt toàn cục và
+  // tab Home không unmount, nên không có gì khác kéo số mới về sau khi khách
+  // vừa trả bằng Xu ở quầy. Bỏ lần focus đầu — lúc đó query đang tự tải.
+  const isFirstFocus = useRef(true)
+  useFocusEffect(
+    useCallback(() => {
+      if (isFirstFocus.current) {
+        isFirstFocus.current = false
+        return
+      }
+      void refetchCoin()
+      void refetchPoints()
+    }, [refetchCoin, refetchPoints]),
+  )
 
   const openCoins = useCallback(() => {
     navigateNative.push('/profile/coin-hub')
@@ -75,7 +99,7 @@ const SignedInBalance = memo(function SignedInBalance({
     <>
       <BalanceHalf
         label={t('balance.coin')}
-        value={formatPoints(balance)}
+        value={coin.hasData ? formatPoints(coin.balance) : NO_VALUE}
         onPress={openCoins}
       />
       <View
@@ -84,7 +108,7 @@ const SignedInBalance = memo(function SignedInBalance({
       />
       <BalanceHalf
         label={t('balance.points')}
-        value={formatPoints(totalPoints)}
+        value={points.hasData ? formatPoints(points.totalPoints) : NO_VALUE}
         onPress={openPoints}
       />
     </>

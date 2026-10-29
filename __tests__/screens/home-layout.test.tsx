@@ -1,11 +1,21 @@
 // Bố cục màn Home: thẻ số dư → lưới sáu ô → banner → sản phẩm nổi bật.
 // Thẻ số dư và lưới KHÔNG chờ `ready` (useRunAfterTransition): đó là lớp điều
 // khiển dùng ở quầy, chờ transition xong mới hiện là mất ý nghĩa.
-import { render, screen } from '@testing-library/react-native'
+import { act, render, screen } from '@testing-library/react-native'
+import { ScrollView } from 'react-native'
 
 import HomeScreen from '@/app/(tabs)/home'
+import { QUERYKEY } from '@/constants'
 
 let mockReady = true
+const mockInvalidate = jest.fn((..._args: unknown[]) => Promise.resolve())
+const mockRefetchBanners = jest.fn(() => Promise.resolve())
+
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: () => ({
+    invalidateQueries: (...args: unknown[]) => mockInvalidate(...args),
+  }),
+}))
 
 jest.mock('@/components/home', () => {
   /* eslint-disable @typescript-eslint/no-require-imports */
@@ -55,7 +65,11 @@ jest.mock('@/hooks', () => ({
 }))
 
 jest.mock('@/hooks/use-banner', () => ({
-  useBanners: () => ({ data: undefined, isLoading: false, refetch: jest.fn() }),
+  useBanners: () => ({
+    data: undefined,
+    isLoading: false,
+    refetch: () => mockRefetchBanners(),
+  }),
 }))
 
 jest.mock('@/hooks/use-primary-color', () => ({
@@ -114,5 +128,22 @@ describe('Home layout', () => {
     expect(screen.getByText('[BALANCE]')).toBeTruthy()
     expect(screen.getByText('[GRID]')).toBeTruthy()
     expect(screen.queryByText('[FEATURED]')).toBeNull()
+  })
+
+  it('H3 kéo để làm mới: làm mới cả banner, số Xu và điểm tích luỹ', async () => {
+    mockReady = true
+    render(<HomeScreen />)
+    const onRefresh = screen.UNSAFE_getByType(ScrollView).props.refreshControl
+      .props.onRefresh as () => Promise<void>
+    await act(async () => {
+      await onRefresh()
+    })
+    expect(mockRefetchBanners).toHaveBeenCalledTimes(1)
+    expect(mockInvalidate).toHaveBeenCalledWith({
+      queryKey: [QUERYKEY.profile, 'balance'],
+    })
+    expect(mockInvalidate).toHaveBeenCalledWith({
+      queryKey: [QUERYKEY.loyaltyPoints],
+    })
   })
 })

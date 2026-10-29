@@ -1,4 +1,5 @@
 /** Tab Home. */
+import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
@@ -26,7 +27,7 @@ import {
 } from '@/components/layout'
 import { Skeleton } from '@/components/ui'
 import { NotificationBell } from '@/components/notification/notification-bell'
-import { BannerPage, colors } from '@/constants'
+import { BannerPage, QUERYKEY, colors } from '@/constants'
 import { useRunAfterTransition } from '@/hooks'
 import { useBanners } from '@/hooks/use-banner'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
@@ -78,11 +79,21 @@ export default function HomeScreen() {
   }, [bannerResponse?.result])
   const showBannerSkeleton = !ready || isBannerLoading
 
+  const queryClient = useQueryClient()
+  // Home là màn dạng ví: kéo để làm mới thì khách chờ số dư mới, không chỉ
+  // banner. Invalidate theo tiền tố — Home không giữ slug, và tiền tố
+  // loyaltyPoints phủ cả key tổng điểm mà không phải dựng lại key đó ở đây.
   const handleRefresh = useCallback(async () => {
     setRefreshing(true)
-    await refetchBanners()
+    await Promise.all([
+      refetchBanners(),
+      queryClient.invalidateQueries({
+        queryKey: [QUERYKEY.profile, 'balance'],
+      }),
+      queryClient.invalidateQueries({ queryKey: [QUERYKEY.loyaltyPoints] }),
+    ])
     setRefreshing(false)
-  }, [refetchBanners])
+  }, [refetchBanners, queryClient])
 
   const goMenu = useCallback(() => {
     router.push('/(tabs)/menu' as never)

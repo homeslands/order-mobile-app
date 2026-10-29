@@ -17,9 +17,12 @@ import { IApiResponse, ILoyaltyPoint, ILoyaltyPointHistoryQuery } from '@/types'
 /**
  * Nguồn duy nhất của key + queryFn cho tổng điểm tích luỹ.
  *
- * Có ba chỗ ghi vào key này: hook dưới đây, hook barrel ở
- * `use-loyalty-points.ts`, và prefetch ngay sau đăng nhập ở
- * `use-post-auth-actions.ts`. React Query lưu đúng giá trị `queryFn` trả về và
+ * Có bốn chỗ ghi vào key này: hook dưới đây, hook barrel ở
+ * `use-loyalty-points.ts`, prefetch ngay sau đăng nhập ở
+ * `use-post-auth-actions.ts`, và prefetch khi nhấn giữ tab Cá nhân ở
+ * `components/navigation/custom-tabs-navigator.tsx`. Không được tự dựng key
+ * này ở chỗ nào khác — `__tests__/hooks/loyalty-points-cache.test.tsx` (L4)
+ * quét mã nguồn để chặn. React Query lưu đúng giá trị `queryFn` trả về và
  * `select` chỉ chạy lúc đọc, nên cả ba phải ghi CÙNG một dạng — nguyên
  * response — nếu không màn đọc sau sẽ thấy dạng của màn ghi trước và
  * `totalPoints` ra `undefined`.

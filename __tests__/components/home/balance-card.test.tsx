@@ -1,7 +1,7 @@
 // Thẻ số dư trên Home: hai nửa chạm được khi đã đăng nhập, một dòng mời khi
 // chưa. "Đã đăng nhập" quyết bằng userInfo (cùng tín hiệu với Profile), không
 // bằng isAuthenticated() — hàm đó trả false suốt lúc refresh token đang bay.
-import { fireEvent, render, screen } from '@testing-library/react-native'
+import { act, fireEvent, render, screen } from '@testing-library/react-native'
 
 import { BalanceCard } from '@/components/home/balance-card'
 import { formatPoints } from '@/utils'
@@ -20,9 +20,31 @@ jest.mock('@/stores', () => ({
   ),
 }))
 
+const mockCoin = {
+  balance: 390600,
+  hasData: true,
+  isLoading: false,
+  isError: false,
+  refetch: jest.fn(),
+}
+const mockPoints = {
+  totalPoints: 1240,
+  hasData: true,
+  isLoading: false,
+  isError: false,
+  refetch: jest.fn(),
+}
 jest.mock('@/hooks', () => ({
-  useCoinBalance: () => ({ balance: 390600, isLoading: false }),
-  useLoyaltyPoints: () => ({ totalPoints: 1240, isLoading: false }),
+  useCoinBalance: () => mockCoin,
+  useLoyaltyPoints: () => mockPoints,
+}))
+
+// Giữ lại callback để test tự giả lập "focus lần đầu" và "quay lại màn".
+const mockFocusCallbacks: (() => void)[] = []
+jest.mock('@react-navigation/native', () => ({
+  useFocusEffect: (cb: () => void) => {
+    mockFocusCallbacks.push(cb)
+  },
 }))
 
 jest.mock('@/lib/navigation', () => ({
@@ -63,6 +85,15 @@ beforeEach(() => {
   jest.clearAllMocks()
   mockUserState.userInfo = null
   mockAuthed = true
+  mockCoin.balance = 390600
+  mockCoin.hasData = true
+  mockCoin.isLoading = false
+  mockCoin.isError = false
+  mockPoints.totalPoints = 1240
+  mockPoints.hasData = true
+  mockPoints.isLoading = false
+  mockPoints.isError = false
+  mockFocusCallbacks.length = 0
 })
 
 afterEach(() => {
@@ -107,5 +138,58 @@ describe('BalanceCard', () => {
     render(<BalanceCard />)
     expect(screen.getByText(formatPoints(390600))).toBeTruthy()
     expect(screen.queryByText(LOGIN_CTA)).toBeNull()
+  })
+
+  it('B5 đang tải: không hiện số 0 giả', () => {
+    mockUserState.userInfo = { slug: 'u1' }
+    // Hook thật trả `data ?? 0` khi chưa có dữ liệu.
+    mockCoin.balance = 0
+    mockCoin.hasData = false
+    mockCoin.isLoading = true
+    mockPoints.totalPoints = 0
+    mockPoints.hasData = false
+    mockPoints.isLoading = true
+    render(<BalanceCard />)
+    expect(screen.queryByText(formatPoints(0))).toBeNull()
+    expect(screen.getAllByText('—')).toHaveLength(2)
+  })
+
+  it('B6 lỗi API: không hiện số 0 như thể là số dư thật', () => {
+    mockUserState.userInfo = { slug: 'u1' }
+    mockCoin.balance = 0
+    mockCoin.hasData = false
+    mockCoin.isError = true
+    mockPoints.totalPoints = 0
+    mockPoints.hasData = false
+    mockPoints.isError = true
+    render(<BalanceCard />)
+    expect(screen.queryByText(formatPoints(0))).toBeNull()
+    expect(screen.getAllByText('—')).toHaveLength(2)
+  })
+
+  it('B7 quay lại Home: làm mới cả Xu và Điểm (bỏ lần focus đầu)', () => {
+    // Khách trả bằng Xu ở quầy rồi quay về: số trên thẻ phải là số mới.
+    // refetchOnWindowFocus đang tắt toàn cục, và tab Home không unmount.
+    mockUserState.userInfo = { slug: 'u1' }
+    render(<BalanceCard />)
+    const focus = mockFocusCallbacks[mockFocusCallbacks.length - 1]
+    act(() => focus()) // focus lần đầu — query đang tự tải
+    expect(mockCoin.refetch).not.toHaveBeenCalled()
+    expect(mockPoints.refetch).not.toHaveBeenCalled()
+    act(() => focus()) // quay lại màn
+    expect(mockCoin.refetch).toHaveBeenCalledTimes(1)
+    expect(mockPoints.refetch).toHaveBeenCalledTimes(1)
+  })
+
+  it('B8 làm mới nền bị lỗi: vẫn giữ số đã có, không đổi thành —', () => {
+    // isError của React Query vẫn true khi lần refetch sau cùng lỗi, kể cả
+    // đang có dữ liệu cũ. Giấu một con số hợp lệ đi là tệ hơn hiện số cũ.
+    mockUserState.userInfo = { slug: 'u1' }
+    mockCoin.isError = true
+    mockPoints.isError = true
+    render(<BalanceCard />)
+    expect(screen.getByText(formatPoints(390600))).toBeTruthy()
+    expect(screen.getByText(formatPoints(1240))).toBeTruthy()
+    expect(screen.queryByText('—')).toBeNull()
   })
 })

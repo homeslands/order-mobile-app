@@ -19,6 +19,8 @@ export function useLoyaltyPoints(
 
   return {
     totalPoints: query.data?.totalPoints ?? 0,
+    /** false khi chưa có dữ liệu — `totalPoints` lúc đó là 0 giả. */
+    hasData: query.data !== undefined,
     isLoading: query.isPending,
     refetch: query.refetch,
   }

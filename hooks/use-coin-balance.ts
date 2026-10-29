@@ -17,6 +17,8 @@ export function useCoinBalance(enabled = true) {
 
   return {
     balance: query.data ?? 0,
+    /** false khi chưa có dữ liệu — `balance` lúc đó là 0 giả, không phải số dư thật. */
+    hasData: query.data !== undefined,
     isLoading: query.isPending,
     isError: query.isError,
     refetch: query.refetch,
