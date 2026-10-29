@@ -71,18 +71,14 @@ const LABELS = [
   'Mã định danh',
   'Quét QR trả đơn',
   'Thanh toán Xu',
+  'Đặt món',
   'Đổi thẻ quà tặng',
   'Lịch sử đơn',
-  'Đặt món',
 ]
-const TILE_IDS = [
-  'memberId',
-  'scanPay',
-  'coinPayment',
-  'giftCardRedeem',
-  'orderHistory',
-  'order',
-]
+// Hai nhóm vẽ khác nhau (tấm QR và mục Tiện ích), nên "cao bằng nhau" là
+// trong từng nhóm, không phải cả sáu.
+const QR_IDS = ['memberId', 'scanPay', 'coinPayment']
+const UTILITY_IDS = ['order', 'giftCardRedeem', 'orderHistory']
 
 beforeEach(() => {
   jest.clearAllMocks()
@@ -140,18 +136,29 @@ describe('HomeActionGrid', () => {
     expect(mockPush).not.toHaveBeenCalled()
   })
 
-  it('G6 nhãn tối đa hai dòng, sáu ô cùng chiều cao', () => {
+  it('G6 nhãn tối đa hai dòng, các ô trong cùng nhóm cao bằng nhau', () => {
     render(<HomeActionGrid />)
     LABELS.forEach((l) =>
       expect(screen.getByText(l).props.numberOfLines).toBe(2),
     )
-    const heights = TILE_IDS.map(
-      (id) =>
-        StyleSheet.flatten(screen.getByTestId(`home-action-${id}`).props.style)
-          ?.height,
-    )
-    expect(typeof heights[0]).toBe('number')
-    expect(new Set(heights).size).toBe(1)
+    for (const group of [QR_IDS, UTILITY_IDS]) {
+      const heights = group.map(
+        (id) =>
+          StyleSheet.flatten(
+            screen.getByTestId(`home-action-${id}`).props.style,
+          )?.height,
+      )
+      expect(typeof heights[0]).toBe('number')
+      expect(new Set(heights).size).toBe(1)
+    }
+  })
+
+  it('G8 ba việc còn lại nằm dưới tiêu đề mục "Tiện ích"', () => {
+    render(<HomeActionGrid />)
+    const json = JSON.stringify(screen.toJSON())
+    const title = json.indexOf('Tiện ích')
+    expect(title).toBeGreaterThan(json.indexOf('Thanh toán Xu'))
+    expect(title).toBeLessThan(json.indexOf('Đặt món'))
   })
 
   it('G7 phiên đọc lúc chạm: đăng xuất sau khi render vẫn đi login', () => {
