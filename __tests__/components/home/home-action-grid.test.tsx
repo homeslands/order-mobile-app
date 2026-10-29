@@ -36,6 +36,10 @@ jest.mock('@/components/ui/text', () => ({
 }))
 
 jest.mock('lucide-react-native', () => new Proxy({}, { get: () => () => null }))
+jest.mock(
+  '@/components/home/home-icons',
+  () => new Proxy({}, { get: () => () => null }),
+)
 
 // Hai namespace map khác nhau (i18n/resources.ts): 'home' là object BÊN TRONG
 // file, 'profile' là NGUYÊN file — nên khoá profile giữ tiền tố `profile.`.
@@ -136,20 +140,19 @@ describe('HomeActionGrid', () => {
     expect(mockPush).not.toHaveBeenCalled()
   })
 
-  it('G6 nhãn tối đa hai dòng, các ô trong cùng nhóm cao bằng nhau', () => {
+  it('G6 nhãn tối đa hai dòng; ô không khoá chiều cao', () => {
+    // Khoá chiều cao cho đủ hai dòng thì khi nhãn chỉ một dòng, phần thừa dồn
+    // xuống đáy và tấm QR trông trên thưa dưới dày. Để ô tự cao theo nhãn —
+    // các ô trong cùng một hàng flex vẫn tự bằng nhau.
     render(<HomeActionGrid />)
     LABELS.forEach((l) =>
       expect(screen.getByText(l).props.numberOfLines).toBe(2),
     )
-    for (const group of [QR_IDS, UTILITY_IDS]) {
-      const heights = group.map(
-        (id) =>
-          StyleSheet.flatten(
-            screen.getByTestId(`home-action-${id}`).props.style,
-          )?.height,
+    for (const id of [...QR_IDS, ...UTILITY_IDS]) {
+      const style = StyleSheet.flatten(
+        screen.getByTestId(`home-action-${id}`).props.style,
       )
-      expect(typeof heights[0]).toBe('number')
-      expect(new Set(heights).size).toBe(1)
+      expect(style?.height).toBeUndefined()
     }
   })
 
@@ -166,5 +169,11 @@ describe('HomeActionGrid', () => {
     mockSession = false
     fireEvent.press(screen.getByText('Đổi thẻ quà tặng'))
     expect(mockPush).toHaveBeenLastCalledWith('/auth/login')
+  })
+
+  it('G9 Tiện ích chia đều đúng ba cột, không có ô trống', () => {
+    render(<HomeActionGrid />)
+    const row = screen.getByTestId('home-utilities')
+    expect(row.children).toHaveLength(UTILITY_IDS.length)
   })
 })
