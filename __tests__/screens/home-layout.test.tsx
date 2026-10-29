@@ -3,10 +3,11 @@
 // Thẻ số dư và lưới KHÔNG chờ `ready` (useRunAfterTransition): đó là lớp điều
 // khiển dùng ở quầy, chờ transition xong mới hiện là mất ý nghĩa.
 import { act, render, screen } from '@testing-library/react-native'
-import { ScrollView } from 'react-native'
+import { ScrollView, StyleSheet } from 'react-native'
 
 import HomeScreen from '@/app/(tabs)/home'
 import { QUERYKEY } from '@/constants'
+import { STATIC_TOP_INSET } from '@/constants/status-bar'
 
 let mockReady = true
 const mockInvalidate = jest.fn((..._args: unknown[]) => Promise.resolve())
@@ -152,5 +153,20 @@ describe('Home layout', () => {
     expect(mockInvalidate).toHaveBeenCalledWith({
       queryKey: [QUERYKEY.loyaltyPoints],
     })
+  })
+
+  it('H4 thanh trạng thái có nền riêng, banner bắt đầu bên dưới nó', () => {
+    // Ảnh banner admin vẽ có chữ ngay mép trên; để nó chạy dưới thanh trạng
+    // thái thì giờ và pin đè lên chữ.
+    mockReady = true
+    render(<HomeScreen />)
+    const bar = screen.getByTestId('home-status-bar')
+    expect(StyleSheet.flatten(bar.props.style).height).toBe(STATIC_TOP_INSET)
+    const texts = textsInOrder(screen.toJSON())
+    // Lớp nền nằm ngoài ScrollView, đứng trước toàn bộ nội dung cuộn.
+    expect(
+      screen.UNSAFE_getByType(ScrollView).props.contentContainerStyle,
+    ).not.toMatchObject({ paddingTop: expect.any(Number) })
+    expect(texts.indexOf('[BANNER]')).toBeGreaterThan(-1)
   })
 })

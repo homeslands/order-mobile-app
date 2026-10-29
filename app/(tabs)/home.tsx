@@ -6,20 +6,13 @@ import { useTranslation } from 'react-i18next'
 import {
   Dimensions,
   Pressable,
-  Platform,
   RefreshControl,
+  ScrollView,
   StyleSheet,
   View,
   useColorScheme,
 } from 'react-native'
-import Animated, {
-  Extrapolation,
-  FadeInDown,
-  interpolate,
-  useAnimatedScrollHandler,
-  useAnimatedStyle,
-  useSharedValue,
-} from 'react-native-reanimated'
+import Animated, { FadeInDown } from 'react-native-reanimated'
 
 import {
   BalanceCard,
@@ -41,13 +34,12 @@ import { Text } from '@/components/ui/text'
 const SCREEN_W = Dimensions.get('window').width
 
 /**
- * Banner tràn sát mép trên cùng, chạy cả dưới thanh trạng thái như ZaloPay —
- * chiều cao này tính cả vùng thanh trạng thái. Full bề ngang vì SwiperBanner
- * khoá slide = SCREEN_W và phân trang theo contentOffset.x / SCREEN_W.
+ * Banner trên cùng, tràn đủ bề ngang (SwiperBanner khoá slide = SCREEN_W và
+ * phân trang theo contentOffset.x / SCREEN_W), tỉ lệ 2:1 như ảnh admin vẽ.
  */
 const BANNER_H = Math.round(SCREEN_W * 0.5)
-/** Scrim thanh trạng thái hiện dần trong đoạn cuộn cuối cùng trước khi banner khuất. */
-const SCRIM_FADE = 24
+/** Link mục tối hơn màu thương hiệu để chữ nhỏ còn đọc được trên nền trắng. */
+const LINK_COLOR = { light: '#b8650a', dark: '#e8a33a' } as const
 
 const FALLBACK_BANNER: IBanner = {
   slug: 'fallback',
@@ -112,8 +104,6 @@ export default function HomeScreen() {
         onRefresh={handleRefresh}
         tintColor={primaryColor}
         colors={[primaryColor]}
-        // Android vẽ vòng xoay từ mép trên — đẩy xuống khỏi thanh trạng thái.
-        progressViewOffset={Platform.OS === 'android' ? STATIC_TOP_INSET : 0}
       />
     ),
     [refreshing, handleRefresh, primaryColor],
@@ -123,32 +113,22 @@ export default function HomeScreen() {
   const pageBg = isDark ? colors.background.dark : colors.card.light
   const foreground = isDark ? colors.foreground.dark : colors.foreground.light
 
-  // Không còn header cố định: banner chạy dưới thanh trạng thái. Khi cuộn qua
-  // banner, nội dung sẽ đè lên giờ/pin — nên một lớp nền cao bằng thanh trạng
-  // thái hiện dần ngay trước khi banner khuất hẳn.
-  const scrollY = useSharedValue(0)
-  const onScroll = useAnimatedScrollHandler((e) => {
-    scrollY.value = e.contentOffset.y
-  })
-  const scrimStyle = useAnimatedStyle(() => ({
-    opacity: interpolate(
-      scrollY.value,
-      [BANNER_H - STATIC_TOP_INSET - SCRIM_FADE, BANNER_H - STATIC_TOP_INSET],
-      [0, 1],
-      Extrapolation.CLAMP,
-    ),
-  }))
-
   return (
     <TabScreenLayout backgroundColor={pageBg}>
-      <Animated.ScrollView
-        onScroll={onScroll}
-        scrollEventThrottle={16}
+      {/* Thanh trạng thái có nền riêng, nằm NGOÀI ScrollView. Ảnh banner admin
+          vẽ có chữ ngay mép trên — để nó chạy dưới thanh trạng thái thì giờ
+          và pin đè lên chữ. Đứng ngoài ScrollView nên nội dung cuộn cũng không
+          bao giờ chạy dưới giờ/pin, và vòng xoay kéo-làm-mới hiện bên dưới. */}
+      <View
+        testID="home-status-bar"
+        style={{ height: STATIC_TOP_INSET, backgroundColor: pageBg }}
+      />
+      <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: bottomPadding }}
         refreshControl={refreshControl}
       >
-        {/* 1. Banner khuyến mãi — tràn sát mép, chạy dưới thanh trạng thái */}
+        {/* 1. Banner khuyến mãi */}
         <View style={{ height: BANNER_H }}>
           {showBannerSkeleton ? (
             <Skeleton className="h-full w-full rounded-none" />
@@ -174,38 +154,28 @@ export default function HomeScreen() {
               <Text style={[s.sectionTitle, { color: foreground }]}>
                 {t('exploreMenu')}
               </Text>
-              <Pressable onPress={goMenu}>
-                <Text style={[s.sectionLink, { color: primaryColor }]}>
-                  {t('viewMenu')}
+              <Pressable onPress={goMenu} hitSlop={8}>
+                <Text
+                  style={[
+                    s.sectionLink,
+                    { color: LINK_COLOR[isDark ? 'dark' : 'light'] },
+                  ]}
+                >
+                  {t('viewMore')}
                 </Text>
               </Pressable>
             </View>
             <HighlightMenuCarousel primaryColor={primaryColor} />
           </Animated.View>
         )}
-      </Animated.ScrollView>
-
-      <Animated.View
-        pointerEvents="none"
-        style={[
-          s.statusScrim,
-          { height: STATIC_TOP_INSET, backgroundColor: pageBg },
-          scrimStyle,
-        ]}
-      />
+      </ScrollView>
     </TabScreenLayout>
   )
 }
 
 const s = StyleSheet.create({
-  statusScrim: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-  },
   sectionSpacing: {
-    marginTop: 28,
+    marginTop: 24,
   },
   sectionHeader: {
     flexDirection: 'row',
