@@ -26,6 +26,11 @@
     },
     "viewMenu": "View more MENU",
     "viewMore": "View more",
+    "balance": {
+      "coin": "Coins",
+      "points": "Loyalty points",
+      "loginCta": "Sign in to see your coins and points"
+    },
     "loyaltyCard": {
       "balanceLabel": "Your loyalty points",
       "coinUnit": "pts",

@@ -26,6 +26,11 @@
     },
     "viewMenu": "Xem thêm MENU",
     "viewMore": "Xem thêm",
+    "balance": {
+      "coin": "Xu",
+      "points": "Điểm tích luỹ",
+      "loginCta": "Đăng nhập để xem Xu và điểm tích luỹ"
+    },
     "loyaltyCard": {
       "balanceLabel": "Điểm tích luỹ của bạn",
       "coinUnit": "xu",
