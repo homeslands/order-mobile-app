@@ -311,6 +311,26 @@ export function buildVoucherConditions(voucher: IVoucher, t: TFn): string[] {
   return conditions
 }
 
+const PAYMENT_METHOD_KEYS: Record<string, string> = {
+  cash: 'paymentMethod.cash',
+  'bank-transfer': 'paymentMethod.bankTransfer',
+  point: 'paymentMethod.point',
+  'credit-card': 'paymentMethod.creditCard',
+}
+
+/**
+ * Tên các phương thức thanh toán voucher cho phép, nối bằng dấu phẩy. Chuỗi
+ * rỗng khi voucher không giới hạn phương thức.
+ */
+export function formatVoucherPaymentMethods(voucher: IVoucher, t: TFn): string {
+  return (voucher.voucherPaymentMethods ?? [])
+    .map(({ paymentMethod }) => {
+      const key = PAYMENT_METHOD_KEYS[paymentMethod]
+      return key ? t(key) : paymentMethod
+    })
+    .join(', ')
+}
+
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /** Cap voucher list to avoid memory growth */

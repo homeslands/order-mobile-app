@@ -21,7 +21,10 @@
  * sheet.
  */
 import { colors } from '@/constants'
-import type { VoucherConditionStatus } from '@/components/sheet/voucher-validation'
+import {
+  formatVoucherPaymentMethods,
+  type VoucherConditionStatus,
+} from '@/components/sheet/voucher-validation'
 import type { IVoucher } from '@/types'
 import { showToast } from '@/utils'
 import {
@@ -150,6 +153,7 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
   const mutedColor = isDark ? colors.gray[400] : colors.gray[500]
   const borderColor = isDark ? colors.gray[700] : colors.gray[200]
   const products = voucher.voucherProducts ?? []
+  const paymentMethods = formatVoucherPaymentMethods(voucher, t)
 
   return (
     <BottomSheetModal
@@ -279,6 +283,18 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
               value: voucher.numberOfUsagePerUser || t('unlimited'),
             })}
           />
+          {/* Thông tin thuần, không dấu đạt/chưa đạt: lúc chọn mã khách chưa
+              chọn cách trả. Thẻ vé không hiện mục này nên đây là chỗ duy nhất
+              khách biết trước, thay vì tới màn thanh toán mới thấy bị khoá. */}
+          {paymentMethods ? (
+            <ConditionRow
+              isDark={isDark}
+              primaryColor={primaryColor}
+              label={t('conditionModal.paymentMethods', {
+                methods: paymentMethods,
+              })}
+            />
+          ) : null}
         </View>
 
         {products.length > 0 ? (

@@ -214,7 +214,8 @@
       "hasAccount": "Account required.",
       "noAccount": "No account required.",
       "usagePerUser": "Max usage per account: {{value}}",
-      "applicableProducts": "Applicable products: {{products}}"
+      "applicableProducts": "Applicable products: {{products}}",
+      "paymentMethods": "Pay with: {{methods}}"
     },
     "scan": {
       "title": "Scan voucher code",
