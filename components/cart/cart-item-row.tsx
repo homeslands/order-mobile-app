@@ -174,7 +174,7 @@ export const CartItemRow = memo(
                 style={rowStyles.image}
                 contentFit="cover"
                 recyclingKey={item.cartKey}
-                cachePolicy="disk"
+                cachePolicy="memory-disk"
                 placeholder={{ blurhash: 'LKO2?U%2Tw=w]~RBVZRi};RPxuwH' }}
                 transition={0}
                 priority="high"

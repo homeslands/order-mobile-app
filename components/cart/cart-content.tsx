@@ -7,6 +7,7 @@ import {
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { shouldAutoRemoveVoucher } from '@/components/sheet/voucher-validation'
 import { useCartValidation } from '@/hooks/use-cart-validation'
+import { useMountOnFirstOpen } from '@/hooks/use-mount-on-first-open'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { scheduleTransitionTask } from '@/lib/navigation/transition-task-queue'
 import {
@@ -129,6 +130,8 @@ export default function CartContent() {
     [],
   )
   const handleSizeClose = useCallback(() => setSizeSheetItemId(null), [])
+  // Sheet đổi size chỉ dựng khi mở lần đầu.
+  const sizeSheetMounted = useMountOnFirstOpen(sizeSheetItemId != null)
 
   const handleBrowse = useCallback(() => {
     router.replace('/(tabs)/menu')
@@ -185,13 +188,15 @@ export default function CartContent() {
         ListFooterComponent={CartOrderNoteFooter}
       />
       <CartFooter primaryColor={primaryColor} isDark={isDark} />
-      <CartSizeSheet
-        visible={!!sizeSheetItemId}
-        itemId={sizeSheetItemId}
-        onClose={handleSizeClose}
-        isDark={isDark}
-        primaryColor={primaryColor}
-      />
+      {sizeSheetMounted && (
+        <CartSizeSheet
+          visible={!!sizeSheetItemId}
+          itemId={sizeSheetItemId}
+          onClose={handleSizeClose}
+          isDark={isDark}
+          primaryColor={primaryColor}
+        />
+      )}
     </View>
   )
 }
