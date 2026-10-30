@@ -89,6 +89,7 @@ const ConditionRow = memo(function ConditionRow({
         )}
       </View>
       <Text
+        className="font-sans"
         style={[
           s.condText,
           { color: met === false ? colors.destructive.light : textColor },
@@ -170,7 +171,11 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
         contentContainerStyle={[s.content, { paddingBottom: bottomInset + 16 }]}
       >
         <View style={s.headerRow}>
-          <Text style={[s.title, { color: textColor }]} numberOfLines={2}>
+          <Text
+            className="font-sans-bold"
+            style={[s.title, { color: textColor }]}
+            numberOfLines={2}
+          >
             {voucher.title}
           </Text>
           <Pressable onPress={handleClose} hitSlop={10} style={s.closeBtn}>
@@ -181,7 +186,7 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
         {errorMessage ? (
           <View style={[s.warning, { borderColor: colors.destructive.light }]}>
             <AlertTriangle size={15} color={colors.destructive.light} />
-            <Text style={s.warningText}>
+            <Text className="font-sans" style={s.warningText}>
               {t('cannotUseReason', { reason: errorMessage })}
             </Text>
           </View>
@@ -196,10 +201,18 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
             },
           ]}
         >
-          <Text style={[s.infoLabel, { color: mutedColor }]}>{t('code')}</Text>
+          <Text
+            className="font-sans"
+            style={[s.infoLabel, { color: mutedColor }]}
+          >
+            {t('code')}
+          </Text>
           {/* Cả hàng bắt chạm để sao chép, không chỉ cái icon 14px. */}
           <Pressable onPress={handleCopy} hitSlop={8} style={s.infoRight}>
-            <Text style={[s.code, { color: primaryColor }]}>
+            <Text
+              className="font-sans-bold"
+              style={[s.code, { color: primaryColor }]}
+            >
               {voucher.code}
             </Text>
             <Copy size={14} color={mutedColor} />
@@ -207,16 +220,25 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
         </View>
 
         <View style={[s.infoRow, { borderColor }]}>
-          <Text style={[s.infoLabel, { color: mutedColor }]}>
+          <Text
+            className="font-sans"
+            style={[s.infoLabel, { color: mutedColor }]}
+          >
             {t('endDate')}
           </Text>
           {/* Cùng thứ tự với hạn dùng trên thẻ voucher. */}
-          <Text style={[s.infoValue, { color: textColor }]}>
+          <Text
+            className="font-sans-semibold"
+            style={[s.infoValue, { color: textColor }]}
+          >
             {dayjs(voucher.endDate).format('DD/MM/YYYY HH:mm')}
           </Text>
         </View>
 
-        <Text style={[s.sectionTitle, { color: textColor }]}>
+        <Text
+          className="font-sans-semibold"
+          style={[s.sectionTitle, { color: textColor }]}
+        >
           {t('condition')}
         </Text>
         <View style={s.condList}>
@@ -262,7 +284,10 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
         {products.length > 0 ? (
           <>
             <View style={s.productsHeader}>
-              <Text style={[s.sectionTitle, { color: textColor }]}>
+              <Text
+                className="font-sans-semibold"
+                style={[s.sectionTitle, { color: textColor }]}
+              >
                 {t('applicableProductsTitle')}
               </Text>
               {conditionStatus?.products === false ? (
@@ -280,6 +305,7 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
                     <View style={[s.dot, { backgroundColor: mutedColor }]} />
                   </View>
                   <Text
+                    className="font-sans"
                     style={[
                       s.condText,
                       { color: isDark ? colors.gray[300] : colors.gray[700] },
@@ -312,7 +338,6 @@ const s = StyleSheet.create({
   title: {
     flex: 1,
     fontSize: 17,
-    fontWeight: '700',
   },
   closeBtn: {
     paddingTop: 2,
@@ -352,16 +377,13 @@ const s = StyleSheet.create({
   },
   code: {
     fontSize: 14,
-    fontWeight: '700',
     letterSpacing: 1,
   },
   infoValue: {
     fontSize: 14,
-    fontWeight: '600',
   },
   sectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
     marginTop: 4,
     marginBottom: 8,
   },

@@ -138,18 +138,29 @@ export const VoucherCard = memo(function VoucherCard({
   return (
     <AnimatedPressable onPress={handlePress} style={[s.card, animatedStyle]}>
       <View style={s.head}>
-        <Text style={[s.title, { color: headlineColor }]} numberOfLines={2}>
+        <Text
+          className="font-sans-bold"
+          style={[s.title, { color: headlineColor }]}
+          numberOfLines={2}
+        >
           {voucher.title}
         </Text>
 
         {discountLabel ? (
-          <Text style={[s.discount, { color: primaryColor }]} numberOfLines={1}>
+          <Text
+            className="font-sans-semibold"
+            style={[s.discount, { color: primaryColor }]}
+            numberOfLines={1}
+          >
             {discountLabel}
           </Text>
         ) : null}
 
         {voucher.description ? (
-          <Text style={[s.description, { color: mutedColor }]}>
+          <Text
+            className="font-sans"
+            style={[s.description, { color: mutedColor }]}
+          >
             {voucher.description}
           </Text>
         ) : null}
@@ -158,6 +169,7 @@ export const VoucherCard = memo(function VoucherCard({
           <View style={s.metaRow}>
             {expiry ? (
               <Text
+                className="font-sans"
                 style={[s.expiry, s.metaExpiry, { color: mutedColor }]}
                 numberOfLines={1}
               >
@@ -165,7 +177,10 @@ export const VoucherCard = memo(function VoucherCard({
               </Text>
             ) : null}
             {isLowStock ? (
-              <Text style={[s.lowStock, { color: lowStockColor }]}>
+              <Text
+                className="font-sans-semibold"
+                style={[s.lowStock, { color: lowStockColor }]}
+              >
                 {t('lowStock')}
               </Text>
             ) : null}
@@ -202,7 +217,10 @@ export const VoucherCard = memo(function VoucherCard({
           disabled={!onViewCondition}
         >
           <Info size={13} color={mutedColor} />
-          <Text style={[s.conditionText, { color: mutedColor }]}>
+          <Text
+            className="font-sans"
+            style={[s.conditionText, { color: mutedColor }]}
+          >
             {t('condition')}
           </Text>
         </Pressable>
@@ -229,11 +247,9 @@ const s = StyleSheet.create({
     // xem trên máy — vẫn lớn nhất thẻ (mô tả 14, hạn 12) nên giữ được thứ
     // bậc, nhưng không át phần còn lại.
     fontSize: 22,
-    fontWeight: '700',
   },
   discount: {
     fontSize: 14,
-    fontWeight: '600',
   },
   description: {
     fontSize: 14,
@@ -251,7 +267,6 @@ const s = StyleSheet.create({
   },
   lowStock: {
     fontSize: 12,
-    fontWeight: '600',
   },
   perforation: {
     flexDirection: 'row',
