@@ -1,6 +1,6 @@
-// Ảnh banner neo mép trên: admin đặt logo/tiêu đề ở mép trên ảnh. Với
-// contentFit "cover" neo giữa, khung thấp hơn tỉ lệ ảnh sẽ cắt đều trên lẫn
-// dưới và mất logo. Neo trên thì chỉ phần đáy bị cắt.
+// Ảnh banner hiện ĐỦ, không bị cắt: khung theo tỉ lệ 16:9 của ảnh admin, ảnh
+// dùng contentFit "contain". Ảnh đúng 16:9 vừa khít (giống cover); ảnh lệch tỉ
+// lệ (vd. 21:9) hiện đủ với dải trống thay vì bị cắt chữ âm thầm.
 import { render } from '@testing-library/react-native'
 
 import SwiperBanner from '@/components/home/swipper-banner'
@@ -32,7 +32,7 @@ afterEach(() => {
   void g.structuredClone
 })
 
-it('SB1 ảnh banner neo mép trên, chỉ cắt phần đáy', () => {
+it('SB1 ảnh banner hiện đủ, không cắt (contain)', () => {
   render(
     <SwiperBanner
       height={195}
@@ -52,6 +52,5 @@ it('SB1 ảnh banner neo mép trên, chỉ cắt phần đáy', () => {
     />,
   )
   expect(mockImageProps.length).toBeGreaterThan(0)
-  expect(mockImageProps[0].contentFit).toBe('cover')
-  expect(mockImageProps[0].contentPosition).toBe('top')
+  expect(mockImageProps[0].contentFit).toBe('contain')
 })

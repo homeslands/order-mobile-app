@@ -1,9 +1,9 @@
-// Bố cục màn Home (mockup A, ngôn ngữ ZaloPay): banner tràn trên cùng → lời
+// Bố cục màn Home (ngôn ngữ ZaloPay): banner tràn lên thanh trạng thái → lời
 // chào → thẻ số dư → nút QR và Tiện ích → sản phẩm nổi bật.
 // Thẻ số dư và lưới KHÔNG chờ `ready` (useRunAfterTransition): đó là lớp điều
 // khiển dùng ở quầy, chờ transition xong mới hiện là mất ý nghĩa.
 import { act, render, screen } from '@testing-library/react-native'
-import { ScrollView, StyleSheet } from 'react-native'
+import { Dimensions, ScrollView, StyleSheet } from 'react-native'
 
 import HomeScreen from '@/app/(tabs)/home'
 import { QUERYKEY } from '@/constants'
@@ -155,18 +155,27 @@ describe('Home layout', () => {
     })
   })
 
-  it('H4 thanh trạng thái có nền riêng, banner bắt đầu bên dưới nó', () => {
-    // Ảnh banner admin vẽ có chữ ngay mép trên; để nó chạy dưới thanh trạng
-    // thái thì giờ và pin đè lên chữ.
+  it('H4 banner tràn lên thanh trạng thái, khung đúng tỉ lệ 16:9', () => {
+    // Banner bắt đầu từ mép trên màn hình, chạy dưới giờ/pin. Khung theo tỉ
+    // lệ ảnh admin (16:9, 1672×941) để ảnh hiện đủ, không bị lẹm.
     mockReady = true
     render(<HomeScreen />)
-    const bar = screen.getByTestId('home-status-bar')
-    expect(StyleSheet.flatten(bar.props.style).height).toBe(STATIC_TOP_INSET)
-    const texts = textsInOrder(screen.toJSON())
-    // Lớp nền nằm ngoài ScrollView, đứng trước toàn bộ nội dung cuộn.
-    expect(
-      screen.UNSAFE_getByType(ScrollView).props.contentContainerStyle,
-    ).not.toMatchObject({ paddingTop: expect.any(Number) })
-    expect(texts.indexOf('[BANNER]')).toBeGreaterThan(-1)
+    expect(screen.queryByTestId('home-status-bar')).toBeNull()
+    const frame = StyleSheet.flatten(
+      screen.getByTestId('home-banner').props.style,
+    )
+    expect(frame.height).toBe(
+      Math.round((Dimensions.get('window').width * 9) / 16),
+    )
+  })
+
+  it('H5 có lớp nền sau thanh trạng thái để nội dung cuộn không đè giờ/pin', () => {
+    mockReady = true
+    render(<HomeScreen />)
+    const scrim = StyleSheet.flatten(
+      screen.getByTestId('home-status-scrim').props.style,
+    )
+    expect(scrim.height).toBe(STATIC_TOP_INSET)
+    expect(scrim.position).toBe('absolute')
   })
 })

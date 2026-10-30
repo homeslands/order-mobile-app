@@ -5,14 +5,21 @@ import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Dimensions,
+  Platform,
   Pressable,
   RefreshControl,
-  ScrollView,
   StyleSheet,
   View,
   useColorScheme,
 } from 'react-native'
-import Animated, { FadeInDown } from 'react-native-reanimated'
+import Animated, {
+  Extrapolation,
+  FadeInDown,
+  interpolate,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated'
 
 import {
   BalanceCard,
@@ -34,10 +41,16 @@ import { Text } from '@/components/ui/text'
 const SCREEN_W = Dimensions.get('window').width
 
 /**
- * Banner trên cùng, tràn đủ bề ngang (SwiperBanner khoá slide = SCREEN_W và
- * phân trang theo contentOffset.x / SCREEN_W), tỉ lệ 2:1 như ảnh admin vẽ.
+ * Banner tràn lên thanh trạng thái, đủ bề ngang (SwiperBanner khoá slide =
+ * SCREEN_W và phân trang theo contentOffset.x / SCREEN_W), khung 16:9 để ảnh
+ * hiện đủ. Đo banner thật (2026-10-30): "Món mới", "metro" 1672×941 (16:9);
+ * "Matcha", "Đăng ký thành viên" 2048×878 (21:9) — đã thống nhất là admin
+ * tải lại theo 16:9. Trong lúc chờ, ảnh dùng contain nên ảnh 21:9 hiện đủ với
+ * dải trống trên dưới thay vì bị cắt.
  */
-const BANNER_H = Math.round(SCREEN_W * 0.5)
+const BANNER_H = Math.round((SCREEN_W * 9) / 16)
+/** Scrim thanh trạng thái hiện dần trong đoạn cuộn cuối trước khi banner khuất. */
+const SCRIM_FADE = 24
 
 const FALLBACK_BANNER: IBanner = {
   slug: 'fallback',
@@ -102,6 +115,8 @@ export default function HomeScreen() {
         onRefresh={handleRefresh}
         tintColor={primaryColor}
         colors={[primaryColor]}
+        // Android vẽ vòng xoay từ mép trên — đẩy xuống khỏi thanh trạng thái.
+        progressViewOffset={Platform.OS === 'android' ? STATIC_TOP_INSET : 0}
       />
     ),
     [refreshing, handleRefresh, primaryColor],
@@ -111,23 +126,36 @@ export default function HomeScreen() {
   const pageBg = isDark ? colors.background.dark : colors.background.light
   const foreground = isDark ? colors.foreground.dark : colors.foreground.light
 
+  // Banner chạy dưới thanh trạng thái nên không có header cố định. Khi cuộn
+  // qua banner, nội dung sẽ đè lên giờ/pin — một lớp nền cao bằng thanh trạng
+  // thái hiện dần ngay trước khi banner khuất hẳn.
+  const scrollY = useSharedValue(0)
+  const onScroll = useAnimatedScrollHandler((e) => {
+    scrollY.value = e.contentOffset.y
+  })
+  const scrimStyle = useAnimatedStyle(() => ({
+    opacity: interpolate(
+      scrollY.value,
+      [BANNER_H - STATIC_TOP_INSET - SCRIM_FADE, BANNER_H - STATIC_TOP_INSET],
+      [0, 1],
+      Extrapolation.CLAMP,
+    ),
+  }))
+
   return (
     <TabScreenLayout backgroundColor={pageBg}>
-      {/* Thanh trạng thái có nền riêng, nằm NGOÀI ScrollView. Ảnh banner admin
-          vẽ có chữ ngay mép trên — để nó chạy dưới thanh trạng thái thì giờ
-          và pin đè lên chữ. Đứng ngoài ScrollView nên nội dung cuộn cũng không
-          bao giờ chạy dưới giờ/pin, và vòng xoay kéo-làm-mới hiện bên dưới. */}
-      <View
-        testID="home-status-bar"
-        style={{ height: STATIC_TOP_INSET, backgroundColor: pageBg }}
-      />
-      <ScrollView
+      <Animated.ScrollView
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: bottomPadding }}
         refreshControl={refreshControl}
       >
-        {/* 1. Banner khuyến mãi */}
-        <View style={{ height: BANNER_H }}>
+        {/* 1. Banner khuyến mãi — tràn lên thanh trạng thái */}
+        <View
+          testID="home-banner"
+          style={{ height: BANNER_H, backgroundColor: pageBg }}
+        >
           {showBannerSkeleton ? (
             <Skeleton className="h-full w-full rounded-none" />
           ) : (
@@ -167,12 +195,28 @@ export default function HomeScreen() {
             <HighlightMenuCarousel primaryColor={primaryColor} />
           </Animated.View>
         )}
-      </ScrollView>
+      </Animated.ScrollView>
+
+      <Animated.View
+        testID="home-status-scrim"
+        pointerEvents="none"
+        style={[
+          s.statusScrim,
+          { height: STATIC_TOP_INSET, backgroundColor: pageBg },
+          scrimStyle,
+        ]}
+      />
     </TabScreenLayout>
   )
 }
 
 const s = StyleSheet.create({
+  statusScrim: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+  },
   sectionSpacing: {
     marginTop: 24,
   },
