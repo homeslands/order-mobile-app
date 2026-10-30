@@ -46,3 +46,12 @@ export function formatDateTimeWithSeconds(
   const d = toDate(date)
   return d ? d.format('HH:mm:ss DD/MM/YYYY') : '-'
 }
+
+/**
+ * Ngày theo giờ máy, dạng YYYY-MM-DD — dùng làm "ngày menu" gửi API.
+ * KHÔNG dùng `toISOString()`: đó là ngày UTC, nên từ 00:00 tới 07:00 giờ Việt
+ * Nam sẽ ra ngày hôm qua. Menu và kiểm giá giỏ phải cùng dùng hàm này.
+ */
+export function getLocalDateString(date: Date = new Date()): string {
+  return dayjs(date).format('YYYY-MM-DD')
+}

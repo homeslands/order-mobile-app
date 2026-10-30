@@ -27,6 +27,7 @@ import { useSetMenuFilter } from '@/stores/selectors'
 import { useTransientNavStore } from '@/stores/transient-nav.store'
 import type { ISpecificMenuRequest } from '@/types'
 import { IOrderItem } from '@/types'
+import { getLocalDateString } from '@/utils/date'
 import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 import { showToast } from '@/utils/toast'
 import { useFocusEffect } from '@react-navigation/native'
@@ -309,7 +310,7 @@ export default function MenuPage() {
   const request = useMemo<ISpecificMenuRequest>(
     () =>
       buildSpecificMenuRequest({
-        date: menuDate ?? new Date().toISOString().split('T')[0],
+        date: menuDate ?? getLocalDateString(),
         branch: menuBranch ?? branchSlug,
         catalog: menuCatalog,
         productName: menuProductName,

@@ -9,6 +9,7 @@ import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import { cartActions } from '@/stores/cart.store'
 import type { IMenuItem, IOrderItem, IProductVariant } from '@/types'
 import { showToast } from '@/utils'
+import { getLocalDateString } from '@/utils/date'
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useRef } from 'react'
 
@@ -120,7 +121,7 @@ export function useCartValidation() {
       if (!branchSlug) return null
 
       // Skip if already validated today (unless forced)
-      const today = new Date().toISOString().slice(0, 10)
+      const today = getLocalDateString()
       if (!force && lastValidatedDateRef.current === today) return null
 
       // Prevent concurrent validation
@@ -130,7 +131,7 @@ export function useCartValidation() {
       try {
         const query = buildSpecificMenuRequest({
           branch: branchSlug,
-          date: new Date().toISOString().slice(0, 10),
+          date: getLocalDateString(),
         })
         const fetchMenu = hasUser ? getSpecificMenu : getPublicSpecificMenu
 
