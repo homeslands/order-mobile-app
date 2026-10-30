@@ -1,5 +1,6 @@
 /**
- * Thẻ voucher dạng vé — dùng trong các sheet chọn mã (giỏ hàng, sửa đơn).
+ * Thẻ voucher dạng vé — dùng trong các sheet chọn mã (giỏ hàng, thanh toán,
+ * sửa đơn).
  *
  *   phần trên   tên, mức giảm, mô tả, hạn dùng (+ "Sắp hết lượt" khi còn < 20%)
  *   phần dưới   điều kiện, ngăn bằng đường đứt và hai vết khuyết hai bên
@@ -14,7 +15,7 @@
  *
  * Vết khuyết làm bằng hai hình tròn tô MÀU NỀN CỦA SHEET, không phải cắt
  * thật. Cách này chỉ đúng khi nền phía sau là màu đặc — và đúng là vậy:
- * cả hai sheet dùng thẻ này đều gắn GlassSheetBackground, vốn luôn đặc
+ * cả ba sheet dùng thẻ này đều gắn GlassSheetBackground, vốn luôn đặc
  * (xem chú thích trong components/ui/glass-sheet-background.tsx). Nếu sau này
  * đặt thẻ lên nền ảnh hay gradient thì phải chuyển sang vẽ khung bằng SVG,
  * vì hai hình tròn sẽ lộ ra thành hai chấm.

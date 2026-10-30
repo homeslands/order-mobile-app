@@ -29,7 +29,6 @@ function processed(
     },
     discountLabel: 'giảm 30.000₫',
     expiryText: '',
-    minOrderText: '',
   }
 }
 

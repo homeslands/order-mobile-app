@@ -26,7 +26,6 @@
     "confirmUpdateVoucher": "Confirm Voucher Update",
     "copyCode": "Copy Discount Code",
     "viewConditions": "View conditions",
-    "conditionSheetTitle": "Usage Conditions",
     "close": "Close",
     "removeVoucher": "Remove",
     "voucherRemoved": "Voucher removed",
@@ -202,19 +201,11 @@
     "month": "Month",
     "year": "Year",
     "unlimited": "Unlimited",
-    "minOrderLabel": "Minimum order value: {{value}}",
-    "paymentMethodShort": {
-      "cash": "Cash",
-      "bankTransfer": "Transfer",
-      "point": "Points",
-      "creditCard": "Card"
-    },
     "conditionModal": {
       "minOrderCondition": "Minimum order value: {{value}}",
       "hasAccount": "Account required.",
       "noAccount": "No account required.",
       "usagePerUser": "Max usage per account: {{value}}",
-      "applicableProducts": "Applicable products: {{products}}",
       "paymentMethods": "Pay with: {{methods}}"
     },
     "scan": {

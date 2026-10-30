@@ -36,7 +36,6 @@ export type ProcessedVoucher = {
   /** Pre-computed display strings — avoids recalc in each card render */
   discountLabel: string
   expiryText: string
-  minOrderText: string
 }
 
 type TFn = (key: string, opts?: Record<string, unknown>) => string
@@ -173,8 +172,6 @@ export function processVoucherList(
               date: dayjs(v.endDate).format('DD/MM/YYYY HH:mm'),
             })
 
-    const minOrderText = formatCurrency(v.minOrderValue)
-
     return {
       voucher: v,
       isValid,
@@ -193,7 +190,6 @@ export function processVoucherList(
       },
       discountLabel,
       expiryText,
-      minOrderText,
     }
   })
 }

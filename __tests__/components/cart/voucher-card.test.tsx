@@ -38,10 +38,9 @@ import { Line } from 'react-native-svg'
 import type { IVoucher } from '@/types'
 
 /**
- * Bố cục vé có một vùng giữa CHỈ hiện khi voucher kèm điều kiện. Những test
- * này canh đúng chỗ đó: voucher trơn thì gọn như mẫu thiết kế, voucher có
- * điều kiện thì phải nói ra, đặc biệt là lý do không dùng được — thiếu nó
- * người dùng bấm mã không ăn mà không hiểu vì sao.
+ * Thẻ vé chỉ giữ thứ khách cần để chọn mã: tên, mức giảm, mô tả, hạn dùng và
+ * báo "Sắp hết lượt" khi khan hiếm. Điều kiện chi tiết và lý do không dùng
+ * được nằm ở sheet Điều kiện, mở từ link ở chân thẻ.
  */
 const base = {
   slug: 'v1',

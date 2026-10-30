@@ -27,7 +27,6 @@
     "confirmUpdateVoucher": "Xác nhận cập nhật voucher",
     "copyCode": "Sao chép mã giảm giá",
     "viewConditions": "Xem điều kiện",
-    "conditionSheetTitle": "Điều kiện sử dụng",
     "close": "Đóng",
     "removeVoucher": "Gỡ mã",
     "voucherRemoved": "Đã gỡ mã giảm giá",
@@ -203,19 +202,11 @@
     "month": "Tháng",
     "year": "Năm",
     "unlimited": "Không giới hạn",
-    "minOrderLabel": "Giá trị đơn hàng tối thiểu: {{value}}",
-    "paymentMethodShort": {
-      "cash": "Tiền mặt",
-      "bankTransfer": "CK",
-      "point": "Điểm",
-      "creditCard": "Thẻ"
-    },
     "conditionModal": {
       "minOrderCondition": "Giá trị đơn hàng tối thiểu: {{value}}",
       "hasAccount": "Đã có tài khoản trên hệ thống.",
       "noAccount": "Không yêu cầu tài khoản.",
       "usagePerUser": "Số lượng sử dụng tối đa trên 1 tài khoản: {{value}}",
-      "applicableProducts": "Sản phẩm áp dụng: {{products}}",
       "paymentMethods": "Thanh toán bằng: {{methods}}"
     },
     "scan": {
