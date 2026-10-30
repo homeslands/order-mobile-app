@@ -151,4 +151,27 @@ describe('VoucherCard', () => {
     const line = screen.UNSAFE_getByType(Line)
     expect(line.props.stroke).toBe(hexToRgba('#f59e0b', 0.6))
   })
+
+  // Không có thanh %; chỉ báo khan hiếm khi nó có ý nghĩa — còn dưới 20%.
+  describe('nhãn Sắp hết lượt', () => {
+    const withUsage = (remainingUsage: number, maxUsage: number) =>
+      ({ ...base, remainingUsage, maxUsage }) as unknown as IVoucher
+
+    it('LS1 còn dưới 20% thì hiện', () => {
+      setup(withUsage(1, 10))
+      expect(screen.getByText('Sắp hết lượt')).toBeTruthy()
+    })
+
+    it('LS2 còn từ 20% trở lên thì không hiện', () => {
+      setup(withUsage(2, 10))
+      expect(screen.queryByText('Sắp hết lượt')).toBeNull()
+    })
+
+    it('LS3 hết lượt hoặc không có tổng lượt thì không hiện', () => {
+      setup(withUsage(0, 10))
+      expect(screen.queryByText('Sắp hết lượt')).toBeNull()
+      setup(withUsage(3, 0))
+      expect(screen.queryByText('Sắp hết lượt')).toBeNull()
+    })
+  })
 })

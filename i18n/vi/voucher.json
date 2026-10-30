@@ -17,6 +17,7 @@
     "code": "Mã giảm giá",
     "complete": "Hoàn thành",
     "condition": "Điều kiện",
+    "lowStock": "Sắp hết lượt",
     "confirmApplyVoucher": "Bạn có chắc chắn muốn áp dụng voucher này không?",
     "confirmCreateMultipleVoucher": "Bạn sắp sửa tạo ",
     "confirmCreateVoucher": "Xác nhận tạo voucher",

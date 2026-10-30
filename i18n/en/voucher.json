@@ -16,6 +16,7 @@
     "code": "Discount Code",
     "complete": "Complete",
     "condition": "Condition",
+    "lowStock": "Almost gone",
     "confirmApplyVoucher": "Are you sure you want to apply this voucher?",
     "confirmCreateMultipleVoucher": "You are about to create ",
     "confirmCreateVoucher": "Confirm Voucher Creation",

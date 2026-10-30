@@ -1,7 +1,7 @@
 /**
  * Thẻ voucher dạng vé — dùng trong các sheet chọn mã (giỏ hàng, sửa đơn).
  *
- *   phần trên   tên, mức giảm, mô tả, hạn dùng
+ *   phần trên   tên, mức giảm, mô tả, hạn dùng (+ "Sắp hết lượt" khi còn < 20%)
  *   phần dưới   điều kiện, ngăn bằng đường đứt và hai vết khuyết hai bên
  *
  * Chọn mã bằng cách chạm vào CẢ THẺ; thẻ đang chọn viền primary. Không có nút
@@ -40,6 +40,13 @@ const AnimatedPressable = Animated.createAnimatedComponent(Pressable)
 /** Đường kính vết khuyết; nửa nằm ngoài mỗi mép thẻ. */
 const NOTCH = 18
 
+/**
+ * Còn dưới tỉ lệ này thì báo "Sắp hết lượt". Không hiện thanh % cho mọi mã:
+ * tỉ lệ tính trên cả chương trình, đa số lúc gần 100% và không giúp khách
+ * chọn mã — chỉ báo khan hiếm khi nó có ý nghĩa.
+ */
+const LOW_STOCK_RATIO = 0.2
+
 export const VoucherCard = memo(function VoucherCard({
   voucher,
   isSelected,
@@ -67,6 +74,10 @@ export const VoucherCard = memo(function VoucherCard({
   const { t } = useTranslation('voucher')
 
   const expiry = expiryText ?? ''
+  const isLowStock =
+    voucher.maxUsage > 0 &&
+    voucher.remainingUsage > 0 &&
+    voucher.remainingUsage / voucher.maxUsage < LOW_STOCK_RATIO
 
   const handlePress = useCallback(
     () => onSelect(voucher.slug),
@@ -92,6 +103,9 @@ export const VoucherCard = memo(function VoucherCard({
     : colors.mutedForeground.light
   // Đủ đậm để thấy rõ trên nền nhuốm primary.
   const dashColor = hexToRgba(primaryColor, 0.6)
+  const lowStockColor = isDark
+    ? colors.destructive.dark
+    : colors.destructive.light
 
   const notch = {
     width: NOTCH,
@@ -140,10 +154,22 @@ export const VoucherCard = memo(function VoucherCard({
           </Text>
         ) : null}
 
-        {expiry ? (
-          <Text style={[s.expiry, { color: mutedColor }]} numberOfLines={1}>
-            {expiry}
-          </Text>
+        {expiry || isLowStock ? (
+          <View style={s.metaRow}>
+            {expiry ? (
+              <Text
+                style={[s.expiry, s.metaExpiry, { color: mutedColor }]}
+                numberOfLines={1}
+              >
+                {expiry}
+              </Text>
+            ) : null}
+            {isLowStock ? (
+              <Text style={[s.lowStock, { color: lowStockColor }]}>
+                {t('lowStock')}
+              </Text>
+            ) : null}
+          </View>
         ) : null}
       </View>
 
@@ -214,6 +240,18 @@ const s = StyleSheet.create({
   },
   expiry: {
     fontSize: 12,
+  },
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  metaExpiry: {
+    flexShrink: 1,
+  },
+  lowStock: {
+    fontSize: 12,
+    fontWeight: '600',
   },
   perforation: {
     flexDirection: 'row',
