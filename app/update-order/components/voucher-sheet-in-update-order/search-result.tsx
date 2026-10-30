@@ -68,7 +68,7 @@ export function SearchResult({
       onSelect={onSelect}
       onViewCondition={onViewCondition}
       expiryText={processedFetched.expiryText}
-      usagePercent={processedFetched.usagePercent}
+      discountLabel={processedFetched.discountLabel}
     />
   )
 }

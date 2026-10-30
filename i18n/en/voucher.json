@@ -202,7 +202,6 @@
     "year": "Year",
     "unlimited": "Unlimited",
     "minOrderLabel": "Minimum order value: {{value}}",
-    "remainingUsagePercent": "Remaining: {{value}}%",
     "paymentMethodShort": {
       "cash": "Cash",
       "bankTransfer": "Transfer",

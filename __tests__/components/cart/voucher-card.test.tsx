@@ -59,19 +59,29 @@ function setup(voucher: IVoucher, props: Record<string, unknown> = {}) {
 }
 
 describe('VoucherCard', () => {
-  it('hiện đúng bốn thông tin: tên, mô tả, hạn dùng, lượt còn lại', () => {
-    setup({ ...base, remainingUsage: 8 } as unknown as IVoucher, {
-      usagePercent: 94,
-    })
+  it('hiện tên, mức giảm, mô tả, hạn dùng', () => {
+    setup(base, { discountLabel: 'Giảm 30.000₫' })
 
     expect(screen.getByText('50% Giảm')).toBeTruthy()
+    expect(screen.getByText('Giảm 30.000₫')).toBeTruthy()
     expect(screen.getByText('Giảm 50% Người Dùng Mới')).toBeTruthy()
     expect(screen.getByText('Hiệu lực đến 14/10/2026 23:59')).toBeTruthy()
-    expect(screen.getByText(/94/)).toBeTruthy()
   })
 
-  it('không còn lượt thì ẩn thanh tiến độ', () => {
-    setup(base)
+  // Tên voucher do admin tự đặt, nhiều khi không nói được giảm bao nhiêu
+  // ("Ưu đãi tháng 10") — mức giảm là thứ khách cần để chọn mã.
+  it('tên không nói mức giảm thì dòng mức giảm vẫn nói', () => {
+    setup({ ...base, title: 'Ưu đãi tháng 10' } as unknown as IVoucher, {
+      discountLabel: 'Giảm 20%',
+    })
+
+    expect(screen.getByText('Giảm 20%')).toBeTruthy()
+  })
+
+  // Tỉ lệ lượt còn lại tính trên cả chương trình — không giúp khách chọn mã,
+  // mà chiếm một dòng của thẻ.
+  it('không hiện thanh % lượt còn lại, kể cả khi còn lượt', () => {
+    setup({ ...base, remainingUsage: 8 } as unknown as IVoucher)
 
     expect(screen.queryByText(/Số lượng còn lại/)).toBeNull()
   })

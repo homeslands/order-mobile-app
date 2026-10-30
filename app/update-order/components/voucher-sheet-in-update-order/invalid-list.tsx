@@ -51,7 +51,7 @@ export function InvalidList({
             onSelect={onSelect}
             onViewCondition={onViewCondition}
             expiryText={p.expiryText}
-            usagePercent={p.usagePercent}
+            discountLabel={p.discountLabel}
           />
         </View>
       ))}

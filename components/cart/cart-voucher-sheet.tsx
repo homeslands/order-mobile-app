@@ -755,7 +755,7 @@ export const VoucherSheet = memo(function VoucherSheet({
               onSelect={handleSelectBySlug}
               onViewCondition={handleViewCondition}
               expiryText={processedFetched.expiryText}
-              usagePercent={processedFetched.usagePercent}
+              discountLabel={processedFetched.discountLabel}
             />
           )}
 
@@ -791,7 +791,7 @@ export const VoucherSheet = memo(function VoucherSheet({
                   onSelect={handleSelectBySlug}
                   onViewCondition={handleViewCondition}
                   expiryText={p.expiryText}
-                  usagePercent={p.usagePercent}
+                  discountLabel={p.discountLabel}
                 />
               ))}
             </>
@@ -821,7 +821,7 @@ export const VoucherSheet = memo(function VoucherSheet({
                     onSelect={handleSelectBySlug}
                     onViewCondition={handleViewCondition}
                     expiryText={p.expiryText}
-                    usagePercent={p.usagePercent}
+                    discountLabel={p.discountLabel}
                   />
                 </View>
               ))}

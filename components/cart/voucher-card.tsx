@@ -1,7 +1,7 @@
 /**
  * Thẻ voucher dạng vé — dùng trong các sheet chọn mã (giỏ hàng, sửa đơn).
  *
- *   phần trên   tên, mô tả, hạn dùng, thanh lượt còn lại
+ *   phần trên   tên, mức giảm, mô tả, hạn dùng
  *   phần dưới   điều kiện, ngăn bằng đường đứt và hai vết khuyết hai bên
  *
  * Chọn mã bằng cách chạm vào CẢ THẺ; thẻ đang chọn viền primary. Không có nút
@@ -48,7 +48,7 @@ export const VoucherCard = memo(function VoucherCard({
   onSelect,
   onViewCondition,
   expiryText,
-  usagePercent,
+  discountLabel,
 }: {
   voucher: IVoucher
   isSelected: boolean
@@ -58,12 +58,15 @@ export const VoucherCard = memo(function VoucherCard({
   onViewCondition?: (voucher: IVoucher) => void
   /** Pre-computed from processVoucherList — 0 compute in card */
   expiryText?: string
-  usagePercent?: number
+  /**
+   * Mức giảm ("Giảm 30.000₫"). Tên voucher do admin tự đặt, nhiều khi không
+   * nói giảm bao nhiêu — đây là thứ khách cần để chọn mã.
+   */
+  discountLabel?: string
 }) {
   const { t } = useTranslation('voucher')
 
   const expiry = expiryText ?? ''
-  const usage = usagePercent ?? 0
 
   const handlePress = useCallback(
     () => onSelect(voucher.slug),
@@ -84,6 +87,10 @@ export const VoucherCard = memo(function VoucherCard({
     ? colors.ticket.headlineDark
     : colors.ticket.headlineLight
   const mutedColor = isDark ? colors.gray[400] : colors.gray[600]
+  // Hổ phách đậm của vé — primary nhạt quá để làm chữ trên nền kem.
+  const discountColor = isDark
+    ? colors.ticket.actionDark
+    : colors.ticket.actionLight
   const dashColor = isDark ? colors.ticket.dashDark : colors.ticket.dashLight
 
   const notch = {
@@ -121,6 +128,15 @@ export const VoucherCard = memo(function VoucherCard({
           {voucher.title}
         </Text>
 
+        {discountLabel ? (
+          <Text
+            style={[s.discount, { color: discountColor }]}
+            numberOfLines={1}
+          >
+            {discountLabel}
+          </Text>
+        ) : null}
+
         {voucher.description ? (
           <Text style={[s.description, { color: mutedColor }]}>
             {voucher.description}
@@ -131,22 +147,6 @@ export const VoucherCard = memo(function VoucherCard({
           <Text style={[s.expiry, { color: mutedColor }]} numberOfLines={1}>
             {expiry}
           </Text>
-        ) : null}
-
-        {voucher.remainingUsage > 0 ? (
-          <View style={s.progressWrap}>
-            <Text style={[s.expiry, { color: mutedColor }]}>
-              {t('remainingUsagePercent', { value: Math.round(usage) })}
-            </Text>
-            <View style={[s.progressTrack, { backgroundColor: dashColor }]}>
-              <View
-                style={[
-                  s.progressFill,
-                  { width: `${usage}%`, backgroundColor: primaryColor },
-                ]}
-              />
-            </View>
-          </View>
         ) : null}
       </View>
 
@@ -208,24 +208,15 @@ const s = StyleSheet.create({
     fontSize: 22,
     fontWeight: '700',
   },
+  discount: {
+    fontSize: 14,
+    fontWeight: '600',
+  },
   description: {
     fontSize: 14,
   },
   expiry: {
     fontSize: 12,
-  },
-  progressWrap: {
-    gap: 4,
-    marginTop: 2,
-  },
-  progressTrack: {
-    height: 4,
-    borderRadius: 2,
-    overflow: 'hidden',
-  },
-  progressFill: {
-    height: '100%',
-    borderRadius: 2,
   },
   perforation: {
     flexDirection: 'row',

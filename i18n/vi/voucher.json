@@ -203,7 +203,6 @@
     "year": "Năm",
     "unlimited": "Không giới hạn",
     "minOrderLabel": "Giá trị đơn hàng tối thiểu: {{value}}",
-    "remainingUsagePercent": "Số lượng còn lại: {{value}}%",
     "paymentMethodShort": {
       "cash": "Tiền mặt",
       "bankTransfer": "CK",

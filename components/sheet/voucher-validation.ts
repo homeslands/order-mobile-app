@@ -37,7 +37,6 @@ export type ProcessedVoucher = {
   discountLabel: string
   expiryText: string
   minOrderText: string
-  usagePercent: number
 }
 
 type TFn = (key: string, opts?: Record<string, unknown>) => string
@@ -170,10 +169,6 @@ export function processVoucherList(
             })
 
     const minOrderText = formatCurrency(v.minOrderValue)
-    const usagePercent = Math.min(
-      100,
-      (v.remainingUsage / Math.max(v.maxUsage, 1)) * 100,
-    )
 
     return {
       voucher: v,
@@ -192,7 +187,6 @@ export function processVoucherList(
       discountLabel,
       expiryText,
       minOrderText,
-      usagePercent,
     }
   })
 }
