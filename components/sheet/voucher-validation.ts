@@ -142,7 +142,12 @@ export function processVoucherList(
       // hoặc giỏ rỗng. Đặt cuối để hai lý do cụ thể ở trên luôn thắng.
       { cond: !hasValidProducts, msg: t('notApplicableToCart') },
     ]
-    const errorMessage = errorChecks.find((e) => e.cond)?.msg || ''
+    // Chỉ mã KHÔNG dùng được mới có lý do: vế "cần xác thực" ở trên xét
+    // isCustomerOwner, còn isIdentityValid chỉ đòi đăng nhập — không chặn ở
+    // đây thì một mã vẫn hợp lệ cũng mang dải "cần xác thực" trong sheet.
+    const errorMessage = isValid
+      ? ''
+      : errorChecks.find((e) => e.cond)?.msg || ''
 
     // E4 — Pre-compute display strings once here, not in each card render
     const discountLabel =
@@ -181,7 +186,9 @@ export function processVoucherList(
         minOrder: isValidAmount,
         products: hasValidProducts,
         identity: isIdentityValid,
-        expiry: !isExpired && isValidDate,
+        // Mã đã ngừng (isActive false) tính là hết hiệu lực — nếu không, sheet
+        // tích xanh mọi dòng mà vẫn hiện dải "Voucher đã ngừng".
+        expiry: isActive && !isExpired && isValidDate,
         stock: hasUsage,
       },
       discountLabel,
