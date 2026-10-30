@@ -25,9 +25,14 @@ jest.mock('react-i18next', () => {
   /* eslint-enable */
 })
 
+import * as fs from 'fs'
+import * as path from 'path'
+
 import { fireEvent, render, screen } from '@testing-library/react-native'
+import { StyleSheet } from 'react-native'
 
 import { VoucherCard } from '@/components/cart/voucher-card'
+import { colors } from '@/constants'
 import type { IVoucher } from '@/types'
 
 /**
@@ -108,5 +113,32 @@ describe('VoucherCard', () => {
     fireEvent.press(screen.getByText('50% Giảm'))
 
     expect(onSelect).toHaveBeenCalledWith('v1')
+  })
+
+  // Thẻ vé dùng bảng màu của app — không tự đặt tông kem/nâu theo ảnh thiết
+  // kế. Chữ chính màu foreground, mức giảm màu primary, đường đục lỗ màu border.
+  it('chữ theo token của app: tên foreground, mức giảm primary', () => {
+    setup(base, { discountLabel: 'Giảm 20%' })
+
+    const color = (text: string) =>
+      (
+        StyleSheet.flatten(screen.getByText(text).props.style) as {
+          color?: string
+        }
+      ).color
+    expect(color('50% Giảm')).toBe(colors.foreground.light)
+    expect(color('Giảm 20%')).toBe('#f59e0b')
+  })
+
+  it('không còn màu tự đặt: không hex, không rgba, không bảng màu ticket', () => {
+    const src = fs
+      .readFileSync(
+        path.resolve(__dirname, '../../../components/cart/voucher-card.tsx'),
+        'utf-8',
+      )
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/^\s*\/\/.*$/gm, '')
+    expect(src).not.toMatch(/#[0-9a-fA-F]{3,8}\b|rgba?\(/)
+    expect(src).not.toMatch(/colors\.ticket/)
   })
 })

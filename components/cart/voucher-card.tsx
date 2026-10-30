@@ -78,20 +78,19 @@ export const VoucherCard = memo(function VoucherCard({
     [onViewCondition, voucher],
   )
 
-  const surface = isDark ? colors.card.dark : colors.white.light
-  const bgIdle = isDark ? colors.ticket.bgDark : colors.ticket.bgLight
-  const bgOn = isDark
-    ? colors.ticket.bgSelectedDark
-    : colors.ticket.bgSelectedLight
+  // Toàn bộ màu từ token của app. Thẻ là khối nền `background` (xám nhạt)
+  // nằm trên sheet màu `card`; vết khuyết tô màu `card` nên lộ ra đúng hình
+  // vé. Đang chọn: viền primary và nền nhuốm primary.
+  const surface = isDark ? colors.card.dark : colors.card.light
+  const bgIdle = isDark ? colors.background.dark : colors.background.light
+  const bgOn = hexToRgba(primaryColor, isDark ? 0.16 : 0.1)
   const headlineColor = isDark
-    ? colors.ticket.headlineDark
-    : colors.ticket.headlineLight
-  const mutedColor = isDark ? colors.gray[400] : colors.gray[600]
-  // Hổ phách đậm của vé — primary nhạt quá để làm chữ trên nền kem.
-  const discountColor = isDark
-    ? colors.ticket.actionDark
-    : colors.ticket.actionLight
-  const dashColor = isDark ? colors.ticket.dashDark : colors.ticket.dashLight
+    ? colors.foreground.dark
+    : colors.foreground.light
+  const mutedColor = isDark
+    ? colors.mutedForeground.dark
+    : colors.mutedForeground.light
+  const dashColor = isDark ? colors.border.dark : colors.border.light
 
   const notch = {
     width: NOTCH,
@@ -129,10 +128,7 @@ export const VoucherCard = memo(function VoucherCard({
         </Text>
 
         {discountLabel ? (
-          <Text
-            style={[s.discount, { color: discountColor }]}
-            numberOfLines={1}
-          >
+          <Text style={[s.discount, { color: primaryColor }]} numberOfLines={1}>
             {discountLabel}
           </Text>
         ) : null}

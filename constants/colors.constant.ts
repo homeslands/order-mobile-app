@@ -71,18 +71,6 @@ interface ColorConstants {
     textLight: string
     textDark: string
   }
-  ticket: {
-    bgLight: string
-    bgDark: string
-    bgSelectedLight: string
-    bgSelectedDark: string
-    headlineLight: string
-    headlineDark: string
-    dashLight: string
-    dashDark: string
-    actionLight: string
-    actionDark: string
-  }
 }
 
 export const colors: ColorConstants = {
@@ -191,24 +179,5 @@ export const colors: ColorConstants = {
     // Text colors
     textLight: '#b45309', // amber-700
     textDark: '#fcd34d', // amber-300
-  },
-
-  // Thẻ voucher dạng vé — lấy mẫu từ thiết kế, đo trực tiếp từ ảnh thiết kế
-  // chứ không ước lượng. Không mượn token `warning` vì amber-50 (#fffbeb)
-  // ngả vàng chua, lệch rõ so với tông kem ấm của thiết kế.
-  ticket: {
-    bgLight: '#fbf7ec',
-    bgDark: 'rgba(120, 53, 15, 0.18)',
-    // Nền khi thẻ đang được chọn — đậm hơn một bậc.
-    bgSelectedLight: '#f3e9d5',
-    bgSelectedDark: 'rgba(120, 53, 15, 0.34)',
-    // Chữ giá trị giảm, điểm nhìn đầu tiên của thẻ.
-    headlineLight: '#6b3d1b',
-    headlineDark: '#e8b57c',
-    dashLight: '#d9c8b8',
-    dashDark: '#5c4632',
-    // Chữ hành động ở chân thẻ (có gạch chân).
-    actionLight: '#704912',
-    actionDark: '#e8b57c',
   },
 }
