@@ -25,25 +25,17 @@ import {
   Gift,
   ShoppingCart,
 } from 'lucide-react-native'
-import React, {
-  startTransition,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Image } from 'expo-image'
 import {
-  InteractionManager,
   Pressable,
   RefreshControl,
   StyleSheet,
   useColorScheme,
   View,
 } from 'react-native'
-import { useFocusEffect } from '@react-navigation/native'
+import { useQueryClient } from '@tanstack/react-query'
 
 import { Images } from '@/assets/images'
 
@@ -54,17 +46,19 @@ import {
   GIFT_CARD_IMAGE_SIZE,
 } from '@/components/gift-card/gift-card-list-item'
 import { Skeleton } from '@/components/ui'
-import { colors } from '@/constants'
+import { colors, QUERYKEY } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { TabScreenLayout, useTabBarBottomPadding } from '@/components/layout'
 import { showErrorToastMessage } from '@/utils/toast'
+import { useEntryFetchGate } from '@/hooks/use-entry-fetch-gate'
 import { useGiftCards } from '@/hooks/use-gift-cards'
+import { prefetchThumbnails } from '@/lib/image/on-device-resize'
+import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { useAuthStore, useGiftCardStore, useUserStore } from '@/stores'
 import type { IGiftCard } from '@/types'
 import { Text } from '@/components/ui/text'
 
-const ENTRY_FETCH_DELAY_MS = 120
 const ITEM_PADDING_BOTTOM = 12
 const ITEM_SIZE = GIFT_CARD_ITEM_HEIGHT + ITEM_PADDING_BOTTOM
 type SortOrder = 'asc' | 'desc' | null
@@ -143,7 +137,6 @@ export default function GiftCardScreen() {
   const router = useRouter()
   const bottomPadding = useTabBarBottomPadding()
 
-  const [allowFetch, setAllowFetch] = useState(false)
   const [sortOrder, setSortOrder] = useState<SortOrder>(null)
   // Pending card khi user tap + trên thẻ khác — chờ confirm replace
   const [pendingCard, setPendingCard] = useState<IGiftCard | null>(null)
@@ -153,28 +146,29 @@ export default function GiftCardScreen() {
   const clearGiftCard = useGiftCardStore((s) => s.clearGiftCard)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated())
 
-  // ── Defer fetch ──────────────────────────────────────────────────────────
-  useFocusEffect(
-    useCallback(() => {
-      setAllowFetch(false)
-      let timer: ReturnType<typeof setTimeout> | null = null
-      const task = InteractionManager.runAfterInteractions(() => {
-        timer = setTimeout(() => {
-          startTransition(() => setAllowFetch(true))
-        }, ENTRY_FETCH_DELAY_MS)
-      })
-      return () => {
-        task.cancel()
-        if (timer) clearTimeout(timer)
-        setAllowFetch(false)
-      }
-    }, []),
+  // ── Cổng gọi API ─────────────────────────────────────────────────────────
+  // Chưa có danh sách thẻ trong cache thì gọi ngay khi vào; có rồi thì chỉ
+  // hoãn lần làm mới qua chuyển màn. Chỉ đọc cache lúc mount.
+  const queryClient = useQueryClient()
+  const [hasCachedGiftCards] = useState(
+    () =>
+      queryClient.getQueryData([QUERYKEY.giftCards, undefined]) !== undefined,
   )
+  const allowFetch = useEntryFetchGate(hasCachedGiftCards)
 
   const { data, isPending, isError, refetch, isRefetching } = useGiftCards(
     undefined,
     { enabled: allowFetch && isAuthenticated },
   )
+
+  // Danh sách ngắn: xếp sẵn thumbnail mọi thẻ ngay khi dữ liệu về (mức thấp,
+  // nhường ô đang hiện; hàng đợi tự giới hạn và bỏ ảnh đã có).
+  useEffect(() => {
+    const urls = (data?.items ?? [])
+      .map((c) => getProductImageUrl(c.image, { maxWidth: IMAGE_PRESET.THUMB }))
+      .filter((u): u is string => !!u)
+    if (urls.length > 0) prefetchThumbnails(urls, IMAGE_PRESET.THUMB)
+  }, [data])
 
   const items = useMemo(() => {
     const list = data?.items ?? []
