@@ -4,17 +4,11 @@
 import { colors } from '@/constants'
 import { cartActions, useCartItemVoucherDiscount } from '@/stores/cart.store'
 import { capitalizeFirst } from '@/utils'
+import { useRecyclingState } from '@shopify/flash-list'
 import { formatCurrencyNative } from 'cart-price-calc'
 import { Image } from 'expo-image'
 import { NotebookText } from 'lucide-react-native'
-import React, {
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import React, { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, TextInput, View } from 'react-native'
 
@@ -83,7 +77,11 @@ export const CartItemRow = memo(
     const voucherDiscountPerUnit = useCartItemVoucherDiscount(item.cartKey)
     const updateQuantity = cartActions.updateQuantity
 
-    const [pendingQty, setPendingQty] = useState<number | null>(null)
+    // FlashList tái dùng ô cho món khác mà không unmount — state phải reset
+    // theo cartKey, nếu không món mới hiện số lượng/ghi chú của món cũ.
+    const [pendingQty, setPendingQty] = useRecyclingState<number | null>(null, [
+      item.cartKey,
+    ])
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     // Display: pending (optimistic) or actual
@@ -98,21 +96,21 @@ export const CartItemRow = memo(
           debounceRef.current = null
         }, DEBOUNCE_QTY_MS)
       },
-      [item.cartKey, updateQuantity],
+      [item.cartKey, updateQuantity, setPendingQty],
     )
 
     const handleIncrease = useCallback(() => {
       const next = displayQty + 1
       setPendingQty(next)
       scheduleSync(next)
-    }, [displayQty, scheduleSync])
+    }, [displayQty, scheduleSync, setPendingQty])
 
     const handleDecrease = useCallback(() => {
       if (displayQty <= 1) return
       const next = displayQty - 1
       setPendingQty(next)
       scheduleSync(next)
-    }, [displayQty, scheduleSync])
+    }, [displayQty, scheduleSync, setPendingQty])
 
     const hasPromotion = item.promotionValue > 0
     const hasVoucherDiscount = voucherDiscountPerUnit > 0
@@ -121,7 +119,9 @@ export const CartItemRow = memo(
       (hasVoucherDiscount ? priceAfterVoucher : item.price) * displayQty
     const lineTotalBeforeVoucher = item.price * displayQty
 
-    const [localNote, setLocalNote] = useState(item.note)
+    const [localNote, setLocalNote] = useRecyclingState(item.note, [
+      item.cartKey,
+    ])
     const noteDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     const handleNoteChange = useCallback(
@@ -133,7 +133,7 @@ export const CartItemRow = memo(
           noteDebounceRef.current = null
         }, 400)
       },
-      [item.cartKey],
+      [item.cartKey, setLocalNote],
     )
 
     // Cleanup pending timers on unmount — both qty debounce and note debounce

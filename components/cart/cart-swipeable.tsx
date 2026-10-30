@@ -3,7 +3,8 @@
  */
 import { SPRING_CONFIGS, colors } from '@/constants'
 import { Trash2 } from 'lucide-react-native'
-import React, { memo, useCallback, useMemo, useState } from 'react'
+import { useRecyclingState } from '@shopify/flash-list'
+import React, { memo, useCallback, useMemo } from 'react'
 import { StyleSheet, View } from 'react-native'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import Animated, {
@@ -45,6 +46,18 @@ function CartSwipeableBase({
   const animatedHeight = useSharedValue(-1)
   const isRemoving = useSharedValue(false)
 
+  // FlashList tái dùng ô cho món khác mà không unmount: đưa ô về đóng và đo
+  // lại — trước khi tính style bên dưới, nếu không món mới hiện ra ở trạng thái vuốt mở của món cũ.
+  const [needsMeasure, setNeedsMeasure] = useRecyclingState(
+    true,
+    [itemId],
+    () => {
+      translateX.value = 0
+      isRemoving.value = false
+      animatedHeight.value = -1
+    },
+  )
+
   const gesture = useMemo(
     () =>
       Gesture.Pan()
@@ -57,6 +70,7 @@ function CartSwipeableBase({
         // ở đây giữ failOffsetY rộng để cú kéo dọc rõ rệt vẫn nhường cho scroll.
         .activeOffsetX([-10, 10])
         .failOffsetY([-20, 20])
+        .withTestId('cart-swipe')
         .onStart(() => {
           startX.value = translateX.value
         })
@@ -124,13 +138,12 @@ function CartSwipeableBase({
     )
   }, [translateX, animatedHeight, rowHeight, isRemoving, triggerDelete])
 
-  const [needsMeasure, setNeedsMeasure] = useState(true)
   const onLayout = useCallback(
     (e: { nativeEvent: { layout: { height: number } } }) => {
       rowHeight.value = e.nativeEvent.layout.height
       setNeedsMeasure(false)
     },
-    [rowHeight],
+    [rowHeight, setNeedsMeasure],
   )
 
   return (
