@@ -2,7 +2,10 @@ import {
   deriveScanStatus,
   type ScanStatus,
 } from '@/components/sheet/scan-status'
-import { processVoucherList } from '@/components/sheet/voucher-validation'
+import {
+  findProcessedVoucher,
+  processVoucherList,
+} from '@/components/sheet/voucher-validation'
 import { VoucherQrScanner } from '@/components/scan/voucher-qr-scanner'
 import { VoucherCard } from './voucher-card'
 import { VoucherConditionModal } from './voucher-condition-modal'
@@ -291,10 +294,8 @@ export const VoucherSheet = memo(function VoucherSheet({
   // đánh dấu đạt/chưa đạt theo giỏ hàng hiện tại thay vì liệt kê suông.
   const conditionProcessed = useMemo(
     () =>
-      conditionVoucher
-        ? processed.find((p) => p.voucher.slug === conditionVoucher.slug)
-        : undefined,
-    [processed, conditionVoucher],
+      findProcessedVoucher(conditionVoucher?.slug, processedFetched, processed),
+    [processed, processedFetched, conditionVoucher],
   )
 
   const { validVouchers, invalidVouchers } = useMemo(() => {

@@ -4,7 +4,10 @@ import {
   type ScanStatus,
 } from '@/components/sheet/scan-status'
 import { VoucherQrScanner } from '@/components/scan/voucher-qr-scanner'
-import { processVoucherList } from '@/components/sheet/voucher-validation'
+import {
+  findProcessedVoucher,
+  processVoucherList,
+} from '@/components/sheet/voucher-validation'
 import { colors } from '@/constants'
 import {
   usePublicVouchersForOrder,
@@ -275,6 +278,18 @@ export const VoucherSheetInUpdateOrder = memo(
       for (const p of processed) (p.isValid ? valid : invalid).push(p)
       return { validVouchers: valid, invalidVouchers: invalid }
     }, [processed])
+
+    // Bản đã validate của voucher đang mở sheet điều kiện — để sheet đánh dấu
+    // đạt/chưa đạt theo đơn hiện tại thay vì liệt kê suông.
+    const conditionProcessed = useMemo(
+      () =>
+        findProcessedVoucher(
+          conditionVoucher?.slug,
+          processedFetched,
+          processed,
+        ),
+      [conditionVoucher, processedFetched, processed],
+    )
 
     // ── Selection ─────────────────────────────────────────────────────────────
     const allAvailable = useMemo(() => {
@@ -562,6 +577,8 @@ export const VoucherSheetInUpdateOrder = memo(
           primaryColor={primaryColor}
           indicatorStyle={indicatorStyle}
           bottomInset={insets.bottom}
+          conditionStatus={conditionProcessed?.conditionStatus}
+          errorMessage={conditionProcessed?.errorMessage}
         />
       </>
     )

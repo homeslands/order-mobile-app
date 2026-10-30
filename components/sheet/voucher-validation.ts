@@ -191,6 +191,21 @@ export function processVoucherList(
   })
 }
 
+/**
+ * Bản đã validate của voucher đang mở sheet điều kiện, để sheet đánh dấu
+ * đạt/chưa đạt và nói lý do. Voucher có thể đến từ ô tìm mã / quét QR
+ * (`fetched`, không nằm trong danh sách) hoặc từ danh sách.
+ */
+export function findProcessedVoucher(
+  slug: string | undefined,
+  fetched: ProcessedVoucher | null,
+  list: readonly ProcessedVoucher[],
+): ProcessedVoucher | undefined {
+  if (!slug) return undefined
+  if (fetched?.voucher.slug === slug) return fetched
+  return list.find((p) => p.voucher.slug === slug)
+}
+
 // ─── Auto-remove check ───────────────────────────────────────────────────────
 
 export function shouldAutoRemoveVoucher(
