@@ -1,4 +1,4 @@
-// Sáu icon hai tông vẽ riêng cho Home: render được, và dùng đủ cả ba màu
+// Tám icon hai tông vẽ riêng cho Home: render được, và dùng đủ cả ba màu
 // (nét khung, nét nhấn, mảng lót) — mất một màu là mất chất "hai tông".
 import { render } from '@testing-library/react-native'
 
@@ -14,9 +14,11 @@ const NAMES = [
   'MemberIdIcon',
   'ScanPayIcon',
   'CoinPaymentIcon',
-  'OrderIcon',
   'GiftCardIcon',
+  'OrderIcon',
+  'RedeemGiftIcon',
   'OrderHistoryIcon',
+  'HotlineIcon',
 ] as const
 
 afterEach(() => {

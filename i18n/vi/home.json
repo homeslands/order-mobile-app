@@ -22,7 +22,8 @@
     "actions": {
       "giftCardRedeem": "Đổi thẻ quà tặng",
       "orderHistory": "Lịch sử đơn",
-      "order": "Đặt món"
+      "order": "Đặt món",
+      "hotline": "Liên hệ"
     },
     "balance": {
       "coin": "Xu của bạn",

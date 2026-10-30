@@ -22,7 +22,8 @@
     "actions": {
       "giftCardRedeem": "Redeem gift card",
       "orderHistory": "Order history",
-      "order": "Order"
+      "order": "Order",
+      "hotline": "Contact"
     },
     "balance": {
       "coin": "Your coins",

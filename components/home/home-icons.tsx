@@ -133,7 +133,7 @@ export const OrderIcon = memo(function OrderIcon({
 })
 
 /** Đổi thẻ quà tặng — hộp quà có nơ. */
-export const GiftCardIcon = memo(function GiftCardIcon({
+export const RedeemGiftIcon = memo(function RedeemGiftIcon({
   size,
   stroke,
   accent,
@@ -188,6 +188,59 @@ export const OrderHistoryIcon = memo(function OrderHistoryIcon({
         stroke={stroke}
       />
       <Path d="M9 11h6M9 15h4" stroke={accent} />
+    </Frame>
+  )
+})
+
+/**
+ * Thẻ quà (tab Gift Card) — tấm thẻ có dải ruy băng và nơ. Khác hộp quà của
+ * "Đổi thẻ quà tặng" để hai ô về thẻ quà không mang cùng một hình.
+ */
+export const GiftCardIcon = memo(function GiftCardIcon({
+  size,
+  stroke,
+  accent,
+  fill,
+}: HomeIconProps) {
+  return (
+    <Frame size={size}>
+      <Rect
+        x={2.5}
+        y={5.5}
+        width={19}
+        height={13}
+        rx={2.5}
+        fill={fill}
+        stroke={stroke}
+      />
+      <Path d="M9 5.5v13" stroke={accent} />
+      <Path
+        d="M9 10C7.8 8.2 5.5 8.3 5.5 9.6c0 1 1.4 1.2 3.5 1.2M9 10c1.2-1.8 3.5-1.7 3.5-.4 0 1-1.4 1.2-3.5 1.2"
+        stroke={accent}
+      />
+      <Path d="M14.5 14.5h4" stroke={stroke} />
+    </Frame>
+  )
+})
+
+/** Liên hệ — ống nghe có sóng. */
+export const HotlineIcon = memo(function HotlineIcon({
+  size,
+  stroke,
+  accent,
+  fill,
+}: HomeIconProps) {
+  return (
+    <Frame size={size}>
+      <Path
+        d="M20 16.4v2.7a1.8 1.8 0 0 1-2 1.8 17.8 17.8 0 0 1-7.8-2.8 17.5 17.5 0 0 1-5.4-5.4A17.8 17.8 0 0 1 2 4.9 1.8 1.8 0 0 1 3.8 3h2.7a1.8 1.8 0 0 1 1.8 1.5c.1.9.3 1.7.6 2.5a1.8 1.8 0 0 1-.4 1.9L7.3 10.1a14.4 14.4 0 0 0 5.4 5.4l1.2-1.2a1.8 1.8 0 0 1 1.9-.4c.8.3 1.6.5 2.5.6a1.8 1.8 0 0 1 1.7 1.9z"
+        fill={fill}
+        stroke={stroke}
+      />
+      <Path
+        d="M14.5 3.5a6 6 0 0 1 5.5 5.5M14.5 7a2.5 2.5 0 0 1 2 2"
+        stroke={accent}
+      />
     </Frame>
   )
 })

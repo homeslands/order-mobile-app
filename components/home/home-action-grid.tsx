@@ -1,32 +1,34 @@
 /**
  * HomeActionGrid — các lối tắt một-chạm trên Home, theo ngôn ngữ ZaloPay:
  *
- * 1. Một tấm trắng nổi chứa ba chức năng QR dùng ở quầy. Đi qua useQrActions
- *    (cổng auth, đóng sheet, chặn chạm trùng đều nằm trong hook). Nhãn dùng
- *    đúng chữ của sheet chọn QR ở Profile để một chức năng không mang hai tên.
- * 2. Mục "Tiện ích": Đặt món, Đổi thẻ quà tặng, Lịch sử đơn — chia đều ba cột.
+ * 1. Tấm QR bốn ô: ba chức năng QR dùng ở quầy (qua useQrActions — cổng
+ *    auth, đóng sheet, chặn chạm trùng đều nằm trong hook) và Thẻ quà (sang
+ *    tab Gift Card, mang đúng tên của tab). Nhãn QR dùng đúng chữ của sheet
+ *    chọn QR ở Profile — một chức năng không mang hai tên.
+ * 2. Mục "Tiện ích" bốn ô: Đặt món, Đổi thẻ quà tặng, Lịch sử đơn, Liên hệ.
  *
- * Icon hai tông vẽ riêng (home-icons.tsx), không dùng bộ có sẵn. Màu icon đi
- * từ token: nét khung màu chữ, điểm nhấn và mảng lót màu thương hiệu.
+ * Icon hai tông vẽ riêng (home-icons.tsx). Màu icon đi từ token: nét khung màu
+ * chữ, điểm nhấn và mảng lót màu thương hiệu.
  *
  * "Đổi thẻ quà tặng" và "Lịch sử đơn" tự chặn đăng xuất: hai màn đích chỉ đọc
  * userSlug rỗng rồi tắt query, nên không chặn thì khách rơi vào màn trống.
  * Phiên đọc tại thời điểm chạm, cùng vị từ với useQrActions.
  *
- * Nhãn tối đa hai dòng ("Quét QR trả đơn", "Đổi thẻ quà tặng" không vừa một
- * dòng trên màn 320pt). Ô KHÔNG khoá chiều cao: khoá cho đủ hai dòng thì khi
- * nhãn chỉ một dòng, phần thừa dồn xuống đáy và tấm QR trên thưa dưới dày.
- * Các ô cùng hàng flex vẫn tự bằng nhau.
+ * Nhãn tấm QR phải vừa MỘT dòng trong ô bốn cột (81.8pt trên màn 375pt, chữ
+ * 12pt): một nhãn xuống dòng thì hàng cao theo nó và các ô còn lại hở dưới
+ * đáy. Nhãn Tiện ích được hai dòng. Ô KHÔNG khoá chiều cao — các ô cùng hàng
+ * flex tự bằng nhau.
  */
 import { memo, useCallback, useMemo, type ComponentType } from 'react'
 import { useTranslation } from 'react-i18next'
-import { View, useColorScheme } from 'react-native'
+import { Linking, View, useColorScheme } from 'react-native'
 
 // Import thẳng file, không qua barrel @/components/navigation: barrel kéo
 // theo module native và làm vỡ test.
 import { NativeGesturePressable } from '@/components/navigation/native-gesture-pressable'
 import { Text } from '@/components/ui/text'
 import { colors } from '@/constants'
+import { hotline } from '@/constants/env'
 import { hasUsableSession, useQrActions } from '@/hooks/use-qr-actions'
 import { navigateNative } from '@/lib/navigation'
 import { hexToRgba } from '@/lib/utils'
@@ -34,9 +36,11 @@ import { hexToRgba } from '@/lib/utils'
 import {
   CoinPaymentIcon,
   GiftCardIcon,
+  HotlineIcon,
   MemberIdIcon,
   OrderHistoryIcon,
   OrderIcon,
+  RedeemGiftIcon,
   ScanPayIcon,
   type HomeIconProps,
 } from './home-icons'
@@ -73,13 +77,13 @@ const QrActionItem = memo(function QrActionItem({
         accessible
         accessibilityRole="button"
         accessibilityLabel={label}
-        className="items-center px-1"
+        className="items-center"
       >
         <Icon size={32} {...tone} />
         <Text
           numberOfLines={2}
           className="mt-2 text-center font-sans"
-          style={{ fontSize: 14, color: labelColor }}
+          style={{ fontSize: 12, color: labelColor }}
         >
           {label}
         </Text>
@@ -110,7 +114,8 @@ const UtilityItem = memo(function UtilityItem({
         className="items-center px-1"
       >
         <View
-          className="items-center justify-center rounded-xl"
+          testID={`home-utility-icon-${key}`}
+          className="items-center justify-center rounded-full"
           style={{ width: 56, height: 56, backgroundColor: boxBg }}
         >
           <Icon size={28} {...tone} />
@@ -130,9 +135,13 @@ const UtilityItem = memo(function UtilityItem({
 export const HomeActionGrid = memo(function HomeActionGrid() {
   const { t } = useTranslation('home')
   const { t: tProfile } = useTranslation('profile')
+  const { t: tTabs } = useTranslation('tabs')
   const isDark = useColorScheme() === 'dark'
   const { openMemberId, openScanPay, openCoinPayment } = useQrActions()
 
+  const openGiftCardTab = useCallback(() => {
+    navigateNative.navigate('/(tabs)/gift-card')
+  }, [])
   const openGiftCardRedeem = useCallback(() => {
     navigateNative.push(
       hasUsableSession() ? '/gift-card/redeem' : '/auth/login',
@@ -143,6 +152,9 @@ export const HomeActionGrid = memo(function HomeActionGrid() {
   }, [])
   const openMenu = useCallback(() => {
     navigateNative.navigate('/(tabs)/menu')
+  }, [])
+  const callHotline = useCallback(() => {
+    if (hotline) void Linking.openURL(`tel:${hotline}`)
   }, [])
 
   const qrActions = useMemo<Action[]>(
@@ -165,12 +177,25 @@ export const HomeActionGrid = memo(function HomeActionGrid() {
         Icon: CoinPaymentIcon,
         onPress: openCoinPayment,
       },
+      {
+        key: 'giftCard',
+        label: tTabs('tabs.giftCard'),
+        Icon: GiftCardIcon,
+        onPress: openGiftCardTab,
+      },
     ],
-    [tProfile, openMemberId, openScanPay, openCoinPayment],
+    [
+      tProfile,
+      tTabs,
+      openMemberId,
+      openScanPay,
+      openCoinPayment,
+      openGiftCardTab,
+    ],
   )
 
-  const utilities = useMemo<Action[]>(
-    () => [
+  const utilities = useMemo<Action[]>(() => {
+    const list: Action[] = [
       {
         key: 'order',
         label: t('actions.order'),
@@ -180,7 +205,7 @@ export const HomeActionGrid = memo(function HomeActionGrid() {
       {
         key: 'giftCardRedeem',
         label: t('actions.giftCardRedeem'),
-        Icon: GiftCardIcon,
+        Icon: RedeemGiftIcon,
         onPress: openGiftCardRedeem,
       },
       {
@@ -189,9 +214,19 @@ export const HomeActionGrid = memo(function HomeActionGrid() {
         Icon: OrderHistoryIcon,
         onPress: openOrderHistory,
       },
-    ],
-    [t, openMenu, openGiftCardRedeem, openOrderHistory],
-  )
+    ]
+    // Bản build EAS đọc biến môi trường của EAS, không đọc .env ở máy — quên
+    // khai báo thì số rỗng. Ẩn ô thay vì để một nút bấm vào không ra gì.
+    if (hotline) {
+      list.push({
+        key: 'hotline',
+        label: t('actions.hotline'),
+        Icon: HotlineIcon,
+        onPress: callHotline,
+      })
+    }
+    return list
+  }, [t, openMenu, openGiftCardRedeem, openOrderHistory, callHotline])
 
   const foreground = isDark ? colors.foreground.dark : colors.foreground.light
   const cardBg = isDark ? colors.card.dark : colors.card.light
