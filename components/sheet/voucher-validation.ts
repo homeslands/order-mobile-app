@@ -13,15 +13,29 @@ dayjs.extend(utc)
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
+/**
+ * Trạng thái từng điều kiện so với giỏ hàng HIỆN TẠI, để sheet điều kiện
+ * đánh dấu đạt/không đạt thay vì chỉ liệt kê suông.
+ *
+ * `usage` không có ở đây: số lần mỗi khách được dùng là thông tin mô tả, app
+ * không đối chiếu được với giỏ hàng nên để trung tính.
+ */
+export type VoucherConditionStatus = {
+  minOrder: boolean
+  products: boolean
+  identity: boolean
+  expiry: boolean
+  stock: boolean
+}
+
 export type ProcessedVoucher = {
   voucher: IVoucher
   isValid: boolean
   errorMessage: string
+  conditionStatus: VoucherConditionStatus
   /** Pre-computed display strings — avoids recalc in each card render */
   discountLabel: string
   expiryText: string
-  minOrderText: string
-  usagePercent: number
 }
 
 type TFn = (key: string, opts?: Record<string, unknown>) => string
@@ -127,7 +141,12 @@ export function processVoucherList(
       // hoặc giỏ rỗng. Đặt cuối để hai lý do cụ thể ở trên luôn thắng.
       { cond: !hasValidProducts, msg: t('notApplicableToCart') },
     ]
-    const errorMessage = errorChecks.find((e) => e.cond)?.msg || ''
+    // Chỉ mã KHÔNG dùng được mới có lý do: vế "cần xác thực" ở trên xét
+    // isCustomerOwner, còn isIdentityValid chỉ đòi đăng nhập — không chặn ở
+    // đây thì một mã vẫn hợp lệ cũng mang dải "cần xác thực" trong sheet.
+    const errorMessage = isValid
+      ? ''
+      : errorChecks.find((e) => e.cond)?.msg || ''
 
     // E4 — Pre-compute display strings once here, not in each card render
     const discountLabel =
@@ -137,6 +156,9 @@ export function processVoucherList(
           ? t('samePriceProduct', { value: formatCurrency(v.value) })
           : t('fixedDiscount', { value: formatCurrency(v.value) })
 
+    // Dưới 24 giờ thì đếm ngược — lúc đó cái người dùng cần biết là "còn kịp
+    // dùng không". Xa hơn thì đếm ngược vô nghĩa và dài dòng ("Còn 87 ngày
+    // 15 giờ 1 phút"), nên hiện ngày hết hạn tuyệt đối, theo giờ máy.
     const endDiff = dayjs.utc(v.endDate).diff(now, 'second')
     const expiryText =
       endDiff <= 0
@@ -146,28 +168,45 @@ export function processVoucherList(
               hours: Math.floor(endDiff / 3600),
               minutes: Math.floor((endDiff % 3600) / 60),
             })
-          : t('expiresInDaysHoursMinutes', {
-              days: Math.floor(endDiff / 86400),
-              hours: Math.floor((endDiff % 86400) / 3600),
-              minutes: Math.floor((endDiff % 3600) / 60),
+          : t('validUntil', {
+              date: dayjs(v.endDate).format('DD/MM/YYYY HH:mm'),
             })
-
-    const minOrderText = formatCurrency(v.minOrderValue)
-    const usagePercent = Math.min(
-      100,
-      (v.remainingUsage / Math.max(v.maxUsage, 1)) * 100,
-    )
 
     return {
       voucher: v,
       isValid,
       errorMessage,
+      // Dùng lại chính các biến đã tính ra `isValid` ở trên, không diễn đạt
+      // lại — diễn đạt lại là nguồn gốc của mấy ca "không hợp lệ mà không rõ
+      // lý do" đã phải sửa trước đây.
+      conditionStatus: {
+        minOrder: isValidAmount,
+        products: hasValidProducts,
+        identity: isIdentityValid,
+        // Mã đã ngừng (isActive false) tính là hết hiệu lực — nếu không, sheet
+        // tích xanh mọi dòng mà vẫn hiện dải "Voucher đã ngừng".
+        expiry: isActive && !isExpired && isValidDate,
+        stock: hasUsage,
+      },
       discountLabel,
       expiryText,
-      minOrderText,
-      usagePercent,
     }
   })
+}
+
+/**
+ * Bản đã validate của voucher đang mở sheet điều kiện, để sheet đánh dấu
+ * đạt/chưa đạt và nói lý do. Voucher có thể đến từ ô tìm mã / quét QR
+ * (`fetched`, không nằm trong danh sách) hoặc từ danh sách.
+ */
+export function findProcessedVoucher(
+  slug: string | undefined,
+  fetched: ProcessedVoucher | null,
+  list: readonly ProcessedVoucher[],
+): ProcessedVoucher | undefined {
+  if (!slug) return undefined
+  if (fetched?.voucher.slug === slug) return fetched
+  return list.find((p) => p.voucher.slug === slug)
 }
 
 // ─── Auto-remove check ───────────────────────────────────────────────────────
@@ -266,6 +305,26 @@ export function buildVoucherConditions(voucher: IVoucher, t: TFn): string[] {
     )
   }
   return conditions
+}
+
+const PAYMENT_METHOD_KEYS: Record<string, string> = {
+  cash: 'paymentMethod.cash',
+  'bank-transfer': 'paymentMethod.bankTransfer',
+  point: 'paymentMethod.point',
+  'credit-card': 'paymentMethod.creditCard',
+}
+
+/**
+ * Tên các phương thức thanh toán voucher cho phép, nối bằng dấu phẩy. Chuỗi
+ * rỗng khi voucher không giới hạn phương thức.
+ */
+export function formatVoucherPaymentMethods(voucher: IVoucher, t: TFn): string {
+  return (voucher.voucherPaymentMethods ?? [])
+    .map(({ paymentMethod }) => {
+      const key = PAYMENT_METHOD_KEYS[paymentMethod]
+      return key ? t(key) : paymentMethod
+    })
+    .join(', ')
 }
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────

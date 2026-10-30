@@ -6,6 +6,9 @@ import { useTranslation } from 'react-i18next'
 import { StyleSheet, View } from 'react-native'
 import { Text } from '@/components/ui/text'
 
+/** Mã không dùng được không chọn được — chạm vào thân thẻ không làm gì. */
+const noop = () => {}
+
 type SearchResultProps = {
   isFetching: boolean
   searchCode: string
@@ -59,22 +62,28 @@ export function SearchResult({
 
   if (!processedFetched) return null
 
+  // Mã không dùng được cư xử như danh sách "Không khả dụng": mờ, không chọn
+  // được, chỉ mở Điều kiện để xem lý do. Cho chọn thì khách bấm "Áp dụng" rồi
+  // chỉ nhận toast chung "Voucher không hợp lệ" từ máy chủ.
+  const { isValid } = processedFetched
+
   return (
-    <VoucherCard
-      voucher={fetchedVoucher}
-      isSelected={selectedVoucher?.slug === fetchedVoucher.slug}
-      primaryColor={primaryColor}
-      isDark={isDark}
-      onSelect={onSelect}
-      onViewCondition={onViewCondition}
-      discountLabel={processedFetched.discountLabel}
-      expiryText={processedFetched.expiryText}
-      minOrderText={processedFetched.minOrderText}
-      usagePercent={processedFetched.usagePercent}
-    />
+    <View style={isValid ? undefined : styles.unavailable}>
+      <VoucherCard
+        voucher={fetchedVoucher}
+        isSelected={isValid && selectedVoucher?.slug === fetchedVoucher.slug}
+        primaryColor={primaryColor}
+        isDark={isDark}
+        onSelect={isValid ? onSelect : noop}
+        onViewCondition={onViewCondition}
+        expiryText={processedFetched.expiryText}
+        discountLabel={processedFetched.discountLabel}
+      />
+    </View>
   )
 }
 
 const styles = StyleSheet.create({
   resultRow: { marginTop: 14 },
+  unavailable: { opacity: 0.5 },
 })
