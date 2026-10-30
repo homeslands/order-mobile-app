@@ -30,6 +30,7 @@ import { colors } from '@/constants'
 import { hotline } from '@/constants/env'
 import { hasUsableSession, useQrActions } from '@/hooks/use-qr-actions'
 import { navigateNative } from '@/lib/navigation'
+import { showToast } from '@/utils/toast'
 
 import {
   CoinPaymentIcon,
@@ -152,8 +153,14 @@ export const HomeActionGrid = memo(function HomeActionGrid() {
     navigateNative.navigate('/(tabs)/menu')
   }, [])
   const callHotline = useCallback(() => {
-    if (hotline) void Linking.openURL(`tel:${hotline}`)
-  }, [])
+    if (!hotline) return
+    // Máy không có chức năng gọi (iPad chạy app iPhone, máy tính bảng không
+    // SIM, simulator) làm openURL("tel:") reject. Không bắt thì chạm "Liên
+    // hệ" không có gì xảy ra; báo kèm số để khách gọi bằng máy khác.
+    Linking.openURL(`tel:${hotline}`).catch(() => {
+      showToast(t('actions.hotlineUnavailable', { phone: hotline }), 'info')
+    })
+  }, [t])
 
   const qrActions = useMemo<Action[]>(
     () => [

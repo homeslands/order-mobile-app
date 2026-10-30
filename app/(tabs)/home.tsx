@@ -5,7 +5,6 @@ import React, { useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Dimensions,
-  Platform,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -115,8 +114,10 @@ export default function HomeScreen() {
         onRefresh={handleRefresh}
         tintColor={primaryColor}
         colors={[primaryColor]}
-        // Android vẽ vòng xoay từ mép trên — đẩy xuống khỏi thanh trạng thái.
-        progressViewOffset={Platform.OS === 'android' ? STATIC_TOP_INSET : 0}
+        // ScrollView bắt đầu từ y=0 dưới giờ/pin: đẩy vòng xoay xuống khỏi
+        // thanh trạng thái, trên CẢ hai nền tảng — iOS có hỗ trợ prop này, và
+        // offset 0 thì vòng xoay nằm sau tai thỏ / Dynamic Island.
+        progressViewOffset={STATIC_TOP_INSET}
       />
     ),
     [refreshing, handleRefresh, primaryColor],

@@ -178,4 +178,14 @@ describe('Home layout', () => {
     expect(scrim.height).toBe(STATIC_TOP_INSET)
     expect(scrim.position).toBe('absolute')
   })
+
+  it('H6 vòng xoay kéo-làm-mới nằm dưới thanh trạng thái, cả iOS lẫn Android', () => {
+    // ScrollView bắt đầu từ y=0 dưới giờ/pin; offset 0 thì trên iPhone vòng
+    // xoay nằm sau tai thỏ / Dynamic Island và khách không thấy app đang làm
+    // mới số dư. Jest chạy preset iOS.
+    mockReady = true
+    render(<HomeScreen />)
+    const rc = screen.UNSAFE_getByType(ScrollView).props.refreshControl
+    expect(rc.props.progressViewOffset).toBe(STATIC_TOP_INSET)
+  })
 })

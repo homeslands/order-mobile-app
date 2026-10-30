@@ -23,7 +23,8 @@
       "giftCardRedeem": "Đổi thẻ quà tặng",
       "orderHistory": "Lịch sử đơn",
       "order": "Đặt món",
-      "hotline": "Liên hệ"
+      "hotline": "Liên hệ",
+      "hotlineUnavailable": "Thiết bị này không gọi được. Hotline: {{phone}}"
     },
     "balance": {
       "coin": "Xu của bạn",
@@ -34,7 +35,8 @@
       "viewPoints": "Xem",
       "hide": "Ẩn số dư",
       "show": "Hiện số dư",
-      "loginAction": "Đăng nhập"
+      "loginAction": "Đăng nhập",
+      "hiddenA11y": "Đã ẩn số dư"
     },
     "highlightMenu": {
       "tea": "Trà",

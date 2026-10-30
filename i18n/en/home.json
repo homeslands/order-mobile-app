@@ -23,7 +23,8 @@
       "giftCardRedeem": "Redeem gift card",
       "orderHistory": "Order history",
       "order": "Order",
-      "hotline": "Contact"
+      "hotline": "Contact",
+      "hotlineUnavailable": "This device can't make calls. Hotline: {{phone}}"
     },
     "balance": {
       "coin": "Your coins",
@@ -34,7 +35,8 @@
       "viewPoints": "View",
       "hide": "Hide balance",
       "show": "Show balance",
-      "loginAction": "Sign in"
+      "loginAction": "Sign in",
+      "hiddenA11y": "Balance hidden"
     },
     "highlightMenu": {
       "tea": "Tea",

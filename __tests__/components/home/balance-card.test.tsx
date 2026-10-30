@@ -260,4 +260,37 @@ describe('BalanceCard', () => {
     // icon 16 + hitSlop mỗi phía ≥ 14 → ≥ 44
     expect(eye.props.hitSlop).toBeGreaterThanOrEqual(14)
   })
+
+  it('B12 trình đọc màn hình đọc được con số, không chỉ nhãn thẻ', () => {
+    // accessibilityLabel của thẻ ghi đè nội dung con: chỉ đặt "Xu của bạn"
+    // thì VoiceOver/TalkBack không bao giờ đọc ra khách có bao nhiêu Xu.
+    mockUserState.userInfo = { slug: 'u1' }
+    render(<BalanceCard />)
+    expect(
+      screen.getByLabelText(`Xu của bạn, ${formatPoints(390600)} xu`),
+    ).toBeTruthy()
+    expect(
+      screen.getByLabelText(`Điểm tích luỹ, ${formatPoints(1240)}`),
+    ).toBeTruthy()
+  })
+
+  it('B13 ẩn số dư được bằng thao tác trợ năng, và khi ẩn thì không đọc số', () => {
+    // Thẻ cha `accessible` gộp cả cây con trên iOS, nên nút mắt lồng bên trong
+    // không focus được bằng VoiceOver — thao tác ẩn số phải nằm trên chính thẻ.
+    mockUserState.userInfo = { slug: 'u1' }
+    render(<BalanceCard />)
+    const tile = screen.getByLabelText(`Xu của bạn, ${formatPoints(390600)} xu`)
+    expect(
+      (tile.props.accessibilityActions as { name: string }[]).map(
+        (a) => a.name,
+      ),
+    ).toContain('toggleBalance')
+    act(() => {
+      fireEvent(tile, 'accessibilityAction', {
+        nativeEvent: { actionName: 'toggleBalance' },
+      })
+    })
+    expect(screen.getByLabelText('Xu của bạn, Đã ẩn số dư')).toBeTruthy()
+    expect(screen.queryByText(formatPoints(390600))).toBeNull()
+  })
 })

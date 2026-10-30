@@ -2,7 +2,7 @@
 // sang tab Gift Card) và mục Tiện ích bốn ô. "Đổi thẻ quà tặng" và "Lịch sử
 // đơn" phải tự chặn đăng xuất, vì hai màn đích chỉ đọc userSlug rỗng rồi tắt
 // query — khách sẽ rơi vào màn trống.
-import { fireEvent, render, screen } from '@testing-library/react-native'
+import { act, fireEvent, render, screen } from '@testing-library/react-native'
 import { Linking, StyleSheet } from 'react-native'
 
 import { HomeActionGrid } from '@/components/home/home-action-grid'
@@ -13,6 +13,7 @@ const mockScan = jest.fn()
 const mockCoin = jest.fn()
 const mockPush = jest.fn()
 const mockNavigate = jest.fn()
+const mockShowToast = jest.fn()
 let mockSession = true
 
 // Mọi hàm mock đều bọc qua arrow: factory bị hoist lên trên các `const mock*`.
@@ -38,6 +39,10 @@ jest.mock('@/lib/navigation', () => ({
 jest.mock('@/constants/env', () => ({
   ...jest.requireActual('@/constants/env'),
   hotline: '1900123456',
+}))
+
+jest.mock('@/utils/toast', () => ({
+  showToast: (...args: unknown[]) => mockShowToast(...args),
 }))
 
 jest.mock('@/components/ui/text', () => ({
@@ -101,7 +106,12 @@ jest.mock('react-i18next', () => {
   return {
     initReactI18next: { type: '3rdParty', init: () => {} },
     useTranslation: (ns: string) => ({
-      t: (key: string) => lookup(roots[ns], key),
+      // Nội suy {{x}} đơn giản như i18next.
+      t: (key: string, opts?: Record<string, string>) =>
+        String(lookup(roots[ns], key)).replace(
+          /\{\{(\w+)\}\}/g,
+          (_, k: string) => opts?.[k] ?? '',
+        ),
       i18n: { language: 'vi' },
     }),
   }
@@ -297,5 +307,19 @@ describe('HomeActionGrid', () => {
       expect(p.accent).toBe(colors.foreground.light)
       expect(p.fill).toBe('none')
     }
+  })
+
+  it('G18 máy không gọi được (iPad, không SIM): báo và hiện số hotline', async () => {
+    // Linking.openURL("tel:") reject trên máy không có chức năng gọi. Không
+    // bắt thì chạm "Liên hệ" không có gì xảy ra — đúng kiểu nút chết G15 chặn.
+    // Apple Review hay chạy app iPhone trên iPad.
+    openURL.mockRejectedValue(new Error('cannot open tel:'))
+    render(<HomeActionGrid />)
+    fireEvent.press(screen.getByText('Liên hệ'))
+    await act(async () => {
+      await Promise.resolve()
+    })
+    expect(mockShowToast).toHaveBeenCalledTimes(1)
+    expect(mockShowToast.mock.calls[0][0]).toContain('1900123456')
   })
 })

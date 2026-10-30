@@ -21,12 +21,20 @@ import {
   memo,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   type ReactNode,
 } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, StyleSheet, View, useColorScheme } from 'react-native'
+import {
+  Pressable,
+  StyleSheet,
+  View,
+  useColorScheme,
+  type AccessibilityActionEvent,
+  type AccessibilityActionInfo,
+} from 'react-native'
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -124,6 +132,8 @@ const BalanceTile = memo(function BalanceTile({
   footer,
   footerTestID,
   accessibilityLabel,
+  accessibilityActions,
+  onAccessibilityAction,
   children,
 }: {
   theme: CardTheme
@@ -131,7 +141,10 @@ const BalanceTile = memo(function BalanceTile({
   onPress: () => void
   footer: string
   footerTestID?: string
+  /** Gồm cả con số: nhãn này ghi đè nội dung con khi trình đọc màn hình đọc. */
   accessibilityLabel: string
+  accessibilityActions?: AccessibilityActionInfo[]
+  onAccessibilityAction?: (e: AccessibilityActionEvent) => void
   children: ReactNode
 }) {
   // Shared value chỉ được đổi trong useEffect (cùng cách components/ui/
@@ -157,6 +170,8 @@ const BalanceTile = memo(function BalanceTile({
       onPressOut={onPressOut}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
+      accessibilityActions={accessibilityActions}
+      onAccessibilityAction={onAccessibilityAction}
       style={{ flex }}
     >
       <Animated.View style={pressStyle}>
@@ -312,6 +327,34 @@ const SignedInBalance = memo(function SignedInBalance({
     : NO_VALUE
   const EyeIcon = coinHidden ? EyeOff : Eye
 
+  // Trình đọc màn hình: nhãn thẻ ghi đè nội dung con, nên phải tự chứa con số.
+  // Khi số bị ẩn thì nói "đã ẩn" chứ không đọc chuỗi chấm tròn.
+  const coinA11yLabel = !coin.hasData
+    ? t('balance.coin')
+    : coinHidden
+      ? `${t('balance.coin')}, ${t('balance.hiddenA11y')}`
+      : `${t('balance.coin')}, ${coinValue} ${t('balance.coinUnit')}`
+  const pointsA11yLabel = points.hasData
+    ? `${t('balance.points')}, ${pointsValue}`
+    : t('balance.points')
+  // Thẻ `accessible` gộp cả cây con trên iOS, nên nút mắt lồng bên trong không
+  // focus được bằng VoiceOver — đưa thao tác ẩn/hiện số lên chính thẻ.
+  const coinA11yActions = useMemo<AccessibilityActionInfo[]>(
+    () => [
+      {
+        name: 'toggleBalance',
+        label: coinHidden ? t('balance.show') : t('balance.hide'),
+      },
+    ],
+    [coinHidden, t],
+  )
+  const onCoinA11yAction = useCallback(
+    (e: AccessibilityActionEvent) => {
+      if (e.nativeEvent.actionName === 'toggleBalance') toggleCoinHidden()
+    },
+    [toggleCoinHidden],
+  )
+
   return (
     <View className="mx-4 mt-3 flex-row gap-3">
       <BalanceTile
@@ -319,7 +362,9 @@ const SignedInBalance = memo(function SignedInBalance({
         flex={1.55}
         onPress={openCoins}
         footer={t('balance.coinHistory')}
-        accessibilityLabel={t('balance.coin')}
+        accessibilityLabel={coinA11yLabel}
+        accessibilityActions={coinA11yActions}
+        onAccessibilityAction={onCoinA11yAction}
       >
         <View className="flex-row items-center gap-2">
           <CardLabel color={coinTheme.label}>{t('balance.coin')}</CardLabel>
@@ -349,7 +394,7 @@ const SignedInBalance = memo(function SignedInBalance({
         onPress={openPoints}
         footer={t('balance.viewPoints')}
         footerTestID="balance-points-footer"
-        accessibilityLabel={t('balance.points')}
+        accessibilityLabel={pointsA11yLabel}
       >
         <CardLabel color={pointsTheme.label}>{t('balance.points')}</CardLabel>
         <CardNumber
