@@ -213,15 +213,16 @@ describe('HomeActionGrid', () => {
     },
   )
 
-  it('G11 bóng tấm QR ở mức nhẹ (shadow-sm), không nổi đậm', () => {
-    // Thẻ trắng trên nền xám đã tự tách khỏi nền; bóng đậm làm tấm QR trông
-    // nặng. design-tokens: thẻ dùng shadow-sm (elevation 2 trên Android).
+  it('G11 tấm QR phẳng, không đổ bóng', () => {
+    // Thẻ trắng trên nền xám đã tự tách khỏi nền bằng độ tương phản, như mọi
+    // thẻ khác trên Home (thẻ số dư, ô Tiện ích đều phẳng). Người dùng thử
+    // bóng đậm, rồi bóng nhẹ, rồi chọn bỏ hẳn.
     render(<HomeActionGrid />)
     const card = StyleSheet.flatten(
       screen.getByTestId('home-qr-card').props.style,
     )
-    expect(card.shadowOpacity).toBeLessThanOrEqual(0.05)
-    expect(card.elevation).toBeLessThanOrEqual(2)
+    expect(card.shadowOpacity ?? 0).toBe(0)
+    expect(card.elevation ?? 0).toBe(0)
   })
 
   it('G12 cả sáu ô có phản hồi khi chạm (NativeGesturePressable)', () => {

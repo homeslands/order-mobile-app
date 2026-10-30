@@ -219,17 +219,13 @@ export const HomeActionGrid = memo(function HomeActionGrid() {
       <View
         testID="home-qr-card"
         className="mx-4 mt-3 flex-row rounded-2xl px-2 py-4"
+        // Phẳng, không đổ bóng: thẻ trắng trên nền xám đã tự tách khỏi nền
+        // bằng độ tương phản, như thẻ số dư và ô Tiện ích. Ở chế độ tối nền
+        // thẻ và nền trang gần nhau nên cần viền.
         style={{
           backgroundColor: cardBg,
           borderWidth: isDark ? 1 : 0,
           borderColor: border,
-          // Mức shadow-sm của design-tokens: thẻ trắng trên nền xám đã tự tách
-          // khỏi nền, bóng chỉ để gợi khối chứ không để nổi.
-          shadowColor: colors.foreground.light,
-          shadowOpacity: isDark ? 0 : 0.05,
-          shadowRadius: 8,
-          shadowOffset: { width: 0, height: 1 },
-          elevation: isDark ? 0 : 1,
         }}
       >
         {qrActions.map((a) => (
