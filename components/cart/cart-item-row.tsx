@@ -17,6 +17,12 @@ import { CartSwipeable } from './cart-swipeable'
 import { Text } from '@/components/ui/text'
 
 const DEBOUNCE_QTY_MS = 200
+/**
+ * Đối số thứ hai của setter useRecyclingState: true = chỉ render lại ô này,
+ * không bắt FlashList tính lại bố cục cả danh sách (mặc định). Số lượng chờ và
+ * chữ ghi chú đổi mỗi phím gõ / mỗi lần +/- — như useState trước đây.
+ */
+const SKIP_LIST_LAYOUT = true
 
 // Module-level theme constants — zero allocation per render
 const THEME_LIGHT = {
@@ -92,7 +98,7 @@ export const CartItemRow = memo(
         if (debounceRef.current) clearTimeout(debounceRef.current)
         debounceRef.current = setTimeout(() => {
           updateQuantity(item.cartKey, qty)
-          setPendingQty(null)
+          setPendingQty(null, SKIP_LIST_LAYOUT)
           debounceRef.current = null
         }, DEBOUNCE_QTY_MS)
       },
@@ -101,14 +107,14 @@ export const CartItemRow = memo(
 
     const handleIncrease = useCallback(() => {
       const next = displayQty + 1
-      setPendingQty(next)
+      setPendingQty(next, SKIP_LIST_LAYOUT)
       scheduleSync(next)
     }, [displayQty, scheduleSync, setPendingQty])
 
     const handleDecrease = useCallback(() => {
       if (displayQty <= 1) return
       const next = displayQty - 1
-      setPendingQty(next)
+      setPendingQty(next, SKIP_LIST_LAYOUT)
       scheduleSync(next)
     }, [displayQty, scheduleSync, setPendingQty])
 
@@ -126,7 +132,7 @@ export const CartItemRow = memo(
 
     const handleNoteChange = useCallback(
       (text: string) => {
-        setLocalNote(text)
+        setLocalNote(text, SKIP_LIST_LAYOUT)
         if (noteDebounceRef.current) clearTimeout(noteDebounceRef.current)
         noteDebounceRef.current = setTimeout(() => {
           cartActions.addNote(item.cartKey, text)
