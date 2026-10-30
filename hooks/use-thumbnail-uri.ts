@@ -21,13 +21,15 @@ export function useThumbnailUri(
 
   useEffect(() => {
     if (!remoteUrl || getCachedThumbnail(remoteUrl, width)) return
-    let alive = true
-    getThumbnailUri(remoteUrl, width).then((uri) => {
-      if (alive) setResolved({ url: remoteUrl, uri })
-    })
-    return () => {
-      alive = false
-    }
+    // Ô bị tái dùng/unmount trước khi xong → rút khỏi hàng đợi, để slot dành
+    // cho ô khách đang nhìn.
+    const controller = new AbortController()
+    getThumbnailUri(remoteUrl, width, { signal: controller.signal }).then(
+      (uri) => {
+        if (!controller.signal.aborted) setResolved({ url: remoteUrl, uri })
+      },
+    )
+    return () => controller.abort()
   }, [remoteUrl, width])
 
   if (cached) return cached
