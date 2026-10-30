@@ -179,6 +179,12 @@ export function useCartValidation() {
               if (mi.product?.slug) menuLookup.set(mi.product.slug, mi)
             }
 
+            // Gom lại rồi ghi một lần — mỗi lần ghi store là một lượt persist
+            // và một lượt re-render cả giỏ.
+            const variantUpdates: Array<{
+              itemId: string
+              variant: IProductVariant
+            }> = []
             for (const item of currentItems) {
               const slug = item.productSlug || item.slug
               const name = item.name || slug
@@ -196,9 +202,10 @@ export function useCartValidation() {
                 variants[0]
 
               if (newVariant) {
-                cartActions.updateVariant(item.id, newVariant)
+                variantUpdates.push({ itemId: item.id, variant: newVariant })
               }
             }
+            cartActions.updateVariants(variantUpdates)
           }
 
           // Show feedback

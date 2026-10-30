@@ -171,6 +171,9 @@ export const cartActions = {
     getStore().updateOrderingItemQuantity(itemId, quantity),
   updateVariant: (itemId: string, variant: IProductVariant) =>
     getStore().updateOrderingItemVariant(itemId, variant),
+  updateVariants: (
+    updates: ReadonlyArray<{ itemId: string; variant: IProductVariant }>,
+  ) => getStore().updateOrderingItemVariants(updates),
   addNote: (itemId: string, note: string) =>
     getStore().addOrderingNote(itemId, note),
 
