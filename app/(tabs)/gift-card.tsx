@@ -154,7 +154,7 @@ export default function GiftCardScreen() {
     () =>
       queryClient.getQueryData([QUERYKEY.giftCards, undefined]) !== undefined,
   )
-  const allowFetch = useEntryFetchGate(hasCachedGiftCards)
+  const allowFetch = useEntryFetchGate(hasCachedGiftCards, [QUERYKEY.giftCards])
 
   const { data, isPending, isError, refetch, isRefetching } = useGiftCards(
     undefined,

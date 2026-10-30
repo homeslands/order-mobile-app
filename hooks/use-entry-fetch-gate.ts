@@ -1,5 +1,12 @@
 import { useFocusEffect } from '@react-navigation/native'
-import { startTransition, useCallback, useState } from 'react'
+import { useQueryClient, type QueryKey } from '@tanstack/react-query'
+import {
+  startTransition,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 import { InteractionManager } from 'react-native'
 
 /**
@@ -11,20 +18,50 @@ import { InteractionManager } from 'react-native'
  *   màn để kết quả về không chen vào khung hình của animation.
  * - Đã mở thì giữ mở: đóng khi rời màn rồi mở lại là thêm lượt render cả màn
  *   mỗi lần quay lại.
+ * - Quay lại màn (từ lần focus thứ hai) với `refreshKey`: sau chuyển màn, làm
+ *   mới các query đang dùng mà đã cũ dưới key đó. App tắt refetchOnWindowFocus
+ *   và các query danh sách tắt refetchOnMount, nên đây là đường làm mới tự
+ *   động duy nhất khi khách quay lại tab.
  *
  * `hasCachedData` chỉ được đọc ở render đầu.
  */
-export function useEntryFetchGate(hasCachedData: boolean): boolean {
+export function useEntryFetchGate(
+  hasCachedData: boolean,
+  refreshKey?: QueryKey,
+): boolean {
+  const queryClient = useQueryClient()
   const [open, setOpen] = useState(() => !hasCachedData)
+  // Đọc trong callback qua ref: callback đổi theo `open` sẽ làm useFocusEffect
+  // chạy lại và tính nhầm lần mở cổng là một lần "quay lại màn".
+  const openRef = useRef(open)
+  const focusCountRef = useRef(0)
+  const refreshKeyRef = useRef(refreshKey)
+  useEffect(() => {
+    refreshKeyRef.current = refreshKey
+  })
 
   useFocusEffect(
     useCallback(() => {
-      if (open) return
+      focusCountRef.current += 1
+      const isReturn = focusCountRef.current > 1
+      if (openRef.current && !isReturn) return
       const task = InteractionManager.runAfterInteractions(() => {
-        startTransition(() => setOpen(true))
+        if (!openRef.current) {
+          openRef.current = true
+          startTransition(() => setOpen(true))
+          return
+        }
+        const key = refreshKeyRef.current
+        if (key) {
+          void queryClient.refetchQueries({
+            queryKey: key,
+            stale: true,
+            type: 'active',
+          })
+        }
       })
       return () => task.cancel()
-    }, [open]),
+    }, [queryClient]),
   )
 
   return open

@@ -18,7 +18,7 @@ it('MS1 không tải trước ảnh gốc bằng Image.prefetch', () => {
 })
 
 it('MS2 gọi menu qua cổng vào màn', () => {
-  expect(src).toMatch(/useEntryFetchGate\(/)
+  expect(src).toMatch(/useEntryFetchGate\(\s*\w+,\s*\[/)
   expect(src).not.toMatch(/setAllowFetch\(/)
 })
 

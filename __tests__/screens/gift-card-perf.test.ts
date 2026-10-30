@@ -12,7 +12,7 @@ const src = fs
   .replace(/^\s*\/\/.*$/gm, '')
 
 it('GS1 gọi qua cổng vào màn, không đóng cổng khi rời màn', () => {
-  expect(src).toMatch(/useEntryFetchGate\(/)
+  expect(src).toMatch(/useEntryFetchGate\(\s*\w+,\s*\[/)
   expect(src).not.toMatch(/setAllowFetch\(false\)/)
 })
 

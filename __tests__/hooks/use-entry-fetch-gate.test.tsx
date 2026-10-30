@@ -21,9 +21,17 @@ jest.mock('@react-navigation/native', () => ({
   },
 }))
 
+const mockRefetch = jest.fn()
+// Một QueryClient cố định, như QueryClientProvider thật.
+const mockClient = { refetchQueries: mockRefetch }
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: () => mockClient,
+}))
+
 let pendingInteractions: Array<() => void> = []
 
 beforeEach(() => {
+  mockRefetch.mockClear()
   pendingInteractions = []
   jest
     .spyOn(InteractionManager, 'runAfterInteractions')
@@ -47,11 +55,18 @@ it('EG1 chưa có cache: mở ngay ở render đầu, không chờ chuyển màn
   expect(pendingInteractions).toHaveLength(0)
 })
 
-it('EG2 có cache: đóng tới khi chuyển màn xong', () => {
-  const { result } = renderHook(() => useEntryFetchGate(true))
+it('EG2 có cache: đóng tới khi chuyển màn xong; mở cổng không tính là quay lại', () => {
+  const { result } = renderHook(() => useEntryFetchGate(true, ['k']))
   expect(result.current).toBe(false)
-  act(() => pendingInteractions.forEach((t) => t()))
+  act(() => {
+    const tasks = pendingInteractions
+    pendingInteractions = []
+    tasks.forEach((t) => t())
+  })
   expect(result.current).toBe(true)
+  // Mở cổng đã cho query chạy nếu dữ liệu cũ — không xếp thêm lần làm mới.
+  act(() => pendingInteractions.forEach((t) => t()))
+  expect(mockRefetch).not.toHaveBeenCalled()
 })
 
 it('EG3 đã mở thì rời màn rồi quay lại vẫn mở', () => {
@@ -70,4 +85,36 @@ it('EG3 đã mở thì rời màn rồi quay lại vẫn mở', () => {
   })
   expect(result.current).toBe(true)
   expect(seen.slice(before)).not.toContain(false)
+})
+
+// Quay lại màn: dữ liệu đã cũ thì làm mới sau chuyển màn — trước đây việc đóng
+// rồi mở lại cổng làm việc này; giờ cổng không đóng nên phải gọi tường minh.
+// (Cả app tắt refetchOnWindowFocus, các query danh sách tắt refetchOnMount.)
+it('EG4 quay lại màn thì làm mới query cũ sau chuyển màn, lần vào đầu thì không', () => {
+  renderHook(() => useEntryFetchGate(false, ['menu-root']))
+  act(() => pendingInteractions.forEach((t) => t()))
+  expect(mockRefetch).not.toHaveBeenCalled()
+
+  pendingInteractions = []
+  act(() => {
+    mockFocusCleanup?.()
+    mockFocusCleanup = mockFocusEffect?.()
+  })
+  expect(mockRefetch).not.toHaveBeenCalled()
+  act(() => pendingInteractions.forEach((t) => t()))
+  expect(mockRefetch).toHaveBeenCalledWith({
+    queryKey: ['menu-root'],
+    stale: true,
+    type: 'active',
+  })
+})
+
+it('EG5 không truyền refreshKey thì không làm mới', () => {
+  renderHook(() => useEntryFetchGate(false))
+  act(() => {
+    mockFocusCleanup?.()
+    mockFocusCleanup = mockFocusEffect?.()
+  })
+  act(() => pendingInteractions.forEach((t) => t()))
+  expect(mockRefetch).not.toHaveBeenCalled()
 })

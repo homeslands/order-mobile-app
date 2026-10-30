@@ -223,7 +223,9 @@ export default function MenuPage() {
       })
       .some(([, d]) => d !== undefined),
   )
-  const allowFetch = useEntryFetchGate(hasCachedMenu)
+  const allowFetch = useEntryFetchGate(hasCachedMenu, [
+    hasUser ? 'specific-menu' : 'public-specific-menu',
+  ])
   const hasBranch = !!menuFilter.branch || !!branchSlug
 
   // ── Catalog chips ──
