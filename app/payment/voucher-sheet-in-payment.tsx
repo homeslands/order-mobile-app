@@ -689,7 +689,6 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
           />
           <InvalidList
             vouchers={invalidVouchers}
-            onSelect={handleSelectBySlug}
             onViewCondition={handleViewCondition}
             isDark={isDark}
             primaryColor={primaryColor}

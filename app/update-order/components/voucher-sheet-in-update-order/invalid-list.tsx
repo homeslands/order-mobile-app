@@ -6,9 +6,11 @@ import { useTranslation } from 'react-i18next'
 import { StyleSheet, View } from 'react-native'
 import { Text } from '@/components/ui/text'
 
+/** Mã không dùng được không chọn được — chạm vào thân thẻ không làm gì. */
+const noop = () => {}
+
 type InvalidListProps = {
   vouchers: ProcessedVoucher[]
-  onSelect: (slug: string) => void
   onViewCondition: (v: IVoucher) => void
   isDark: boolean
   primaryColor: string
@@ -16,7 +18,6 @@ type InvalidListProps = {
 
 export function InvalidList({
   vouchers,
-  onSelect,
   onViewCondition,
   isDark,
   primaryColor,
@@ -38,17 +39,15 @@ export function InvalidList({
         </Text>
       </View>
       {vouchers.slice(0, 5).map((p) => (
-        <View
-          key={p.voucher.slug}
-          style={{ opacity: 0.5 }}
-          pointerEvents="none"
-        >
+        // Không chặn chạm cả khối: link "Điều kiện" là đường duy nhất để khách
+        // biết vì sao mã không dùng được (thẻ không còn dòng lý do).
+        <View key={p.voucher.slug} style={{ opacity: 0.5 }}>
           <VoucherCard
             voucher={p.voucher}
             isSelected={false}
             primaryColor={primaryColor}
             isDark={isDark}
-            onSelect={onSelect}
+            onSelect={noop}
             onViewCondition={onViewCondition}
             expiryText={p.expiryText}
             discountLabel={p.discountLabel}

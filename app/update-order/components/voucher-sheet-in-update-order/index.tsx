@@ -544,7 +544,6 @@ export const VoucherSheetInUpdateOrder = memo(
             />
             <InvalidList
               vouchers={invalidVouchers}
-              onSelect={handleSelectBySlug}
               onViewCondition={handleViewCondition}
               isDark={isDark}
               primaryColor={primaryColor}
