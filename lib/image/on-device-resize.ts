@@ -25,8 +25,11 @@ const isHttp = (u: string) => /^https?:\/\//i.test(u)
 
 /**
  * 'visible': ô đang hiện trên màn. 'ahead': ảnh sắp cuộn tới (tải trước).
- * Việc 'visible' luôn được cấp slot trước; trong cùng mức, việc MỚI NHẤT trước
- * — ô vừa hiện là ô khách đang nhìn, ô xếp hàng từ trước có thể đã cuộn qua.
+ * Việc 'visible' luôn được cấp slot trước. Trong cùng mức: LƯỢT mới nhất trước
+ * (ô vừa hiện là ô khách đang nhìn; lượt cũ có thể đã cuộn qua), còn trong một
+ * lượt thì theo thứ tự gọi — FlashList mount ô từ trên xuống trong một commit,
+ * và danh sách tải trước đi từ gần ra xa. Một "lượt" là các lời gọi trong cùng
+ * một tick đồng bộ.
  */
 type Priority = 'visible' | 'ahead'
 
@@ -35,6 +38,7 @@ type Job = {
   remoteUrl: string
   width: number
   priority: Priority
+  batch: number
   seq: number
   started: boolean
   /** Số người gọi còn cần kết quả. Người gọi không có signal không bao giờ rời. */
@@ -49,6 +53,20 @@ const jobs = new Map<string, Job>()
 const waiting: Job[] = []
 let active = 0
 let seq = 0
+let batch = 0
+let batchOpen = false
+
+/** Số lượt hiện tại — mở lượt mới ở lời gọi đầu tiên của mỗi tick. */
+function currentBatch(): number {
+  if (!batchOpen) {
+    batchOpen = true
+    batch += 1
+    queueMicrotask(() => {
+      batchOpen = false
+    })
+  }
+  return batch
+}
 
 let dirReady: Promise<void> | null = null
 function ensureDir(): Promise<void> {
@@ -82,17 +100,18 @@ async function resize(remoteUrl: string, width: number): Promise<string> {
   }
 }
 
-function rank(job: Job): number {
-  return (
-    (job.priority === 'visible' ? Number.MAX_SAFE_INTEGER / 2 : 0) + job.seq
-  )
+/** a có được cấp slot trước b không. */
+function before(a: Job, b: Job): boolean {
+  if (a.priority !== b.priority) return a.priority === 'visible'
+  if (a.batch !== b.batch) return a.batch > b.batch
+  return a.seq < b.seq
 }
 
 function pump(): void {
   while (active < RESIZE_CONCURRENCY && waiting.length > 0) {
     let best = 0
     for (let i = 1; i < waiting.length; i += 1) {
-      if (rank(waiting[i]) > rank(waiting[best])) best = i
+      if (before(waiting[i], waiting[best])) best = i
     }
     const [job] = waiting.splice(best, 1)
     start(job)
@@ -151,6 +170,7 @@ function createJob(remoteUrl: string, width: number, priority: Priority): Job {
     remoteUrl,
     width,
     priority,
+    batch: currentBatch(),
     seq,
     started: false,
     live: 0,
@@ -174,14 +194,15 @@ function needsResize(remoteUrl: string): boolean {
   )
 }
 
-/** Giữ số việc tải-trước đang chờ ≤ THUMBNAIL_AHEAD_MAX, bỏ việc cũ nhất. */
+/**
+ * Giữ số việc tải-trước đang chờ ≤ THUMBNAIL_AHEAD_MAX. Bỏ những việc sẽ được
+ * làm SAU CÙNG: lượt cũ nhất trước, trong một lượt thì món xa nhất trước.
+ */
 function trimAhead(): void {
   const ahead = waiting.filter((j) => j.priority === 'ahead')
   if (ahead.length <= THUMBNAIL_AHEAD_MAX) return
-  ahead.sort((a, b) => a.seq - b.seq)
-  for (const job of ahead.slice(0, ahead.length - THUMBNAIL_AHEAD_MAX)) {
-    drop(job)
-  }
+  ahead.sort((a, b) => (before(a, b) ? -1 : 1))
+  for (const job of ahead.slice(THUMBNAIL_AHEAD_MAX)) drop(job)
 }
 
 /**
@@ -204,6 +225,7 @@ export function getThumbnailUri(
   if (job) {
     if (!job.started && priority === 'visible' && job.priority === 'ahead') {
       job.priority = 'visible'
+      job.batch = currentBatch()
       seq += 1
       job.seq = seq
     }

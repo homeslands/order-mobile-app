@@ -116,9 +116,10 @@ async function fillSlots(prefix: string) {
 }
 
 describe('hàng đợi có ưu tiên', () => {
-  it('R5 ô hiện sau được làm trước (mới nhất trước)', async () => {
+  it('R5 ô hiện ở lượt sau được làm trước (lượt mới nhất trước)', async () => {
     await fillSlots('r5')
     void getThumbnailUri('http://s3/r5-u3.jpg', 384)
+    await flush()
     void getThumbnailUri('http://s3/r5-u4.jpg', 384)
     await flush()
     await release('http://s3/r5-busy1.jpg')
@@ -162,7 +163,7 @@ describe('hàng đợi có ưu tiên', () => {
     expect(mockDownloads[2]).toBe('http://s3/r8-u8.jpg')
   })
 
-  it('R9 tải trước tối đa 16 việc chờ, bỏ việc cũ nhất', async () => {
+  it('R9 tải trước tối đa 16 việc chờ, bỏ món xa nhất', async () => {
     await fillSlots('r9')
     const urls = Array.from({ length: 20 }, (_, i) => `http://s3/r9-p${i}.jpg`)
     prefetchThumbnails(urls, 384)
@@ -170,7 +171,39 @@ describe('hàng đợi có ưu tiên', () => {
     for (let i = 0; i < 30; i += 1) await releaseAll()
     const prefetched = mockDownloads.filter((u) => u.includes('r9-p'))
     expect(prefetched).toHaveLength(16)
-    expect(prefetched).not.toContain('http://s3/r9-p0.jpg')
+    expect(prefetched).toContain('http://s3/r9-p0.jpg')
+    expect(prefetched).not.toContain('http://s3/r9-p19.jpg')
+  })
+
+  it('R11 trong cùng một lượt (cùng commit), ô trên làm trước ô dưới', async () => {
+    await fillSlots('r11')
+    // FlashList mount các ô từ trên xuống trong một commit: effect của chúng
+    // chạy liền nhau trong cùng một tick.
+    for (const n of [1, 2, 3, 4]) {
+      void getThumbnailUri(`http://s3/r11-row${n}.jpg`, 384)
+    }
+    await flush()
+    await release('http://s3/r11-busy1.jpg')
+    await release('http://s3/r11-busy2.jpg')
+    expect(mockDownloads.slice(2, 4)).toEqual([
+      'http://s3/r11-row1.jpg',
+      'http://s3/r11-row2.jpg',
+    ])
+  })
+
+  it('R12 tải trước đi từ món gần nhất', async () => {
+    await fillSlots('r12')
+    prefetchThumbnails(
+      [
+        'http://s3/r12-near.jpg',
+        'http://s3/r12-mid.jpg',
+        'http://s3/r12-far.jpg',
+      ],
+      384,
+    )
+    await flush()
+    await release('http://s3/r12-busy1.jpg')
+    expect(mockDownloads[2]).toBe('http://s3/r12-near.jpg')
   })
 
   it('R10 server đã resize thì trả nguyên URL, không tải', async () => {
