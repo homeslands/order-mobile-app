@@ -33,6 +33,8 @@ import { StyleSheet } from 'react-native'
 
 import { VoucherCard } from '@/components/cart/voucher-card'
 import { colors } from '@/constants'
+import { hexToRgba } from '@/lib/utils'
+import { Line } from 'react-native-svg'
 import type { IVoucher } from '@/types'
 
 /**
@@ -140,5 +142,13 @@ describe('VoucherCard', () => {
       .replace(/^\s*\/\/.*$/gm, '')
     expect(src).not.toMatch(/#[0-9a-fA-F]{3,8}\b|rgba?\(/)
     expect(src).not.toMatch(/colors\.ticket/)
+  })
+
+  // Đường đục lỗ phải đủ đậm để thấy rõ trên nền nhuốm primary.
+  it('đường đục lỗ màu primary đậm (alpha 0.6)', () => {
+    setup(base)
+
+    const line = screen.UNSAFE_getByType(Line)
+    expect(line.props.stroke).toBe(hexToRgba('#f59e0b', 0.6))
   })
 })

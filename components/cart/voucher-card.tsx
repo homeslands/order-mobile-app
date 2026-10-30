@@ -78,19 +78,20 @@ export const VoucherCard = memo(function VoucherCard({
     [onViewCondition, voucher],
   )
 
-  // Toàn bộ màu từ token của app. Thẻ là khối nền `background` (xám nhạt)
-  // nằm trên sheet màu `card`; vết khuyết tô màu `card` nên lộ ra đúng hình
-  // vé. Đang chọn: viền primary và nền nhuốm primary.
+  // Toàn bộ màu từ token của app. Thẻ là khối nhuốm primary nhạt nằm trên
+  // sheet màu `card`; vết khuyết tô màu `card` nên lộ ra đúng hình vé. Đang
+  // chọn: viền primary và nền nhuốm đậm hơn một bậc.
   const surface = isDark ? colors.card.dark : colors.card.light
-  const bgIdle = isDark ? colors.background.dark : colors.background.light
-  const bgOn = hexToRgba(primaryColor, isDark ? 0.16 : 0.1)
+  const bgIdle = hexToRgba(primaryColor, isDark ? 0.12 : 0.08)
+  const bgOn = hexToRgba(primaryColor, isDark ? 0.22 : 0.16)
   const headlineColor = isDark
     ? colors.foreground.dark
     : colors.foreground.light
   const mutedColor = isDark
     ? colors.mutedForeground.dark
     : colors.mutedForeground.light
-  const dashColor = isDark ? colors.border.dark : colors.border.light
+  // Đủ đậm để thấy rõ trên nền nhuốm primary.
+  const dashColor = hexToRgba(primaryColor, 0.6)
 
   const notch = {
     width: NOTCH,
