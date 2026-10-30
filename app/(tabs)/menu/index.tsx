@@ -11,6 +11,7 @@ import {
 import { Images } from '@/assets/images'
 import { SelectBranchDropdown } from '@/components/branch'
 import { TabScreenLayout, useTabBarBottomPadding } from '@/components/layout'
+import { MenuItemRowSkeleton } from '@/components/menu/menu-item-row-skeleton'
 import { PriceFilterSheet } from '@/components/menu/price-sheet'
 import { PressableWithFeedback } from '@/components/navigation/pressable-with-feedback'
 import { NotificationBell } from '@/components/notification/notification-bell'
@@ -19,7 +20,10 @@ import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useCatalog } from '@/hooks/use-catalog'
 import { MENU_QUERY_SKIP_CODES } from '@/lib/global-error-gate'
 import { useCatalogMenuPages } from '@/hooks/use-catalog-menu-pages'
+import { useEntryFetchGate } from '@/hooks/use-entry-fetch-gate'
 import { useMenuScreenState } from '@/hooks/use-menu-screen-state'
+import { prefetchThumbnails } from '@/lib/image/on-device-resize'
+import { THUMBNAIL_AHEAD_MAX } from '@/lib/image/resize-config'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { useOrderFlowStore, useUserStore } from '@/stores'
 import { useLoginSheetStore } from '@/stores/login-sheet.store'
@@ -28,11 +32,12 @@ import { useTransientNavStore } from '@/stores/transient-nav.store'
 import type { ISpecificMenuRequest } from '@/types'
 import { IOrderItem } from '@/types'
 import { getLocalDateString } from '@/utils/date'
+import { getAheadImageUrls } from '@/utils/menu-image-prefetch'
 import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 import { showToast } from '@/utils/toast'
 import { useFocusEffect } from '@react-navigation/native'
 import { FlashList, type FlashListRef } from '@shopify/flash-list'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
 import { MapPin } from 'lucide-react-native'
@@ -74,7 +79,6 @@ const menuKeyExtractor = (item: FlatItem) =>
 
 const menuGetItemType = (item: FlatItem) => item._kind
 
-const MENU_IMAGE_PREFETCH_AHEAD_COUNT = 5
 const MENU_IMAGE_PREFETCH_DEBOUNCE_MS = 100
 const MENU_ENTRY_IMAGE_DELAY_MS = 300
 /**
@@ -85,8 +89,7 @@ const MENU_ENTRY_IMAGE_DELAY_MS = 300
 const MENU_IMAGE_REVEAL_MAX_WAIT_MS = 2500
 const ENABLE_SCROLL_PREFETCH = true
 const SEARCH_DEBOUNCE_MS = 300
-const PREFETCH_URL_CACHE_MAX = 256
-const MENU_CATALOG_BATCH = 3
+const MENU_CATALOG_BATCH = 5
 
 /**
  * FlashList v2 bật maintainVisibleContentPosition mặc định. Menu load
@@ -97,19 +100,6 @@ const MENU_CATALOG_BATCH = 3
  */
 const MENU_MAINTAIN_POSITION = { disabled: true } as const
 
-/** Tiny LRU: evicts oldest entry when capacity exceeded — prevents unbounded growth */
-function makeLruSet(max: number) {
-  const map = new Map<string, true>()
-  return {
-    has: (key: string) => map.has(key),
-    add: (key: string) => {
-      if (map.has(key)) return
-      if (map.size >= max) map.delete(map.keys().next().value as string)
-      map.set(key, true)
-    },
-  }
-}
-
 export default function MenuPage() {
   const router = useRouter()
   const isDark = useColorScheme() === 'dark'
@@ -119,7 +109,6 @@ export default function MenuPage() {
     useMenuScreenState()
   const setMenuFilter = useSetMenuFilter()
   const bottomPadding = useTabBarBottomPadding()
-  const [allowFetch, setAllowFetch] = useState(false)
   const [imagePhaseCount, setImagePhaseCount] = useState(0)
 
   // ── Order flow store bridge (read via getState to avoid re-render deps) ──
@@ -152,20 +141,15 @@ export default function MenuPage() {
 
   // Stable ref map — handlers read from here instead of closing over itemsRaw.
   const itemsMapRef = React.useRef<Map<string, MenuDisplayItem>>(new Map())
-  const itemsRawRef = React.useRef<MenuDisplayItem[]>([])
   const shouldClearMemoryCacheOnBlurRef = React.useRef(false)
   const hasUserStartedScrollRef = React.useRef(false)
   const hasLoadedImagesOnceRef = React.useRef(false)
-  const prefetchedImageUrlsRef = React.useRef(
-    makeLruSet(PREFETCH_URL_CACHE_MAX),
-  )
   const prefetchTimeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(
     null,
   )
 
   useFocusEffect(
     useCallback(() => {
-      setAllowFetch(false)
       const isFirstLoad = !hasLoadedImagesOnceRef.current
 
       // Cổng ảnh chỉ để giãn lượt giải mã ở LẦN VÀO ĐẦU. Lần sau quay lại thì
@@ -183,11 +167,6 @@ export default function MenuPage() {
       }
 
       const task = InteractionManager.runAfterInteractions(() => {
-        // Enable the data fetch as soon as interactions settle (past the entry
-        // animation) — NOT coupled to the image-reveal delay, so a cold cache
-        // starts fetching ~300ms sooner.
-        startTransition(() => setAllowFetch(true))
-
         if (!isFirstLoad) return
         // Defer the image reveal, then stagger it across two frames to avoid a
         // single-commit native decode/texture storm on first entry.
@@ -208,7 +187,6 @@ export default function MenuPage() {
         task.cancel()
         if (imageTimer) clearTimeout(imageTimer)
         clearTimeout(fallbackTimer)
-        setAllowFetch(false)
       }
     }, []),
   )
@@ -234,6 +212,18 @@ export default function MenuPage() {
   )
 
   const hasUser = isAuthenticated && !!userSlug
+
+  // Chưa có menu trong cache thì gọi ngay khi vào màn; có rồi thì chỉ hoãn
+  // lần làm mới qua chuyển màn (useEntryFetchGate). Chỉ đọc lúc mount.
+  const queryClient = useQueryClient()
+  const [hasCachedMenu] = useState(() =>
+    queryClient
+      .getQueriesData({
+        queryKey: [hasUser ? 'specific-menu' : 'public-specific-menu'],
+      })
+      .some(([, d]) => d !== undefined),
+  )
+  const allowFetch = useEntryFetchGate(hasCachedMenu)
   const hasBranch = !!menuFilter.branch || !!branchSlug
 
   // ── Catalog chips ──
@@ -453,30 +443,6 @@ export default function MenuPage() {
     const m = new Map<string, MenuDisplayItem>()
     for (const item of itemsRaw) m.set(item.id, item)
     itemsMapRef.current = m
-    itemsRawRef.current = itemsRaw
-  }, [itemsRaw])
-
-  // Pre-decode first visible images on the background thread as soon as data
-  // arrives — eliminates Main Thread WebP decode when user scrolls down.
-  const initialPrefetchDoneRef = React.useRef(false)
-  useEffect(() => {
-    if (itemsRaw.length === 0) return
-    if (initialPrefetchDoneRef.current) return
-    initialPrefetchDoneRef.current = true
-    const INITIAL_PREFETCH_COUNT = 8
-    const urls: string[] = []
-    for (
-      let i = 0;
-      i < Math.min(INITIAL_PREFETCH_COUNT, itemsRaw.length);
-      i++
-    ) {
-      const url = itemsRaw[i].imageUrl
-      if (url && !prefetchedImageUrlsRef.current.has(url)) {
-        prefetchedImageUrlsRef.current.add(url)
-        urls.push(url)
-      }
-    }
-    if (urls.length > 0) Image.prefetch(urls).catch(() => {})
   }, [itemsRaw])
 
   // Client-side filter — no API round-trip, instant UI response.
@@ -524,6 +490,25 @@ export default function MenuPage() {
     return result
   }, [filteredItems, catalogList, menuCatalog, searchKeyword])
 
+  // Chỉ số ô đang hiện của FlashList đếm cả dòng tiêu đề danh mục, nên tải
+  // trước phải đi trên chính mảng dòng này (không phải mảng chỉ có món).
+  const flatItemsRef = React.useRef<FlatItem[]>(flatItems)
+  useEffect(() => {
+    flatItemsRef.current = flatItems
+  }, [flatItems])
+
+  // Dữ liệu vừa về: xếp sẵn thumbnail cho các món đầu (mức thấp, nhường ô
+  // đang hiện). Ảnh đã có cache hoặc đang xử lý thì hàng đợi tự bỏ qua.
+  const initialPrefetchDoneRef = React.useRef(false)
+  useEffect(() => {
+    if (flatItems.length === 0 || initialPrefetchDoneRef.current) return
+    initialPrefetchDoneRef.current = true
+    prefetchThumbnails(
+      getAheadImageUrls(flatItems, -1, THUMBNAIL_AHEAD_MAX),
+      IMAGE_PRESET.THUMB,
+    )
+  }, [flatItems])
+
   const onViewableItemsChanged = useCallback(
     (info: { viewableItems: Array<{ index: number | null }> }) => {
       if (!ENABLE_SCROLL_PREFETCH) return
@@ -542,30 +527,14 @@ export default function MenuPage() {
           return
         }
 
-        const furthestVisibleIndex = Math.max(...visibleIndexes)
-        const startIndex = furthestVisibleIndex + 1
-        const endIndex = Math.min(
-          itemsRawRef.current.length - 1,
-          furthestVisibleIndex + MENU_IMAGE_PREFETCH_AHEAD_COUNT,
+        prefetchThumbnails(
+          getAheadImageUrls(
+            flatItemsRef.current,
+            Math.max(...visibleIndexes),
+            THUMBNAIL_AHEAD_MAX,
+          ),
+          IMAGE_PRESET.THUMB,
         )
-
-        if (startIndex > endIndex) {
-          prefetchTimeoutRef.current = null
-          return
-        }
-
-        const urlsToPrefetch: string[] = []
-        for (let i = startIndex; i <= endIndex; i += 1) {
-          const imageUrl = itemsRawRef.current[i]?.imageUrl
-          if (!imageUrl || prefetchedImageUrlsRef.current.has(imageUrl))
-            continue
-          prefetchedImageUrlsRef.current.add(imageUrl)
-          urlsToPrefetch.push(imageUrl)
-        }
-
-        if (urlsToPrefetch.length > 0) {
-          Image.prefetch(urlsToPrefetch).catch(() => {})
-        }
         prefetchTimeoutRef.current = null
       }, MENU_IMAGE_PREFETCH_DEBOUNCE_MS)
     },
@@ -688,6 +657,9 @@ export default function MenuPage() {
         </View>
       )
     }
+    // Đang tải: khung dòng món thay cho chữ chờ — dữ liệu về là thay đúng chỗ,
+    // không nhảy bố cục.
+    if (isMenuLoading) return <MenuItemRowSkeleton isDark={isDark} />
     return (
       <View
         style={[
@@ -698,11 +670,9 @@ export default function MenuPage() {
         ]}
       >
         <Text style={styles.emptyText}>
-          {isMenuLoading
-            ? t('menu.loadingMenu')
-            : searchKeyword
-              ? t('menu.searchNotFound', { keyword: searchText })
-              : t('menu.noMenuData')}
+          {searchKeyword
+            ? t('menu.searchNotFound', { keyword: searchText })
+            : t('menu.noMenuData')}
         </Text>
       </View>
     )
@@ -870,7 +840,7 @@ export default function MenuPage() {
             keyExtractor={menuKeyExtractor}
             getItemType={menuGetItemType}
             maintainVisibleContentPosition={MENU_MAINTAIN_POSITION}
-            drawDistance={300}
+            drawDistance={700}
             keyboardDismissMode="on-drag"
             onEndReached={() => {
               if (
