@@ -4,7 +4,7 @@
 import 'react-native-gesture-handler/jestSetup'
 
 import { act, fireEvent, render, screen } from '@testing-library/react-native'
-import { StyleSheet } from 'react-native'
+import { StyleSheet, type StyleProp, type ViewStyle } from 'react-native'
 import { State } from 'react-native-gesture-handler'
 import {
   fireGestureHandler,
@@ -134,18 +134,23 @@ describe('CartItemRow khi bị tái dùng sang món khác', () => {
   })
 
   it('CR4 ô đã vuốt mở trở về đóng khi sang món khác', () => {
-    const { rerender, UNSAFE_root } = render(row(makeItem({ cartKey: 'a' })))
+    const { rerender } = render(row(makeItem({ cartKey: 'a' })))
     fireGestureHandler(getByGestureTestId('cart-swipe'), [
       { state: State.BEGAN, translationX: 0 },
       { state: State.ACTIVE, translationX: -100 },
       { state: State.END, translationX: -100, velocityX: -1000 },
     ])
-    const translateXOf = () => {
-      const fg = UNSAFE_root.findAll((n) => {
-        const t = StyleSheet.flatten(n.props.style)?.transform
-        return Array.isArray(t) && 'translateX' in (t[0] ?? {})
-      })[0]
-      return StyleSheet.flatten(fg.props.style).transform[0].translateX
+    type Node = { props: { style?: StyleProp<ViewStyle> } }
+    const translateOf = (n: Node): number | undefined => {
+      const t = StyleSheet.flatten(n.props.style)?.transform
+      if (!Array.isArray(t)) return undefined
+      return (t[0] as { translateX?: number }).translateX
+    }
+    const translateXOf = (): number | undefined => {
+      const nodes = screen.UNSAFE_root.findAll(
+        (n: Node) => translateOf(n) !== undefined,
+      ) as Node[]
+      return translateOf(nodes[0])
     }
     rerender(row(makeItem({ cartKey: 'a' })))
     expect(translateXOf()).toBe(-80)
