@@ -6,6 +6,7 @@ import { fireEvent, render, screen } from '@testing-library/react-native'
 import { Linking, StyleSheet } from 'react-native'
 
 import { HomeActionGrid } from '@/components/home/home-action-grid'
+import { colors } from '@/constants'
 
 const mockMember = jest.fn()
 const mockScan = jest.fn()
@@ -61,9 +62,20 @@ jest.mock('@/components/navigation/native-gesture-pressable', () => {
       ),
   }
 })
+// Ghi lại màu mỗi icon nhận được, để G17 kiểm.
+const mockIconProps: Record<string, unknown>[] = []
 jest.mock(
   '@/components/home/home-icons',
-  () => new Proxy({}, { get: () => () => null }),
+  () =>
+    new Proxy(
+      {},
+      {
+        get: () => (p: Record<string, unknown>) => {
+          mockIconProps.push(p)
+          return null
+        },
+      },
+    ),
 )
 
 // Ba namespace map khác nhau (i18n/resources.ts): 'home' là object BÊN TRONG
@@ -106,6 +118,7 @@ let openURL: jest.SpyInstance
 
 beforeEach(() => {
   jest.clearAllMocks()
+  mockIconProps.length = 0
   mockSession = true
   openURL = jest.spyOn(Linking, 'openURL').mockResolvedValue(true)
 })
@@ -273,6 +286,16 @@ describe('HomeActionGrid', () => {
     for (const id of UTILITY_IDS) {
       const box = screen.getByTestId(`home-utility-icon-${id}`)
       expect(String(box.props.className)).toMatch(/\brounded-full\b/)
+    }
+  })
+
+  it('G17 tám icon một màu đen (foreground), không điểm nhấn, không mảng lót', () => {
+    render(<HomeActionGrid />)
+    expect(mockIconProps).toHaveLength(8)
+    for (const p of mockIconProps) {
+      expect(p.stroke).toBe(colors.foreground.light)
+      expect(p.accent).toBe(colors.foreground.light)
+      expect(p.fill).toBe('none')
     }
   })
 })

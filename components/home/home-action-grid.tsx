@@ -7,8 +7,7 @@
  *    chọn QR ở Profile — một chức năng không mang hai tên.
  * 2. Mục "Tiện ích" bốn ô: Đặt món, Đổi thẻ quà tặng, Lịch sử đơn, Liên hệ.
  *
- * Icon hai tông vẽ riêng (home-icons.tsx). Màu icon đi từ token: nét khung màu
- * chữ, điểm nhấn và mảng lót màu thương hiệu.
+ * Icon vẽ riêng (home-icons.tsx), hiện một màu chữ (foreground) — xem `tone`.
  *
  * "Đổi thẻ quà tặng" và "Lịch sử đơn" tự chặn đăng xuất: hai màn đích chỉ đọc
  * userSlug rỗng rồi tắt query, nên không chặn thì khách rơi vào màn trống.
@@ -31,7 +30,6 @@ import { colors } from '@/constants'
 import { hotline } from '@/constants/env'
 import { hasUsableSession, useQrActions } from '@/hooks/use-qr-actions'
 import { navigateNative } from '@/lib/navigation'
-import { hexToRgba } from '@/lib/utils'
 
 import {
   CoinPaymentIcon,
@@ -231,22 +229,12 @@ export const HomeActionGrid = memo(function HomeActionGrid() {
   const foreground = isDark ? colors.foreground.dark : colors.foreground.light
   const cardBg = isDark ? colors.card.dark : colors.card.light
   const border = isDark ? colors.border.dark : colors.border.light
-  // Hai tông từ token: nét khung màu chữ, điểm nhấn màu thương hiệu, mảng lót
-  // là màu thương hiệu rất trong.
+  // Một màu: nét và chi tiết đều màu chữ (đen, sang trắng ở chế độ tối), không
+  // mảng lót — icon nét kiểu ZaloPay. Bộ icon vẫn nhận ba màu riêng
+  // (home-icons.tsx) nên muốn quay lại hai tông chỉ cần đổi ở đây.
   const tone = useMemo<IconTone>(
-    () =>
-      isDark
-        ? {
-            stroke: colors.foreground.dark,
-            accent: colors.primary.dark,
-            fill: hexToRgba(colors.primary.dark, 0.24),
-          }
-        : {
-            stroke: colors.foreground.light,
-            accent: colors.primary.light,
-            fill: hexToRgba(colors.primary.light, 0.16),
-          },
-    [isDark],
+    () => ({ stroke: foreground, accent: foreground, fill: 'none' }),
+    [foreground],
   )
 
   return (
