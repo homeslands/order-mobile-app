@@ -479,9 +479,9 @@
       "selectSubtitle": "Chọn hình thức QR phù hợp với yêu cầu của bạn",
       "memberId": "Mã định danh",
       "memberIdDesc": "Nhân viên quét mã tại quầy",
-      "coinPayment": "Thanh toán Xu",
+      "coinPayment": "Trả bằng Xu",
       "coinPaymentDesc": "Đưa mã cho nhân viên quét để trả bằng xu",
-      "scanPay": "Quét QR trả đơn",
+      "scanPay": "Quét trả đơn",
       "scanPayDesc": "Trả đơn tại quầy bằng xu của bạn",
       "downloadButton": "Lưu QR vào ảnh"
     },

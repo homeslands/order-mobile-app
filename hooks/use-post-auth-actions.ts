@@ -11,8 +11,8 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback } from 'react'
 
-import { getLoyaltyPoints } from '@/api/loyalty-point'
 import { BannerPage, QUERYKEY, Role } from '@/constants'
+import { loyaltyPointsTotalQueryOptions } from '@/hooks/use-loyalty-point'
 import { useProfile } from '@/hooks/use-profile'
 import { navigateNative } from '@/lib/navigation'
 import { useMasterTransitionOptional } from '@/lib/navigation/master-transition-provider'
@@ -119,14 +119,9 @@ export function usePostAuthActions() {
 
       // 5. Prefetch loyalty points để Profile render từ cache
       if (profileResult.slug) {
-        await queryClient.prefetchQuery({
-          queryKey: [
-            QUERYKEY.loyaltyPoints,
-            'total',
-            { slug: profileResult.slug },
-          ],
-          queryFn: () => getLoyaltyPoints(profileResult.slug),
-        })
+        await queryClient.prefetchQuery(
+          loyaltyPointsTotalQueryOptions(profileResult.slug),
+        )
       }
 
       // 6. Navigate

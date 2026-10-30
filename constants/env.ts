@@ -12,13 +12,14 @@ export const orderExpirationTimeInSeconds = Number(
 
 export const phone = process.env.EXPO_PUBLIC_TREND_PHONE
 
+/** Số hotline trên Home (ô Liên hệ). Thiếu thì ô tự ẩn — xem HomeActionGrid. */
+export const hotline = process.env.EXPO_PUBLIC_TREND_HOTLINE
+
 export const registrationPhone = process.env.EXPO_PUBLIC_REGISTRATION_PHONE
 
 export const mail = process.env.EXPO_PUBLIC_TREND_EMAIL
 
 export const fanpageUrl = process.env.EXPO_PUBLIC_TREND_FANPAGE_URL
-
-export const youtubeVideoId = process.env.EXPO_PUBLIC_TREND_YOUTUBE_VIDEO_ID
 
 export const firebaseConfig = {
   apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,

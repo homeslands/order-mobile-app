@@ -25,11 +25,11 @@ import { useTranslation } from 'react-i18next'
 import { Platform, View, useColorScheme } from 'react-native'
 
 import { getGiftCards } from '@/api'
-import { getLoyaltyPoints } from '@/api/loyalty-point'
 import { QUERYKEY, TAB_ROUTES, tabsScreenOptions } from '@/constants'
 import { colors as palette } from '@/constants'
 import { STATIC_BOTTOM_INSET } from '@/constants/status-bar'
 import { useGlassEnabled } from '@/hooks/use-glass'
+import { loyaltyPointsTotalQueryOptions } from '@/hooks/use-loyalty-point'
 import { getThemeColor, hexToRgba } from '@/lib/utils'
 import { useAuthStore, useUserStore } from '@/stores'
 import { useQueryClient } from '@tanstack/react-query'
@@ -143,17 +143,11 @@ export function CustomTabsNavigator() {
         }
       }
       if (href?.includes('/profile') && userSlug) {
-        const loyaltyKey = [QUERYKEY.loyaltyPoints, 'total', { slug: userSlug }]
-        if (!queryClient.getQueryData(loyaltyKey)) {
-          queryClient
-            .prefetchQuery({
-              queryKey: loyaltyKey,
-              queryFn: async () => {
-                const res = await getLoyaltyPoints(userSlug)
-                return res.result
-              },
-            })
-            .catch(() => {})
+        // Qua factory, không tự dựng key + queryFn: chỗ này từng ghi
+        // `res.result` trong khi mọi chỗ đọc chờ nguyên response.
+        const loyalty = loyaltyPointsTotalQueryOptions(userSlug)
+        if (!queryClient.getQueryData(loyalty.queryKey)) {
+          queryClient.prefetchQuery(loyalty).catch(() => {})
         }
       }
     },

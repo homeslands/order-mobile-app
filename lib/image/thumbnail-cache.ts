@@ -1,7 +1,11 @@
 import { deleteAsync } from 'expo-file-system/legacy'
+import { AppState } from 'react-native'
 
 import { getMMKV } from '@/utils/storage'
-import { THUMBNAIL_CACHE_MAX } from './resize-config'
+import {
+  THUMBNAIL_CACHE_MAX,
+  THUMBNAIL_INDEX_PERSIST_MS,
+} from './resize-config'
 
 const INDEX_KEY = 'thumb-index-v1'
 
@@ -10,10 +14,15 @@ type Index = Record<string, Entry>
 
 let index: Map<string, Entry> | null = null
 let clock = 0
+let persistTimer: ReturnType<typeof setTimeout> | null = null
 
 function load(): Map<string, Entry> {
   if (index) return index
   index = new Map()
+  // Xuống nền là lúc app có thể bị kill — ghi ngay phần đang chờ.
+  AppState.addEventListener('change', (state) => {
+    if (state !== 'active') flushThumbnailIndex()
+  })
   const mmkv = getMMKV()
   const raw = mmkv?.getString(INDEX_KEY)
   if (raw) {
@@ -28,10 +37,35 @@ function load(): Map<string, Entry> {
   return index
 }
 
-function persist(map: Map<string, Entry>): void {
+function writeIndex(): void {
   const mmkv = getMMKV()
-  if (!mmkv) return
-  mmkv.set(INDEX_KEY, JSON.stringify(Object.fromEntries(map)))
+  if (!mmkv || !index) return
+  mmkv.set(INDEX_KEY, JSON.stringify(Object.fromEntries(index)))
+}
+
+/** Hẹn ghi chỉ mục — bộ nhớ là nguồn thật, MMKV chỉ là bản lưu. */
+function schedulePersist(): void {
+  if (persistTimer) clearTimeout(persistTimer)
+  persistTimer = setTimeout(() => {
+    persistTimer = null
+    writeIndex()
+  }, THUMBNAIL_INDEX_PERSIST_MS)
+}
+
+/** Ghi ngay phần chỉ mục đang chờ (nếu có). */
+export function flushThumbnailIndex(): void {
+  if (!persistTimer) return
+  clearTimeout(persistTimer)
+  persistTimer = null
+  writeIndex()
+}
+
+/**
+ * Nạp chỉ mục từ MMKV vào bộ nhớ. Gọi lúc khởi động để lần đọc đầu tiên
+ * (trong render của ô danh sách) không phải parse cả chỉ mục.
+ */
+export function warmThumbnailIndex(): void {
+  load()
 }
 
 /** Stable djb2 hash of `${url}|${width}` in base36. */
@@ -82,7 +116,7 @@ export function putCachedThumbnail(
   clock += 1
   map.set(thumbnailKey(remoteUrl, width), { uri, ts: clock })
   evict(map)
-  persist(map)
+  schedulePersist()
 }
 
 export function invalidateThumbnail(remoteUrl: string, width: number): void {
@@ -92,5 +126,5 @@ export function invalidateThumbnail(remoteUrl: string, width: number): void {
   if (!removed) return
   map.delete(key)
   deleteAsync(removed.uri, { idempotent: true }).catch(() => {})
-  persist(map)
+  schedulePersist()
 }

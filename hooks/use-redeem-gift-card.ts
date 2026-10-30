@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 import { redeemGiftCard } from '@/api'
 import { QUERYKEY } from '@/constants'
+import { loyaltyPointsTotalQueryOptions } from '@/hooks/use-loyalty-point'
 import type {
   IApiResponse,
   IUseGiftCardRequest,
@@ -19,11 +20,7 @@ export const useRedeemGiftCard = () => {
     mutationFn: (data) => redeemGiftCard(data),
     onSuccess: (_data, variables) => {
       void queryClient.invalidateQueries({
-        queryKey: [
-          QUERYKEY.loyaltyPoints,
-          'total',
-          { slug: variables.userSlug },
-        ],
+        queryKey: loyaltyPointsTotalQueryOptions(variables.userSlug).queryKey,
       })
       void queryClient.invalidateQueries({ queryKey: [QUERYKEY.userGiftCards] })
       void queryClient.invalidateQueries({

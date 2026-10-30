@@ -28,9 +28,11 @@ import { TAB_ROUTES } from '@/constants/navigation.config'
 import { TabScreenLayout } from '@/components/layout'
 import { FloatingHeader } from '@/components/navigation/floating-header'
 import { useRunAfterTransition } from '@/hooks'
+import { useMountOnFirstOpen } from '@/hooks/use-mount-on-first-open'
 import { useOrderFlowStore } from '@/stores'
 import { useOrderFlowCartItemCount } from '@/stores/selectors'
 import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
+import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { Text } from '@/components/ui/text'
 
 const CartContent = lazy(() => import('@/components/cart/cart-content'))
@@ -250,6 +252,35 @@ const clearBtnStyles = StyleSheet.create({
 
 // ─── Skeleton Shell ──────────────────────────────────────────────────────────
 
+/**
+ * Thân skeleton (không header). Dùng làm fallback của Suspense trong lúc tải
+ * phần nội dung — header thật đã nằm cạnh Suspense. Khoảng đệm trên khớp
+ * danh sách thật (cart-content: STATIC_TOP_INSET + 60) để không nhảy bố cục.
+ */
+function CartShellBody({ isDark }: { isDark: boolean }) {
+  const blockBg = isDark ? colors.card.dark : colors.gray[100]
+  return (
+    <View
+      pointerEvents="none"
+      style={{
+        flex: 1,
+        backgroundColor: isDark
+          ? colors.background.dark
+          : colors.background.light,
+      }}
+    >
+      <View style={{ padding: 16, gap: 12, paddingTop: STATIC_TOP_INSET + 60 }}>
+        <View
+          style={{ height: 88, borderRadius: 14, backgroundColor: blockBg }}
+        />
+        <View
+          style={{ height: 88, borderRadius: 14, backgroundColor: blockBg }}
+        />
+      </View>
+    </View>
+  )
+}
+
 function CartShell({
   onBack,
   isDark,
@@ -259,31 +290,9 @@ function CartShell({
 }) {
   const { t } = useTranslation('menu')
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: isDark
-          ? colors.background.dark
-          : colors.background.light,
-      }}
-    >
+    <View style={{ flex: 1 }}>
+      <CartShellBody isDark={isDark} />
       <FloatingHeader title={t('cart.title')} onBack={onBack} disableBlur />
-      <View style={{ padding: 16, gap: 12, paddingTop: 80 }}>
-        <View
-          style={{
-            height: 88,
-            borderRadius: 14,
-            backgroundColor: isDark ? colors.card.dark : colors.gray[100],
-          }}
-        />
-        <View
-          style={{
-            height: 88,
-            borderRadius: 14,
-            backgroundColor: isDark ? colors.card.dark : colors.gray[100],
-          }}
-        />
-      </View>
     </View>
   )
 }
@@ -298,6 +307,7 @@ export default function CartScreen() {
   const { t } = useTranslation('menu')
   const [contentReady, setContentReady] = useState(false)
   const [clearSheetVisible, setClearSheetVisible] = useState(false)
+  const clearSheetMounted = useMountOnFirstOpen(clearSheetVisible)
 
   const showContent = useCallback(() => setContentReady(true), [])
   useRunAfterTransition(showContent, [], { androidDelayMs: 40 })
@@ -320,9 +330,7 @@ export default function CartScreen() {
     <TabScreenLayout>
       {contentReady ? (
         <>
-          <Suspense
-            fallback={<View style={{ flex: 1 }} pointerEvents="none" />}
-          >
+          <Suspense fallback={<CartShellBody isDark={isDark} />}>
             <CartContent />
           </Suspense>
           <FloatingHeader
@@ -341,12 +349,14 @@ export default function CartScreen() {
         <CartShell onBack={handleBack} isDark={isDark} />
       )}
 
-      <ClearCartSheet
-        visible={clearSheetVisible}
-        onClose={handleCloseClearSheet}
-        onConfirm={handleConfirmClear}
-        isDark={isDark}
-      />
+      {clearSheetMounted && (
+        <ClearCartSheet
+          visible={clearSheetVisible}
+          onClose={handleCloseClearSheet}
+          onConfirm={handleConfirmClear}
+          isDark={isDark}
+        />
+      )}
     </TabScreenLayout>
   )
 }

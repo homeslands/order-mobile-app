@@ -4,17 +4,11 @@
 import { colors } from '@/constants'
 import { cartActions, useCartItemVoucherDiscount } from '@/stores/cart.store'
 import { capitalizeFirst } from '@/utils'
+import { useRecyclingState } from '@shopify/flash-list'
 import { formatCurrencyNative } from 'cart-price-calc'
 import { Image } from 'expo-image'
 import { NotebookText } from 'lucide-react-native'
-import React, {
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import React, { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, TextInput, View } from 'react-native'
 
@@ -23,6 +17,12 @@ import { CartSwipeable } from './cart-swipeable'
 import { Text } from '@/components/ui/text'
 
 const DEBOUNCE_QTY_MS = 200
+/**
+ * Đối số thứ hai của setter useRecyclingState: true = chỉ render lại ô này,
+ * không bắt FlashList tính lại bố cục cả danh sách (mặc định). Số lượng chờ và
+ * chữ ghi chú đổi mỗi phím gõ / mỗi lần +/- — như useState trước đây.
+ */
+const SKIP_LIST_LAYOUT = true
 
 // Module-level theme constants — zero allocation per render
 const THEME_LIGHT = {
@@ -83,7 +83,11 @@ export const CartItemRow = memo(
     const voucherDiscountPerUnit = useCartItemVoucherDiscount(item.cartKey)
     const updateQuantity = cartActions.updateQuantity
 
-    const [pendingQty, setPendingQty] = useState<number | null>(null)
+    // FlashList tái dùng ô cho món khác mà không unmount — state phải reset
+    // theo cartKey, nếu không món mới hiện số lượng/ghi chú của món cũ.
+    const [pendingQty, setPendingQty] = useRecyclingState<number | null>(null, [
+      item.cartKey,
+    ])
     const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     // Display: pending (optimistic) or actual
@@ -94,25 +98,25 @@ export const CartItemRow = memo(
         if (debounceRef.current) clearTimeout(debounceRef.current)
         debounceRef.current = setTimeout(() => {
           updateQuantity(item.cartKey, qty)
-          setPendingQty(null)
+          setPendingQty(null, SKIP_LIST_LAYOUT)
           debounceRef.current = null
         }, DEBOUNCE_QTY_MS)
       },
-      [item.cartKey, updateQuantity],
+      [item.cartKey, updateQuantity, setPendingQty],
     )
 
     const handleIncrease = useCallback(() => {
       const next = displayQty + 1
-      setPendingQty(next)
+      setPendingQty(next, SKIP_LIST_LAYOUT)
       scheduleSync(next)
-    }, [displayQty, scheduleSync])
+    }, [displayQty, scheduleSync, setPendingQty])
 
     const handleDecrease = useCallback(() => {
       if (displayQty <= 1) return
       const next = displayQty - 1
-      setPendingQty(next)
+      setPendingQty(next, SKIP_LIST_LAYOUT)
       scheduleSync(next)
-    }, [displayQty, scheduleSync])
+    }, [displayQty, scheduleSync, setPendingQty])
 
     const hasPromotion = item.promotionValue > 0
     const hasVoucherDiscount = voucherDiscountPerUnit > 0
@@ -121,19 +125,21 @@ export const CartItemRow = memo(
       (hasVoucherDiscount ? priceAfterVoucher : item.price) * displayQty
     const lineTotalBeforeVoucher = item.price * displayQty
 
-    const [localNote, setLocalNote] = useState(item.note)
+    const [localNote, setLocalNote] = useRecyclingState(item.note, [
+      item.cartKey,
+    ])
     const noteDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     const handleNoteChange = useCallback(
       (text: string) => {
-        setLocalNote(text)
+        setLocalNote(text, SKIP_LIST_LAYOUT)
         if (noteDebounceRef.current) clearTimeout(noteDebounceRef.current)
         noteDebounceRef.current = setTimeout(() => {
           cartActions.addNote(item.cartKey, text)
           noteDebounceRef.current = null
         }, 400)
       },
-      [item.cartKey],
+      [item.cartKey, setLocalNote],
     )
 
     // Cleanup pending timers on unmount — both qty debounce and note debounce
@@ -174,7 +180,7 @@ export const CartItemRow = memo(
                 style={rowStyles.image}
                 contentFit="cover"
                 recyclingKey={item.cartKey}
-                cachePolicy="disk"
+                cachePolicy="memory-disk"
                 placeholder={{ blurhash: 'LKO2?U%2Tw=w]~RBVZRi};RPxuwH' }}
                 transition={0}
                 priority="high"
