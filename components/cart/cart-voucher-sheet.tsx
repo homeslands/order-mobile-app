@@ -2,8 +2,13 @@ import {
   deriveScanStatus,
   type ScanStatus,
 } from '@/components/sheet/scan-status'
-import { processVoucherList } from '@/components/sheet/voucher-validation'
+import {
+  findProcessedVoucher,
+  processVoucherList,
+} from '@/components/sheet/voucher-validation'
 import { VoucherQrScanner } from '@/components/scan/voucher-qr-scanner'
+import { InvalidList } from '@/app/update-order/components/voucher-sheet-in-update-order/invalid-list'
+import { SearchResult } from '@/app/update-order/components/voucher-sheet-in-update-order/search-result'
 import { VoucherCard } from './voucher-card'
 import { VoucherConditionModal } from './voucher-condition-modal'
 import { colors } from '@/constants'
@@ -287,6 +292,14 @@ export const VoucherSheet = memo(function VoucherSheet({
       tVoucher,
     ],
   )
+  // Bản đã qua validate của chính voucher đang mở sheet điều kiện — để sheet
+  // đánh dấu đạt/chưa đạt theo giỏ hàng hiện tại thay vì liệt kê suông.
+  const conditionProcessed = useMemo(
+    () =>
+      findProcessedVoucher(conditionVoucher?.slug, processedFetched, processed),
+    [processed, processedFetched, conditionVoucher],
+  )
+
   const { validVouchers, invalidVouchers } = useMemo(() => {
     const valid: typeof processed = []
     const invalid: typeof processed = []
@@ -714,42 +727,17 @@ export const VoucherSheet = memo(function VoucherSheet({
           contentContainerStyle={voucherSheetStyles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          {/* Search result area */}
-          {isFetching && searchCode.length > 0 && (
-            <View style={voucherSheetStyles.resultRow}>
-              <Text
-                style={{
-                  color: isDark ? colors.gray[400] : colors.gray[500],
-                  fontSize: 13,
-                }}
-              >
-                {tVoucher('searching')}
-              </Text>
-            </View>
-          )}
-          {!isFetching && searchCode.length > 0 && !fetchedVoucher && (
-            <View style={voucherSheetStyles.resultRow}>
-              <Text style={{ color: colors.destructive.light, fontSize: 13 }}>
-                {tVoucher('codeNotFound', { code: searchCode })}
-              </Text>
-            </View>
-          )}
-          {!isFetching && fetchedVoucher && processedFetched && (
-            <VoucherCard
-              voucher={processedFetched.voucher}
-              isSelected={
-                selectedVoucher?.slug === processedFetched.voucher.slug
-              }
-              primaryColor={primaryColor}
-              isDark={isDark}
-              onSelect={handleSelectBySlug}
-              onViewCondition={handleViewCondition}
-              discountLabel={processedFetched.discountLabel}
-              expiryText={processedFetched.expiryText}
-              minOrderText={processedFetched.minOrderText}
-              usagePercent={processedFetched.usagePercent}
-            />
-          )}
+          <SearchResult
+            isFetching={isFetching}
+            searchCode={searchCode}
+            fetchedVoucher={fetchedVoucher}
+            processedFetched={processedFetched}
+            selectedVoucher={selectedVoucher}
+            onSelect={handleSelectBySlug}
+            onViewCondition={handleViewCondition}
+            isDark={isDark}
+            primaryColor={primaryColor}
+          />
 
           {/* Valid vouchers */}
           {validVouchers.length > 0 && (
@@ -782,48 +770,19 @@ export const VoucherSheet = memo(function VoucherSheet({
                   isDark={isDark}
                   onSelect={handleSelectBySlug}
                   onViewCondition={handleViewCondition}
-                  discountLabel={p.discountLabel}
                   expiryText={p.expiryText}
-                  minOrderText={p.minOrderText}
-                  usagePercent={p.usagePercent}
+                  discountLabel={p.discountLabel}
                 />
               ))}
             </>
           )}
 
-          {/* Invalid vouchers */}
-          {invalidVouchers.length > 0 && (
-            <>
-              <View style={voucherSheetStyles.listHeader}>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    fontWeight: '600',
-                    color: isDark ? colors.gray[400] : colors.gray[500],
-                  }}
-                >
-                  {tVoucher('unavailable')}
-                </Text>
-              </View>
-              {invalidVouchers.slice(0, 5).map((p) => (
-                <View key={p.voucher.slug} style={{ opacity: 0.5 }}>
-                  <VoucherCard
-                    voucher={p.voucher}
-                    isSelected={false}
-                    primaryColor={primaryColor}
-                    isDark={isDark}
-                    onSelect={handleSelectBySlug}
-                    onViewCondition={handleViewCondition}
-                    errorMessage={p.errorMessage}
-                    discountLabel={p.discountLabel}
-                    expiryText={p.expiryText}
-                    minOrderText={p.minOrderText}
-                    usagePercent={p.usagePercent}
-                  />
-                </View>
-              ))}
-            </>
-          )}
+          <InvalidList
+            vouchers={invalidVouchers}
+            onViewCondition={handleViewCondition}
+            isDark={isDark}
+            primaryColor={primaryColor}
+          />
 
           {/* Loading / load more */}
           {isLoadingList && (
@@ -869,6 +828,8 @@ export const VoucherSheet = memo(function VoucherSheet({
         primaryColor={primaryColor}
         indicatorStyle={indicatorStyle}
         bottomInset={insets.bottom}
+        conditionStatus={conditionProcessed?.conditionStatus}
+        errorMessage={conditionProcessed?.errorMessage}
       />
     </>
   )
@@ -955,9 +916,6 @@ const voucherSheetStyles = StyleSheet.create({
     flex: 1,
     fontSize: 12,
     fontWeight: '600',
-  },
-  resultRow: {
-    marginTop: 14,
   },
   listHeader: {
     flexDirection: 'row',

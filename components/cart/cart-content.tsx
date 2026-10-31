@@ -7,7 +7,9 @@ import {
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { shouldAutoRemoveVoucher } from '@/components/sheet/voucher-validation'
 import { useCartValidation } from '@/hooks/use-cart-validation'
+import { useMountOnFirstOpen } from '@/hooks/use-mount-on-first-open'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
+import { scheduleTransitionTask } from '@/lib/navigation/transition-task-queue'
 import {
   cartActions,
   useCartItems,
@@ -105,7 +107,12 @@ export default function CartContent() {
   useEffect(() => {
     if (didAutoValidateRef.current || rawItems.length === 0) return
     didAutoValidateRef.current = true
-    validate()
+    // Kiểm giá tải cả menu và có thể ghi store: không chạy chen vào animation
+    // chuyển màn. (Cổng validate(true) trước khi đặt hàng ở cart-footer vẫn
+    // chạy và chờ kết quả như cũ.)
+    scheduleTransitionTask(() => {
+      void validate()
+    })
     // Pre-warm feature flags cache so "Đặt hàng" opens sheet without delay
     queryClient.prefetchQuery({
       queryKey: [
@@ -123,6 +130,8 @@ export default function CartContent() {
     [],
   )
   const handleSizeClose = useCallback(() => setSizeSheetItemId(null), [])
+  // Sheet đổi size chỉ dựng khi mở lần đầu.
+  const sizeSheetMounted = useMountOnFirstOpen(sizeSheetItemId != null)
 
   const handleBrowse = useCallback(() => {
     router.replace('/(tabs)/menu')
@@ -179,13 +188,15 @@ export default function CartContent() {
         ListFooterComponent={CartOrderNoteFooter}
       />
       <CartFooter primaryColor={primaryColor} isDark={isDark} />
-      <CartSizeSheet
-        visible={!!sizeSheetItemId}
-        itemId={sizeSheetItemId}
-        onClose={handleSizeClose}
-        isDark={isDark}
-        primaryColor={primaryColor}
-      />
+      {sizeSheetMounted && (
+        <CartSizeSheet
+          visible={!!sizeSheetItemId}
+          itemId={sizeSheetItemId}
+          onClose={handleSizeClose}
+          isDark={isDark}
+          primaryColor={primaryColor}
+        />
+      )}
     </View>
   )
 }

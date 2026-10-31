@@ -164,3 +164,25 @@ describe('processVoucherList — bất biến', () => {
     },
   )
 })
+
+// Sheet điều kiện đặt dải lý do (errorMessage) cạnh các dòng đạt/chưa đạt
+// (conditionStatus). Hai thứ phải nói cùng một điều: không hợp lệ thì có ít
+// nhất một dòng chưa đạt; hợp lệ thì không có lý do lỗi.
+describe('processVoucherList — conditionStatus khớp isValid', () => {
+  it('CS1 voucher đã ngừng: có dòng chưa đạt (không tích xanh cả loạt)', () => {
+    const r = run(makeVoucher({ isActive: false }))
+    expect(r.isValid).toBe(false)
+    expect(Object.values(r.conditionStatus)).toContain(false)
+    expect(r.conditionStatus.expiry).toBe(false)
+  })
+
+  it('CS2 voucher dùng được thì không mang lý do lỗi', () => {
+    // Đăng nhập nhưng chưa xác thực (isCustomerOwner false) với voucher cần
+    // xác thực: isIdentityValid chỉ đòi đăng nhập, nên mã vẫn hợp lệ.
+    const r = run(makeVoucher({ isVerificationIdentity: true }), {
+      isCustomerOwner: false,
+    })
+    expect(r.isValid).toBe(true)
+    expect(r.errorMessage).toBe('')
+  })
+})

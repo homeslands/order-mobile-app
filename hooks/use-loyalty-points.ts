@@ -1,7 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 
-import { getLoyaltyPoints } from '@/api/loyalty-point'
-import { QUERYKEY } from '@/constants'
+import { loyaltyPointsTotalQueryOptions } from './use-loyalty-point'
 
 /** Hook: lấy tổng điểm tích luỹ thật cho user (ILoyaltyPoint.totalPoints). */
 export function useLoyaltyPoints(
@@ -10,18 +9,18 @@ export function useLoyaltyPoints(
   enabledOverride?: boolean,
 ) {
   const query = useQuery({
-    queryKey: [QUERYKEY.loyaltyPoints, 'total', { slug: slug || '' }],
-    queryFn: async () => {
-      if (!slug) return { totalPoints: 0 }
-      const response = await getLoyaltyPoints(slug)
-      return response.result
-    },
+    ...loyaltyPointsTotalQueryOptions(slug ?? ''),
+    // Cache giữ nguyên response (xem loyaltyPointsTotalQueryOptions); bóc
+    // `.result` ở đây, lúc đọc, chứ không ở queryFn.
+    select: (data) => data.result,
     enabled: !!slug && (enabledOverride ?? true),
     placeholderData: keepPreviousData,
   })
 
   return {
     totalPoints: query.data?.totalPoints ?? 0,
+    /** false khi chưa có dữ liệu — `totalPoints` lúc đó là 0 giả. */
+    hasData: query.data !== undefined,
     isLoading: query.isPending,
     refetch: query.refetch,
   }

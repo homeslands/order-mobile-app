@@ -1,22 +1,56 @@
+/**
+ * Sheet điều kiện voucher.
+ *
+ * Người dùng mở sheet này thường vì mã KHÔNG áp được, nên nó không chỉ liệt
+ * kê điều kiện suông: mỗi dòng đánh dấu đạt hay chưa đạt so với giỏ hàng
+ * hiện tại, và lý do cụ thể hiện thành một dải cảnh báo ở đầu.
+ *
+ * `conditionStatus` và `errorMessage` là tuỳ chọn — nơi gọi nào không có
+ * danh sách đã qua processVoucherList thì sheet rơi về dạng liệt kê trung
+ * tính, không dấu tích, thay vì hiện sai.
+ *
+ * Chiều cao theo nội dung (`enableDynamicSizing`) chứ không khoá 60%: danh
+ * sách sản phẩm áp dụng dài ngắn rất khác nhau. Bản trước khoá cứng 60% và
+ * bọc trong View thường, nên voucher gắn nhiều món thì phần cuối bị cắt và
+ * KHÔNG có cách nào đọc tới.
+ *
+ * Nhưng `enableDynamicSizing` một mình thì KHÔNG có trần: voucher gắn vài
+ * chục món đẩy sheet lên che cả thanh trạng thái, tiêu đề đâm vào đồng hồ.
+ * Nên phải chặn bằng `topInset` (chừa thanh trạng thái) và
+ * `maxDynamicContentSize` (trần chiều cao nội dung); quá trần thì cuộn trong
+ * sheet.
+ */
 import { colors } from '@/constants'
+import {
+  formatVoucherPaymentMethods,
+  type VoucherConditionStatus,
+} from '@/components/sheet/voucher-validation'
 import type { IVoucher } from '@/types'
 import { showToast } from '@/utils'
 import {
   BottomSheetBackdrop,
   type BottomSheetBackdropProps,
   BottomSheetModal,
+  BottomSheetScrollView,
 } from '@gorhom/bottom-sheet'
 import { formatCurrencyNative } from 'cart-price-calc'
 import dayjs from 'dayjs'
 import * as Clipboard from 'expo-clipboard'
-import { Copy } from 'lucide-react-native'
+import { AlertTriangle, Check, Copy, X } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, StyleSheet, View } from 'react-native'
+import { Dimensions, Pressable, StyleSheet, View } from 'react-native'
 import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
+import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { Text } from '@/components/ui/text'
 
-const CONDITION_SHEET_SNAP = ['60%']
+/**
+ * Trần chiều cao nội dung. Chừa thanh trạng thái cộng một khoảng để vạch kéo
+ * không dính sát mép, và để lộ chút nền phía sau cho người dùng biết đây là
+ * sheet chứ không phải một màn mới.
+ */
+const SHEET_TOP_GAP = STATIC_TOP_INSET + 24
+const MAX_CONTENT_HEIGHT = Dimensions.get('window').height - SHEET_TOP_GAP - 32
 
 interface VoucherConditionModalProps {
   voucher: IVoucher | null
@@ -25,7 +59,50 @@ interface VoucherConditionModalProps {
   primaryColor: string
   indicatorStyle: { backgroundColor: string }
   bottomInset: number
+  /** Từ processVoucherList. Thiếu thì các dòng hiện trung tính. */
+  conditionStatus?: VoucherConditionStatus
+  /** Lý do cụ thể mã chưa dùng được, hiện thành dải cảnh báo ở đầu. */
+  errorMessage?: string
 }
+
+/** Một dòng điều kiện: đạt, chưa đạt, hoặc thông tin thuần (met undefined). */
+const ConditionRow = memo(function ConditionRow({
+  met,
+  label,
+  isDark,
+  primaryColor,
+}: {
+  met?: boolean
+  label: string
+  isDark: boolean
+  primaryColor: string
+}) {
+  const textColor = isDark ? colors.gray[300] : colors.gray[700]
+  const mutedColor = isDark ? colors.gray[500] : colors.gray[400]
+
+  return (
+    <View style={s.condRow}>
+      <View style={s.condIcon}>
+        {met === undefined ? (
+          <View style={[s.dot, { backgroundColor: mutedColor }]} />
+        ) : met ? (
+          <Check size={15} color={primaryColor} />
+        ) : (
+          <X size={15} color={colors.destructive.light} />
+        )}
+      </View>
+      <Text
+        className="font-sans"
+        style={[
+          s.condText,
+          { color: met === false ? colors.destructive.light : textColor },
+        ]}
+      >
+        {label}
+      </Text>
+    </View>
+  )
+})
 
 export const VoucherConditionModal = memo(function VoucherConditionModal({
   voucher,
@@ -34,6 +111,8 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
   primaryColor,
   indicatorStyle,
   bottomInset,
+  conditionStatus,
+  errorMessage,
 }: VoucherConditionModalProps) {
   const { t } = useTranslation('voucher')
   const { t: tToast } = useTranslation('toast')
@@ -60,34 +139,66 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
     [],
   )
 
+  const handleCopy = useCallback(() => {
+    if (!voucher) return
+    void Clipboard.setStringAsync(voucher.code)
+    showToast(tToast('toast.copyCodeSuccess'))
+  }, [voucher, tToast])
+
+  const handleClose = useCallback(() => sheetRef.current?.dismiss(), [])
+
   if (!voucher) return null
+
+  const textColor = isDark ? colors.gray[50] : colors.gray[900]
+  const mutedColor = isDark ? colors.gray[400] : colors.gray[500]
+  const borderColor = isDark ? colors.gray[700] : colors.gray[200]
+  const products = voucher.voucherProducts ?? []
+  const paymentMethods = formatVoucherPaymentMethods(voucher, t)
 
   return (
     <BottomSheetModal
       ref={sheetRef}
-      snapPoints={CONDITION_SHEET_SNAP}
       enablePanDownToClose
-      enableContentPanningGesture={false}
+      // Bật kéo cả thân sheet: trước đây tắt, nên muốn đóng phải trúng đúng
+      // cái vạch nhỏ trên cùng.
+      enableContentPanningGesture
       enableHandlePanningGesture
-      enableDynamicSizing={false}
+      enableDynamicSizing
+      maxDynamicContentSize={MAX_CONTENT_HEIGHT}
+      topInset={SHEET_TOP_GAP}
       backgroundComponent={GlassSheetBackground}
       handleIndicatorStyle={indicatorStyle}
       onDismiss={onClose}
       backdropComponent={renderBackdrop}
     >
-      <View style={[condStyles.content, { paddingBottom: bottomInset + 16 }]}>
-        <Text
-          style={[
-            condStyles.header,
-            { color: isDark ? colors.gray[50] : colors.gray[900] },
-          ]}
-        >
-          {t('conditionSheetTitle')}
-        </Text>
+      <BottomSheetScrollView
+        contentContainerStyle={[s.content, { paddingBottom: bottomInset + 16 }]}
+      >
+        <View style={s.headerRow}>
+          <Text
+            className="font-sans-bold"
+            style={[s.title, { color: textColor }]}
+            numberOfLines={2}
+          >
+            {voucher.title}
+          </Text>
+          <Pressable onPress={handleClose} hitSlop={10} style={s.closeBtn}>
+            <X size={18} color={mutedColor} />
+          </Pressable>
+        </View>
+
+        {errorMessage ? (
+          <View style={[s.warning, { borderColor: colors.destructive.light }]}>
+            <AlertTriangle size={15} color={colors.destructive.light} />
+            <Text className="font-sans" style={s.warningText}>
+              {t('cannotUseReason', { reason: errorMessage })}
+            </Text>
+          </View>
+        ) : null}
 
         <View
           style={[
-            condStyles.codeRow,
+            s.infoRow,
             {
               borderColor: `${primaryColor}30`,
               backgroundColor: `${primaryColor}08`,
@@ -95,132 +206,174 @@ export const VoucherConditionModal = memo(function VoucherConditionModal({
           ]}
         >
           <Text
-            style={[
-              condStyles.codeLabel,
-              { color: isDark ? colors.gray[400] : colors.gray[500] },
-            ]}
+            className="font-sans"
+            style={[s.infoLabel, { color: mutedColor }]}
           >
             {t('code')}
           </Text>
-          <View style={condStyles.codeRight}>
-            <Text style={[condStyles.codeValue, { color: primaryColor }]}>
+          {/* Cả hàng bắt chạm để sao chép, không chỉ cái icon 14px. */}
+          <Pressable onPress={handleCopy} hitSlop={8} style={s.infoRight}>
+            <Text
+              className="font-sans-bold"
+              style={[s.code, { color: primaryColor }]}
+            >
               {voucher.code}
             </Text>
-            <Pressable
-              hitSlop={8}
-              onPress={() => {
-                Clipboard.setStringAsync(voucher.code)
-                showToast(tToast('toast.copyCodeSuccess'))
-              }}
-            >
-              <Copy
-                size={14}
-                color={isDark ? colors.gray[400] : colors.gray[500]}
-              />
-            </Pressable>
-          </View>
+            <Copy size={14} color={mutedColor} />
+          </Pressable>
         </View>
 
-        <View
-          style={[
-            condStyles.dateRow,
-            {
-              borderColor: isDark ? colors.gray[700] : colors.gray[200],
-            },
-          ]}
-        >
+        <View style={[s.infoRow, { borderColor }]}>
           <Text
-            style={[
-              condStyles.codeLabel,
-              { color: isDark ? colors.gray[400] : colors.gray[500] },
-            ]}
+            className="font-sans"
+            style={[s.infoLabel, { color: mutedColor }]}
           >
             {t('endDate')}
           </Text>
+          {/* Cùng thứ tự với hạn dùng trên thẻ voucher. */}
           <Text
-            style={[
-              condStyles.dateValue,
-              { color: isDark ? colors.gray[50] : colors.gray[900] },
-            ]}
+            className="font-sans-semibold"
+            style={[s.infoValue, { color: textColor }]}
           >
-            {dayjs(voucher.endDate).format('HH:mm DD/MM/YYYY')}
+            {dayjs(voucher.endDate).format('DD/MM/YYYY HH:mm')}
           </Text>
         </View>
 
         <Text
-          style={[
-            condStyles.condTitle,
-            { color: isDark ? colors.gray[50] : colors.gray[900] },
-          ]}
+          className="font-sans-semibold"
+          style={[s.sectionTitle, { color: textColor }]}
         >
           {t('condition')}
         </Text>
-        <View style={condStyles.condList}>
-          <Text
-            style={[
-              condStyles.condItem,
-              { color: isDark ? colors.gray[300] : colors.gray[700] },
-            ]}
-          >
-            {'• '}
-            {t('conditionModal.minOrderCondition', {
+        <View style={s.condList}>
+          <ConditionRow
+            met={conditionStatus?.minOrder}
+            isDark={isDark}
+            primaryColor={primaryColor}
+            label={t('conditionModal.minOrderCondition', {
               value: formatCurrencyNative(voucher.minOrderValue),
             })}
-          </Text>
-          <Text
-            style={[
-              condStyles.condItem,
-              { color: isDark ? colors.gray[300] : colors.gray[700] },
-            ]}
-          >
-            {'• '}
-            {voucher.isVerificationIdentity
-              ? t('conditionModal.hasAccount')
-              : t('conditionModal.noAccount')}
-          </Text>
-          <Text
-            style={[
-              condStyles.condItem,
-              { color: isDark ? colors.gray[300] : colors.gray[700] },
-            ]}
-          >
-            {'• '}
-            {t('conditionModal.usagePerUser', {
+          />
+          <ConditionRow
+            met={conditionStatus?.identity}
+            isDark={isDark}
+            primaryColor={primaryColor}
+            label={
+              voucher.isVerificationIdentity
+                ? t('conditionModal.hasAccount')
+                : t('conditionModal.noAccount')
+            }
+          />
+          <ConditionRow
+            met={conditionStatus?.stock}
+            isDark={isDark}
+            primaryColor={primaryColor}
+            label={t('stockCondition')}
+          />
+          <ConditionRow
+            met={conditionStatus?.expiry}
+            isDark={isDark}
+            primaryColor={primaryColor}
+            label={t('expiryCondition')}
+          />
+          <ConditionRow
+            isDark={isDark}
+            primaryColor={primaryColor}
+            label={t('conditionModal.usagePerUser', {
               value: voucher.numberOfUsagePerUser || t('unlimited'),
             })}
-          </Text>
-          {voucher.voucherProducts?.length > 0 && (
-            <Text
-              style={[
-                condStyles.condItem,
-                { color: isDark ? colors.gray[300] : colors.gray[700] },
-              ]}
-            >
-              {'• '}
-              {t('conditionModal.applicableProducts', {
-                products: voucher.voucherProducts
-                  .map((vp) => vp.product?.name || vp.slug)
-                  .join(', '),
+          />
+          {/* Thông tin thuần, không dấu đạt/chưa đạt: lúc chọn mã khách chưa
+              chọn cách trả. Thẻ vé không hiện mục này nên đây là chỗ duy nhất
+              khách biết trước, thay vì tới màn thanh toán mới thấy bị khoá. */}
+          {paymentMethods ? (
+            <ConditionRow
+              isDark={isDark}
+              primaryColor={primaryColor}
+              label={t('conditionModal.paymentMethods', {
+                methods: paymentMethods,
               })}
-            </Text>
-          )}
+            />
+          ) : null}
         </View>
-      </View>
+
+        {products.length > 0 ? (
+          <>
+            <View style={s.productsHeader}>
+              <Text
+                className="font-sans-semibold"
+                style={[s.sectionTitle, { color: textColor }]}
+              >
+                {t('applicableProductsTitle')}
+              </Text>
+              {conditionStatus?.products === false ? (
+                <X size={15} color={colors.destructive.light} />
+              ) : conditionStatus?.products ? (
+                <Check size={15} color={primaryColor} />
+              ) : null}
+            </View>
+            {/* Từng món một dòng. Trước đây nối bằng dấu phẩy thành một khối
+                chữ liền, mắt không quét được khi voucher gắn nhiều món. */}
+            <View style={s.condList}>
+              {products.map((vp) => (
+                <View key={vp.slug} style={s.condRow}>
+                  <View style={s.condIcon}>
+                    <View style={[s.dot, { backgroundColor: mutedColor }]} />
+                  </View>
+                  <Text
+                    className="font-sans"
+                    style={[
+                      s.condText,
+                      { color: isDark ? colors.gray[300] : colors.gray[700] },
+                    ]}
+                  >
+                    {vp.product?.name || vp.slug}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </>
+        ) : null}
+      </BottomSheetScrollView>
     </BottomSheetModal>
   )
 })
 
-const condStyles = StyleSheet.create({
+const s = StyleSheet.create({
   content: {
     paddingHorizontal: 20,
     paddingTop: 8,
   },
-  header: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 14,
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginBottom: 12,
   },
-  codeRow: {
+  title: {
+    flex: 1,
+    fontSize: 17,
+  },
+  closeBtn: {
+    paddingTop: 2,
+  },
+  warning: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginBottom: 10,
+  },
+  warningText: {
+    flex: 1,
+    fontSize: 13,
+    color: colors.destructive.light,
+  },
+  infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -230,42 +383,51 @@ const condStyles = StyleSheet.create({
     paddingVertical: 10,
     marginBottom: 10,
   },
-  codeLabel: {
+  infoLabel: {
     fontSize: 13,
   },
-  codeRight: {
+  infoRight: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  codeValue: {
+  code: {
     fontSize: 14,
-    fontWeight: '700',
     letterSpacing: 1,
   },
-  dateRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    marginBottom: 14,
-  },
-  dateValue: {
+  infoValue: {
     fontSize: 14,
-    fontWeight: '600',
   },
-  condTitle: {
+  sectionTitle: {
     fontSize: 14,
-    fontWeight: '600',
+    marginTop: 4,
     marginBottom: 8,
   },
-  condList: {
+  productsHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 6,
   },
-  condItem: {
+  condList: {
+    gap: 8,
+  },
+  condRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  condIcon: {
+    width: 16,
+    alignItems: 'center',
+    paddingTop: 3,
+  },
+  dot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+  },
+  condText: {
+    flex: 1,
     fontSize: 13,
     lineHeight: 20,
   },

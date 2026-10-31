@@ -1,8 +1,5 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
-import {
-  focusManager,
-  QueryClientProvider,
-} from '@tanstack/react-query'
+import { focusManager, QueryClientProvider } from '@tanstack/react-query'
 import * as SplashScreen from 'expo-splash-screen'
 import * as SystemUI from 'expo-system-ui'
 
@@ -34,6 +31,7 @@ import {
 import '@/lib/http-setup'
 import { NavigationEngineProvider } from '@/lib/navigation'
 import { queryClient } from '@/lib/query-client'
+import { warmThumbnailIndex } from '@/lib/image/thumbnail-cache'
 import { isNotificationNavigationPending } from '@/lib/notification-navigation'
 import { SharedElementProvider } from '@/lib/shared-element'
 import '@/lib/store-sync-setup'
@@ -203,6 +201,13 @@ export default function RootLayout() {
       if (deferFocusTimeout) clearTimeout(deferFocusTimeout)
       sub.remove()
     }
+  }, [])
+
+  // Nạp chỉ mục thumbnail một lần lúc rảnh, để lần đọc đầu trong render của ô
+  // Menu/Gift Card không phải parse cả chỉ mục.
+  useEffect(() => {
+    const task = InteractionManager.runAfterInteractions(warmThumbnailIndex)
+    return () => task.cancel()
   }, [])
 
   useEffect(() => {

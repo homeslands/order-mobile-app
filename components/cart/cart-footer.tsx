@@ -41,6 +41,7 @@ import { ConfirmOrderSheet } from './cart-confirm-order-sheet'
 import { SimpleOrderTypeSheet } from './cart-order-type-sheet'
 import { SimpleTableSheet } from './cart-table-sheet'
 import { VoucherSheet } from './cart-voucher-sheet'
+import { useMountOnFirstOpen } from '@/hooks/use-mount-on-first-open'
 import { PickupTimeChips } from './pickup-time-chips'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
@@ -107,6 +108,13 @@ export const CartFooter = memo(function CartFooter({
   const finalTotal = total - voucherDiscount + (deliveryFee ?? 0)
 
   const [confirmSheetVisible, setConfirmSheetVisible] = useState(false)
+  // Mỗi sheet chỉ dựng khi mở lần đầu — dựng sẵn cả năm (kèm query, mutation,
+  // hàng chục hook) là một nhịp đứng hình ngay lúc vào giỏ.
+  const confirmMounted = useMountOnFirstOpen(confirmSheetVisible)
+  const orderTypeMounted = useMountOnFirstOpen(orderTypeSheetVisible)
+  const tableMounted = useMountOnFirstOpen(tableSheetVisible)
+  const voucherMounted = useMountOnFirstOpen(voucherSheetOpen)
+  const deliveryMounted = useMountOnFirstOpen(deliverySheetVisible)
   const { validate } = useCartValidation()
   const setOrderingType = useOrderFlowStore((s) => s.setOrderingType)
 
@@ -439,44 +447,54 @@ export const CartFooter = memo(function CartFooter({
         </View>
       </View>
 
-      <ConfirmOrderSheet
-        visible={confirmSheetVisible}
-        onClose={closeConfirmSheet}
-        isDark={isDark}
-        primaryColor={primaryColor}
-      />
+      {confirmMounted && (
+        <ConfirmOrderSheet
+          visible={confirmSheetVisible}
+          onClose={closeConfirmSheet}
+          isDark={isDark}
+          primaryColor={primaryColor}
+        />
+      )}
 
-      <SimpleOrderTypeSheet
-        visible={orderTypeSheetVisible}
-        onClose={closeOrderTypeSheet}
-        onDeliverySelected={openDeliverySheet}
-        isDark={isDark}
-        primaryColor={primaryColor}
-      />
+      {orderTypeMounted && (
+        <SimpleOrderTypeSheet
+          visible={orderTypeSheetVisible}
+          onClose={closeOrderTypeSheet}
+          onDeliverySelected={openDeliverySheet}
+          isDark={isDark}
+          primaryColor={primaryColor}
+        />
+      )}
 
-      <SimpleTableSheet
-        visible={tableSheetVisible}
-        onClose={closeTableSheet}
-        isDark={isDark}
-        primaryColor={primaryColor}
-      />
+      {tableMounted && (
+        <SimpleTableSheet
+          visible={tableSheetVisible}
+          onClose={closeTableSheet}
+          isDark={isDark}
+          primaryColor={primaryColor}
+        />
+      )}
 
-      <VoucherSheet
-        visible={voucherSheetOpen}
-        onClose={closeVoucherSheet}
-        isDark={isDark}
-        primaryColor={primaryColor}
-        onApply={handleApplyVoucher}
-      />
+      {voucherMounted && (
+        <VoucherSheet
+          visible={voucherSheetOpen}
+          onClose={closeVoucherSheet}
+          isDark={isDark}
+          primaryColor={primaryColor}
+          onApply={handleApplyVoucher}
+        />
+      )}
 
-      <DeliveryAddressSheet
-        visible={deliverySheetVisible}
-        onClose={closeDeliverySheet}
-        mode="cart"
-        branchSlug={branchSlug}
-        isDark={isDark}
-        primaryColor={primaryColor}
-      />
+      {deliveryMounted && (
+        <DeliveryAddressSheet
+          visible={deliverySheetVisible}
+          onClose={closeDeliverySheet}
+          mode="cart"
+          branchSlug={branchSlug}
+          isDark={isDark}
+          primaryColor={primaryColor}
+        />
+      )}
     </>
   )
 })

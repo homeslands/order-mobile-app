@@ -80,6 +80,9 @@ export interface IOrderFlowStore {
   addOrderingItem: (item: IOrderItem) => void
   addOrderingProductVariant: (id: string) => void
   updateOrderingItemVariant: (itemId: string, variant: IProductVariant) => void
+  updateOrderingItemVariants: (
+    updates: ReadonlyArray<{ itemId: string; variant: IProductVariant }>,
+  ) => void
   updateOrderingItemQuantity: (itemId: string, quantity: number) => void
   removeOrderingItem: (itemId: string) => void
   addPickupTime: (time: number) => void

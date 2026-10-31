@@ -64,10 +64,8 @@ export function ValidList({
           isDark={isDark}
           onSelect={onSelect}
           onViewCondition={onViewCondition}
-          discountLabel={p.discountLabel}
           expiryText={p.expiryText}
-          minOrderText={p.minOrderText}
-          usagePercent={p.usagePercent}
+          discountLabel={p.discountLabel}
         />
       ))}
       {isLoading && (

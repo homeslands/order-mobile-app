@@ -16,6 +16,7 @@
     "code": "Discount Code",
     "complete": "Complete",
     "condition": "Condition",
+    "lowStock": "Almost gone",
     "confirmApplyVoucher": "Are you sure you want to apply this voucher?",
     "confirmCreateMultipleVoucher": "You are about to create ",
     "confirmCreateVoucher": "Confirm Voucher Creation",
@@ -25,7 +26,6 @@
     "confirmUpdateVoucher": "Confirm Voucher Update",
     "copyCode": "Copy Discount Code",
     "viewConditions": "View conditions",
-    "conditionSheetTitle": "Usage Conditions",
     "close": "Close",
     "removeVoucher": "Remove",
     "voucherRemoved": "Voucher removed",
@@ -201,20 +201,12 @@
     "month": "Month",
     "year": "Year",
     "unlimited": "Unlimited",
-    "minOrderLabel": "Minimum order value: {{value}}",
-    "remainingUsagePercent": "Remaining: {{value}}%",
-    "paymentMethodShort": {
-      "cash": "Cash",
-      "bankTransfer": "Transfer",
-      "point": "Points",
-      "creditCard": "Card"
-    },
     "conditionModal": {
       "minOrderCondition": "Minimum order value: {{value}}",
       "hasAccount": "Account required.",
       "noAccount": "No account required.",
       "usagePerUser": "Max usage per account: {{value}}",
-      "applicableProducts": "Applicable products: {{products}}"
+      "paymentMethods": "Pay with: {{methods}}"
     },
     "scan": {
       "title": "Scan voucher code",
@@ -241,6 +233,13 @@
       "permDeniedTitle": "Camera is blocked",
       "permDeniedBody": "Open Settings → Trend → Camera, turn on access, then come back to scan.",
       "openSettings": "Open Settings"
-    }
+    },
+    "selected": "Selected",
+    "select": "Select",
+    "validUntil": "Valid until {{date}}",
+    "cannotUseReason": "Can't use yet: {{reason}}",
+    "applicableProductsTitle": "Applicable products",
+    "stockCondition": "Voucher still has uses left",
+    "expiryCondition": "Voucher is still valid"
   }
 }

@@ -6,8 +6,6 @@
     "description": "This is the home page",
     "exploreMenu": "Featured products",
     "fanpage": "Facebook",
-    "homeDescription": "Trend Coffee is a rustic, cozy space where coffee aromas blend with warm, familiar atmosphere.",
-    "homeDescription2": "Every detail in the cafe – from rough wooden tables to soft yellow lighting and fresh coffee aromas – is carefully tended to bring a cozy, familiar feeling as if you're stepping into a familiar corner in the city.",
     "learnAboutUs": "Learn about us",
     "learnMore": "Learn more",
     "menu": "Menu",
@@ -17,27 +15,35 @@
     "newsSection": {
       "title": "News & Event"
     },
-    "videoSection": {
-      "label": "Guide",
-      "title": "Register for membership",
-      "subtitle": "Watch our video guide to earn points and unlock exclusive offers.",
-      "tap": "Tap to watch",
-      "cta": "Watch now"
-    },
-    "viewMenu": "View more MENU",
     "viewMore": "View more",
-    "loyaltyCard": {
-      "balanceLabel": "Your loyalty points",
-      "coinUnit": "pts",
-      "loginCta": "Login to earn points",
-      "loginSubtitle": "Get great deals and gifts",
-      "loginButton": "Login"
+    "greeting": {
+      "hello": "Hello"
+    },
+    "actions": {
+      "giftCardRedeem": "Redeem gift card",
+      "orderHistory": "Order history",
+      "order": "Order",
+      "hotline": "Contact",
+      "hotlineUnavailable": "This device can't make calls. Hotline: {{phone}}"
+    },
+    "balance": {
+      "coin": "Your coins",
+      "points": "Loyalty points",
+      "loginCta": "Sign in to see your coins and points",
+      "coinUnit": "coins",
+      "coinHistory": "Coin history",
+      "viewPoints": "View",
+      "hide": "Hide balance",
+      "show": "Show balance",
+      "loginAction": "Sign in",
+      "hiddenA11y": "Balance hidden"
     },
     "highlightMenu": {
       "tea": "Tea",
       "coffee": "Coffee",
       "smoothie": "Smoothie",
       "food": "Food"
-    }
+    },
+    "utilities": "Utilities"
   }
 }
