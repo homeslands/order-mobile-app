@@ -25,11 +25,11 @@ import { useTranslation } from 'react-i18next'
 import { Platform, View, useColorScheme } from 'react-native'
 
 import { getGiftCards } from '@/api'
-import { getLoyaltyPoints } from '@/api/loyalty-point'
 import { QUERYKEY, TAB_ROUTES, tabsScreenOptions } from '@/constants'
 import { colors as palette } from '@/constants'
 import { STATIC_BOTTOM_INSET } from '@/constants/status-bar'
 import { useGlassEnabled } from '@/hooks/use-glass'
+import { loyaltyPointsTotalQueryOptions } from '@/hooks/use-loyalty-point'
 import { getThemeColor, hexToRgba } from '@/lib/utils'
 import { useAuthStore, useUserStore } from '@/stores'
 import { useQueryClient } from '@tanstack/react-query'
@@ -143,17 +143,11 @@ export function CustomTabsNavigator() {
         }
       }
       if (href?.includes('/profile') && userSlug) {
-        const loyaltyKey = [QUERYKEY.loyaltyPoints, 'total', { slug: userSlug }]
-        if (!queryClient.getQueryData(loyaltyKey)) {
-          queryClient
-            .prefetchQuery({
-              queryKey: loyaltyKey,
-              queryFn: async () => {
-                const res = await getLoyaltyPoints(userSlug)
-                return res.result
-              },
-            })
-            .catch(() => {})
+        // Qua factory, không tự dựng key + queryFn: chỗ này từng ghi
+        // `res.result` trong khi mọi chỗ đọc chờ nguyên response.
+        const loyalty = loyaltyPointsTotalQueryOptions(userSlug)
+        if (!queryClient.getQueryData(loyalty.queryKey)) {
+          queryClient.prefetchQuery(loyalty).catch(() => {})
         }
       }
     },
@@ -229,14 +223,21 @@ export function CustomTabsNavigator() {
         </View>
       )}
 
-      {/* detachInactiveScreens=false — trade RAM ~100MB để fix stuck bug với
-          nested CustomStack trong profile tab. Rapid tab switch gây detach queue
-          race trong react-native-screens (expo/expo#35116): sau ~3 lần switch,
-          profile's inner stack view stuck visible dù outer tab đã inactive.
-          Nested stack + panGesture + BottomSheetModal làm profile tab dễ trigger
-          bug này nhất (menu có nested stack nhưng không có gesture layer). */}
+      {/* iOS: PHẢI tách tab ẩn. Không tách thì tab ẩn bằng display:none, và
+          Fabric trên iOS xoá native view của cả cây đó rồi đem đi tái dùng
+          (sliceChildShadowNodeViewPairs bỏ qua node Hidden) trong khi React
+          vẫn giữ component. Gesture handler vẫn bám recognizer vào view cũ:
+          ô ở Home chết sau khi chuyển tab, còn chạm ở tab khác lại kích hoạt
+          ô của Home (chọn catalog ở Menu bật màn quét QR, vào giỏ bật sheet
+          Mã thành viên). Đã thử chuyển tab nhanh trên iOS 18, không kẹt.
+
+          Android: không tách — đổi ~100MB RAM lấy fix lỗi kẹt với nested
+          CustomStack trong tab profile. Chuyển tab nhanh gây race ở hàng đợi
+          detach của react-native-screens (expo/expo#35116): sau ~3 lần, inner
+          stack của profile kẹt hiện dù tab ngoài đã inactive. Android không
+          xoá view của cây display:none nên không dính lỗi gesture ở trên. */}
       <Tabs
-        detachInactiveScreens={false}
+        detachInactiveScreens={Platform.OS === 'ios'}
         screenOptions={{
           ...tabsScreenOptions,
           tabBarActiveTintColor: colors.primary,

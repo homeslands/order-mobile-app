@@ -141,6 +141,11 @@ export const TIMING_CONFIGS = {
   dotFade: { duration: 180 } as const,
   /** Ambient notification bar enter/exit — quick but not jarring. */
   bannerSlide: { duration: 250 } as const,
+  /**
+   * Thẻ voucher đổi trạng thái chọn — chuyển màu viền và nền.
+   * Ngắn, vì đây là phản hồi cho cú chạm: dài hơn là thấy trễ tay.
+   */
+  selectionFade: { duration: 160 } as const,
 } as const
 
 /**

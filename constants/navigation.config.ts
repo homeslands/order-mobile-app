@@ -39,8 +39,9 @@ export const stackScreenOptions: NativeStackNavigationOptions = {
 }
 
 /**
- * Bottom Tabs (Android): no animation (instant switch), freezeOnBlur.
- * Tránh flash màn cũ. iOS dùng NativeTabs nên không đọc tới đây.
+ * Bottom Tabs (Android và iOS dưới 26): no animation (instant switch),
+ * freezeOnBlur. Tránh flash màn cũ. iOS 26+ dùng NativeTabs nên không đọc tới
+ * đây.
  */
 export const tabsScreenOptions = {
   headerShown: false,

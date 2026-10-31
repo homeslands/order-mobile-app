@@ -9,3 +9,17 @@ export const THUMBNAIL_CACHE_MAX = 400
 
 /** JPEG quality for saved thumbnails (0..1). */
 export const THUMBNAIL_JPEG_COMPRESS = 0.8
+
+/**
+ * Chờ bao lâu (ms) sau ảnh cuối rồi mới ghi chỉ mục xuống MMKV. Ghi là
+ * JSON.stringify cả chỉ mục trên JS thread — gộp lại để không làm việc đó sau
+ * mỗi ảnh lúc đang cuộn. Mất vài mục khi app bị kill chỉ khiến ảnh resize lại.
+ */
+export const THUMBNAIL_INDEX_PERSIST_MS = 1000
+
+/**
+ * Số việc tải-trước (ảnh sắp cuộn tới) được xếp hàng chờ cùng lúc. Vượt thì
+ * bỏ việc cũ nhất — khách đã cuộn đi chỗ khác. Lúc BE chưa resize, mỗi việc là
+ * một ảnh gốc tới 1080px trên dữ liệu di động, nên giữ ở mức vài màn hình.
+ */
+export const THUMBNAIL_AHEAD_MAX = 16

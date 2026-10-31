@@ -1,8 +1,8 @@
-import { Image } from 'expo-image'
 import { Coins, Gift, Plus } from 'lucide-react-native'
 import { memo, useCallback } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
 
+import { MenuItemImage } from '@/components/menu/menu-item-image'
 import { colors } from '@/constants'
 import { IGiftCard } from '@/types'
 import { capitalizeFirst, formatCurrency, formatPoints } from '@/utils'
@@ -62,11 +62,12 @@ export const GiftCardListItem = memo(
           <View style={s.imageWrap}>
             <View style={[s.imageInner, { backgroundColor: imgBg }]}>
               {imageUrl ? (
-                <Image
-                  source={{ uri: imageUrl }}
-                  style={s.image}
-                  contentFit="cover"
-                  transition={200}
+                // Cùng pipeline ảnh với Menu: thumbnail thu nhỏ trên máy (BE
+                // chưa resize), khoá theo thẻ khi ô bị tái dùng, không crossfade.
+                <MenuItemImage
+                  id={item.slug}
+                  imageUrl={imageUrl}
+                  priority="normal"
                 />
               ) : (
                 <View style={s.imageFallback}>
@@ -174,7 +175,6 @@ const s = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
   },
-  image: { width: '100%', height: '100%' },
   imageFallback: {
     width: '100%',
     height: '100%',

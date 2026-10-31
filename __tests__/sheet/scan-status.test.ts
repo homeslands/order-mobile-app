@@ -20,10 +20,15 @@ function processed(
     voucher: v,
     isValid,
     errorMessage,
+    conditionStatus: {
+      minOrder: isValid,
+      products: isValid,
+      identity: isValid,
+      expiry: isValid,
+      stock: isValid,
+    },
     discountLabel: 'giảm 30.000₫',
     expiryText: '',
-    minOrderText: '',
-    usagePercent: 0,
   }
 }
 

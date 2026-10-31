@@ -137,6 +137,43 @@ export function createOrderingItemsMethods(set: SetFn, get: GetFn) {
       useCartDisplayStore.getState().resetAfterCartChange(agg.rawSubTotal)
     },
 
+    /**
+     * Đổi biến thể cho nhiều món trong MỘT lần ghi — kết quả y hệt gọi
+     * updateOrderingItemVariant lần lượt, nhưng một lượt persist và một lượt
+     * re-render thay vì N (kiểm giá giỏ đổi giá nhiều món cùng lúc).
+     */
+    updateOrderingItemVariants: (
+      updates: ReadonlyArray<{ itemId: string; variant: IProductVariant }>,
+    ) => {
+      const { orderingData } = get()
+      if (!orderingData || updates.length === 0) return
+
+      const byId = new Map(updates.map((u) => [u.itemId, u.variant]))
+      const updatedItems = orderingData.orderItems.map((item) => {
+        const variant = byId.get(item.id)
+        return variant
+          ? {
+              ...item,
+              variant,
+              size: variant.size?.name ?? item.size,
+              originalPrice: variant.price,
+            }
+          : item
+      })
+
+      const agg = aggregateOrderItems(updatedItems)
+      set({
+        minOrderValue: agg.minOrderValue,
+        orderItemsById: agg.orderItemsById,
+        orderingData: {
+          ...orderingData,
+          orderItems: updatedItems,
+        },
+        lastModified: dayjs().valueOf(),
+      })
+      useCartDisplayStore.getState().resetAfterCartChange(agg.rawSubTotal)
+    },
+
     updateOrderingItemQuantity: (itemId: string, quantity: number) => {
       const { orderingData } = get()
       if (!orderingData) return

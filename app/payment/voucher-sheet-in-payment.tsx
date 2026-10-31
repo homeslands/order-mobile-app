@@ -4,7 +4,10 @@ import {
   type ScanStatus,
 } from '@/components/sheet/scan-status'
 import { VoucherQrScanner } from '@/components/scan/voucher-qr-scanner'
-import { processVoucherList } from '@/components/sheet/voucher-validation'
+import {
+  findProcessedVoucher,
+  processVoucherList,
+} from '@/components/sheet/voucher-validation'
 import { colors, PaymentMethod } from '@/constants'
 import {
   usePublicVouchersForOrder,
@@ -295,6 +298,17 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
     isCustomerOwner,
     tVoucher,
   ])
+
+  // Bản đã validate của voucher đang mở sheet điều kiện — để sheet đánh dấu
+  // đạt/chưa đạt theo đơn hiện tại thay vì liệt kê suông.
+  const conditionProcessed = useMemo(
+    () =>
+      findProcessedVoucher(conditionVoucher?.slug, processedFetched, [
+        ...validVouchers,
+        ...invalidVouchers,
+      ]),
+    [conditionVoucher, processedFetched, validVouchers, invalidVouchers],
+  )
 
   // ── Selection ─────────────────────────────────────────────────────────────
   const allAvailable = useMemo(() => {
@@ -675,7 +689,6 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
           />
           <InvalidList
             vouchers={invalidVouchers}
-            onSelect={handleSelectBySlug}
             onViewCondition={handleViewCondition}
             isDark={isDark}
             primaryColor={primaryColor}
@@ -708,6 +721,8 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
         primaryColor={primaryColor}
         indicatorStyle={indicatorStyle}
         bottomInset={insets.bottom}
+        conditionStatus={conditionProcessed?.conditionStatus}
+        errorMessage={conditionProcessed?.errorMessage}
       />
     </>
   )

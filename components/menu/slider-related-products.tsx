@@ -35,11 +35,12 @@ import { useSetMenuFilter } from '@/stores/selectors'
 import { useTransientNavStore } from '@/stores/transient-nav.store'
 import type { IMenuItem, IOrderItem } from '@/types'
 import { formatCurrency, showToast } from '@/utils'
+import { getLocalDateString } from '@/utils/date'
 import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 import { Text } from '@/components/ui/text'
 
 /** Ngày cố định trong session — thay useRef vì linter cấm đọc ref trong render */
-const SESSION_DATE_STR = new Date().toISOString().split('T')[0]
+const SESSION_DATE_STR = getLocalDateString()
 
 /**
  * Số thẻ related hiển thị. Row là ScrollView ngang KHÔNG virtualize → mỗi thẻ

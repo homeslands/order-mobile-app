@@ -93,13 +93,23 @@ export const NativeGesturePressable = React.forwardRef<
     if (onPress) setImmediate(onPress)
   }, [beforeNavigate, navigation, onPress])
 
-  // Tab navigate (type='navigate') không qua navigation lock — tab switch
-  // instant, expo-router Tabs tự xử lý concurrent navigate calls. Stack
-  // push/replace/back phải qua lock để tránh race.
-  const isTabNavigate = navigation?.type === 'navigate'
+  // Chỉ lấy khoá dùng chung khi CHÍNH component này điều hướng stack
+  // (push/replace/back): khi đó executeNavFromGesture → lockNavigation +
+  // scheduleUnlock sẽ mở khoá lại. Hai trường hợp KHÔNG lấy khoá:
+  // - Tab navigate: tab switch instant, expo-router Tabs tự xử lý concurrent
+  //   navigate calls.
+  // - Chỉ có onPress (không prop navigation): không ai hẹn giờ mở khoá. Nếu
+  //   onPress không tạo transition (mở sheet, chuyển tab, gọi điện), khoá kẹt
+  //   vĩnh viễn và MỌI nút điều hướng khác trong app chết theo. onPress tự lo
+  //   chống chạm trùng của nó (vd. guard trong useQrActions, hoặc navigateNative
+  //   tự khoá qua engine).
+  const usesNavigationLock =
+    navigation !== undefined && navigation.type !== 'navigate'
 
   const tapGesture = useMemo(() => {
     const gesture = Gesture.Tap()
+      // Cho jest-utils của gesture-handler (fireGestureHandler) tìm được.
+      .withTestId('native-gesture-pressable')
       .enabled(!disabled)
       .maxDuration(300)
       // Cho phép di chuyển rất nhỏ khi tap; nếu kéo nhiều hơn thì coi như scroll, không trigger tap.
@@ -115,10 +125,9 @@ export const NativeGesturePressable = React.forwardRef<
         'worklet'
         // Khi Tap được công nhận (finger up, không bị scroll), mới trigger navigate.
 
-        // Tab navigate: skip lock check — tab switches phải instant, expo-router
-        // tự dedupe/handle concurrent calls. Lock check ở đây sẽ drop legitimate
-        // rapid taps giữa các tab khác nhau.
-        if (isTabNavigate) {
+        // Không lấy khoá (tab navigate, hoặc chỉ có onPress) — xem
+        // usesNavigationLock. Lock check ở đây sẽ drop legitimate rapid taps.
+        if (!usesNavigationLock) {
           if (onTapWorklet) onTapWorklet()
           runOnJS(triggerAction)()
           pressScale.value = withSpring(1, SPRING_CONFIGS.press)
@@ -154,7 +163,7 @@ export const NativeGesturePressable = React.forwardRef<
     pressScale,
     onPressIn,
     onTapWorklet,
-    isTabNavigate,
+    usesNavigationLock,
   ])
 
   const animatedStyle = useAnimatedStyle(() => ({

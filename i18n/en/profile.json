@@ -479,9 +479,9 @@
       "selectSubtitle": "Choose the right QR for your needs",
       "memberId": "Member ID",
       "memberIdDesc": "Staff scans code at the counter",
-      "coinPayment": "Coin Payment",
+      "coinPayment": "Pay coins",
       "coinPaymentDesc": "Show this code to staff to pay with coins",
-      "scanPay": "Scan to pay order",
+      "scanPay": "Scan to pay",
       "scanPayDesc": "Pay an order at the counter with your coins"
     },
     "orderStatus": {

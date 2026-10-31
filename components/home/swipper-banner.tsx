@@ -113,7 +113,10 @@ const SlideItem = React.memo(function SlideItem({
       <Image
         source={source}
         style={StyleSheet.absoluteFill}
-        contentFit="cover"
+        // Hiện ĐỦ, không cắt: khung Home theo tỉ lệ 16:9 của ảnh admin. Ảnh
+        // đúng 16:9 vừa khít (giống cover); ảnh lệch tỉ lệ (vd. 21:9) hiện đủ
+        // với dải trống thay vì bị cắt chữ âm thầm.
+        contentFit="contain"
         contentPosition="center"
         cachePolicy="memory-disk"
         transition={250}
