@@ -110,7 +110,8 @@
       "./plugins/remove-permissions",
       "./plugins/android-release-signing",
       "./plugins/ios-static-frameworks-fix",
-      "./plugins/ios-prebuilt-rncore-debug-fix"
+      "./plugins/ios-prebuilt-rncore-debug-fix",
+      "./plugins/with-ui-scene"
     ],
     "experiments": {
       "typedRoutes": true
