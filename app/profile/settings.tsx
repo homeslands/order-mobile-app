@@ -10,8 +10,15 @@
  */
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
-import { Languages, SunMoon, Trash2, Type } from 'lucide-react-native'
-import React, { useCallback, useMemo, useState } from 'react'
+import {
+  Fingerprint,
+  Languages,
+  ScanFace,
+  SunMoon,
+  Trash2,
+  Type,
+} from 'lucide-react-native'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Alert, ScrollView, View, useColorScheme } from 'react-native'
 
@@ -26,6 +33,13 @@ import {
 } from '@/components/profile'
 import { QUERYKEY, colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
+import {
+  biometricLabelKey,
+  disableBiometricLogin,
+  getBiometricType,
+  getEnabledPhone,
+  type BiometricType,
+} from '@/lib/biometric-login'
 import { useAuthStore, useUserStore } from '@/stores'
 import { useNotificationStore } from '@/stores/notification.store'
 import { resetHttpState } from '@/utils/http'
@@ -44,6 +58,42 @@ export default function SettingsScreen() {
   const queryClient = useQueryClient()
   const setLogout = useAuthStore((s) => s.setLogout)
   const removeUserInfo = useUserStore((s) => s.removeUserInfo)
+  const userPhone = useUserStore((s) => s.userInfo?.phonenumber)
+  const { t: tAuth } = useTranslation('auth')
+
+  // Đăng nhập bằng Face ID/vân tay: chỉ hiện khi đang bật cho ĐÚNG tài khoản
+  // này. Bật ở lời mời sau khi đăng nhập bằng mật khẩu, ở đây chỉ để tắt.
+  const [bioType, setBioType] = useState<BiometricType | null>(null)
+  useEffect(() => {
+    let alive = true
+    void Promise.all([getBiometricType(), getEnabledPhone()]).then(
+      ([type, phone]) => {
+        if (alive)
+          setBioType(type && phone && phone === userPhone ? type : null)
+      },
+    )
+    return () => {
+      alive = false
+    }
+  }, [userPhone])
+  const bioMethod = bioType ? tAuth(biometricLabelKey(bioType)) : ''
+  const handleBiometricPress = useCallback(() => {
+    Alert.alert(
+      tAuth('biometric.disableTitle', { method: bioMethod }),
+      tAuth('biometric.disableMessage'),
+      [
+        { text: tAuth('biometric.cancel'), style: 'cancel' },
+        {
+          text: tAuth('biometric.disable'),
+          style: 'destructive',
+          onPress: () => {
+            void disableBiometricLogin()
+            setBioType(null)
+          },
+        },
+      ],
+    )
+  }, [tAuth, bioMethod])
 
   const theme = useMemo(
     () => ({
@@ -150,6 +200,20 @@ export default function SettingsScreen() {
             textColor={theme.text}
             textMuted={theme.textMuted}
           />
+          {bioType ? (
+            <>
+              {divider}
+              <ProfileMenuItem
+                icon={bioType === 'face' ? ScanFace : Fingerprint}
+                iconColor={ICON_COLORS.indigo}
+                title={tAuth('biometric.settingTitle', { method: bioMethod })}
+                value={tAuth('biometric.settingOn')}
+                onPress={handleBiometricPress}
+                textColor={theme.text}
+                textMuted={theme.textMuted}
+              />
+            </>
+          ) : null}
         </View>
 
         {/* Xoá tài khoản tách sang thẻ riêng: nó là hành động không quay lại

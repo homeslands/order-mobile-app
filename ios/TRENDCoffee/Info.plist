@@ -52,7 +52,7 @@
     <key>NSCameraUsageDescription</key>
     <string>Ứng dụng cần quyền camera để chụp ảnh đại diện, quét mã QR voucher và mã QR thanh toán xu.</string>
     <key>NSFaceIDUsageDescription</key>
-    <string>Allow $(PRODUCT_NAME) to access your Face ID biometric data.</string>
+    <string>Ứng dụng dùng Face ID để bạn đăng nhập nhanh mà không cần nhập mật khẩu.</string>
     <key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your location</string>
     <key>NSLocationAlwaysUsageDescription</key>

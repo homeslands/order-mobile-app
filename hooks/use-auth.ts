@@ -26,6 +26,7 @@ import {
   IVerifyEmailRequest,
   IVerifyOTPForgotPasswordRequest,
 } from '@/types'
+import { disableBiometricLogin } from '@/lib/biometric-login'
 import { useMutation } from '@tanstack/react-query'
 
 export const useLogin = () => {
@@ -88,6 +89,8 @@ export const useConfirmForgotPassword = () => {
     mutationFn: async (params: IConfirmForgotPasswordRequest) => {
       return confirmForgotPassword(params)
     },
+    // Mật khẩu đổi → mật khẩu đã lưu cho Face ID/vân tay hết đúng.
+    onSuccess: () => disableBiometricLogin(),
     meta: { skipGlobalError: true },
   })
 }
@@ -170,5 +173,6 @@ export const useDeleteAccount = () => {
     mutationFn: async (password: string) => {
       return deleteAccount(password)
     },
+    onSuccess: () => disableBiometricLogin(),
   })
 }

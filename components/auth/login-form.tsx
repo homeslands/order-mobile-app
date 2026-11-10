@@ -1,8 +1,15 @@
 import { useTranslation } from 'react-i18next'
 import { Controller } from 'react-hook-form'
-import { ActivityIndicator, TouchableOpacity, View } from 'react-native'
+import {
+  ActivityIndicator,
+  Alert,
+  TouchableOpacity,
+  View,
+  useColorScheme,
+} from 'react-native'
 import * as Haptics from 'expo-haptics'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Fingerprint, ScanFace } from 'lucide-react-native'
 import Animated, {
   runOnUI,
   useAnimatedStyle,
@@ -14,13 +21,23 @@ import Animated, {
 import { FormInput } from '@/components/form/form-input'
 import { PasswordInputField } from '@/components/input'
 import { Text } from '@/components/ui/text'
-import { ROUTE } from '@/constants'
+import { ROUTE, colors } from '@/constants'
 import { SHAKE } from '@/constants/motion'
 import { useLogin, usePostAuthActions, useZodForm } from '@/hooks'
+import {
+  biometricLabelKey,
+  disableBiometricLogin,
+  enableBiometricLogin,
+  getBiometricType,
+  getEnabledPhone,
+  readBiometricCredentials,
+  shouldDisableAfterLoginError,
+  type BiometricType,
+} from '@/lib/biometric-login'
 import { navigateWhenUnlocked } from '@/lib/navigation'
 import { useLoginSchema, TLoginSchema } from '@/schemas'
 import type { ILoginResponse } from '@/types'
-import { showErrorToastMessage } from '@/utils'
+import { showErrorToastMessage, showToast } from '@/utils'
 
 interface LoginFormProps {
   onLoginSuccess?: () => void
@@ -42,6 +59,7 @@ export default function LoginForm({
     setError,
     clearErrors,
     watch,
+    setValue,
     formState: { isSubmitting, errors },
   } = useZodForm(loginSchema, {
     defaultValues: { phonenumber: '', password: '' },
@@ -87,9 +105,53 @@ export default function LoginForm({
     })()
   }, [setError, shakeX])
 
-  const onSubmit = (data: TLoginSchema) => {
+  // Đăng nhập bằng sinh trắc học (lib/biometric-login.ts): loại sinh trắc
+  // học của máy và số điện thoại đã bật. Cả hai có thì hiện nút.
+  const [bioType, setBioType] = useState<BiometricType | null>(null)
+  const [bioPhone, setBioPhone] = useState<string | null>(null)
+  const autoPrompted = useRef(false)
+  const isDark = useColorScheme() === 'dark'
+
+  // Sau khi đăng nhập bằng MẬT KHẨU thành công: số khác số đã bật thì xoá
+  // bản cũ (một máy chỉ giữ một tài khoản), rồi mời bật cho số này. Mật khẩu
+  // chỉ sống trong closure của Alert, không qua store nào.
+  const offerBiometric = useCallback(
+    async (phonenumber: string, password: string) => {
+      const enabledPhone = await getEnabledPhone()
+      if (enabledPhone === phonenumber) return
+      if (enabledPhone) await disableBiometricLogin()
+      const type = await getBiometricType()
+      if (!type) return
+      const method = t(biometricLabelKey(type))
+      Alert.alert(
+        t('biometric.offerTitle', { method }),
+        t('biometric.offerMessage'),
+        [
+          { text: t('biometric.offerLater'), style: 'cancel' },
+          {
+            text: t('biometric.offerEnable'),
+            onPress: async () => {
+              const ok = await enableBiometricLogin(
+                phonenumber,
+                password,
+                t('biometric.enablePrompt', { method }),
+              )
+              if (ok) showToast(t('biometric.enabled', { method }))
+            },
+          },
+        ],
+      )
+    },
+    [t],
+  )
+
+  const submitLogin = (
+    phonenumber: string,
+    password: string,
+    viaBiometric: boolean,
+  ) => {
     loginMutation(
-      { phonenumber: data.phonenumber, password: data.password },
+      { phonenumber, password },
       {
         onSuccess: async (response: ILoginResponse) => {
           try {
@@ -98,9 +160,26 @@ export default function LoginForm({
             const message =
               error instanceof Error ? error.message : 'Unknown error'
             showErrorToastMessage(message)
+            return
           }
+          if (!viaBiometric) void offerBiometric(phonenumber, password)
         },
-        onError: () => {
+        onError: (error) => {
+          // Mật khẩu đã lưu bị server từ chối (đổi ở nơi khác…): tắt hẳn,
+          // khách nhập mật khẩu và được mời bật lại.
+          if (viaBiometric && shouldDisableAfterLoginError(error)) {
+            void disableBiometricLogin()
+            setBioPhone(null)
+            if (bioType) {
+              showToast(
+                t('biometric.rejected', {
+                  method: t(biometricLabelKey(bioType)),
+                }),
+                'info',
+              )
+            }
+            return
+          }
           // Toast do global error handler (QueryCache) đảm nhiệm.
           // Ở đây chỉ lo phản hồi tại chỗ: viền đỏ + lắc + haptic.
           triggerErrorFeedback()
@@ -108,6 +187,48 @@ export default function LoginForm({
       },
     )
   }
+
+  const onSubmit = (data: TLoginSchema) =>
+    submitLogin(data.phonenumber, data.password, false)
+
+  const loginWithBiometric = useCallback(async () => {
+    if (!bioType) return
+    const method = t(biometricLabelKey(bioType))
+    const result = await readBiometricCredentials(
+      t('biometric.prompt', { method }),
+    )
+    if (result.status === 'cancelled') return
+    if (result.status === 'invalidated') {
+      setBioPhone(null)
+      showToast(t('biometric.invalidated', { method }), 'info')
+      return
+    }
+    submitLogin(result.phonenumber, result.password, true)
+    // submitLogin đổi mỗi render nhưng chỉ đọc giá trị ổn định của hook.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [bioType, t])
+
+  useEffect(() => {
+    let alive = true
+    void Promise.all([getBiometricType(), getEnabledPhone()]).then(
+      ([type, phone]) => {
+        if (!alive) return
+        setBioType(type)
+        setBioPhone(phone)
+        if (phone) setValue('phonenumber', phone)
+      },
+    )
+    return () => {
+      alive = false
+    }
+  }, [setValue])
+
+  // Tự hiện hộp xác thực một lần khi mở màn. Khách huỷ thì ở lại form.
+  useEffect(() => {
+    if (!bioType || !bioPhone || autoPrompted.current) return
+    autoPrompted.current = true
+    void loginWithBiometric()
+  }, [bioType, bioPhone, loginWithBiometric])
 
   const isLoading = isPending || isSubmitting
 
@@ -176,19 +297,45 @@ export default function LoginForm({
         </Text>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        className="mt-6 items-center justify-center rounded-lg bg-primary py-4"
-        onPress={handleSubmit(onSubmit)}
-        disabled={isLoading}
-      >
-        {isLoading ? (
-          <ActivityIndicator color="#fff" />
-        ) : (
-          <Text className="font-sans-semibold text-base text-white">
-            {t('login.login')}
-          </Text>
-        )}
-      </TouchableOpacity>
+      <View className="mt-6 flex-row gap-3">
+        <TouchableOpacity
+          className="flex-1 items-center justify-center rounded-lg bg-primary py-4"
+          onPress={handleSubmit(onSubmit)}
+          disabled={isLoading}
+        >
+          {isLoading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text className="font-sans-semibold text-base text-white">
+              {t('login.login')}
+            </Text>
+          )}
+        </TouchableOpacity>
+        {bioType && bioPhone ? (
+          <TouchableOpacity
+            testID="biometric-login-button"
+            accessibilityRole="button"
+            accessibilityLabel={t('biometric.prompt', {
+              method: t(biometricLabelKey(bioType)),
+            })}
+            className="w-14 items-center justify-center rounded-lg border border-primary"
+            onPress={loginWithBiometric}
+            disabled={isLoading}
+          >
+            {bioType === 'face' ? (
+              <ScanFace
+                size={26}
+                color={isDark ? colors.primary.dark : colors.primary.light}
+              />
+            ) : (
+              <Fingerprint
+                size={26}
+                color={isDark ? colors.primary.dark : colors.primary.light}
+              />
+            )}
+          </TouchableOpacity>
+        ) : null}
+      </View>
     </View>
   )
 }
