@@ -3,6 +3,7 @@ import { Button } from '@/components/ui'
 import { ScreenContainer } from '@/components/layout'
 import { PasswordInputField, PasswordRulesInput } from '@/components/input'
 import { colors } from '@/constants'
+import { disableBiometricLogin } from '@/lib/biometric-login'
 import { navigateNative } from '@/lib/navigation'
 import { showToast } from '@/utils'
 import { ArrowLeft } from 'lucide-react-native'
@@ -36,6 +37,9 @@ function ChangePasswordScreen() {
     setIsSubmitting(true)
     changePassword({ oldPassword, newPassword })
       .then(() => {
+        // Mật khẩu đã lưu cho Face ID/vân tay hết đúng: tắt, lần đăng nhập
+        // bằng mật khẩu sau sẽ được mời bật lại.
+        void disableBiometricLogin()
         showToast(t('changePassword.success'))
         navigateNative.back()
       })
