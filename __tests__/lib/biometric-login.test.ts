@@ -4,6 +4,7 @@
 // phải phân biệt với khách huỷ (ném lỗi) để không xoá nhầm.
 import * as LocalAuthentication from 'expo-local-authentication'
 import * as SecureStore from 'expo-secure-store'
+import { Platform } from 'react-native'
 
 import {
   disableBiometricLogin,
@@ -32,6 +33,8 @@ jest.mock('expo-secure-store', () => {
 
 jest.mock('expo-local-authentication', () => ({
   AuthenticationType: { FINGERPRINT: 1, FACIAL_RECOGNITION: 2 },
+  SecurityLevel: { NONE: 0, SECRET: 1, BIOMETRIC_WEAK: 2, BIOMETRIC_STRONG: 3 },
+  getEnrolledLevelAsync: jest.fn(async () => 3),
   hasHardwareAsync: jest.fn(async () => true),
   isEnrolledAsync: jest.fn(async () => true),
   supportedAuthenticationTypesAsync: jest.fn(async () => [2]),
@@ -120,4 +123,40 @@ it('BL7 chỉ tắt khi server từ chối (4xx), không tắt khi mất mạng/
     false,
   )
   expect(shouldDisableAfterLoginError(new Error('Network Error'))).toBe(false)
+})
+
+// Android chỉ cho mở khoá dữ liệu (Keystore, SecureStore requireAuthentication)
+// bằng sinh trắc học mức MẠNH. Khuôn mặt của Samsung là mức yếu: máy chỉ cài
+// khuôn mặt thì app từng mời bật "face unlock", bật thất bại không báo gì.
+describe('Android', () => {
+  const originalOS = Platform.OS
+  beforeEach(() => {
+    Object.defineProperty(Platform, 'OS', {
+      value: 'android',
+      configurable: true,
+    })
+  })
+  afterEach(() => {
+    Object.defineProperty(Platform, 'OS', {
+      value: originalOS,
+      configurable: true,
+    })
+  })
+
+  it('BL8 chỉ cài sinh trắc học mức yếu (khuôn mặt Samsung) thì không hỗ trợ', async () => {
+    ;(
+      LocalAuthentication.getEnrolledLevelAsync as jest.Mock
+    ).mockResolvedValueOnce(2)
+    ;(
+      LocalAuthentication.supportedAuthenticationTypesAsync as jest.Mock
+    ).mockResolvedValueOnce([1, 2])
+    expect(await getBiometricType()).toBeNull()
+  })
+
+  it('BL9 có cả vân tay lẫn khuôn mặt thì gọi là vân tay', async () => {
+    ;(
+      LocalAuthentication.supportedAuthenticationTypesAsync as jest.Mock
+    ).mockResolvedValueOnce([1, 2])
+    expect(await getBiometricType()).toBe('fingerprint')
+  })
 })

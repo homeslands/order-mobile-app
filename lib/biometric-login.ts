@@ -37,6 +37,19 @@ export async function getBiometricType(): Promise<BiometricType | null> {
     ])
     if (!hasHardware || !isEnrolled) return null
     const types = await LocalAuthentication.supportedAuthenticationTypesAsync()
+    if (Platform.OS === 'android') {
+      // SecureStore (Keystore) chỉ nhận sinh trắc học mức mạnh. Khuôn mặt của
+      // Samsung và nhiều hãng là mức yếu: máy chỉ cài khuôn mặt thì bật
+      // không được, nên coi như không hỗ trợ. Có cảm biến vân tay thì đó là
+      // thứ Android sẽ hỏi, nên gọi là vân tay.
+      const level = await LocalAuthentication.getEnrolledLevelAsync()
+      if (level < LocalAuthentication.SecurityLevel.BIOMETRIC_STRONG) {
+        return null
+      }
+      return types.includes(LocalAuthentication.AuthenticationType.FINGERPRINT)
+        ? 'fingerprint'
+        : 'face'
+    }
     return types.includes(
       LocalAuthentication.AuthenticationType.FACIAL_RECOGNITION,
     )
