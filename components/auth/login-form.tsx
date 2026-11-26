@@ -127,6 +127,9 @@ export default function LoginForm({
   // Đã bật Face ID / vân tay: chào khách quen → (mật khẩu | tài khoản khác).
   // Mỗi lần mở màn bắt đầu ở màn chào.
   const [mode, setMode] = useState<LoginMode>('greeting')
+  // Đang hiện hộp Face ID / vân tay: ô mật khẩu mất focus và bị kiểm tra
+  // (onTouched) → ẩn trạng thái lỗi của nó trong lúc này.
+  const [isScanning, setIsScanning] = useState(false)
   const view = getLoginView(!!bioType && !!bioPhone, mode)
   const isReturningView = view === 'greeting' || view === 'password'
 
@@ -250,13 +253,17 @@ export default function LoginForm({
   const loginWithBiometric = useCallback(async () => {
     if (!bioType) return
     const method = t(biometricLabelKey(bioType))
-    const result = await readBiometricCredentials(
-      t('biometric.prompt', { method }),
-    )
-    // Hộp xác thực bật lên làm ô mật khẩu (đang focus) mất focus → form kiểm
-    // tra kiểu onTouched báo lỗi "bắt buộc" dù khách chưa nhập. Khách đang
-    // dùng sinh trắc học, không phải mật khẩu: xoá lỗi đó.
-    clearErrors('password')
+    setIsScanning(true)
+    let result: Awaited<ReturnType<typeof readBiometricCredentials>>
+    try {
+      result = await readBiometricCredentials(t('biometric.prompt', { method }))
+    } finally {
+      // Hộp xác thực bật lên làm ô mật khẩu (đang focus) mất focus → form
+      // kiểm tra kiểu onTouched báo lỗi "bắt buộc" dù khách chưa nhập. Khách
+      // đang dùng sinh trắc học, không phải mật khẩu: xoá lỗi đó.
+      clearErrors('password')
+      setIsScanning(false)
+    }
     // Huỷ quét (kể cả từ màn nhập mật khẩu) thì về màn chào.
     if (result.status === 'cancelled') {
       setMode('greeting')
@@ -339,8 +346,8 @@ export default function LoginForm({
             onBlur={onBlur}
             placeholder={t('login.enterPassword')}
             disabled={isLoading}
-            error={errors.password?.message}
-            invalid={invalid}
+            error={isScanning ? undefined : errors.password?.message}
+            invalid={invalid && !isScanning}
             autoFocus={view === 'password'}
           />
         )}

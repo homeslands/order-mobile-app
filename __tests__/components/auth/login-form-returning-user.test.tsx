@@ -214,6 +214,36 @@ it('RU9 đang nhập mật khẩu bấm "Dùng Face ID": ô mật khẩu không 
   )
 })
 
+it('RU11 trong lúc hộp Face ID đang hiện, ô mật khẩu không viền đỏ', async () => {
+  let finishScan: (value: unknown) => void = () => {}
+  mockRead.mockImplementation(
+    () =>
+      new Promise((resolve) => {
+        finishScan = resolve
+      }),
+  )
+  render(<LoginForm />)
+  await screen.findByTestId('use-password-button')
+  await act(async () => {
+    fireEvent.press(screen.getByTestId('use-password-button'))
+  })
+  // Bấm "Dùng Face ID" → hộp xác thực bật lên → ô mật khẩu mất focus.
+  await act(async () => {
+    fireEvent.press(screen.getByTestId('use-biometric-button'))
+  })
+  await act(async () => {
+    fireEvent(screen.getByPlaceholderText('login.enterPassword'), 'blur')
+  })
+  await flush()
+  expect(
+    screen.getByPlaceholderText('login.enterPassword').props.className,
+  ).not.toContain('border-destructive')
+
+  await act(async () => {
+    finishScan({ status: 'cancelled' })
+  })
+})
+
 it('RU10 vào lại màn nhập mật khẩu thì ô sạch, không còn lỗi cũ', async () => {
   render(<LoginForm />)
   await screen.findByTestId('use-password-button')
