@@ -117,6 +117,10 @@ export const GiftCardListItem = memo(
                 <Pressable
                   onPress={handleSelect}
                   disabled={!item.isActive}
+                  hitSlop={6}
+                  accessibilityRole="button"
+                  accessibilityLabel={t('selectedSheet.addToCart')}
+                  accessibilityState={{ disabled: !item.isActive }}
                   style={[
                     s.addBtn,
                     {
