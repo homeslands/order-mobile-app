@@ -134,7 +134,12 @@ export default function LoginForm({
     onReturningUserChange?.(isReturningView)
   }, [isReturningView, onReturningUserChange])
 
-  const showPasswordMode = useCallback(() => setMode('password'), [])
+  // Vào màn mật khẩu luôn với ô sạch: lỗi kiểm tra cũ (nếu có) không còn.
+  const showPasswordMode = useCallback(() => {
+    setValue('password', '')
+    clearErrors('password')
+    setMode('password')
+  }, [setValue, clearErrors])
   const showOtherAccount = useCallback(() => {
     setValue('phonenumber', '')
     setValue('password', '')
@@ -248,6 +253,10 @@ export default function LoginForm({
     const result = await readBiometricCredentials(
       t('biometric.prompt', { method }),
     )
+    // Hộp xác thực bật lên làm ô mật khẩu (đang focus) mất focus → form kiểm
+    // tra kiểu onTouched báo lỗi "bắt buộc" dù khách chưa nhập. Khách đang
+    // dùng sinh trắc học, không phải mật khẩu: xoá lỗi đó.
+    clearErrors('password')
     // Huỷ quét (kể cả từ màn nhập mật khẩu) thì về màn chào.
     if (result.status === 'cancelled') {
       setMode('greeting')
@@ -261,7 +270,7 @@ export default function LoginForm({
     submitLogin(result.phonenumber, result.password, true)
     // submitLogin đổi mỗi render nhưng chỉ đọc giá trị ổn định của hook.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [bioType, t])
+  }, [bioType, t, clearErrors])
 
   useEffect(() => {
     let alive = true

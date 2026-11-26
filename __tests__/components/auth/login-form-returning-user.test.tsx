@@ -180,6 +180,62 @@ it('RU7 chưa bật: form thường, không có màn chào', async () => {
   expect(mockRead).not.toHaveBeenCalled()
 })
 
+// Form kiểm tra kiểu onTouched: ô mật khẩu tự focus rồi mất focus khi hộp
+// Face ID bật lên → bị kiểm tra lúc còn trống, viền đỏ dù khách chưa nhập gì.
+it('RU9 đang nhập mật khẩu bấm "Dùng Face ID": ô mật khẩu không bị báo lỗi', async () => {
+  mockRead.mockResolvedValue({
+    status: 'ok',
+    phonenumber: '0901234567',
+    password: 'secret1',
+  })
+  render(<LoginForm />)
+  await screen.findByTestId('use-password-button')
+  await act(async () => {
+    fireEvent.press(screen.getByTestId('use-password-button'))
+  })
+  const input = screen.getByPlaceholderText('login.enterPassword')
+  await act(async () => {
+    fireEvent(input, 'blur')
+  })
+  await waitFor(() =>
+    expect(
+      screen.getByPlaceholderText('login.enterPassword').props.className,
+    ).toContain('border-destructive'),
+  )
+
+  await act(async () => {
+    fireEvent.press(screen.getByTestId('use-biometric-button'))
+  })
+  await waitFor(() => expect(mockRead).toHaveBeenCalledTimes(1))
+  await waitFor(() =>
+    expect(
+      screen.getByPlaceholderText('login.enterPassword').props.className,
+    ).not.toContain('border-destructive'),
+  )
+})
+
+it('RU10 vào lại màn nhập mật khẩu thì ô sạch, không còn lỗi cũ', async () => {
+  render(<LoginForm />)
+  await screen.findByTestId('use-password-button')
+  await act(async () => {
+    fireEvent.press(screen.getByTestId('use-password-button'))
+  })
+  await act(async () => {
+    fireEvent(screen.getByPlaceholderText('login.enterPassword'), 'blur')
+  })
+  // Huỷ quét → về màn chào → vào lại màn mật khẩu.
+  await act(async () => {
+    fireEvent.press(screen.getByTestId('use-biometric-button'))
+  })
+  await screen.findByTestId('login-greeting')
+  await act(async () => {
+    fireEvent.press(screen.getByTestId('use-password-button'))
+  })
+  expect(
+    screen.getByPlaceholderText('login.enterPassword').props.className,
+  ).not.toContain('border-destructive')
+})
+
 it('RU8 quét lúc mất mạng: báo mất kết nối, giữ dữ liệu đã lưu', async () => {
   mockRead.mockResolvedValue({
     status: 'ok',
