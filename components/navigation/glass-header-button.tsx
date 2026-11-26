@@ -6,8 +6,9 @@
  * vào app thì chỉ FloatingHeader đổi, còn Tài khoản, Lịch sử đơn, Thẻ quà...
  * vẫn đặc — nhìn lệch hẳn nhau. Gom một chỗ để không lệch nữa.
  *
- * Nhận `size` vì các màn đang dùng ba cỡ khác nhau (36, 38, 42) và đây không
- * phải lúc đi thống nhất cỡ: đổi cỡ là đổi bố cục từng header, việc khác.
+ * Cỡ chuẩn 44pt cho mọi header (vùng bấm tối thiểu của Apple, cỡ nút kính
+ * trên thanh điều hướng iOS 26) — trước lẫn 36 / 38 / 40 / 42 tuỳ màn. Vẫn
+ * nhận `size` cho chỗ thật sự cần khác (nút không nằm trên header).
  */
 import { memo, type ReactNode } from 'react'
 import {
@@ -41,7 +42,7 @@ export const GlassHeaderButton = memo(function GlassHeaderButton({
   isDark,
   onPress,
   children,
-  size = 38,
+  size = 44,
   paddingHorizontal,
   solidColor,
   withoutShadow = false,

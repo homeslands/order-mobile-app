@@ -238,7 +238,7 @@ function CartClearBtn({
 }
 
 const clearBtnStyles = StyleSheet.create({
-  placeholder: { width: 38, height: 38 },
+  placeholder: { width: 44, height: 44 },
 })
 
 // ─── Skeleton Shell ──────────────────────────────────────────────────────────

@@ -155,7 +155,6 @@ export default function GiftCardHubScreen() {
         isDark={isDark}
         onPress={navigateNative.back}
         hitSlop={12}
-        size={36}
         solidColor="rgba(255,255,255,0.18)"
         withoutShadow
         style={[s.backBtn, { top: STATIC_TOP_INSET + 8 }]}

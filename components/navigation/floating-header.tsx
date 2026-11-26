@@ -127,7 +127,7 @@ const s = StyleSheet.create({
     position: 'absolute',
     left: 0,
     right: 0,
-    height: 38,
+    height: 44,
     justifyContent: 'center',
     alignItems: 'center',
     zIndex: 1,
@@ -137,7 +137,7 @@ const s = StyleSheet.create({
     fontWeight: '700',
   },
   rightPlaceholder: {
-    width: 38,
-    height: 38,
+    width: 44,
+    height: 44,
   },
 })

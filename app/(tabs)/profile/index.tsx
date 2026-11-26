@@ -275,7 +275,7 @@ const ProfileHeader = React.memo(function ProfileHeader({
         style={[phStyles.row, { paddingTop: STATIC_TOP_INSET + 10 }]}
         pointerEvents="auto"
       >
-        <GlassHeaderButton isDark={isDark} onPress={onScan} size={42}>
+        <GlassHeaderButton isDark={isDark} onPress={onScan}>
           <ScanLine
             size={20}
             color={isDark ? colors.gray[50] : colors.gray[900]}
@@ -284,7 +284,6 @@ const ProfileHeader = React.memo(function ProfileHeader({
         <GlassHeaderButton
           isDark={isDark}
           onPress={onEdit}
-          size={42}
           paddingHorizontal={16}
         >
           <Text

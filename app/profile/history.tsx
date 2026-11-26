@@ -705,11 +705,7 @@ function OrderHistoryPage() {
               { paddingTop: STATIC_TOP_INSET + 10 },
             ]}
           >
-            <GlassHeaderButton
-              isDark={isDark}
-              onPress={navigateNative.back}
-              size={42}
-            >
+            <GlassHeaderButton isDark={isDark} onPress={navigateNative.back}>
               <ChevronLeft
                 size={20}
                 color={isDark ? colors.gray[50] : colors.gray[900]}
@@ -731,7 +727,6 @@ function OrderHistoryPage() {
               isDark={isDark}
               onPress={handleFilterOpen}
               hitSlop={4}
-              size={42}
               solidColor={isDateFilterActive ? filterTint : undefined}
               withoutShadow={isDateFilterActive}
             >
