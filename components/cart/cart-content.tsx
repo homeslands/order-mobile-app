@@ -33,6 +33,7 @@ import { CartEmpty } from './cart-empty'
 
 import { CartFooter } from './cart-footer'
 import { CartOrderNote } from './cart-order-note'
+import { CartOrderOptions } from './cart-order-options'
 import { CartSizeSheet } from './cart-size-sheet'
 
 // ─── List helpers (module-level — 0 allocation per render) ───────────────────
@@ -167,9 +168,16 @@ export default function CartContent() {
     [footerHeight],
   )
 
-  const CartOrderNoteFooter = useCallback(
-    () => <CartOrderNote isDark={isDark} />,
-    [isDark],
+  // Dưới danh sách món: tuỳ chọn đơn (loại đơn / bàn / giờ lấy / voucher) rồi
+  // ghi chú — thanh dưới cố định chỉ còn tổng tiền + Đặt hàng.
+  const CartListFooter = useCallback(
+    () => (
+      <>
+        <CartOrderOptions isDark={isDark} primaryColor={primaryColor} />
+        <CartOrderNote isDark={isDark} />
+      </>
+    ),
+    [isDark, primaryColor],
   )
 
   if (items.length === 0) {
@@ -193,7 +201,7 @@ export default function CartContent() {
         contentContainerStyle={listContentStyle}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={ItemSeparator}
-        ListFooterComponent={CartOrderNoteFooter}
+        ListFooterComponent={CartListFooter}
       />
       <CartFooter
         primaryColor={primaryColor}

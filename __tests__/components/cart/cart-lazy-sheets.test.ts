@@ -34,8 +34,11 @@ it('LS3 fallback của Suspense là thân khung giỏ, không phải View trốn
   expect(cart).toMatch(/fallback=\{\s*<CartShellBody/)
 })
 
-it('LS4 ảnh ô giỏ giữ cả trong bộ nhớ', () => {
+it('LS4 ảnh ô giỏ giữ cả trong bộ nhớ (qua MenuItemImage: thumbnail trên máy)', () => {
   expect(source('components/cart/cart-item-row.tsx')).toMatch(
+    /<MenuItemImage\b/,
+  )
+  expect(source('components/menu/menu-item-image.tsx')).toMatch(
     /cachePolicy="memory-disk"/,
   )
 })

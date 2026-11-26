@@ -6,11 +6,12 @@ import { cartActions, useCartItemVoucherDiscount } from '@/stores/cart.store'
 import { capitalizeFirst } from '@/utils'
 import { useRecyclingState } from '@shopify/flash-list'
 import { formatCurrencyNative } from 'cart-price-calc'
-import { Image } from 'expo-image'
 import { NotebookText } from 'lucide-react-native'
 import React, { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, TextInput, View } from 'react-native'
+
+import { MenuItemImage } from '@/components/menu/menu-item-image'
 
 import type { CartDisplayItem } from './cart-display-item'
 import { CartSwipeable } from './cart-swipeable'
@@ -174,20 +175,16 @@ export const CartItemRow = memo(
         <View style={[rowStyles.card, themeStyles.cardBg]}>
           {/* Top row: image + info */}
           <View style={rowStyles.topRow}>
-            {item.imageUrl ? (
-              <Image
-                source={{ uri: item.imageUrl }}
-                style={rowStyles.image}
-                contentFit="cover"
-                recyclingKey={item.cartKey}
-                cachePolicy="memory-disk"
-                placeholder={{ blurhash: 'LKO2?U%2Tw=w]~RBVZRi};RPxuwH' }}
-                transition={0}
+            {/* Cùng pipeline ảnh với Menu: thumbnail thu nhỏ trên máy (BE chưa
+                resize — URL là ảnh gốc ~1080px), cache bộ nhớ, khoá theo ô. */}
+            <View style={rowStyles.image}>
+              <MenuItemImage
+                id={item.cartKey}
+                imageUrl={item.imageUrl}
                 priority="high"
+                borderRadius={rowStyles.image.borderRadius}
               />
-            ) : (
-              <View style={[rowStyles.image, rowStyles.imagePlaceholder]} />
-            )}
+            </View>
 
             <View style={rowStyles.info}>
               <Text
@@ -328,9 +325,6 @@ const rowStyles = StyleSheet.create({
     width: 76,
     height: 76,
     borderRadius: 12,
-  },
-  imagePlaceholder: {
-    backgroundColor: colors.gray[200],
   },
   info: {
     flex: 1,
