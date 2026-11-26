@@ -26,11 +26,23 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (k: string) => k }),
 }))
 
-function renderRow(hasStock: boolean, onAddToCart = jest.fn()) {
+function renderRow(
+  hasStock: boolean,
+  onAddToCart = jest.fn(),
+  over: Partial<{
+    description: string
+    isTopSell: boolean
+    isNew: boolean
+  }> = {},
+) {
   render(
     <MenuItemRow
       id="tra-dao"
       name="Trà đào"
+      description=""
+      isTopSell={false}
+      isNew={false}
+      {...over}
       imageUrl={null}
       listIndex={0}
       rawPrice={45000}
@@ -65,4 +77,28 @@ it('hết hàng: gắn nhãn "Hết hàng" và tắt nút +', () => {
   )
   fireEvent.press(button)
   expect(onAdd).not.toHaveBeenCalled()
+})
+
+// Dòng món gọn (bố cục mới): mô tả một dòng dưới tên, nhãn Bán chạy / Mới.
+it('có mô tả: hiện một dòng dưới tên món', () => {
+  renderRow(true, jest.fn(), { description: 'Đào ngâm, trà đen' })
+  const desc = screen.getByText('Đào ngâm, trà đen')
+  expect(desc.props.numberOfLines).toBe(1)
+})
+
+it('mô tả trống / toàn khoảng trắng: không chừa dòng trống', () => {
+  renderRow(true, jest.fn(), { description: '   ' })
+  expect(screen.queryByTestId('menu-row-description')).toBeNull()
+})
+
+it('nhãn Bán chạy / Mới theo món', () => {
+  renderRow(true, jest.fn(), { isTopSell: true, isNew: true })
+  expect(screen.getByText('menu.isTopSell')).toBeTruthy()
+  expect(screen.getByText('menu.isNewProduct')).toBeTruthy()
+})
+
+it('món thường: không có nhãn', () => {
+  renderRow(true)
+  expect(screen.queryByText('menu.isTopSell')).toBeNull()
+  expect(screen.queryByText('menu.isNewProduct')).toBeNull()
 })

@@ -1,5 +1,6 @@
 import { MenuItemImage } from '@/components/menu/menu-item-image'
 import { colors } from '@/constants'
+import { hexToRgba } from '@/lib/utils'
 import type { IMenuItem } from '@/types'
 import { capitalizeFirst } from '@/utils'
 import { formatCurrencyNative } from 'cart-price-calc'
@@ -28,10 +29,18 @@ export type MenuDisplayItem = {
   cheapestVariant: import('@/types').IProductVariant | null
   /** Còn đặt được (không khoá, còn số lượng hoặc không giới hạn) */
   hasStock: boolean
+  /** Mô tả ngắn (đã trim), rỗng thì không hiện */
+  description: string
+  isTopSell: boolean
+  isNew: boolean
 }
 
 export const MENU_IMAGE_HIGH_PRIORITY_COUNT = 4
-export const MENU_ITEM_ESTIMATED_HEIGHT = 140
+/** Dòng món gọn: ảnh 76 + đệm dọc 12×2. */
+export const MENU_ITEM_ESTIMATED_HEIGHT = 100
+const IMAGE_SIZE = 76
+/** Lề trái của chữ trong dòng — đường ngăn cách thụt tới đây (kiểu iOS). */
+export const MENU_ROW_TEXT_INSET = 16 + IMAGE_SIZE + 12
 
 export const menuKeyExtractor = (item: MenuDisplayItem) => item.id
 export const menuViewabilityConfig = {
@@ -49,6 +58,9 @@ export const MenuItemRow = memo(
   function MenuItemRow({
     id,
     name,
+    description,
+    isTopSell,
+    isNew,
     imageUrl,
     listIndex,
     rawPrice,
@@ -61,6 +73,9 @@ export const MenuItemRow = memo(
   }: {
     id: string
     name: string
+    description: string
+    isTopSell: boolean
+    isNew: boolean
     imageUrl: string | null
     listIndex: number
     rawPrice: number
@@ -86,13 +101,15 @@ export const MenuItemRow = memo(
     const handlePress = useCallback(() => onDetail(id), [id, onDetail])
     const handleAdd = useCallback(() => onAddToCart(id), [id, onAddToCart])
 
-    const cardBg = isDark ? colors.card.dark : colors.card.light
+    const rowBg = isDark ? colors.card.dark : colors.card.light
     const nameColor = isDark ? colors.gray[50] : colors.gray[900]
+    const descColor = isDark ? colors.gray[400] : colors.gray[500]
     const discountedColor = isDark
       ? colors.warning.dark
       : colors.warning.textLight
     const originalColor = isDark ? colors.gray[500] : colors.gray[400]
     const badgeBg = isDark ? colors.destructive.dark : colors.destructive.light
+    const tagBg = hexToRgba(primaryColor, isDark ? 0.18 : 0.14)
     const addButtonBg = hasStock
       ? primaryColor
       : isDark
@@ -104,85 +121,117 @@ export const MenuItemRow = memo(
         ? colors.gray[500]
         : colors.gray[400]
     const soldOutBg = isDark ? colors.gray[800] : colors.gray[900]
+    const desc = description.trim()
 
     return (
-      <Pressable onPress={handlePress} style={styles.wrapper}>
-        <View style={[styles.card, { backgroundColor: cardBg }]}>
-          <View style={styles.imageWrap}>
-            <View style={[styles.imageInner, !hasStock && styles.imageSoldOut]}>
-              <MenuItemImage
-                id={id}
-                imageUrl={imageUrl}
-                isEnabled={showImage}
-                transitionMs={0}
-                priority={imagePriority}
-                borderRadius={12}
-              />
-            </View>
-            {!hasStock && (
-              <View style={styles.soldOutWrap} pointerEvents="none">
-                <View
-                  style={[styles.soldOutBadge, { backgroundColor: soldOutBg }]}
-                >
-                  <Text style={styles.soldOutText}>{t('menu.outOfStock')}</Text>
-                </View>
-              </View>
-            )}
+      <Pressable
+        onPress={handlePress}
+        style={[styles.row, { backgroundColor: rowBg }]}
+      >
+        <View style={styles.imageWrap}>
+          <View style={[styles.imageInner, !hasStock && styles.imageSoldOut]}>
+            <MenuItemImage
+              id={id}
+              imageUrl={imageUrl}
+              isEnabled={showImage}
+              transitionMs={0}
+              priority={imagePriority}
+              borderRadius={12}
+            />
           </View>
-          <View style={styles.content}>
-            <Text
-              style={[styles.productName, { color: nameColor }]}
-              numberOfLines={1}
-            >
-              {capitalizeFirst(name)}
-            </Text>
-            {hasPromotion ? (
-              <View style={styles.priceRow}>
-                <Text
-                  style={[styles.priceDiscounted, { color: discountedColor }]}
-                >
-                  {formatCurrencyNative(discountedPrice)}
-                </Text>
-                <View
-                  style={[
-                    styles.pricePromotionBadge,
-                    { backgroundColor: badgeBg },
-                  ]}
-                >
-                  <Text style={styles.pricePromotionText}>
-                    -{promotionValue}%
+          {!hasStock && (
+            <View style={styles.soldOutWrap} pointerEvents="none">
+              <View
+                style={[styles.soldOutBadge, { backgroundColor: soldOutBg }]}
+              >
+                <Text style={styles.soldOutText}>{t('menu.outOfStock')}</Text>
+              </View>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.content}>
+          {(isTopSell || isNew) && (
+            <View style={styles.tagRow}>
+              {isTopSell && (
+                <View style={[styles.tag, { backgroundColor: tagBg }]}>
+                  <Text style={[styles.tagText, { color: primaryColor }]}>
+                    {t('menu.isTopSell')}
                   </Text>
                 </View>
-                <Text style={[styles.priceOriginal, { color: originalColor }]}>
-                  {formatCurrencyNative(rawPrice)}
+              )}
+              {isNew && (
+                <View style={[styles.tag, { backgroundColor: tagBg }]}>
+                  <Text style={[styles.tagText, { color: primaryColor }]}>
+                    {t('menu.isNewProduct')}
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+          <Text
+            style={[styles.productName, { color: nameColor }]}
+            numberOfLines={1}
+          >
+            {capitalizeFirst(name)}
+          </Text>
+          {desc ? (
+            <Text
+              testID="menu-row-description"
+              style={[styles.description, { color: descColor }]}
+              numberOfLines={1}
+            >
+              {desc}
+            </Text>
+          ) : null}
+          {hasPromotion ? (
+            <View style={styles.priceRow}>
+              <Text
+                style={[styles.priceDiscounted, { color: discountedColor }]}
+              >
+                {formatCurrencyNative(discountedPrice)}
+              </Text>
+              <View
+                style={[
+                  styles.pricePromotionBadge,
+                  { backgroundColor: badgeBg },
+                ]}
+              >
+                <Text style={styles.pricePromotionText}>
+                  -{promotionValue}%
                 </Text>
               </View>
-            ) : (
-              <Text style={[styles.priceRegular, { color: primaryColor }]}>
+              <Text style={[styles.priceOriginal, { color: originalColor }]}>
                 {formatCurrencyNative(rawPrice)}
               </Text>
-            )}
-            <View style={styles.addButtonWrap}>
-              <Pressable
-                onPress={handleAdd}
-                disabled={!hasStock}
-                hitSlop={6}
-                accessibilityRole="button"
-                accessibilityLabel={t('menu.addToCartA11y', { name })}
-                accessibilityState={{ disabled: !hasStock }}
-                style={[styles.addButton, { backgroundColor: addButtonBg }]}
-              >
-                <Plus size={20} color={addIconColor} />
-              </Pressable>
             </View>
-          </View>
+          ) : (
+            <Text style={[styles.priceRegular, { color: primaryColor }]}>
+              {formatCurrencyNative(rawPrice)}
+            </Text>
+          )}
         </View>
+
+        <Pressable
+          onPress={handleAdd}
+          disabled={!hasStock}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel={t('menu.addToCartA11y', { name })}
+          accessibilityState={{ disabled: !hasStock }}
+          style={[styles.addButton, { backgroundColor: addButtonBg }]}
+        >
+          <Plus size={18} color={addIconColor} />
+        </Pressable>
       </Pressable>
     )
   },
   (prev, next) =>
     prev.id === next.id &&
     prev.name === next.name &&
+    prev.description === next.description &&
+    prev.isTopSell === next.isTopSell &&
+    prev.isNew === next.isNew &&
     prev.imageUrl === next.imageUrl &&
     prev.listIndex === next.listIndex &&
     prev.rawPrice === next.rawPrice &&
@@ -195,19 +244,16 @@ export const MenuItemRow = memo(
 )
 
 const styles = StyleSheet.create({
-  wrapper: {
-    marginBottom: 12,
-    paddingHorizontal: 16,
-  },
-  card: {
+  row: {
     flexDirection: 'row',
-    borderRadius: 12,
-    overflow: 'hidden',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   imageWrap: {
-    width: 128,
-    height: 128,
-    padding: 8,
+    width: IMAGE_SIZE,
+    height: IMAGE_SIZE,
     flexShrink: 0,
   },
   imageInner: {
@@ -223,27 +269,44 @@ const styles = StyleSheet.create({
   },
   soldOutBadge: {
     borderRadius: 999,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
   },
   soldOutText: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
     color: colors.white.light,
   },
   content: {
     flex: 1,
-    padding: 12,
-    justifyContent: 'space-between',
+    minWidth: 0,
+    gap: 2,
+  },
+  tagRow: {
+    flexDirection: 'row',
+    gap: 4,
+    marginBottom: 2,
+  },
+  tag: {
+    borderRadius: 4,
+    paddingHorizontal: 6,
+    paddingVertical: 1,
+  },
+  tagText: {
+    fontSize: 10,
+    fontWeight: '700',
   },
   productName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
+  },
+  description: {
+    fontSize: 13,
   },
   priceRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 4,
+    marginTop: 2,
     gap: 6,
   },
   priceDiscounted: {
@@ -267,15 +330,12 @@ const styles = StyleSheet.create({
   priceRegular: {
     fontSize: 14,
     fontWeight: '600',
-    marginTop: 4,
-  },
-  addButtonWrap: {
-    alignSelf: 'flex-end',
+    marginTop: 2,
   },
   addButton: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
     alignItems: 'center',
     justifyContent: 'center',
   },

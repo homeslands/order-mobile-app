@@ -130,6 +130,7 @@
     "deliveryPhone": "Số điện thoại giao hàng",
     "isTopSell": "Bán chạy",
     "isNewProduct": "Mới",
+    "catalogItemCount": "{{count}} món",
     "relatedProducts": "Sản phẩm liên quan",
     "seeMore": "Xem thêm",
     "viewingBranch": "Đang xem menu {{name}}",

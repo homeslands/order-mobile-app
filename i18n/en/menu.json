@@ -130,6 +130,7 @@
     "deliveryPhone": "Delivery phone",
     "isTopSell": "Best seller",
     "isNewProduct": "New",
+    "catalogItemCount": "{{count}} items",
     "relatedProducts": "Related products",
     "seeMore": "See more",
     "viewingBranch": "Viewing the menu of {{name}}",

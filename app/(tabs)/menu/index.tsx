@@ -67,22 +67,48 @@ import {
 import { Text } from '@/components/ui/text'
 import type { CatalogChipData } from './menu-filter-bar'
 import { MenuFilterBar } from './menu-filter-bar'
+import { buildMenuSections, type MenuSectionRow } from '@/lib/menu-sections'
 import type { MenuDisplayItem } from './menu-item-row'
 import {
+  MENU_ROW_TEXT_INSET,
   MENU_IMAGE_HIGH_PRIORITY_COUNT,
   MenuImagePhaseContext,
   MenuItemRow,
   menuViewabilityConfig,
 } from './menu-item-row'
 
-type FlatItem =
-  | { _kind: 'header'; key: string; name: string }
-  | { _kind: 'item'; data: MenuDisplayItem }
+type FlatItem = MenuSectionRow<MenuDisplayItem>
 
 const menuKeyExtractor = (item: FlatItem) =>
   item._kind === 'header' ? item.key : item.data.id
 
 const menuGetItemType = (item: FlatItem) => item._kind
+
+/**
+ * Đường ngăn cách giữa hai món liền nhau, thụt tới lề chữ (kiểu danh sách
+ * iOS) — không kẻ quanh tiêu đề nhóm.
+ */
+function MenuRowSeparator({
+  leadingItem,
+  trailingItem,
+}: {
+  leadingItem?: FlatItem
+  trailingItem?: FlatItem
+}) {
+  const isDark = useColorScheme() === 'dark'
+  if (leadingItem?._kind !== 'item' || trailingItem?._kind !== 'item') {
+    return null
+  }
+  return (
+    <View
+      style={{
+        height: StyleSheet.hairlineWidth,
+        marginLeft: MENU_ROW_TEXT_INSET,
+        backgroundColor: isDark ? colors.border.dark : colors.border.light,
+      }}
+    />
+  )
+}
 
 const MENU_IMAGE_PREFETCH_DEBOUNCE_MS = 100
 const MENU_ENTRY_IMAGE_DELAY_MS = 300
@@ -439,6 +465,9 @@ export default function MenuPage() {
           currentStock: item.currentStock,
           isLimit: item.product?.isLimit,
         }),
+        description: item.product?.description?.trim() ?? '',
+        isTopSell: item.product?.isTopSell ?? false,
+        isNew: item.product?.isNew ?? false,
       }
     })
   }, [sourceItems])
@@ -458,42 +487,17 @@ export default function MenuPage() {
     )
   }, [itemsRaw, searchKeyword])
 
-  // Flat list with catalog headers when "Tất cả" (no catalog filter, no search)
-  // O(n) single-pass with Map instead of O(catalogs × n) nested filter
-
-  const flatItems = useMemo<FlatItem[]>(() => {
-    if (menuCatalog || searchKeyword || catalogList.length === 0) {
-      return filteredItems.map((data) => ({ _kind: 'item' as const, data }))
-    }
-    const byCatalog = new Map<string, MenuDisplayItem[]>()
-    const uncategorized: MenuDisplayItem[] = []
-    for (const data of filteredItems) {
-      const slug = data.menuItem.product.catalog?.slug
-      if (!slug) {
-        uncategorized.push(data)
-        continue
-      }
-      const bucket = byCatalog.get(slug)
-      if (bucket) {
-        bucket.push(data)
-      } else {
-        byCatalog.set(slug, [data])
-      }
-    }
-    const result: FlatItem[] = []
-    for (const cat of catalogList) {
-      const items = byCatalog.get(cat.slug)
-      if (!items?.length) continue
-      result.push({
-        _kind: 'header',
-        key: `header-${cat.slug}`,
-        name: cat.name,
-      })
-      for (const data of items) result.push({ _kind: 'item', data })
-    }
-    for (const data of uncategorized) result.push({ _kind: 'item', data })
-    return result
-  }, [filteredItems, catalogList, menuCatalog, searchKeyword])
+  // "Tất cả" (không lọc danh mục, không tìm): món theo nhóm, tiêu đề nhóm dính
+  // trên đầu khi cuộn. Đang lọc / tìm: danh sách phẳng.
+  const { rows: flatItems, stickyHeaderIndices } = useMemo(
+    () =>
+      buildMenuSections(
+        filteredItems,
+        catalogList,
+        !menuCatalog && !searchKeyword,
+      ),
+    [filteredItems, catalogList, menuCatalog, searchKeyword],
+  )
 
   // Chỉ số ô đang hiện của FlashList đếm cả dòng tiêu đề danh mục, nên tải
   // trước phải đi trên chính mảng dòng này (không phải mảng chỉ có món).
@@ -648,7 +652,10 @@ export default function MenuPage() {
     [t],
   )
 
-  const catalogHeaderColor = isDark ? colors.gray[400] : colors.gray[500]
+  const catalogHeaderColor = isDark ? colors.gray[50] : colors.gray[900]
+  const countColor = isDark ? colors.gray[400] : colors.gray[500]
+  // Nền danh sách = nền dòng món: tiêu đề nhóm dính phải đặc để che món cuộn qua.
+  const listBg = isDark ? colors.card.dark : colors.card.light
 
   const isMenuLoading = !allowFetch || isFetching
   const emptyState = getMenuListEmptyState({
@@ -739,9 +746,16 @@ export default function MenuPage() {
     ({ item }: { item: FlatItem }) => {
       if (item._kind === 'header') {
         return (
-          <Text style={[styles.catalogHeader, { color: catalogHeaderColor }]}>
-            {item.name}
-          </Text>
+          <View style={[styles.catalogHeader, { backgroundColor: listBg }]}>
+            <Text
+              style={[styles.catalogHeaderName, { color: catalogHeaderColor }]}
+            >
+              {item.name}
+            </Text>
+            <Text style={[styles.catalogHeaderCount, { color: countColor }]}>
+              {t('menu.catalogItemCount', { count: item.count })}
+            </Text>
+          </View>
         )
       }
       const { data } = item
@@ -751,6 +765,9 @@ export default function MenuPage() {
           name={data.name}
           imageUrl={data.imageUrl}
           listIndex={data.listIndex}
+          description={data.description}
+          isTopSell={data.isTopSell}
+          isNew={data.isNew}
           rawPrice={data.rawPrice}
           promotionValue={data.promotionValue}
           primaryColor={primaryColor}
@@ -767,6 +784,9 @@ export default function MenuPage() {
       primaryColor,
       isDark,
       catalogHeaderColor,
+      countColor,
+      listBg,
+      t,
     ],
   )
 
@@ -898,6 +918,8 @@ export default function MenuPage() {
             renderItem={renderItem}
             keyExtractor={menuKeyExtractor}
             getItemType={menuGetItemType}
+            stickyHeaderIndices={stickyHeaderIndices}
+            ItemSeparatorComponent={MenuRowSeparator}
             maintainVisibleContentPosition={MENU_MAINTAIN_POSITION}
             drawDistance={700}
             keyboardDismissMode="on-drag"
@@ -917,6 +939,7 @@ export default function MenuPage() {
             }
             viewabilityConfig={menuViewabilityConfig}
             showsVerticalScrollIndicator={false}
+            style={{ backgroundColor: listBg }}
             contentContainerStyle={[
               styles.listContent,
               { paddingBottom: bottomPadding },
@@ -1025,11 +1048,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   catalogHeader: {
-    fontSize: 13,
-    fontWeight: '600',
-    textTransform: 'uppercase',
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 6,
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 6,
+    paddingBottom: 4,
+  },
+  catalogHeaderName: {
+    fontSize: 17,
+    fontWeight: '700',
+  },
+  catalogHeaderCount: {
+    fontSize: 13,
   },
 })
