@@ -2,7 +2,19 @@ import { AuthState, IAuthStore } from '@/types'
 import { create } from 'zustand'
 import { createJSONStorage, persist } from 'zustand/middleware'
 
+import { parseServerTime } from '@/lib/auth/parse-server-time'
+import { serverNow } from '@/lib/auth/server-clock'
 import { createSecureStorage } from '@/utils/storage'
+
+// Đăng nhập = còn token + refresh token chưa hết hạn theo giờ server.
+// Không phụ thuộc isRefreshing để UI không nháy khi đang refresh.
+const hasValidSession = (
+  s: Pick<IAuthStore, 'token' | 'refreshToken' | 'expireTimeRefreshToken'>,
+): boolean => {
+  if (!s.token || !s.refreshToken) return false
+  const exp = parseServerTime(s.expireTimeRefreshToken)
+  return exp === null || serverNow() < exp
+}
 
 export const useAuthStore = create<IAuthStore>()(
   persist(
@@ -14,58 +26,8 @@ export const useAuthStore = create<IAuthStore>()(
       expireTime: undefined,
       expireTimeRefreshToken: undefined,
       isRefreshing: false,
-      isAuthenticated: () => {
-        const { token, expireTime, refreshToken, expireTimeRefreshToken } =
-          get()
-
-        if (!token || !expireTime || !refreshToken || !expireTimeRefreshToken)
-          return false
-
-        const now = new Date()
-        const tokenExpiresAt = new Date(expireTime)
-        const refreshExpiresAt = new Date(expireTimeRefreshToken)
-
-        // Nếu refresh token đã hết hạn thì chắc chắn not authenticated
-        if (now.valueOf() > refreshExpiresAt.valueOf()) {
-          return false
-        }
-
-        // Nếu access token vẫn còn hạn thì OK
-        if (now.valueOf() < tokenExpiresAt.valueOf()) {
-          return true
-        }
-
-        // Nếu access token hết hạn nhưng refresh token còn hạn
-        // Chỉ return true nếu không đang trong quá trình refresh
-        // Điều này tránh race condition
-        return !get().isRefreshing
-      },
-
-      isTokenValid: () => {
-        const { token, expireTime, refreshToken, expireTimeRefreshToken } =
-          get()
-
-        if (!token || !expireTime || !refreshToken || !expireTimeRefreshToken) {
-          return false
-        }
-
-        const now = new Date()
-        const tokenExpiresAt = new Date(expireTime)
-        const refreshExpiresAt = new Date(expireTimeRefreshToken)
-
-        // Nếu refresh token đã hết hạn thì token invalid
-        if (now.valueOf() > refreshExpiresAt.valueOf()) {
-          return false
-        }
-
-        // Nếu access token vẫn còn hạn thì valid
-        if (now.valueOf() < tokenExpiresAt.valueOf()) {
-          return true
-        }
-
-        // Nếu access token hết hạn nhưng refresh token còn hạn thì still valid
-        return true
-      },
+      isAuthenticated: () => hasValidSession(get()),
+      isTokenValid: () => hasValidSession(get()),
 
       needsUserInfo: () => {
         // Basic implementation - để tránh circular dependency
@@ -88,6 +50,13 @@ export const useAuthStore = create<IAuthStore>()(
         // để tránh circular dependency
         return AuthState.AUTHENTICATED
       },
+      setTokens: (t) =>
+        set({
+          token: t.accessToken,
+          refreshToken: t.refreshToken,
+          expireTime: t.expireTime,
+          expireTimeRefreshToken: t.expireTimeRefreshToken,
+        }),
       setSlug: (slug: string) => set({ slug }),
       setToken: (token: string) => set({ token }),
       setRefreshToken: (refreshToken: string) => set({ refreshToken }),

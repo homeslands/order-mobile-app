@@ -1,4 +1,5 @@
 import { PaymentMethod } from '@/constants'
+import { IAuthTokens } from './auth.type'
 import { IBranch } from './branch.type'
 import { ICatalog } from './catalog.type'
 import { IUserInfo } from './user.type'
@@ -24,6 +25,7 @@ export interface IAuthStore {
   getAuthState: () => AuthState
   isTokenValid: () => boolean
   needsUserInfo: () => boolean
+  setTokens: (tokens: IAuthTokens) => void
   setSlug: (slug: string) => void
   setToken: (token: string) => void
   setRefreshToken: (refreshToken: string) => void
