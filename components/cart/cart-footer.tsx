@@ -23,9 +23,9 @@ import { useSingleFlight } from '@/hooks/use-single-flight'
 import { useOrderFlowStore, useUserStore } from '@/stores'
 import {
   cartActions,
+  useCartFinalTotal,
   useCartItemCount,
   useCartTotal,
-  useCartVoucherDiscount,
 } from '@/stores/cart.store'
 import { useOrderFlowCartFooterData } from '@/stores/selectors/order-flow.selectors'
 import { useCartSheetStore } from '@/stores/cart-sheet.store'
@@ -118,8 +118,9 @@ export const CartFooter = memo(function CartFooter({
     { enabled: orderType === 'delivery' && (deliveryDistance ?? 0) > 0 },
   )
 
-  const voucherDiscount = useCartVoucherDiscount()
-  const finalTotal = total - voucherDiscount + (deliveryFee ?? 0)
+  // Cùng nguồn với sheet xác nhận — trước cộng giá gốc (trước khuyến mãi)
+  const itemsTotal = useCartFinalTotal()
+  const finalTotal = itemsTotal + (deliveryFee ?? 0)
 
   const [confirmSheetVisible, setConfirmSheetVisible] = useState(false)
   // Mỗi sheet chỉ dựng khi mở lần đầu — dựng sẵn cả năm (kèm query, mutation,
@@ -286,7 +287,7 @@ export const CartFooter = memo(function CartFooter({
               {t('order.total')} ({itemCount})
             </Text>
             <View style={footerStyles.totalRow}>
-              {voucherDiscount > 0 && (
+              {itemsTotal < total && (
                 <Text style={[footerStyles.totalOriginal, ft.mutedColorAlt]}>
                   {formatCurrencyNative(total)}
                 </Text>
