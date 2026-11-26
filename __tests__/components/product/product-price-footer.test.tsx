@@ -6,11 +6,28 @@ import { ProductPriceFooter } from '@/components/product/product-price-footer'
 
 let mockSelectedVariant: unknown = { slug: 'm', price: 45000 }
 
+let mockTotal: number | null = 90000
+const mockSetQuantity = jest.fn()
+
 jest.mock('@/stores/selectors', () => ({
-  useDetailPrice: () => 45000,
-  useDetailComputedTotalPrice: () => 45000,
+  useDetailComputedTotalPrice: () => mockTotal,
   useDetailSelectedVariant: () => mockSelectedVariant,
+  useDetailQuantity: () => 2,
+  useDetailSetQuantity: () => mockSetQuantity,
 }))
+
+// Bộ tăng giảm số lượng có test riêng; ở đây chỉ cần biết footer gắn nó với
+// số lượng trong store và giới hạn tồn kho.
+jest.mock('@/components/button/non-prop-quantity-selector', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { Text } = require('react-native')
+  return {
+    __esModule: true,
+    default: (p: { quantity: number; currentQuantity?: number }) => (
+      <Text testID="stepper">{`${p.quantity}/${p.currentQuantity}`}</Text>
+    ),
+  }
+})
 
 jest.mock('@/hooks/use-primary-color', () => ({
   usePrimaryColor: () => '#F7A737',
@@ -35,8 +52,6 @@ jest.mock('@/components/ui/text', () => ({
 jest.mock('@/utils', () => ({ formatCurrency: (n: number) => `${n}đ` }))
 
 const labels = {
-  totalPriceLabel: 'total',
-  chooseSizeLabel: 'chooseSize',
   addToCartLabel: 'addToCart',
   outOfStockLabel: 'outOfStock',
   retryLabel: 'retry',
@@ -53,6 +68,9 @@ function renderFooter(
       isLoaded
       isError={false}
       hasStock
+      isLimit
+      isLocked={false}
+      currentStock={7}
       onAddToCart={onAddToCart}
       onRetry={onRetry}
       {...over}
@@ -63,6 +81,7 @@ function renderFooter(
 
 beforeEach(() => {
   mockSelectedVariant = { slug: 'm', price: 45000 }
+  mockTotal = 90000
 })
 
 it('đang tải: nút tắt và không ghi "Hết hàng"', () => {
@@ -101,8 +120,19 @@ it('chưa chọn size: chờ, không ghi "Hết hàng"', () => {
   expect(screen.queryByText('outOfStock')).toBeNull()
 })
 
-it('sẵn sàng: bấm thêm vào giỏ', () => {
+it('sẵn sàng: nút ghi kèm tổng tiền, bấm thêm vào giỏ', () => {
   const { onAddToCart } = renderFooter({})
-  fireEvent.press(screen.getByText('addToCart'))
+  fireEvent.press(screen.getByText('addToCart · 90000đ'))
   expect(onAddToCart).toHaveBeenCalledTimes(1)
+})
+
+it('chưa có giá: nút chỉ ghi "Thêm vào giỏ"', () => {
+  mockTotal = null
+  renderFooter({})
+  expect(screen.getByText('addToCart')).toBeTruthy()
+})
+
+it('số lượng nằm ở footer, theo tồn kho của món', () => {
+  renderFooter({})
+  expect(screen.getByTestId('stepper').props.children).toBe('2/7')
 })

@@ -1,151 +1,192 @@
 /**
- * Product Detail Options — Progressive rendering + View flattening.
+ * Product Detail Options — size + ghi chú cho quán.
  *
- * Data Layering:
- * 1. Product info (name, price, promotion) render ngay.
- * 2. Options (variants, quantity, toppings) defer bằng requestAnimationFrame
- *    để giảm spike mount khi có 20-30 topping.
- *
- * View flattening:
- * - Dùng flexWrap trực tiếp, ít View lồng nhau.
- * - VariantChip: View duy nhất thay vì View > View > Text.
+ * - Một size: chỉ ghi tên size (không phải nút — không có gì để chọn).
+ * - Nhiều size: thẻ ghi tên + giá (size rẻ nhất giá đầy đủ, size khác phần chênh).
+ * - Ghi chú cho quán: ô nhập tự do, ghi vào `note` trong store
+ *   (handleAddToCart đọc note lúc bấm thêm vào giỏ). Không có chip gợi ý
+ *   ("Ít đá"…) vì menu có cả đồ ăn và dữ liệu không phân biệt đồ uống.
+ * Số lượng nằm ở footer (ProductPriceFooter).
  */
-import NonPropQuantitySelector from '@/components/button/non-prop-quantity-selector'
-import { StaticText } from '@/components/ui'
 import { colors } from '@/constants'
+import { usePrimaryColor } from '@/hooks/use-primary-color'
+import { hexToRgba } from '@/lib/utils'
 import type { IProductVariant } from '@/types'
+import { variantPriceLabels } from '@/utils/product-detail-calc'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Pressable, StyleSheet, useColorScheme, View } from 'react-native'
-import { HIT_SLOP_ICON } from '@/lib/navigation'
 import {
-  useDetailQuantity,
-  useDetailSetQuantity,
+  Pressable,
+  StyleSheet,
+  TextInput,
+  useColorScheme,
+  View,
+} from 'react-native'
+import {
+  useDetailNote,
+  useDetailSetNote,
   useDetailSetSelection,
   useDetailSize,
 } from '@/stores/selectors'
 import { Text } from '@/components/ui/text'
 
 const styles = StyleSheet.create({
-  variantRow: {
+  section: { gap: 10 },
+  rowBetween: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     gap: 8,
   },
-  variantChip: {
-    borderRadius: 999,
+  label: { fontSize: 15, fontWeight: '600' },
+  singleSize: { fontSize: 14, fontWeight: '500' },
+  sizeRow: { flexDirection: 'row', gap: 8 },
+  sizeCard: {
+    flex: 1,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    alignItems: 'center',
+    gap: 2,
+  },
+  sizeName: { fontSize: 14, fontWeight: '600' },
+  sizePrice: { fontSize: 12 },
+  stock: { fontSize: 12 },
+  noteInput: {
+    minHeight: 44,
+    borderRadius: 12,
     borderWidth: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 6,
+    paddingHorizontal: 12,
+    paddingTop: 11,
+    paddingBottom: 11,
+    fontSize: 14,
   },
-  variantChipSelectedLight: {
-    borderColor: colors.primary.light,
-    backgroundColor: colors.primary.light,
-  },
-  variantChipSelectedDark: {
-    borderColor: colors.primary.dark,
-    backgroundColor: colors.primary.dark,
-  },
-  variantChipUnselectedLight: {
-    borderColor: colors.gray[400],
-    backgroundColor: 'transparent',
-  },
-  variantChipUnselectedDark: {
-    borderColor: colors.gray[500],
-    backgroundColor: 'transparent',
-  },
-  variantChipText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  variantChipTextSelected: { color: colors.white.light },
-  variantChipTextUnselectedLight: { color: colors.gray[700] },
-  variantChipTextUnselectedDark: { color: colors.gray[300] },
+  divider: { height: StyleSheet.hairlineWidth },
 })
 
-/** Chip đơn — subscribe atomic useDetailSize → chỉ re-render khi size thay đổi */
-const VariantChip = React.memo(function VariantChip({
+/** Thẻ size — subscribe atomic useDetailSize → chỉ re-render khi size đổi */
+const SizeCard = React.memo(function SizeCard({
   variant,
+  priceLabel,
   onSelect,
 }: {
   variant: IProductVariant
+  priceLabel: string
   onSelect: (v: IProductVariant) => void
 }) {
   const isDark = useColorScheme() === 'dark'
-  const selectedSize = useDetailSize()
-  const isSelected = selectedSize === variant.size.name
-
+  const primaryColor = usePrimaryColor()
+  const isSelected = useDetailSize() === variant.size.name
   const handlePress = useCallback(() => onSelect(variant), [variant, onSelect])
 
   return (
     <Pressable
       onPress={handlePress}
-      hitSlop={HIT_SLOP_ICON}
+      accessibilityRole="radio"
+      accessibilityState={{ checked: isSelected }}
       style={[
-        styles.variantChip,
+        styles.sizeCard,
         isSelected
-          ? isDark
-            ? styles.variantChipSelectedDark
-            : styles.variantChipSelectedLight
-          : isDark
-            ? styles.variantChipUnselectedDark
-            : styles.variantChipUnselectedLight,
+          ? {
+              borderColor: primaryColor,
+              backgroundColor: hexToRgba(primaryColor, isDark ? 0.16 : 0.1),
+            }
+          : {
+              borderColor: isDark ? colors.gray[700] : colors.gray[200],
+              backgroundColor: 'transparent',
+            },
       ]}
       {...({ unstable_pressDelay: 0 } as object)}
     >
       <Text
         style={[
-          styles.variantChipText,
-          isSelected
-            ? styles.variantChipTextSelected
-            : isDark
-              ? styles.variantChipTextUnselectedDark
-              : styles.variantChipTextUnselectedLight,
+          styles.sizeName,
+          { color: isDark ? colors.gray[50] : colors.gray[900] },
         ]}
       >
-        {variant.size.name.toUpperCase()}
+        {variant.size.name}
+      </Text>
+      <Text
+        style={[
+          styles.sizePrice,
+          { color: isDark ? colors.gray[400] : colors.gray[500] },
+        ]}
+      >
+        {priceLabel}
       </Text>
     </Pressable>
+  )
+})
+
+/** Ghi chú cho quán — chỉ phần này re-render khi khách gõ */
+const NoteSection = React.memo(function NoteSection({
+  title,
+  placeholder,
+}: {
+  title: string
+  placeholder: string
+}) {
+  const isDark = useColorScheme() === 'dark'
+  const note = useDetailNote()
+  const setNote = useDetailSetNote()
+
+  return (
+    <View style={styles.section}>
+      <Text
+        style={[
+          styles.label,
+          { color: isDark ? colors.gray[50] : colors.gray[900] },
+        ]}
+      >
+        {title}
+      </Text>
+      <TextInput
+        value={note}
+        onChangeText={setNote}
+        placeholder={placeholder}
+        placeholderTextColor={isDark ? colors.gray[500] : colors.gray[400]}
+        multiline
+        maxLength={200}
+        textAlignVertical="top"
+        style={[
+          styles.noteInput,
+          {
+            borderColor: isDark ? colors.gray[700] : colors.gray[200],
+            color: isDark ? colors.gray[50] : colors.gray[900],
+          },
+        ]}
+      />
+    </View>
   )
 })
 
 export interface ProductDetailOptionsSectionProps {
   productSlug: string
   variants: IProductVariant[]
-  description: string
   isLimit: boolean
-  isLocked: boolean
   currentStock: number
   defaultStock: number
-  inStockLabel: string
-  selectSizeLabel: string
-  selectQuantityLabel: string
-  descriptionLabel: string
-  noDescriptionLabel: string
-  promotionDescription?: string
-  promotionSpecialLabel?: string
+  sizeLabel: string
+  stockLabel: string
+  noteTitle: string
+  notePlaceholder: string
 }
 
 export const ProductDetailOptionsSection = React.memo(
   function ProductDetailOptionsSection({
     productSlug,
     variants,
-    description,
     isLimit,
-    isLocked,
     currentStock,
     defaultStock,
-    inStockLabel,
-    selectSizeLabel,
-    selectQuantityLabel,
-    descriptionLabel,
-    noDescriptionLabel,
-    promotionDescription,
-    promotionSpecialLabel,
+    sizeLabel,
+    stockLabel,
+    noteTitle,
+    notePlaceholder,
   }: ProductDetailOptionsSectionProps) {
     const isDark = useColorScheme() === 'dark'
     const setSelection = useDetailSetSelection()
-    const quantity = useDetailQuantity()
-    const setQuantity = useDetailSetQuantity()
+    const priceLabels = useMemo(() => variantPriceLabels(variants), [variants])
 
     const handleSizeChange = useCallback(
       (variant: IProductVariant) => {
@@ -182,31 +223,33 @@ export const ProductDetailOptionsSection = React.memo(
       })
     }, [productSlug, initialVariant, setSelection])
 
+    const labelColor = isDark ? colors.gray[50] : colors.gray[900]
+    const mutedColor = isDark ? colors.gray[400] : colors.gray[500]
+
     return (
-      <View style={{ flexDirection: 'column', gap: 16 }}>
-        {variants.length > 0 && (
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 8,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: '600',
-                color: isDark ? colors.gray[50] : colors.gray[900],
-              }}
-            >
-              {selectSizeLabel}
+      <View style={{ gap: 20 }}>
+        {variants.length === 1 && (
+          <View style={styles.rowBetween}>
+            <Text style={[styles.label, { color: labelColor }]}>
+              {sizeLabel}
             </Text>
-            <View style={styles.variantRow}>
+            <Text style={[styles.singleSize, { color: mutedColor }]}>
+              {variants[0].size.name}
+            </Text>
+          </View>
+        )}
+
+        {variants.length > 1 && (
+          <View style={styles.section}>
+            <Text style={[styles.label, { color: labelColor }]}>
+              {sizeLabel}
+            </Text>
+            <View style={styles.sizeRow}>
               {variants.map((v) => (
-                <VariantChip
+                <SizeCard
                   key={v.slug}
                   variant={v}
+                  priceLabel={priceLabels.get(v.slug) ?? ''}
                   onSelect={handleSizeChange}
                 />
               ))}
@@ -214,103 +257,21 @@ export const ProductDetailOptionsSection = React.memo(
           </View>
         )}
 
-        {variants.length > 0 && (
-          <View
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 8,
-              paddingTop: 8,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 14,
-                fontWeight: '600',
-                color: isDark ? colors.gray[50] : colors.gray[900],
-              }}
-            >
-              {selectQuantityLabel}
-            </Text>
-            <View
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}
-            >
-              <NonPropQuantitySelector
-                quantity={quantity}
-                onChange={setQuantity}
-                isLimit={isLimit}
-                disabled={isLocked}
-                currentQuantity={currentStock}
-              />
-              {isLimit && (
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: isDark ? colors.gray[400] : colors.gray[500],
-                  }}
-                >
-                  {currentStock}/{defaultStock} {inStockLabel}
-                </Text>
-              )}
-            </View>
-          </View>
+        {isLimit && (
+          <Text style={[styles.stock, { color: mutedColor, marginTop: -10 }]}>
+            {stockLabel}
+            {currentStock}/{defaultStock}
+          </Text>
         )}
 
         <View
-          style={{
-            borderTopWidth: StyleSheet.hairlineWidth,
-            borderTopColor: isDark ? colors.gray[700] : colors.gray[200],
-            marginTop: 4,
-          }}
+          style={[
+            styles.divider,
+            { backgroundColor: isDark ? colors.gray[700] : colors.gray[200] },
+          ]}
         />
-        <View style={{ gap: 4, paddingTop: 4 }}>
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: '600',
-              color: isDark ? colors.gray[50] : colors.gray[900],
-            }}
-          >
-            {descriptionLabel}
-          </Text>
-          <StaticText
-            contentKey={description || 'empty'}
-            className="text-base leading-relaxed text-gray-700 dark:text-gray-300"
-          >
-            {description?.trim() || noDescriptionLabel}
-          </StaticText>
-        </View>
 
-        {promotionDescription && promotionSpecialLabel && (
-          <View
-            style={{
-              marginTop: 16,
-              borderRadius: 16,
-              borderWidth: 1,
-              borderColor: 'rgba(234, 179, 8, 0.7)',
-              backgroundColor: 'rgba(254, 249, 195, 0.5)',
-              paddingHorizontal: 12,
-              paddingVertical: 12,
-            }}
-          >
-            <Text
-              style={{
-                fontSize: 11,
-                fontWeight: '600',
-                textTransform: 'uppercase',
-                letterSpacing: 0.5,
-                color: '#a16207',
-                marginBottom: 4,
-              }}
-            >
-              {promotionSpecialLabel}
-            </Text>
-            <Text style={{ fontSize: 14, color: colors.gray[800] }}>
-              {promotionDescription}
-            </Text>
-          </View>
-        )}
+        <NoteSection title={noteTitle} placeholder={notePlaceholder} />
       </View>
     )
   },
