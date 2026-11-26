@@ -6,13 +6,7 @@ import { cartActions, useCartItemVoucherDiscount } from '@/stores/cart.store'
 import { capitalizeFirst } from '@/utils'
 import { useRecyclingState } from '@shopify/flash-list'
 import { formatCurrencyNative } from 'cart-price-calc'
-import {
-  ChevronDown,
-  Minus,
-  NotebookText,
-  Plus,
-  Trash2,
-} from 'lucide-react-native'
+import { ChevronDown, Minus, NotebookText, Plus } from 'lucide-react-native'
 import React, { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, TextInput, View } from 'react-native'
@@ -39,9 +33,9 @@ const THEME_LIGHT = {
   chipTextColor: { color: colors.gray[600] },
   chipArrowColor: { color: colors.gray[400] },
   origPriceColor: { color: colors.gray[400] },
-  qtyBtnBorder: { borderColor: colors.gray[300] },
-  qtyIconColor: colors.gray[700],
-  removeColor: colors.destructive.light,
+  // Viền và biểu tượng − / + cùng một màu
+  qtyBtnBorder: { borderColor: colors.gray[400] },
+  stepperColor: colors.gray[400],
   addNoteColor: { color: colors.gray[500] },
   qtyTextColor: { color: colors.gray[900] },
   noteRowTheme: {
@@ -60,9 +54,8 @@ const THEME_DARK = {
   chipTextColor: { color: colors.gray[300] },
   chipArrowColor: { color: colors.gray[500] },
   origPriceColor: { color: colors.gray[500] },
-  qtyBtnBorder: { borderColor: colors.gray[700] },
-  qtyIconColor: colors.gray[300],
-  removeColor: colors.destructive.dark,
+  qtyBtnBorder: { borderColor: colors.gray[500] },
+  stepperColor: colors.gray[500],
   addNoteColor: { color: colors.gray[400] },
   qtyTextColor: { color: colors.gray[50] },
   noteRowTheme: {
@@ -121,13 +114,6 @@ export const CartItemRow = memo(
       setPendingQty(next, SKIP_LIST_LAYOUT)
       scheduleSync(next)
     }, [displayQty, scheduleSync, setPendingQty])
-
-    // Số lượng 1: nút trái là Xoá món (trước nút "−" mờ, bấm không có gì —
-    // xoá chỉ có vuốt, khách khó thấy). Vuốt để xoá vẫn giữ.
-    const handleRemove = useCallback(
-      () => onDelete(item.cartKey),
-      [onDelete, item.cartKey],
-    )
 
     const handleDecrease = useCallback(() => {
       if (displayQty <= 1) return
@@ -264,27 +250,21 @@ export const CartItemRow = memo(
                 </View>
 
                 <View style={[rowStyles.stepper, themeStyles.qtyBtnBorder]}>
-                  {displayQty <= 1 ? (
-                    <Pressable
-                      onPress={handleRemove}
-                      hitSlop={6}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('cart.removeItem')}
-                      style={rowStyles.stepBtn}
-                    >
-                      <Trash2 size={16} color={themeStyles.removeColor} />
-                    </Pressable>
-                  ) : (
-                    <Pressable
-                      onPress={handleDecrease}
-                      hitSlop={6}
-                      accessibilityRole="button"
-                      accessibilityLabel={t('cart.decreaseQty')}
-                      style={rowStyles.stepBtn}
-                    >
-                      <Minus size={16} color={themeStyles.qtyIconColor} />
-                    </Pressable>
-                  )}
+                  {/* Chỉ − / + (xoá món bằng vuốt); SL 1 thì − tắt */}
+                  <Pressable
+                    onPress={handleDecrease}
+                    disabled={displayQty <= 1}
+                    hitSlop={6}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('cart.decreaseQty')}
+                    accessibilityState={{ disabled: displayQty <= 1 }}
+                    style={[
+                      rowStyles.stepBtn,
+                      displayQty <= 1 && rowStyles.stepBtnDisabled,
+                    ]}
+                  >
+                    <Minus size={16} color={themeStyles.stepperColor} />
+                  </Pressable>
                   <Text style={[rowStyles.qtyText, themeStyles.qtyTextColor]}>
                     {displayQty}
                   </Text>
@@ -295,7 +275,7 @@ export const CartItemRow = memo(
                     accessibilityLabel={t('cart.increaseQty')}
                     style={rowStyles.stepBtn}
                   >
-                    <Plus size={16} color={primaryColor} />
+                    <Plus size={16} color={themeStyles.stepperColor} />
                   </Pressable>
                 </View>
               </View>
@@ -421,6 +401,7 @@ const rowStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  stepBtnDisabled: { opacity: 0.35 },
   qtyText: {
     fontSize: 14,
     fontWeight: '600',

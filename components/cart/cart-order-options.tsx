@@ -7,13 +7,16 @@
  */
 import { formatCurrencyNative } from 'cart-price-calc'
 import { ChevronRight, ShoppingBag, Ticket } from 'lucide-react-native'
-import { memo, useCallback, useMemo } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
+import { memo, useCallback, useEffect, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, View } from 'react-native'
 
 import { DeliveryInfoRow } from '@/components/delivery'
 import { Text } from '@/components/ui/text'
 import { colors } from '@/constants'
+import { tablesQueryOptions } from '@/hooks/use-table'
+import { useBranchStore } from '@/stores'
 import { useCartVoucher, useCartVoucherDiscount } from '@/stores/cart.store'
 import { useCartSheetStore } from '@/stores/cart-sheet.store'
 import { useOrderFlowCartFooterData } from '@/stores/selectors/order-flow.selectors'
@@ -37,6 +40,15 @@ export const CartOrderOptions = memo(function CartOrderOptions({
     deliveryAddress,
     deliveryPhone,
   } = useOrderFlowCartFooterData()
+
+  // Chọn "Tại bàn" là tải trước danh sách bàn — sheet chọn bàn mở ra có ngay
+  // thay vì vòng quay "Đang tải" (sheet chỉ tự tải khi đã mở).
+  const queryClient = useQueryClient()
+  const branchSlug = useBranchStore((s) => s.branch?.slug)
+  useEffect(() => {
+    if (orderType !== 'at-table' || !branchSlug) return
+    void queryClient.prefetchQuery(tablesQueryOptions(branchSlug))
+  }, [orderType, branchSlug, queryClient])
 
   const openOrderType = useCallback(() => open('orderType'), [open])
   const openTable = useCallback(() => open('table'), [open])
@@ -147,7 +159,7 @@ export const CartOrderOptions = memo(function CartOrderOptions({
 const s = StyleSheet.create({
   wrapper: { marginTop: 16 },
   card: {
-    marginHorizontal: 10,
+    marginHorizontal: 16,
     borderRadius: 16,
     padding: 12,
     gap: 12,

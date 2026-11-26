@@ -177,7 +177,7 @@ export default function CartContent() {
     () => (
       <>
         <CartOrderOptions isDark={isDark} primaryColor={primaryColor} />
-        <CartOrderNote isDark={isDark} />
+        <CartOrderNote isDark={isDark} primaryColor={primaryColor} />
       </>
     ),
     [isDark, primaryColor],

@@ -15,8 +15,10 @@ const DEBOUNCE_MS = 400
 
 export const CartOrderNote = memo(function CartOrderNote({
   isDark,
+  primaryColor,
 }: {
   isDark: boolean
+  primaryColor: string
 }) {
   const { t } = useTranslation('menu')
   const initialNote = useOrderFlowStore(
@@ -59,14 +61,12 @@ export const CartOrderNote = memo(function CartOrderNote({
         ]}
       >
         <View style={styles.titleRow}>
-          <NotebookText
-            size={14}
-            color={isDark ? colors.gray[400] : colors.gray[500]}
-          />
+          {/* Cùng kiểu dòng Voucher ngay trên: biểu tượng màu chính, chữ đậm */}
+          <NotebookText size={18} color={primaryColor} />
           <Text
             style={[
               styles.title,
-              { color: isDark ? colors.gray[300] : colors.gray[600] },
+              { color: isDark ? colors.gray[50] : colors.gray[900] },
             ]}
           >
             {t('order.orderNote')}
@@ -101,18 +101,18 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   container: {
-    marginHorizontal: 10,
+    marginHorizontal: 16,
     borderRadius: 16,
-    padding: 8,
-    gap: 8,
+    padding: 12,
+    gap: 10,
   },
   titleRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
   },
   title: {
-    fontSize: 13,
+    fontSize: 15,
     fontWeight: '600',
   },
   input: {

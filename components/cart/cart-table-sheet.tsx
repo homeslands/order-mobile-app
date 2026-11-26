@@ -17,10 +17,91 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native'
 import { TouchableOpacity } from 'react-native-gesture-handler'
 import type { ListRenderItem } from '@shopify/flash-list'
 import { Text } from '@/components/ui/text'
+import { hexToRgba } from '@/lib/utils'
 
 const TABLE_SHEET_SNAP = ['50%']
 const COLUMNS = 3
 const CHIP_HEIGHT = 72
+
+const TableChip = memo(function TableChip({
+  table,
+  selected,
+  primaryColor,
+  isDark,
+  availableLabel,
+  reservedLabel,
+  onSelect,
+}: {
+  table: ITable
+  selected: boolean
+  primaryColor: string
+  isDark: boolean
+  availableLabel: string
+  reservedLabel: string
+  onSelect: (table: ITable) => void
+}) {
+  const handlePress = useCallback(() => onSelect(table), [onSelect, table])
+  const isAvailable = table.status === TableStatus.AVAILABLE
+  const statusColor = isAvailable
+    ? isDark
+      ? colors.success.dark
+      : colors.success.light
+    : isDark
+      ? colors.destructive.dark
+      : colors.destructive.light
+
+  return (
+    // Opacity on a plain View — not on TouchableOpacity — to avoid
+    // RNGH's animated opacity conflicting with FlashList view recycling.
+    <View style={chipStyles.chipWrapper}>
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={handlePress}
+        style={[
+          chipStyles.chip,
+          {
+            borderColor: selected
+              ? primaryColor
+              : isDark
+                ? colors.border.dark
+                : colors.gray[200],
+            backgroundColor: selected
+              ? hexToRgba(primaryColor, 0.08)
+              : 'transparent',
+          },
+        ]}
+      >
+        {selected && (
+          <CheckCircle
+            size={14}
+            color={primaryColor}
+            style={chipStyles.checkIcon}
+          />
+        )}
+        <Text
+          style={[
+            chipStyles.chipName,
+            {
+              color: isDark ? colors.gray[50] : colors.gray[900],
+              fontWeight: selected ? '700' : '500',
+            },
+          ]}
+          numberOfLines={1}
+        >
+          {table.name}
+        </Text>
+        <View style={chipStyles.statusRow}>
+          <View
+            style={[chipStyles.statusDot, { backgroundColor: statusColor }]}
+          />
+          <Text style={[chipStyles.statusText, { color: statusColor }]}>
+            {isAvailable ? availableLabel : reservedLabel}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
+  )
+})
 
 export const SimpleTableSheet = memo(function SimpleTableSheet({
   visible,
@@ -81,69 +162,21 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
     }
   }, [])
 
+  // Ô bàn là component memo: chọn bàn chỉ vẽ lại hai ô (cũ / mới) thay vì cả
+  // lưới; onSelect ổn định nên không tạo hàm mới cho từng ô mỗi lần vẽ.
   const renderItem: ListRenderItem<ITable> = useCallback(
-    ({ item: table }) => {
-      const selected = selectedTable === table.slug
-      const isAvailable = table.status === TableStatus.AVAILABLE
-      const statusColor = isAvailable
-        ? isDark
-          ? colors.success.dark
-          : colors.success.light
-        : isDark
-          ? colors.destructive.dark
-          : colors.destructive.light
-
-      return (
-        // Opacity on a plain View — not on TouchableOpacity — to avoid
-        // RNGH's animated opacity conflicting with FlashList view recycling.
-        <View style={chipStyles.chipWrapper}>
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => handleSelect(table)}
-            style={[
-              chipStyles.chip,
-              {
-                borderColor: selected
-                  ? primaryColor
-                  : isDark
-                    ? colors.border.dark
-                    : colors.gray[200],
-                backgroundColor: selected ? `${primaryColor}15` : 'transparent',
-              },
-            ]}
-          >
-            {selected && (
-              <CheckCircle
-                size={14}
-                color={primaryColor}
-                style={chipStyles.checkIcon}
-              />
-            )}
-            <Text
-              style={[
-                chipStyles.chipName,
-                {
-                  color: isDark ? colors.gray[50] : colors.gray[900],
-                  fontWeight: selected ? '700' : '500',
-                },
-              ]}
-              numberOfLines={1}
-            >
-              {table.name}
-            </Text>
-            <View style={chipStyles.statusRow}>
-              <View
-                style={[chipStyles.statusDot, { backgroundColor: statusColor }]}
-              />
-              <Text style={[chipStyles.statusText, { color: statusColor }]}>
-                {isAvailable ? 'Trống' : 'Đặt'}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-      )
-    },
-    [selectedTable, primaryColor, isDark, handleSelect],
+    ({ item: table }) => (
+      <TableChip
+        table={table}
+        selected={selectedTable === table.slug}
+        primaryColor={primaryColor}
+        isDark={isDark}
+        availableLabel={t('table.chipAvailable')}
+        reservedLabel={t('table.chipReserved')}
+        onSelect={handleSelect}
+      />
+    ),
+    [selectedTable, primaryColor, isDark, handleSelect, t],
   )
 
   const keyExtractor = useCallback((item: ITable) => item.slug, [])
@@ -181,7 +214,7 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
               marginTop: 8,
             }}
           >
-            Đang tải...
+            {t('table.loadingTables')}
           </Text>
         </View>
       ) : (
@@ -193,10 +226,10 @@ export const SimpleTableSheet = memo(function SimpleTableSheet({
             paddingVertical: 24,
           }}
         >
-          Không có bàn nào
+          {t('table.noTables')}
         </Text>
       ),
-    [isLoading, isDark],
+    [isLoading, isDark, t],
   )
 
   const renderBackdrop = useCallback(

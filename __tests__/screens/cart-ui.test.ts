@@ -55,3 +55,20 @@ it('CU6 rời giỏ khi ghi chú đơn còn chờ ghi: ghi luôn, không mất',
   const cleanup = note.slice(note.indexOf('return () => {'))
   expect(cleanup.slice(0, 400)).toMatch(/cartActions\.setDescription\(/)
 })
+
+it('CU7 chọn "Tại bàn" là tải trước danh sách bàn (sheet mở ra có ngay)', () => {
+  expect(options).toMatch(/prefetchQuery\(tablesQueryOptions\(/)
+})
+
+it('CU8 ô bàn là component memo, chọn bàn không dựng lại mọi ô', () => {
+  const sheet = read('components/cart/cart-table-sheet.tsx')
+  expect(sheet).toMatch(/const TableChip = memo\(/)
+  expect(sheet).not.toMatch(/onPress=\{\(\) => handleSelect\(table\)\}/)
+  expect(sheet).not.toMatch(/'Trống'|'Đặt'|Đang tải\.\.\.|Không có bàn nào/)
+})
+
+it('CU9 tiêu đề Ghi chú đơn cùng kiểu dòng Voucher (biểu tượng màu chính, chữ đậm)', () => {
+  const note = read('components/cart/cart-order-note.tsx')
+  expect(note).toMatch(/<NotebookText size=\{18\} color=\{primaryColor\}/)
+  expect(content).toMatch(/<CartOrderNote[^>]*primaryColor=\{primaryColor\}/)
+})
