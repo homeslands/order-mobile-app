@@ -71,8 +71,7 @@ import { MenuFilterBar } from './menu-filter-bar'
 import { buildMenuSections, type MenuSectionRow } from '@/lib/menu-sections'
 import type { MenuDisplayItem } from './menu-item-row'
 import {
-  MENU_GROUP_MARGIN,
-  MENU_ROW_TEXT_INSET,
+  MENU_CARD_GAP,
   MENU_IMAGE_HIGH_PRIORITY_COUNT,
   MenuImagePhaseContext,
   MenuItemRow,
@@ -86,11 +85,7 @@ const menuKeyExtractor = (item: FlatItem) =>
 
 const menuGetItemType = (item: FlatItem) => item._kind
 
-/**
- * Đường ngăn cách giữa hai món cùng nhóm, thụt tới lề chữ (kiểu inset grouped
- * của iOS). Nền trắng cùng thẻ nhóm để thẻ liền mạch; không kẻ sau món cuối
- * nhóm hay quanh tiêu đề.
- */
+/** Khoảng trống giữa hai thẻ món liền nhau (không đặt quanh tiêu đề nhóm). */
 function MenuRowSeparator({
   leadingItem,
   trailingItem,
@@ -98,30 +93,10 @@ function MenuRowSeparator({
   leadingItem?: FlatItem
   trailingItem?: FlatItem
 }) {
-  const isDark = useColorScheme() === 'dark'
-  if (
-    leadingItem?._kind !== 'item' ||
-    leadingItem.last ||
-    trailingItem?._kind !== 'item'
-  ) {
+  if (leadingItem?._kind !== 'item' || trailingItem?._kind !== 'item') {
     return null
   }
-  return (
-    <View
-      style={{
-        marginHorizontal: MENU_GROUP_MARGIN,
-        backgroundColor: isDark ? colors.card.dark : colors.card.light,
-      }}
-    >
-      <View
-        style={{
-          height: StyleSheet.hairlineWidth,
-          marginLeft: MENU_ROW_TEXT_INSET,
-          backgroundColor: isDark ? colors.border.dark : colors.border.light,
-        }}
-      />
-    </View>
-  )
+  return <View style={{ height: MENU_CARD_GAP }} />
 }
 
 const MENU_IMAGE_PREFETCH_DEBOUNCE_MS = 100
@@ -668,8 +643,8 @@ export default function MenuPage() {
 
   const catalogHeaderColor = isDark ? colors.gray[50] : colors.gray[900]
   const countColor = isDark ? colors.gray[400] : colors.gray[500]
-  // Inset grouped: nền xám, mỗi nhóm là thẻ trắng. Tiêu đề nhóm dính dùng
-  // nền xám đặc để che món cuộn qua.
+  // Nền xám, mỗi món một thẻ trắng. Tiêu đề nhóm dính dùng nền xám đặc để che
+  // món cuộn qua.
   const listBg = isDark ? colors.background.dark : colors.background.light
 
   const isMenuLoading = !allowFetch || isFetching
@@ -783,8 +758,6 @@ export default function MenuPage() {
           description={data.description}
           isTopSell={data.isTopSell}
           isNew={data.isNew}
-          isFirst={item.first}
-          isLast={item.last}
           rawPrice={data.rawPrice}
           promotionValue={data.promotionValue}
           primaryColor={primaryColor}

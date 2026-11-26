@@ -37,8 +37,6 @@ function renderRow(
     description: string
     isTopSell: boolean
     isNew: boolean
-    isFirst: boolean
-    isLast: boolean
   }> = {},
 ) {
   render(
@@ -48,8 +46,6 @@ function renderRow(
       description=""
       isTopSell={false}
       isNew={false}
-      isFirst={false}
-      isLast={false}
       {...over}
       imageUrl={null}
       listIndex={0}
@@ -115,21 +111,20 @@ it('ảnh món 88: dòng gọn nhưng ảnh đủ lớn để chọn món', () =
   expect(MENU_ROW_IMAGE_SIZE).toBe(88)
 })
 
-// Inset grouped: món đầu nhóm bo góc trên, món cuối bo góc dưới, món giữa vuông.
-function radii() {
+// Mỗi món một thẻ riêng; tên món sát mép trên ảnh, giá và nút + sát mép dưới
+// (không căn giữa theo trục dọc — dòng không mô tả sẽ lơ lửng).
+it('thẻ riêng bo đủ 4 góc', () => {
+  renderRow(true)
   const flat = StyleSheet.flatten(screen.getByTestId('menu-row').props.style)
-  return [flat.borderTopLeftRadius ?? 0, flat.borderBottomLeftRadius ?? 0]
-}
-
-it('món đầu nhóm bo góc trên, món cuối bo góc dưới', () => {
-  renderRow(true, jest.fn(), { isFirst: true })
-  expect(radii()).toEqual([12, 0])
+  expect(flat.borderRadius).toBe(12)
 })
 
-it('món giữa nhóm: góc vuông; nhóm một món: bo cả hai', () => {
+it('tên món căn trên, giá + nút + căn dưới', () => {
   renderRow(true)
-  expect(radii()).toEqual([0, 0])
-  screen.unmount()
-  renderRow(true, jest.fn(), { isFirst: true, isLast: true })
-  expect(radii()).toEqual([12, 12])
+  const row = StyleSheet.flatten(screen.getByTestId('menu-row').props.style)
+  expect(row.alignItems).toBe('stretch')
+  const content = StyleSheet.flatten(
+    screen.getByTestId('menu-row-content').props.style,
+  )
+  expect(content.justifyContent).toBe('space-between')
 })

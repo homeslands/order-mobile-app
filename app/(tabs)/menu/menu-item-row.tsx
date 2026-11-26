@@ -36,19 +36,14 @@ export type MenuDisplayItem = {
 }
 
 export const MENU_IMAGE_HIGH_PRIORITY_COUNT = 4
-/** Dòng món gọn: ảnh 88 + đệm dọc 12×2. */
+/** Thẻ món: ảnh 88 + đệm 10 mỗi bên. */
 export const MENU_ROW_IMAGE_SIZE = 88
-export const MENU_ITEM_ESTIMATED_HEIGHT = MENU_ROW_IMAGE_SIZE + 24
 const IMAGE_SIZE = MENU_ROW_IMAGE_SIZE
-/** Lề ngoài của thẻ nhóm (inset grouped) và đệm trong dòng. */
-export const MENU_GROUP_MARGIN = 16
-const ROW_PADDING_X = 12
-const GROUP_RADIUS = 12
-/**
- * Lề trái của chữ, tính từ mép thẻ nhóm — đường ngăn cách giữa hai món thụt
- * tới đây (kiểu iOS).
- */
-export const MENU_ROW_TEXT_INSET = ROW_PADDING_X + IMAGE_SIZE + 12
+const CARD_PADDING = 10
+/** Khoảng cách giữa hai thẻ món liền nhau. */
+export const MENU_CARD_GAP = 10
+export const MENU_ITEM_ESTIMATED_HEIGHT =
+  MENU_ROW_IMAGE_SIZE + CARD_PADDING * 2 + MENU_CARD_GAP
 
 export const menuKeyExtractor = (item: MenuDisplayItem) => item.id
 export const menuViewabilityConfig = {
@@ -69,8 +64,6 @@ export const MenuItemRow = memo(
     description,
     isTopSell,
     isNew,
-    isFirst,
-    isLast,
     imageUrl,
     listIndex,
     rawPrice,
@@ -86,9 +79,6 @@ export const MenuItemRow = memo(
     description: string
     isTopSell: boolean
     isNew: boolean
-    /** Món đầu / cuối của nhóm — bo góc trên / dưới của thẻ nhóm */
-    isFirst: boolean
-    isLast: boolean
     imageUrl: string | null
     listIndex: number
     rawPrice: number
@@ -140,12 +130,7 @@ export const MenuItemRow = memo(
       <Pressable
         testID="menu-row"
         onPress={handlePress}
-        style={[
-          styles.row,
-          { backgroundColor: rowBg },
-          isFirst && styles.rowFirst,
-          isLast && styles.rowLast,
-        ]}
+        style={[styles.row, { backgroundColor: rowBg }]}
       >
         <View style={styles.imageWrap}>
           <View style={[styles.imageInner, !hasStock && styles.imageSoldOut]}>
@@ -169,79 +154,83 @@ export const MenuItemRow = memo(
           )}
         </View>
 
-        <View style={styles.content}>
-          {(isTopSell || isNew) && (
-            <View style={styles.tagRow}>
-              {isTopSell && (
-                <View style={[styles.tag, { backgroundColor: tagBg }]}>
-                  <Text style={[styles.tagText, { color: primaryColor }]}>
-                    {t('menu.isTopSell')}
-                  </Text>
-                </View>
-              )}
-              {isNew && (
-                <View style={[styles.tag, { backgroundColor: tagBg }]}>
-                  <Text style={[styles.tagText, { color: primaryColor }]}>
-                    {t('menu.isNewProduct')}
-                  </Text>
-                </View>
-              )}
-            </View>
-          )}
-          <Text
-            style={[styles.productName, { color: nameColor }]}
-            numberOfLines={1}
-          >
-            {capitalizeFirst(name)}
-          </Text>
-          {desc ? (
+        {/* Tên + mô tả sát mép trên ảnh; giá + nút + sát mép dưới */}
+        <View testID="menu-row-content" style={styles.content}>
+          <View style={styles.topBlock}>
+            {(isTopSell || isNew) && (
+              <View style={styles.tagRow}>
+                {isTopSell && (
+                  <View style={[styles.tag, { backgroundColor: tagBg }]}>
+                    <Text style={[styles.tagText, { color: primaryColor }]}>
+                      {t('menu.isTopSell')}
+                    </Text>
+                  </View>
+                )}
+                {isNew && (
+                  <View style={[styles.tag, { backgroundColor: tagBg }]}>
+                    <Text style={[styles.tagText, { color: primaryColor }]}>
+                      {t('menu.isNewProduct')}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            )}
             <Text
-              testID="menu-row-description"
-              style={[styles.description, { color: descColor }]}
+              style={[styles.productName, { color: nameColor }]}
               numberOfLines={1}
             >
-              {desc}
+              {capitalizeFirst(name)}
             </Text>
-          ) : null}
-          {hasPromotion ? (
-            <View style={styles.priceRow}>
+            {desc ? (
               <Text
-                style={[styles.priceDiscounted, { color: discountedColor }]}
+                testID="menu-row-description"
+                style={[styles.description, { color: descColor }]}
+                numberOfLines={1}
               >
-                {formatCurrencyNative(discountedPrice)}
+                {desc}
               </Text>
-              <View
-                style={[
-                  styles.pricePromotionBadge,
-                  { backgroundColor: badgeBg },
-                ]}
-              >
-                <Text style={styles.pricePromotionText}>
-                  -{promotionValue}%
+            ) : null}
+          </View>
+          <View style={styles.bottomRow}>
+            {hasPromotion ? (
+              <View style={styles.priceRow}>
+                <Text
+                  style={[styles.priceDiscounted, { color: discountedColor }]}
+                >
+                  {formatCurrencyNative(discountedPrice)}
+                </Text>
+                <View
+                  style={[
+                    styles.pricePromotionBadge,
+                    { backgroundColor: badgeBg },
+                  ]}
+                >
+                  <Text style={styles.pricePromotionText}>
+                    -{promotionValue}%
+                  </Text>
+                </View>
+                <Text style={[styles.priceOriginal, { color: originalColor }]}>
+                  {formatCurrencyNative(rawPrice)}
                 </Text>
               </View>
-              <Text style={[styles.priceOriginal, { color: originalColor }]}>
+            ) : (
+              <Text style={[styles.priceRegular, { color: primaryColor }]}>
                 {formatCurrencyNative(rawPrice)}
               </Text>
-            </View>
-          ) : (
-            <Text style={[styles.priceRegular, { color: primaryColor }]}>
-              {formatCurrencyNative(rawPrice)}
-            </Text>
-          )}
+            )}
+            <Pressable
+              onPress={handleAdd}
+              disabled={!hasStock}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel={t('menu.addToCartA11y', { name })}
+              accessibilityState={{ disabled: !hasStock }}
+              style={[styles.addButton, { backgroundColor: addButtonBg }]}
+            >
+              <Plus size={18} color={addIconColor} />
+            </Pressable>
+          </View>
         </View>
-
-        <Pressable
-          onPress={handleAdd}
-          disabled={!hasStock}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel={t('menu.addToCartA11y', { name })}
-          accessibilityState={{ disabled: !hasStock }}
-          style={[styles.addButton, { backgroundColor: addButtonBg }]}
-        >
-          <Plus size={18} color={addIconColor} />
-        </Pressable>
       </Pressable>
     )
   },
@@ -251,8 +240,6 @@ export const MenuItemRow = memo(
     prev.description === next.description &&
     prev.isTopSell === next.isTopSell &&
     prev.isNew === next.isNew &&
-    prev.isFirst === next.isFirst &&
-    prev.isLast === next.isLast &&
     prev.imageUrl === next.imageUrl &&
     prev.listIndex === next.listIndex &&
     prev.rawPrice === next.rawPrice &&
@@ -267,19 +254,11 @@ export const MenuItemRow = memo(
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'stretch',
     gap: 12,
-    marginHorizontal: MENU_GROUP_MARGIN,
-    paddingHorizontal: ROW_PADDING_X,
-    paddingVertical: 12,
-  },
-  rowFirst: {
-    borderTopLeftRadius: GROUP_RADIUS,
-    borderTopRightRadius: GROUP_RADIUS,
-  },
-  rowLast: {
-    borderBottomLeftRadius: GROUP_RADIUS,
-    borderBottomRightRadius: GROUP_RADIUS,
+    marginHorizontal: 16,
+    padding: CARD_PADDING,
+    borderRadius: 12,
   },
   imageWrap: {
     width: IMAGE_SIZE,
@@ -310,7 +289,16 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     minWidth: 0,
+    justifyContent: 'space-between',
+  },
+  topBlock: {
     gap: 2,
+  },
+  bottomRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
   },
   tagRow: {
     flexDirection: 'row',
@@ -334,9 +322,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   priceRow: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 2,
     gap: 6,
   },
   priceDiscounted: {
@@ -358,9 +346,9 @@ const styles = StyleSheet.create({
     textDecorationLine: 'line-through',
   },
   priceRegular: {
+    flex: 1,
     fontSize: 14,
     fontWeight: '600',
-    marginTop: 2,
   },
   addButton: {
     width: 30,
