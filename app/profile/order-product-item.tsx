@@ -1,8 +1,7 @@
-import { Image } from 'expo-image'
 import React, { memo } from 'react'
 import { StyleSheet, View } from 'react-native'
 
-import { Images } from '@/assets/images'
+import { MenuItemImage } from '@/components/menu/menu-item-image'
 import {
   APPLICABILITY_RULE,
   colors,
@@ -98,13 +97,16 @@ const OrderProductItem = memo(function OrderProductItem({
       ]}
     >
       <View style={productStyles.productImageWrap}>
-        <Image
-          source={imageUrl ? { uri: imageUrl } : Images.Food.ProductImage}
-          placeholder={Images.Food.ProductImage}
-          style={productStyles.productImage}
-          contentFit="cover"
-          cachePolicy="disk"
-        />
+        {/* Cùng pipeline ảnh với Menu: thumbnail thu nhỏ trên máy (BE chưa
+            resize — URL là ảnh gốc ~1080px), cache bộ nhớ, khoá theo ô. */}
+        <View style={productStyles.productImage}>
+          <MenuItemImage
+            id={product.slug}
+            imageUrl={imageUrl}
+            priority="normal"
+            borderRadius={8}
+          />
+        </View>
         <View
           style={[productStyles.qtyBadge, { backgroundColor: primaryColor }]}
         >

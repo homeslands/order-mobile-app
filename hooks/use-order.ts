@@ -1,5 +1,6 @@
 import {
   keepPreviousData,
+  type QueryClient,
   useInfiniteQuery,
   useMutation,
   useQuery,
@@ -54,10 +55,40 @@ import {
 } from '@/types'
 import { useDownloadImage } from './use-download-image'
 
+/** Khoá + hàm tải danh sách đơn — dùng chung cho useOrders và tải trước. */
+export const ordersQueryOptions = (q: IOrdersQuery) => ({
+  queryKey: ['orders', q] as const,
+  queryFn: () => getAllOrders(q),
+})
+
+export const ORDER_HISTORY_PAGE_SIZE = 10
+
+/** Trang đầu màn Lịch sử đơn (lọc "Tất cả", chưa lọc ngày). */
+export const orderHistoryFirstPageQuery = (owner: string): IOrdersQuery => ({
+  page: 1,
+  size: ORDER_HISTORY_PAGE_SIZE,
+  owner,
+  order: 'DESC',
+  hasPaging: true,
+})
+
+/**
+ * Tải trước trang đầu Lịch sử đơn ngay lúc khách bấm vào — màn chỉ tự gọi sau
+ * khi chuyển màn xong (~360ms+). Lỗi thì bỏ qua, màn tự tải lại.
+ */
+export async function prefetchOrderHistory(
+  client: QueryClient,
+  owner: string | undefined,
+): Promise<void> {
+  if (!owner) return
+  await client.prefetchQuery(
+    ordersQueryOptions(orderHistoryFirstPageQuery(owner)),
+  )
+}
+
 export const useOrders = (q: IOrdersQuery, options?: { enabled?: boolean }) => {
   return useQuery({
-    queryKey: ['orders', q],
-    queryFn: () => getAllOrders(q),
+    ...ordersQueryOptions(q),
     placeholderData: keepPreviousData,
     select: (data) => data.result,
     enabled: options?.enabled ?? true,

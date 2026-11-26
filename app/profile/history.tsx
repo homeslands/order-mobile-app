@@ -39,9 +39,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { getOrderBySlug } from '@/api'
 import { colors } from '@/constants'
-import { ORDER_HISTORY_ITEM_HEIGHT } from '@/constants/list-item-sizes'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
-import { useOrders, useRunAfterTransition } from '@/hooks'
+import {
+  ORDER_HISTORY_PAGE_SIZE,
+  useOrders,
+  useRunAfterTransition,
+} from '@/hooks'
 import { GlassHeaderButton } from '@/components/navigation/glass-header-button'
 import { navigateNative } from '@/lib/navigation'
 import { useNotificationStore, useUserStore } from '@/stores'
@@ -53,7 +56,7 @@ import { calculateOrderDisplayAndTotals } from '@/utils'
 
 import OrderCard from './order-card'
 import type { OrderDisplayData } from './order-card'
-import { OrderHistorySkeleton } from './order-history-skeleton'
+import { OrderHistorySkeletonList } from './order-history-skeleton'
 import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import {
   QueryErrorState,
@@ -143,6 +146,9 @@ const FilterBar = React.memo(function FilterBar({
     </ScrollView>
   )
 })
+
+/** Ô cùng số dòng món (tối đa 3 hiện trên thẻ) tái dùng cho nhau. */
+const orderItemType = (o: IOrder) => Math.min(o.orderItems?.length ?? 0, 3)
 
 // ─── History date filter types ────────────────────────────────────────────────
 
@@ -437,15 +443,16 @@ function OrderHistoryPage() {
   const isDark = useColorScheme() === 'dark'
   const primaryColor = isDark ? colors.primary.dark : colors.primary.light
 
-  const userInfo = useUserStore((s) => s.userInfo)
   const userSlug = useUserStore((s) => s.userInfo?.slug ?? '')
   const [status, setStatus] = useState<OrderStatus>(OrderStatus.ALL)
   const [page, setPage] = useState(1)
-  const pageSize = 10
+  const pageSize = ORDER_HISTORY_PAGE_SIZE
 
   // Fetch sau khi transition xong → màn trượt ngay, skeleton hiện, data load không block animation
   const [allowFetch, setAllowFetch] = useState(false)
-  useRunAfterTransition(() => setAllowFetch(true), [])
+  useRunAfterTransition(() => setAllowFetch(true), [], {
+    transitionType: 'stack',
+  })
   const [dateFilter, setDateFilter] = useState<HistoryDateFilter>({
     fromDate: null,
     toDate: null,
@@ -454,15 +461,14 @@ function OrderHistoryPage() {
 
   const {
     data: orderResponse,
-    isPending,
+    isPlaceholderData,
     refetch,
-    isRefetching,
     isError,
   } = useOrders(
     {
       page,
       size: pageSize,
-      owner: userInfo?.slug,
+      owner: userSlug || undefined,
       order: 'DESC',
       hasPaging: true,
       status: status === OrderStatus.ALL ? undefined : status,
@@ -473,20 +479,38 @@ function OrderHistoryPage() {
         ? { endDate: dayjs(dateFilter.toDate).format('YYYY-MM-DD') }
         : {}),
     },
-    { enabled: allowFetch && !!userInfo?.slug },
+    { enabled: allowFetch && !!userSlug },
   )
 
   // ── Auto-refetch on FCM ORDER_PAID notification ──
-  const processedRef = useRef<Set<string>>(new Set())
+  // Chỉ phản ứng với thông báo MỚI sau khi vào màn (thông báo cũ chưa đọc:
+  // dữ liệu lúc vào màn đã mới), và chờ chuyển màn xong — refetch() chạy cả khi
+  // query đang `enabled: false`.
   const paidNotificationSlug = useNotificationStore((s) =>
     firstUnreadOrderPaidSlug(s.notifications),
   )
+  const processedRef = useRef<Set<string> | null>(null)
+  if (processedRef.current === null) {
+    processedRef.current = new Set(
+      paidNotificationSlug ? [paidNotificationSlug] : [],
+    )
+  }
   useEffect(() => {
-    if (!paidNotificationSlug) return
-    if (processedRef.current.has(paidNotificationSlug)) return
-    processedRef.current.add(paidNotificationSlug)
-    refetch()
-  }, [paidNotificationSlug, refetch])
+    if (!allowFetch || !userSlug) return
+    const processed = processedRef.current
+    if (!paidNotificationSlug || !processed) return
+    if (processed.has(paidNotificationSlug)) return
+    processed.add(paidNotificationSlug)
+    void refetch()
+  }, [paidNotificationSlug, refetch, allowFetch, userSlug])
+
+  // Vòng quay kéo-làm-mới chỉ cho thao tác kéo của khách — đổi trang / lọc /
+  // thông báo cũng làm query "đang tải lại" nhưng không nên bật vòng quay.
+  const [userRefreshing, setUserRefreshing] = useState(false)
+  const handleUserRefresh = useCallback(() => {
+    setUserRefreshing(true)
+    void refetch().finally(() => setUserRefreshing(false))
+  }, [refetch])
 
   const orders = useMemo(
     () => orderResponse?.items || [],
@@ -501,7 +525,11 @@ function OrderHistoryPage() {
     for (const order of orders) {
       const items = order.orderItems || []
       const voucher = order.voucher || null
-      const cacheKey = `${userSlug}:${order.slug}:${order.status}:${items.length}:${voucher?.slug ?? ''}`
+      // Số lượng + tổng tiền trong khoá: sửa đơn chưa thanh toán (đổi số
+      // lượng) không đổi số món, thiếu hai thứ này là thẻ giữ giá cũ.
+      let qty = 0
+      for (const it of items) qty += it.quantity ?? 0
+      const cacheKey = `${userSlug}:${order.slug}:${order.status}:${items.length}:qty${qty}:subtotal${order.subtotal ?? 0}:${voucher?.slug ?? ''}`
       const cached = _orderDisplayCache.get(cacheKey)
       if (cached) {
         next.set(order.slug, cached)
@@ -592,13 +620,6 @@ function OrderHistoryPage() {
     setPage(1)
     setFilterSheetOpen(false)
   }, [])
-
-  const overrideItemLayout = useCallback(
-    (layout: { span?: number; size?: number }) => {
-      layout.size = ORDER_HISTORY_ITEM_HEIGHT
-    },
-    [],
-  )
 
   const renderOrderItem = useCallback(
     ({ item: orderItem }: { item: IOrder }) => (
@@ -698,9 +719,19 @@ function OrderHistoryPage() {
     isError,
     hasData: !!orderResponse,
   })
+  // Chưa có dữ liệu (lần đầu, chưa tải trước): khung thẻ trong vùng danh
+  // sách, header + chip lọc là thật → dữ liệu về không nhảy bố cục. Có cache /
+  // tải trước thì hiện ngay.
+  const showSkeleton = !orderResponse && !showLoadError
+
+  const headerBg = isDark ? colors.card.dark : colors.white.light
+  const headerBorder = isDark ? colors.border.dark : colors.gray[200]
+
   const ListEmptyComponent = useMemo(
     () =>
-      showLoadError ? (
+      showSkeleton ? (
+        <OrderHistorySkeletonList cardBg={headerBg} border={headerBorder} />
+      ) : showLoadError ? (
         <QueryErrorState onRetry={() => void refetch()} />
       ) : (
         <View style={pageStyles.emptyWrap}>
@@ -726,7 +757,7 @@ function OrderHistoryPage() {
           </Text>
         </View>
       ),
-    [isDark, t, showLoadError, refetch],
+    [isDark, t, showLoadError, refetch, showSkeleton, headerBg, headerBorder],
   )
 
   const screenBg = isDark ? colors.background.dark : colors.background.light
@@ -741,8 +772,6 @@ function OrderHistoryPage() {
     }),
     [isDateFilterActive],
   )
-  const headerBg = isDark ? colors.card.dark : colors.white.light
-  const headerBorder = isDark ? colors.border.dark : colors.gray[200]
   const gradientColors = useMemo(
     () =>
       [
@@ -755,17 +784,6 @@ function OrderHistoryPage() {
     [screenBg],
   )
 
-  const showSkeleton = !allowFetch || (isPending && page === 1)
-  if (showSkeleton) {
-    return (
-      <OrderHistorySkeleton
-        screenBg={screenBg}
-        headerBg={headerBg}
-        headerBorder={headerBorder}
-      />
-    )
-  }
-
   return (
     <View style={[pageStyles.flex, { backgroundColor: screenBg }]}>
       <ScreenContainer edges={['top', 'bottom']} style={pageStyles.flex}>
@@ -774,14 +792,14 @@ function OrderHistoryPage() {
           data={orders}
           renderItem={renderOrderItem}
           keyExtractor={keyExtractor}
-          overrideItemLayout={overrideItemLayout}
+          getItemType={orderItemType}
           ListFooterComponent={ListFooterComponent}
           ListEmptyComponent={ListEmptyComponent}
           contentContainerStyle={listPaddingStyle}
           refreshControl={
             <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={refetch}
+              refreshing={userRefreshing}
+              onRefresh={handleUserRefresh}
               tintColor={primaryColor}
               colors={[primaryColor]}
             />
@@ -861,7 +879,7 @@ function OrderHistoryPage() {
           <View style={pageStyles.filterRow} pointerEvents="auto">
             <FilterBar
               status={status}
-              isPending={isPending}
+              isPending={isPlaceholderData}
               primaryColor={primaryColor}
               isDark={isDark}
               onSelect={handleFilterSelect}

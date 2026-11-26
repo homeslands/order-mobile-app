@@ -190,7 +190,6 @@ jest.mock('@/components/loyalty-point/loyalty-point-filter-sheet', () => ({
 
 // ── Screen imports (after mocks) ─────────────────────────────────────────────
 import NotificationScreen from '@/app/notification/index'
-import HistoryScreen from '@/app/profile/history'
 import LoyaltyPointScreen from '@/app/profile/loyalty-point'
 import GiftCardsScreen from '@/app/profile/gift-cards'
 
@@ -226,9 +225,8 @@ it('notification/index.tsx FlashList has overrideItemLayout', () => {
   assertFlashListsHaveOverrideLayout(<NotificationScreen />)
 })
 
-it('profile/history.tsx FlashList has overrideItemLayout', () => {
-  assertFlashListsHaveOverrideLayout(<HistoryScreen />)
-})
+// profile/history.tsx: bỏ overrideItemLayout — FlashList 2 chỉ đọc `span`,
+// bỏ qua `size` (LayoutManager.getSpan). Xem order-history-perf.test.ts OH5.
 
 it('profile/loyalty-point.tsx FlashList has overrideItemLayout', () => {
   assertFlashListsHaveOverrideLayout(<LoyaltyPointScreen />)

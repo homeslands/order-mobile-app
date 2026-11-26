@@ -98,7 +98,7 @@ const OrderCard = memo(
         <View style={cardStyles.body}>
           {orderItems.slice(0, 3).map((product, index) => (
             <OrderProductItem
-              key={product.slug || index}
+              key={index}
               product={product}
               displayData={displayData}
               voucher={voucher}
@@ -261,6 +261,8 @@ const OrderCard = memo(
     prev.order.slug === next.order.slug &&
     prev.order.status === next.order.status &&
     prev.order.subtotal === next.order.subtotal &&
+    prev.order.deliveryFee === next.order.deliveryFee &&
+    prev.order.accumulatedPointsToUse === next.order.accumulatedPointsToUse &&
     prev.displayData === next.displayData &&
     prev.primaryColor === next.primaryColor &&
     prev.isDark === next.isDark &&

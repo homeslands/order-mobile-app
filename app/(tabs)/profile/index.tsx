@@ -6,6 +6,7 @@ import { colors, publicFileURL, QUERYKEY } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { clearOrderDisplayCache } from '@/app/profile/history'
 import { useUploadAvatar } from '@/hooks'
+import { prefetchOrderHistory } from '@/hooks/use-order'
 import { useAuthStore, useUserStore } from '@/stores'
 import { useNotificationStore } from '@/stores/notification.store'
 import { useLogoutSheetStore } from '@/stores/logout-sheet.store'
@@ -456,8 +457,13 @@ const ProfileTest = () => {
   }, [router])
 
   const openOrdersHistory = useCallback(() => {
+    // Tải trước trang đầu ngay lúc bấm — màn chỉ tự gọi sau khi chuyển xong.
+    void prefetchOrderHistory(
+      queryClient,
+      useUserStore.getState().userInfo?.slug,
+    )
     router.push('/profile/history')
-  }, [router])
+  }, [router, queryClient])
 
   const openGiftCard = useCallback(() => {
     router.push('/profile/gift-card-hub' as never)
