@@ -11,6 +11,10 @@
     "regenerateQr": "Create new QR code",
     "qrStale": "Your total has changed. Please create a new QR code so you transfer the correct amount.",
     "notPaidYet": "Payment not received yet. If you have already transferred, please wait a few more minutes.",
+    "checkPaymentFailed": "Couldn't check the payment. Please try again.",
+    "alreadyPaidUpdating": "This order is already paid, updating…",
+    "paymentUncertain": "Payment result unclear, checking again…",
+    "cardAtCounter": "Card payment — please complete it at the counter.",
     "backToMenu": "Back to menu"
   },
   "qrGenerate": {

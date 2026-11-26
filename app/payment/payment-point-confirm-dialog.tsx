@@ -19,6 +19,8 @@ type Props = {
   visible: boolean
   onClose: () => void
   onConfirm: () => void
+  /** Đang gửi lệnh trả — tắt nút Xác nhận (chống bấm hai lần lúc hộp đóng) */
+  isBusy?: boolean
   orderSubtotal: number
   coinBalance: number
   primaryColor: string
@@ -29,6 +31,7 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
   visible,
   onClose,
   onConfirm,
+  isBusy = false,
   orderSubtotal,
   coinBalance,
   primaryColor,
@@ -112,7 +115,13 @@ export const PointConfirmDialog = memo(function PointConfirmDialog({
             </Pressable>
             <Pressable
               onPress={onConfirm}
-              style={[s.btn, { backgroundColor: primaryColor, flex: 1 }]}
+              disabled={isBusy}
+              accessibilityState={{ disabled: isBusy }}
+              style={[
+                s.btn,
+                { backgroundColor: primaryColor, flex: 1 },
+                isBusy && { opacity: 0.6 },
+              ]}
             >
               <Text
                 style={[s.btnText, { color: colors.white.light }]}

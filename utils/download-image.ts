@@ -7,6 +7,8 @@ import { showToast } from './toast'
 /**
  * Request media library permission
  */
+const DOWNLOAD_TIMEOUT_MS = 20_000
+
 export async function requestMediaLibraryPermission(): Promise<boolean> {
   try {
     const { status } = await MediaLibrary.requestPermissionsAsync()
@@ -145,13 +147,26 @@ export async function downloadAndSaveImage(
       }
 
       let response: Response
+      // Hạn chờ: fetch() không tự hết giờ — mạng treo là nút tải đứng im mãi
+      // (cờ isDownloading không bao giờ được trả).
+      const controller = new AbortController()
+      const timer = setTimeout(() => controller.abort(), DOWNLOAD_TIMEOUT_MS)
       try {
-        response = await fetch(finalImageUrl, { headers })
+        response = await fetch(finalImageUrl, {
+          headers,
+          signal: controller.signal,
+        })
       } catch (error) {
+        clearTimeout(timer)
         // eslint-disable-next-line no-console
         console.error('QR download fetch error:', error)
         const msg = error instanceof Error ? error.message : ''
-        if (msg.includes('timeout') || msg.includes('ECONNABORTED')) {
+        const aborted = error instanceof Error && error.name === 'AbortError'
+        if (
+          aborted ||
+          msg.includes('timeout') ||
+          msg.includes('ECONNABORTED')
+        ) {
           showToast(
             i18n.t('common.errorDownloadImageTimeout', { ns: 'common' }),
           )
@@ -165,6 +180,7 @@ export async function downloadAndSaveImage(
       }
 
       if (!response.ok) {
+        clearTimeout(timer)
         showToast(
           `${i18n.t('common.errorDownloadingImage', { ns: 'common' })}: HTTP ${response.status}`,
         )
@@ -174,7 +190,10 @@ export async function downloadAndSaveImage(
       // fetch() returns an ArrayBuffer; convert to base64 via chunked Uint8Array
       // to avoid stack-overflow on large images with spread-operator approach.
       try {
-        const buffer = await response.arrayBuffer()
+        // Hạn chờ phủ cả lúc đọc nội dung (body có thể treo sau khi có header).
+        const buffer = await response
+          .arrayBuffer()
+          .finally(() => clearTimeout(timer))
         const bytes = new Uint8Array(buffer)
         let binary = ''
         const chunk = 8192
