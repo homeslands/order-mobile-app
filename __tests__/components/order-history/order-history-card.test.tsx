@@ -116,3 +116,29 @@ it('OC5 bấm thẻ mở đơn', () => {
   fireEvent.press(screen.getByText('Cà phê sữa ×2, Bạc xỉu'))
   expect(onPress).toHaveBeenCalledWith('o1')
 })
+
+// Bốn nhãn phải khác tông: trước đây "Chưa thanh toán" (vàng) và "Đã thanh
+// toán" (cam thương hiệu) trông như nhau.
+it('OC6 bốn trạng thái, bốn màu chữ khác nhau, không trùng màu giá (cam)', () => {
+  const textColor = (status: string, pay?: string) => {
+    renderCard(
+      order({
+        status,
+        payment: pay ? { statusCode: pay } : undefined,
+      } as Partial<IOrder>),
+    )
+    const label = screen.getByTestId('order-status-badge-text')
+    const c = StyleSheet.flatten(label.props.style).color as string
+    screen.unmount()
+    return c
+  }
+  const all = [
+    textColor('pending'),
+    textColor('paid', 'completed'),
+    textColor('completed', 'completed'),
+    textColor('failed'),
+  ]
+  expect(new Set(all).size).toBe(4)
+  expect(all).not.toContain('#F7A737')
+  expect(all[1]).toBe(colors.success.borderDark)
+})

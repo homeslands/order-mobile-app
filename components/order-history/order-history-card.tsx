@@ -34,9 +34,14 @@ export type OrderHistoryCardLabels = {
 const pad = (n: number) => String(n).padStart(2, '0')
 const capFirst = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
 
+/**
+ * Bốn trạng thái, bốn tông khác nhau — và không dùng màu cam thương hiệu (đã
+ * là màu giá tiền trong thẻ, và gần tông vàng "chưa thanh toán").
+ * Chưa thanh toán: vàng (cần khách làm gì). Đã thanh toán: xanh (ổn, quán đang
+ * làm). Hoàn tất: xám (xong, chỉ để tra lại). Thất bại: đỏ.
+ */
 function statusColors(
   status: OrderHistoryStatus,
-  primary: string,
   isDark: boolean,
 ): { bg: string; text: string } {
   switch (status) {
@@ -45,13 +50,16 @@ function statusColors(
         bg: hexToRgba(colors.destructive.light, isDark ? 0.2 : 0.12),
         text: isDark ? colors.destructive.dark : colors.destructive.light,
       }
-    case 'completed':
+    case 'paid':
       return {
         bg: isDark ? colors.success.bgDark : colors.success.bgLight,
         text: isDark ? colors.success.dark : colors.success.borderDark,
       }
-    case 'paid':
-      return { bg: hexToRgba(primary, isDark ? 0.2 : 0.14), text: primary }
+    case 'completed':
+      return {
+        bg: isDark ? colors.gray[800] : colors.gray[100],
+        text: isDark ? colors.gray[300] : colors.gray[600],
+      }
     default:
       return {
         bg: isDark ? colors.warning.bgDark : colors.warning.bgLight,
@@ -115,7 +123,7 @@ export const OrderHistoryCard = memo(function OrderHistoryCard({
   }, [order.orderItems, order.createdAt])
 
   const status = getOrderHistoryStatus(order)
-  const badge = statusColors(status, primaryColor, isDark)
+  const badge = statusColors(status, isDark)
   const muted = isDark ? colors.gray[400] : colors.gray[500]
   const strong = isDark ? colors.gray[50] : colors.gray[900]
   const typeLabel = labels.type[order.type] ?? ''
@@ -136,7 +144,10 @@ export const OrderHistoryCard = memo(function OrderHistoryCard({
           </Text>
         </View>
         <View style={[s.badge, { backgroundColor: badge.bg }]}>
-          <Text style={[s.badgeText, { color: badge.text }]}>
+          <Text
+            testID="order-status-badge-text"
+            style={[s.badgeText, { color: badge.text }]}
+          >
             {labels.status[status]}
           </Text>
         </View>
