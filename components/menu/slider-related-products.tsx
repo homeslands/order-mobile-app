@@ -21,7 +21,7 @@ import {
 
 import { Images } from '@/assets/images'
 import { extractMenuItems } from '@/api/menu'
-import { OrderFlowStep, ROUTE } from '@/constants'
+import { OrderFlowStep, ROUTE, colors } from '@/constants'
 import { TAB_ROUTES } from '@/constants/navigation.config'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import {
@@ -31,11 +31,13 @@ import {
 } from '@/hooks'
 import { navigateNative } from '@/lib/navigation'
 import { useOrderFlowStore, useBranchStore, useUserStore } from '@/stores'
+import { useLoginSheetStore } from '@/stores/login-sheet.store'
 import { useSetMenuFilter } from '@/stores/selectors'
 import { useTransientNavStore } from '@/stores/transient-nav.store'
 import type { IMenuItem, IOrderItem } from '@/types'
 import { formatCurrency, showToast } from '@/utils'
 import { getLocalDateString } from '@/utils/date'
+import { hasMenuItemStock } from '@/utils/menu-stock'
 import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 import { Text } from '@/components/ui/text'
 
@@ -61,6 +63,7 @@ interface SliderRelatedProductsProps {
   catalog: string
 }
 
+/** Thẻ related: ảnh vuông + nút thêm trên ảnh, tên, giá. */
 const RelatedProductItem = React.memo(
   function RelatedProductItem({
     item,
@@ -72,7 +75,7 @@ const RelatedProductItem = React.memo(
     primaryColor,
     t,
   }: {
-    item: import('@/types').IMenuItem
+    item: IMenuItem
     itemWidth: number
     itemSpacing: number
     onPress: (slug: string) => void
@@ -85,6 +88,14 @@ const RelatedProductItem = React.memo(
       () => onAddToCart(item.slug),
       [onAddToCart, item.slug],
     )
+    const handlePress = useCallback(
+      () => onPress(item.slug),
+      [onPress, item.slug],
+    )
+    const handlePressIn = useCallback(
+      () => onPressIn(item.slug),
+      [onPressIn, item.slug],
+    )
     const imageUrl = useMemo(
       () =>
         getProductImageUrl(item.product.image, {
@@ -92,118 +103,116 @@ const RelatedProductItem = React.memo(
         }),
       [item.product.image],
     )
-    const hasProductImage = imageUrl != null
-    const priceRange = useMemo(() => {
+    const minPrice = useMemo(() => {
       const variants = item.product.variants
       if (!variants?.length) return null
-      const prices = variants.map((v) => v.price)
-      return {
-        min: Math.min(...prices),
-        max: Math.max(...prices),
-        isSinglePrice: Math.min(...prices) === Math.max(...prices),
-      }
+      return Math.min(...variants.map((v) => v.price))
     }, [item.product.variants])
-    const hasPromotion = item.promotion && item.promotion.value > 0
+    const promo = item.promotion?.value ?? 0
+    const hasStock = hasMenuItemStock({
+      isLocked: item.isLocked,
+      currentStock: item.currentStock,
+      isLimit: item.product.isLimit,
+    })
+    const canAdd = hasStock && minPrice != null
 
     return (
       <Pressable
-        onPressIn={() => onPressIn(item.slug)}
-        onPress={() => onPress(item.slug)}
+        onPressIn={handlePressIn}
+        onPress={handlePress}
         className="active:opacity-80"
         style={{ width: itemWidth, marginRight: itemSpacing }}
         {...({ unstable_pressDelay: 0 } as object)}
       >
-        <View className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-[#2e2e2e] dark:bg-[#1c1c1e]">
-          {/* Image — padded for breathing room */}
-          <View className="p-2 pb-0">
-            <View
-              className="relative w-full overflow-hidden rounded-xl"
-              style={{ aspectRatio: 4 / 3 }}
-            >
-              {hasProductImage ? (
-                <Image
-                  source={{ uri: imageUrl }}
-                  style={{ width: '100%', height: '100%' }}
-                  contentFit="cover"
-                  recyclingKey={item.slug}
-                  placeholder={Images.Food.DefaultProductImage}
-                  placeholderContentFit="cover"
-                  cachePolicy="disk"
-                  priority="low"
-                />
-              ) : (
-                <Image
-                  source={Images.Food.DefaultProductImage}
-                  contentFit="cover"
-                  style={{ width: '100%', height: '100%' }}
-                />
-              )}
-              {hasPromotion && (
-                <View className="absolute right-1.5 top-1.5 rounded-md bg-red-500 px-1.5 py-0.5">
-                  <Text className="text-[10px] font-semibold text-white">
-                    -{item.promotion?.value}%
-                  </Text>
-                </View>
-              )}
+        <View
+          className="overflow-hidden rounded-2xl"
+          style={{
+            width: itemWidth,
+            height: itemWidth,
+            opacity: hasStock ? 1 : 0.5,
+          }}
+        >
+          {imageUrl ? (
+            <Image
+              source={{ uri: imageUrl }}
+              style={{ width: '100%', height: '100%' }}
+              contentFit="cover"
+              recyclingKey={item.slug}
+              placeholder={Images.Food.DefaultProductImage}
+              placeholderContentFit="cover"
+              cachePolicy="disk"
+              priority="low"
+            />
+          ) : (
+            // Món chưa có ảnh: ảnh mặc định, giống Menu.
+            <Image
+              source={Images.Food.DefaultProductImage}
+              style={{ width: '100%', height: '100%' }}
+              contentFit="cover"
+            />
+          )}
+          {promo > 0 && (
+            <View className="absolute left-2 top-2 rounded-md bg-red-500 px-1.5 py-0.5">
+              <Text className="text-[10px] font-semibold text-white">
+                -{promo}%
+              </Text>
             </View>
-          </View>
+          )}
+        </View>
 
-          {/* Content — below image */}
-          <View className="gap-1 px-2.5 pb-2.5 pt-2">
-            <Text
-              className="text-[13px] font-bold capitalize text-gray-900 dark:text-white"
-              numberOfLines={1}
-            >
-              {item.product.name}
+        {canAdd && (
+          <Pressable
+            onPress={handleAdd}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t('menu.addToCart')}
+            className="absolute items-center justify-center rounded-full border-2 border-white dark:border-black"
+            style={{
+              top: itemWidth - 40,
+              right: 8,
+              width: 32,
+              height: 32,
+              backgroundColor: primaryColor,
+            }}
+          >
+            <Plus size={16} color={colors.white.light} />
+          </Pressable>
+        )}
+
+        <View className="gap-0.5 pt-2">
+          <Text
+            className="text-[13px] font-semibold capitalize leading-[18px] text-gray-900 dark:text-white"
+            numberOfLines={2}
+          >
+            {item.product.name}
+          </Text>
+          {!hasStock ? (
+            <Text className="text-[13px] font-medium text-gray-500 dark:text-gray-400">
+              {t('menu.outOfStock')}
             </Text>
-            <View className="flex-row items-center justify-between">
-              <View className="flex-1">
-                {hasPromotion ? (
-                  <View className="flex-row items-center gap-1.5">
-                    <Text className="text-xs text-gray-400 line-through">
-                      {priceRange
-                        ? formatCurrency(priceRange.min)
-                        : formatCurrency(0)}
-                    </Text>
-                    <Text className="text-[13px] font-semibold text-primary">
-                      {priceRange
-                        ? formatCurrency(
-                            priceRange.min *
-                              (1 - (item.promotion?.value || 0) / 100),
-                          )
-                        : formatCurrency(0)}
-                    </Text>
-                  </View>
-                ) : (
-                  <Text className="text-[13px] font-semibold text-primary">
-                    {priceRange
-                      ? formatCurrency(priceRange.min)
-                      : t('menu.contactForPrice', 'Liên hệ')}
-                  </Text>
-                )}
-              </View>
-              <Pressable
-                onPress={handleAdd}
-                hitSlop={6}
-                style={{
-                  width: 26,
-                  height: 26,
-                  borderRadius: 13,
-                  backgroundColor: primaryColor,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Plus size={14} color="#ffffff" />
-              </Pressable>
+          ) : minPrice == null ? (
+            <Text className="text-[13px] font-semibold text-primary">
+              {t('menu.contactForPrice', 'Liên hệ')}
+            </Text>
+          ) : (
+            <View className="flex-row flex-wrap items-baseline gap-x-1.5">
+              <Text className="text-[13px] font-bold text-primary">
+                {formatCurrency(minPrice * (1 - promo / 100))}
+              </Text>
+              {promo > 0 && (
+                <Text className="text-[11px] text-gray-400 line-through">
+                  {formatCurrency(minPrice)}
+                </Text>
+              )}
             </View>
-          </View>
+          )}
         </View>
       </Pressable>
     )
   },
   (prev, next) =>
-    prev.item.slug === next.item.slug &&
+    prev.item === next.item &&
+    prev.itemWidth === next.itemWidth &&
     prev.primaryColor === next.primaryColor,
 )
 
@@ -287,12 +296,12 @@ function SliderRelatedProducts({
 
   const isLoading = hasUser ? isPending : isPendingPublicSpecificMenu
 
-  // 2 items visible, padding synced with body section (16px)
+  // ~2,4 thẻ trong màn: thẻ thứ ba lộ một phần để khách biết vuốt được.
   const { itemWidth, itemSpacing } = useMemo(() => {
     const w = Dimensions.get('window').width
     const padding = 16
-    const gap = 10
-    const width = (w - padding * 2 - gap) / 2
+    const gap = 12
+    const width = Math.round((w - padding - gap * 2) / 2.4)
     return { itemWidth: width, itemSpacing: gap }
   }, [])
 
@@ -355,6 +364,20 @@ function SliderRelatedProducts({
     (slug: string) => {
       const mi = itemsMapRef.current.get(slug)
       if (!mi) return
+      // Cùng luật với nút + ở Menu: hết hàng thì không thêm, chưa đăng nhập
+      // thì mở đăng nhập.
+      if (
+        !hasMenuItemStock({
+          isLocked: mi.isLocked,
+          currentStock: mi.currentStock,
+          isLimit: mi.product?.isLimit,
+        })
+      )
+        return
+      if (!useUserStore.getState().userInfo?.slug) {
+        useLoginSheetStore.getState().open()
+        return
+      }
       const variants = mi.product?.variants ?? []
       if (variants.length === 0) return
       // Find cheapest variant
@@ -391,57 +414,82 @@ function SliderRelatedProducts({
         note: '',
       }
       store.addOrderingItem(orderItem)
-      showToast(t('menu.addedToCart', { name: mi.product?.name }))
+      // Nút + thêm size rẻ nhất — báo rõ size để khách không bất ngờ ở giỏ.
+      showToast(
+        orderItem.size
+          ? t('menu.addedToCartWithSize', {
+              name: orderItem.name,
+              size: orderItem.size,
+            })
+          : t('menu.addedToCart', { name: orderItem.name }),
+      )
     },
     [t],
   )
 
-  if (visibleRelated.length === 0) {
-    if (isLoading) {
-      return (
-        <View style={{ marginTop: 16 }}>
-          <Text className="mb-3 text-base font-bold text-gray-900 dark:text-white">
-            {t('menu.relatedProducts', 'Sản phẩm liên quan')}
-          </Text>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={{ paddingRight: 16 }}
+  const header = (
+    <View className="mb-3 flex-row items-center justify-between pr-4">
+      <Text className="text-base font-bold text-gray-900 dark:text-white">
+        {t('menu.relatedProducts', 'Có thể bạn thích')}
+      </Text>
+      {hasMoreRelated && (
+        <Pressable
+          onPress={handleSeeMore}
+          hitSlop={8}
+          accessibilityRole="button"
+          className="flex-row items-center active:opacity-70"
+        >
+          <Text
+            className="text-[13px] font-semibold"
+            style={{ color: primaryColor }}
           >
-            {[0, 1, 2, 3].map((i) => (
+            {t('menu.seeMore', 'Xem thêm')}
+          </Text>
+          <ChevronRight size={16} color={primaryColor} />
+        </Pressable>
+      )}
+    </View>
+  )
+
+  if (visibleRelated.length === 0) {
+    if (!isLoading) return null
+    return (
+      <View style={{ marginTop: 16 }}>
+        {header}
+        <ScrollView
+          horizontal
+          scrollEnabled={false}
+          showsHorizontalScrollIndicator={false}
+        >
+          {[0, 1, 2].map((i) => (
+            <View
+              key={`skel-${i}`}
+              style={{ width: itemWidth, marginRight: itemSpacing }}
+            >
               <View
-                key={`skel-${i}`}
-                className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-[#2e2e2e] dark:bg-[#1c1c1e]"
-                style={{ width: itemWidth, marginRight: itemSpacing }}
-              >
-                <View className="p-2 pb-0">
-                  <View
-                    className="rounded-xl bg-gray-200 dark:bg-[#2e2e2e]"
-                    style={{ aspectRatio: 4 / 3 }}
-                  />
-                </View>
-                <View className="gap-2 px-2.5 pb-2.5 pt-2">
-                  <View className="h-3.5 w-3/4 rounded bg-gray-200 dark:bg-[#2e2e2e]" />
-                  <View className="h-3 w-1/2 rounded bg-gray-200 dark:bg-[#2e2e2e]" />
-                </View>
+                className="rounded-2xl bg-gray-200 dark:bg-gray-800"
+                style={{ width: itemWidth, height: itemWidth }}
+              />
+              <View className="gap-1.5 pt-2">
+                <View className="h-3.5 w-3/4 rounded bg-gray-200 dark:bg-gray-800" />
+                <View className="h-3 w-1/2 rounded bg-gray-200 dark:bg-gray-800" />
               </View>
-            ))}
-          </ScrollView>
-        </View>
-      )
-    }
-    return null
+            </View>
+          ))}
+        </ScrollView>
+      </View>
+    )
   }
 
   return (
     <View style={{ marginTop: 16 }}>
-      <Text className="mb-3 text-base font-bold text-gray-900 dark:text-white">
-        {t('menu.relatedProducts', 'Sản phẩm liên quan')}
-      </Text>
+      {header}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingRight: 16 }}
+        decelerationRate="fast"
+        snapToInterval={itemWidth + itemSpacing}
+        contentContainerStyle={{ paddingRight: 16 - itemSpacing }}
       >
         {visibleRelated.map((item) => (
           <RelatedProductItem
@@ -456,29 +504,6 @@ function SliderRelatedProducts({
             t={t}
           />
         ))}
-
-        {hasMoreRelated && (
-          <Pressable
-            onPress={handleSeeMore}
-            className="active:opacity-80"
-            style={{ width: itemWidth, marginRight: itemSpacing }}
-          >
-            <View className="flex-1 items-center justify-center gap-2 rounded-2xl border border-dashed border-gray-300 dark:border-[#3a3a3a]">
-              <View
-                className="h-11 w-11 items-center justify-center rounded-full"
-                style={{ backgroundColor: `${primaryColor}1a` }}
-              >
-                <ChevronRight size={22} color={primaryColor} />
-              </View>
-              <Text
-                className="text-[13px] font-semibold"
-                style={{ color: primaryColor }}
-              >
-                {t('menu.seeMore', 'Xem thêm')}
-              </Text>
-            </View>
-          </Pressable>
-        )}
       </ScrollView>
     </View>
   )

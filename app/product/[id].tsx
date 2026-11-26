@@ -386,6 +386,9 @@ function ProductDetailContent() {
         scrollEventThrottle={16}
         contentInsetAdjustmentBehavior="never"
         automaticallyAdjustContentInsets={false}
+        // Ô ghi chú cho quán: cuộn lên trên bàn phím, chạm chip không tắt phím.
+        automaticallyAdjustKeyboardInsets
+        keyboardShouldPersistTaps="handled"
         contentContainerStyle={scrollContentStyle}
         refreshControl={
           <RefreshControl
@@ -407,22 +410,24 @@ function ProductDetailContent() {
             name={product.name}
             basePrice={product.basePrice}
             promotionValue={product.promotionValue}
+            description={description}
+            isTopSell={menuItem?.product?.isTopSell ?? false}
+            isNew={menuItem?.product?.isNew ?? false}
+            topSellLabel={t('menu.isTopSell')}
+            newLabel={t('menu.isNewProduct')}
           />
 
           <DeferredOptionsSection fallback={<View style={fallbackStyle} />}>
             <ProductDetailOptionsSection
               productSlug={product.id}
               variants={variants}
-              description={description}
               isLimit={isLimit}
-              isLocked={isLocked}
               currentStock={currentStock}
               defaultStock={defaultStock}
-              inStockLabel={t('menu.stock')}
-              selectSizeLabel={t('menu.selectSize')}
-              selectQuantityLabel={t('menu.quantity')}
-              descriptionLabel={t('menu.description')}
-              noDescriptionLabel={t('menu.noDescription')}
+              sizeLabel={t('menu.selectSize')}
+              stockLabel={t('menu.stock')}
+              noteTitle={t('menu.noteForStore')}
+              notePlaceholder={t('menu.notePlaceholder')}
             />
           </DeferredOptionsSection>
         </View>
@@ -448,14 +453,15 @@ function ProductDetailContent() {
 
       {/* Layer 3: Price footer — absolute bottom */}
       <ProductPriceFooter
-        totalPriceLabel={t('menu.totalAmount')}
-        chooseSizeLabel={t('menu.chooseSize')}
         addToCartLabel={t('menu.addToCart')}
         outOfStockLabel={t('menu.outOfStock')}
         retryLabel={t('menu.retry')}
         isLoaded={!!menuItem}
         isError={isMenuItemError}
         hasStock={hasStock}
+        isLimit={isLimit}
+        isLocked={isLocked}
+        currentStock={currentStock}
         onAddToCart={handleAddToCart}
         onRetry={handleRetryLoad}
       />

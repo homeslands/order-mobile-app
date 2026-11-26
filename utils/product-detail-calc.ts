@@ -1,6 +1,9 @@
 /**
  * Product detail total — native-first. Tránh circular: không import stores.
  */
+import type { IProductVariant } from '@/types'
+import { formatCurrency } from '@/utils/formatCurrency'
+
 function computeProductDetailTotalJS(
   price: number | null,
   quantity: number,
@@ -61,4 +64,24 @@ export function computeProductDetailTotal(
     toppingExtraPrice,
     promotionDiscountPercent,
   )
+}
+
+/**
+ * Nhãn giá trên thẻ size: size rẻ nhất ghi giá đầy đủ, size khác ghi phần
+ * chênh ("+6.000 đ"). Khoá theo slug của variant.
+ */
+export function variantPriceLabels(
+  variants: IProductVariant[],
+): Map<string, string> {
+  const labels = new Map<string, string>()
+  if (variants.length === 0) return labels
+  const min = Math.min(...variants.map((v) => v.price))
+  for (const v of variants) {
+    const delta = v.price - min
+    labels.set(
+      v.slug,
+      delta > 0 ? `+${formatCurrency(delta)}` : formatCurrency(v.price),
+    )
+  }
+  return labels
 }

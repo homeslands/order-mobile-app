@@ -1,5 +1,5 @@
 /**
- * Perf Product Detail Footer — Primary-colored add-to-cart button.
+ * Footer trang chi tiết món: bộ tăng giảm số lượng + nút "Thêm vào giỏ · tổng".
  * Floating effect: very subtle shadow + thin top border, không blur.
  */
 import { RotateCw, ShoppingBag } from 'lucide-react-native'
@@ -13,13 +13,15 @@ import {
 } from 'react-native'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
+import NonPropQuantitySelector from '@/components/button/non-prop-quantity-selector'
 import { colors } from '@/constants'
 import { FOOTER_BOTTOM_EXTRA } from '@/constants/status-bar'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import {
   useDetailComputedTotalPrice,
-  useDetailPrice,
+  useDetailQuantity,
   useDetailSelectedVariant,
+  useDetailSetQuantity,
 } from '@/stores/selectors'
 import { formatCurrency } from '@/utils'
 import { getProductAddButtonState } from '@/utils/menu-stock'
@@ -35,8 +37,6 @@ import { Text } from '@/components/ui/text'
 export const PRODUCT_FOOTER_BASE_HEIGHT = 12 + 48 + FOOTER_BOTTOM_EXTRA
 
 export interface ProductPriceFooterProps {
-  totalPriceLabel: string
-  chooseSizeLabel: string
   addToCartLabel: string
   outOfStockLabel: string
   retryLabel: string
@@ -44,26 +44,31 @@ export interface ProductPriceFooterProps {
   isLoaded: boolean
   isError: boolean
   hasStock: boolean
+  isLimit: boolean
+  isLocked: boolean
+  currentStock: number
   onAddToCart: () => void
   onRetry: () => void
 }
 
 export const ProductPriceFooter = React.memo(function ProductPriceFooter({
-  totalPriceLabel,
-  chooseSizeLabel,
   addToCartLabel,
   outOfStockLabel,
   retryLabel,
   isLoaded,
   isError,
   hasStock,
+  isLimit,
+  isLocked,
+  currentStock,
   onAddToCart,
   onRetry,
 }: ProductPriceFooterProps) {
   const insets = useSafeAreaInsets()
   const isDark = useColorScheme() === 'dark'
   const primaryColor = usePrimaryColor()
-  const price = useDetailPrice()
+  const quantity = useDetailQuantity()
+  const setQuantity = useDetailSetQuantity()
   const computedTotalPrice = useDetailComputedTotalPrice()
   const selectedVariant = useDetailSelectedVariant()
   const buttonState = getProductAddButtonState({
@@ -79,7 +84,9 @@ export const ProductPriceFooter = React.memo(function ProductPriceFooter({
     ? retryLabel
     : buttonState === 'outOfStock'
       ? outOfStockLabel
-      : addToCartLabel
+      : computedTotalPrice != null
+        ? `${addToCartLabel} · ${formatCurrency(computedTotalPrice)}`
+        : addToCartLabel
 
   const bgColor = isDark ? colors.card.dark : colors.white.light
 
@@ -103,36 +110,13 @@ export const ProductPriceFooter = React.memo(function ProductPriceFooter({
     >
       <GlassSurface color={bgColor} style={StyleSheet.absoluteFill} />
       <View style={styles.row}>
-        {/* Price column */}
-        <View style={styles.priceCol}>
-          <Text
-            style={[
-              styles.priceLabel,
-              { color: isDark ? 'rgba(255,255,255,0.55)' : 'rgba(0,0,0,0.45)' },
-            ]}
-          >
-            {totalPriceLabel}
-          </Text>
-          <Text
-            numberOfLines={1}
-            style={[
-              styles.priceValue,
-              {
-                fontSize: price != null ? 19 : 14,
-                color:
-                  price != null
-                    ? primaryColor
-                    : isDark
-                      ? colors.gray[500]
-                      : colors.gray[400],
-              },
-            ]}
-          >
-            {computedTotalPrice != null
-              ? formatCurrency(computedTotalPrice)
-              : chooseSizeLabel}
-          </Text>
-        </View>
+        <NonPropQuantitySelector
+          quantity={quantity}
+          onChange={setQuantity}
+          isLimit={isLimit}
+          disabled={isLocked || !hasStock}
+          currentQuantity={currentStock}
+        />
 
         {/* Button */}
         <Pressable
@@ -187,19 +171,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 16,
-  },
-  priceCol: {
-    flex: 1,
-    minWidth: 0,
-    justifyContent: 'center',
-  },
-  priceLabel: {
-    fontSize: 12,
-    fontWeight: '500',
-  },
-  priceValue: {
-    fontWeight: '700',
-    marginTop: 1,
   },
   button: {
     flex: 1,

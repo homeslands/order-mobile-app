@@ -1,7 +1,7 @@
 // Ô thẻ quà dùng chung pipeline ảnh với Menu: thumbnail thu nhỏ trên máy, khoá
 // theo thẻ khi FlashList tái dùng ô, không crossfade. Trước đây ô hiện thẳng
 // ảnh gốc tới 1080px với transition 200ms.
-import { render, screen } from '@testing-library/react-native'
+import { fireEvent, render, screen } from '@testing-library/react-native'
 
 import { GiftCardListItem } from '@/components/gift-card/gift-card-list-item'
 import type { IGiftCard } from '@/types'
@@ -102,4 +102,42 @@ it('GC2 không ảnh: vẫn icon quà dự phòng', () => {
   )
   expect(mockImageProps).toHaveLength(0)
   expect(screen.getByText('[GIFT_ICON]')).toBeTruthy()
+})
+
+// Nút + của thẻ quà: có nhãn trợ năng, tắt hẳn khi thẻ ngừng bán.
+function renderRow(over: Partial<IGiftCard>, inCart = false) {
+  const onSelect = jest.fn()
+  render(
+    <GiftCardListItem
+      item={card(over)}
+      primaryColor="#000"
+      isDark={false}
+      inCart={inCart}
+      onSelect={onSelect}
+    />,
+  )
+  return onSelect
+}
+
+it('GC4 đang trong giỏ: hiện "Đã chọn", không có nút thêm', () => {
+  renderRow({}, true)
+  expect(screen.getByText('selected')).toBeTruthy()
+  expect(screen.queryByRole('button')).toBeNull()
+})
+
+it('GC5 thẻ ngừng bán: ghi rõ, nút thêm tắt', () => {
+  const onSelect = renderRow({ isActive: false })
+  expect(screen.getByText('unavailable')).toBeTruthy()
+  const button = screen.getByRole('button')
+  expect(button.props.accessibilityState).toEqual(
+    expect.objectContaining({ disabled: true }),
+  )
+  fireEvent.press(button)
+  expect(onSelect).not.toHaveBeenCalled()
+})
+
+it('GC6 thẻ đang bán: bấm + thì chọn thẻ', () => {
+  const onSelect = renderRow({})
+  fireEvent.press(screen.getByRole('button'))
+  expect(onSelect).toHaveBeenCalledTimes(1)
 })
