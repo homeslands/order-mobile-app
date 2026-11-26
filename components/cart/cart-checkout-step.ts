@@ -26,7 +26,11 @@ export function getCartCheckoutStep({
   deliveryPhone,
 }: CartCheckoutInput): CartCheckoutStep {
   if (type === 'at-table' && !tableName) {
-    return { missing: 'table', labelKey: 'menu.selectTable', sheet: 'table' }
+    return {
+      missing: 'table',
+      labelKey: 'cart.selectTableToOrder',
+      sheet: 'table',
+    }
   }
   if (type === 'delivery') {
     if (!deliveryAddress) {

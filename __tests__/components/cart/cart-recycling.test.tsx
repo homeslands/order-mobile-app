@@ -78,6 +78,7 @@ function makeItem(over: Partial<CartDisplayItem>): CartDisplayItem {
     promotionValue: 0,
     note: '',
     imageUrl: null,
+    hasSizeChoice: false,
     ...over,
   }
 }

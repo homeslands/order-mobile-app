@@ -18,6 +18,8 @@ import { CartSwipeable } from './cart-swipeable'
 import { Text } from '@/components/ui/text'
 
 const DEBOUNCE_QTY_MS = 200
+/** Ghi chú (và "Thêm ghi chú") nằm ở cột chữ: đệm ô 10 + ảnh 76 + khoảng 12 */
+const NOTE_INSET = 10 + 76 + 12
 /**
  * Đối số thứ hai của setter useRecyclingState: true = chỉ render lại ô này,
  * không bắt FlashList tính lại bố cục cả danh sách (mặc định). Số lượng chờ và
@@ -136,11 +138,11 @@ export const CartItemRow = memo(
     // Ô ghi chú không mở sẵn dưới mọi món: chưa có ghi chú thì chỉ một dòng
     // "Thêm ghi chú", bấm mới mở (đổi chiều cao ô → để FlashList đo lại).
     const [noteOpen, setNoteOpen] = useRecyclingState(false, [item.cartKey])
-    const showNoteInput = noteOpen || localNote.length > 0
+    // Đang sửa thì hiện ô nhập; đã có ghi chú thì hiện dạng chữ (chạm để
+    // sửa), cùng vị trí với "Thêm ghi chú".
+    const showNoteInput = noteOpen
     const openNote = useCallback(() => setNoteOpen(true), [setNoteOpen])
-    const handleNoteBlur = useCallback(() => {
-      if (!localNote.trim()) setNoteOpen(false)
-    }, [localNote, setNoteOpen])
+    const handleNoteBlur = useCallback(() => setNoteOpen(false), [setNoteOpen])
 
     const handleNoteChange = useCallback(
       (text: string) => {
@@ -204,11 +206,22 @@ export const CartItemRow = memo(
               >
                 {capitalizeFirst(item.name)}
               </Text>
-              {item.sizeName ? (
+              {/* Một size: chỉ ghi tên size (mũi tên gợi ý có lựa chọn khác) */}
+              {item.sizeName && !item.hasSizeChoice ? (
+                <Text
+                  style={[rowStyles.sizePlain, themeStyles.chipTextColor]}
+                  numberOfLines={1}
+                >
+                  {capitalizeFirst(item.sizeName)}
+                </Text>
+              ) : null}
+              {item.sizeName && item.hasSizeChoice ? (
                 <View style={rowStyles.sizeChipWrap}>
                   <Pressable
                     onPress={handleSizePress}
                     hitSlop={4}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('cart.changeSize')}
                     style={[rowStyles.sizeChip, themeStyles.chipBorder]}
                   >
                     <Text
@@ -291,7 +304,7 @@ export const CartItemRow = memo(
                 value={localNote}
                 onChangeText={handleNoteChange}
                 onBlur={handleNoteBlur}
-                autoFocus={noteOpen && localNote.length === 0}
+                autoFocus
                 placeholder={t('cart.itemNotePlaceholder')}
                 placeholderTextColor={themeStyles.notePlaceholderColor}
                 style={[rowStyles.noteInput, themeStyles.noteInputColor]}
@@ -307,9 +320,18 @@ export const CartItemRow = memo(
               style={rowStyles.addNoteRow}
             >
               <NotebookText size={12} color={themeStyles.noteIconColor} />
-              <Text style={[rowStyles.addNoteText, themeStyles.addNoteColor]}>
-                {t('cart.addNote')}
-              </Text>
+              {localNote ? (
+                <Text
+                  style={[rowStyles.noteText, themeStyles.noteInputColor]}
+                  numberOfLines={2}
+                >
+                  {localNote}
+                </Text>
+              ) : (
+                <Text style={[rowStyles.addNoteText, themeStyles.addNoteColor]}>
+                  {t('cart.addNote')}
+                </Text>
+              )}
             </Pressable>
           )}
         </View>
@@ -412,8 +434,10 @@ const rowStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginHorizontal: 10,
+    marginLeft: NOTE_INSET,
+    marginRight: 10,
     marginBottom: 10,
+    marginTop: -4,
     paddingHorizontal: 8,
     paddingVertical: 6,
     borderWidth: 1,
@@ -424,11 +448,14 @@ const rowStyles = StyleSheet.create({
     alignItems: 'center',
     gap: 6,
     alignSelf: 'flex-start',
-    marginLeft: 10 + 76 + 12,
+    marginLeft: NOTE_INSET,
+    marginRight: 10,
     marginBottom: 10,
     marginTop: -4,
   },
   addNoteText: { fontSize: 12, fontWeight: '500' },
+  noteText: { flexShrink: 1, fontSize: 12 },
+  sizePlain: { fontSize: 12, marginTop: 2 },
   noteInput: {
     flex: 1,
     fontSize: 12,

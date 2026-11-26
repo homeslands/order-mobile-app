@@ -143,6 +143,8 @@
   },
   "cart": {
     "title": "Cart",
+    "changeSize": "Change size",
+    "selectTableToOrder": "Select a table to order",
     "addNote": "Add a note",
     "increaseQty": "Increase quantity",
     "decreaseQty": "Decrease quantity",

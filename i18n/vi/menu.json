@@ -142,6 +142,8 @@
   },
   "cart": {
     "title": "Giỏ hàng",
+    "changeSize": "Đổi size",
+    "selectTableToOrder": "Chọn bàn để đặt",
     "addNote": "Thêm ghi chú",
     "increaseQty": "Tăng số lượng",
     "decreaseQty": "Giảm số lượng",

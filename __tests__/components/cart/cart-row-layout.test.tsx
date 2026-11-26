@@ -91,6 +91,7 @@ function makeItem(over: Partial<CartDisplayItem>): CartDisplayItem {
     promotionValue: 0,
     note: '',
     imageUrl: null,
+    hasSizeChoice: false,
     ...over,
   }
 }
@@ -134,6 +135,8 @@ it('CL1 bấm +/- không bắt danh sách tính lại bố cục', () => {
 
 it('CL2 gõ ghi chú không bắt danh sách tính lại bố cục', () => {
   render(row(makeItem({ note: 'ít đá' })))
+  fireEvent.press(screen.getByText('ít đá'))
+  mockSkips.length = 0
   fireEvent.changeText(screen.getByPlaceholderText(NOTE_PLACEHOLDER), 'nóng')
   expect(mockSkips).toEqual([true])
 })
@@ -146,8 +149,10 @@ it('RU1 chưa có ghi chú: chỉ một dòng "Thêm ghi chú", bấm mới mở
   expect(screen.getByPlaceholderText(NOTE_PLACEHOLDER)).toBeTruthy()
 })
 
-it('RU2 đã có ghi chú: hiện ghi chú, sửa ngay được', () => {
+it('RU2 đã có ghi chú: hiện dạng chữ ở cột chữ, chạm để sửa', () => {
   render(row(makeItem({ note: 'ít đá' })))
+  expect(screen.queryByPlaceholderText(NOTE_PLACEHOLDER)).toBeNull()
+  fireEvent.press(screen.getByText('ít đá'))
   expect(screen.getByPlaceholderText(NOTE_PLACEHOLDER).props.value).toBe(
     'ít đá',
   )
@@ -167,4 +172,15 @@ it('RU4 số lượng >1: nút trái là giảm số lượng', () => {
   render(row(makeItem({ quantity: 3 })))
   fireEvent.press(screen.getByLabelText('cart.decreaseQty'))
   expect(screen.getByText('2')).toBeTruthy()
+})
+
+it('RU5 món một size: tên size là chữ thường, không có nút đổi size', () => {
+  render(row(makeItem({ sizeName: 'Tiêu chuẩn', hasSizeChoice: false })))
+  expect(screen.getByText('Tiêu chuẩn')).toBeTruthy()
+  expect(screen.queryByLabelText('cart.changeSize')).toBeNull()
+})
+
+it('RU6 món nhiều size: có nút đổi size', () => {
+  render(row(makeItem({ sizeName: 'M', hasSizeChoice: true })))
+  expect(screen.getByLabelText('cart.changeSize')).toBeTruthy()
 })

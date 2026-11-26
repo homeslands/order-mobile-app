@@ -18,7 +18,7 @@ import React, {
   useRef,
   useState,
 } from 'react'
-import { Pressable, StyleSheet, View, useColorScheme } from 'react-native'
+import { StyleSheet, View, useColorScheme } from 'react-native'
 import { useTranslation } from 'react-i18next'
 import { TouchableOpacity as GHTouchable } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
@@ -27,6 +27,7 @@ import { colors } from '@/constants'
 import { TAB_ROUTES } from '@/constants/navigation.config'
 import { TabScreenLayout } from '@/components/layout'
 import { FloatingHeader } from '@/components/navigation/floating-header'
+import { GlassHeaderButton } from '@/components/navigation/glass-header-button'
 import { useRunAfterTransition } from '@/hooks'
 import { useMountOnFirstOpen } from '@/hooks/use-mount-on-first-open'
 import { useOrderFlowStore } from '@/stores'
@@ -212,42 +213,32 @@ const confirmStyles = StyleSheet.create({
 
 // ─── Clear button (right element cho FloatingHeader) ─────────────────────────
 
+/**
+ * Xoá cả giỏ — thao tác phá, ít dùng: nút kính trung tính như nút quay lại,
+ * chỉ biểu tượng màu đỏ (trước là hình tròn đỏ đặc, nổi nhất màn hình).
+ */
 function CartClearBtn({
   itemCount,
   onClearAll,
+  isDark,
 }: {
   itemCount: number
   onClearAll: () => void
+  isDark: boolean
 }) {
   if (itemCount === 0) return <View style={clearBtnStyles.placeholder} />
   return (
-    <Pressable
-      onPress={onClearAll}
-      hitSlop={8}
-      style={[clearBtnStyles.btn, clearBtnStyles.shadow]}
-    >
-      <Trash2 size={16} color={colors.white.light} />
-    </Pressable>
+    <GlassHeaderButton isDark={isDark} onPress={onClearAll}>
+      <Trash2
+        size={18}
+        color={isDark ? colors.destructive.dark : colors.destructive.light}
+      />
+    </GlassHeaderButton>
   )
 }
 
 const clearBtnStyles = StyleSheet.create({
   placeholder: { width: 38, height: 38 },
-  btn: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.destructive.light,
-  },
-  shadow: {
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.03,
-    shadowRadius: 24,
-    elevation: 2,
-  },
 })
 
 // ─── Skeleton Shell ──────────────────────────────────────────────────────────
@@ -341,6 +332,7 @@ export default function CartScreen() {
               <CartClearBtn
                 itemCount={itemCount}
                 onClearAll={handleOpenClearSheet}
+                isDark={isDark}
               />
             }
           />

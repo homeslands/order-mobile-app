@@ -72,3 +72,17 @@ it('CU9 tiêu đề Ghi chú đơn cùng kiểu dòng Voucher (biểu tượng m
   expect(note).toMatch(/<NotebookText size=\{18\} color=\{primaryColor\}/)
   expect(content).toMatch(/<CartOrderNote[^>]*primaryColor=\{primaryColor\}/)
 })
+
+it('CU10 nút Đặt hàng thiếu thông tin vẫn màu chính, ghi rõ việc cần làm (không giả như bị khoá)', () => {
+  expect(footer).not.toMatch(/isMissingInfo && ft\.disabledTextColor/)
+  expect(footer).not.toMatch(/isMissingInfo\s*\?\s*isDark\s*\?\s*colors\.gray/)
+  const step = read('components/cart/cart-checkout-step.ts')
+  expect(step).toMatch(/cart\.selectTableToOrder/)
+})
+
+it('CU11 nút xoá cả giỏ trung tính (kính), chỉ biểu tượng màu đỏ', () => {
+  const cart = read('app/(tabs)/cart.tsx')
+  const btn = cart.slice(cart.indexOf('function CartClearBtn'))
+  expect(btn.slice(0, 900)).toMatch(/<GlassHeaderButton\b/)
+  expect(btn.slice(0, 900)).not.toMatch(/colors\.white\.light/)
+})

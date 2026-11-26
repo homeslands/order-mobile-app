@@ -251,26 +251,16 @@ export const CartFooter = memo(function CartFooter({
       chevronColor: isDark ? colors.gray[500] : colors.gray[400],
       primaryColorStyle: { color: primaryColor },
       primaryBorderStyle: { borderColor: primaryColor },
-      disabledBtnBg: {
-        backgroundColor: isDark ? colors.border.dark : colors.gray[300],
-      },
-      disabledTextColor: {
-        color: isDark ? colors.gray[400] : colors.gray[500],
-      },
-      disabledIconColor: isDark ? colors.gray[400] : colors.gray[500],
     }),
     [isDark, primaryColor],
   )
 
+  // Thiếu thông tin (chưa chọn bàn / địa chỉ) vẫn là nút màu chính: bấm vào
+  // mở đúng chỗ cần điền — trước tô xám như bị khoá nên khách tưởng không bấm
+  // được.
   const checkoutBtnBg = useMemo(
-    () => ({
-      backgroundColor: isMissingInfo
-        ? isDark
-          ? colors.gray[700]
-          : colors.gray[300]
-        : primaryColor,
-    }),
-    [isMissingInfo, isDark, primaryColor],
+    () => ({ backgroundColor: primaryColor }),
+    [primaryColor],
   )
 
   return (
@@ -311,30 +301,14 @@ export const CartFooter = memo(function CartFooter({
             disabled={isChecking}
             accessibilityRole="button"
             accessibilityState={{ disabled: isChecking, busy: isChecking }}
-            style={[
-              footerStyles.checkoutBtn,
-              checkoutBtnBg,
-              isMissingInfo && footerStyles.checkoutBtnDisabled,
-            ]}
+            style={[footerStyles.checkoutBtn, checkoutBtnBg]}
           >
             {isChecking ? (
               <ActivityIndicator size="small" color={colors.white.light} />
             ) : (
-              <ShoppingBag
-                size={18}
-                color={
-                  isMissingInfo ? ft.disabledIconColor : colors.white.light
-                }
-              />
+              <ShoppingBag size={18} color={colors.white.light} />
             )}
-            <Text
-              style={[
-                footerStyles.checkoutText,
-                isMissingInfo && ft.disabledTextColor,
-              ]}
-            >
-              {orderBtnLabel}
-            </Text>
+            <Text style={[footerStyles.checkoutText]}>{orderBtnLabel}</Text>
           </Pressable>
         </View>
       </View>
@@ -440,9 +414,6 @@ const footerStyles = StyleSheet.create({
     height: 48,
     borderRadius: 9999,
     paddingHorizontal: 20,
-  },
-  checkoutBtnDisabled: {
-    paddingHorizontal: 14,
   },
   checkoutText: {
     color: colors.white.light,
