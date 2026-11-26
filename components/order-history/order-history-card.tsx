@@ -10,6 +10,7 @@ import { memo, useCallback, useMemo } from 'react'
 import { Pressable, StyleSheet, View } from 'react-native'
 
 import { MenuItemImage } from '@/components/menu/menu-item-image'
+import { OrderStatusBadge } from '@/components/order-history/order-status-badge'
 import { Text } from '@/components/ui/text'
 import { colors } from '@/constants'
 import {
@@ -32,25 +33,6 @@ export type OrderHistoryCardLabels = {
 
 const pad = (n: number) => String(n).padStart(2, '0')
 const capFirst = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
-
-/**
- * Nhãn nền đặc tông tươi, chữ trắng đậm — bốn tông khác nhau, không dùng cam
- * thương hiệu (đã là màu giá tiền trong thẻ). Tông tươi (amber/green-600,
- * red/gray-500) chỉ ~3.2–4.8:1 với chữ trắng nên chữ để đậm 700.
- * Chưa thanh toán: hổ phách. Đã thanh toán: xanh. Hoàn tất: xám. Thất bại: đỏ.
- */
-function statusBg(status: OrderHistoryStatus): string {
-  switch (status) {
-    case 'failed':
-      return colors.destructive.light
-    case 'paid':
-      return colors.success.solid
-    case 'completed':
-      return colors.gray[500]
-    default:
-      return colors.warning.solid
-  }
-}
 
 function TypeIcon({ type, color }: { type: string; color: string }) {
   if (type === 'delivery') return <Truck size={14} color={color} />
@@ -126,17 +108,7 @@ export const OrderHistoryCard = memo(function OrderHistoryCard({
             {[typeLabel, view.time].filter(Boolean).join(' · ')}
           </Text>
         </View>
-        <View
-          testID="order-status-badge"
-          style={[s.badge, { backgroundColor: statusBg(status) }]}
-        >
-          <Text
-            testID="order-status-badge-text"
-            style={[s.badgeText, { color: colors.white.light }]}
-          >
-            {labels.status[status]}
-          </Text>
-        </View>
+        <OrderStatusBadge status={status} label={labels.status[status]} />
       </View>
 
       <View style={s.thumbRow}>
@@ -207,8 +179,6 @@ const s = StyleSheet.create({
   },
   typeRow: { flexDirection: 'row', alignItems: 'center', gap: 6, flex: 1 },
   typeText: { fontSize: 13 },
-  badge: { borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4 },
-  badgeText: { fontSize: 12, fontWeight: '700' },
   thumbRow: { flexDirection: 'row', gap: 6 },
   thumb: {
     width: THUMB,

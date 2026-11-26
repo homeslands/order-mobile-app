@@ -2,11 +2,12 @@ import { ScreenContainer } from '@/components/layout'
 import { FloatingHeader } from '@/components/navigation/floating-header'
 import { useFocusEffect } from '@react-navigation/native'
 import { useQueryClient } from '@tanstack/react-query'
+import * as Clipboard from 'expo-clipboard'
 import { useLocalSearchParams } from 'expo-router'
+import { Copy } from 'lucide-react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  ActivityIndicator,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -33,11 +34,17 @@ import {
   formatDateTime,
   getPaymentStatusLabel,
   showErrorToast,
+  showToast,
 } from '@/utils'
 import { formatPointQrPayer } from '@/utils/point-payment-qr'
 
 import { InvoiceSection } from '@/app/payment/payment-invoice-section'
 import { PaymentProductItem } from '@/app/payment/payment-product-item'
+import { OrderStatusBadge } from '@/components/order-history/order-status-badge'
+import {
+  getOrderHistoryStatus,
+  type OrderHistoryStatus,
+} from '@/lib/order-history-status'
 import { Text } from '@/components/ui/text'
 
 // ─── Skeleton ───────────────────────────────────────────────────────────────
@@ -85,11 +92,57 @@ const sk = StyleSheet.create({
   },
 })
 
+/** Một dòng nhãn — giá trị trong phần thông tin / thanh toán. */
+const ReceiptRow = React.memo(function ReceiptRow({
+  label,
+  value,
+  valueColor,
+  isDark,
+}: {
+  label: string
+  value: string
+  valueColor?: string
+  isDark: boolean
+}) {
+  return (
+    <View style={ds.receiptRow}>
+      <Text
+        style={[
+          ds.receiptLabel,
+          { color: isDark ? colors.gray[400] : colors.gray[500] },
+        ]}
+      >
+        {label}
+      </Text>
+      <Text
+        style={[
+          ds.receiptValue,
+          ds.receiptValueFlex,
+          {
+            color: valueColor ?? (isDark ? colors.gray[50] : colors.gray[900]),
+          },
+        ]}
+        numberOfLines={2}
+      >
+        {value}
+      </Text>
+    </View>
+  )
+})
+
+const STATUS_LABEL_KEY: Record<OrderHistoryStatus, string> = {
+  unpaid: 'unpaid',
+  paid: 'paid',
+  completed: 'completed',
+  failed: 'failed',
+}
+
 // ─── Main Content ────────────────────────────────────────────────────────────
 
 function OrderDetailContent() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const { t } = useTranslation('menu')
+  const { t: tToast } = useTranslation('toast')
   const isDark = useColorScheme() === 'dark'
   const primaryColor = isDark ? colors.primary.dark : colors.primary.light
   const screenBg = isDark ? colors.background.dark : colors.background.light
@@ -97,7 +150,6 @@ function OrderDetailContent() {
   const {
     data: orderResponse,
     isPending,
-    isRefetching,
     refetch: refetchOrder,
   } = useOrderBySlug(id ?? '')
   const order = orderResponse?.result
@@ -123,10 +175,38 @@ function OrderDetailContent() {
     }, [refetchOrder]),
   )
 
+  // Vòng quay kéo-làm-mới chỉ cho thao tác kéo của khách — tải lại khi quay
+  // về màn (useFocusEffect) / theo thông báo không nên bật vòng quay.
+  const [userRefreshing, setUserRefreshing] = useState(false)
+  const handleUserRefresh = useCallback(() => {
+    setUserRefreshing(true)
+    void refetchOrder().finally(() => setUserRefreshing(false))
+  }, [refetchOrder])
+
   const insets = useSafeAreaInsets()
   const queryClient = useQueryClient()
   const getUserInfo = useUserStore((s) => s.getUserInfo)
   const isPending_ = order?.status === OrderStatus.PENDING
+  const isDelivery = order?.type === OrderTypeEnum.DELIVERY
+  const secondaryBg = isDark ? colors.gray[800] : colors.gray[100]
+  const discountColor = isDark ? colors.success.dark : colors.success.solid
+  const dividerColor = isDark ? colors.gray[700] : colors.gray[100]
+  const itemQty = (orderItems ?? []).reduce(
+    (n, it) => n + (it.quantity ?? 0),
+    0,
+  )
+  const paymentMethodLabel = !order?.payment
+    ? t('paymentMethod.notPaid', 'Chưa thanh toán')
+    : order.payment.paymentMethod === PaymentMethod.BANK_TRANSFER
+      ? t('paymentMethod.bankTransfer', 'Chuyển khoản')
+      : order.payment.paymentMethod === PaymentMethod.CASH
+        ? t('paymentMethod.cash', 'Tiền mặt')
+        : order.payment.paymentMethod === PaymentMethod.POINT
+          ? t('paymentMethod.point', 'Điểm tích lũy')
+          : t('paymentMethod.creditCard', 'Thẻ tín dụng')
+  const paymentStatusLabel = order?.payment
+    ? getPaymentStatusLabel(order.payment.statusCode)
+    : ''
 
   const handlePayment = useCallback(() => {
     if (!id) return
@@ -159,6 +239,13 @@ function OrderDetailContent() {
     )
   }, [order, queryClient, getUserInfo])
 
+  const orderCode = String(order?.referenceNumber ?? order?.slug ?? '')
+  const handleCopyCode = useCallback(() => {
+    if (!orderCode) return
+    void Clipboard.setStringAsync(orderCode)
+    showToast(tToast('toast.copyCodeSuccess'))
+  }, [orderCode, tToast])
+
   const handleProductPress = useCallback((productSlug: string) => {
     navigateNative.push({
       pathname: ROUTE.CLIENT_PRODUCT_DETAIL,
@@ -186,25 +273,7 @@ function OrderDetailContent() {
     return { displayItemMap: map, cartTotals }
   }, [orderItems, voucher])
 
-  if (isPending) {
-    return (
-      <ScreenContainer
-        edges={['top']}
-        style={{ flex: 1, backgroundColor: screenBg }}
-      >
-        <FloatingHeader
-          title={t('order.orderDetail', 'Chi tiết đơn hàng')}
-          onBack={navigateNative.back}
-          disableBlur
-        />
-        <View
-          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-        >
-          <ActivityIndicator size="large" color={primaryColor} />
-        </View>
-      </ScreenContainer>
-    )
-  }
+  if (isPending) return <OrderDetailSkeleton />
 
   if (!order) {
     return (
@@ -240,8 +309,8 @@ function OrderDetailContent() {
           showsVerticalScrollIndicator={true}
           refreshControl={
             <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={refetchOrder}
+              refreshing={userRefreshing}
+              onRefresh={handleUserRefresh}
               tintColor={primaryColor}
               colors={[primaryColor]}
             />
@@ -262,56 +331,33 @@ function OrderDetailContent() {
             >
               <View style={ds.receiptHeader}>
                 <View style={ds.receiptHeaderRow}>
-                  <Text
-                    style={[
-                      ds.receiptTitle,
-                      {
-                        color: isDark ? colors.gray[50] : colors.gray[900],
-                        flex: 1,
-                      },
-                    ]}
-                  >
-                    {t('order.order', 'Đơn hàng')} #{order.slug}
-                  </Text>
-                  <View
-                    style={[
-                      ds.orderStatusBadge,
-                      {
-                        backgroundColor:
-                          order.status === OrderStatus.PAID ||
-                          order.status === OrderStatus.COMPLETED
-                            ? `${colors.success.light}18`
-                            : order.status === OrderStatus.PENDING
-                              ? `${colors.warning.light}18`
-                              : `${colors.gray[500]}18`,
-                      },
-                    ]}
+                  {/* Mã đơn dễ đọc (số tham chiếu) — chạm để sao chép, tiện đọc
+                      cho quầy. slug là chuỗi ngẫu nhiên, khách không dùng được. */}
+                  <Pressable
+                    onPress={handleCopyCode}
+                    hitSlop={6}
+                    accessibilityRole="button"
+                    style={ds.codeRow}
                   >
                     <Text
                       style={[
-                        ds.orderStatusText,
-                        {
-                          color:
-                            order.status === OrderStatus.PAID ||
-                            order.status === OrderStatus.COMPLETED
-                              ? colors.success.light
-                              : order.status === OrderStatus.PENDING
-                                ? colors.warning.light
-                                : isDark
-                                  ? colors.gray[400]
-                                  : colors.gray[500],
-                        },
+                        ds.receiptTitle,
+                        { color: isDark ? colors.gray[50] : colors.gray[900] },
                       ]}
                     >
-                      {order.status === OrderStatus.PAID
-                        ? t('order.paid', 'Đã thanh toán')
-                        : order.status === OrderStatus.COMPLETED
-                          ? t('order.completed', 'Hoàn thành')
-                          : order.status === OrderStatus.PENDING
-                            ? t('order.pending', 'Chờ thanh toán')
-                            : order.status}
+                      {t('order.order', 'Đơn hàng')} #{orderCode}
                     </Text>
-                  </View>
+                    <Copy
+                      size={14}
+                      color={isDark ? colors.gray[400] : colors.gray[500]}
+                    />
+                  </Pressable>
+                  <OrderStatusBadge
+                    status={getOrderHistoryStatus(order)}
+                    label={t(
+                      `order.${STATUS_LABEL_KEY[getOrderHistoryStatus(order)]}`,
+                    )}
+                  />
                 </View>
                 <Text
                   style={[
@@ -333,45 +379,63 @@ function OrderDetailContent() {
                 ]}
               />
               <View style={ds.receiptBody}>
-                <View style={ds.receiptRow}>
-                  <Text
-                    style={[
-                      ds.receiptLabel,
-                      { color: isDark ? colors.gray[400] : colors.gray[500] },
-                    ]}
-                  >
-                    {t('order.customer', 'Khách hàng')}
-                  </Text>
-                  <Text
-                    style={[
-                      ds.receiptValue,
-                      { color: isDark ? colors.gray[50] : colors.gray[900] },
-                    ]}
-                  >
-                    {order.owner?.firstName || order.owner?.lastName
-                      ? `${order.owner.firstName || ''} ${order.owner.lastName || ''}`.trim()
-                      : '-'}
-                  </Text>
-                </View>
-                {order.owner?.phonenumber && (
-                  <View style={ds.receiptRow}>
-                    <Text
-                      style={[
-                        ds.receiptLabel,
-                        { color: isDark ? colors.gray[400] : colors.gray[500] },
-                      ]}
-                    >
-                      {t('order.phone', 'Điện thoại')}
-                    </Text>
-                    <Text
-                      style={[
-                        ds.receiptValue,
-                        { color: isDark ? colors.gray[50] : colors.gray[900] },
-                      ]}
-                    >
-                      {order.owner.phonenumber}
-                    </Text>
-                  </View>
+                {/* Khách đang xem đơn của chính mình — tên / SĐT chỉ có ích
+                    với đơn giao hàng (người nhận). */}
+                {isDelivery && (
+                  <>
+                    <View style={ds.receiptRow}>
+                      <Text
+                        style={[
+                          ds.receiptLabel,
+                          {
+                            color: isDark ? colors.gray[400] : colors.gray[500],
+                          },
+                        ]}
+                      >
+                        {t('order.customer', 'Khách hàng')}
+                      </Text>
+                      <Text
+                        style={[
+                          ds.receiptValue,
+                          {
+                            color: isDark ? colors.gray[50] : colors.gray[900],
+                          },
+                        ]}
+                      >
+                        {order.owner?.firstName || order.owner?.lastName
+                          ? `${order.owner.firstName || ''} ${order.owner.lastName || ''}`.trim()
+                          : '-'}
+                      </Text>
+                    </View>
+                    {order.owner?.phonenumber && (
+                      <View style={ds.receiptRow}>
+                        <Text
+                          style={[
+                            ds.receiptLabel,
+                            {
+                              color: isDark
+                                ? colors.gray[400]
+                                : colors.gray[500],
+                            },
+                          ]}
+                        >
+                          {t('order.phone', 'Điện thoại')}
+                        </Text>
+                        <Text
+                          style={[
+                            ds.receiptValue,
+                            {
+                              color: isDark
+                                ? colors.gray[50]
+                                : colors.gray[900],
+                            },
+                          ]}
+                        >
+                          {order.owner.phonenumber}
+                        </Text>
+                      </View>
+                    )}
+                  </>
                 )}
                 <View style={ds.receiptRow}>
                   <Text
@@ -479,7 +543,6 @@ function OrderDetailContent() {
                     primaryColor={primaryColor}
                     isDark={isDark}
                     isLast={index === (orderItems ?? []).length - 1}
-                    noNoteLabel={t('order.noNote', 'Không có ghi chú')}
                   />
                 </Pressable>
               ))}
@@ -518,261 +581,120 @@ function OrderDetailContent() {
                 ]}
               />
               <View style={ds.receiptBody}>
-                <View style={ds.receiptRow}>
-                  <Text
-                    style={[
-                      ds.receiptLabel,
-                      { color: isDark ? colors.gray[400] : colors.gray[500] },
-                    ]}
-                  >
-                    {t('paymentMethod.title', 'Phương thức')}
-                  </Text>
-                  <Text
-                    style={[
-                      ds.receiptValue,
-                      { color: isDark ? colors.gray[50] : colors.gray[900] },
-                    ]}
-                  >
-                    {order.payment
-                      ? order.payment.paymentMethod ===
-                        PaymentMethod.BANK_TRANSFER
-                        ? t('paymentMethod.bankTransfer', 'Chuyển khoản')
-                        : order.payment.paymentMethod === PaymentMethod.CASH
-                          ? t('paymentMethod.cash', 'Tiền mặt')
-                          : order.payment.paymentMethod === PaymentMethod.POINT
-                            ? t('paymentMethod.point', 'Điểm tích lũy')
-                            : t('paymentMethod.creditCard', 'Thẻ tín dụng')
-                      : t('paymentMethod.notPaid', 'Chưa thanh toán')}
-                  </Text>
-                </View>
-                {order.payment?.pointPaymentQr?.paidBy && (
-                  <View style={ds.receiptRow}>
-                    <Text
-                      style={[
-                        ds.receiptLabel,
-                        { color: isDark ? colors.gray[400] : colors.gray[500] },
-                      ]}
-                    >
-                      {t('paymentMethod.paidBy', 'Người trả')}
-                    </Text>
-                    <Text
-                      style={[
-                        ds.receiptValue,
-                        { color: isDark ? colors.gray[50] : colors.gray[900] },
-                      ]}
-                      numberOfLines={1}
-                    >
-                      {formatPointQrPayer(order.payment.pointPaymentQr.paidBy)}
-                    </Text>
-                  </View>
-                )}
-                {order.payment && (
-                  <View style={ds.receiptRow}>
-                    <Text
-                      style={[
-                        ds.receiptLabel,
-                        { color: isDark ? colors.gray[400] : colors.gray[500] },
-                      ]}
-                    >
-                      {t('order.status', 'Trạng thái')}
-                    </Text>
-                    <View
-                      style={[
-                        ds.statusBadge,
-                        {
-                          backgroundColor:
-                            order.payment.statusMessage ===
-                            OrderStatus.COMPLETED
-                              ? colors.success.light
-                              : colors.warning.light,
-                        },
-                      ]}
-                    >
-                      <Text
-                        style={[
-                          ds.statusBadgeText,
-                          { color: colors.white.light },
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {getPaymentStatusLabel(order.payment.statusCode)}
-                      </Text>
-                    </View>
-                  </View>
-                )}
-                {order.payment?.paymentMethod === PaymentMethod.CREDIT_CARD &&
-                  order.payment.transactionId && (
-                    <View style={ds.receiptRow}>
-                      <Text
-                        style={[
-                          ds.receiptLabel,
-                          {
-                            color: isDark ? colors.gray[400] : colors.gray[500],
-                          },
-                        ]}
-                      >
-                        {t('paymentMethod.transactionId', 'Mã giao dịch')}
-                      </Text>
-                      <Text
-                        style={[
-                          ds.receiptValue,
-                          {
-                            color: isDark ? colors.gray[50] : colors.gray[900],
-                          },
-                        ]}
-                      >
-                        {order.payment.transactionId}
-                      </Text>
-                    </View>
+                {/* Tiền: tạm tính, giảm trừ (cùng một màu), phí → tổng nổi bật */}
+                <ReceiptRow
+                  label={t('order.subTotal', 'Tổng tiền hàng')}
+                  value={formatCurrency(
+                    cartTotals?.subTotalBeforeDiscount || 0,
                   )}
-
-                <View
-                  style={[
-                    ds.receiptDivider,
-                    {
-                      backgroundColor: isDark
-                        ? colors.gray[700]
-                        : colors.gray[100],
-                      marginHorizontal: 0,
-                    },
-                  ]}
+                  isDark={isDark}
                 />
-
-                <View style={ds.receiptRow}>
-                  <Text
-                    style={[
-                      ds.receiptLabel,
-                      { color: isDark ? colors.gray[400] : colors.gray[500] },
-                    ]}
-                  >
-                    {t('order.subTotal', 'Tổng tiền hàng')}
-                  </Text>
-                  <Text
-                    style={[
-                      ds.receiptValue,
-                      { color: isDark ? colors.gray[50] : colors.gray[900] },
-                    ]}
-                  >
-                    {formatCurrency(cartTotals?.subTotalBeforeDiscount || 0)}
-                  </Text>
-                </View>
                 {(cartTotals?.promotionDiscount ?? 0) > 0 && (
-                  <View style={ds.receiptRow}>
-                    <Text
-                      style={[
-                        ds.receiptLabel,
-                        { color: isDark ? colors.gray[400] : colors.gray[500] },
-                      ]}
-                    >
-                      {t('order.discount', 'Khuyến mãi')}
-                    </Text>
-                    <Text
-                      style={[ds.receiptValue, { color: colors.success.light }]}
-                    >
-                      -{formatCurrency(cartTotals?.promotionDiscount || 0)}
-                    </Text>
-                  </View>
+                  <ReceiptRow
+                    label={t('order.discount', 'Khuyến mãi')}
+                    value={`-${formatCurrency(cartTotals?.promotionDiscount || 0)}`}
+                    valueColor={discountColor}
+                    isDark={isDark}
+                  />
                 )}
                 {order.voucher && (cartTotals?.voucherDiscount ?? 0) > 0 && (
-                  <View style={ds.receiptRow}>
-                    <Text
-                      style={[ds.receiptLabel, { color: colors.success.light }]}
-                    >
-                      {t('order.voucher', 'Mã giảm giá')}
-                    </Text>
-                    <Text
-                      style={[ds.receiptValue, { color: colors.success.light }]}
-                    >
-                      -{formatCurrency(cartTotals?.voucherDiscount || 0)}
-                    </Text>
-                  </View>
+                  <ReceiptRow
+                    label={t('order.voucher', 'Mã giảm giá')}
+                    value={`-${formatCurrency(cartTotals?.voucherDiscount || 0)}`}
+                    valueColor={discountColor}
+                    isDark={isDark}
+                  />
                 )}
                 {order.accumulatedPointsToUse > 0 && (
-                  <View style={ds.receiptRow}>
-                    <Text style={[ds.receiptLabel, { color: primaryColor }]}>
-                      {t('order.loyaltyPoint', 'Điểm tích lũy')}
-                    </Text>
-                    <Text style={[ds.receiptValue, { color: primaryColor }]}>
-                      -{formatCurrency(order.accumulatedPointsToUse)}
-                    </Text>
-                  </View>
+                  <ReceiptRow
+                    label={t('order.loyaltyPoint', 'Điểm tích lũy')}
+                    value={`-${formatCurrency(order.accumulatedPointsToUse)}`}
+                    valueColor={discountColor}
+                    isDark={isDark}
+                  />
                 )}
-                {order.type === OrderTypeEnum.DELIVERY &&
-                  order.deliveryFee > 0 && (
-                    <View style={ds.receiptRow}>
-                      <Text
-                        style={[
-                          ds.receiptLabel,
-                          {
-                            color: isDark ? colors.gray[400] : colors.gray[500],
-                          },
-                        ]}
-                      >
-                        {t('order.deliveryFee', 'Phí giao hàng')}
-                      </Text>
-                      <Text
-                        style={[
-                          ds.receiptValue,
-                          {
-                            color: isDark ? colors.gray[50] : colors.gray[900],
-                          },
-                        ]}
-                      >
-                        {formatCurrency(order.deliveryFee)}
-                      </Text>
-                    </View>
-                  )}
+                {isDelivery && order.deliveryFee > 0 && (
+                  <ReceiptRow
+                    label={t('order.deliveryFee', 'Phí giao hàng')}
+                    value={formatCurrency(order.deliveryFee)}
+                    isDark={isDark}
+                  />
+                )}
                 {order.loss > 0 && (
-                  <View style={ds.receiptRow}>
-                    <Text
-                      style={[ds.receiptLabel, { color: colors.success.light }]}
-                    >
-                      {t(
-                        'order.invoiceAutoDiscountUnderThreshold',
-                        'Giảm giá tự động',
-                      )}
-                    </Text>
-                    <Text
-                      style={[ds.receiptValue, { color: colors.success.light }]}
-                    >
-                      -{formatCurrency(order.loss)}
-                    </Text>
-                  </View>
+                  <ReceiptRow
+                    label={t(
+                      'order.invoiceAutoDiscountUnderThreshold',
+                      'Giảm giá tự động',
+                    )}
+                    value={`-${formatCurrency(order.loss)}`}
+                    valueColor={discountColor}
+                    isDark={isDark}
+                  />
                 )}
 
                 <View
                   style={[
                     ds.receiptDivider,
-                    {
-                      backgroundColor: isDark
-                        ? colors.gray[700]
-                        : colors.gray[200],
-                      marginHorizontal: 0,
-                    },
+                    { backgroundColor: dividerColor, marginHorizontal: 0 },
                   ]}
                 />
 
-                <View style={ds.receiptRow}>
-                  <Text
-                    style={[
-                      ds.semibold,
-                      { color: isDark ? colors.gray[50] : colors.gray[900] },
-                    ]}
-                  >
-                    {t('order.totalPayment', 'Tổng thanh toán')}
-                  </Text>
+                <View style={ds.totalRow}>
+                  <View>
+                    <Text
+                      style={[
+                        ds.semibold,
+                        { color: isDark ? colors.gray[50] : colors.gray[900] },
+                      ]}
+                    >
+                      {t('order.totalPayment', 'Tổng thanh toán')}
+                    </Text>
+                    <Text
+                      style={[
+                        ds.xsText,
+                        { color: isDark ? colors.gray[400] : colors.gray[500] },
+                      ]}
+                    >
+                      {t('menu.catalogItemCount', { count: itemQty })}
+                    </Text>
+                  </View>
                   <Text style={[ds.totalPrice, { color: primaryColor }]}>
                     {formatCurrency(order.subtotal || 0)}
                   </Text>
                 </View>
-                <Text
+
+                <View
                   style={[
-                    ds.xsText,
-                    { color: isDark ? colors.gray[400] : colors.gray[500] },
+                    ds.receiptDivider,
+                    { backgroundColor: dividerColor, marginHorizontal: 0 },
                   ]}
-                >
-                  ({(orderItems ?? []).length} {t('order.product', 'sản phẩm')})
-                </Text>
+                />
+
+                {/* Cách trả: phương thức + trạng thái gộp một dòng */}
+                <ReceiptRow
+                  label={t('paymentMethod.title', 'Phương thức')}
+                  value={[paymentMethodLabel, paymentStatusLabel]
+                    .filter(Boolean)
+                    .join(' · ')}
+                  isDark={isDark}
+                />
+                {order.payment?.pointPaymentQr?.paidBy && (
+                  <ReceiptRow
+                    label={t('paymentMethod.paidBy', 'Người trả')}
+                    value={formatPointQrPayer(
+                      order.payment.pointPaymentQr.paidBy,
+                    )}
+                    isDark={isDark}
+                  />
+                )}
+                {order.payment?.paymentMethod === PaymentMethod.CREDIT_CARD &&
+                  order.payment.transactionId && (
+                    <ReceiptRow
+                      label={t('paymentMethod.transactionId', 'Mã giao dịch')}
+                      value={order.payment.transactionId}
+                      isDark={isDark}
+                    />
+                  )}
               </View>
             </View>
 
@@ -783,20 +705,37 @@ function OrderDetailContent() {
               isDark={isDark}
             />
 
-            {/* Update order — inline at bottom of scroll content, muted style */}
+            {/* Huỷ đơn — thao tác phá: chỉ là chữ đỏ ở cuối nội dung, không
+                nằm cạnh Thanh toán (vẫn mở hộp xác nhận như cũ). */}
             {isPending_ && (
-              <Pressable
-                onPress={handleUpdateOrder}
-                style={[ds.updateBtn, { backgroundColor: primaryColor }]}
-              >
-                <Text style={[ds.updateBtnText, { color: '#ffffff' }]}>
-                  {t('order.updateOrder', 'Cập nhật đơn hàng')}
-                </Text>
-              </Pressable>
+              <CancelOrderDialog
+                order={order}
+                renderTrigger={(open) => (
+                  <Pressable
+                    onPress={open}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    style={ds.cancelLink}
+                  >
+                    <Text
+                      style={[
+                        ds.cancelLinkText,
+                        {
+                          color: isDark
+                            ? colors.destructive.dark
+                            : colors.destructive.light,
+                        },
+                      ]}
+                    >
+                      {t('order.cancelOrder', 'Huỷ đơn')}
+                    </Text>
+                  </Pressable>
+                )}
+              />
             )}
           </View>
         </GestureScrollView>
-        {/* Sticky footer — cancel + payment */}
+        {/* Sticky footer — cập nhật + thanh toán */}
         {isPending_ && (
           <View
             style={[
@@ -808,16 +747,41 @@ function OrderDetailContent() {
               },
             ]}
           >
+            {/* Một nút chính: Thanh toán (cam, rộng hơn). Cập nhật đơn là nút
+                phụ nền xám. */}
             <View style={ds.footerRow}>
-              <CancelOrderDialog order={order} />
+              <Pressable
+                onPress={handleUpdateOrder}
+                style={[
+                  ds.actionBtnFilled,
+                  { backgroundColor: secondaryBg, flex: 1 },
+                ]}
+              >
+                <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.85}
+                  style={[
+                    ds.actionBtnFilledText,
+                    { color: isDark ? colors.gray[50] : colors.gray[900] },
+                  ]}
+                >
+                  {t('order.updateOrder', 'Cập nhật đơn hàng')}
+                </Text>
+              </Pressable>
               <Pressable
                 onPress={handlePayment}
                 style={[
                   ds.actionBtnFilled,
-                  { backgroundColor: primaryColor, flex: 1 },
+                  { backgroundColor: primaryColor, flex: 1.4 },
                 ]}
               >
-                <Text style={[ds.actionBtnFilledText, { color: '#ffffff' }]}>
+                <Text
+                  style={[
+                    ds.actionBtnFilledText,
+                    { color: colors.white.light },
+                  ]}
+                >
                   {t('order.payment', 'Thanh toán')}
                 </Text>
               </Pressable>
@@ -856,31 +820,18 @@ const ds = StyleSheet.create({
   receiptLabel: { fontSize: 13 },
   receiptValue: { fontSize: 13, fontWeight: '500' },
   receiptHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  orderStatusBadge: {
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  orderStatusText: { fontSize: 11, fontWeight: '600' },
-  statusBadge: {
-    alignSelf: 'flex-start',
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    marginTop: 8,
-  },
-  statusBadgeText: { fontSize: 12, fontWeight: '500' },
   semibold: { fontSize: 16, fontWeight: '600' },
   totalPrice: { fontSize: 24, fontWeight: '800' },
-  xsText: { fontSize: 12 },
-  updateBtn: {
-    marginBottom: 16,
-    height: 46,
-    borderRadius: 10,
+  totalRow: {
+    flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
   },
-  updateBtnText: { fontSize: 14, fontWeight: '600' },
+  receiptValueFlex: { flexShrink: 1, textAlign: 'right' },
+  codeRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  xsText: { fontSize: 12 },
+  cancelLink: { alignSelf: 'center', paddingVertical: 12, marginBottom: 8 },
+  cancelLinkText: { fontSize: 14, fontWeight: '600' },
   bottomBar: {
     borderTopWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 16,
@@ -897,8 +848,13 @@ const ds = StyleSheet.create({
 })
 
 export default function OrderDetailPage() {
-  const [ready, setReady] = useState(false)
-  useRunAfterTransition(() => setReady(true), [])
+  const { id } = useLocalSearchParams<{ id: string }>()
+  const queryClient = useQueryClient()
+  // Lịch sử đơn tải trước ['order', id] lúc bấm — có dữ liệu thì hiện ngay,
+  // không chờ chuyển màn xong.
+  const [hasCache] = useState(() => !!queryClient.getQueryData(['order', id]))
+  const [ready, setReady] = useState(hasCache)
+  useRunAfterTransition(() => setReady(true), [], { transitionType: 'stack' })
   if (!ready) return <OrderDetailSkeleton />
   return <OrderDetailContent />
 }
