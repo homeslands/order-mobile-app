@@ -8,8 +8,7 @@ import {
   useColorScheme,
 } from 'react-native'
 import * as Haptics from 'expo-haptics'
-import { NavigationContext } from '@react-navigation/native'
-import { useCallback, useContext, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { Fingerprint, ScanFace } from 'lucide-react-native'
 import Animated, {
   runOnUI,
@@ -44,24 +43,6 @@ interface LoginFormProps {
   onLoginSuccess?: () => void
   onBeforeNavigate?: () => void
   onLoadingChange?: (isLoading: boolean) => void
-}
-
-// Màn chứa form có đang hiện không. Tab Account dựng form đăng nhập ngay khi
-// đăng xuất dù tab đang ẩn; không chặn thì hộp Face ID / vân tay bật đè lên
-// Home. Ngoài navigator (test, sheet) thì coi như đang hiện.
-function useScreenFocused(): boolean {
-  const navigation = useContext(NavigationContext)
-  const [focused, setFocused] = useState(() => navigation?.isFocused() ?? true)
-  useEffect(() => {
-    if (!navigation) return
-    const offFocus = navigation.addListener('focus', () => setFocused(true))
-    const offBlur = navigation.addListener('blur', () => setFocused(false))
-    return () => {
-      offFocus()
-      offBlur()
-    }
-  }, [navigation])
-  return focused
 }
 
 export default function LoginForm({
@@ -128,8 +109,6 @@ export default function LoginForm({
   // học của máy và số điện thoại đã bật. Cả hai có thì hiện nút.
   const [bioType, setBioType] = useState<BiometricType | null>(null)
   const [bioPhone, setBioPhone] = useState<string | null>(null)
-  const autoPrompted = useRef(false)
-  const isFocused = useScreenFocused()
   const isDark = useColorScheme() === 'dark'
 
   // Sau khi đăng nhập bằng MẬT KHẨU thành công: số khác số đã bật thì xoá
@@ -243,19 +222,15 @@ export default function LoginForm({
     }
   }, [setValue])
 
-  // Tự hiện hộp xác thực một lần mỗi lần khách mở tới màn này (focus). Khách
-  // huỷ thì ở lại form. Rời màn thì lần sau quay lại được hỏi lại.
-  useEffect(() => {
-    if (!isFocused) {
-      autoPrompted.current = false
-      return
-    }
-    if (!bioType || !bioPhone || autoPrompted.current) return
-    autoPrompted.current = true
-    void loginWithBiometric()
-  }, [isFocused, bioType, bioPhone, loginWithBiometric])
-
   const isLoading = isPending || isSubmitting
+  const bioPrompt = bioType
+    ? t('biometric.prompt', { method: t(biometricLabelKey(bioType)) })
+    : ''
+  const primaryColor = isDark ? colors.primary.dark : colors.primary.light
+  const dividerColor = isDark ? colors.border.dark : colors.border.light
+  const mutedColor = isDark
+    ? colors.mutedForeground.dark
+    : colors.mutedForeground.light
 
   useEffect(() => {
     onLoadingChange?.(isLoading)
@@ -280,6 +255,45 @@ export default function LoginForm({
           labelClassName="text-sm font-sans-medium text-gray-500 dark:text-gray-400"
           containerClassName="mb-4"
         />
+
+        {/* Chỉ quét khi khách bấm: tự quét thì Face ID nhận mặt gần như tức
+            thì, khách không kịp huỷ để đăng nhập tài khoản khác. */}
+        {bioType && bioPhone ? (
+          <>
+            <TouchableOpacity
+              testID="biometric-login-button"
+              accessibilityRole="button"
+              accessibilityLabel={bioPrompt}
+              className="flex-row items-center justify-center gap-2 rounded-lg border border-primary px-4 py-3"
+              style={{ minHeight: 48 }}
+              onPress={loginWithBiometric}
+              disabled={isLoading}
+            >
+              {bioType === 'face' ? (
+                <ScanFace size={22} color={primaryColor} />
+              ) : (
+                <Fingerprint size={22} color={primaryColor} />
+              )}
+              <Text className="font-sans-semibold text-base text-primary">
+                {bioPrompt}
+              </Text>
+            </TouchableOpacity>
+
+            <View className="my-4 flex-row items-center gap-3">
+              <View
+                className="h-px flex-1"
+                style={{ backgroundColor: dividerColor }}
+              />
+              <Text className="text-sm" style={{ color: mutedColor }}>
+                {t('login.or')}
+              </Text>
+              <View
+                className="h-px flex-1"
+                style={{ backgroundColor: dividerColor }}
+              />
+            </View>
+          </>
+        ) : null}
 
         <View>
           <Text className="mb-1 font-sans-medium text-sm text-gray-500 dark:text-gray-400">
@@ -322,9 +336,9 @@ export default function LoginForm({
         </Text>
       </TouchableOpacity>
 
-      <View className="mt-6 flex-row gap-3">
+      <View className="mt-6">
         <TouchableOpacity
-          className="flex-1 items-center justify-center rounded-lg bg-primary py-4"
+          className="items-center justify-center rounded-lg bg-primary py-4"
           onPress={handleSubmit(onSubmit)}
           disabled={isLoading}
         >
@@ -336,30 +350,6 @@ export default function LoginForm({
             </Text>
           )}
         </TouchableOpacity>
-        {bioType && bioPhone ? (
-          <TouchableOpacity
-            testID="biometric-login-button"
-            accessibilityRole="button"
-            accessibilityLabel={t('biometric.prompt', {
-              method: t(biometricLabelKey(bioType)),
-            })}
-            className="w-14 items-center justify-center rounded-lg border border-primary"
-            onPress={loginWithBiometric}
-            disabled={isLoading}
-          >
-            {bioType === 'face' ? (
-              <ScanFace
-                size={26}
-                color={isDark ? colors.primary.dark : colors.primary.light}
-              />
-            ) : (
-              <Fingerprint
-                size={26}
-                color={isDark ? colors.primary.dark : colors.primary.light}
-              />
-            )}
-          </TouchableOpacity>
-        ) : null}
       </View>
     </View>
   )
