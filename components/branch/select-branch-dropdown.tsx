@@ -1,11 +1,13 @@
 import { MapPin } from 'lucide-react-native'
 import { memo, useCallback, useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { StyleSheet, TouchableOpacity, useColorScheme } from 'react-native'
 
 import { BranchSheet } from './branch-sheet'
 import { colors } from '@/constants'
 import { useBranch } from '@/hooks'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
+import { getKnownPosition, pickDefaultBranch } from '@/lib/branch-default'
 import { useBranchStore } from '@/stores'
 import { Text } from '@/components/ui/text'
 
@@ -26,9 +28,11 @@ function SelectBranchDropdown({
   forceOpen = false,
   onForceOpenConsumed,
 }: SelectBranchDropdownProps) {
+  const { t } = useTranslation('menu')
   const [sheetVisible, setSheetVisible] = useState(false)
   const branch = useBranchStore((s) => s.branch)
   const setBranch = useBranchStore((s) => s.setBranch)
+  const setAutoPickedBranch = useBranchStore((s) => s.setAutoPickedBranch)
   const isDark = useColorScheme() === 'dark'
   const primaryColor = usePrimaryColor()
 
@@ -49,13 +53,26 @@ function SelectBranchDropdown({
       return
     }
 
-    // autoOpen được truyền từ màn hình sau khi interaction/animation hoàn tất.
-    // Đảm bảo present() không conflict với tab transition.
+    // autoOpen: màn hình báo đã qua chuyển màn, được phép chọn chi nhánh.
     if (!autoOpen) return
-    setBranch(branches[0])
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setSheetVisible(true)
-  }, [autoOpen, branch, branchRes, setBranch])
+    // Chưa lưu chi nhánh: tự chọn, KHÔNG bật sheet chặn màn (từng bật cả khi
+    // chỉ có một chi nhánh, và menu vừa tải bị bỏ nếu khách chọn khác).
+    // Một chi nhánh: chọn luôn. Nhiều: gần nhất nếu đã biết vị trí, không thì
+    // đầu — và đánh dấu để Menu hiện gợi ý "Đang xem menu … · Đổi".
+    if (branches.length === 1) {
+      setBranch(branches[0])
+      return
+    }
+    let alive = true
+    void getKnownPosition().then((position) => {
+      if (!alive || useBranchStore.getState().branch) return
+      const picked = pickDefaultBranch(branches, position)
+      if (picked) setAutoPickedBranch(picked)
+    })
+    return () => {
+      alive = false
+    }
+  }, [autoOpen, branch, branchRes, setBranch, setAutoPickedBranch])
 
   useEffect(() => {
     if (!forceOpen) return
@@ -93,7 +110,7 @@ function SelectBranchDropdown({
           ]}
           numberOfLines={1}
         >
-          {branch?.name ?? 'Chọn chi nhánh'}
+          {branch?.name ?? t('menu.selectBranchAction')}
         </Text>
       </TouchableOpacity>
 

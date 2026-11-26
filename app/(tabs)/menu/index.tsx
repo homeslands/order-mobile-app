@@ -9,7 +9,7 @@ import {
   getSpecificMenu,
 } from '@/api/menu'
 import { Images } from '@/assets/images'
-import { SelectBranchDropdown } from '@/components/branch'
+import { BranchHint, SelectBranchDropdown } from '@/components/branch'
 import { TabScreenLayout, useTabBarBottomPadding } from '@/components/layout'
 import { MenuItemRowSkeleton } from '@/components/menu/menu-item-row-skeleton'
 import { PriceFilterSheet } from '@/components/menu/price-sheet'
@@ -877,6 +877,7 @@ export default function MenuPage() {
             }}
           />
         )}
+        {hasBranch && <BranchHint onChange={handleOpenBranchSheet} />}
       </View>
 
       {!hasBranch ? (
