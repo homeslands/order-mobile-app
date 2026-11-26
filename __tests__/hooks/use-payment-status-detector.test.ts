@@ -1,4 +1,5 @@
 import { act, renderHook } from '@testing-library/react-native'
+import { AppState, type AppStateStatus } from 'react-native'
 
 import { NotificationMessageCode, PaymentMethod } from '@/constants'
 import { usePaymentStatusDetector } from '@/hooks/use-payment-status-detector'
@@ -374,5 +375,55 @@ describe('FCM sync for any method', () => {
     rerender({})
 
     expect(onPaid).toHaveBeenCalledTimes(1)
+  })
+})
+
+// ── Quay về từ app ngân hàng (AppState) ──────────────────────────────────────
+// Chuyển khoản xong khách quay về app: hỏi lại ngay, không chờ tới 30s. Khi
+// app chạy nền: không gọi mạng liên tục.
+describe('BANK_TRANSFER — AppState', () => {
+  let listener: ((s: AppStateStatus) => void) | null = null
+  const remove = jest.fn()
+  beforeEach(() => {
+    listener = null
+    jest.spyOn(AppState, 'addEventListener').mockImplementation((_type, cb) => {
+      listener = cb as (s: AppStateStatus) => void
+      return { remove } as unknown as ReturnType<
+        typeof AppState.addEventListener
+      >
+    })
+  })
+
+  const start = () =>
+    renderHook(() =>
+      usePaymentStatusDetector({
+        ...base,
+        method: PaymentMethod.BANK_TRANSFER,
+        submittedAt: 1,
+      }),
+    )
+
+  it('quay lại app (active): hỏi lại ngay và đặt lại nhịp 10s', () => {
+    start()
+    act(() => jest.advanceTimersByTime(25_000)) // 10s + 15s → 2 lần
+    expect(base.onPaid).toHaveBeenCalledTimes(2)
+    act(() => listener?.('background'))
+    act(() => listener?.('active'))
+    expect(base.onPaid).toHaveBeenCalledTimes(3)
+    act(() => jest.advanceTimersByTime(10_000)) // nhịp lại từ 10s
+    expect(base.onPaid).toHaveBeenCalledTimes(4)
+  })
+
+  it('chạy nền: không hỏi trạng thái', () => {
+    start()
+    act(() => listener?.('background'))
+    act(() => jest.advanceTimersByTime(60_000))
+    expect(base.onPaid).not.toHaveBeenCalled()
+  })
+
+  it('gỡ lắng nghe khi thôi theo dõi', () => {
+    const { unmount } = start()
+    unmount()
+    expect(remove).toHaveBeenCalled()
   })
 })

@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { AppState } from 'react-native'
 
 import { NotificationMessageCode, PaymentMethod } from '@/constants'
 import { useNotificationStore } from '@/stores'
@@ -86,6 +87,10 @@ export function usePaymentStatusDetector({
     let tickIndex = 0
     let timeoutId: ReturnType<typeof setTimeout> | null = null
 
+    const stop = () => {
+      if (timeoutId !== null) clearTimeout(timeoutId)
+      timeoutId = null
+    }
     const schedule = () => {
       if (showSuccessRef.current) return
       const delay =
@@ -100,8 +105,24 @@ export function usePaymentStatusDetector({
 
     schedule()
 
+    // Chuyển khoản xong khách quay về từ app ngân hàng: hỏi lại ngay và đặt
+    // lại nhịp từ 10s (trước phải chờ tới 30s nếu FCM tới trễ). Chạy nền thì
+    // ngừng hỏi — Android vẫn chạy hẹn giờ khi app ở nền.
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        if (showSuccessRef.current) return
+        stop()
+        onPaidRef.current()
+        tickIndex = 0
+        schedule()
+      } else if (state === 'background') {
+        stop()
+      }
+    })
+
     return () => {
-      if (timeoutId !== null) clearTimeout(timeoutId)
+      stop()
+      sub.remove()
     }
   }, [method, submittedAt, showSuccess])
 
