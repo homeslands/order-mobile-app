@@ -1,6 +1,6 @@
 // Lịch sử đơn nhóm theo ngày (Hôm nay / Hôm qua / ngày cụ thể), tiêu đề ngày
 // dính khi cuộn. Đơn đến theo thứ tự mới → cũ từ API, nhiều trang nối nhau.
-import { buildOrderSections } from '@/lib/order-sections'
+import { buildOrderSections, orderRowGap } from '@/lib/order-sections'
 
 const o = (slug: string, createdAt: string) => ({ slug, createdAt })
 // 26/11/2026 10:00 giờ máy
@@ -63,4 +63,21 @@ it('OS4 ngày giờ hỏng: gom vào một nhóm riêng ở cuối, không làm 
     NOW,
   )
   expect(view(rows)).toEqual(['# today (1)', 'a', '# date unknown (1)', 'x'])
+})
+
+// Khoảng cách trong danh sách: giữa hai thẻ cùng ngày 10, trước tiêu đề ngày
+// mới (sau thẻ cuối ngày trước) rộng hơn để tách nhóm rõ.
+it('OS5 khoảng cách: thẻ→thẻ 10, thẻ→tiêu đề ngày 20, tiêu đề→thẻ 0', () => {
+  const card = { _kind: 'order' as const, order: o('a', '') }
+  const head = {
+    _kind: 'header' as const,
+    key: 'h',
+    day: 'today' as const,
+    date: '2026-11-26',
+    count: 1,
+  }
+  expect(orderRowGap(card, card)).toBe(10)
+  expect(orderRowGap(card, head)).toBe(20)
+  expect(orderRowGap(head, card)).toBe(0)
+  expect(orderRowGap(undefined, card)).toBe(0)
 })

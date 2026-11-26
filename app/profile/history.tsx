@@ -51,7 +51,11 @@ import {
 } from '@/hooks'
 import { GlassHeaderButton } from '@/components/navigation/glass-header-button'
 import { navigateNative } from '@/lib/navigation'
-import { buildOrderSections, type OrderSectionRow } from '@/lib/order-sections'
+import {
+  buildOrderSections,
+  orderRowGap,
+  type OrderSectionRow,
+} from '@/lib/order-sections'
 import { hexToRgba } from '@/lib/utils'
 import { useNotificationStore, useUserStore } from '@/stores'
 import { firstUnreadOrderPaidSlug } from '@/stores/selectors/notification.selectors'
@@ -72,7 +76,7 @@ type Row = OrderSectionRow<IOrder>
 const rowKey = (r: Row) => (r._kind === 'header' ? r.key : r.order.slug)
 const rowType = (r: Row) => r._kind
 
-/** Khoảng trống giữa hai thẻ đơn liền nhau (không đặt quanh tiêu đề ngày). */
+/** Khoảng trống giữa hai dòng: thẻ→thẻ 10, thẻ→tiêu đề ngày mới 20. */
 function OrderGap({
   leadingItem,
   trailingItem,
@@ -80,10 +84,8 @@ function OrderGap({
   leadingItem?: Row
   trailingItem?: Row
 }) {
-  if (leadingItem?._kind !== 'order' || trailingItem?._kind !== 'order') {
-    return null
-  }
-  return <View style={{ height: 10 }} />
+  const h = orderRowGap(leadingItem, trailingItem)
+  return h > 0 ? <View style={{ height: h }} /> : null
 }
 
 // ─── Filter bar ───────────────────────────────────────────────────────────────

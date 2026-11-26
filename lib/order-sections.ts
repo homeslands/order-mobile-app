@@ -71,3 +71,16 @@ export function buildOrderSections<T extends DatedOrder>(
   if (unknown.length) push('unknown', 'date', unknown)
   return { rows, stickyHeaderIndices }
 }
+
+/**
+ * Khoảng cách (pt) giữa hai dòng liền nhau: thẻ → thẻ cùng ngày 10; thẻ cuối
+ * ngày trước → tiêu đề ngày mới 20 để tách nhóm rõ; quanh tiêu đề khác 0
+ * (tiêu đề tự có đệm).
+ */
+export function orderRowGap<T>(
+  leading: OrderSectionRow<T> | undefined,
+  trailing: OrderSectionRow<T> | undefined,
+): number {
+  if (leading?._kind !== 'order' || !trailing) return 0
+  return trailing._kind === 'order' ? 10 : 20
+}

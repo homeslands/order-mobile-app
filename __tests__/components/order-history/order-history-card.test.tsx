@@ -103,14 +103,14 @@ it('OC3 dải ảnh tối đa 4, phần còn lại ghi "+N"', () => {
   expect(screen.getByText('+2')).toBeTruthy()
 })
 
-it('OC4 nhãn trạng thái theo trạng thái đơn: nền đặc tông đậm, chữ trắng', () => {
+it('OC4 nhãn trạng thái theo trạng thái đơn: nền đặc tông tươi, chữ trắng', () => {
   renderCard(order({ status: 'failed' } as Partial<IOrder>))
   const text = screen.getByText('Thất bại')
   expect(StyleSheet.flatten(text.props.style).color).toBe(colors.white.light)
   const badge = StyleSheet.flatten(
     screen.getByTestId('order-status-badge').props.style,
   )
-  expect(badge.backgroundColor).toBe(colors.destructive.dark)
+  expect(badge.backgroundColor).toBe(colors.destructive.light)
 })
 
 it('OC5 bấm thẻ mở đơn', () => {
@@ -120,8 +120,7 @@ it('OC5 bấm thẻ mở đơn', () => {
 })
 
 // Bốn nhãn phải khác tông: trước đây "Chưa thanh toán" (vàng) và "Đã thanh
-// toán" (cam thương hiệu) trông như nhau. Nền đặc tông đậm để chữ trắng đủ
-// tương phản (≥ 4.5:1).
+// toán" (cam thương hiệu) trông như nhau. Nền đặc tông tươi, chữ trắng đậm.
 it('OC6 bốn trạng thái, bốn màu nền khác nhau, không trùng màu giá (cam)', () => {
   const bg = (status: string, pay?: string) => {
     renderCard(
@@ -143,10 +142,10 @@ it('OC6 bốn trạng thái, bốn màu nền khác nhau, không trùng màu gi�
     bg('failed'),
   ]
   expect(all).toEqual([
-    colors.warning.textLight,
-    colors.success.borderDark,
-    colors.gray[600],
-    colors.destructive.dark,
+    colors.warning.solid,
+    colors.success.solid,
+    colors.gray[500],
+    colors.destructive.light,
   ])
   expect(new Set(all).size).toBe(4)
 })
