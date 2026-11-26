@@ -4,7 +4,6 @@ import { GlassHeaderButton } from '@/components/navigation/glass-header-button'
 import { ProfileMenuItem, profileCardStyles } from '@/components/profile'
 import { colors, publicFileURL, QUERYKEY } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
-import { clearOrderDisplayCache } from '@/app/profile/history'
 import { useUploadAvatar } from '@/hooks'
 import { prefetchOrderHistory } from '@/hooks/use-order'
 import { useAuthStore, useUserStore } from '@/stores'
@@ -485,7 +484,6 @@ const ProfileTest = () => {
     ]).catch(() => {})
     // Clear notification store so next login starts with a clean slate
     useNotificationStore.getState().clearAll()
-    clearOrderDisplayCache()
     setLogout()
     removeUserInfo()
     router.replace('/(tabs)/home' as never)

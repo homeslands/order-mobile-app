@@ -1,7 +1,5 @@
-import { ScreenContainer } from '@/components/layout'
 import { FlashList } from '@shopify/flash-list'
 import { useQueryClient } from '@tanstack/react-query'
-import { LinearGradient } from 'expo-linear-gradient'
 import {
   ArrowRight,
   CalendarDays,
@@ -20,6 +18,7 @@ import React, {
 } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
+  ActivityIndicator,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -38,24 +37,32 @@ import { TouchableOpacity as GHTouchable } from 'react-native-gesture-handler'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { getOrderBySlug } from '@/api'
+import {
+  OrderHistoryCard,
+  type OrderHistoryCardLabels,
+} from '@/components/order-history/order-history-card'
+import { StickySectionHeader } from '@/components/ui/sticky-section-header'
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import {
-  ORDER_HISTORY_PAGE_SIZE,
-  useOrders,
+  orderHistoryQuery,
+  useOrderHistory,
   useRunAfterTransition,
 } from '@/hooks'
 import { GlassHeaderButton } from '@/components/navigation/glass-header-button'
 import { navigateNative } from '@/lib/navigation'
+import {
+  buildOrderSections,
+  orderRowGap,
+  type OrderSectionRow,
+} from '@/lib/order-sections'
+import { hexToRgba } from '@/lib/utils'
 import { useNotificationStore, useUserStore } from '@/stores'
 import { firstUnreadOrderPaidSlug } from '@/stores/selectors/notification.selectors'
 import type { IOrder } from '@/types'
 import { OrderStatus } from '@/types'
-import { paymentStatus } from '@/constants'
-import { calculateOrderDisplayAndTotals } from '@/utils'
+import { formatCurrency } from '@/utils'
 
-import OrderCard from './order-card'
-import type { OrderDisplayData } from './order-card'
 import { OrderHistorySkeletonList } from './order-history-skeleton'
 import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
 import {
@@ -64,18 +71,21 @@ import {
 } from '@/components/ui/query-error-state'
 import { Text } from '@/components/ui/text'
 
-// ─── Module-level FIFO cache for order display data ─────────────────────────
-// Keyed by (userSlug, slug, status, itemCount, voucher.slug). Lives outside
-// the component so it survives re-renders. Capped at 50 entries (FIFO).
-// userSlug is in the key to prevent leakage across accounts on the same device.
-const _orderDisplayCache = new Map<string, OrderDisplayData>()
+type Row = OrderSectionRow<IOrder>
 
-/**
- * Clear the entire order display cache. Call on logout so cached display data
- * for the previous account does not leak into the next session.
- */
-export function clearOrderDisplayCache(): void {
-  _orderDisplayCache.clear()
+const rowKey = (r: Row) => (r._kind === 'header' ? r.key : r.order.slug)
+const rowType = (r: Row) => r._kind
+
+/** Khoảng trống giữa hai dòng: thẻ→thẻ 10, thẻ→tiêu đề ngày mới 20. */
+function OrderGap({
+  leadingItem,
+  trailingItem,
+}: {
+  leadingItem?: Row
+  trailingItem?: Row
+}) {
+  const h = orderRowGap(leadingItem, trailingItem)
+  return h > 0 ? <View style={{ height: h }} /> : null
 }
 
 // ─── Filter bar ───────────────────────────────────────────────────────────────
@@ -146,9 +156,6 @@ const FilterBar = React.memo(function FilterBar({
     </ScrollView>
   )
 })
-
-/** Ô cùng số dòng món (tối đa 3 hiện trên thẻ) tái dùng cho nhau. */
-const orderItemType = (o: IOrder) => Math.min(o.orderItems?.length ?? 0, 3)
 
 // ─── History date filter types ────────────────────────────────────────────────
 
@@ -445,10 +452,9 @@ function OrderHistoryPage() {
 
   const userSlug = useUserStore((s) => s.userInfo?.slug ?? '')
   const [status, setStatus] = useState<OrderStatus>(OrderStatus.ALL)
-  const [page, setPage] = useState(1)
-  const pageSize = ORDER_HISTORY_PAGE_SIZE
 
-  // Fetch sau khi transition xong → màn trượt ngay, skeleton hiện, data load không block animation
+  // Fetch sau khi transition xong → màn trượt ngay; dữ liệu tải trước lúc bấm
+  // (prefetchOrderHistory) hoặc còn cache thì hiện luôn.
   const [allowFetch, setAllowFetch] = useState(false)
   useRunAfterTransition(() => setAllowFetch(true), [], {
     transitionType: 'stack',
@@ -459,28 +465,28 @@ function OrderHistoryPage() {
   })
   const [filterSheetOpen, setFilterSheetOpen] = useState(false)
 
+  const query = useMemo(
+    () =>
+      orderHistoryQuery(userSlug, {
+        status: status === OrderStatus.ALL ? undefined : status,
+        ...(dateFilter.fromDate
+          ? { startDate: dayjs(dateFilter.fromDate).format('YYYY-MM-DD') }
+          : {}),
+        ...(dateFilter.toDate
+          ? { endDate: dayjs(dateFilter.toDate).format('YYYY-MM-DD') }
+          : {}),
+      }),
+    [userSlug, status, dateFilter],
+  )
   const {
-    data: orderResponse,
-    isPlaceholderData,
+    data: orderPages,
+    isLoading,
     refetch,
     isError,
-  } = useOrders(
-    {
-      page,
-      size: pageSize,
-      owner: userSlug || undefined,
-      order: 'DESC',
-      hasPaging: true,
-      status: status === OrderStatus.ALL ? undefined : status,
-      ...(dateFilter.fromDate
-        ? { startDate: dayjs(dateFilter.fromDate).format('YYYY-MM-DD') }
-        : {}),
-      ...(dateFilter.toDate
-        ? { endDate: dayjs(dateFilter.toDate).format('YYYY-MM-DD') }
-        : {}),
-    },
-    { enabled: allowFetch && !!userSlug },
-  )
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useOrderHistory(query, { enabled: allowFetch && !!userSlug })
 
   // ── Auto-refetch on FCM ORDER_PAID notification ──
   // Chỉ phản ứng với thông báo MỚI sau khi vào màn (thông báo cũ chưa đọc:
@@ -504,8 +510,8 @@ function OrderHistoryPage() {
     void refetch()
   }, [paidNotificationSlug, refetch, allowFetch, userSlug])
 
-  // Vòng quay kéo-làm-mới chỉ cho thao tác kéo của khách — đổi trang / lọc /
-  // thông báo cũng làm query "đang tải lại" nhưng không nên bật vòng quay.
+  // Vòng quay kéo-làm-mới chỉ cho thao tác kéo của khách — đổi lọc / thông báo
+  // cũng làm query "đang tải lại" nhưng không nên bật vòng quay.
   const [userRefreshing, setUserRefreshing] = useState(false)
   const handleUserRefresh = useCallback(() => {
     setUserRefreshing(true)
@@ -513,51 +519,19 @@ function OrderHistoryPage() {
   }, [refetch])
 
   const orders = useMemo(
-    () => orderResponse?.items || [],
-    [orderResponse?.items],
+    () => orderPages?.pages.flatMap((p) => p.result?.items ?? []) ?? [],
+    [orderPages],
+  )
+  // Nhóm theo ngày — tiêu đề ngày nằm trong danh sách, cuộn đi theo (không
+  // dính).
+  const rows = useMemo(
+    () => buildOrderSections(orders, new Date()).rows,
+    [orders],
   )
 
-  // Pre-compute display data once when orders change — O(1) lookup in renderItem.
-  // Cache keyed by (userSlug, slug, status, itemCount, voucher.slug) so FCM-triggered
-  // refetches do not redo work for unchanged orders.
-  const orderDisplayMap = useMemo(() => {
-    const next = new Map<string, OrderDisplayData>()
-    for (const order of orders) {
-      const items = order.orderItems || []
-      const voucher = order.voucher || null
-      // Số lượng + tổng tiền trong khoá: sửa đơn chưa thanh toán (đổi số
-      // lượng) không đổi số món, thiếu hai thứ này là thẻ giữ giá cũ.
-      let qty = 0
-      for (const it of items) qty += it.quantity ?? 0
-      const cacheKey = `${userSlug}:${order.slug}:${order.status}:${items.length}:qty${qty}:subtotal${order.subtotal ?? 0}:${voucher?.slug ?? ''}`
-      const cached = _orderDisplayCache.get(cacheKey)
-      if (cached) {
-        next.set(order.slug, cached)
-        continue
-      }
-      const { displayItems, cartTotals } = calculateOrderDisplayAndTotals(
-        items,
-        voucher,
-      )
-      const diMap = new Map<string, (typeof displayItems)[number]>()
-      for (const di of displayItems) diMap.set(di.slug, di)
-      const data: OrderDisplayData = { displayItemMap: diMap, cartTotals }
-      next.set(order.slug, data)
-      _orderDisplayCache.set(cacheKey, data)
-    }
-    if (_orderDisplayCache.size > 50) {
-      const keys = Array.from(_orderDisplayCache.keys())
-      keys
-        .slice(0, keys.length - 50)
-        .forEach((k) => _orderDisplayCache.delete(k))
-    }
-    return next
-  }, [orders, userSlug])
-
-  const hasNext = orderResponse?.hasNext || false
-  const hasPrevious = orderResponse?.hasPrevious || false
-  const currentPage = orderResponse?.page || 1
-  const totalPages = orderResponse?.totalPages || 0
+  const handleEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) void fetchNextPage()
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
   const handleOrderPress = useCallback(
     (orderSlug: string) => {
@@ -574,29 +548,24 @@ function OrderHistoryPage() {
     [queryClient],
   )
 
-  // Badge chỉ thể hiện trạng thái thanh toán
-  const getStatusLabel = useCallback(
-    (order: IOrder) => {
-      const pStatus = order.payment?.statusCode
-      if (pStatus === paymentStatus.COMPLETED) {
-        return t('order.paid', 'Đã thanh toán')
-      }
-      return t('order.unpaid', 'Chưa thanh toán')
-    },
-    [t],
-  )
-
-  const orderCardLabels = useMemo(
+  const cardLabels = useMemo<OrderHistoryCardLabels>(
     () => ({
-      subtotal: t('order.subtotal', 'Tổng tiền hàng'),
-      promotionDiscount: t('order.promotionDiscount', 'Giảm giá khuyến mãi'),
-      voucher: t('order.voucher', 'Mã giảm giá'),
-      loyaltyPoint: t('order.loyaltyPoint', 'Điểm tích lũy'),
-      deliveryFee: t('order.deliveryFee', 'Phí giao hàng'),
-      totalPayment: t('order.totalPayment', 'Tổng thanh toán'),
-      moreItems: t('order.moreItems', 'sản phẩm khác'),
+      type: {
+        'at-table': tProfile('profile.orderType.atTable'),
+        'take-out': tProfile('profile.orderType.takeOut'),
+        delivery: tProfile('profile.orderType.delivery'),
+      },
+      status: {
+        unpaid: t('order.unpaid'),
+        paid: t('order.paid'),
+        completed: t('order.completed'),
+        failed: t('order.failed'),
+      },
+      itemCount: (n: number) => t('menu.catalogItemCount', { count: n }),
+      total: t('order.totalPayment'),
+      formatPrice: formatCurrency,
     }),
-    [t],
+    [t, tProfile],
   )
 
   const filterBarLabels = useMemo(
@@ -610,119 +579,69 @@ function OrderHistoryPage() {
 
   const handleFilterSelect = useCallback((s: OrderStatus) => {
     setStatus(s)
-    setPage(1)
   }, [])
 
   const handleFilterOpen = useCallback(() => setFilterSheetOpen(true), [])
   const handleFilterClose = useCallback(() => setFilterSheetOpen(false), [])
   const handleFilterApply = useCallback((v: HistoryDateFilter) => {
     setDateFilter(v)
-    setPage(1)
     setFilterSheetOpen(false)
   }, [])
 
-  const renderOrderItem = useCallback(
-    ({ item: orderItem }: { item: IOrder }) => (
-      <OrderCard
-        order={orderItem}
-        displayData={orderDisplayMap.get(orderItem.slug) ?? null}
-        primaryColor={primaryColor}
-        isDark={isDark}
-        statusLabel={getStatusLabel(orderItem)}
-        onPress={handleOrderPress}
-        labels={orderCardLabels}
-      />
-    ),
-    [
-      orderDisplayMap,
-      primaryColor,
-      isDark,
-      getStatusLabel,
-      handleOrderPress,
-      orderCardLabels,
-    ],
+  const renderRow = useCallback(
+    ({ item }: { item: Row }) => {
+      if (item._kind === 'header') {
+        const title =
+          item.date === 'unknown'
+            ? t('order.unknownDate')
+            : item.day === 'today'
+              ? t('order.today')
+              : item.day === 'yesterday'
+                ? t('order.yesterday')
+                : dayjs(item.date).format('DD/MM/YYYY')
+        return (
+          <StickySectionHeader
+            title={title}
+            subtitle={t('order.orderCount', { count: item.count })}
+            stuck={false}
+            isDark={isDark}
+          />
+        )
+      }
+      return (
+        <OrderHistoryCard
+          order={item.order}
+          primaryColor={primaryColor}
+          isDark={isDark}
+          labels={cardLabels}
+          onPress={handleOrderPress}
+        />
+      )
+    },
+    [t, isDark, primaryColor, cardLabels, handleOrderPress],
   )
 
-  const keyExtractor = useCallback((item: IOrder) => item.slug ?? '', [])
+  const { bottom: bottomInset } = useSafeAreaInsets()
+  const listContentStyle = useMemo(
+    () => ({ paddingBottom: bottomInset + 24 }),
+    [bottomInset],
+  )
 
-  const ListFooterComponent = useMemo(() => {
-    if (totalPages <= 1) return null
-    return (
-      <View style={pageStyles.paginationRow}>
-        <Pressable
-          onPress={() => setPage(page - 1)}
-          disabled={!hasPrevious}
-          style={[
-            pageStyles.pageBtn,
-            {
-              backgroundColor: isDark ? colors.card.dark : colors.white.light,
-              borderColor: isDark ? colors.border.dark : colors.gray[200],
-            },
-            !hasPrevious && { opacity: 0.5 },
-          ]}
-        >
-          <Text
-            style={[
-              pageStyles.pageBtnText,
-              {
-                color: hasPrevious
-                  ? isDark
-                    ? colors.gray[50]
-                    : colors.gray[900]
-                  : colors.gray[400],
-              },
-            ]}
-          >
-            {t('order.previous', 'Trước')}
-          </Text>
-        </Pressable>
-        <Text
-          style={[
-            pageStyles.pageInfo,
-            { color: isDark ? colors.gray[400] : colors.gray[600] },
-          ]}
-        >
-          {currentPage} / {totalPages}
-        </Text>
-        <Pressable
-          onPress={() => setPage(page + 1)}
-          disabled={!hasNext}
-          style={[
-            pageStyles.pageBtn,
-            {
-              backgroundColor: isDark ? colors.card.dark : colors.white.light,
-              borderColor: isDark ? colors.border.dark : colors.gray[200],
-            },
-            !hasNext && { opacity: 0.5 },
-          ]}
-        >
-          <Text
-            style={[
-              pageStyles.pageBtnText,
-              {
-                color: hasNext
-                  ? isDark
-                    ? colors.gray[50]
-                    : colors.gray[900]
-                  : colors.gray[400],
-              },
-            ]}
-          >
-            {t('order.next', 'Sau')}
-          </Text>
-        </Pressable>
-      </View>
-    )
-  }, [totalPages, hasPrevious, hasNext, page, currentPage, t, isDark])
+  const ListFooterComponent = useMemo(
+    () =>
+      isFetchingNextPage ? (
+        <ActivityIndicator style={pageStyles.loadMore} color={primaryColor} />
+      ) : null,
+    [isFetchingNextPage, primaryColor],
+  )
 
   const showLoadError = shouldShowQueryError({
     isError,
-    hasData: !!orderResponse,
+    hasData: !!orderPages,
   })
-  // Chưa có dữ liệu (lần đầu, chưa tải trước): khung thẻ trong vùng danh
-  // sách, header + chip lọc là thật → dữ liệu về không nhảy bố cục. Có cache /
-  // tải trước thì hiện ngay.
-  const showSkeleton = !orderResponse && !showLoadError
+  // Chưa có dữ liệu (lần đầu, chưa tải trước, vừa đổi lọc): khung thẻ trong
+  // vùng danh sách, header + chip lọc là thật → dữ liệu về không nhảy bố cục.
+  const showSkeleton = !orderPages && !showLoadError
 
   const headerBg = isDark ? colors.card.dark : colors.white.light
   const headerBorder = isDark ? colors.border.dark : colors.gray[200]
@@ -730,7 +649,7 @@ function OrderHistoryPage() {
   const ListEmptyComponent = useMemo(
     () =>
       showSkeleton ? (
-        <OrderHistorySkeletonList cardBg={headerBg} border={headerBorder} />
+        <OrderHistorySkeletonList cardBg={headerBg} />
       ) : showLoadError ? (
         <QueryErrorState onRetry={() => void refetch()} />
       ) : (
@@ -757,72 +676,34 @@ function OrderHistoryPage() {
           </Text>
         </View>
       ),
-    [isDark, t, showLoadError, refetch, showSkeleton, headerBg, headerBorder],
+    [isDark, t, showLoadError, refetch, showSkeleton, headerBg],
   )
 
   const screenBg = isDark ? colors.background.dark : colors.background.light
   const isDateFilterActive =
     dateFilter.fromDate !== null || dateFilter.toDate !== null
-
-  const listPaddingStyle = useMemo(
-    () => ({
-      paddingHorizontal: 16,
-      paddingTop: isDateFilterActive ? 168 : 130,
-      paddingBottom: 24,
-    }),
-    [isDateFilterActive],
-  )
-  const gradientColors = useMemo(
-    () =>
-      [
-        screenBg,
-        `${screenBg}E6`,
-        `${screenBg}B0`,
-        `${screenBg}50`,
-        `${screenBg}00`,
-      ] as const,
-    [screenBg],
-  )
+  const filterTint = hexToRgba(primaryColor, 0.08)
+  const filterTintBorder = hexToRgba(primaryColor, 0.19)
 
   return (
     <View style={[pageStyles.flex, { backgroundColor: screenBg }]}>
-      <ScreenContainer edges={['top', 'bottom']} style={pageStyles.flex}>
-        {/* List — full screen, content padded to clear floating header */}
-        <FlashList
-          data={orders}
-          renderItem={renderOrderItem}
-          keyExtractor={keyExtractor}
-          getItemType={orderItemType}
-          ListFooterComponent={ListFooterComponent}
-          ListEmptyComponent={ListEmptyComponent}
-          contentContainerStyle={listPaddingStyle}
-          refreshControl={
-            <RefreshControl
-              refreshing={userRefreshing}
-              onRefresh={handleUserRefresh}
-              tintColor={primaryColor}
-              colors={[primaryColor]}
-            />
-          }
-        />
-
-        {/* Floating header — blur + gradient overlay */}
-        <View style={pageStyles.floatingHeader} pointerEvents="box-none">
-          <View style={StyleSheet.absoluteFill} pointerEvents="none">
-            <LinearGradient
-              colors={gradientColors}
-              locations={[0, 0.3, 0.62, 0.85, 1]}
-              style={StyleSheet.absoluteFill}
-            />
-          </View>
-
-          {/* Row: back + title + spacer */}
+      {/* Header tự chừa thanh trạng thái (STATIC_TOP_INSET) và trải nền lên
+          dưới nó như màn Menu. Không chừa safe-area đáy ở khung ngoài: danh
+          sách chạy tới đáy màn, đệm cuối theo safe-area (không bị cắt ngang
+          trên thanh home). */}
+      <View style={pageStyles.flex}>
+        {/* Header cố định (nền đặc), danh sách bắt đầu ngay dưới. */}
+        <View
+          style={[
+            pageStyles.header,
+            { backgroundColor: headerBg, borderBottomColor: headerBorder },
+          ]}
+        >
           <View
             style={[
               pageStyles.headerRow,
               { paddingTop: STATIC_TOP_INSET + 10 },
             ]}
-            pointerEvents="auto"
           >
             <GlassHeaderButton
               isDark={isDark}
@@ -851,7 +732,7 @@ function OrderHistoryPage() {
               onPress={handleFilterOpen}
               hitSlop={4}
               size={42}
-              solidColor={isDateFilterActive ? `${primaryColor}15` : undefined}
+              solidColor={isDateFilterActive ? filterTint : undefined}
               withoutShadow={isDateFilterActive}
             >
               <SlidersHorizontal
@@ -876,10 +757,10 @@ function OrderHistoryPage() {
           </View>
 
           {/* Filter chips */}
-          <View style={pageStyles.filterRow} pointerEvents="auto">
+          <View style={pageStyles.filterRow}>
             <FilterBar
               status={status}
-              isPending={isPlaceholderData}
+              isPending={isLoading}
               primaryColor={primaryColor}
               isDark={isDark}
               onSelect={handleFilterSelect}
@@ -889,14 +770,14 @@ function OrderHistoryPage() {
 
           {/* Active date chips */}
           {isDateFilterActive && (
-            <View style={pageStyles.dateChipRow} pointerEvents="auto">
+            <View style={pageStyles.dateChipRow}>
               {dateFilter.fromDate && (
                 <View
                   style={[
                     pageStyles.dateChip,
                     {
-                      backgroundColor: `${primaryColor}15`,
-                      borderColor: `${primaryColor}30`,
+                      backgroundColor: filterTint,
+                      borderColor: filterTintBorder,
                     },
                   ]}
                 >
@@ -913,8 +794,8 @@ function OrderHistoryPage() {
                   style={[
                     pageStyles.dateChip,
                     {
-                      backgroundColor: `${primaryColor}15`,
-                      borderColor: `${primaryColor}30`,
+                      backgroundColor: filterTint,
+                      borderColor: filterTintBorder,
                     },
                   ]}
                 >
@@ -927,10 +808,7 @@ function OrderHistoryPage() {
                 </View>
               )}
               <Pressable
-                onPress={() => {
-                  setDateFilter({ fromDate: null, toDate: null })
-                  setPage(1)
-                }}
+                onPress={() => setDateFilter({ fromDate: null, toDate: null })}
                 hitSlop={8}
               >
                 <X
@@ -941,7 +819,28 @@ function OrderHistoryPage() {
             </View>
           )}
         </View>
-      </ScreenContainer>
+
+        <FlashList
+          data={rows}
+          renderItem={renderRow}
+          keyExtractor={rowKey}
+          getItemType={rowType}
+          ItemSeparatorComponent={OrderGap}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.6}
+          ListFooterComponent={ListFooterComponent}
+          ListEmptyComponent={ListEmptyComponent}
+          contentContainerStyle={listContentStyle}
+          refreshControl={
+            <RefreshControl
+              refreshing={userRefreshing}
+              onRefresh={handleUserRefresh}
+              tintColor={primaryColor}
+              colors={[primaryColor]}
+            />
+          }
+        />
+      </View>
 
       <HistoryDateFilterSheet
         visible={filterSheetOpen}
@@ -968,14 +867,12 @@ const STATUS_FILTER_OPTIONS = [
 
 const pageStyles = StyleSheet.create({
   flex: { flex: 1 },
-  floatingHeader: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    zIndex: 20,
-    paddingBottom: 24,
+  header: {
+    paddingBottom: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
   },
+
+  loadMore: { paddingVertical: 16 },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -992,21 +889,6 @@ const pageStyles = StyleSheet.create({
     paddingVertical: 8,
   },
   filterChipText: { fontSize: 14, fontWeight: '500' },
-  paginationRow: {
-    marginTop: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 16,
-  },
-  pageBtn: {
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  pageBtnText: { fontSize: 14, fontWeight: '500' },
-  pageInfo: { fontSize: 14 },
   emptyWrap: {
     flex: 1,
     alignItems: 'center',

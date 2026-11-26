@@ -58,6 +58,8 @@ interface ColorConstants {
     borderDark: string
     iconBgLight: string
     iconBgDark: string
+    /** Nền đặc tươi cho nhãn chữ trắng (green-600) */
+    solid: string
   }
   warning: {
     light: string
@@ -70,6 +72,8 @@ interface ColorConstants {
     iconBgDark: string
     textLight: string
     textDark: string
+    /** Nền đặc tươi cho nhãn chữ trắng (amber-600) */
+    solid: string
   }
 }
 
@@ -159,6 +163,7 @@ export const colors: ColorConstants = {
     // Icon background colors
     iconBgLight: '#dcfce7', // green-100
     iconBgDark: '#166534', // green-800
+    solid: '#16a34a', // green-600
   },
 
   // Warning colors (amber) for unverified status
@@ -179,5 +184,6 @@ export const colors: ColorConstants = {
     // Text colors
     textLight: '#b45309', // amber-700
     textDark: '#fcd34d', // amber-300
+    solid: '#d97706', // amber-600
   },
 }

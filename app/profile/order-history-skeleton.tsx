@@ -5,47 +5,27 @@ import { Skeleton } from '@/components/ui'
 
 /**
  * Khung thẻ đơn khi chưa có dữ liệu — chỉ vùng danh sách (dùng làm
- * ListEmptyComponent), header nổi + chip lọc của màn là thật nên lúc dữ liệu
- * về không nhảy bố cục.
+ * ListEmptyComponent), header + chip lọc của màn là thật nên lúc dữ liệu về
+ * không nhảy bố cục. Cùng khung với OrderHistoryCard.
  */
-function OrderHistorySkeletonListComponent({
-  cardBg,
-  border,
-}: {
-  cardBg: string
-  border: string
-}) {
+function OrderHistorySkeletonListComponent({ cardBg }: { cardBg: string }) {
   return (
-    <View testID="order-history-skeleton">
+    <View testID="order-history-skeleton" style={styles.list}>
       {SKELETON_KEYS.map((key) => (
-        <View
-          key={key}
-          style={[
-            styles.skeletonCard,
-            { backgroundColor: cardBg, borderColor: border },
-          ]}
-        >
-          <View style={styles.skeletonHeaderRow}>
-            <Skeleton style={{ width: 128, height: 12, borderRadius: 6 }} />
-            <Skeleton style={{ width: 96, height: 24, borderRadius: 12 }} />
+        <View key={key} style={[styles.card, { backgroundColor: cardBg }]}>
+          <View style={styles.row}>
+            <Skeleton style={{ width: 120, height: 13, borderRadius: 6 }} />
+            <Skeleton style={{ width: 96, height: 22, borderRadius: 11 }} />
           </View>
-          <View style={styles.skeletonItemRow}>
-            <Skeleton style={{ width: 64, height: 64, borderRadius: 8 }} />
-            <View style={{ flex: 1, gap: 8 }}>
-              <Skeleton style={{ width: 160, height: 16, borderRadius: 6 }} />
-              <Skeleton style={{ width: 96, height: 12, borderRadius: 6 }} />
-              <Skeleton style={{ width: 112, height: 16, borderRadius: 6 }} />
-            </View>
+          <View style={styles.thumbs}>
+            {THUMB_KEYS.map((k) => (
+              <Skeleton key={k} style={styles.thumb} />
+            ))}
           </View>
-          <View style={[styles.skeletonSummary, { borderTopColor: border }]}>
-            <View style={styles.skeletonSummaryRow}>
-              <Skeleton style={{ width: 96, height: 12, borderRadius: 6 }} />
-              <Skeleton style={{ width: 80, height: 12, borderRadius: 6 }} />
-            </View>
-            <View style={styles.skeletonSummaryRow}>
-              <Skeleton style={{ width: 112, height: 16, borderRadius: 6 }} />
-              <Skeleton style={{ width: 96, height: 16, borderRadius: 6 }} />
-            </View>
+          <Skeleton style={{ width: '70%', height: 14, borderRadius: 6 }} />
+          <View style={styles.row}>
+            <Skeleton style={{ width: 56, height: 13, borderRadius: 6 }} />
+            <Skeleton style={{ width: 110, height: 16, borderRadius: 6 }} />
           </View>
         </View>
       ))}
@@ -53,29 +33,19 @@ function OrderHistorySkeletonListComponent({
   )
 }
 
-const SKELETON_KEYS = [1, 2, 3]
+const SKELETON_KEYS = [1, 2, 3, 4]
+const THUMB_KEYS = [1, 2, 3]
 
 const styles = StyleSheet.create({
-  skeletonCard: {
-    marginBottom: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    padding: 16,
-  },
-  skeletonHeaderRow: {
+  list: { paddingTop: 52, gap: 10 },
+  card: { marginHorizontal: 16, borderRadius: 12, padding: 12, gap: 10 },
+  row: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 16,
   },
-  skeletonItemRow: { flexDirection: 'row', gap: 12, marginBottom: 16 },
-  skeletonSummary: {
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    gap: 8,
-  },
-  skeletonSummaryRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  thumbs: { flexDirection: 'row', gap: 6 },
+  thumb: { width: 44, height: 44, borderRadius: 8 },
 })
 
 export const OrderHistorySkeletonList = memo(OrderHistorySkeletonListComponent)

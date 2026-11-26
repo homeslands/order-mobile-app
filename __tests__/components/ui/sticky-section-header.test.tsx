@@ -1,10 +1,10 @@
-// Tiêu đề nhóm ở Menu: lướt tới thì dính lại thành thanh tiêu đề (nền trắng,
+// Tiêu đề nhóm (Menu, Lịch sử đơn): lướt tới thì dính lại thành thanh tiêu đề (nền trắng,
 // kẻ dưới) — lúc nằm giữa danh sách chỉ là chữ trên nền xám. Hai trạng thái
 // cùng chiều cao để lúc nhóm sau đẩy tiêu đề cũ lên không bị giật.
 import { render, screen } from '@testing-library/react-native'
 import { StyleSheet } from 'react-native'
 
-import { MenuCatalogHeader } from '@/components/menu/menu-catalog-header'
+import { StickySectionHeader } from '@/components/ui/sticky-section-header'
 import { colors } from '@/constants'
 
 jest.mock('@/components/ui/text', () => ({
@@ -14,25 +14,25 @@ jest.mock('@/components/ui/text', () => ({
 
 function style(stuck: boolean) {
   render(
-    <MenuCatalogHeader
-      name="cà phê"
-      countLabel="19 món"
+    <StickySectionHeader
+      title="Cà phê"
+      subtitle="19 món"
       stuck={stuck}
       isDark={false}
     />,
   )
   const s = StyleSheet.flatten(
-    screen.getByTestId('menu-catalog-header').props.style,
+    screen.getByTestId('sticky-section-header').props.style,
   )
   screen.unmount()
   return s
 }
 
-it('CH1 viết hoa chữ đầu, kèm số món', () => {
+it('CH1 hiện tiêu đề và dòng phụ', () => {
   render(
-    <MenuCatalogHeader
-      name="cà phê"
-      countLabel="19 món"
+    <StickySectionHeader
+      title="Cà phê"
+      subtitle="19 món"
       stuck={false}
       isDark={false}
     />,
