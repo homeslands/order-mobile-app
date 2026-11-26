@@ -18,8 +18,11 @@ import { CartSwipeable } from './cart-swipeable'
 import { Text } from '@/components/ui/text'
 
 const DEBOUNCE_QTY_MS = 200
-/** Ghi chú (và "Thêm ghi chú") nằm ở cột chữ: đệm ô 10 + ảnh 76 + khoảng 12 */
-const NOTE_INSET = 10 + 76 + 12
+/**
+ * Ghi chú (và "Thêm ghi chú") bắt đầu từ mép trái thẻ, thẳng mép ảnh, trải hết
+ * ngang — thụt vào cột chữ thì luôn trống một khoảng dưới ảnh, lệch bố cục.
+ */
+const NOTE_INSET = 10
 /**
  * Đối số thứ hai của setter useRecyclingState: true = chỉ render lại ô này,
  * không bắt FlashList tính lại bố cục cả danh sách (mặc định). Số lượng chờ và
