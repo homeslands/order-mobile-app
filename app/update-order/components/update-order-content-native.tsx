@@ -341,18 +341,22 @@ export default function UpdateOrderContentNative({
   primaryColor,
 }: UpdateOrderContentNativeProps) {
   const { t } = useTranslation('menu')
-  const updatingData = useOrderFlowStore((s) => s.updatingData)
+  // Theo dõi từng phần — không cả updatingData (đổi ghi chú đơn / loại đơn
+  // cũng vẽ lại cả danh sách)
+  const draftItems = useOrderFlowStore(
+    (s) => s.updatingData?.updateDraft?.orderItems,
+  )
+  const voucher = useOrderFlowStore(
+    (s) => s.updatingData?.updateDraft?.voucher ?? null,
+  )
   const updateDraftItemQuantity = useOrderFlowStore(
     (s) => s.updateDraftItemQuantity,
   )
   const addDraftNote = useOrderFlowStore((s) => s.addDraftNote)
   const removeDraftItem = useOrderFlowStore((s) => s.removeDraftItem)
 
-  const voucher = updatingData?.updateDraft?.voucher ?? null
-  const orderItems = useMemo(
-    () => updatingData?.updateDraft?.orderItems ?? [],
-    [updatingData],
-  )
+  const orderItems = useMemo(() => draftItems ?? [], [draftItems])
+  const draftId = useOrderFlowStore((s) => s.updatingData?.updateDraft?.id)
 
   const { displayItems } = useUpdateOrderTotals()
   const displayItemMap = useMemo(() => {
@@ -481,18 +485,13 @@ export default function UpdateOrderContentNative({
           </Text>
         </View>
         <View style={c.cardBody}>
-          <OrderNoteInUpdateOrderInput order={updatingData?.updateDraft} />
+          {/* key theo bản nháp: dựng lại bản nháp (lưu hỏng giữa chừng) thì ô
+              lấy lại ghi chú mới thay vì giữ chữ cũ */}
+          <OrderNoteInUpdateOrderInput key={draftId} />
         </View>
       </View>
     ),
-    [
-      cardBg,
-      cardBorder,
-      dividerColor,
-      valueColor,
-      updatingData?.updateDraft,
-      t,
-    ],
+    [cardBg, cardBorder, dividerColor, valueColor, draftId, t],
   )
 
   return (
@@ -500,12 +499,9 @@ export default function UpdateOrderContentNative({
       data={orderItems}
       renderItem={renderItem}
       keyExtractor={keyExtractor}
-      overrideItemLayout={(layout: { span?: number; size?: number }) => {
-        layout.size = 152
-      }}
       ListHeaderComponent={listHeader}
       ListFooterComponent={listFooter}
-      contentContainerStyle={{ padding: 16, paddingBottom: 32 }}
+      contentContainerStyle={c.listContent}
     />
   )
 }
@@ -513,6 +509,7 @@ export default function UpdateOrderContentNative({
 // ─── Card styles ──────────────────────────────────────────────────────────────
 
 const c = StyleSheet.create({
+  listContent: { padding: 16, paddingBottom: 32 },
   listHeader: {
     flexDirection: 'row',
     alignItems: 'center',

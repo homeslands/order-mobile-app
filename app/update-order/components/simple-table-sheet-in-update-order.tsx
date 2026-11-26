@@ -22,6 +22,61 @@ const SNAP_POINTS = ['50%']
 // item height (48) + separator (8)
 const ESTIMATED_ITEM_SIZE = TABLE_SELECT_ITEM_HEIGHT + 8
 
+// Ô bàn bọc memo như giỏ — đổi bàn chọn chỉ vẽ lại hai ô (cũ / mới)
+const TableChip = memo(function TableChip({
+  table,
+  selected,
+  primaryColor,
+  isDark,
+  onSelect,
+}: {
+  table: ITable
+  selected: boolean
+  primaryColor: string
+  isDark: boolean
+  onSelect: (table: ITable) => void
+}) {
+  const isAvailable = table.status === 'available'
+  const statusColor = isAvailable ? '#22c55e' : '#ef4444'
+  const handlePress = useCallback(() => onSelect(table), [onSelect, table])
+  return (
+    <Pressable
+      onPress={handlePress}
+      style={[
+        s.tableItem,
+        {
+          borderColor: selected
+            ? primaryColor
+            : isDark
+              ? colors.gray[700]
+              : colors.gray[200],
+          backgroundColor: selected ? `${primaryColor}10` : 'transparent',
+        },
+      ]}
+    >
+      <View style={[s.statusDot, { backgroundColor: statusColor }]} />
+      <View style={s.tableNameRow}>
+        <Text
+          style={[
+            s.tableName,
+            {
+              color: isDark ? colors.gray[50] : colors.gray[900],
+              fontWeight: selected ? '600' : '400',
+            },
+          ]}
+          numberOfLines={1}
+        >
+          Bàn {table.name}
+        </Text>
+        <Text style={[s.tableStatus, { color: statusColor }]}>
+          · {isAvailable ? 'Trống' : 'Đã đặt'}
+        </Text>
+      </View>
+      {selected && <CheckCircle size={16} color={primaryColor} />}
+    </Pressable>
+  )
+})
+
 export const SimpleTableSheetInUpdateOrder = memo(
   function SimpleTableSheetInUpdateOrder({
     visible,
@@ -62,47 +117,15 @@ export const SimpleTableSheetInUpdateOrder = memo(
     )
 
     const renderItem: ListRenderItem<ITable> = useCallback(
-      ({ item: table }) => {
-        const selected = selectedTableSlug === table.slug
-        const isAvailable = table.status === 'available'
-        const statusColor = isAvailable ? '#22c55e' : '#ef4444'
-        return (
-          <Pressable
-            onPress={() => handleSelect(table)}
-            style={[
-              s.tableItem,
-              {
-                borderColor: selected
-                  ? primaryColor
-                  : isDark
-                    ? colors.gray[700]
-                    : colors.gray[200],
-                backgroundColor: selected ? `${primaryColor}10` : 'transparent',
-              },
-            ]}
-          >
-            <View style={[s.statusDot, { backgroundColor: statusColor }]} />
-            <View style={s.tableNameRow}>
-              <Text
-                style={[
-                  s.tableName,
-                  {
-                    color: isDark ? colors.gray[50] : colors.gray[900],
-                    fontWeight: selected ? '600' : '400',
-                  },
-                ]}
-                numberOfLines={1}
-              >
-                Bàn {table.name}
-              </Text>
-              <Text style={[s.tableStatus, { color: statusColor }]}>
-                · {isAvailable ? 'Trống' : 'Đã đặt'}
-              </Text>
-            </View>
-            {selected && <CheckCircle size={16} color={primaryColor} />}
-          </Pressable>
-        )
-      },
+      ({ item: table }) => (
+        <TableChip
+          table={table}
+          selected={selectedTableSlug === table.slug}
+          primaryColor={primaryColor}
+          isDark={isDark}
+          onSelect={handleSelect}
+        />
+      ),
       [selectedTableSlug, primaryColor, isDark, handleSelect],
     )
 
@@ -178,6 +201,9 @@ export const SimpleTableSheetInUpdateOrder = memo(
     return (
       <BottomSheetModal
         ref={sheetRef}
+        // Mở sheet này thì đóng hẳn sheet đang mở — mặc định 'switch' thu nhỏ
+        // sheet trước, nếu nó đang đóng dở thì kẹt lại rồi tự bật lên sau
+        stackBehavior="replace"
         snapPoints={SNAP_POINTS}
         enablePanDownToClose
         enableContentPanningGesture={false}

@@ -39,15 +39,20 @@ export default function UpdateOrderScreen() {
   const [isExpired, setIsExpired] = useState(false)
   const [isDataLoaded, setIsDataLoaded] = useState(false)
   const [activeTab, setActiveTab] = useState<'order' | 'menu'>('order')
+  // Tab Thêm món chỉ dựng ở lần mở đầu, sau đó giữ lại — trước mỗi lần đổi
+  // tab là dựng lại cả danh sách / menu từ đầu, mất vị trí cuộn
+  const [menuVisited, setMenuVisited] = useState(false)
   // Guard: prevent concurrent poll requests if network is slow
   const isFetchingRef = React.useRef(false)
 
+  // Tải ngay khi mở — dữ liệu đã tải sẵn ở Chi tiết đơn dùng được luôn; chỉ
+  // phần dựng bản nháp / render chờ hiệu ứng chuyển màn xong
   const {
     data: orderResponse,
     isPending,
     isError,
     refetch: refetchOrder,
-  } = useOrderBySlug(allowFetch ? slug : null)
+  } = useOrderBySlug(slug)
   const order = orderResponse?.result
   const initializeUpdating = useOrderFlowStore((s) => s.initializeUpdating)
   const clearUpdatingData = useOrderFlowStore((s) => s.clearUpdatingData)
@@ -154,7 +159,10 @@ export default function UpdateOrderScreen() {
   }, [])
 
   const handleTabOrder = useCallback(() => setActiveTab('order'), [])
-  const handleTabMenu = useCallback(() => setActiveTab('menu'), [])
+  const handleTabMenu = useCallback(() => {
+    setActiveTab('menu')
+    setMenuVisited(true)
+  }, [])
   const handleRetry = useCallback(() => {
     void refetchOrder()
   }, [refetchOrder])
@@ -333,27 +341,37 @@ export default function UpdateOrderScreen() {
           </View>
         </View>
 
-        {/* Tab content */}
-        {activeTab === 'order' ? (
+        {/* Tab content — ẩn bằng display, không gỡ */}
+        <View
+          style={[
+            s.tabPane,
+            { display: activeTab === 'order' ? 'flex' : 'none' },
+          ]}
+        >
           <UpdateOrderContentNative
             isDark={isDark}
             primaryColor={primaryColor}
           />
-        ) : (
-          <UpdateOrderMenus
-            branchSlug={branchSlug}
-            primaryColor={primaryColor}
-          />
-        )}
-
-        {/* Footer: order type, table, voucher, total, confirm */}
-        {activeTab === 'order' && (
+          {/* Footer: order type, table, voucher, total, confirm */}
           <UpdateOrderFooter
             orderSlug={slug || ''}
             isDark={isDark}
             primaryColor={primaryColor}
             insetBottom={insets.bottom}
           />
+        </View>
+        {menuVisited && (
+          <View
+            style={[
+              s.tabPane,
+              { display: activeTab === 'menu' ? 'flex' : 'none' },
+            ]}
+          >
+            <UpdateOrderMenus
+              branchSlug={branchSlug}
+              primaryColor={primaryColor}
+            />
+          </View>
         )}
 
         {/* FloatingHeader — rendered last so it overlays content */}
@@ -370,6 +388,7 @@ export default function UpdateOrderScreen() {
 const s = StyleSheet.create({
   screen: { flex: 1 },
   errorBody: { flex: 1 },
+  tabPane: { flex: 1 },
   // ── Expired ────────────────────────────────────────────────────────────────
   expiredHeader: {
     flexDirection: 'row',

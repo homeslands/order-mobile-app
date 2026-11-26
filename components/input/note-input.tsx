@@ -7,6 +7,7 @@ export interface NoteInputProps {
   value?: string
   placeholder?: string
   onChange: (text: string) => void
+  onBlur?: () => void
   className?: string
 }
 
@@ -14,6 +15,7 @@ export function NoteInput({
   value,
   placeholder,
   onChange,
+  onBlur,
   className,
 }: NoteInputProps) {
   return (
@@ -31,6 +33,7 @@ export function NoteInput({
           }
           placeholder={placeholder}
           onChangeText={onChange}
+          onBlur={onBlur}
         />
       </View>
     </View>

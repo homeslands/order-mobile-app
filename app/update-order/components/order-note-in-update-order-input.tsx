@@ -1,27 +1,44 @@
-import { useCallback } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { OrderNoteInput } from '@/components/input'
-import { scheduleStoreUpdate } from '@/lib/navigation'
 import { useOrderFlowStore } from '@/stores'
-import { IOrderToUpdate } from '@/types'
 
-interface OrderNoteInUpdateOrderInputProps {
-  order?: IOrderToUpdate | null
-}
+const DEBOUNCE_NOTE_MS = 400
 
-export default function OrderNoteInUpdateOrderInput({
-  order,
-}: OrderNoteInUpdateOrderInputProps) {
+// Ghi chú đơn giữ cục bộ, ghi vào store sau khi ngừng gõ — trước mỗi phím gõ
+// là một lần ghi store (vẽ lại danh sách, thanh dưới, sheet; ghi xuống máy).
+// Giá trị đầu đọc một lần; bản nháp dựng lại thì cha đổi `key` để dựng lại ô.
+export default function OrderNoteInUpdateOrderInput() {
   const setDraftDescription = useOrderFlowStore((s) => s.setDraftDescription)
+  const initial = useOrderFlowStore(
+    (s) => s.updatingData?.updateDraft?.description ?? '',
+  )
+  const [value, setValue] = useState(initial)
+  const pendingRef = useRef<string | null>(null)
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  const value = order?.description || ''
+  const flush = useCallback(() => {
+    if (timerRef.current) clearTimeout(timerRef.current)
+    timerRef.current = null
+    if (pendingRef.current === null) return
+    setDraftDescription(pendingRef.current)
+    pendingRef.current = null
+  }, [setDraftDescription])
 
   const handleChange = useCallback(
     (text: string) => {
-      scheduleStoreUpdate(() => setDraftDescription(text))
+      setValue(text)
+      pendingRef.current = text
+      if (timerRef.current) clearTimeout(timerRef.current)
+      timerRef.current = setTimeout(flush, DEBOUNCE_NOTE_MS)
     },
-    [setDraftDescription],
+    [flush],
   )
 
-  return <OrderNoteInput value={value} onChange={handleChange} />
+  // Rời màn / sang tab khác khi chưa hết debounce: ghi nốt, không mất chữ
+  useEffect(() => {
+    return () => flush()
+  }, [flush])
+
+  return <OrderNoteInput value={value} onChange={handleChange} onBlur={flush} />
 }

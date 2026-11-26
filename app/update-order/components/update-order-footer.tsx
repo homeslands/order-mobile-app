@@ -1,13 +1,15 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { formatCurrencyNative } from 'cart-price-calc'
 import { ChevronRight, ShoppingBag, Ticket } from 'lucide-react-native'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, View } from 'react-native'
-import { useShallow } from 'zustand/react/shallow'
 
 import { colors, PHONE_NUMBER_REGEX } from '@/constants'
 import { FOOTER_BOTTOM_EXTRA } from '@/constants/status-bar'
-import { useTables, useUpdateOrderPayable } from '@/hooks'
+import { useUpdateOrderPayable } from '@/hooks'
+import { useMountOnFirstOpen } from '@/hooks/use-mount-on-first-open'
+import { tablesQueryOptions } from '@/hooks/use-table'
 import { DeliveryAddressSheet, DeliveryInfoRow } from '@/components/delivery'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import { OrderStatus, OrderTypeEnum } from '@/types'
@@ -21,6 +23,8 @@ import { SimpleTableSheetInUpdateOrder } from './simple-table-sheet-in-update-or
 import { VoucherSheetInUpdateOrder } from './voucher-sheet-in-update-order'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
+
+type UpdateOrderSheet = 'orderType' | 'table' | 'voucher' | 'delivery'
 
 interface UpdateOrderFooterProps {
   orderSlug: string
@@ -36,38 +40,58 @@ export default memo(function UpdateOrderFooter({
   insetBottom,
 }: UpdateOrderFooterProps) {
   const { t } = useTranslation('menu')
-  const [orderTypeSheetVisible, setOrderTypeSheetVisible] = useState(false)
-  const [tableSheetVisible, setTableSheetVisible] = useState(false)
-  const [voucherSheetOpen, setVoucherSheetOpen] = useState(false)
-  const [deliverySheetVisible, setDeliverySheetVisible] = useState(false)
+  // Một trạng thái "sheet đang mở" như giỏ — mỗi lúc một sheet; mở sheet mới
+  // là sheet cũ đóng trong cùng một lần cập nhật
+  const [sheet, setSheet] = useState<UpdateOrderSheet | null>(null)
+  const orderTypeSheetVisible = sheet === 'orderType'
+  const tableSheetVisible = sheet === 'table'
+  const voucherSheetOpen = sheet === 'voucher'
+  const deliverySheetVisible = sheet === 'delivery'
+  const orderTypeMounted = useMountOnFirstOpen(orderTypeSheetVisible)
+  const tableMounted = useMountOnFirstOpen(tableSheetVisible)
+  const voucherMounted = useMountOnFirstOpen(voucherSheetOpen)
+  const deliveryMounted = useMountOnFirstOpen(deliverySheetVisible)
 
-  const draft = useOrderFlowStore(
-    useShallow((s) => s.updatingData?.updateDraft),
+  // Theo dõi từng trường — trước theo dõi cả bản nháp, gõ ghi chú đơn cũng
+  // vẽ lại thanh dưới
+  const orderType =
+    (useOrderFlowStore((s) => s.updatingData?.updateDraft?.type) as
+      | OrderTypeEnum
+      | undefined) ?? OrderTypeEnum.AT_TABLE
+  const selectedTableSlug =
+    useOrderFlowStore((s) => s.updatingData?.updateDraft?.table) || null
+  // Bản nháp đã giữ tên bàn — khỏi tải cả danh sách bàn chỉ để tra tên
+  const tableName =
+    useOrderFlowStore((s) => s.updatingData?.updateDraft?.tableName) || null
+  const voucher = useOrderFlowStore(
+    (s) => s.updatingData?.updateDraft?.voucher ?? null,
   )
-  const originalOrder = useOrderFlowStore(
-    useShallow((s) => s.updatingData?.originalOrder),
+  const draftItems = useOrderFlowStore(
+    (s) => s.updatingData?.updateDraft?.orderItems,
+  )
+  const orderItems = useMemo(() => draftItems ?? [], [draftItems])
+  const draftDeliveryAddress = useOrderFlowStore(
+    (s) => s.updatingData?.updateDraft?.deliveryAddress ?? '',
+  )
+  const draftDeliveryPhone = useOrderFlowStore(
+    (s) => s.updatingData?.updateDraft?.deliveryPhone ?? '',
+  )
+  const isPending = useOrderFlowStore(
+    (s) => s.updatingData?.originalOrder?.status === OrderStatus.PENDING,
   )
   const removeDraftVoucher = useOrderFlowStore((s) => s.removeDraftVoucher)
-  const orderType = (draft?.type as OrderTypeEnum) ?? OrderTypeEnum.AT_TABLE
-  const selectedTableSlug = draft?.table ?? null
-  const voucher = draft?.voucher ?? null
-  const orderItems = useMemo(() => draft?.orderItems ?? [], [draft])
-  const draftDeliveryAddress = draft?.deliveryAddress ?? ''
-  const draftDeliveryPhone = draft?.deliveryPhone ?? ''
 
-  // Resolve table name from slug
   const branchFromStore = useBranchStore((s) => s.branch?.slug)
   const branchFromUser = useUserStore((s) => s.userInfo?.branch?.slug)
   const branchSlug = branchFromStore || branchFromUser
 
-  const { data: tablesData } = useTables(branchSlug ?? undefined)
-  const tableName = useMemo(() => {
-    if (!selectedTableSlug || !tablesData?.result) return null
-    return (
-      tablesData.result.find((tb) => tb.slug === selectedTableSlug)?.name ??
-      null
-    )
-  }, [selectedTableSlug, tablesData])
+  // Đơn tại bàn: tải sẵn danh sách bàn như giỏ — sheet chọn bàn mở ra có ngay
+  // thay vì vòng quay (sheet chỉ tự tải khi đã mở)
+  const queryClient = useQueryClient()
+  useEffect(() => {
+    if (orderType !== OrderTypeEnum.AT_TABLE || !branchSlug) return
+    void queryClient.prefetchQuery(tablesQueryOptions(branchSlug))
+  }, [orderType, branchSlug, queryClient])
 
   // Totals
   const cartItemQuantity = useMemo(
@@ -111,31 +135,35 @@ export default memo(function UpdateOrderFooter({
       (!draftDeliveryAddress ||
         !draftDeliveryPhone ||
         !/^[0-9]{10}$/.test(draftDeliveryPhone)))
-  const isPending = originalOrder?.status === OrderStatus.PENDING
 
   // Handlers
-  const openOrderTypeSheet = useCallback(
-    () => setOrderTypeSheetVisible(true),
-    [],
-  )
+  // Sheet cũ báo đóng xong (onDismiss) sau khi sheet mới đã mở — chỉ xoá khi
+  // đang mở đúng sheet đó, kẻo đóng nhầm sheet mới
+  const closeSheet = useCallback((name: UpdateOrderSheet) => {
+    setSheet((cur) => (cur === name ? null : cur))
+  }, [])
+  const openOrderTypeSheet = useCallback(() => setSheet('orderType'), [])
   const closeOrderTypeSheet = useCallback(
-    () => setOrderTypeSheetVisible(false),
-    [],
+    () => closeSheet('orderType'),
+    [closeSheet],
   )
-  const openTableSheet = useCallback(() => setTableSheetVisible(true), [])
-  const closeTableSheet = useCallback(() => setTableSheetVisible(false), [])
-  const openVoucherSheet = useCallback(() => setVoucherSheetOpen(true), [])
-  const closeVoucherSheet = useCallback(() => setVoucherSheetOpen(false), [])
-  const openDeliverySheet = useCallback(() => setDeliverySheetVisible(true), [])
+  const openTableSheet = useCallback(() => setSheet('table'), [])
+  const closeTableSheet = useCallback(() => closeSheet('table'), [closeSheet])
+  const openVoucherSheet = useCallback(() => setSheet('voucher'), [])
+  const closeVoucherSheet = useCallback(
+    () => closeSheet('voucher'),
+    [closeSheet],
+  )
+  const openDeliverySheet = useCallback(() => setSheet('delivery'), [])
   const closeDeliverySheet = useCallback(() => {
-    setDeliverySheetVisible(false)
+    closeSheet('delivery')
     const s = useOrderFlowStore.getState()
     const addr = s.updatingData?.updateDraft?.deliveryAddress ?? ''
     const phone = s.updatingData?.updateDraft?.deliveryPhone ?? ''
     if (addr && !PHONE_NUMBER_REGEX.test(phone)) {
       s.clearDraftDeliveryInfo()
     }
-  }, [])
+  }, [closeSheet])
 
   // Memoised theme-dependent styles
   const ft = useMemo(
@@ -311,34 +339,43 @@ export default memo(function UpdateOrderFooter({
         </View>
       </View>
 
-      <SimpleOrderTypeSheetInUpdateOrder
-        visible={orderTypeSheetVisible}
-        onClose={closeOrderTypeSheet}
-        onDeliverySelected={openDeliverySheet}
-        isDark={isDark}
-        primaryColor={primaryColor}
-      />
-      <SimpleTableSheetInUpdateOrder
-        visible={tableSheetVisible}
-        onClose={closeTableSheet}
-        isDark={isDark}
-        primaryColor={primaryColor}
-      />
-      <VoucherSheetInUpdateOrder
-        visible={voucherSheetOpen}
-        onClose={closeVoucherSheet}
-        isDark={isDark}
-        primaryColor={primaryColor}
-      />
-
-      <DeliveryAddressSheet
-        visible={deliverySheetVisible}
-        onClose={closeDeliverySheet}
-        mode="update-order"
-        branchSlug={branchSlug ?? ''}
-        isDark={isDark}
-        primaryColor={primaryColor}
-      />
+      {/* Mỗi sheet chỉ dựng khi mở lần đầu — dựng sẵn cả 4 (kèm query cấu
+          hình giao hàng, danh sách voucher) là việc thừa lúc vào màn */}
+      {orderTypeMounted && (
+        <SimpleOrderTypeSheetInUpdateOrder
+          visible={orderTypeSheetVisible}
+          onClose={closeOrderTypeSheet}
+          onDeliverySelected={openDeliverySheet}
+          isDark={isDark}
+          primaryColor={primaryColor}
+        />
+      )}
+      {tableMounted && (
+        <SimpleTableSheetInUpdateOrder
+          visible={tableSheetVisible}
+          onClose={closeTableSheet}
+          isDark={isDark}
+          primaryColor={primaryColor}
+        />
+      )}
+      {voucherMounted && (
+        <VoucherSheetInUpdateOrder
+          visible={voucherSheetOpen}
+          onClose={closeVoucherSheet}
+          isDark={isDark}
+          primaryColor={primaryColor}
+        />
+      )}
+      {deliveryMounted && (
+        <DeliveryAddressSheet
+          visible={deliverySheetVisible}
+          onClose={closeDeliverySheet}
+          mode="update-order"
+          branchSlug={branchSlug ?? ''}
+          isDark={isDark}
+          primaryColor={primaryColor}
+        />
+      )}
     </>
   )
 })

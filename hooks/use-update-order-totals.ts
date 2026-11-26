@@ -1,50 +1,21 @@
 /**
- * useUpdateOrderTotals — single source of truth cho display items + totals của
- * update-order draft.
- *
- * 4 component (content-native, footer, confirm-dialog, voucher-sheet) trước đây
- * tự gọi calculateOrderDisplayAndTotals(transformOrderItemToOrderDetail(...)),
- * mỗi cái re-run mỗi lần draft đổi. Hook này gom lại 1 memo theo `draft` ref
- * — vẫn rẻ về cache miss (Zustand giữ stable reference khi không đổi).
+ * Tổng tiền bản nháp sửa đơn — danh sách món, thanh dưới, sheet xác nhận,
+ * sheet voucher dùng chung một kết quả (utils/update-order-totals.ts).
  */
-import { useMemo } from 'react'
-
 import { useCalculateDeliveryFee } from '@/hooks/use-branch-delivery'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import { OrderTypeEnum } from '@/types'
-import {
-  calculateOrderDisplayAndTotals,
-  parseKm,
-  transformOrderItemToOrderDetail,
-} from '@/utils'
+import { parseKm } from '@/utils'
+import { getUpdateOrderTotals } from '@/utils/update-order-totals'
 import { computeUpdateOrderPayable } from '@/utils/update-order-payable'
 
 export function useUpdateOrderTotals() {
-  const draft = useOrderFlowStore((s) => s.updatingData?.updateDraft)
-
-  return useMemo(() => {
-    if (!draft) {
-      return {
-        displayItems: [] as ReturnType<
-          typeof calculateOrderDisplayAndTotals
-        >['displayItems'],
-        cartTotals: null as
-          | ReturnType<typeof calculateOrderDisplayAndTotals>['cartTotals']
-          | null,
-        transformedItems: [] as ReturnType<
-          typeof transformOrderItemToOrderDetail
-        >,
-      }
-    }
-    const transformedItems = transformOrderItemToOrderDetail(
-      draft.orderItems ?? [],
-    )
-    const { displayItems, cartTotals } = calculateOrderDisplayAndTotals(
-      transformedItems,
-      draft.voucher ?? null,
-    )
-    return { displayItems, cartTotals, transformedItems }
-  }, [draft])
+  // Chỉ theo dõi món + voucher — đổi ghi chú / loại đơn / bàn không tính lại
+  const orderItems = useOrderFlowStore(
+    (s) => s.updatingData?.updateDraft?.orderItems,
+  )
+  const voucher = useOrderFlowStore((s) => s.updatingData?.updateDraft?.voucher)
+  return getUpdateOrderTotals(orderItems, voucher)
 }
 
 /** Tiền phải trả của bản nháp — thanh dưới và sheet xác nhận dùng chung. */

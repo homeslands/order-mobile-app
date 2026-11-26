@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { colors } from '@/constants'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, View } from 'react-native'
@@ -12,7 +13,7 @@ type SheetFooterProps = {
   bottomInset: number
 }
 
-export function SheetFooter({
+export const SheetFooter = memo(function SheetFooter({
   isCurrentApplied,
   isNewSelection,
   onPress,
@@ -60,7 +61,7 @@ export function SheetFooter({
       </Pressable>
     </View>
   )
-}
+})
 
 const styles = StyleSheet.create({
   footer: { paddingHorizontal: 20, paddingTop: 12 },
