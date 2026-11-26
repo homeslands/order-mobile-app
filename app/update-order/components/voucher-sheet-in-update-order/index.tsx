@@ -493,6 +493,9 @@ export const VoucherSheetInUpdateOrder = memo(
       <>
         <BottomSheetModal
           ref={sheetRef}
+          // Mở sheet này thì đóng hẳn sheet đang mở — mặc định 'switch' thu nhỏ
+          // sheet trước, nếu nó đang đóng dở thì kẹt lại rồi tự bật lên sau
+          stackBehavior="replace"
           snapPoints={SNAP}
           enablePanDownToClose
           enableContentPanningGesture={false}

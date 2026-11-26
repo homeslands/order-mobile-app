@@ -114,3 +114,18 @@ afterEach(() => {
   void g.__ExpoImportMetaRegistry
   void g.structuredClone
 })
+
+describe('Sheet không tự mở lại', () => {
+  // Mặc định gorhom 'switch': mở sheet mới khi sheet trước chưa rút khỏi
+  // hàng đợi (đang đóng do chạm nền) thì sheet trước bị thu nhỏ và kẹt lại —
+  // đóng sheet trên cùng là nó tự bật lên. 'replace' đóng hẳn sheet trước.
+  it('UF12 sheet loại đơn / bàn / voucher dùng stackBehavior replace', () => {
+    for (const f of [
+      'simple-order-type-sheet-in-update-order.tsx',
+      'simple-table-sheet-in-update-order.tsx',
+      'voucher-sheet-in-update-order/index.tsx',
+    ]) {
+      expect(read(dir + f)).toMatch(/stackBehavior="replace"/)
+    }
+  })
+})
