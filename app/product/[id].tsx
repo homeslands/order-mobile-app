@@ -56,6 +56,7 @@ import {
 } from '@/stores/selectors'
 import { IOrderItem } from '@/types'
 import { showErrorToastMessage, showToast } from '@/utils'
+import { hasMenuItemStock } from '@/utils/menu-stock'
 
 /**
  * Isolates useIsFocused() so only this tiny component re-renders on
@@ -134,8 +135,11 @@ function ProductDetailContent() {
   )
 
   // Fetch full product data for variants
-  const { data: menuItemRes, refetch: refetchMenuItem } =
-    useSpecificMenuItem(productId)
+  const {
+    data: menuItemRes,
+    isError: isMenuItemError,
+    refetch: refetchMenuItem,
+  } = useSpecificMenuItem(productId)
   const menuItem = useMemo(() => menuItemRes?.result, [menuItemRes?.result])
 
   // Enriched product — prefers API data over route params
@@ -177,6 +181,7 @@ function ProductDetailContent() {
   const isLimit = menuItem?.product?.isLimit ?? false
   const currentStock = menuItem?.currentStock ?? 0
   const defaultStock = menuItem?.defaultStock ?? 0
+  const hasStock = hasMenuItemStock({ isLocked, currentStock, isLimit })
 
   // Init store on product change
   useEffect(() => {
@@ -269,6 +274,7 @@ function ProductDetailContent() {
     const detailState = useProductDetailSelectionStore.getState()
     const { selectedVariant: sv, quantity: qty, note: n } = detailState
     if (!sv) return
+    if (!hasStock) return
 
     // Read order-flow store at call time
     const store = useOrderFlowStore.getState()
@@ -276,9 +282,10 @@ function ProductDetailContent() {
     if (store.currentStep !== OrderFlowStep.ORDERING) {
       store.setCurrentStep(OrderFlowStep.ORDERING)
     }
+    // Không return sau khi khởi tạo: addOrderingItem tự lo giỏ chưa khởi tạo,
+    // nên lần bấm đầu vẫn thêm được món (giống màn Menu).
     if (!store.orderingData) {
       store.initializeOrdering()
-      return
     }
     const userSlug = useUserStore.getState().userInfo?.slug
     if (userSlug && !store.orderingData?.owner?.trim()) {
@@ -319,7 +326,20 @@ function ProductDetailContent() {
     } catch {
       // Silent fail
     }
-  }, [menuItem, product, variants, smallestVariant, setSelection, t, router])
+  }, [
+    menuItem,
+    product,
+    variants,
+    smallestVariant,
+    hasStock,
+    setSelection,
+    t,
+    router,
+  ])
+
+  const handleRetryLoad = useCallback(() => {
+    refetchMenuItem()
+  }, [refetchMenuItem])
 
   const rootStyle = useMemo(
     () => [
@@ -432,8 +452,12 @@ function ProductDetailContent() {
         chooseSizeLabel={t('menu.chooseSize')}
         addToCartLabel={t('menu.addToCart')}
         outOfStockLabel={t('menu.outOfStock')}
-        isLocked={isLocked}
+        retryLabel={t('menu.retry')}
+        isLoaded={!!menuItem}
+        isError={isMenuItemError}
+        hasStock={hasStock}
         onAddToCart={handleAddToCart}
+        onRetry={handleRetryLoad}
       />
     </View>
   )

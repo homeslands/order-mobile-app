@@ -5,6 +5,7 @@ import { capitalizeFirst } from '@/utils'
 import { formatCurrencyNative } from 'cart-price-calc'
 import { Plus } from 'lucide-react-native'
 import React, { createContext, memo, useCallback, useContext } from 'react'
+import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { Text } from '@/components/ui/text'
 
@@ -25,6 +26,8 @@ export type MenuDisplayItem = {
   menuItem: IMenuItem
   /** Pre-computed cheapest variant — avoids reduce() on every tap */
   cheapestVariant: import('@/types').IProductVariant | null
+  /** Còn đặt được (không khoá, còn số lượng hoặc không giới hạn) */
+  hasStock: boolean
 }
 
 export const MENU_IMAGE_HIGH_PRIORITY_COUNT = 4
@@ -52,6 +55,7 @@ export const MenuItemRow = memo(
     promotionValue,
     primaryColor,
     isDark,
+    hasStock,
     onDetail,
     onAddToCart,
   }: {
@@ -63,9 +67,11 @@ export const MenuItemRow = memo(
     promotionValue: number
     primaryColor: string
     isDark: boolean
+    hasStock: boolean
     onDetail: (id: string) => void
     onAddToCart: (id: string) => void
   }) {
+    const { t } = useTranslation('menu')
     const phaseCount = useContext(MenuImagePhaseContext)
     const showImage = listIndex < phaseCount
     const imagePriority =
@@ -87,12 +93,23 @@ export const MenuItemRow = memo(
       : colors.warning.textLight
     const originalColor = isDark ? colors.gray[500] : colors.gray[400]
     const badgeBg = isDark ? colors.destructive.dark : colors.destructive.light
+    const addButtonBg = hasStock
+      ? primaryColor
+      : isDark
+        ? colors.gray[700]
+        : colors.gray[300]
+    const addIconColor = hasStock
+      ? colors.white.light
+      : isDark
+        ? colors.gray[500]
+        : colors.gray[400]
+    const soldOutBg = isDark ? colors.gray[800] : colors.gray[900]
 
     return (
       <Pressable onPress={handlePress} style={styles.wrapper}>
         <View style={[styles.card, { backgroundColor: cardBg }]}>
           <View style={styles.imageWrap}>
-            <View style={styles.imageInner}>
+            <View style={[styles.imageInner, !hasStock && styles.imageSoldOut]}>
               <MenuItemImage
                 id={id}
                 imageUrl={imageUrl}
@@ -102,6 +119,15 @@ export const MenuItemRow = memo(
                 borderRadius={12}
               />
             </View>
+            {!hasStock && (
+              <View style={styles.soldOutWrap} pointerEvents="none">
+                <View
+                  style={[styles.soldOutBadge, { backgroundColor: soldOutBg }]}
+                >
+                  <Text style={styles.soldOutText}>{t('menu.outOfStock')}</Text>
+                </View>
+              </View>
+            )}
           </View>
           <View style={styles.content}>
             <Text
@@ -139,9 +165,14 @@ export const MenuItemRow = memo(
             <View style={styles.addButtonWrap}>
               <Pressable
                 onPress={handleAdd}
-                style={[styles.addButton, { backgroundColor: primaryColor }]}
+                disabled={!hasStock}
+                hitSlop={6}
+                accessibilityRole="button"
+                accessibilityLabel={t('menu.addToCartA11y', { name })}
+                accessibilityState={{ disabled: !hasStock }}
+                style={[styles.addButton, { backgroundColor: addButtonBg }]}
               >
-                <Plus size={20} color="#ffffff" />
+                <Plus size={20} color={addIconColor} />
               </Pressable>
             </View>
           </View>
@@ -158,6 +189,7 @@ export const MenuItemRow = memo(
     prev.promotionValue === next.promotionValue &&
     prev.primaryColor === next.primaryColor &&
     prev.isDark === next.isDark &&
+    prev.hasStock === next.hasStock &&
     prev.onDetail === next.onDetail &&
     prev.onAddToCart === next.onAddToCart,
 )
@@ -180,6 +212,24 @@ const styles = StyleSheet.create({
   },
   imageInner: {
     flex: 1,
+  },
+  imageSoldOut: {
+    opacity: 0.4,
+  },
+  soldOutWrap: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  soldOutBadge: {
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  soldOutText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: colors.white.light,
   },
   content: {
     flex: 1,

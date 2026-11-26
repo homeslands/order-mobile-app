@@ -8,6 +8,7 @@ import {
 } from '@/api/menu'
 import { MENU_QUERY_SKIP_CODES } from '@/lib/global-error-gate'
 import type { ISpecificMenuRequest } from '@/types'
+import { isMenuLoadError } from '@/utils/menu-stock'
 
 /**
  * Per-catalog progressive menu loader. Issues one query per catalog (via
@@ -69,6 +70,7 @@ export function useCatalogMenuPages(opts: {
 
   const isLoading = results.length > 0 && results.every((r) => r.isPending)
   const isLoadingMore = !isLoading && results.some((r) => r.isPending)
+  const isError = results.some((r) => isMenuLoadError(r.error))
   const hasMore = loadedCount < catalogSlugs.length
   const loadMore = useCallback(() => {
     setLoadedCount((c) => Math.min(c + batch, catalogSlugs.length))
@@ -85,5 +87,13 @@ export function useCatalogMenuPages(opts: {
     [],
   )
 
-  return { menuItems, isLoading, isLoadingMore, hasMore, loadMore, refetchAll }
+  return {
+    menuItems,
+    isLoading,
+    isLoadingMore,
+    isError,
+    hasMore,
+    loadMore,
+    refetchAll,
+  }
 }
