@@ -1,8 +1,10 @@
 /**
  * HTTP client với token injection — không import stores (tránh require cycle).
- * Dùng configureHttpAuth() tại bootstrap để inject token getter từ auth store.
+ * Dùng configureHttpAuth() tại bootstrap để inject provider từ auth store.
+ * File này không bao giờ đăng xuất: việc đó thuộc về refreshSession().
  */
-import { IApiResponse, IRefreshTokenResponse } from '@/types'
+import { recordServerTime } from '@/lib/auth/server-clock'
+import type { RefreshResult } from '@/types/auth.type'
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 
 export const baseURL =
@@ -18,172 +20,108 @@ const http: AxiosInstance = axios.create({
   },
 })
 
-/** Auth state cần cho request interceptor */
-export type HttpAuthState = {
-  token?: string
-  expireTime?: string
-  refreshToken?: string
-  setToken: (token: string) => void
-  setRefreshToken: (token: string) => void
-  setExpireTime: (time: string) => void
-  setExpireTimeRefreshToken: (time: string) => void
-  setIsRefreshing: (v: boolean) => void
-  setLogout: () => void
+/** Provider inject tại bootstrap — tránh circular dependency utils ↔ stores */
+export type HttpAuthProvider = {
+  getToken(): string | undefined
+  isAccessTokenExpired(): boolean
+  refreshSession(): Promise<RefreshResult>
+  waitUntilReady(): Promise<void>
+  resetRefresh(): void
 }
 
-/** Callback khi logout (401 hoặc refresh fail) — gọi removeUserInfo, v.v. */
-export type HttpOnLogout = () => void | Promise<void>
+/** Request không thể có access token hợp lệ để gửi (refresh thất bại) */
+export class SessionRefreshError extends Error {
+  reason: 'invalid' | 'transient'
+  cause?: unknown
 
-/** Provider inject tại bootstrap — tránh circular dependency utils ↔ stores */
-let getAuthState: (() => HttpAuthState) | null = null
-let onLogout: HttpOnLogout | null = null
+  constructor(reason: 'invalid' | 'transient', cause?: unknown) {
+    super(`Session refresh failed: ${reason}`)
+    this.name = 'SessionRefreshError'
+    this.reason = reason
+    this.cause = cause
+  }
+}
+
+type RetryableConfig = InternalAxiosRequestConfig & { _retry?: boolean }
+
+let provider: HttpAuthProvider | null = null
 
 /**
  * Cấu hình auth provider cho http client.
  * Gọi ngay khi app khởi động (vd. trong lib/http-setup.ts).
  */
-export function configureHttpAuth(provider: {
-  getAuthState: () => HttpAuthState
-  onLogout: HttpOnLogout
-}): void {
-  getAuthState = provider.getAuthState
-  onLogout = provider.onLogout
+export function configureHttpAuth(next: HttpAuthProvider): void {
+  provider = next
 }
 
-// Token refresh state
-let isRefreshing = false
-const failedQueue: {
-  resolve: (token: string) => void
-  reject: (error: unknown) => void
-}[] = []
-
-const processQueue = (error: unknown, token: string | null = null) => {
-  failedQueue.forEach((prom) => {
-    if (token) {
-      prom.resolve(token)
-    } else {
-      prom.reject(error)
-    }
-  })
-  failedQueue.length = 0
-}
-
-/**
- * Reset HTTP interceptor state — call on login/logout to prevent stale
- * isRefreshing flag from trapping new requests in failedQueue across sessions.
- */
+/** Reset trạng thái refresh — gọi khi login/logout để không kẹt giữa phiên. */
 export function resetHttpState(): void {
-  if (isRefreshing) {
-    processQueue(new Error('HTTP queue flushed: session reset on logout/login'), null)
+  provider?.resetRefresh()
+}
+
+const PUBLIC_AUTH_URL =
+  /^\/auth\/(login|register|refresh|forgot-password)(\/|\?|$)/
+
+const isPublicUrl = (url?: string): boolean =>
+  !!url && PUBLIC_AUTH_URL.test(url)
+
+const recordTimestamp = (data: unknown): void => {
+  if (data && typeof data === 'object') {
+    recordServerTime((data as { timestamp?: unknown }).timestamp)
   }
-  isRefreshing = false
-  getAuthState?.().setIsRefreshing(false)
 }
 
-const isTokenExpired = (expiryTime: string): boolean => {
-  const currentDate = new Date()
-  const expireDate = new Date(expiryTime)
-  return currentDate.getTime() >= expireDate.getTime()
-}
+http.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
+  if (!provider || isPublicUrl(config.url)) return config
 
-const publicRoutes = [
-  { path: /^\/auth\/login$/, methods: ['post'] },
-  { path: /^\/auth\/register$/, methods: ['post'] },
-  { path: /^\/auth\/refresh$/, methods: ['post'] },
-  { path: /^\/auth\/forgot-password$/, methods: ['post'] },
-]
+  await provider.waitUntilReady()
 
-const isPublicRoute = (url: string, method: string): boolean =>
-  publicRoutes.some(
-    (route) =>
-      route.path.test(url) && route.methods.includes(method.toLowerCase()),
-  )
-
-http.interceptors.request.use(
-  async (config: InternalAxiosRequestConfig) => {
-    if (!getAuthState) {
-      return config
+  if (provider.getToken() && provider.isAccessTokenExpired()) {
+    const result = await provider.refreshSession()
+    if (result.status === 'invalid') throw new SessionRefreshError('invalid')
+    if (result.status === 'transient') {
+      throw new SessionRefreshError('transient', result.error)
     }
+  }
 
-    const auth = getAuthState()
-    const {
-      token,
-      expireTime,
-      refreshToken: refreshTokenValue,
-      setToken,
-      setRefreshToken,
-      setExpireTime,
-      setExpireTimeRefreshToken,
-      setIsRefreshing,
-      setLogout,
-    } = auth
-
-    if (config.url && isPublicRoute(config.url, config.method || '')) {
-      return config
-    }
-
-    if (token && expireTime && isTokenExpired(expireTime) && !isRefreshing) {
-      isRefreshing = true
-      setIsRefreshing(true)
-
-      try {
-        const response = await axios.post<IApiResponse<IRefreshTokenResponse>>(
-          `${baseURL}/auth/refresh`,
-          {
-            refreshToken: refreshTokenValue,
-            accessToken: token,
-          },
-        )
-
-        const result = response.data.result
-        setToken(result.accessToken)
-        setRefreshToken(result.refreshToken)
-        setExpireTime(result.expireTime)
-        setExpireTimeRefreshToken(result.expireTimeRefreshToken)
-
-        processQueue(null, result.accessToken)
-      } catch (error) {
-        processQueue(error, null)
-        setLogout()
-        await onLogout?.()
-        return Promise.reject(error)
-      } finally {
-        isRefreshing = false
-        setIsRefreshing(false)
-      }
-    } else if (isRefreshing) {
-      return new Promise((resolve, reject) => {
-        failedQueue.push({
-          resolve: (currentToken: string) => {
-            config.headers['Authorization'] = `Bearer ${currentToken}`
-            resolve(config)
-          },
-          reject: (error: unknown) => {
-            reject(error)
-          },
-        })
-      })
-    }
-
-    if (token) {
-      config.headers['Authorization'] = `Bearer ${token}`
-    }
-
-    return config
-  },
-  (error) => Promise.reject(error),
-)
+  // Đọc lại SAU refresh: không dùng token đã bắt trước đó
+  const token = provider.getToken()
+  if (token) config.headers['Authorization'] = `Bearer ${token}`
+  return config
+})
 
 http.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    recordTimestamp(response.data)
+    return response
+  },
   async (error) => {
-    if (axios.isAxiosError(error)) {
-      const statusCode = error.response?.status
-      if (statusCode === 401) {
-        getAuthState?.().setLogout()
-        await onLogout?.()
-      }
+    if (!axios.isAxiosError(error)) return Promise.reject(error)
+
+    recordTimestamp(error.response?.data)
+
+    const config = error.config as RetryableConfig | undefined
+    const sentAuth = config?.headers?.['Authorization']
+
+    if (
+      !provider ||
+      !config ||
+      error.response?.status !== 401 ||
+      !sentAuth ||
+      config._retry ||
+      isPublicUrl(config.url)
+    ) {
+      return Promise.reject(error)
     }
+
+    config._retry = true
+
+    // Request khác đã refresh xong trong lúc request này bay
+    const current = provider.getToken()
+    if (current && `Bearer ${current}` !== sentAuth) return http(config)
+
+    const result = await provider.refreshSession()
+    if (result.status === 'refreshed') return http(config)
     return Promise.reject(error)
   },
 )
