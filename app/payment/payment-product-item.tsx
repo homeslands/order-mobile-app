@@ -1,8 +1,6 @@
-import { Image as ExpoImage } from 'expo-image'
 import React, { useMemo } from 'react'
 import { StyleSheet, TextInput, View } from 'react-native'
 
-import { Images } from '@/assets/images'
 import { APPLICABILITY_RULE, colors, VOUCHER_TYPE } from '@/constants'
 import type { IOrderItems } from '@/types'
 import {
@@ -11,6 +9,7 @@ import {
   formatCurrency,
 } from '@/utils'
 import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
+import { MenuItemImage } from '@/components/menu/menu-item-image'
 import { Text } from '@/components/ui/text'
 
 export type DisplayItemData = ReturnType<
@@ -90,13 +89,16 @@ export const PaymentProductItem = React.memo(function PaymentProductItem({
     >
       <View style={pItemStyles.contentRow}>
         <View style={pItemStyles.imageWrap}>
-          <ExpoImage
-            source={imageUrl ? { uri: imageUrl } : Images.Food.ProductImage}
-            placeholder={Images.Food.ProductImage}
-            style={pItemStyles.image}
-            contentFit="cover"
-            cachePolicy="disk"
-          />
+          {/* Cùng pipeline ảnh với Menu: thumbnail thu nhỏ trên máy (BE chưa
+              resize — URL là ảnh gốc ~1080px), cache bộ nhớ, khoá theo ô. */}
+          <View style={pItemStyles.image}>
+            <MenuItemImage
+              id={item.slug}
+              imageUrl={imageUrl}
+              priority="normal"
+              borderRadius={8}
+            />
+          </View>
           <View
             style={[pItemStyles.qtyBadge, { backgroundColor: primaryColor }]}
           >

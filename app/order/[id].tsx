@@ -6,7 +6,6 @@ import { useLocalSearchParams } from 'expo-router'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
-  ActivityIndicator,
   Pressable,
   RefreshControl,
   ScrollView,
@@ -38,6 +37,11 @@ import { formatPointQrPayer } from '@/utils/point-payment-qr'
 
 import { InvoiceSection } from '@/app/payment/payment-invoice-section'
 import { PaymentProductItem } from '@/app/payment/payment-product-item'
+import { OrderStatusBadge } from '@/components/order-history/order-status-badge'
+import {
+  getOrderHistoryStatus,
+  type OrderHistoryStatus,
+} from '@/lib/order-history-status'
 import { Text } from '@/components/ui/text'
 
 // ─── Skeleton ───────────────────────────────────────────────────────────────
@@ -85,6 +89,13 @@ const sk = StyleSheet.create({
   },
 })
 
+const STATUS_LABEL_KEY: Record<OrderHistoryStatus, string> = {
+  unpaid: 'unpaid',
+  paid: 'paid',
+  completed: 'completed',
+  failed: 'failed',
+}
+
 // ─── Main Content ────────────────────────────────────────────────────────────
 
 function OrderDetailContent() {
@@ -97,7 +108,6 @@ function OrderDetailContent() {
   const {
     data: orderResponse,
     isPending,
-    isRefetching,
     refetch: refetchOrder,
   } = useOrderBySlug(id ?? '')
   const order = orderResponse?.result
@@ -122,6 +132,14 @@ function OrderDetailContent() {
       void refetchOrder()
     }, [refetchOrder]),
   )
+
+  // Vòng quay kéo-làm-mới chỉ cho thao tác kéo của khách — tải lại khi quay
+  // về màn (useFocusEffect) / theo thông báo không nên bật vòng quay.
+  const [userRefreshing, setUserRefreshing] = useState(false)
+  const handleUserRefresh = useCallback(() => {
+    setUserRefreshing(true)
+    void refetchOrder().finally(() => setUserRefreshing(false))
+  }, [refetchOrder])
 
   const insets = useSafeAreaInsets()
   const queryClient = useQueryClient()
@@ -186,25 +204,7 @@ function OrderDetailContent() {
     return { displayItemMap: map, cartTotals }
   }, [orderItems, voucher])
 
-  if (isPending) {
-    return (
-      <ScreenContainer
-        edges={['top']}
-        style={{ flex: 1, backgroundColor: screenBg }}
-      >
-        <FloatingHeader
-          title={t('order.orderDetail', 'Chi tiết đơn hàng')}
-          onBack={navigateNative.back}
-          disableBlur
-        />
-        <View
-          style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-        >
-          <ActivityIndicator size="large" color={primaryColor} />
-        </View>
-      </ScreenContainer>
-    )
-  }
+  if (isPending) return <OrderDetailSkeleton />
 
   if (!order) {
     return (
@@ -240,8 +240,8 @@ function OrderDetailContent() {
           showsVerticalScrollIndicator={true}
           refreshControl={
             <RefreshControl
-              refreshing={isRefetching}
-              onRefresh={refetchOrder}
+              refreshing={userRefreshing}
+              onRefresh={handleUserRefresh}
               tintColor={primaryColor}
               colors={[primaryColor]}
             />
@@ -273,45 +273,12 @@ function OrderDetailContent() {
                   >
                     {t('order.order', 'Đơn hàng')} #{order.slug}
                   </Text>
-                  <View
-                    style={[
-                      ds.orderStatusBadge,
-                      {
-                        backgroundColor:
-                          order.status === OrderStatus.PAID ||
-                          order.status === OrderStatus.COMPLETED
-                            ? `${colors.success.light}18`
-                            : order.status === OrderStatus.PENDING
-                              ? `${colors.warning.light}18`
-                              : `${colors.gray[500]}18`,
-                      },
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        ds.orderStatusText,
-                        {
-                          color:
-                            order.status === OrderStatus.PAID ||
-                            order.status === OrderStatus.COMPLETED
-                              ? colors.success.light
-                              : order.status === OrderStatus.PENDING
-                                ? colors.warning.light
-                                : isDark
-                                  ? colors.gray[400]
-                                  : colors.gray[500],
-                        },
-                      ]}
-                    >
-                      {order.status === OrderStatus.PAID
-                        ? t('order.paid', 'Đã thanh toán')
-                        : order.status === OrderStatus.COMPLETED
-                          ? t('order.completed', 'Hoàn thành')
-                          : order.status === OrderStatus.PENDING
-                            ? t('order.pending', 'Chờ thanh toán')
-                            : order.status}
-                    </Text>
-                  </View>
+                  <OrderStatusBadge
+                    status={getOrderHistoryStatus(order)}
+                    label={t(
+                      `order.${STATUS_LABEL_KEY[getOrderHistoryStatus(order)]}`,
+                    )}
+                  />
                 </View>
                 <Text
                   style={[
@@ -576,28 +543,15 @@ function OrderDetailContent() {
                     >
                       {t('order.status', 'Trạng thái')}
                     </Text>
-                    <View
+                    <Text
                       style={[
-                        ds.statusBadge,
-                        {
-                          backgroundColor:
-                            order.payment.statusMessage ===
-                            OrderStatus.COMPLETED
-                              ? colors.success.light
-                              : colors.warning.light,
-                        },
+                        ds.receiptValue,
+                        { color: isDark ? colors.gray[50] : colors.gray[900] },
                       ]}
+                      numberOfLines={1}
                     >
-                      <Text
-                        style={[
-                          ds.statusBadgeText,
-                          { color: colors.white.light },
-                        ]}
-                        numberOfLines={1}
-                      >
-                        {getPaymentStatusLabel(order.payment.statusCode)}
-                      </Text>
-                    </View>
+                      {getPaymentStatusLabel(order.payment.statusCode)}
+                    </Text>
                   </View>
                 )}
                 {order.payment?.paymentMethod === PaymentMethod.CREDIT_CARD &&
@@ -787,9 +741,9 @@ function OrderDetailContent() {
             {isPending_ && (
               <Pressable
                 onPress={handleUpdateOrder}
-                style={[ds.updateBtn, { backgroundColor: primaryColor }]}
+                style={[ds.updateBtn, { borderColor: primaryColor }]}
               >
-                <Text style={[ds.updateBtnText, { color: '#ffffff' }]}>
+                <Text style={[ds.updateBtnText, { color: primaryColor }]}>
                   {t('order.updateOrder', 'Cập nhật đơn hàng')}
                 </Text>
               </Pressable>
@@ -817,7 +771,12 @@ function OrderDetailContent() {
                   { backgroundColor: primaryColor, flex: 1 },
                 ]}
               >
-                <Text style={[ds.actionBtnFilledText, { color: '#ffffff' }]}>
+                <Text
+                  style={[
+                    ds.actionBtnFilledText,
+                    { color: colors.white.light },
+                  ]}
+                >
                   {t('order.payment', 'Thanh toán')}
                 </Text>
               </Pressable>
@@ -856,20 +815,6 @@ const ds = StyleSheet.create({
   receiptLabel: { fontSize: 13 },
   receiptValue: { fontSize: 13, fontWeight: '500' },
   receiptHeaderRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  orderStatusBadge: {
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-  },
-  orderStatusText: { fontSize: 11, fontWeight: '600' },
-  statusBadge: {
-    alignSelf: 'flex-start',
-    borderRadius: 6,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    marginTop: 8,
-  },
-  statusBadgeText: { fontSize: 12, fontWeight: '500' },
   semibold: { fontSize: 16, fontWeight: '600' },
   totalPrice: { fontSize: 24, fontWeight: '800' },
   xsText: { fontSize: 12 },
@@ -879,6 +824,7 @@ const ds = StyleSheet.create({
     borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
+    borderWidth: 1.5,
   },
   updateBtnText: { fontSize: 14, fontWeight: '600' },
   bottomBar: {
@@ -897,8 +843,13 @@ const ds = StyleSheet.create({
 })
 
 export default function OrderDetailPage() {
-  const [ready, setReady] = useState(false)
-  useRunAfterTransition(() => setReady(true), [])
+  const { id } = useLocalSearchParams<{ id: string }>()
+  const queryClient = useQueryClient()
+  // Lịch sử đơn tải trước ['order', id] lúc bấm — có dữ liệu thì hiện ngay,
+  // không chờ chuyển màn xong.
+  const [hasCache] = useState(() => !!queryClient.getQueryData(['order', id]))
+  const [ready, setReady] = useState(hasCache)
+  useRunAfterTransition(() => setReady(true), [], { transitionType: 'stack' })
   if (!ready) return <OrderDetailSkeleton />
   return <OrderDetailContent />
 }
