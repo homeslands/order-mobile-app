@@ -131,7 +131,10 @@
     "isTopSell": "Bán chạy",
     "isNewProduct": "Mới",
     "relatedProducts": "Sản phẩm liên quan",
-    "seeMore": "Xem thêm"
+    "seeMore": "Xem thêm",
+    "viewingBranch": "Đang xem menu {{name}}",
+    "changeBranch": "Đổi",
+    "dismissBranchHint": "Đóng gợi ý chi nhánh"
   },
   "cart": {
     "title": "Giỏ hàng",

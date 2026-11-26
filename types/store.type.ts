@@ -35,7 +35,14 @@ export interface IAuthStore {
 
 export interface IBranchStore {
   branch?: IBranch
+  /** Chi nhánh do app tự chọn (nhiều chi nhánh, lần đầu) — Menu hiện gợi ý
+   *  "Đang xem menu … · Đổi" cho tới khi khách tự chọn hoặc đóng. */
+  autoPicked: boolean
+  /** Khách chọn — tắt gợi ý. */
   setBranch: (branch?: IBranch) => void
+  /** App tự chọn — bật gợi ý. */
+  setAutoPickedBranch: (branch: IBranch) => void
+  dismissBranchHint: () => void
   removeBranch: () => void
 }
 

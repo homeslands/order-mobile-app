@@ -13,6 +13,9 @@ jest.mock('@/api/menu', () => ({
   getSpecificMenu: (q: unknown) => mockFetch(q),
   getPublicSpecificMenu: (q: unknown) => mockFetch(q),
 }))
+// Cấu hình truy vấn (lib/menu-queries) có import chi nhánh/danh mục từ @/api;
+// hook này không dùng tới.
+jest.mock('@/api', () => ({}))
 
 function renderPages() {
   const client = new QueryClient({

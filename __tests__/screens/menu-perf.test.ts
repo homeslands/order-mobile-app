@@ -24,7 +24,13 @@ it('MS2 gọi menu qua cổng vào màn', () => {
 
 it('MS3 vùng vẽ trước 700 và lô danh mục 5', () => {
   expect(src).toMatch(/drawDistance=\{700\}/)
-  expect(src).toMatch(/const MENU_CATALOG_BATCH = 5\b/)
+  // Lô danh mục dùng chung với việc tải trước từ Home (lib/menu-queries).
+  expect(src).toMatch(/MENU_CATALOG_BATCH[\s\S]*from '@\/lib\/menu-queries'/)
+  const queries = fs.readFileSync(
+    path.resolve(__dirname, '../../lib/menu-queries.ts'),
+    'utf-8',
+  )
+  expect(queries).toMatch(/export const MENU_CATALOG_BATCH = 5\b/)
 })
 
 it('MS4 lúc tải hiện skeleton dòng món', () => {

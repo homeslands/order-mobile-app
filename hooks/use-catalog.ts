@@ -1,5 +1,4 @@
-import { getCatalog } from '@/api'
-import { QUERYKEY } from '@/constants'
+import { catalogQueryOptions } from '@/lib/menu-queries'
 import { useQuery } from '@tanstack/react-query'
 
 export interface UseCatalogOptions {
@@ -13,8 +12,7 @@ export interface UseCatalogOptions {
 export const useCatalog = (options?: UseCatalogOptions) => {
   const enabled = options?.enabled ?? true
   return useQuery({
-    queryKey: [QUERYKEY.catalog],
-    queryFn: async () => getCatalog(),
+    ...catalogQueryOptions(),
     enabled,
   })
 }

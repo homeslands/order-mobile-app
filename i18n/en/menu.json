@@ -131,7 +131,10 @@
     "isTopSell": "Best seller",
     "isNewProduct": "New",
     "relatedProducts": "Related products",
-    "seeMore": "See more"
+    "seeMore": "See more",
+    "viewingBranch": "Viewing the menu of {{name}}",
+    "changeBranch": "Change",
+    "dismissBranchHint": "Dismiss branch tip"
   },
   "cart": {
     "title": "Cart",

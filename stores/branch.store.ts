@@ -8,8 +8,12 @@ export const useBranchStore = create<IBranchStore>()(
   persist(
     (set) => ({
       branch: undefined,
-      setBranch: (branch?: IBranch) => set({ branch }),
-      removeBranch: () => set({ branch: undefined }),
+      autoPicked: false,
+      setBranch: (branch?: IBranch) => set({ branch, autoPicked: false }),
+      setAutoPickedBranch: (branch: IBranch) =>
+        set({ branch, autoPicked: true }),
+      dismissBranchHint: () => set({ autoPicked: false }),
+      removeBranch: () => set({ branch: undefined, autoPicked: false }),
     }),
     {
       name: 'branch-storage',
