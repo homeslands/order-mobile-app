@@ -1,5 +1,8 @@
 /**
- * Cart Footer — order type, table, voucher trigger, total + checkout button.
+ * Cart Footer — thanh dưới cố định: tổng tiền + nút Đặt hàng. Giữ và hiển thị
+ * các sheet tuỳ chọn đơn (loại đơn / bàn / voucher / giao hàng — mở qua
+ * useCartSheetStore từ CartOrderOptions trong danh sách hoặc từ nút Đặt hàng)
+ * và sheet xác nhận.
  */
 import { getSystemFeatureFlagsByGroup } from '@/api'
 import {
@@ -22,17 +25,17 @@ import {
   cartActions,
   useCartItemCount,
   useCartTotal,
-  useCartVoucher,
   useCartVoucherDiscount,
 } from '@/stores/cart.store'
 import { useOrderFlowCartFooterData } from '@/stores/selectors/order-flow.selectors'
+import { useCartSheetStore } from '@/stores/cart-sheet.store'
 import { useCalculateDeliveryFee } from '@/hooks/use-branch-delivery'
 import { useBranchStore } from '@/stores'
 import type { IFeatureLock, IVoucher } from '@/types'
 import { parseKm, showErrorToastMessage, showToast } from '@/utils'
 import { useQueryClient } from '@tanstack/react-query'
 import { formatCurrencyNative } from 'cart-price-calc'
-import { ChevronRight, ShoppingBag, Ticket } from 'lucide-react-native'
+import { ShoppingBag } from 'lucide-react-native'
 import React, { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
@@ -43,14 +46,13 @@ import {
   View,
 } from 'react-native'
 
-import { DeliveryAddressSheet, DeliveryInfoRow } from '@/components/delivery'
+import { DeliveryAddressSheet } from '@/components/delivery'
 import { getCartCheckoutStep } from './cart-checkout-step'
 import { ConfirmOrderSheet } from './cart-confirm-order-sheet'
 import { SimpleOrderTypeSheet } from './cart-order-type-sheet'
 import { SimpleTableSheet } from './cart-table-sheet'
 import { VoucherSheet } from './cart-voucher-sheet'
 import { useMountOnFirstOpen } from '@/hooks/use-mount-on-first-open'
-import { PickupTimeChips } from './pickup-time-chips'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
 
@@ -93,11 +95,13 @@ export const CartFooter = memo(function CartFooter({
   const hasUser = useUserStore((s) => !!s.userInfo)
   const total = useCartTotal()
   const itemCount = useCartItemCount()
-  const voucher = useCartVoucher()
-  const [orderTypeSheetVisible, setOrderTypeSheetVisible] = useState(false)
-  const [tableSheetVisible, setTableSheetVisible] = useState(false)
-  const [voucherSheetOpen, setVoucherSheetOpen] = useState(false)
-  const [deliverySheetVisible, setDeliverySheetVisible] = useState(false)
+  const openSheet = useCartSheetStore((s) => s.open)
+  const closeSheet = useCartSheetStore((s) => s.close)
+  const sheet = useCartSheetStore((s) => s.sheet)
+  const orderTypeSheetVisible = sheet === 'orderType'
+  const tableSheetVisible = sheet === 'table'
+  const voucherSheetOpen = sheet === 'voucher'
+  const deliverySheetVisible = sheet === 'delivery'
 
   const {
     type: orderType,
@@ -128,40 +132,28 @@ export const CartFooter = memo(function CartFooter({
   const { validate } = useCartValidation()
   const setOrderingType = useOrderFlowStore((s) => s.setOrderingType)
 
-  const orderTypeLabel = useMemo(
-    () =>
-      orderType === 'take-out'
-        ? t('menu.takeAway')
-        : orderType === 'delivery'
-          ? t('menu.delivery')
-          : t('menu.dineIn'),
-    [orderType, t],
-  )
-
   const closeConfirmSheet = useCallback(() => setConfirmSheetVisible(false), [])
-  const closeOrderTypeSheet = useCallback(
-    () => setOrderTypeSheetVisible(false),
-    [],
+  const openDeliverySheet = useCallback(
+    () => openSheet('delivery'),
+    [openSheet],
   )
-  const closeTableSheet = useCallback(() => setTableSheetVisible(false), [])
-  const closeVoucherSheet = useCallback(() => setVoucherSheetOpen(false), [])
-  const openDeliverySheet = useCallback(() => setDeliverySheetVisible(true), [])
   const closeDeliverySheet = useCallback(() => {
-    setDeliverySheetVisible(false)
+    closeSheet()
     const s = useOrderFlowStore.getState()
     const addr = s.orderingData?.deliveryAddress ?? ''
     const phone = s.orderingData?.deliveryPhone ?? ''
     if (addr && !PHONE_NUMBER_REGEX.test(phone)) {
       s.clearDeliveryInfo()
     }
-  }, [])
-  const handleApplyVoucher = useCallback((v: IVoucher) => {
-    cartActions.setVoucher(v)
-    showToast(`Áp dụng: ${v.title}`)
-    setVoucherSheetOpen(false)
-  }, [])
-  const showTableSelect = orderType === 'at-table'
-  const tableLabel = tableName || t('menu.selectTable', 'Chọn bàn')
+  }, [closeSheet])
+  const handleApplyVoucher = useCallback(
+    (v: IVoucher) => {
+      cartActions.setVoucher(v)
+      showToast(`Áp dụng: ${v.title}`)
+      closeSheet()
+    },
+    [closeSheet],
+  )
   const checkoutStep = useMemo(
     () =>
       getCartCheckoutStep({
@@ -175,11 +167,7 @@ export const CartFooter = memo(function CartFooter({
   const isMissingInfo = checkoutStep.missing !== null
   const orderBtnLabel = t(checkoutStep.labelKey)
 
-  const openOrderTypeSheet = useCallback(
-    () => setOrderTypeSheetVisible(true),
-    [],
-  )
-  const openTableSheet = useCallback(() => setTableSheetVisible(true), [])
+  const openTableSheet = useCallback(() => openSheet('table'), [openSheet])
 
   // ── Press-in prefetch ────────────────────────────────────────────────────
   // Nút "Đặt hàng" phải await validate + feature flags mới mở được sheet. Bắn
@@ -197,9 +185,12 @@ export const CartFooter = memo(function CartFooter({
       staleTime: ORDER_FEATURE_FLAGS_STALE_MS,
     })
   }, [queryClient, isMissingInfo])
-  const openVoucherSheet = useCallback(() => setVoucherSheetOpen(true), [])
-  const openConfirmSheet = useCallback(async () => {
-    // Chạy song song: validate menu + fetch feature flags (cả 2 thường đã warm cache)
+  // Mở sheet xác nhận NGAY, kiểm giỏ với menu hôm nay + cờ loại đơn chạy song
+  // song (trước phải chờ xong mới mở — mạng chậm là 0.5–1s chỉ thấy vòng
+  // quay). Nút Đặt trong sheet khoá tới khi kiểm xong (isChecking); giỏ đổi
+  // (món hết / đổi giá) thì thân sheet tự cập nhật vì theo dõi đơn.
+  const prepareConfirm = useCallback(async () => {
+    setConfirmSheetVisible(true)
     const [, flagsResponse] = await Promise.all([
       validate(true),
       queryClient
@@ -215,8 +206,12 @@ export const CartFooter = memo(function CartFooter({
         .catch(() => null),
     ])
 
+    // Kiểm tra không đạt: đóng sheet (khách chưa kịp bấm Đặt — nút đang khoá)
     const remaining = useOrderFlowStore.getState().orderingData?.orderItems
-    if (!remaining || remaining.length === 0) return
+    if (!remaining || remaining.length === 0) {
+      setConfirmSheetVisible(false)
+      return
+    }
 
     if (flagsResponse) {
       const currentType = useOrderFlowStore.getState().orderingData?.type
@@ -225,20 +220,18 @@ export const CartFooter = memo(function CartFooter({
         hasUser,
       )
       if (currentType && !available.includes(currentType)) {
+        setConfirmSheetVisible(false)
         if (available.length > 0) {
           setOrderingType(available[0] as Parameters<typeof setOrderingType>[0])
         }
         showErrorToastMessage('toast.orderTypeUnavailable')
-        return
       }
     }
-
-    setConfirmSheetVisible(true)
   }, [validate, queryClient, hasUser, setOrderingType])
   // Đang kiểm thì khoá nút + bỏ qua lượt bấm lặp (lượt lặp từng mở thẳng sheet
   // vì validate() trả null khi đang có lượt khác chạy).
   const { run: runCheckout, isRunning: isChecking } =
-    useSingleFlight(openConfirmSheet)
+    useSingleFlight(prepareConfirm)
   // Thiếu thông tin thì mở thẳng chỗ cần điền thay vì im lặng.
   const handleCheckoutPress = useCallback(() => {
     if (checkoutStep.sheet === 'table') return openTableSheet()
@@ -264,63 +257,16 @@ export const CartFooter = memo(function CartFooter({
       chevronColor: isDark ? colors.gray[500] : colors.gray[400],
       primaryColorStyle: { color: primaryColor },
       primaryBorderStyle: { borderColor: primaryColor },
-      disabledBtnBg: {
-        backgroundColor: isDark ? colors.border.dark : colors.gray[300],
-      },
-      disabledTextColor: {
-        color: isDark ? colors.gray[400] : colors.gray[500],
-      },
-      disabledIconColor: isDark ? colors.gray[400] : colors.gray[500],
     }),
     [isDark, primaryColor],
   )
 
-  const tableBtnBorder = useMemo(
-    () => ({
-      borderColor: tableName
-        ? isDark
-          ? colors.border.dark
-          : colors.gray[200]
-        : isDark
-          ? colors.destructive.dark
-          : '#fca5a5',
-    }),
-    [tableName, isDark],
-  )
-
-  const tableBtnTextColor = useMemo(
-    () => ({
-      color: tableName
-        ? isDark
-          ? colors.gray[50]
-          : colors.gray[900]
-        : isDark
-          ? colors.gray[400]
-          : colors.gray[500],
-    }),
-    [tableName, isDark],
-  )
-
-  const voucherBorderStyle = useMemo(
-    () => ({
-      borderColor: voucher
-        ? primaryColor
-        : isDark
-          ? colors.border.dark
-          : colors.gray[300],
-    }),
-    [voucher, primaryColor, isDark],
-  )
-
+  // Thiếu thông tin (chưa chọn bàn / địa chỉ) vẫn là nút màu chính: bấm vào
+  // mở đúng chỗ cần điền — trước tô xám như bị khoá nên khách tưởng không bấm
+  // được.
   const checkoutBtnBg = useMemo(
-    () => ({
-      backgroundColor: isMissingInfo
-        ? isDark
-          ? colors.gray[700]
-          : colors.gray[300]
-        : primaryColor,
-    }),
-    [isMissingInfo, isDark, primaryColor],
+    () => ({ backgroundColor: primaryColor }),
+    [primaryColor],
   )
 
   return (
@@ -333,90 +279,6 @@ export const CartFooter = memo(function CartFooter({
         ]}
       >
         <GlassSurface color={ft.containerBg} style={StyleSheet.absoluteFill} />
-        {/* Order Type + Table row */}
-        <View style={footerStyles.selectRow}>
-          <Pressable
-            onPress={openOrderTypeSheet}
-            style={[footerStyles.selectBtn, ft.selectBtnBorder]}
-          >
-            <ShoppingBag size={14} color={ft.iconColor} />
-            <Text
-              style={[footerStyles.selectBtnText, ft.selectBtnTextColor]}
-              numberOfLines={1}
-            >
-              {orderTypeLabel}
-            </Text>
-          </Pressable>
-          {showTableSelect && (
-            <Pressable
-              onPress={openTableSheet}
-              style={[footerStyles.selectBtn, tableBtnBorder]}
-            >
-              <Text
-                style={[footerStyles.selectBtnText, tableBtnTextColor]}
-                numberOfLines={1}
-              >
-                {tableLabel}
-              </Text>
-              <ChevronRight size={14} color={ft.iconColor} />
-            </Pressable>
-          )}
-        </View>
-
-        {orderType === 'delivery' && (
-          <DeliveryInfoRow
-            address={deliveryAddress ?? ''}
-            phone={deliveryPhone ?? ''}
-            onPress={openDeliverySheet}
-            isDark={isDark}
-          />
-        )}
-
-        {/* Pickup Time Chips — tự ẩn khi không phải TAKE_OUT */}
-        <PickupTimeChips isDark={isDark} primaryColor={primaryColor} />
-
-        {/* Voucher trigger */}
-        <Pressable
-          onPress={openVoucherSheet}
-          style={[footerStyles.voucherTrigger, voucherBorderStyle]}
-        >
-          <Ticket size={14} color={ft.chevronColor} />
-          <Text
-            style={[
-              footerStyles.voucherLabel,
-              footerStyles.voucherLabelFlex,
-              ft.mutedColor,
-            ]}
-          >
-            {t(voucher ? 'menu.changeVoucher' : 'menu.voucher', 'Mã giảm giá')}
-          </Text>
-          {voucher && (
-            <View style={footerStyles.voucherRight}>
-              {voucherDiscount > 0 && (
-                <View
-                  style={[footerStyles.discountBadge, ft.primaryBorderStyle]}
-                >
-                  <Text
-                    style={[
-                      footerStyles.discountBadgeText,
-                      ft.primaryColorStyle,
-                    ]}
-                  >
-                    -{formatCurrencyNative(voucherDiscount)}
-                  </Text>
-                </View>
-              )}
-              <Text
-                style={[footerStyles.voucherName, ft.primaryColorStyle]}
-                numberOfLines={1}
-              >
-                {voucher.title}
-              </Text>
-            </View>
-          )}
-          <ChevronRight size={16} color={ft.chevronColor} />
-        </Pressable>
-
         {/* Total + checkout row */}
         <View style={footerStyles.bottomRow}>
           <View style={footerStyles.totalCol}>
@@ -445,30 +307,14 @@ export const CartFooter = memo(function CartFooter({
             disabled={isChecking}
             accessibilityRole="button"
             accessibilityState={{ disabled: isChecking, busy: isChecking }}
-            style={[
-              footerStyles.checkoutBtn,
-              checkoutBtnBg,
-              isMissingInfo && footerStyles.checkoutBtnDisabled,
-            ]}
+            style={[footerStyles.checkoutBtn, checkoutBtnBg]}
           >
             {isChecking ? (
               <ActivityIndicator size="small" color={colors.white.light} />
             ) : (
-              <ShoppingBag
-                size={18}
-                color={
-                  isMissingInfo ? ft.disabledIconColor : colors.white.light
-                }
-              />
+              <ShoppingBag size={18} color={colors.white.light} />
             )}
-            <Text
-              style={[
-                footerStyles.checkoutText,
-                isMissingInfo && ft.disabledTextColor,
-              ]}
-            >
-              {orderBtnLabel}
-            </Text>
+            <Text style={[footerStyles.checkoutText]}>{orderBtnLabel}</Text>
           </Pressable>
         </View>
       </View>
@@ -479,13 +325,14 @@ export const CartFooter = memo(function CartFooter({
           onClose={closeConfirmSheet}
           isDark={isDark}
           primaryColor={primaryColor}
+          isChecking={isChecking}
         />
       )}
 
       {orderTypeMounted && (
         <SimpleOrderTypeSheet
           visible={orderTypeSheetVisible}
-          onClose={closeOrderTypeSheet}
+          onClose={closeSheet}
           onDeliverySelected={openDeliverySheet}
           isDark={isDark}
           primaryColor={primaryColor}
@@ -495,7 +342,7 @@ export const CartFooter = memo(function CartFooter({
       {tableMounted && (
         <SimpleTableSheet
           visible={tableSheetVisible}
-          onClose={closeTableSheet}
+          onClose={closeSheet}
           isDark={isDark}
           primaryColor={primaryColor}
         />
@@ -504,7 +351,7 @@ export const CartFooter = memo(function CartFooter({
       {voucherMounted && (
         <VoucherSheet
           visible={voucherSheetOpen}
-          onClose={closeVoucherSheet}
+          onClose={closeSheet}
           isDark={isDark}
           primaryColor={primaryColor}
           onApply={handleApplyVoucher}
@@ -535,62 +382,6 @@ const footerStyles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 20, // overridden inline with + bottomInset
     gap: 10,
-  },
-  selectRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  selectBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    height: 40,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    borderWidth: 1,
-  },
-  selectBtnText: {
-    flex: 1,
-    fontSize: 13,
-    fontWeight: '500',
-  },
-  voucherTrigger: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 10,
-    paddingHorizontal: 14,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderRadius: 8,
-  },
-  voucherLabel: {
-    fontSize: 13,
-    fontWeight: '600',
-  },
-  voucherLabelFlex: {
-    flex: 1,
-  },
-  voucherRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  voucherName: {
-    fontSize: 13,
-    fontWeight: '600',
-    maxWidth: 120,
-  },
-  discountBadge: {
-    borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
-  discountBadgeText: {
-    fontSize: 11,
-    fontWeight: '700',
   },
   bottomRow: {
     flexDirection: 'row',
@@ -630,9 +421,6 @@ const footerStyles = StyleSheet.create({
     height: 48,
     borderRadius: 9999,
     paddingHorizontal: 20,
-  },
-  checkoutBtnDisabled: {
-    paddingHorizontal: 14,
   },
   checkoutText: {
     color: colors.white.light,

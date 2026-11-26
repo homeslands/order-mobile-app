@@ -2,6 +2,10 @@
   "table": {
     "action": "Thao tác",
     "available": "Bàn trống",
+    "chipAvailable": "Trống",
+    "chipReserved": "Đặt",
+    "loadingTables": "Đang tải...",
+    "noTables": "Không có bàn nào",
     "branch": "Chi nhánh",
     "confirmCreateMultipleTables": "Xác nhận tạo nhiều bàn",
     "confirmReservedAction": "Vẫn chọn bàn này",

@@ -2,6 +2,10 @@
   "table": {
     "action": "Action",
     "available": "Available Table",
+    "chipAvailable": "Free",
+    "chipReserved": "Reserved",
+    "loadingTables": "Loading...",
+    "noTables": "No tables",
     "branch": "Branch",
     "confirmCreateMultipleTables": "Confirm Create Multiple Tables",
     "confirmReservedAction": "Select anyway",

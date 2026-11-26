@@ -18,6 +18,8 @@ export type CartDisplayItem = {
   promotionValue: number
   note: string
   imageUrl: string | null
+  /** Món có hơn một size — chỉ khi đó mới hiện nút đổi size */
+  hasSizeChoice: boolean
 }
 
 /** Compute per-unit voucher discount for a single display item — O(1), no loop */
@@ -79,6 +81,7 @@ export function toDisplayItem(item: IOrderItem): CartDisplayItem {
     note: item.note || '',
     imageUrl:
       getProductImageUrl(item.image, { maxWidth: IMAGE_PRESET.THUMB }) ?? null,
+    hasSizeChoice: (item.allVariants?.length ?? 0) > 1,
   }
   displayItemCache.set(item, result)
   return result

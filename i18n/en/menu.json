@@ -143,6 +143,12 @@
   },
   "cart": {
     "title": "Cart",
+    "checkingOrder": "Checking…",
+    "changeSize": "Change size",
+    "selectTableToOrder": "Select a table to order",
+    "addNote": "Add a note",
+    "increaseQty": "Increase quantity",
+    "decreaseQty": "Decrease quantity",
     "confirmTitle": "Clear cart?",
     "confirmDesc": "All items will be removed and cannot be undone.",
     "clearAll": "Clear all",

@@ -62,6 +62,9 @@ jest.mock('expo-image', () => ({ Image: () => null }))
 jest.mock('lucide-react-native', () => ({
   NotebookText: () => null,
   Trash2: () => null,
+  ChevronDown: () => null,
+  Minus: () => null,
+  Plus: () => null,
 }))
 
 jest.mock('@/components/ui/text', () => ({
@@ -88,6 +91,7 @@ function makeItem(over: Partial<CartDisplayItem>): CartDisplayItem {
     promotionValue: 0,
     note: '',
     imageUrl: null,
+    hasSizeChoice: false,
     ...over,
   }
 }
@@ -121,7 +125,7 @@ afterEach(() => {
 
 it('CL1 bấm +/- không bắt danh sách tính lại bố cục', () => {
   render(row(makeItem({ quantity: 1 })))
-  fireEvent.press(screen.getByText('+'))
+  fireEvent.press(screen.getByLabelText('cart.increaseQty'))
   act(() => {
     jest.runAllTimers()
   })
@@ -130,7 +134,53 @@ it('CL1 bấm +/- không bắt danh sách tính lại bố cục', () => {
 })
 
 it('CL2 gõ ghi chú không bắt danh sách tính lại bố cục', () => {
-  render(row(makeItem({})))
+  render(row(makeItem({ note: 'ít đá' })))
+  fireEvent.press(screen.getByText('ít đá'))
+  mockSkips.length = 0
   fireEvent.changeText(screen.getByPlaceholderText(NOTE_PLACEHOLDER), 'nóng')
   expect(mockSkips).toEqual([true])
+})
+
+// Dòng món gọn: ô ghi chú không mở sẵn dưới mọi món; bộ tăng giảm chỉ − / +.
+it('RU1 chưa có ghi chú: chỉ một dòng "Thêm ghi chú", bấm mới mở ô nhập', () => {
+  render(row(makeItem({ note: '' })))
+  expect(screen.queryByPlaceholderText(NOTE_PLACEHOLDER)).toBeNull()
+  fireEvent.press(screen.getByText('cart.addNote'))
+  expect(screen.getByPlaceholderText(NOTE_PLACEHOLDER)).toBeTruthy()
+})
+
+it('RU2 đã có ghi chú: hiện dạng chữ ở cột chữ, chạm để sửa', () => {
+  render(row(makeItem({ note: 'ít đá' })))
+  expect(screen.queryByPlaceholderText(NOTE_PLACEHOLDER)).toBeNull()
+  fireEvent.press(screen.getByText('ít đá'))
+  expect(screen.getByPlaceholderText(NOTE_PLACEHOLDER).props.value).toBe(
+    'ít đá',
+  )
+  expect(screen.queryByText('cart.addNote')).toBeNull()
+})
+
+it('RU3 số lượng 1: chỉ có − (tắt) và +, không có nút xoá (đã có vuốt để xoá)', () => {
+  render(row(makeItem({ quantity: 1 })))
+  expect(screen.queryByLabelText('cart.removeItem')).toBeNull()
+  const minus = screen.getByLabelText('cart.decreaseQty')
+  expect(minus.props.accessibilityState).toEqual(
+    expect.objectContaining({ disabled: true }),
+  )
+})
+
+it('RU4 số lượng >1: nút trái là giảm số lượng', () => {
+  render(row(makeItem({ quantity: 3 })))
+  fireEvent.press(screen.getByLabelText('cart.decreaseQty'))
+  expect(screen.getByText('2')).toBeTruthy()
+})
+
+it('RU5 món một size: tên size là chữ thường, không có nút đổi size', () => {
+  render(row(makeItem({ sizeName: 'Tiêu chuẩn', hasSizeChoice: false })))
+  expect(screen.getByText('Tiêu chuẩn')).toBeTruthy()
+  expect(screen.queryByLabelText('cart.changeSize')).toBeNull()
+})
+
+it('RU6 món nhiều size: có nút đổi size', () => {
+  render(row(makeItem({ sizeName: 'M', hasSizeChoice: true })))
+  expect(screen.getByLabelText('cart.changeSize')).toBeTruthy()
 })

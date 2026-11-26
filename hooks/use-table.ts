@@ -16,12 +16,17 @@ import {
 } from '@/types'
 import { useMutation, useQuery } from '@tanstack/react-query'
 
+/** Khoá + cách tải danh sách bàn — dùng chung cho useTables và tải trước. */
+export const tablesQueryOptions = (branch: string) => ({
+  queryKey: [QUERYKEY.tables, branch] as const,
+  queryFn: async () => getAllTables(branch),
+  staleTime: 60 * 1000, // Cache 1 phút (lâu hơn default 30s)
+})
+
 export const useTables = (branch?: string) => {
   return useQuery({
-    queryKey: [QUERYKEY.tables, branch],
-    queryFn: async () => getAllTables(branch as string),
+    ...tablesQueryOptions(branch as string),
     enabled: !!branch, // Chỉ fetch khi có branch
-    staleTime: 60 * 1000, // Cache 1 phút (lâu hơn default 30s)
     refetchOnMount: false, // Không refetch khi component mount lại (tránh refetch khi mở dropdown)
     refetchOnWindowFocus: false, // Đã có trong defaultOptions nhưng set lại để chắc chắn
   })

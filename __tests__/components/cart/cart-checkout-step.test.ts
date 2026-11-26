@@ -15,7 +15,7 @@ function source(file: string): string {
 it('CS1 tại bàn chưa chọn bàn → "Chọn bàn", mở sheet bàn', () => {
   expect(getCartCheckoutStep({ type: 'at-table', tableName: '' })).toEqual({
     missing: 'table',
-    labelKey: 'menu.selectTable',
+    labelKey: 'cart.selectTableToOrder',
     sheet: 'table',
   })
 })

@@ -33,6 +33,7 @@ import { CartEmpty } from './cart-empty'
 
 import { CartFooter } from './cart-footer'
 import { CartOrderNote } from './cart-order-note'
+import { CartOrderOptions } from './cart-order-options'
 import { CartSizeSheet } from './cart-size-sheet'
 
 // ─── List helpers (module-level — 0 allocation per render) ───────────────────
@@ -167,9 +168,19 @@ export default function CartContent() {
     [footerHeight],
   )
 
-  const CartOrderNoteFooter = useCallback(
-    () => <CartOrderNote isDark={isDark} />,
-    [isDark],
+  // Dưới danh sách món: tuỳ chọn đơn (loại đơn / bàn / giờ lấy / voucher) rồi
+  // ghi chú — thanh dưới cố định chỉ còn tổng tiền + Đặt hàng.
+  // Truyền element, không phải hàm: FlashList v2 gọi createElement(hàm) —
+  // hàm mới là component mới, cả phần này dựng lại (mất giờ lấy đã chọn, ô
+  // ghi chú mất focus).
+  const listFooter = useMemo(
+    () => (
+      <>
+        <CartOrderOptions isDark={isDark} primaryColor={primaryColor} />
+        <CartOrderNote isDark={isDark} primaryColor={primaryColor} />
+      </>
+    ),
+    [isDark, primaryColor],
   )
 
   if (items.length === 0) {
@@ -192,8 +203,13 @@ export default function CartContent() {
         getItemType={getCartItemType}
         contentContainerStyle={listContentStyle}
         showsVerticalScrollIndicator={false}
+        // Ô ghi chú đơn / ghi chú món cuối danh sách: chừa chỗ bàn phím và
+        // cuộn tới ô đang nhập (iOS tự xử lý theo ô đang focus).
+        automaticallyAdjustKeyboardInsets
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
         ItemSeparatorComponent={ItemSeparator}
-        ListFooterComponent={CartOrderNoteFooter}
+        ListFooterComponent={listFooter}
       />
       <CartFooter
         primaryColor={primaryColor}
