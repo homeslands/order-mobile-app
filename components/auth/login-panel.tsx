@@ -34,6 +34,8 @@ export default function LoginPanel({
   const { t } = useTranslation('auth')
   const isDark = useColorScheme() === 'dark'
   const [isLoginLoading, setIsLoginLoading] = useState(false)
+  // Màn chào khách quen (đã bật Face ID / vân tay) tự có lời chào riêng.
+  const [isReturning, setIsReturning] = useState(false)
 
   const handleRegister = useCallback(() => {
     onBeforeNavigate?.()
@@ -63,40 +65,47 @@ export default function LoginPanel({
         />
       )}
 
-      <Text
-        className={cn(
-          'mt-6 font-sans-bold text-gray-900 dark:text-white',
-          compactTitle ? 'text-2xl' : 'text-3xl',
-        )}
-      >
-        {t('login.title')}
-      </Text>
-      <Text className="mt-2 font-sans text-base text-gray-500 dark:text-gray-400">
-        {t('login.description')}
-      </Text>
+      {isReturning ? null : (
+        <>
+          <Text
+            className={cn(
+              'mt-6 font-sans-bold text-gray-900 dark:text-white',
+              compactTitle ? 'text-2xl' : 'text-3xl',
+            )}
+          >
+            {t('login.title')}
+          </Text>
+          <Text className="mt-2 font-sans text-base text-gray-500 dark:text-gray-400">
+            {t('login.description')}
+          </Text>
+        </>
+      )}
 
-      <View className="mt-7">
+      <View className={isReturning ? 'mt-12' : 'mt-7'}>
         <LoginForm
           onLoginSuccess={onLoginSuccess}
           onBeforeNavigate={onBeforeNavigate}
           onLoadingChange={setIsLoginLoading}
+          onReturningUserChange={setIsReturning}
         />
       </View>
 
-      <TouchableOpacity
-        testID="login-panel-register"
-        className="mt-6 items-center"
-        onPress={handleRegister}
-        disabled={isLoginLoading}
-        hitSlop={8}
-      >
-        <Text className="font-sans text-sm text-gray-500 dark:text-gray-400">
-          {t('login.noAccount')}{' '}
-          <Text className="font-sans-semibold text-primary">
-            {t('login.registerNow')}
+      {isReturning ? null : (
+        <TouchableOpacity
+          testID="login-panel-register"
+          className="mt-6 items-center"
+          onPress={handleRegister}
+          disabled={isLoginLoading}
+          hitSlop={8}
+        >
+          <Text className="font-sans text-sm text-gray-500 dark:text-gray-400">
+            {t('login.noAccount')}{' '}
+            <Text className="font-sans-semibold text-primary">
+              {t('login.registerNow')}
+            </Text>
           </Text>
-        </Text>
-      </TouchableOpacity>
+        </TouchableOpacity>
+      )}
 
       <View testID="login-panel-spacer" className="flex-1" />
 
