@@ -23,6 +23,7 @@ import { EMAIL_REGEX, ROUTE, VerificationMethod, colors } from '@/constants'
 import {
   useConfirmForgotPassword,
   useInitiateForgotPassword,
+  useResendCooldown,
   useResendOTPForgotPassword,
   useShakeAnimation,
   useVerifyOTPForgotPassword,
@@ -106,6 +107,7 @@ export default function ForgotPasswordScreen() {
   // Local state
   const [otpValue, setOtpValue] = useState('')
   const [isSuccess, setIsSuccess] = useState(false)
+  const { resendAvailableAt, restartResendCooldown } = useResendCooldown()
 
   // Mutations
   const { mutate: initiate, isPending: isInitiating } =
@@ -226,6 +228,7 @@ export default function ForgotPasswordScreen() {
             ),
           )
           setExpireTime(buffered)
+          restartResendCooldown()
           setStep(2)
         },
         onError: (err: unknown) => {
@@ -268,6 +271,7 @@ export default function ForgotPasswordScreen() {
       setOtpValue,
       setStep,
       initiate,
+      restartResendCooldown,
       tToast,
     ],
   )
@@ -360,11 +364,20 @@ export default function ForgotPasswordScreen() {
           ),
         )
         setExpireTime(buffered)
+        restartResendCooldown()
         setOtpValue('')
       },
       onError: handleMutationError,
     })
-  }, [email, phoneNumber, verificationMethod, resendOTP, setExpireTime, tToast])
+  }, [
+    email,
+    phoneNumber,
+    verificationMethod,
+    resendOTP,
+    setExpireTime,
+    restartResendCooldown,
+    tToast,
+  ])
 
   // ── Navigation handlers ─────────────────────────────────────────
   const handleBack = useCallback(() => {
@@ -478,6 +491,7 @@ export default function ForgotPasswordScreen() {
               {activeStep === 2 && expireTime ? (
                 <OTPStepForgot
                   expiresAt={expireTime}
+                  resendAvailableAt={resendAvailableAt}
                   otpValue={otpValue}
                   onOtpChange={handleOtpChange}
                   isResending={isResending}
