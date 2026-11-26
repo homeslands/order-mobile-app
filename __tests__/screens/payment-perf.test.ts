@@ -52,3 +52,12 @@ it('PP7 không tạo props mới mỗi lần render làm mất memo', () => {
 it('PP8 số dư Xu chỉ tải khi đơn còn chờ thanh toán', () => {
   expect(page).toMatch(/useCoinBalance\(\s*isLoggedIn && isOrderPending,?\s*\)/)
 })
+
+// Hàng chip chọn nhanh điểm tràn mép thẻ: lề hai bên bằng khoảng đệm thật ở
+// đầu / cuối (padding của contentContainer ngang không được áp trên máy).
+it('PP9 hàng chip điểm có lề hai bên bằng khoảng đệm đầu / cuối', () => {
+  const loyalty = read('app/payment/loyalty-points-input.tsx')
+  const row = loyalty.slice(loyalty.indexOf('style={s.chipsScroll}'))
+  expect(row.slice(0, 300)).toMatch(/<View style=\{s\.chipsEdge\} \/>/)
+  expect(row).toMatch(/<View style=\{s\.chipsEdge\} \/>\s*<\/ScrollView>/)
+})
