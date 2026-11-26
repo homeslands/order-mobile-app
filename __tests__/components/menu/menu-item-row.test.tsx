@@ -1,8 +1,12 @@
 // Hàng món ở tab Menu: món hết hàng phải trông khác và không thêm nhanh được
 // bằng nút "+" (trước đây vẫn thêm được món bị khoá / hết số lượng).
 import { fireEvent, render, screen } from '@testing-library/react-native'
+import { StyleSheet } from 'react-native'
 
-import { MenuItemRow } from '@/app/(tabs)/menu/menu-item-row'
+import {
+  MENU_ROW_IMAGE_SIZE,
+  MenuItemRow,
+} from '@/app/(tabs)/menu/menu-item-row'
 
 jest.mock('@/components/menu/menu-item-image', () => ({
   MenuItemImage: () => null,
@@ -26,11 +30,23 @@ jest.mock('react-i18next', () => ({
   useTranslation: () => ({ t: (k: string) => k }),
 }))
 
-function renderRow(hasStock: boolean, onAddToCart = jest.fn()) {
+function renderRow(
+  hasStock: boolean,
+  onAddToCart = jest.fn(),
+  over: Partial<{
+    description: string
+    isTopSell: boolean
+    isNew: boolean
+  }> = {},
+) {
   render(
     <MenuItemRow
       id="tra-dao"
       name="Trà đào"
+      description=""
+      isTopSell={false}
+      isNew={false}
+      {...over}
       imageUrl={null}
       listIndex={0}
       rawPrice={45000}
@@ -65,4 +81,50 @@ it('hết hàng: gắn nhãn "Hết hàng" và tắt nút +', () => {
   )
   fireEvent.press(button)
   expect(onAdd).not.toHaveBeenCalled()
+})
+
+// Dòng món gọn (bố cục mới): mô tả một dòng dưới tên, nhãn Bán chạy / Mới.
+it('có mô tả: hiện một dòng dưới tên món', () => {
+  renderRow(true, jest.fn(), { description: 'Đào ngâm, trà đen' })
+  const desc = screen.getByText('Đào ngâm, trà đen')
+  expect(desc.props.numberOfLines).toBe(1)
+})
+
+it('mô tả trống / toàn khoảng trắng: không chừa dòng trống', () => {
+  renderRow(true, jest.fn(), { description: '   ' })
+  expect(screen.queryByTestId('menu-row-description')).toBeNull()
+})
+
+it('nhãn Bán chạy / Mới theo món', () => {
+  renderRow(true, jest.fn(), { isTopSell: true, isNew: true })
+  expect(screen.getByText('menu.isTopSell')).toBeTruthy()
+  expect(screen.getByText('menu.isNewProduct')).toBeTruthy()
+})
+
+it('món thường: không có nhãn', () => {
+  renderRow(true)
+  expect(screen.queryByText('menu.isTopSell')).toBeNull()
+  expect(screen.queryByText('menu.isNewProduct')).toBeNull()
+})
+
+it('ảnh món 88: dòng gọn nhưng ảnh đủ lớn để chọn món', () => {
+  expect(MENU_ROW_IMAGE_SIZE).toBe(88)
+})
+
+// Mỗi món một thẻ riêng; tên món sát mép trên ảnh, giá và nút + sát mép dưới
+// (không căn giữa theo trục dọc — dòng không mô tả sẽ lơ lửng).
+it('thẻ riêng bo đủ 4 góc', () => {
+  renderRow(true)
+  const flat = StyleSheet.flatten(screen.getByTestId('menu-row').props.style)
+  expect(flat.borderRadius).toBe(12)
+})
+
+it('tên món căn trên, giá + nút + căn dưới', () => {
+  renderRow(true)
+  const row = StyleSheet.flatten(screen.getByTestId('menu-row').props.style)
+  expect(row.alignItems).toBe('stretch')
+  const content = StyleSheet.flatten(
+    screen.getByTestId('menu-row-content').props.style,
+  )
+  expect(content.justifyContent).toBe('space-between')
 })
