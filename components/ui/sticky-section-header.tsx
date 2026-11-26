@@ -1,5 +1,6 @@
 /**
- * Tiêu đề nhóm danh mục ở tab Menu.
+ * Tiêu đề nhóm trong danh sách có tiêu đề dính (FlashList
+ * `stickyHeaderIndices`) — nhóm danh mục ở Menu, nhóm ngày ở Lịch sử đơn.
  *
  * - Đang lướt (`stuck = false`): chữ trên nền xám, nằm trong danh sách.
  * - Đã dính (`stuck = true`, FlashList vẽ ở lớp tiêu đề dính): thanh tiêu đề
@@ -13,24 +14,23 @@ import { Platform, StyleSheet, View } from 'react-native'
 
 import { Text } from '@/components/ui/text'
 import { colors } from '@/constants'
-import { capitalizeFirst } from '@/utils/format'
 
-export const MENU_CATALOG_HEADER_HEIGHT = 48
+export const STICKY_SECTION_HEADER_HEIGHT = 48
 
-export const MenuCatalogHeader = memo(function MenuCatalogHeader({
-  name,
-  countLabel,
+export const StickySectionHeader = memo(function StickySectionHeader({
+  title,
+  subtitle,
   stuck,
   isDark,
 }: {
-  name: string
-  countLabel: string
+  title: string
+  subtitle: string
   stuck: boolean
   isDark: boolean
 }) {
   return (
     <View
-      testID="menu-catalog-header"
+      testID="sticky-section-header"
       style={[
         styles.base,
         stuck
@@ -56,7 +56,7 @@ export const MenuCatalogHeader = memo(function MenuCatalogHeader({
           { color: isDark ? colors.gray[50] : colors.gray[900] },
         ]}
       >
-        {capitalizeFirst(name)}
+        {title}
       </Text>
       <Text
         style={[
@@ -64,7 +64,7 @@ export const MenuCatalogHeader = memo(function MenuCatalogHeader({
           { color: isDark ? colors.gray[400] : colors.gray[500] },
         ]}
       >
-        {countLabel}
+        {subtitle}
       </Text>
     </View>
   )
@@ -72,7 +72,7 @@ export const MenuCatalogHeader = memo(function MenuCatalogHeader({
 
 const styles = StyleSheet.create({
   base: {
-    height: MENU_CATALOG_HEADER_HEIGHT,
+    height: STICKY_SECTION_HEADER_HEIGHT,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,

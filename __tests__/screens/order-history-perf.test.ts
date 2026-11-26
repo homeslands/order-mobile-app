@@ -11,12 +11,11 @@ function read(rel: string) {
 }
 
 const history = read('app/profile/history.tsx')
-const productItem = read('app/profile/order-product-item.tsx')
-const card = read('app/profile/order-card.tsx')
+const card = read('components/order-history/order-history-card.tsx')
 
 it('OH1 ảnh món dùng thumbnail trên máy (MenuItemImage), không tải ảnh gốc', () => {
-  expect(productItem).toMatch(/<MenuItemImage\b/)
-  expect(productItem).not.toMatch(/from 'expo-image'/)
+  expect(card).toMatch(/<MenuItemImage\b/)
+  expect(card).not.toMatch(/from 'expo-image'/)
 })
 
 it('OH2 gọi lại theo thông báo "đã thanh toán" chờ chuyển màn xong', () => {
@@ -26,7 +25,7 @@ it('OH2 gọi lại theo thông báo "đã thanh toán" chờ chuyển màn xong
 
 it('OH3 có dữ liệu (cache / tải trước) thì hiện ngay, không skeleton', () => {
   expect(history).not.toMatch(/showSkeleton = !allowFetch/)
-  expect(history).toMatch(/showSkeleton = !orderResponse/)
+  expect(history).toMatch(/showSkeleton = !orderPages/)
   // Skeleton nằm trong vùng danh sách, header + chip lọc là thật → không nhảy.
   expect(history).not.toMatch(/return \(\s*<OrderHistorySkeleton\b/)
 })
@@ -35,19 +34,9 @@ it('OH4 vòng quay kéo-làm-mới chỉ khi khách tự kéo', () => {
   expect(history).not.toMatch(/refreshing=\{isRefetching\}/)
 })
 
-it('OH5 bỏ overrideItemLayout vô tác dụng, có getItemType theo số dòng món', () => {
+it('OH5 bỏ overrideItemLayout vô tác dụng, có getItemType (tiêu đề / thẻ)', () => {
   expect(history).not.toMatch(/overrideItemLayout/)
   expect(history).toMatch(/getItemType=/)
-})
-
-it('OH6 dòng món trong thẻ khoá theo vị trí để FlashList tái dùng ô', () => {
-  expect(card).toMatch(/key=\{index\}/)
-})
-
-it('OH7 cache hiển thị đổi khi số lượng / tiền đổi (sửa đơn chưa thanh toán)', () => {
-  const keyLine = history.match(/const cacheKey = `[^`]*`/)?.[0] ?? ''
-  expect(keyLine).toMatch(/subtotal/)
-  expect(keyLine).toMatch(/qty/)
 })
 
 it('OH8 không subscribe cả object userInfo (đổi điểm / hồ sơ là render lại màn)', () => {
@@ -59,4 +48,16 @@ it('OH9 tải trước trang đầu ngay lúc bấm vào, từ Hồ sơ và Home
   expect(read('components/home/home-action-grid.tsx')).toMatch(
     /prefetchOrderHistory\(/,
   )
+})
+
+it('OH10 cuộn xuống tự tải trang kế, bỏ nút Trước / Sau', () => {
+  expect(history).toMatch(/useOrderHistory\(/)
+  expect(history).toMatch(/onEndReached=\{handleEndReached\}/)
+  expect(history).toMatch(/fetchNextPage\(\)/)
+  expect(history).not.toMatch(/order\.previous|order\.next/)
+})
+
+it('OH11 tiêu đề ngày dính; header cố định (không nổi đè lên danh sách)', () => {
+  expect(history).toMatch(/stickyHeaderIndices=\{stickyHeaderIndices\}/)
+  expect(history).not.toMatch(/floatingHeader/)
 })

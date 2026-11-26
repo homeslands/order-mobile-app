@@ -63,13 +63,29 @@ export const ordersQueryOptions = (q: IOrdersQuery) => ({
 
 export const ORDER_HISTORY_PAGE_SIZE = 10
 
-/** Trang đầu màn Lịch sử đơn (lọc "Tất cả", chưa lọc ngày). */
-export const orderHistoryFirstPageQuery = (owner: string): IOrdersQuery => ({
-  page: 1,
+/** Bộ lọc màn Lịch sử đơn → tham số API (chưa có `page`, infinite tự thêm). */
+export const orderHistoryQuery = (
+  owner: string,
+  filter: { status?: string; startDate?: string; endDate?: string },
+): Omit<IOrdersQuery, 'page'> => ({
   size: ORDER_HISTORY_PAGE_SIZE,
   owner,
   order: 'DESC',
   hasPaging: true,
+  ...filter,
+})
+
+/**
+ * Khoá + cách tải trang của màn Lịch sử đơn (cuộn tải thêm) — dùng chung cho
+ * hook và tải trước, để tải trước ghi đúng chỗ màn đọc.
+ */
+export const orderHistoryInfiniteOptions = (q: Omit<IOrdersQuery, 'page'>) => ({
+  queryKey: ['orders', 'history', q] as const,
+  queryFn: ({ pageParam }: { pageParam: number }) =>
+    getAllOrders({ ...q, page: pageParam }),
+  initialPageParam: 1,
+  getNextPageParam: (last: Awaited<ReturnType<typeof getAllOrders>>) =>
+    last.result?.hasNext ? (last.result.page ?? 0) + 1 : undefined,
 })
 
 /**
@@ -81,10 +97,20 @@ export async function prefetchOrderHistory(
   owner: string | undefined,
 ): Promise<void> {
   if (!owner) return
-  await client.prefetchQuery(
-    ordersQueryOptions(orderHistoryFirstPageQuery(owner)),
+  await client.prefetchInfiniteQuery(
+    orderHistoryInfiniteOptions(orderHistoryQuery(owner, {})),
   )
 }
+
+/** Lịch sử đơn — cuộn xuống tự tải trang kế. */
+export const useOrderHistory = (
+  q: Omit<IOrdersQuery, 'page'>,
+  options?: { enabled?: boolean },
+) =>
+  useInfiniteQuery({
+    ...orderHistoryInfiniteOptions(q),
+    enabled: options?.enabled ?? true,
+  })
 
 export const useOrders = (q: IOrdersQuery, options?: { enabled?: boolean }) => {
   return useQuery({

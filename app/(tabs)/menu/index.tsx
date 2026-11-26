@@ -10,7 +10,7 @@ import {
 import { Images } from '@/assets/images'
 import { BranchHint, SelectBranchDropdown } from '@/components/branch'
 import { TabScreenLayout, useTabBarBottomPadding } from '@/components/layout'
-import { MenuCatalogHeader } from '@/components/menu/menu-catalog-header'
+import { StickySectionHeader } from '@/components/ui/sticky-section-header'
 import { MenuItemRowSkeleton } from '@/components/menu/menu-item-row-skeleton'
 import { PriceFilterSheet } from '@/components/menu/price-sheet'
 import { PressableWithFeedback } from '@/components/navigation/pressable-with-feedback'
@@ -39,6 +39,7 @@ import {
   isMenuLoadError,
 } from '@/utils/menu-stock'
 import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
+import { capitalizeFirst } from '@/utils/format'
 import { showToast } from '@/utils/toast'
 import { useFocusEffect } from '@react-navigation/native'
 import {
@@ -740,9 +741,9 @@ export default function MenuPage() {
         // Lướt tới đầu danh sách thì FlashList vẽ lại ô này ở lớp tiêu đề dính
         // (target 'StickyHeader') — khi đó thành thanh tiêu đề.
         return (
-          <MenuCatalogHeader
-            name={item.name}
-            countLabel={t('menu.catalogItemCount', { count: item.count })}
+          <StickySectionHeader
+            title={capitalizeFirst(item.name)}
+            subtitle={t('menu.catalogItemCount', { count: item.count })}
             stuck={target === 'StickyHeader'}
             isDark={isDark}
           />

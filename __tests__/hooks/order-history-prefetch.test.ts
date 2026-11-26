@@ -3,8 +3,8 @@
 import { QueryClient } from '@tanstack/react-query'
 
 import {
-  orderHistoryFirstPageQuery,
-  ordersQueryOptions,
+  orderHistoryInfiniteOptions,
+  orderHistoryQuery,
   prefetchOrderHistory,
 } from '@/hooks/use-order'
 
@@ -28,9 +28,14 @@ it('OP1 tải trước ghi đúng khoá màn Lịch sử đọc (lọc Tất c�
   })
   clients.push(client)
   await prefetchOrderHistory(client, 'u1')
-  const key = ordersQueryOptions(orderHistoryFirstPageQuery('u1')).queryKey
-  expect(client.getQueryData(key)).toBeDefined()
-  expect(mockGetAllOrders).toHaveBeenCalledTimes(1)
+  // Màn Lịch sử cuộn tải thêm (useInfiniteQuery) — tải trước phải ghi đúng
+  // khoá infinite, lọc "Tất cả", chưa lọc ngày.
+  const key = orderHistoryInfiniteOptions(orderHistoryQuery('u1', {})).queryKey
+  const data = client.getQueryData<{ pages: unknown[] }>(key)
+  expect(data?.pages).toHaveLength(1)
+  expect(mockGetAllOrders).toHaveBeenCalledWith(
+    expect.objectContaining({ page: 1, owner: 'u1', order: 'DESC' }),
+  )
 })
 
 it('OP2 chưa đăng nhập: không tải', async () => {
@@ -38,4 +43,14 @@ it('OP2 chưa đăng nhập: không tải', async () => {
   clients.push(client)
   await prefetchOrderHistory(client, undefined)
   expect(mockGetAllOrders).not.toHaveBeenCalled()
+})
+
+it('OP3 trang sau: có hasNext thì xin trang kế, hết thì dừng', () => {
+  const opts = orderHistoryInfiniteOptions(orderHistoryQuery('u1', {}))
+  expect(
+    opts.getNextPageParam({ result: { hasNext: true, page: 2 } } as never),
+  ).toBe(3)
+  expect(
+    opts.getNextPageParam({ result: { hasNext: false, page: 3 } } as never),
+  ).toBeUndefined()
 })
