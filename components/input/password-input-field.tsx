@@ -23,7 +23,6 @@ export interface PasswordInputFieldProps {
   disabled?: boolean
   error?: string
   invalid?: boolean
-  autoFocus?: boolean
 }
 
 export function PasswordInputField({
@@ -34,7 +33,6 @@ export function PasswordInputField({
   disabled,
   error,
   invalid,
-  autoFocus,
 }: PasswordInputFieldProps) {
   const [showPassword, setShowPassword] = useState(false)
   const colorScheme = useColorScheme()
@@ -69,7 +67,6 @@ export function PasswordInputField({
           }}
           allowFontScaling={false}
           placeholder={placeholder}
-          autoFocus={autoFocus}
           placeholderTextColor={
             isDark ? colors.mutedForeground.dark : colors.mutedForeground.light
           }

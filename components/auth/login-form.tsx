@@ -73,7 +73,8 @@ export default function LoginForm({
     clearErrors,
     watch,
     setValue,
-    formState: { isSubmitting, errors },
+    reset,
+    formState: { isSubmitting, isSubmitted, errors },
   } = useZodForm(loginSchema, {
     defaultValues: { phonenumber: '', password: '' },
   })
@@ -138,23 +139,20 @@ export default function LoginForm({
   }, [isReturningView, onReturningUserChange])
 
   // Vào màn mật khẩu luôn với ô sạch: lỗi kiểm tra cũ (nếu có) không còn.
+  // Đổi màn = form mới: reset cả giá trị, lỗi, trạng thái touched/submitted
+  // để lỗi của màn trước (hay lần bấm Đăng nhập trước) không theo sang.
   const showPasswordMode = useCallback(() => {
-    setValue('password', '')
-    clearErrors('password')
+    reset({ phonenumber: bioPhone ?? '', password: '' })
     setMode('password')
-  }, [setValue, clearErrors])
+  }, [bioPhone, reset])
   const showOtherAccount = useCallback(() => {
-    setValue('phonenumber', '')
-    setValue('password', '')
-    clearErrors()
+    reset({ phonenumber: '', password: '' })
     setMode('other')
-  }, [setValue, clearErrors])
+  }, [reset])
   const backToGreeting = useCallback(() => {
-    if (bioPhone) setValue('phonenumber', bioPhone)
-    setValue('password', '')
-    clearErrors()
+    reset({ phonenumber: bioPhone ?? '', password: '' })
     setMode('greeting')
-  }, [bioPhone, setValue, clearErrors])
+  }, [bioPhone, reset])
 
   // Sau khi đăng nhập bằng MẬT KHẨU thành công: số khác số đã bật thì xoá
   // bản cũ (một máy chỉ giữ một tài khoản), rồi mời bật cho số này. Mật khẩu
@@ -320,13 +318,17 @@ export default function LoginForm({
       textContentType="username"
       importantForAutofill="yes"
       disabled={isLoading}
-      autoFocus={view === 'other'}
       useTextInput
       transformOnChange={(v) => v.replace(/\D/g, '')}
       labelClassName="text-sm font-sans-medium text-gray-500 dark:text-gray-400"
       containerClassName="mb-4"
     />
   )
+
+  // Màn nhập mật khẩu (đã bật Face ID): chỉ báo lỗi sau khi bấm Đăng nhập.
+  // Trên iOS hộp Face ID làm ô được focus rồi mất focus ngoài ý khách; báo
+  // theo mất focus (onTouched) thì ô viền đỏ "bắt buộc" giữa lúc đang quét.
+  const showPasswordError = !isScanning && (view !== 'password' || isSubmitted)
 
   const passwordField = (
     <View>
@@ -346,9 +348,8 @@ export default function LoginForm({
             onBlur={onBlur}
             placeholder={t('login.enterPassword')}
             disabled={isLoading}
-            error={isScanning ? undefined : errors.password?.message}
-            invalid={invalid && !isScanning}
-            autoFocus={view === 'password'}
+            error={showPasswordError ? errors.password?.message : undefined}
+            invalid={invalid && showPasswordError}
           />
         )}
       />

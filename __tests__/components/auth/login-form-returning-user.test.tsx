@@ -180,38 +180,82 @@ it('RU7 chưa bật: form thường, không có màn chào', async () => {
   expect(mockRead).not.toHaveBeenCalled()
 })
 
-// Form kiểm tra kiểu onTouched: ô mật khẩu tự focus rồi mất focus khi hộp
-// Face ID bật lên → bị kiểm tra lúc còn trống, viền đỏ dù khách chưa nhập gì.
-it('RU9 đang nhập mật khẩu bấm "Dùng Face ID": ô mật khẩu không bị báo lỗi', async () => {
-  mockRead.mockResolvedValue({
-    status: 'ok',
-    phonenumber: '0901234567',
-    password: 'secret1',
-  })
+// Màn nhập mật khẩu chỉ báo lỗi sau khi khách bấm Đăng nhập. Trên iOS, hộp
+// Face ID làm ô mật khẩu được focus rồi mất focus ngoài ý khách (xem RU12) —
+// nếu báo lỗi theo mất focus thì ô viền đỏ "bắt buộc" giữa lúc đang quét.
+it('RU9 ô mật khẩu trống mất focus: không viền đỏ; bấm Đăng nhập mới báo', async () => {
   render(<LoginForm />)
   await screen.findByTestId('use-password-button')
   await act(async () => {
     fireEvent.press(screen.getByTestId('use-password-button'))
   })
-  const input = screen.getByPlaceholderText('login.enterPassword')
   await act(async () => {
-    fireEvent(input, 'blur')
+    fireEvent(screen.getByPlaceholderText('login.enterPassword'), 'blur')
+  })
+  await flush()
+  expect(
+    screen.getByPlaceholderText('login.enterPassword').props.className,
+  ).not.toContain('border-destructive')
+
+  await act(async () => {
+    fireEvent.press(screen.getByText('login.login'))
   })
   await waitFor(() =>
     expect(
       screen.getByPlaceholderText('login.enterPassword').props.className,
     ).toContain('border-destructive'),
   )
+  expect(mockMutate).not.toHaveBeenCalled()
+})
 
+// autoFocus trên iOS chạy lại khi cửa sổ được kích hoạt lại — hộp Face ID
+// làm việc đó, nên bàn phím bật giữa lúc quét (quay video trên iPhone 12).
+it('RU13 đã bấm Đăng nhập (sai) rồi đổi màn và quay lại: ô mật khẩu không còn đỏ', async () => {
+  render(<LoginForm />)
+  await screen.findByTestId('use-password-button')
   await act(async () => {
-    fireEvent.press(screen.getByTestId('use-biometric-button'))
+    fireEvent.press(screen.getByTestId('use-password-button'))
   })
-  await waitFor(() => expect(mockRead).toHaveBeenCalledTimes(1))
+  await act(async () => {
+    fireEvent.press(screen.getByText('login.login'))
+  })
   await waitFor(() =>
     expect(
       screen.getByPlaceholderText('login.enterPassword').props.className,
-    ).not.toContain('border-destructive'),
+    ).toContain('border-destructive'),
   )
+  // Huỷ quét → màn chào → vào lại màn mật khẩu → ô mất focus.
+  await act(async () => {
+    fireEvent.press(screen.getByTestId('use-biometric-button'))
+  })
+  await screen.findByTestId('login-greeting')
+  await act(async () => {
+    fireEvent.press(screen.getByTestId('use-password-button'))
+  })
+  await act(async () => {
+    fireEvent(screen.getByPlaceholderText('login.enterPassword'), 'blur')
+  })
+  await flush()
+  expect(
+    screen.getByPlaceholderText('login.enterPassword').props.className,
+  ).not.toContain('border-destructive')
+})
+
+it('RU12 không ô nào tự focus', async () => {
+  render(<LoginForm />)
+  await screen.findByTestId('use-password-button')
+  await act(async () => {
+    fireEvent.press(screen.getByTestId('use-password-button'))
+  })
+  expect(
+    screen.getByPlaceholderText('login.enterPassword').props.autoFocus,
+  ).toBeFalsy()
+  await act(async () => {
+    fireEvent.press(screen.getByTestId('change-account-button'))
+  })
+  expect(
+    screen.getByPlaceholderText('login.enterPhoneNumber').props.autoFocus,
+  ).toBeFalsy()
 })
 
 it('RU11 trong lúc hộp Face ID đang hiện, ô mật khẩu không viền đỏ', async () => {

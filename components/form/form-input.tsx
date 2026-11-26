@@ -42,7 +42,6 @@ interface FormInputProps<T extends FieldValues> {
   transformOnChange?: (value: string) => string // Transform value before onChange
   textContentType?: TextInputProps['textContentType']
   importantForAutofill?: TextInputProps['importantForAutofill']
-  autoFocus?: boolean
 }
 
 interface FormInputFieldProps {
@@ -76,7 +75,6 @@ interface FormInputFieldProps {
   invalid?: boolean
   textContentType?: TextInputProps['textContentType']
   importantForAutofill?: TextInputProps['importantForAutofill']
-  autoFocus?: boolean
 }
 
 function FormInputField({
@@ -103,7 +101,6 @@ function FormInputField({
   invalid,
   textContentType,
   importantForAutofill,
-  autoFocus,
 }: FormInputFieldProps) {
   const colorScheme = useColorScheme()
   const isDark = colorScheme === 'dark'
@@ -177,7 +174,6 @@ function FormInputField({
           allowFontScaling={false}
           textContentType={textContentType}
           importantForAutofill={importantForAutofill}
-          autoFocus={autoFocus}
         />
       ) : (
         <Input
@@ -233,7 +229,6 @@ export function FormInput<T extends FieldValues>({
   transformOnChange,
   textContentType,
   importantForAutofill,
-  autoFocus,
 }: FormInputProps<T>) {
   return (
     <Controller
@@ -267,7 +262,6 @@ export function FormInput<T extends FieldValues>({
           invalid={invalid}
           textContentType={textContentType}
           importantForAutofill={importantForAutofill}
-          autoFocus={autoFocus}
         />
       )}
     />
