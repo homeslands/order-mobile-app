@@ -22,7 +22,7 @@ const DEBOUNCE_QTY_MS = 200
  * Ghi chú (và "Thêm ghi chú") bắt đầu từ mép trái thẻ, thẳng mép ảnh, trải hết
  * ngang — thụt vào cột chữ thì luôn trống một khoảng dưới ảnh, lệch bố cục.
  */
-const NOTE_INSET = 10
+const NOTE_INSET = 12
 /**
  * Đối số thứ hai của setter useRecyclingState: true = chỉ render lại ô này,
  * không bắt FlashList tính lại bố cục cả danh sách (mặc định). Số lượng chờ và
@@ -238,7 +238,7 @@ export const CartItemRow = memo(
                       {capitalizeFirst(item.sizeName)}
                     </Text>
                     <ChevronDown
-                      size={12}
+                      size={14}
                       color={themeStyles.chipArrowColor.color}
                     />
                   </Pressable>
@@ -282,7 +282,7 @@ export const CartItemRow = memo(
                       displayQty <= 1 && rowStyles.stepBtnDisabled,
                     ]}
                   >
-                    <Minus size={16} color={themeStyles.stepperColor} />
+                    <Minus size={18} color={themeStyles.stepperColor} />
                   </Pressable>
                   <Text style={[rowStyles.qtyText, themeStyles.qtyTextColor]}>
                     {displayQty}
@@ -294,7 +294,7 @@ export const CartItemRow = memo(
                     accessibilityLabel={t('cart.increaseQty')}
                     style={[rowStyles.stepBtn, themeStyles.qtyBtnBorder]}
                   >
-                    <Plus size={16} color={themeStyles.stepperColor} />
+                    <Plus size={18} color={themeStyles.stepperColor} />
                   </Pressable>
                 </View>
               </View>
@@ -305,7 +305,7 @@ export const CartItemRow = memo(
               ghi chú, sửa ngay tại chỗ. */}
           {showNoteInput ? (
             <View style={[rowStyles.noteRow, themeStyles.noteRowTheme]}>
-              <NotebookText size={12} color={themeStyles.noteIconColor} />
+              <NotebookText size={16} color={themeStyles.noteIconColor} />
               <TextInput
                 value={localNote}
                 onChangeText={handleNoteChange}
@@ -325,7 +325,7 @@ export const CartItemRow = memo(
               accessibilityRole="button"
               style={rowStyles.addNoteRow}
             >
-              <NotebookText size={12} color={themeStyles.noteIconColor} />
+              <NotebookText size={16} color={themeStyles.noteIconColor} />
               {localNote ? (
                 <Text
                   style={[rowStyles.noteText, themeStyles.noteInputColor]}
@@ -352,6 +352,8 @@ export const CartItemRow = memo(
     prev.onSizePress === next.onSizePress,
 )
 
+// Thẻ món cỡ lớn hơn (ảnh 88, chữ 16, nút 34, dòng ghi chú cao 36): ghi chú
+// từng món dễ bấm hơn, chấp nhận ít thẻ trên màn hơn.
 const rowStyles = StyleSheet.create({
   card: {
     marginHorizontal: 16,
@@ -360,41 +362,40 @@ const rowStyles = StyleSheet.create({
   },
   topRow: {
     flexDirection: 'row',
-    padding: 10,
+    padding: 12,
     gap: 12,
   },
   image: {
-    width: 76,
-    height: 76,
+    width: 88,
+    height: 88,
     borderRadius: 12,
   },
   info: {
     flex: 1,
     justifyContent: 'center',
-    gap: 2,
+    gap: 4,
   },
   name: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
   },
   size: {
-    fontSize: 12,
+    fontSize: 13,
   },
   sizeChipWrap: {
     flexDirection: 'row',
-    marginTop: 2,
   },
   sizeChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
+    gap: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
     borderWidth: 1,
   },
   sizeChipText: {
-    fontSize: 11,
+    fontSize: 13,
     fontWeight: '500',
     flexShrink: 0,
   },
@@ -402,7 +403,7 @@ const rowStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 6,
+    marginTop: 4,
   },
   priceCol: {
     flexDirection: 'row',
@@ -410,62 +411,63 @@ const rowStyles = StyleSheet.create({
     gap: 6,
   },
   price: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '700',
   },
   originalPrice: {
-    fontSize: 12,
+    fontSize: 13,
     textDecorationLine: 'line-through',
   },
   stepper: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
+    gap: 12,
   },
   stepBtn: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   stepBtnDisabled: { opacity: 0.35 },
   qtyText: {
-    fontSize: 14,
+    fontSize: 16,
     fontWeight: '600',
-    minWidth: 16,
+    minWidth: 18,
     textAlign: 'center',
   },
   noteRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     marginLeft: NOTE_INSET,
-    marginRight: 10,
-    marginBottom: 10,
-    marginTop: -4,
-    paddingHorizontal: 8,
-    paddingVertical: 6,
+    marginRight: 12,
+    marginBottom: 12,
+    marginTop: -2,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
     borderWidth: 1,
     borderRadius: 10,
   },
+  // Cả dòng là vùng bấm (cao ≥ 36), không chỉ phần chữ
   addNoteRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-    alignSelf: 'flex-start',
+    gap: 8,
+    minHeight: 36,
     marginLeft: NOTE_INSET,
-    marginRight: 10,
-    marginBottom: 10,
+    marginRight: 12,
+    marginBottom: 8,
     marginTop: -4,
   },
-  addNoteText: { fontSize: 12, fontWeight: '500' },
-  noteText: { flexShrink: 1, fontSize: 12 },
-  sizePlain: { fontSize: 12, marginTop: 2 },
+  addNoteText: { fontSize: 14, fontWeight: '500' },
+  noteText: { flexShrink: 1, fontSize: 14 },
+  sizePlain: { fontSize: 13 },
   noteInput: {
     flex: 1,
-    fontSize: 12,
+    fontSize: 14,
     padding: 0,
     fontFamily: 'BeVietnamPro_400Regular',
   },
