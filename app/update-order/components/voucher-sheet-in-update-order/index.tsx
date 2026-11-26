@@ -60,15 +60,17 @@ export const VoucherSheetInUpdateOrder = memo(
     const insets = useSafeAreaInsets()
 
     // ── Store ─────────────────────────────────────────────────────────────────
-    const updatingData = useOrderFlowStore((s) => s.updatingData)
+    // Theo dõi món + voucher, không cả updatingData
+    const draftItems = useOrderFlowStore(
+      (s) => s.updatingData?.updateDraft?.orderItems,
+    )
+    const currentVoucher = useOrderFlowStore(
+      (s) => s.updatingData?.updateDraft?.voucher ?? null,
+    )
     const setDraftVoucher = useOrderFlowStore((s) => s.setDraftVoucher)
     const removeDraftVoucher = useOrderFlowStore((s) => s.removeDraftVoucher)
 
-    const orderItems = useMemo(
-      () => updatingData?.updateDraft?.orderItems ?? [],
-      [updatingData],
-    )
-    const currentVoucher = updatingData?.updateDraft?.voucher ?? null
+    const orderItems = useMemo(() => draftItems ?? [], [draftItems])
 
     const { cartTotals } = useUpdateOrderTotals()
     const subTotal = cartTotals?.subTotalBeforeDiscount ?? 0

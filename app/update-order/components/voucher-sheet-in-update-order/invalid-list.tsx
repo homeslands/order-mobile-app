@@ -2,7 +2,7 @@ import { VoucherCard } from '@/components/cart/voucher-card'
 import type { ProcessedVoucher } from '@/components/sheet/voucher-validation'
 import { colors } from '@/constants'
 import type { IVoucher } from '@/types'
-import { useCallback, useState } from 'react'
+import { memo, useCallback, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, View } from 'react-native'
 import { Text } from '@/components/ui/text'
@@ -45,7 +45,7 @@ type InvalidListProps = {
   primaryColor: string
 }
 
-export function InvalidList({
+export const InvalidList = memo(function InvalidList({
   vouchers,
   onViewCondition,
   isDark,
@@ -101,7 +101,7 @@ export function InvalidList({
       )}
     </>
   )
-}
+})
 
 const styles = StyleSheet.create({
   listHeader: {

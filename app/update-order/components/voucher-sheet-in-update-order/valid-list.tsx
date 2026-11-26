@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { VoucherCard } from '@/components/cart/voucher-card'
 import type { ProcessedVoucher } from '@/components/sheet/voucher-validation'
 import { colors } from '@/constants'
@@ -18,7 +19,7 @@ type ValidListProps = {
   primaryColor: string
 }
 
-export function ValidList({
+export const ValidList = memo(function ValidList({
   vouchers,
   selectedVoucher,
   onSelect,
@@ -91,7 +92,7 @@ export function ValidList({
       )}
     </>
   )
-}
+})
 
 const styles = StyleSheet.create({
   listHeader: {

@@ -79,7 +79,6 @@ export default memo(function ConfirmUpdateOrderDialog({
   const { bottom: bottomInset } = useSafeAreaInsets()
   const primaryColor = isDark ? colors.primary.dark : colors.primary.light
 
-  const updatingData = useOrderFlowStore((s) => s.updatingData)
   const clearUpdatingData = useOrderFlowStore((s) => s.clearUpdatingData)
 
   const { mutateAsync: updateOrderType } = useUpdateOrderType()
@@ -89,10 +88,18 @@ export default memo(function ConfirmUpdateOrderDialog({
   const { mutateAsync: updateNoteOrderItem } = useUpdateNoteOrderItem()
   const { mutateAsync: updateVoucherInOrder } = useUpdateVoucherInOrder()
 
-  const draft = updatingData?.updateDraft
-  const originalOrder = updatingData?.originalOrder
-  const orderType = (draft?.type as OrderTypeEnum) ?? OrderTypeEnum.AT_TABLE
-  const accumulatedPoints = originalOrder?.accumulatedPointsToUse ?? 0
+  // Theo dõi đúng phần sheet hiển thị — không cả updatingData (nút này luôn
+  // dựng ở thanh dưới, gõ ghi chú cũng vẽ lại). Lúc gửi đọc thẳng từ store.
+  const orderType =
+    (useOrderFlowStore((s) => s.updatingData?.updateDraft?.type) as
+      | OrderTypeEnum
+      | undefined) ?? OrderTypeEnum.AT_TABLE
+  const tableName = useOrderFlowStore(
+    (s) => s.updatingData?.updateDraft?.tableName,
+  )
+  const accumulatedPoints = useOrderFlowStore(
+    (s) => s.updatingData?.originalOrder?.accumulatedPointsToUse ?? 0,
+  )
 
   const { displayItems, cartTotals } = useUpdateOrderTotals()
   // Cùng chỗ tính với thanh dưới (phí ship theo loại đơn / địa chỉ mới)
@@ -101,6 +108,9 @@ export default memo(function ConfirmUpdateOrderDialog({
   // ── Submit ──────────────────────────────────────────────────────────────────
 
   const handleConfirm = async () => {
+    const updatingData = useOrderFlowStore.getState().updatingData
+    const draft = updatingData?.updateDraft
+    const originalOrder = updatingData?.originalOrder
     if (!draft || !originalOrder || !orderSlug) return
     // Bản nháp còn sót của đơn khác — không gửi nhầm sang đơn này
     if (originalOrder.slug !== orderSlug) return
@@ -379,7 +389,7 @@ export default memo(function ConfirmUpdateOrderDialog({
                 {orderTypeLabel}
               </Text>
             </View>
-            {draft?.table ? (
+            {tableName ? (
               <View
                 style={[
                   cd.infoRow,
@@ -394,7 +404,7 @@ export default memo(function ConfirmUpdateOrderDialog({
                   {t('menu.tableName', 'Bàn')}
                 </Text>
                 <Text style={[cd.infoValue, { color: valueColor }]}>
-                  {draft.table}
+                  {tableName}
                 </Text>
               </View>
             ) : null}

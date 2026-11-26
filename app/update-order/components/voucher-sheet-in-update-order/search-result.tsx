@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { VoucherCard } from '@/components/cart/voucher-card'
 import type { ProcessedVoucher } from '@/components/sheet/voucher-validation'
 import { colors } from '@/constants'
@@ -22,7 +23,7 @@ type SearchResultProps = {
   primaryColor: string
 }
 
-export function SearchResult({
+export const SearchResult = memo(function SearchResult({
   isFetching,
   searchCode,
   fetchedVoucher,
@@ -89,7 +90,7 @@ export function SearchResult({
       )}
     </View>
   )
-}
+})
 
 const styles = StyleSheet.create({
   resultRow: { marginTop: 14 },

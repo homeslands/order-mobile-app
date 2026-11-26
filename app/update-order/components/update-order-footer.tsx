@@ -3,11 +3,11 @@ import { ChevronRight, ShoppingBag, Ticket } from 'lucide-react-native'
 import { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, View } from 'react-native'
-import { useShallow } from 'zustand/react/shallow'
 
 import { colors, PHONE_NUMBER_REGEX } from '@/constants'
 import { FOOTER_BOTTOM_EXTRA } from '@/constants/status-bar'
-import { useTables, useUpdateOrderPayable } from '@/hooks'
+import { useUpdateOrderPayable } from '@/hooks'
+import { useMountOnFirstOpen } from '@/hooks/use-mount-on-first-open'
 import { DeliveryAddressSheet, DeliveryInfoRow } from '@/components/delivery'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import { OrderStatus, OrderTypeEnum } from '@/types'
@@ -40,34 +40,43 @@ export default memo(function UpdateOrderFooter({
   const [tableSheetVisible, setTableSheetVisible] = useState(false)
   const [voucherSheetOpen, setVoucherSheetOpen] = useState(false)
   const [deliverySheetVisible, setDeliverySheetVisible] = useState(false)
+  const orderTypeMounted = useMountOnFirstOpen(orderTypeSheetVisible)
+  const tableMounted = useMountOnFirstOpen(tableSheetVisible)
+  const voucherMounted = useMountOnFirstOpen(voucherSheetOpen)
+  const deliveryMounted = useMountOnFirstOpen(deliverySheetVisible)
 
-  const draft = useOrderFlowStore(
-    useShallow((s) => s.updatingData?.updateDraft),
+  // Theo dõi từng trường — trước theo dõi cả bản nháp, gõ ghi chú đơn cũng
+  // vẽ lại thanh dưới
+  const orderType =
+    (useOrderFlowStore((s) => s.updatingData?.updateDraft?.type) as
+      | OrderTypeEnum
+      | undefined) ?? OrderTypeEnum.AT_TABLE
+  const selectedTableSlug =
+    useOrderFlowStore((s) => s.updatingData?.updateDraft?.table) || null
+  // Bản nháp đã giữ tên bàn — khỏi tải cả danh sách bàn chỉ để tra tên
+  const tableName =
+    useOrderFlowStore((s) => s.updatingData?.updateDraft?.tableName) || null
+  const voucher = useOrderFlowStore(
+    (s) => s.updatingData?.updateDraft?.voucher ?? null,
   )
-  const originalOrder = useOrderFlowStore(
-    useShallow((s) => s.updatingData?.originalOrder),
+  const draftItems = useOrderFlowStore(
+    (s) => s.updatingData?.updateDraft?.orderItems,
+  )
+  const orderItems = useMemo(() => draftItems ?? [], [draftItems])
+  const draftDeliveryAddress = useOrderFlowStore(
+    (s) => s.updatingData?.updateDraft?.deliveryAddress ?? '',
+  )
+  const draftDeliveryPhone = useOrderFlowStore(
+    (s) => s.updatingData?.updateDraft?.deliveryPhone ?? '',
+  )
+  const isPending = useOrderFlowStore(
+    (s) => s.updatingData?.originalOrder?.status === OrderStatus.PENDING,
   )
   const removeDraftVoucher = useOrderFlowStore((s) => s.removeDraftVoucher)
-  const orderType = (draft?.type as OrderTypeEnum) ?? OrderTypeEnum.AT_TABLE
-  const selectedTableSlug = draft?.table ?? null
-  const voucher = draft?.voucher ?? null
-  const orderItems = useMemo(() => draft?.orderItems ?? [], [draft])
-  const draftDeliveryAddress = draft?.deliveryAddress ?? ''
-  const draftDeliveryPhone = draft?.deliveryPhone ?? ''
 
-  // Resolve table name from slug
   const branchFromStore = useBranchStore((s) => s.branch?.slug)
   const branchFromUser = useUserStore((s) => s.userInfo?.branch?.slug)
   const branchSlug = branchFromStore || branchFromUser
-
-  const { data: tablesData } = useTables(branchSlug ?? undefined)
-  const tableName = useMemo(() => {
-    if (!selectedTableSlug || !tablesData?.result) return null
-    return (
-      tablesData.result.find((tb) => tb.slug === selectedTableSlug)?.name ??
-      null
-    )
-  }, [selectedTableSlug, tablesData])
 
   // Totals
   const cartItemQuantity = useMemo(
@@ -111,7 +120,6 @@ export default memo(function UpdateOrderFooter({
       (!draftDeliveryAddress ||
         !draftDeliveryPhone ||
         !/^[0-9]{10}$/.test(draftDeliveryPhone)))
-  const isPending = originalOrder?.status === OrderStatus.PENDING
 
   // Handlers
   const openOrderTypeSheet = useCallback(
@@ -311,34 +319,43 @@ export default memo(function UpdateOrderFooter({
         </View>
       </View>
 
-      <SimpleOrderTypeSheetInUpdateOrder
-        visible={orderTypeSheetVisible}
-        onClose={closeOrderTypeSheet}
-        onDeliverySelected={openDeliverySheet}
-        isDark={isDark}
-        primaryColor={primaryColor}
-      />
-      <SimpleTableSheetInUpdateOrder
-        visible={tableSheetVisible}
-        onClose={closeTableSheet}
-        isDark={isDark}
-        primaryColor={primaryColor}
-      />
-      <VoucherSheetInUpdateOrder
-        visible={voucherSheetOpen}
-        onClose={closeVoucherSheet}
-        isDark={isDark}
-        primaryColor={primaryColor}
-      />
-
-      <DeliveryAddressSheet
-        visible={deliverySheetVisible}
-        onClose={closeDeliverySheet}
-        mode="update-order"
-        branchSlug={branchSlug ?? ''}
-        isDark={isDark}
-        primaryColor={primaryColor}
-      />
+      {/* Mỗi sheet chỉ dựng khi mở lần đầu — dựng sẵn cả 4 (kèm query cấu
+          hình giao hàng, danh sách voucher) là việc thừa lúc vào màn */}
+      {orderTypeMounted && (
+        <SimpleOrderTypeSheetInUpdateOrder
+          visible={orderTypeSheetVisible}
+          onClose={closeOrderTypeSheet}
+          onDeliverySelected={openDeliverySheet}
+          isDark={isDark}
+          primaryColor={primaryColor}
+        />
+      )}
+      {tableMounted && (
+        <SimpleTableSheetInUpdateOrder
+          visible={tableSheetVisible}
+          onClose={closeTableSheet}
+          isDark={isDark}
+          primaryColor={primaryColor}
+        />
+      )}
+      {voucherMounted && (
+        <VoucherSheetInUpdateOrder
+          visible={voucherSheetOpen}
+          onClose={closeVoucherSheet}
+          isDark={isDark}
+          primaryColor={primaryColor}
+        />
+      )}
+      {deliveryMounted && (
+        <DeliveryAddressSheet
+          visible={deliverySheetVisible}
+          onClose={closeDeliverySheet}
+          mode="update-order"
+          branchSlug={branchSlug ?? ''}
+          isDark={isDark}
+          primaryColor={primaryColor}
+        />
+      )}
     </>
   )
 })
