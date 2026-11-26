@@ -115,3 +115,14 @@ describe('Giỏ sau khi sửa đơn', () => {
     )
   })
 })
+
+describe('Xoá món khi sửa đơn', () => {
+  it('US18 vuốt để xoá như giỏ, bỏ dialog xác nhận (vỡ giao diện)', () => {
+    expect(content).toMatch(/<CartSwipeable/)
+    expect(content).not.toMatch(/RemoveOrderItemInUpdateOrderDialog/)
+  })
+
+  it('US19 còn một món thì không vuốt xoá được (đơn 0 món không lưu được)', () => {
+    expect(content).toMatch(/canDelete = totalOrderItems > 1/)
+  })
+})

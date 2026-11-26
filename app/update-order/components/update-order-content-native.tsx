@@ -15,8 +15,8 @@ import type { calculateOrderDisplayAndTotals } from '@/utils'
 import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 import { formatCurrencyNative } from 'cart-price-calc'
 
+import { CartSwipeable } from '@/components/cart/cart-swipeable'
 import OrderNoteInUpdateOrderInput from './order-note-in-update-order-input'
-import RemoveOrderItemInUpdateOrderDialog from './remove-order-item-in-update-order-dialog'
 import { Text } from '@/components/ui/text'
 
 // ─── Module-level theme constants (zero allocation per render) ────────────────
@@ -80,6 +80,7 @@ interface OrderItemRowProps {
   isAtLeastOneVoucher: (item: IOrderItem) => boolean
   onQtyChange: (id: string, qty: number) => void
   onNoteChange: (id: string, note: string) => void
+  onDelete: (id?: string) => void
 }
 
 const OrderItemRow = memo(
@@ -95,6 +96,7 @@ const OrderItemRow = memo(
     isAtLeastOneVoucher,
     onQtyChange,
     onNoteChange,
+    onDelete,
   }: OrderItemRowProps) {
     const { t } = useTranslation('menu')
     const themeStyles = isDark ? THEME_DARK : THEME_LIGHT
@@ -197,7 +199,11 @@ const OrderItemRow = memo(
       maxWidth: IMAGE_PRESET.THUMB,
     })
 
-    return (
+    // Vuốt để xoá như giỏ. Còn một món thì không xoá được: đơn 0 món không
+    // lưu được (nút xác nhận khoá).
+    const canDelete = totalOrderItems > 1
+
+    const card = (
       <View style={[row.card, themeStyles.cardBg]}>
         {/* Top row: image + info */}
         <View style={row.topRow}>
@@ -271,10 +277,6 @@ const OrderItemRow = memo(
                     +
                   </Text>
                 </Pressable>
-                <RemoveOrderItemInUpdateOrderDialog
-                  orderItem={item}
-                  totalOrderItems={totalOrderItems}
-                />
               </View>
             </View>
           </View>
@@ -298,6 +300,14 @@ const OrderItemRow = memo(
         </View>
       </View>
     )
+
+    return canDelete && item.id ? (
+      <CartSwipeable itemId={item.id} onDelete={onDelete} cardMargin={0}>
+        {card}
+      </CartSwipeable>
+    ) : (
+      card
+    )
   },
   (prev, next) =>
     prev.item === next.item &&
@@ -315,7 +325,8 @@ const OrderItemRow = memo(
     prev.isDark === next.isDark &&
     prev.totalOrderItems === next.totalOrderItems &&
     prev.onQtyChange === next.onQtyChange &&
-    prev.onNoteChange === next.onNoteChange,
+    prev.onNoteChange === next.onNoteChange &&
+    prev.onDelete === next.onDelete,
 )
 
 // ─── Main Content ─────────────────────────────────────────────────────────────
@@ -335,6 +346,7 @@ export default function UpdateOrderContentNative({
     (s) => s.updateDraftItemQuantity,
   )
   const addDraftNote = useOrderFlowStore((s) => s.addDraftNote)
+  const removeDraftItem = useOrderFlowStore((s) => s.removeDraftItem)
 
   const voucher = updatingData?.updateDraft?.voucher ?? null
   const orderItems = useMemo(
@@ -391,6 +403,14 @@ export default function UpdateOrderContentNative({
     [addDraftNote],
   )
 
+  // Vuốt xoá đã chạy xong hiệu ứng thu gọn ô — xoá luôn
+  const handleDelete = useCallback(
+    (id?: string) => {
+      if (id) removeDraftItem(id)
+    },
+    [removeDraftItem],
+  )
+
   const cardBg = isDark ? colors.card.dark : colors.white.light
   const cardBorder = isDark ? colors.gray[700] : colors.gray[100]
   const dividerColor = isDark ? colors.gray[700] : colors.gray[100]
@@ -412,6 +432,7 @@ export default function UpdateOrderContentNative({
           hasPromotionDiscount={hasPromotionDiscount}
           onQtyChange={handleQtyChange}
           onNoteChange={handleNoteChange}
+          onDelete={handleDelete}
         />
       </View>
     ),
@@ -426,6 +447,7 @@ export default function UpdateOrderContentNative({
       hasPromotionDiscount,
       handleQtyChange,
       handleNoteChange,
+      handleDelete,
     ],
   )
 
