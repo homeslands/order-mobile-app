@@ -82,7 +82,12 @@
     "photoLibraryPermissionDenied": "Quyền truy cập bị từ chối",
     "photoLibraryPermissionMessage": "Vui lòng cấp quyền truy cập thư viện ảnh trong cài đặt để lưu ảnh.",
     "useScreenshotForQRCode": "Vui lòng sử dụng chức năng chụp màn hình để lưu QR code",
-    "errorSavingQRCode": "Lỗi khi lưu QR code"
+    "errorSavingQRCode": "Lỗi khi lưu QR code",
+    "loadError": {
+      "title": "Không tải được dữ liệu",
+      "description": "Vui lòng kiểm tra kết nối mạng và thử lại.",
+      "retry": "Thử lại"
+    }
   },
   "dataTable": {
     "all": "Tất cả",

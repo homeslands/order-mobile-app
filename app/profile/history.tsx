@@ -55,6 +55,10 @@ import OrderCard from './order-card'
 import type { OrderDisplayData } from './order-card'
 import { OrderHistorySkeleton } from './order-history-skeleton'
 import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
+import {
+  QueryErrorState,
+  shouldShowQueryError,
+} from '@/components/ui/query-error-state'
 import { Text } from '@/components/ui/text'
 
 // ─── Module-level FIFO cache for order display data ─────────────────────────
@@ -453,6 +457,7 @@ function OrderHistoryPage() {
     isPending,
     refetch,
     isRefetching,
+    isError,
   } = useOrders(
     {
       page,
@@ -689,32 +694,39 @@ function OrderHistoryPage() {
     )
   }, [totalPages, hasPrevious, hasNext, page, currentPage, t, isDark])
 
+  const showLoadError = shouldShowQueryError({
+    isError,
+    hasData: !!orderResponse,
+  })
   const ListEmptyComponent = useMemo(
-    () => (
-      <View style={pageStyles.emptyWrap}>
-        <Package
-          size={64}
-          color={isDark ? colors.gray[400] : colors.gray[500]}
-        />
-        <Text
-          style={[
-            pageStyles.emptyTitle,
-            { color: isDark ? colors.gray[50] : colors.gray[900] },
-          ]}
-        >
-          {t('order.noOrders', 'Chưa có đơn hàng')}
-        </Text>
-        <Text
-          style={[
-            pageStyles.emptyDesc,
-            { color: isDark ? colors.gray[400] : colors.gray[600] },
-          ]}
-        >
-          {t('order.noOrdersDescription', 'Bạn chưa có đơn hàng nào')}
-        </Text>
-      </View>
-    ),
-    [isDark, t],
+    () =>
+      showLoadError ? (
+        <QueryErrorState onRetry={() => void refetch()} />
+      ) : (
+        <View style={pageStyles.emptyWrap}>
+          <Package
+            size={64}
+            color={isDark ? colors.gray[400] : colors.gray[500]}
+          />
+          <Text
+            style={[
+              pageStyles.emptyTitle,
+              { color: isDark ? colors.gray[50] : colors.gray[900] },
+            ]}
+          >
+            {t('order.noOrders', 'Chưa có đơn hàng')}
+          </Text>
+          <Text
+            style={[
+              pageStyles.emptyDesc,
+              { color: isDark ? colors.gray[400] : colors.gray[600] },
+            ]}
+          >
+            {t('order.noOrdersDescription', 'Bạn chưa có đơn hàng nào')}
+          </Text>
+        </View>
+      ),
+    [isDark, t, showLoadError, refetch],
   )
 
   const screenBg = isDark ? colors.background.dark : colors.background.light

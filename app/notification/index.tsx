@@ -28,6 +28,10 @@ import { navigateNative } from '@/lib/navigation'
 import { useUserStore } from '@/stores'
 import { useNotificationStore } from '@/stores/notification.store'
 import type { INotification } from '@/types/notification.type'
+import {
+  QueryErrorState,
+  shouldShowQueryError,
+} from '@/components/ui/query-error-state'
 import { Text } from '@/components/ui/text'
 
 // ─── Notification helpers ────────────────────────────────────────────────────
@@ -349,6 +353,7 @@ export default function NotificationScreen() {
     isRefetching,
     isFetching,
     refetch,
+    isError,
   } = useNotifications(
     { receiver: userSlug, page, size: PAGE_SIZE },
     { enabled: !!userSlug },
@@ -410,9 +415,15 @@ export default function NotificationScreen() {
     [],
   )
 
+  const showLoadError = shouldShowQueryError({
+    isError,
+    hasData: notifications.length > 0 || !!apiData,
+  })
   const ListEmptyComponent = useMemo(
     () =>
-      isFirstLoad ? null : (
+      isFirstLoad ? null : showLoadError ? (
+        <QueryErrorState onRetry={() => void refetch()} />
+      ) : (
         <View style={ns.emptyWrap}>
           <Bell
             size={56}
@@ -436,7 +447,7 @@ export default function NotificationScreen() {
           </Text>
         </View>
       ),
-    [isDark, isFirstLoad, activeTab, t],
+    [isDark, isFirstLoad, showLoadError, refetch, activeTab, t],
   )
 
   const ListFooterComponent = useMemo(() => {

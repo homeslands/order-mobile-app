@@ -57,6 +57,11 @@ import { navigateNative } from '@/lib/navigation'
 import { useUserStore } from '@/stores'
 import type { IPointTransaction } from '@/types'
 import { formatPoints } from '@/utils'
+import {
+  QueryErrorState,
+  formatLoadedValue,
+  shouldShowQueryError,
+} from '@/components/ui/query-error-state'
 import { Text } from '@/components/ui/text'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -202,7 +207,8 @@ export default function CoinHubScreen() {
     refetch: refetchAnalysis,
   } = usePointTransactionAnalysis(ready ? userSlug : undefined)
 
-  const currentBalance = analysis?.netDifference ?? 0
+  // Chưa tải được thì undefined → hiện "—", không hiện 0 giả.
+  const currentBalance = analysis?.netDifference
 
   const {
     data: txPages,
@@ -211,6 +217,7 @@ export default function CoinHubScreen() {
     hasNextPage,
     fetchNextPage,
     refetch: refetchTx,
+    isError: txError,
   } = usePointTransactionsInfinite({
     userSlug: ready ? (userSlug ?? '') : '',
     size: PAGE_SIZE,
@@ -288,17 +295,26 @@ export default function CoinHubScreen() {
   ) : null
 
   const ListEmpty = !isLoading ? (
-    <View style={s.emptyWrap}>
-      <Wallet size={40} color={colors.gray[400]} />
-      <Text style={[s.emptyTitle, { color: textColor }]}>
-        {t('profile.coin.emptyTitle')}
-      </Text>
-      <Text style={[s.emptyHint, { color: subColor }]}>
-        {isFilterActive
-          ? t('profile.coin.emptyFiltered')
-          : t('profile.coin.emptyHint')}
-      </Text>
-    </View>
+    shouldShowQueryError({ isError: txError, hasData: !!txPages }) ? (
+      <QueryErrorState
+        onRetry={() => {
+          void refetchTx()
+          void refetchAnalysis()
+        }}
+      />
+    ) : (
+      <View style={s.emptyWrap}>
+        <Wallet size={40} color={colors.gray[400]} />
+        <Text style={[s.emptyTitle, { color: textColor }]}>
+          {t('profile.coin.emptyTitle')}
+        </Text>
+        <Text style={[s.emptyHint, { color: subColor }]}>
+          {isFilterActive
+            ? t('profile.coin.emptyFiltered')
+            : t('profile.coin.emptyHint')}
+        </Text>
+      </View>
+    )
   ) : null
 
   const cardBg = isDark ? colors.background.dark : colors.gray[50]
@@ -388,7 +404,9 @@ export default function CoinHubScreen() {
               <View style={s.balanceSkeleton} />
             ) : (
               <Text style={s.balanceValue}>
-                {balanceVisible ? formatPoints(currentBalance) : '••••••'}
+                {balanceVisible
+                  ? formatLoadedValue(currentBalance, formatPoints)
+                  : '••••••'}
               </Text>
             )}
             <Pressable

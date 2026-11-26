@@ -82,7 +82,12 @@
     "photoLibraryPermissionDenied": "Access denied",
     "photoLibraryPermissionMessage": "Please grant photo library access permission in settings to save images.",
     "useScreenshotForQRCode": "Please use screenshot function to save QR code",
-    "errorSavingQRCode": "Error saving QR code"
+    "errorSavingQRCode": "Error saving QR code",
+    "loadError": {
+      "title": "Couldn’t load data",
+      "description": "Please check your connection and try again.",
+      "retry": "Try again"
+    }
   },
   "dataTable": {
     "all": "All",
