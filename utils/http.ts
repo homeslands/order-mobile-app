@@ -5,7 +5,7 @@
 import { IApiResponse, IRefreshTokenResponse } from '@/types'
 import axios, { AxiosInstance, InternalAxiosRequestConfig } from 'axios'
 
-const baseURL =
+export const baseURL =
   process.env.EXPO_PUBLIC_API_URL ||
   process.env.EXPO_PUBLIC_BASE_API_URL ||
   'https://api.example.com'
