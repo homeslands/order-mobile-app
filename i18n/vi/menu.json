@@ -178,6 +178,7 @@
     "orderNotePlaceholder": "Thêm ghi chú cho đơn hàng...",
     "itemNotePlaceholder": "Ghi chú món...",
     "placeOrder": "Đặt hàng",
+    "enterDeliveryAddress": "Nhập địa chỉ giao",
     "confirmOrder": "Xác nhận đơn hàng"
   },
   "order": {
