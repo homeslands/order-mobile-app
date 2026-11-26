@@ -130,7 +130,13 @@
     "deliveryPhone": "Số điện thoại giao hàng",
     "isTopSell": "Bán chạy",
     "isNewProduct": "Mới",
-    "relatedProducts": "Sản phẩm liên quan",
+    "noteForStore": "Ghi chú cho quán",
+    "notePlaceholder": "Ghi chú thêm",
+    "noteChipLessIce": "Ít đá",
+    "noteChipNoIce": "Không đá",
+    "noteChipLessSweet": "Ít ngọt",
+    "noteChipIceSeparate": "Đá riêng",
+    "relatedProducts": "Có thể bạn thích",
     "seeMore": "Xem thêm"
   },
   "cart": {

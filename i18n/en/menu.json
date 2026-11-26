@@ -130,7 +130,13 @@
     "deliveryPhone": "Delivery phone",
     "isTopSell": "Best seller",
     "isNewProduct": "New",
-    "relatedProducts": "Related products",
+    "noteForStore": "Note for the store",
+    "notePlaceholder": "Add a note",
+    "noteChipLessIce": "Less ice",
+    "noteChipNoIce": "No ice",
+    "noteChipLessSweet": "Less sweet",
+    "noteChipIceSeparate": "Ice on the side",
+    "relatedProducts": "You may also like",
     "seeMore": "See more"
   },
   "cart": {
