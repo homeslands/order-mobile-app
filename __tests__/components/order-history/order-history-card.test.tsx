@@ -1,4 +1,4 @@
-// Thẻ đơn gọn ở Lịch sử đơn: loại đơn + giờ, nhãn trạng thái đúng màu, dải
+// Thẻ đơn gọn ở Lịch sử đơn: loại đơn + giờ + ngày, nhãn trạng thái đúng màu, dải
 // ảnh món (tối đa 4, "+N"), tên món gộp một dòng, số món + tổng tiền. Bảng
 // tính tiền chi tiết nằm ở màn chi tiết đơn.
 import { fireEvent, render, screen } from '@testing-library/react-native'
@@ -78,9 +78,9 @@ beforeEach(() => {
   mockImages.length = 0
 })
 
-it('OC1 loại đơn + giờ, tổng tiền, số món tính theo số lượng', () => {
+it('OC1 loại đơn + giờ + ngày, tổng tiền, số món tính theo số lượng', () => {
   renderCard(order())
-  expect(screen.getByText('Mang về · 14:32')).toBeTruthy()
+  expect(screen.getByText('Mang về · 14:32 26/11/2026')).toBeTruthy()
   expect(screen.getByText('126000đ')).toBeTruthy()
   expect(screen.getByText('3 món')).toBeTruthy()
 })

@@ -34,9 +34,8 @@ it('OH4 vòng quay kéo-làm-mới chỉ khi khách tự kéo', () => {
   expect(history).not.toMatch(/refreshing=\{isRefetching\}/)
 })
 
-it('OH5 bỏ overrideItemLayout vô tác dụng, có getItemType (tiêu đề / thẻ)', () => {
+it('OH5 bỏ overrideItemLayout vô tác dụng (FlashList 2 chỉ đọc span)', () => {
   expect(history).not.toMatch(/overrideItemLayout/)
-  expect(history).toMatch(/getItemType=/)
 })
 
 it('OH8 không subscribe cả object userInfo (đổi điểm / hồ sơ là render lại màn)', () => {
@@ -57,7 +56,12 @@ it('OH10 cuộn xuống tự tải trang kế, bỏ nút Trước / Sau', () => 
   expect(history).not.toMatch(/order\.previous|order\.next/)
 })
 
-it('OH11 tiêu đề ngày dính; header cố định (không nổi đè lên danh sách)', () => {
-  expect(history).toMatch(/stickyHeaderIndices=\{stickyHeaderIndices\}/)
+it('OH11 header cố định tự chừa thanh trạng thái; container không chừa thêm lần nữa', () => {
   expect(history).not.toMatch(/floatingHeader/)
+  expect(history).toMatch(/paddingTop: STATIC_TOP_INSET/)
+  expect(history).not.toMatch(/edges=\{\[\s*'top'/)
+})
+
+it('OH12 không có tiêu đề ngày dính — ngày nằm trong thẻ', () => {
+  expect(history).not.toMatch(/stickyHeaderIndices/)
 })
