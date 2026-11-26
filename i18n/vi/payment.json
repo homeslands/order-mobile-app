@@ -11,6 +11,10 @@
     "regenerateQr": "Tạo lại mã QR",
     "qrStale": "Tổng tiền đã thay đổi. Vui lòng tạo lại mã QR để chuyển khoản đúng số tiền.",
     "notPaidYet": "Chưa nhận được thanh toán. Nếu bạn đã chuyển khoản, vui lòng đợi thêm ít phút.",
+    "checkPaymentFailed": "Không kiểm tra được thanh toán. Vui lòng thử lại.",
+    "alreadyPaidUpdating": "Đơn đã được thanh toán, đang cập nhật…",
+    "paymentUncertain": "Chưa rõ kết quả thanh toán, đang kiểm tra lại…",
+    "cardAtCounter": "Đơn thanh toán bằng thẻ — vui lòng hoàn tất tại quầy.",
     "backToMenu": "Về thực đơn"
   },
   "qrGenerate": {

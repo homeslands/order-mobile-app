@@ -1081,8 +1081,13 @@ function PaymentPageContent() {
   const [showPointConfirm, setShowPointConfirm] = useState(false)
   const closePointConfirm = useCallback(() => setShowPointConfirm(false), [])
 
+  // Khoá chống gửi lệnh trả hai lần: bấm nhanh (hoặc bấm Xác nhận lúc hộp
+  // thoại đang đóng) gọi mutate() hai lần — TanStack v5 chỉ chạy callback của
+  // lần gọi sau, lần trước thành công cũng bị bỏ, khách thấy "lỗi" dù đã trả.
+  const payingRef = useRef(false)
   const executePayment = useCallback(() => {
     if (!selectedPaymentMethod || !orderSlug || !order) return
+    if (payingRef.current) return
 
     const payload: {
       paymentMethod: string
@@ -1095,7 +1100,11 @@ function PaymentPageContent() {
     if (selectedTransactionId.trim())
       payload.transactionId = selectedTransactionId.trim()
 
+    payingRef.current = true
     initiatePayment(payload, {
+      onSettled: () => {
+        payingRef.current = false
+      },
       onSuccess: (response) => {
         if (response?.result?.qrCode)
           dispatchPaymentForm({
@@ -1116,6 +1125,12 @@ function PaymentPageContent() {
         }
       },
       onError: (error: unknown) => {
+        // Server có thể đã trừ tiền / tạo QR dù phản hồi lỗi (rớt mạng, quá
+        // giờ) — luôn tải lại đơn và số dư để màn hiện đúng trạng thái thật.
+        void refetchOrder()
+        if (selectedPaymentMethod === PaymentMethod.POINT) {
+          void refetchCoinBalance()
+        }
         if (error && typeof error === 'object' && 'response' in error) {
           const axiosError = error as {
             response?: { data?: { statusCode?: number; message?: string } }
@@ -1137,7 +1152,8 @@ function PaymentPageContent() {
             return
           }
         }
-        showToast(t('paymentMethod.paymentError'), 'error')
+        // Không có phản hồi từ server: chưa rõ đã trả chưa — đang tải lại đơn.
+        showToast(tPayment('order.paymentUncertain'), 'info')
       },
     })
   }, [
@@ -1149,6 +1165,7 @@ function PaymentPageContent() {
     refetchOrder,
     refetchCoinBalance,
     t,
+    tPayment,
   ])
 
   // Đang chờ chuyển khoản: bấm nút là hỏi lại server, có phản hồi rõ ràng.
@@ -1157,7 +1174,11 @@ function PaymentPageContent() {
     setIsCheckingPayment(true)
     try {
       const res = await refetchOrder()
-      if (res.data?.result?.status !== OrderStatus.PAID) {
+      // refetch() không ném lỗi: lỗi thì res.data vẫn là đơn cũ (chưa trả) —
+      // báo "chưa thanh toán" lúc đó dễ khiến khách chuyển khoản lần nữa.
+      if (res.isError) {
+        showToast(tPayment('order.checkPaymentFailed'), 'error')
+      } else if (res.data?.result?.status !== OrderStatus.PAID) {
         showToast(tPayment('order.notPaidYet'), 'info')
       }
     } finally {
@@ -1174,13 +1195,19 @@ function PaymentPageContent() {
     if (
       order.payment?.paymentMethod &&
       order.payment.statusMessage === OrderStatus.COMPLETED
-    )
+    ) {
+      // Đã trả nhưng đơn chưa cập nhật — báo và tải lại, không im lặng.
+      showToast(tPayment('order.alreadyPaidUpdating'), 'info')
+      void refetchOrder()
       return
+    }
     if (
       selectedPaymentMethod === PaymentMethod.CREDIT_CARD &&
       !selectedTransactionId.trim()
-    )
+    ) {
+      showToast(tPayment('order.cardAtCounter'), 'info')
       return
+    }
 
     // Show confirm dialog for point payment
     if (selectedPaymentMethod === PaymentMethod.POINT) {
@@ -1197,6 +1224,8 @@ function PaymentPageContent() {
     orderSlug,
     order,
     executePayment,
+    refetchOrder,
+    tPayment,
   ])
 
   const handleConfirmPointPayment = useCallback(() => {
@@ -1219,7 +1248,9 @@ function PaymentPageContent() {
     )
   }
 
-  if (isOrderError) {
+  // Lỗi tải lại khi đã có đơn (vd. một lần hỏi trạng thái chuyển khoản lỗi):
+  // giữ màn — mã QR khách đang quét không được biến mất.
+  if (isOrderError && !order) {
     return (
       <ScreenContainer
         edges={['top']}
@@ -1565,6 +1596,7 @@ function PaymentPageContent() {
           visible={showPointConfirm}
           onClose={closePointConfirm}
           onConfirm={handleConfirmPointPayment}
+          isBusy={isInitiatingPayment}
           orderSubtotal={order.subtotal || 0}
           coinBalance={coinBalance}
           primaryColor={primaryColor}

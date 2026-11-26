@@ -16,6 +16,7 @@ import {
 } from '@/hooks/use-loyalty-point'
 import { formatCurrency, showErrorToastMessage } from '@/utils'
 import { Text } from '@/components/ui/text'
+import { extractStatusCode } from '@/lib/global-error-gate'
 
 interface LoyaltyPointsInputProps {
   orderSlug: string
@@ -147,9 +148,13 @@ const LoyaltyPointsInput = memo(function LoyaltyPointsInput({
           setIsApplying(false)
           onApplied()
         },
-        onError: () => {
+        onError: (error: unknown) => {
           setIsApplying(false)
-          showErrorToastMessage(t('loyaltyPoints.cannotApply'))
+          // Lỗi có mã từ server đã được toast toàn cục báo đúng lý do — toast
+          // chung ở đây sẽ đè mất nó.
+          if (extractStatusCode(error) == null) {
+            showErrorToastMessage(t('loyaltyPoints.cannotApply'))
+          }
         },
       },
     )
@@ -172,9 +177,11 @@ const LoyaltyPointsInput = memo(function LoyaltyPointsInput({
         setInputValue('')
         onCancelled()
       },
-      onError: () => {
+      onError: (error: unknown) => {
         setIsCancelling(false)
-        showErrorToastMessage(t('loyaltyPoints.cannotCancel'))
+        if (extractStatusCode(error) == null) {
+          showErrorToastMessage(t('loyaltyPoints.cannotCancel'))
+        }
       },
     })
   }, [isCancelling, orderSlug, cancelReservation, onCancelled, t])
