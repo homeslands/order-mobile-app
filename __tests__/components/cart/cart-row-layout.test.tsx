@@ -48,7 +48,7 @@ jest.mock('@/stores/cart.store', () => ({
     addNote: (...a: unknown[]) => mockAddNote(...a),
     updateQuantity: (...a: unknown[]) => mockUpdateQuantity(...a),
   },
-  useCartItemVoucherDiscount: () => 0,
+  useCartItemFinalPrice: () => undefined,
 }))
 
 jest.mock('@/utils', () => ({ capitalizeFirst: (s: string) => s }))

@@ -22,38 +22,6 @@ export type CartDisplayItem = {
   hasSizeChoice: boolean
 }
 
-/** Compute per-unit voucher discount for a single display item — O(1), no loop */
-export function calcItemVoucherDiscount(
-  item: CartDisplayItem,
-  voucher: {
-    type: string
-    value: number
-    voucherProducts?: { product?: { slug?: string } }[]
-  } | null,
-): number {
-  if (!voucher) return 0
-  const vpSet = voucher.voucherProducts
-  const eligible =
-    !vpSet ||
-    vpSet.length === 0 ||
-    vpSet.some((vp) => vp.product?.slug === item.productId)
-  if (!eligible) return 0
-  if (voucher.type === 'same_price_product') {
-    const newPrice =
-      voucher.value <= 1
-        ? Math.round(item.originalPrice * (1 - voucher.value))
-        : Math.min(item.originalPrice, voucher.value)
-    return item.originalPrice - newPrice
-  }
-  if (voucher.type === 'percent_order') {
-    return Math.round(item.originalPrice * (voucher.value / 100))
-  }
-  if (voucher.type === 'fixed_value') {
-    return Math.min(item.originalPrice, voucher.value)
-  }
-  return 0
-}
-
 /** Cached adapter: reuses previous object if IOrderItem ref is unchanged → memo comparison works */
 const displayItemCache = new WeakMap<IOrderItem, CartDisplayItem>()
 

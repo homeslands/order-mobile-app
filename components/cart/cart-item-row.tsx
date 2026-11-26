@@ -2,7 +2,7 @@
  * Cart Item Row — swipeable card with image, quantity controls, price display.
  */
 import { colors } from '@/constants'
-import { cartActions, useCartItemVoucherDiscount } from '@/stores/cart.store'
+import { cartActions, useCartItemFinalPrice } from '@/stores/cart.store'
 import { capitalizeFirst } from '@/utils'
 import { useRecyclingState } from '@shopify/flash-list'
 import { formatCurrencyNative } from 'cart-price-calc'
@@ -73,8 +73,6 @@ const THEME_DARK = {
   notePlaceholderColor: colors.gray[600],
 } as const
 
-export { calcItemVoucherDiscount } from './cart-display-item'
-
 export const CartItemRow = memo(
   function CartItemRow({
     item,
@@ -90,7 +88,8 @@ export const CartItemRow = memo(
     onSizePress?: (cartKey: string) => void
   }) {
     const { t } = useTranslation('menu')
-    const voucherDiscountPerUnit = useCartItemVoucherDiscount(item.cartKey)
+    // Đơn giá cuối (sau khuyến mãi / voucher) — cùng nguồn với thanh dưới
+    const finalPrice = useCartItemFinalPrice(item.cartKey) ?? item.price
     const updateQuantity = cartActions.updateQuantity
 
     // FlashList tái dùng ô cho món khác mà không unmount — state phải reset
@@ -128,12 +127,8 @@ export const CartItemRow = memo(
       scheduleSync(next)
     }, [displayQty, scheduleSync, setPendingQty])
 
-    const hasPromotion = item.promotionValue > 0
-    const hasVoucherDiscount = voucherDiscountPerUnit > 0
-    const priceAfterVoucher = item.price - voucherDiscountPerUnit
-    const lineTotal =
-      (hasVoucherDiscount ? priceAfterVoucher : item.price) * displayQty
-    const lineTotalBeforeVoucher = item.price * displayQty
+    const lineTotal = finalPrice * displayQty
+    const isDiscounted = finalPrice < item.originalPrice
 
     const [localNote, setLocalNote] = useRecyclingState(item.note, [
       item.cartKey,
@@ -250,18 +245,14 @@ export const CartItemRow = memo(
                   <Text style={priceStyle}>
                     {formatCurrencyNative(lineTotal)}
                   </Text>
-                  {(hasPromotion || hasVoucherDiscount) && (
+                  {isDiscounted && (
                     <Text
                       style={[
                         rowStyles.originalPrice,
                         themeStyles.origPriceColor,
                       ]}
                     >
-                      {formatCurrencyNative(
-                        hasVoucherDiscount
-                          ? lineTotalBeforeVoucher
-                          : item.originalPrice * displayQty,
-                      )}
+                      {formatCurrencyNative(item.originalPrice * displayQty)}
                     </Text>
                   )}
                 </View>
