@@ -17,6 +17,7 @@ import {
 import { formatCurrency, showErrorToastMessage } from '@/utils'
 import { Text } from '@/components/ui/text'
 import { extractStatusCode } from '@/lib/global-error-gate'
+import { hexToRgba } from '@/lib/utils'
 
 interface LoyaltyPointsInputProps {
   orderSlug: string
@@ -207,7 +208,9 @@ const LoyaltyPointsInput = memo(function LoyaltyPointsInput({
         <Text style={[s.title, { color: textColor }]}>
           {t('loyaltyPoints.title')}
         </Text>
-        <View style={[s.badge, { backgroundColor: `${primaryColor}20` }]}>
+        <View
+          style={[s.badge, { backgroundColor: hexToRgba(primaryColor, 0.13) }]}
+        >
           <Text style={[s.badgeText, { color: primaryColor }]}>
             {t('loyaltyPoints.points', {
               value: userTotalPoints.toLocaleString('vi-VN'),

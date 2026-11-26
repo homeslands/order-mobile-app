@@ -1,20 +1,24 @@
 /**
  * PaymentOrderInfoCard — receipt-style order info section for the payment page.
- * Shows order slug, status badge, created time, customer, order type, delivery
- * address, and order description.
+ * Shows order code (referenceNumber, tap to copy), shared status badge, created
+ * time, order type, delivery recipient / address, and order description.
  *
  * Read-only + React.memo'd: parent re-renders (polling, focus effects) do not
  * cascade into this card as long as the order ref is structurally stable
  * (React Query provides structural sharing out of the box).
  */
-import { memo, useMemo } from 'react'
+import * as Clipboard from 'expo-clipboard'
+import { Copy } from 'lucide-react-native'
+import { memo, useCallback, useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { StyleSheet, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 
+import { OrderStatusBadge } from '@/components/order-history/order-status-badge'
 import { colors } from '@/constants'
 import type { useOrderBySlug } from '@/hooks'
-import { OrderStatus, OrderTypeEnum } from '@/types'
-import { formatDateTime } from '@/utils'
+import { getOrderHistoryStatus } from '@/lib/order-history-status'
+import { OrderTypeEnum } from '@/types'
+import { formatDateTime, showToast } from '@/utils'
 import { Text } from '@/components/ui/text'
 
 type Order = NonNullable<ReturnType<typeof useOrderBySlug>['data']>['result']
@@ -29,6 +33,7 @@ export const PaymentOrderInfoCard = memo(function PaymentOrderInfoCard({
   isDark,
 }: Props) {
   const { t } = useTranslation('menu')
+  const { t: tToast } = useTranslation('toast')
 
   const theme = useMemo(
     () => ({
@@ -46,33 +51,17 @@ export const PaymentOrderInfoCard = memo(function PaymentOrderInfoCard({
     [isDark],
   )
 
-  const statusBadge = useMemo(() => {
-    const isPaid =
-      order.status === OrderStatus.PAID ||
-      order.status === OrderStatus.COMPLETED
-    const isPending = order.status === OrderStatus.PENDING
-    const bg = isPaid
-      ? `${colors.success.light}18`
-      : isPending
-        ? `${colors.warning.light}18`
-        : `${colors.gray[500]}18`
-    const color = isPaid
-      ? colors.success.light
-      : isPending
-        ? colors.warning.light
-        : isDark
-          ? colors.gray[400]
-          : colors.gray[500]
-    const label =
-      order.status === OrderStatus.PAID
-        ? t('order.paid', 'Đã thanh toán')
-        : order.status === OrderStatus.COMPLETED
-          ? t('order.completed', 'Hoàn thành')
-          : order.status === OrderStatus.PENDING
-            ? t('order.pending', 'Chờ thanh toán')
-            : order.status
-    return { bg, color, label }
-  }, [order.status, isDark, t])
+  const status = getOrderHistoryStatus(order)
+  const statusLabel = t(`order.${status}`)
+  const isDelivery = order.type === OrderTypeEnum.DELIVERY
+
+  // Mã đơn dễ đọc (số tham chiếu) — chạm để sao chép, tiện đọc cho quầy.
+  // slug là chuỗi ngẫu nhiên, khách không dùng được.
+  const orderCode = String(order.referenceNumber ?? order.slug)
+  const handleCopyCode = useCallback(() => {
+    void Clipboard.setStringAsync(orderCode)
+    showToast(tToast('toast.copyCodeSuccess'))
+  }, [orderCode, tToast])
 
   const customerName =
     order.owner?.firstName || order.owner?.lastName
@@ -90,14 +79,18 @@ export const PaymentOrderInfoCard = memo(function PaymentOrderInfoCard({
     <View style={[s.card, theme.card]}>
       <View style={s.header}>
         <View style={s.headerRow}>
-          <Text style={[s.title, theme.title, { flex: 1 }]}>
-            {t('order.order', 'Đơn hàng')} #{order.slug}
-          </Text>
-          <View style={[s.badge, { backgroundColor: statusBadge.bg }]}>
-            <Text style={[s.badgeText, { color: statusBadge.color }]}>
-              {statusBadge.label}
+          <Pressable
+            onPress={handleCopyCode}
+            hitSlop={6}
+            accessibilityRole="button"
+            style={s.codeRow}
+          >
+            <Text style={[s.title, theme.title]}>
+              {t('order.order', 'Đơn hàng')} #{orderCode}
             </Text>
-          </View>
+            <Copy size={14} color={theme.subtle.color} />
+          </Pressable>
+          <OrderStatusBadge status={status} label={statusLabel} />
         </View>
         <Text style={[s.time, theme.subtle]}>
           {formatDateTime(order.createdAt)}
@@ -105,21 +98,27 @@ export const PaymentOrderInfoCard = memo(function PaymentOrderInfoCard({
       </View>
       <View style={[s.divider, theme.divider]} />
       <View style={s.body}>
-        <View style={s.row}>
-          <Text style={[s.label, theme.subtle]}>
-            {t('order.customer', 'Khách hàng')}
-          </Text>
-          <Text style={[s.value, theme.value]}>{customerName}</Text>
-        </View>
-        {order.owner?.phonenumber && (
-          <View style={s.row}>
-            <Text style={[s.label, theme.subtle]}>
-              {t('order.phoneNumber', 'Điện thoại')}
-            </Text>
-            <Text style={[s.value, theme.value]}>
-              {order.owner.phonenumber}
-            </Text>
-          </View>
+        {/* Khách đang trả đơn của chính mình — tên / SĐT chỉ có ích với đơn
+            giao hàng (người nhận). */}
+        {isDelivery && (
+          <>
+            <View style={s.row}>
+              <Text style={[s.label, theme.subtle]}>
+                {t('order.customer', 'Khách hàng')}
+              </Text>
+              <Text style={[s.value, theme.value]}>{customerName}</Text>
+            </View>
+            {order.owner?.phonenumber && (
+              <View style={s.row}>
+                <Text style={[s.label, theme.subtle]}>
+                  {t('order.phoneNumber', 'Điện thoại')}
+                </Text>
+                <Text style={[s.value, theme.value]}>
+                  {order.owner.phonenumber}
+                </Text>
+              </View>
+            )}
+          </>
         )}
         <View style={s.row}>
           <Text style={[s.label, theme.subtle]}>
@@ -186,6 +185,5 @@ const s = StyleSheet.create({
   },
   label: { fontSize: 13 },
   value: { fontSize: 13, fontWeight: '500' },
-  badge: { borderRadius: 6, paddingHorizontal: 10, paddingVertical: 4 },
-  badgeText: { fontSize: 11, fontWeight: '600' },
+  codeRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
 })

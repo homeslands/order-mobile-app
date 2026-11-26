@@ -5,6 +5,7 @@ import { Image as ExpoImage } from 'expo-image'
 import { useQueryClient } from '@tanstack/react-query'
 import { useLocalSearchParams } from 'expo-router'
 import {
+  ChevronRight,
   CircleAlert,
   CircleX,
   Download,
@@ -60,6 +61,7 @@ import { useAnimatedCountdown } from '@/hooks/use-animated-countdown'
 import { useCoinBalance } from '@/hooks/use-coin-balance'
 import { useLoyaltyPoints } from '@/hooks/use-loyalty-point'
 import { navigateNative } from '@/lib/navigation'
+import { hexToRgba } from '@/lib/utils'
 import {
   getBankTransferState,
   type PayButtonMode,
@@ -1013,6 +1015,7 @@ function PaymentPageContent() {
 
   const [showVoucherSheet, setShowVoucherSheet] = useState(false)
   const closeVoucherSheet = useCallback(() => setShowVoucherSheet(false), [])
+  const openVoucherSheet = useCallback(() => setShowVoucherSheet(true), [])
 
   const handleVoucherApplied = useCallback(() => {
     setShowVoucherSheet(false)
@@ -1381,9 +1384,12 @@ function PaymentPageContent() {
                 style={[
                   ps.expiredBanner,
                   {
-                    backgroundColor: isDark
-                      ? `${colors.destructive.dark}18`
-                      : `${colors.destructive.light}12`,
+                    backgroundColor: hexToRgba(
+                      isDark
+                        ? colors.destructive.dark
+                        : colors.destructive.light,
+                      isDark ? 0.1 : 0.07,
+                    ),
                     borderColor: isDark
                       ? colors.destructive.dark
                       : colors.destructive.light,
@@ -1452,24 +1458,12 @@ function PaymentPageContent() {
               ))}
             </View>
 
-            {/* Payment Method Selection — isolated component */}
-            <PaymentMethodSection
-              order={order}
-              primaryColor={primaryColor}
-              isDark={isDark}
-              selectedMethod={selectedPaymentMethod}
-              onMethodChange={handleMethodChange}
-              onConflict={handlePaymentMethodConflict}
-              isInitiating={isInitiatingPayment}
-              qrCode={shownQr}
-              qrStale={qrStale}
-              coinBalance={coinBalance}
-            />
-
-            {/* Voucher Row */}
+            {/* Voucher Row — rõ là bấm được: biểu tượng màu chính, chữ đậm,
+                mũi tên; đã áp dụng thì hiện tên voucher + số tiền giảm. */}
             {order.status === OrderStatus.PENDING && (
               <Pressable
-                onPress={() => setShowVoucherSheet(true)}
+                onPress={openVoucherSheet}
+                accessibilityRole="button"
                 style={[
                   ps.card,
                   ps.voucherTrigger,
@@ -1481,48 +1475,48 @@ function PaymentPageContent() {
                   },
                 ]}
               >
-                <Ticket
-                  size={14}
-                  color={isDark ? colors.gray[400] : colors.gray[500]}
-                />
+                <Ticket size={18} color={primaryColor} />
                 <Text
                   style={[
                     ps.voucherLabel,
                     {
                       flex: 1,
-                      color: isDark ? colors.gray[400] : colors.gray[500],
+                      color: isDark ? colors.gray[50] : colors.gray[900],
                     },
                   ]}
                 >
                   {t('menu.voucher')}
                 </Text>
-                {order.voucher && (
+                {order.voucher ? (
                   <View style={ps.voucherRight}>
-                    {(cartTotals?.voucherDiscount ?? 0) > 0 && (
-                      <View
-                        style={[
-                          ps.discountBadge,
-                          { borderColor: primaryColor },
-                        ]}
-                      >
-                        <Text
-                          style={[
-                            ps.discountBadgeText,
-                            { color: primaryColor },
-                          ]}
-                        >
-                          -{formatCurrency(cartTotals?.voucherDiscount ?? 0)}
-                        </Text>
-                      </View>
-                    )}
                     <Text
                       style={[ps.voucherName, { color: primaryColor }]}
                       numberOfLines={1}
                     >
                       {order.voucher.title || order.voucher.code}
                     </Text>
+                    {(cartTotals?.voucherDiscount ?? 0) > 0 && (
+                      <Text
+                        style={[ps.discountBadgeText, { color: primaryColor }]}
+                      >
+                        -{formatCurrency(cartTotals?.voucherDiscount ?? 0)}
+                      </Text>
+                    )}
                   </View>
+                ) : (
+                  <Text
+                    style={[
+                      ps.voucherHint,
+                      { color: isDark ? colors.gray[400] : colors.gray[500] },
+                    ]}
+                  >
+                    {t('menu.selectVoucher')}
+                  </Text>
                 )}
+                <ChevronRight
+                  size={18}
+                  color={isDark ? colors.gray[400] : colors.gray[500]}
+                />
               </Pressable>
             )}
 
@@ -1550,6 +1544,21 @@ function PaymentPageContent() {
               primaryColor={primaryColor}
               isDark={isDark}
             />
+
+            {/* Phương thức + QR sau cùng: khách chốt số tiền (voucher, điểm) trước
+                rồi mới thấy QR — không còn QR cũ vì đổi voucher sau đó. */}
+            <PaymentMethodSection
+              order={order}
+              primaryColor={primaryColor}
+              isDark={isDark}
+              selectedMethod={selectedPaymentMethod}
+              onMethodChange={handleMethodChange}
+              onConflict={handlePaymentMethodConflict}
+              isInitiating={isInitiatingPayment}
+              qrCode={shownQr}
+              qrStale={qrStale}
+              coinBalance={coinBalance}
+            />
           </View>
         </GestureScrollView>
 
@@ -1567,7 +1576,7 @@ function PaymentPageContent() {
           ></BottomActionBar>
         )}
         <FloatingHeader
-          title={t('order.payment')}
+          title={t('menu.payment')}
           onBack={handleBack}
           rightElement={countdownRight}
           disableBlur
@@ -1701,15 +1710,10 @@ const ps = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 16,
   },
-  voucherLabel: { fontSize: 13, fontWeight: '600' },
-  voucherRight: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  voucherName: { fontSize: 13, fontWeight: '600', maxWidth: 120 },
-  discountBadge: {
-    borderWidth: 1,
-    borderRadius: 999,
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-  },
+  voucherLabel: { fontSize: 15, fontWeight: '600' },
+  voucherRight: { alignItems: 'flex-end', maxWidth: 160 },
+  voucherName: { fontSize: 13, fontWeight: '600' },
+  voucherHint: { fontSize: 13 },
   discountBadgeText: { fontSize: 11, fontWeight: '700' },
 })
 
