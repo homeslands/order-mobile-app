@@ -185,8 +185,12 @@ export const CartFooter = memo(function CartFooter({
       staleTime: ORDER_FEATURE_FLAGS_STALE_MS,
     })
   }, [queryClient, isMissingInfo])
-  const openConfirmSheet = useCallback(async () => {
-    // Chạy song song: validate menu + fetch feature flags (cả 2 thường đã warm cache)
+  // Mở sheet xác nhận NGAY, kiểm giỏ với menu hôm nay + cờ loại đơn chạy song
+  // song (trước phải chờ xong mới mở — mạng chậm là 0.5–1s chỉ thấy vòng
+  // quay). Nút Đặt trong sheet khoá tới khi kiểm xong (isChecking); giỏ đổi
+  // (món hết / đổi giá) thì thân sheet tự cập nhật vì theo dõi đơn.
+  const prepareConfirm = useCallback(async () => {
+    setConfirmSheetVisible(true)
     const [, flagsResponse] = await Promise.all([
       validate(true),
       queryClient
@@ -202,8 +206,12 @@ export const CartFooter = memo(function CartFooter({
         .catch(() => null),
     ])
 
+    // Kiểm tra không đạt: đóng sheet (khách chưa kịp bấm Đặt — nút đang khoá)
     const remaining = useOrderFlowStore.getState().orderingData?.orderItems
-    if (!remaining || remaining.length === 0) return
+    if (!remaining || remaining.length === 0) {
+      setConfirmSheetVisible(false)
+      return
+    }
 
     if (flagsResponse) {
       const currentType = useOrderFlowStore.getState().orderingData?.type
@@ -212,20 +220,18 @@ export const CartFooter = memo(function CartFooter({
         hasUser,
       )
       if (currentType && !available.includes(currentType)) {
+        setConfirmSheetVisible(false)
         if (available.length > 0) {
           setOrderingType(available[0] as Parameters<typeof setOrderingType>[0])
         }
         showErrorToastMessage('toast.orderTypeUnavailable')
-        return
       }
     }
-
-    setConfirmSheetVisible(true)
   }, [validate, queryClient, hasUser, setOrderingType])
   // Đang kiểm thì khoá nút + bỏ qua lượt bấm lặp (lượt lặp từng mở thẳng sheet
   // vì validate() trả null khi đang có lượt khác chạy).
   const { run: runCheckout, isRunning: isChecking } =
-    useSingleFlight(openConfirmSheet)
+    useSingleFlight(prepareConfirm)
   // Thiếu thông tin thì mở thẳng chỗ cần điền thay vì im lặng.
   const handleCheckoutPress = useCallback(() => {
     if (checkoutStep.sheet === 'table') return openTableSheet()
@@ -319,6 +325,7 @@ export const CartFooter = memo(function CartFooter({
           onClose={closeConfirmSheet}
           isDark={isDark}
           primaryColor={primaryColor}
+          isChecking={isChecking}
         />
       )}
 

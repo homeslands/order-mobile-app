@@ -142,6 +142,7 @@
   },
   "cart": {
     "title": "Giỏ hàng",
+    "checkingOrder": "Đang kiểm tra…",
     "changeSize": "Đổi size",
     "selectTableToOrder": "Chọn bàn để đặt",
     "addNote": "Thêm ghi chú",

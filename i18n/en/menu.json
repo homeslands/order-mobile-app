@@ -143,6 +143,7 @@
   },
   "cart": {
     "title": "Cart",
+    "checkingOrder": "Checking…",
     "changeSize": "Change size",
     "selectTableToOrder": "Select a table to order",
     "addNote": "Add a note",

@@ -44,11 +44,14 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
   onClose,
   isDark,
   primaryColor,
+  isChecking = false,
 }: {
   visible: boolean
   onClose: () => void
   isDark: boolean
   primaryColor: string
+  /** Đang kiểm giỏ với menu hôm nay (sheet mở ngay, kiểm song song) */
+  isChecking?: boolean
 }) {
   const sheetRef = useRef<BottomSheetModal>(null)
   const { bottom: bottomInset } = useSafeAreaInsets()
@@ -224,19 +227,27 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
           </Pressable>
           <Pressable
             onPress={handleSubmit}
-            disabled={isSubmitting}
+            disabled={isSubmitting || isChecking}
             accessibilityRole="button"
-            accessibilityState={{ disabled: isSubmitting, busy: isSubmitting }}
+            accessibilityState={{
+              disabled: isSubmitting || isChecking,
+              busy: isSubmitting || isChecking,
+            }}
             style={[
               s.submitBtn,
               {
                 backgroundColor: primaryColor,
-                opacity: isSubmitting ? 0.7 : 1,
+                opacity: isSubmitting || isChecking ? 0.7 : 1,
               },
             ]}
           >
-            {isSubmitting ? (
-              <ActivityIndicator size="small" color={colors.white.light} />
+            {isSubmitting || isChecking ? (
+              <View style={s.submitBusy}>
+                <ActivityIndicator size="small" color={colors.white.light} />
+                {isChecking && !isSubmitting ? (
+                  <Text style={s.submitText}>{t('cart.checkingOrder')}</Text>
+                ) : null}
+              </View>
             ) : (
               <Text style={s.submitText}>{t('order.create')}</Text>
             )}
@@ -244,7 +255,16 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
         </View>
       </BottomSheetFooter>
     ),
-    [isDark, primaryColor, handleSubmit, isSubmitting, t, tCommon, bottomInset],
+    [
+      isDark,
+      primaryColor,
+      handleSubmit,
+      isSubmitting,
+      isChecking,
+      t,
+      tCommon,
+      bottomInset,
+    ],
   )
 
   if (!visible || !hasOrder) return null
@@ -615,6 +635,7 @@ const s = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  submitBusy: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   submitText: {
     fontSize: 15,
     fontWeight: '700',
