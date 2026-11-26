@@ -390,6 +390,7 @@
     "updateNote": "Cập nhật",
     "updateOrder": "Cập nhật",
     "updateOrderFailed": "Cập nhật thất bại, vui lòng thử lại",
+    "updateOrderPartialFailed": "Một số thay đổi chưa lưu được. Đơn đã tải lại theo hệ thống — vui lòng kiểm tra rồi thử lại",
     "updatePayment": "Cập nhật thanh toán",
     "usedVoucher": "Mã đang dùng",
     "viewDetail": "Xem chi tiết",

@@ -1,14 +1,7 @@
-import { FlashList } from '@shopify/flash-list'
+import { FlashList, useRecyclingState } from '@shopify/flash-list'
 import { Image } from 'expo-image'
 import { NotebookText } from 'lucide-react-native'
-import React, {
-  memo,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react'
+import React, { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, TextInput, View } from 'react-native'
 
@@ -64,6 +57,9 @@ const THEME_DARK = {
   notePlaceholderColor: colors.gray[600],
 } as const
 
+/** Setter useRecyclingState: true = chỉ render lại ô này, không tính lại bố
+ *  cục cả danh sách (như useState trước đây). */
+const SKIP_LIST_LAYOUT = true
 const DEBOUNCE_QTY_MS = 200
 const DEBOUNCE_NOTE_MS = 400
 const BLURHASH = 'LKO2?U%2Tw=w]~RBVZRi};RPxuwH'
@@ -108,47 +104,53 @@ const OrderItemRow = memo(
     )
 
     // ── Optimistic qty ──────────────────────────────────────────────────────
-    const [pendingQty, setPendingQty] = useState<number | null>(null)
+    // FlashList tái dùng ô cho món khác mà không unmount — state phải reset
+    // theo món, nếu không món mới hiện số lượng / ghi chú của món cũ.
+    const [pendingQty, setPendingQty] = useRecyclingState<number | null>(null, [
+      item.id,
+    ])
     const qtyDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
     const displayQty = pendingQty ?? item.quantity
 
     const handleIncrease = useCallback(() => {
       const next = displayQty + 1
-      setPendingQty(next)
+      setPendingQty(next, SKIP_LIST_LAYOUT)
       if (qtyDebounceRef.current) clearTimeout(qtyDebounceRef.current)
       qtyDebounceRef.current = setTimeout(() => {
         onQtyChange(item.id!, next)
-        setPendingQty(null)
+        setPendingQty(null, SKIP_LIST_LAYOUT)
         qtyDebounceRef.current = null
       }, DEBOUNCE_QTY_MS)
-    }, [displayQty, item.id, onQtyChange])
+    }, [displayQty, item.id, onQtyChange, setPendingQty])
 
     const handleDecrease = useCallback(() => {
       if (displayQty <= 1) return
       const next = displayQty - 1
-      setPendingQty(next)
+      setPendingQty(next, SKIP_LIST_LAYOUT)
       if (qtyDebounceRef.current) clearTimeout(qtyDebounceRef.current)
       qtyDebounceRef.current = setTimeout(() => {
         onQtyChange(item.id!, next)
-        setPendingQty(null)
+        setPendingQty(null, SKIP_LIST_LAYOUT)
         qtyDebounceRef.current = null
       }, DEBOUNCE_QTY_MS)
-    }, [displayQty, item.id, onQtyChange])
+    }, [displayQty, item.id, onQtyChange, setPendingQty])
 
     // ── Optimistic note ─────────────────────────────────────────────────────
-    const [localNote, setLocalNote] = useState(item.note || '')
+    const [localNote, setLocalNote] = useRecyclingState(item.note || '', [
+      item.id,
+    ])
     const noteDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     const handleNoteChange = useCallback(
       (text: string) => {
-        setLocalNote(text)
+        setLocalNote(text, SKIP_LIST_LAYOUT)
         if (noteDebounceRef.current) clearTimeout(noteDebounceRef.current)
         noteDebounceRef.current = setTimeout(() => {
           onNoteChange(item.id!, text)
           noteDebounceRef.current = null
         }, DEBOUNCE_NOTE_MS)
       },
-      [item.id, onNoteChange],
+      [item.id, onNoteChange, setLocalNote],
     )
 
     // Cleanup pending timers on unmount — both qty debounce and note debounce

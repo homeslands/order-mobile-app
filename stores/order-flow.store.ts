@@ -530,10 +530,16 @@ export const useOrderFlowStore = create<IOrderFlowStore>()(
 
       clearUpdatingData: () => {
         useUpdateOrderFlowStore.getState().clearUpdatingData()
-        set({
+        // Thoát bước sửa đơn thì về lại bước đặt món — kẹt ở UPDATING là giỏ
+        // hiện 0 món (badge, tiêu đề) dù vẫn còn món.
+        set((state) => ({
           updatingData: null,
+          currentStep:
+            state.currentStep === OrderFlowStep.UPDATING
+              ? OrderFlowStep.ORDERING
+              : state.currentStep,
           lastModified: dayjs().valueOf(),
-        })
+        }))
       },
 
       // ===================
@@ -781,6 +787,10 @@ export const useOrderFlowStore = create<IOrderFlowStore>()(
         // where badge/min-order render with default 0 values.
         const items = state.orderingData?.orderItems
         state.isHydrated = true
+        // App bị tắt khi đang sửa đơn: bản nháp không còn ý nghĩa, về giỏ
+        if (state.currentStep === OrderFlowStep.UPDATING) {
+          state.currentStep = OrderFlowStep.ORDERING
+        }
         state.orderItemTotalQuantity = calcOrderItemTotalQuantity(items)
         state.minOrderValue = calcMinOrderValue(items)
         state.orderItemsById = calcOrderItemsById(items)

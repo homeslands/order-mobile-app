@@ -4,11 +4,12 @@ import {
   BottomSheetModal,
 } from '@gorhom/bottom-sheet'
 import { Bike, PackageCheck, UtensilsCrossed } from 'lucide-react-native'
-import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
+import { memo, useCallback, useEffect, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, View } from 'react-native'
 
 import { colors } from '@/constants'
+import { useOrderTypeOptionsForUpdateOrder } from '@/hooks/use-order-type-options-for-update-order'
 import { useOrderFlowStore } from '@/stores'
 import { OrderTypeEnum } from '@/types'
 import { GlassSheetBackground } from '@/components/ui/glass-sheet-background'
@@ -37,14 +38,8 @@ export const SimpleOrderTypeSheetInUpdateOrder = memo(
     )
     const setDraftType = useOrderFlowStore((s) => s.setDraftType)
 
-    const orderTypes = useMemo(
-      () => [
-        { value: OrderTypeEnum.AT_TABLE, label: t('menu.dineIn') },
-        { value: OrderTypeEnum.TAKE_OUT, label: t('menu.takeAway') },
-        { value: OrderTypeEnum.DELIVERY, label: t('menu.delivery') },
-      ],
-      [t],
-    )
+    // Theo cờ khoá loại đơn của hệ thống (trước luôn hiện đủ 3 loại)
+    const { orderTypes } = useOrderTypeOptionsForUpdateOrder()
 
     const renderBackdrop = useCallback(
       (props: BottomSheetBackdropProps) => (
@@ -113,7 +108,7 @@ export const SimpleOrderTypeSheetInUpdateOrder = memo(
             return (
               <Pressable
                 key={opt.value}
-                onPress={() => handleSelect(opt.value)}
+                onPress={() => handleSelect(opt.value as OrderTypeEnum)}
                 style={[
                   s.option,
                   {
