@@ -34,17 +34,18 @@ export const STATIC_BOTTOM_INSET: number =
   initialWindowMetrics?.insets.bottom ?? 0
 
 /**
- * Extra bottom padding added on top of the safe area inset for sticky footer
- * buttons at the bottom of a screen (checkout, payment, product CTA, etc.).
+ * Khoảng thêm trên khoảng an toàn dưới cho thanh nút cố định ở đáy màn
+ * (Đặt hàng, Thanh toán, nút ở Chi tiết món / Chi tiết đơn…).
  *
- * Keeps buttons comfortably clear of the screen edge on every device:
- *   iOS notch/Dynamic Island  (bottom ≈ 34): 34 + 20 = 54px — spacious
- *   iOS no-notch SE/8         (bottom ≈  0):  0 + 20 = 20px — comfortable
- *   Android gesture nav       (bottom ≈ 24): 24 + 20 = 44px — comfortable
- *   Android button/no nav     (bottom =   0):  0 + 20 = 20px — comfortable
+ * Máy có thanh home / thanh cử chỉ: khoảng an toàn đã đẩy nút lên trên thanh
+ * đó (như app gốc iOS) — chỉ thêm 8. Trước đây cộng 28 → iPhone cách đáy 62pt,
+ * gần gấp đôi cần thiết. Máy không có (SE / 8, Android nút cứng): thêm 16 để
+ * nút không sát mép.
+ *   iPhone có thanh home (bottom ≈ 34): 34 + 8 = 42
+ *   Android thanh cử chỉ  (bottom ≈ 24): 24 + 8 = 32
+ *   Không có thanh home   (bottom =  0):  0 + 16 = 16
  *
- * Usage: `paddingBottom: insets.bottom + FOOTER_BOTTOM_EXTRA`
- *
- * Do NOT use inside bottom sheets — the sheet handles safe area internally.
+ * Dùng: `paddingBottom: insets.bottom + FOOTER_BOTTOM_EXTRA`.
+ * KHÔNG dùng trong bottom sheet — sheet tự lo khoảng an toàn.
  */
-export const FOOTER_BOTTOM_EXTRA = 28
+export const FOOTER_BOTTOM_EXTRA: number = STATIC_BOTTOM_INSET > 0 ? 8 : 16
