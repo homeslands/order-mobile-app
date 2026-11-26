@@ -129,3 +129,23 @@ describe('Sheet không tự mở lại', () => {
     }
   })
 })
+
+describe('Sheet như giỏ hàng', () => {
+  it('UF13 một trạng thái "sheet đang mở" — mỗi lúc một sheet', () => {
+    const f = read(dir + 'update-order-footer.tsx')
+    expect(f).toMatch(/useState<UpdateOrderSheet \| null>\(null\)/)
+    // Sheet cũ đóng xong (onDismiss) không được đóng nhầm sheet vừa mở
+    expect(f).toMatch(/setSheet\(\(cur\) => \(cur === name \? null : cur\)\)/)
+  })
+
+  it('UF14 đơn tại bàn thì tải sẵn danh sách bàn', () => {
+    const f = read(dir + 'update-order-footer.tsx')
+    expect(f).toMatch(/prefetchQuery\(tablesQueryOptions\(/)
+  })
+
+  it('UF15 ô bàn bọc memo', () => {
+    expect(read(dir + 'simple-table-sheet-in-update-order.tsx')).toMatch(
+      /const TableChip = memo\(/,
+    )
+  })
+})
