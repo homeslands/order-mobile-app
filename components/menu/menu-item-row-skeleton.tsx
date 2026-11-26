@@ -1,6 +1,6 @@
 /**
  * Skeleton dòng món của tab Menu — cùng khung với MenuItemRow
- * (app/(tabs)/menu/menu-item-row.tsx): ảnh 76×76, đệm 16/12, chữ bên phải,
+ * (app/(tabs)/menu/menu-item-row.tsx): ảnh 88×88, đệm 16/12, chữ bên phải,
  * nút + 30. Khung khớp để lúc dữ liệu về không nhảy bố cục.
  */
 import { memo } from 'react'
@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
   },
-  image: { width: 76, height: 76, borderRadius: 12 },
+  image: { width: 88, height: 88, borderRadius: 12 },
   content: { flex: 1, gap: 6 },
   name: { height: 15, width: '60%' },
   desc: { height: 12, width: '80%' },

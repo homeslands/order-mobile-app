@@ -2,7 +2,10 @@
 // bằng nút "+" (trước đây vẫn thêm được món bị khoá / hết số lượng).
 import { fireEvent, render, screen } from '@testing-library/react-native'
 
-import { MenuItemRow } from '@/app/(tabs)/menu/menu-item-row'
+import {
+  MENU_ROW_IMAGE_SIZE,
+  MenuItemRow,
+} from '@/app/(tabs)/menu/menu-item-row'
 
 jest.mock('@/components/menu/menu-item-image', () => ({
   MenuItemImage: () => null,
@@ -101,4 +104,8 @@ it('món thường: không có nhãn', () => {
   renderRow(true)
   expect(screen.queryByText('menu.isTopSell')).toBeNull()
   expect(screen.queryByText('menu.isNewProduct')).toBeNull()
+})
+
+it('ảnh món 88: dòng gọn nhưng ảnh đủ lớn để chọn món', () => {
+  expect(MENU_ROW_IMAGE_SIZE).toBe(88)
 })

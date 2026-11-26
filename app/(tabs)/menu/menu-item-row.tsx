@@ -36,9 +36,10 @@ export type MenuDisplayItem = {
 }
 
 export const MENU_IMAGE_HIGH_PRIORITY_COUNT = 4
-/** Dòng món gọn: ảnh 76 + đệm dọc 12×2. */
-export const MENU_ITEM_ESTIMATED_HEIGHT = 100
-const IMAGE_SIZE = 76
+/** Dòng món gọn: ảnh 88 + đệm dọc 12×2. */
+export const MENU_ROW_IMAGE_SIZE = 88
+export const MENU_ITEM_ESTIMATED_HEIGHT = MENU_ROW_IMAGE_SIZE + 24
+const IMAGE_SIZE = MENU_ROW_IMAGE_SIZE
 /** Lề trái của chữ trong dòng — đường ngăn cách thụt tới đây (kiểu iOS). */
 export const MENU_ROW_TEXT_INSET = 16 + IMAGE_SIZE + 12
 
