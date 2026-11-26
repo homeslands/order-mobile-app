@@ -33,6 +33,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { GlassHeaderButton } from '@/components/navigation/glass-header-button'
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
+import { formatLoadedValue } from '@/components/ui/query-error-state'
 import { useCoinBalance } from '@/hooks/use-coin-balance'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { useRunAfterTransition } from '@/hooks/use-run-after-transition'
@@ -127,7 +128,7 @@ export default function GiftCardHubScreen() {
 
   useRunAfterTransition(() => setReady(true), [])
 
-  const { balance, isLoading } = useCoinBalance(ready)
+  const { balance, hasData, isLoading } = useCoinBalance(ready)
 
   const bg = isDark ? colors.background.dark : colors.background.light
   const cardBg = isDark ? colors.card.dark : '#ffffff'
@@ -186,7 +187,12 @@ export default function GiftCardHubScreen() {
               <View style={s.balanceSkeleton} />
             ) : (
               <Text style={s.balanceValue}>
-                {balanceVisible ? formatPoints(balance) : '••••••'}
+                {balanceVisible
+                  ? formatLoadedValue(
+                      hasData ? balance : undefined,
+                      formatPoints,
+                    )
+                  : '••••••'}
               </Text>
             )}
             <Pressable
