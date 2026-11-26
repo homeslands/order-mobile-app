@@ -1,4 +1,3 @@
-import { ScreenContainer } from '@/components/layout'
 import { FlashList } from '@shopify/flash-list'
 import { useQueryClient } from '@tanstack/react-query'
 import {
@@ -42,6 +41,7 @@ import {
   OrderHistoryCard,
   type OrderHistoryCardLabels,
 } from '@/components/order-history/order-history-card'
+import { StickySectionHeader } from '@/components/ui/sticky-section-header'
 import { colors } from '@/constants'
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import {
@@ -51,6 +51,7 @@ import {
 } from '@/hooks'
 import { GlassHeaderButton } from '@/components/navigation/glass-header-button'
 import { navigateNative } from '@/lib/navigation'
+import { buildOrderSections, type OrderSectionRow } from '@/lib/order-sections'
 import { hexToRgba } from '@/lib/utils'
 import { useNotificationStore, useUserStore } from '@/stores'
 import { firstUnreadOrderPaidSlug } from '@/stores/selectors/notification.selectors'
@@ -66,10 +67,22 @@ import {
 } from '@/components/ui/query-error-state'
 import { Text } from '@/components/ui/text'
 
-const orderKey = (o: IOrder) => o.slug
+type Row = OrderSectionRow<IOrder>
 
-/** Khoảng trống giữa hai thẻ đơn. */
-function OrderGap() {
+const rowKey = (r: Row) => (r._kind === 'header' ? r.key : r.order.slug)
+const rowType = (r: Row) => r._kind
+
+/** Khoảng trống giữa hai thẻ đơn liền nhau (không đặt quanh tiêu đề ngày). */
+function OrderGap({
+  leadingItem,
+  trailingItem,
+}: {
+  leadingItem?: Row
+  trailingItem?: Row
+}) {
+  if (leadingItem?._kind !== 'order' || trailingItem?._kind !== 'order') {
+    return null
+  }
   return <View style={{ height: 10 }} />
 }
 
@@ -507,6 +520,13 @@ function OrderHistoryPage() {
     () => orderPages?.pages.flatMap((p) => p.result?.items ?? []) ?? [],
     [orderPages],
   )
+  // Nhóm theo ngày — tiêu đề ngày nằm trong danh sách, cuộn đi theo (không
+  // dính).
+  const rows = useMemo(
+    () => buildOrderSections(orders, new Date()).rows,
+    [orders],
+  )
+
   const handleEndReached = useCallback(() => {
     if (hasNextPage && !isFetchingNextPage) void fetchNextPage()
   }, [hasNextPage, isFetchingNextPage, fetchNextPage])
@@ -566,17 +586,43 @@ function OrderHistoryPage() {
     setFilterSheetOpen(false)
   }, [])
 
-  const renderOrder = useCallback(
-    ({ item }: { item: IOrder }) => (
-      <OrderHistoryCard
-        order={item}
-        primaryColor={primaryColor}
-        isDark={isDark}
-        labels={cardLabels}
-        onPress={handleOrderPress}
-      />
-    ),
-    [isDark, primaryColor, cardLabels, handleOrderPress],
+  const renderRow = useCallback(
+    ({ item }: { item: Row }) => {
+      if (item._kind === 'header') {
+        const title =
+          item.date === 'unknown'
+            ? t('order.unknownDate')
+            : item.day === 'today'
+              ? t('order.today')
+              : item.day === 'yesterday'
+                ? t('order.yesterday')
+                : dayjs(item.date).format('DD/MM/YYYY')
+        return (
+          <StickySectionHeader
+            title={title}
+            subtitle={t('order.orderCount', { count: item.count })}
+            stuck={false}
+            isDark={isDark}
+          />
+        )
+      }
+      return (
+        <OrderHistoryCard
+          order={item.order}
+          primaryColor={primaryColor}
+          isDark={isDark}
+          labels={cardLabels}
+          onPress={handleOrderPress}
+        />
+      )
+    },
+    [t, isDark, primaryColor, cardLabels, handleOrderPress],
+  )
+
+  const { bottom: bottomInset } = useSafeAreaInsets()
+  const listContentStyle = useMemo(
+    () => ({ paddingBottom: bottomInset + 24 }),
+    [bottomInset],
   )
 
   const ListFooterComponent = useMemo(
@@ -640,8 +686,10 @@ function OrderHistoryPage() {
   return (
     <View style={[pageStyles.flex, { backgroundColor: screenBg }]}>
       {/* Header tự chừa thanh trạng thái (STATIC_TOP_INSET) và trải nền lên
-          dưới nó như màn Menu — container không chừa thêm phía trên. */}
-      <ScreenContainer edges={['bottom']} style={pageStyles.flex}>
+          dưới nó như màn Menu. Không chừa safe-area đáy ở khung ngoài: danh
+          sách chạy tới đáy màn, đệm cuối theo safe-area (không bị cắt ngang
+          trên thanh home). */}
+      <View style={pageStyles.flex}>
         {/* Header cố định (nền đặc), danh sách bắt đầu ngay dưới. */}
         <View
           style={[
@@ -771,15 +819,16 @@ function OrderHistoryPage() {
         </View>
 
         <FlashList
-          data={orders}
-          renderItem={renderOrder}
-          keyExtractor={orderKey}
+          data={rows}
+          renderItem={renderRow}
+          keyExtractor={rowKey}
+          getItemType={rowType}
           ItemSeparatorComponent={OrderGap}
           onEndReached={handleEndReached}
           onEndReachedThreshold={0.6}
           ListFooterComponent={ListFooterComponent}
           ListEmptyComponent={ListEmptyComponent}
-          contentContainerStyle={pageStyles.listContent}
+          contentContainerStyle={listContentStyle}
           refreshControl={
             <RefreshControl
               refreshing={userRefreshing}
@@ -789,7 +838,7 @@ function OrderHistoryPage() {
             />
           }
         />
-      </ScreenContainer>
+      </View>
 
       <HistoryDateFilterSheet
         visible={filterSheetOpen}
@@ -820,7 +869,7 @@ const pageStyles = StyleSheet.create({
     paddingBottom: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
   },
-  listContent: { paddingTop: 12, paddingBottom: 24 },
+
   loadMore: { paddingVertical: 16 },
   headerRow: {
     flexDirection: 'row',

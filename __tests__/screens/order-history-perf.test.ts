@@ -62,6 +62,12 @@ it('OH11 header cố định tự chừa thanh trạng thái; container không c
   expect(history).not.toMatch(/edges=\{\[\s*'top'/)
 })
 
-it('OH12 không có tiêu đề ngày dính — ngày nằm trong thẻ', () => {
+it('OH12 có tiêu đề ngày trong danh sách nhưng KHÔNG dính khi cuộn', () => {
+  expect(history).toMatch(/buildOrderSections\(/)
   expect(history).not.toMatch(/stickyHeaderIndices/)
+})
+
+it('OH13 mép dưới không bị cắt: danh sách chạy tới đáy, đệm theo safe-area', () => {
+  expect(history).not.toMatch(/edges=\{\[[^\]]*'bottom'/)
+  expect(history).toMatch(/paddingBottom: bottomInset \+/)
 })

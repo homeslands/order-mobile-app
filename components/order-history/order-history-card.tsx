@@ -1,5 +1,5 @@
 /**
- * Thẻ đơn gọn ở màn Lịch sử đơn: loại đơn + giờ + ngày, nhãn trạng thái, dải ảnh
+ * Thẻ đơn gọn ở màn Lịch sử đơn: loại đơn + giờ (ngày ở tiêu đề nhóm), nhãn trạng thái, dải ảnh
  * món (tối đa 4, "+N"), tên món gộp một dòng, số món + tổng tiền.
  *
  * Bảng tính tiền chi tiết (tạm tính, khuyến mãi, voucher, điểm, phí giao)
@@ -112,7 +112,7 @@ export const OrderHistoryCard = memo(function OrderHistoryCard({
     const d = new Date(order.createdAt)
     const time = Number.isNaN(d.getTime())
       ? ''
-      : `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`
+      : `${pad(d.getHours())}:${pad(d.getMinutes())}`
     return {
       qty,
       names,
