@@ -269,7 +269,8 @@
     "checkStatus": "Kiểm tra trạng thái",
     "reorder": "Đặt hàng lại",
     "generateQR": "Tạo mã QR thanh toán",
-    "initiateError": "Không thể khởi tạo thanh toán. Vui lòng thử lại."
+    "initiateError": "Không thể khởi tạo thanh toán. Vui lòng thử lại.",
+    "notPaidYet": "Chưa nhận được thanh toán. Nếu bạn đã chuyển khoản, vui lòng đợi thêm ít phút."
   },
   "recipientForm": {
     "recipientTitle": "Người nhận {{index}}",

@@ -12,7 +12,7 @@ export const PAID_NOTIFICATION_CODES = new Set<string>([
 
 // Stepped backoff delays for BANK_TRANSFER polling (milliseconds).
 // Index maps to tick number; last entry is the permanent cap.
-const POLL_INTERVALS_MS = [10_000, 15_000, 20_000, 30_000] as const
+export const POLL_INTERVALS_MS = [10_000, 15_000, 20_000, 30_000] as const
 
 export interface UsePaymentStatusDetectorOptions {
   /** Slug of the order being paid. */

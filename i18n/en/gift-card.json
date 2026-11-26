@@ -263,7 +263,8 @@
     "checkStatus": "Check status",
     "reorder": "Reorder",
     "generateQR": "Generate QR code",
-    "initiateError": "Unable to initiate payment. Please try again."
+    "initiateError": "Unable to initiate payment. Please try again.",
+    "notPaidYet": "Payment not received yet. If you have already transferred, please wait a few more minutes."
   },
   "recipientForm": {
     "recipientTitle": "Recipient {{index}}",

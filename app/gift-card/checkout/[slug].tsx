@@ -55,7 +55,11 @@ import {
 } from '@/constants'
 import { FOOTER_BOTTOM_EXTRA, STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useInitiateCardOrderPayment } from '@/hooks/use-card-order'
-import { useGiftCardOrderPayment } from '@/hooks/use-gift-card-order-payment'
+import {
+  useCardOrderPolling,
+  useGiftCardOrderPayment,
+} from '@/hooks/use-gift-card-order-payment'
+import { handleCardOrderExpiry } from '@/lib/gift-card-expiry'
 import { useAnimatedCountdown } from '@/hooks/use-animated-countdown'
 import { useCancelCardOrder } from '@/hooks/use-card-order'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
@@ -66,6 +70,7 @@ import {
   formatCurrency,
   formatPoints,
   showErrorToastMessage,
+  showToast,
 } from '@/utils'
 import { Text } from '@/components/ui/text'
 
@@ -583,12 +588,31 @@ export default function GiftCardPaymentScreen() {
     enabled: !!order && !isExpired,
   })
 
+  // Hết hạn: hỏi lại server trước khi huỷ — khách có thể vừa chuyển khoản.
+  // Đã trả thì showSuccess tự bật theo order.paymentStatus.
   const handleExpire = useCallback(() => {
     setIsExpired(true)
-    if (slug) {
-      cancelOrder(slug, { onSettled: () => void refetch() })
-    }
+    if (!slug) return
+    void handleCardOrderExpiry({
+      refetch,
+      cancel: () => cancelOrder(slug, { onSettled: () => void refetch() }),
+    })
   }, [slug, cancelOrder, refetch])
+
+  useCardOrderPolling(refetch, !!activeQR && !isExpired && !showSuccess)
+
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false)
+  const handleCheckStatus = useCallback(async () => {
+    setIsCheckingStatus(true)
+    try {
+      const res = await refetch()
+      if (res.data?.paymentStatus !== CardOrderStatus.COMPLETED) {
+        showToast(t('payment.notPaidYet'), 'info')
+      }
+    } finally {
+      setIsCheckingStatus(false)
+    }
+  }, [refetch, t])
 
   // Bridge expiry from UI thread → JS (fires regardless of QR state)
   useAnimatedReaction(
@@ -859,7 +883,9 @@ export default function GiftCardPaymentScreen() {
               {activeQR && !isExpired ? (
                 // Already showing QR — refetch button
                 <Pressable
-                  onPress={() => void refetch()}
+                  onPress={() => void handleCheckStatus()}
+                  disabled={isCheckingStatus}
+                  accessibilityRole="button"
                   style={[
                     s.footerBtn,
                     {
@@ -869,9 +895,13 @@ export default function GiftCardPaymentScreen() {
                     },
                   ]}
                 >
-                  <Text style={[s.footerBtnText, { color: textColor }]}>
-                    {t('payment.checkStatus')}
-                  </Text>
+                  {isCheckingStatus ? (
+                    <ActivityIndicator color={textColor} />
+                  ) : (
+                    <Text style={[s.footerBtnText, { color: textColor }]}>
+                      {t('payment.checkStatus')}
+                    </Text>
+                  )}
                 </Pressable>
               ) : isExpired ? (
                 // Expired — retry by going back to checkout
