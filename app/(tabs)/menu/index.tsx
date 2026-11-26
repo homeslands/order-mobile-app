@@ -3,13 +3,12 @@
  * UI & logic ported from perf/index.tsx, store bridged to order-flow.
  */
 import {
-  buildSpecificMenuRequest,
   extractMenuItems,
   getPublicSpecificMenu,
   getSpecificMenu,
 } from '@/api/menu'
 import { Images } from '@/assets/images'
-import { SelectBranchDropdown } from '@/components/branch'
+import { BranchHint, SelectBranchDropdown } from '@/components/branch'
 import { TabScreenLayout, useTabBarBottomPadding } from '@/components/layout'
 import { MenuItemRowSkeleton } from '@/components/menu/menu-item-row-skeleton'
 import { PriceFilterSheet } from '@/components/menu/price-sheet'
@@ -22,6 +21,7 @@ import { MENU_QUERY_SKIP_CODES } from '@/lib/global-error-gate'
 import { useCatalogMenuPages } from '@/hooks/use-catalog-menu-pages'
 import { useEntryFetchGate } from '@/hooks/use-entry-fetch-gate'
 import { useMenuScreenState } from '@/hooks/use-menu-screen-state'
+import { MENU_CATALOG_BATCH, menuRequestForFilter } from '@/lib/menu-queries'
 import { prefetchThumbnails } from '@/lib/image/on-device-resize'
 import { THUMBNAIL_AHEAD_MAX } from '@/lib/image/resize-config'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
@@ -31,7 +31,6 @@ import { useSetMenuFilter } from '@/stores/selectors'
 import { useTransientNavStore } from '@/stores/transient-nav.store'
 import type { ISpecificMenuRequest } from '@/types'
 import { IOrderItem } from '@/types'
-import { getLocalDateString } from '@/utils/date'
 import { getAheadImageUrls } from '@/utils/menu-image-prefetch'
 import {
   getMenuListEmptyState,
@@ -95,7 +94,6 @@ const MENU_ENTRY_IMAGE_DELAY_MS = 300
 const MENU_IMAGE_REVEAL_MAX_WAIT_MS = 2500
 const ENABLE_SCROLL_PREFETCH = true
 const SEARCH_DEBOUNCE_MS = 300
-const MENU_CATALOG_BATCH = 5
 
 /**
  * FlashList v2 bật maintainVisibleContentPosition mặc định. Menu load
@@ -301,41 +299,17 @@ export default function MenuPage() {
     [setMenuFilter],
   )
 
-  const menuDate = menuFilter.date
   const menuBranch = menuFilter.branch
   const menuCatalog = menuFilter.catalog
-  const menuProductName = menuFilter.productName
   const menuMinPrice = menuFilter.minPrice
   const menuMaxPrice = menuFilter.maxPrice
-  const menuSlug = menuFilter.menu
   const menuIsNewProduct = menuFilter.isNewProduct
   const menuIsTopSell = menuFilter.isTopSell
-
+  // Dựng qua lib/menu-queries — cùng chỗ với việc tải trước từ Home, để dữ
+  // liệu tải trước nằm đúng khoá màn này đọc.
   const request = useMemo<ISpecificMenuRequest>(
-    () =>
-      buildSpecificMenuRequest({
-        date: menuDate ?? getLocalDateString(),
-        branch: menuBranch ?? branchSlug,
-        catalog: menuCatalog,
-        productName: menuProductName,
-        minPrice: menuMinPrice,
-        maxPrice: menuMaxPrice,
-        slug: menuSlug,
-        isNewProduct: menuIsNewProduct,
-        isTopSell: menuIsTopSell,
-      }),
-    [
-      menuDate,
-      menuBranch,
-      menuCatalog,
-      menuProductName,
-      menuMinPrice,
-      menuMaxPrice,
-      menuSlug,
-      menuIsNewProduct,
-      menuIsTopSell,
-      branchSlug,
-    ],
+    () => menuRequestForFilter(menuFilter, branchSlug),
+    [menuFilter, branchSlug],
   )
 
   // Special filters (isNewProduct/isTopSell) don't combine with per-catalog
@@ -877,6 +851,7 @@ export default function MenuPage() {
             }}
           />
         )}
+        {hasBranch && <BranchHint onChange={handleOpenBranchSheet} />}
       </View>
 
       {!hasBranch ? (

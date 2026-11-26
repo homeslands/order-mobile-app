@@ -1,12 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useQueries } from '@tanstack/react-query'
 
-import {
-  extractMenuItems,
-  getPublicSpecificMenu,
-  getSpecificMenu,
-} from '@/api/menu'
-import { MENU_QUERY_SKIP_CODES } from '@/lib/global-error-gate'
+import { extractMenuItems } from '@/api/menu'
+import { catalogMenuQueryOptions } from '@/lib/menu-queries'
 import type { ISpecificMenuRequest } from '@/types'
 import { isMenuLoadError } from '@/utils/menu-stock'
 
@@ -38,22 +34,13 @@ export function useCatalogMenuPages(opts: {
     () => catalogSlugs.slice(0, loadedCount),
     [catalogSlugs, loadedCount],
   )
-  const fetcher = hasUser ? getSpecificMenu : getPublicSpecificMenu
-  const keyRoot = hasUser ? 'specific-menu' : 'public-specific-menu'
-
   const results = useQueries({
-    queries: slugs.map((slug) => {
-      const q: ISpecificMenuRequest = { ...request, catalog: slug }
-      return {
-        queryKey: [keyRoot, q],
-        queryFn: () => fetcher(q),
-        enabled,
-        staleTime: 60_000,
-        gcTime: 10 * 60_000,
-        refetchOnMount: false,
-        meta: { skipGlobalErrorCodes: MENU_QUERY_SKIP_CODES },
-      }
-    }),
+    // Cấu hình dùng chung với việc tải trước từ Home (lib/menu-queries).
+    queries: slugs.map((slug) => ({
+      ...catalogMenuQueryOptions(hasUser, request, slug),
+      enabled,
+      refetchOnMount: false,
+    })),
   })
 
   // Recompute the flat list only when the per-catalog data signature changes

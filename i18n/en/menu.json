@@ -133,7 +133,10 @@
     "noteForStore": "Note for the store",
     "notePlaceholder": "Add a note",
     "relatedProducts": "You may also like",
-    "seeMore": "See more"
+    "seeMore": "See more",
+    "viewingBranch": "Viewing the menu of {{name}}",
+    "changeBranch": "Change",
+    "dismissBranchHint": "Dismiss branch tip"
   },
   "cart": {
     "title": "Cart",

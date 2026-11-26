@@ -1,10 +1,11 @@
 /** Tab Home. */
 import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
-import React, { useCallback, useMemo, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   Dimensions,
+  InteractionManager,
   Pressable,
   RefreshControl,
   StyleSheet,
@@ -34,6 +35,13 @@ import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useRunAfterTransition } from '@/hooks'
 import { useBanners } from '@/hooks/use-banner'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
+import { prefetchMenu } from '@/lib/menu-queries'
+import {
+  useAuthStore,
+  useBranchStore,
+  useMenuFilterStore,
+  useUserStore,
+} from '@/stores'
 import type { IBanner } from '@/types'
 import { Text } from '@/components/ui/text'
 
@@ -88,6 +96,22 @@ export default function HomeScreen() {
   const showBannerSkeleton = !ready || isBannerLoading
 
   const queryClient = useQueryClient()
+
+  // Home đã rảnh: tải trước Menu (danh mục + đợt món đầu) đúng khoá màn Menu
+  // đọc, để bấm sang tab Menu là có món ngay. Đọc store qua getState: không
+  // cần render lại Home khi các giá trị này đổi.
+  useEffect(() => {
+    if (!ready) return
+    const task = InteractionManager.runAfterInteractions(() => {
+      const userSlug = useUserStore.getState().userInfo?.slug
+      void prefetchMenu(queryClient, {
+        hasUser: useAuthStore.getState().isAuthenticated() && !!userSlug,
+        branchSlug: useBranchStore.getState().branch?.slug,
+        menuFilter: useMenuFilterStore.getState().menuFilter,
+      })
+    })
+    return () => task.cancel()
+  }, [ready, queryClient])
   // Home là màn dạng ví: kéo để làm mới thì khách chờ số dư mới, không chỉ
   // banner. Invalidate theo tiền tố — Home không giữ slug, và tiền tố
   // loyaltyPoints phủ cả key tổng điểm mà không phải dựng lại key đó ở đây.

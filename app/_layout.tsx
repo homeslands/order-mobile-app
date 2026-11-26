@@ -31,6 +31,7 @@ import {
 import '@/lib/http-setup'
 import { NavigationEngineProvider } from '@/lib/navigation'
 import { queryClient } from '@/lib/query-client'
+import '@/lib/query-persist-setup'
 import { warmThumbnailIndex } from '@/lib/image/thumbnail-cache'
 import { isNotificationNavigationPending } from '@/lib/notification-navigation'
 import { SharedElementProvider } from '@/lib/shared-element'
