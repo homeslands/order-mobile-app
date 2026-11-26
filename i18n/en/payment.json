@@ -124,7 +124,7 @@
     "paymentMethod": {
       "bankTransfer": "Bank transfer",
       "cash": "Cash",
-      "point": "Loyalty points",
+      "point": "Coins",
       "creditCard": "Credit card"
     }
   }

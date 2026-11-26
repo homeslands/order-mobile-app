@@ -152,7 +152,7 @@
     "paymentMethod": {
       "cash": "Cash",
       "bankTransfer": "Bank Transfer",
-      "point": "Points",
+      "point": "Coins",
       "creditCard": "Credit Card",
       "error": "Please select at least one payment method",
       "selected": "Selected",
@@ -175,6 +175,7 @@
     "codeNotFound": "Code \"{{code}}\" not found",
     "maxOne": "Max: 1",
     "unavailable": "Unavailable",
+    "showMoreUnavailable": "Show more ({{count}})",
     "loadingVouchers": "Loading vouchers...",
     "currentlyApplied": "Currently Applied",
     "availableVouchers": "Available Vouchers",

@@ -153,7 +153,7 @@
     "paymentMethod": {
       "cash": "Tiền mặt",
       "bankTransfer": "Chuyển khoản",
-      "point": "Điểm tích lũy",
+      "point": "Xu",
       "creditCard": "Thẻ tín dụng",
       "error": "Vui lòng chọn ít nhất 1 phương thức thanh toán",
       "selected": "Đã chọn",
@@ -176,6 +176,7 @@
     "codeNotFound": "Không tìm thấy mã \"{{code}}\"",
     "maxOne": "Tối đa: 1",
     "unavailable": "Không khả dụng",
+    "showMoreUnavailable": "Xem thêm ({{count}})",
     "loadingVouchers": "Đang tải voucher...",
     "currentlyApplied": "Đang áp dụng",
     "availableVouchers": "Voucher khả dụng",
