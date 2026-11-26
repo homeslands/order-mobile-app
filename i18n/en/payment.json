@@ -6,7 +6,12 @@
   "order": {
     "expiredButton": "Payment expired",
     "expiredTitle": "Order payment has expired",
-    "expiredDesc": "The 15-minute payment window has passed. Please create a new order."
+    "expiredDesc": "The 15-minute payment window has passed. Please create a new order.",
+    "checkPayment": "Check payment",
+    "regenerateQr": "Create new QR code",
+    "qrStale": "Your total has changed. Please create a new QR code so you transfer the correct amount.",
+    "notPaidYet": "Payment not received yet. If you have already transferred, please wait a few more minutes.",
+    "backToMenu": "Back to menu"
   },
   "qrGenerate": {
     "title": "Pay with Points",

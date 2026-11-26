@@ -59,6 +59,10 @@ import { useAnimatedCountdown } from '@/hooks/use-animated-countdown'
 import { useCoinBalance } from '@/hooks/use-coin-balance'
 import { useLoyaltyPoints } from '@/hooks/use-loyalty-point'
 import { navigateNative } from '@/lib/navigation'
+import {
+  getBankTransferState,
+  type PayButtonMode,
+} from '@/lib/payment-bank-transfer'
 import { useNotificationStore, useUserStore } from '@/stores'
 import { OrderStatus } from '@/types'
 import {
@@ -286,6 +290,7 @@ const PaymentMethodSection = React.memo(function PaymentMethodSection({
   onConflict,
   isInitiating,
   qrCode,
+  qrStale,
   coinBalance,
 }: {
   order: NonNullable<ReturnType<typeof useOrderBySlug>['data']>['result']
@@ -295,10 +300,14 @@ const PaymentMethodSection = React.memo(function PaymentMethodSection({
   onMethodChange: (method: PaymentMethod, transactionId?: string) => void
   onConflict: (blockedMethod: PaymentMethod) => void
   isInitiating: boolean
+  /** QR đang hợp lệ để hiện (đã tính sẵn ở getBankTransferState). */
   qrCode: string | null
+  /** Tổng tiền đã đổi sau khi tạo QR: ẩn QR, nhắc tạo lại. */
+  qrStale: boolean
   coinBalance?: number
 }) {
   const { t } = useTranslation('menu')
+  const { t: tPayment } = useTranslation('payment')
 
   if (!order || order.status !== OrderStatus.PENDING) return null
 
@@ -369,18 +378,20 @@ const PaymentMethodSection = React.memo(function PaymentMethodSection({
           </Text>
         </View>
       )}
-      {(selectedMethod !== null
-        ? selectedMethod === PaymentMethod.BANK_TRANSFER
-        : order.payment?.paymentMethod === PaymentMethod.BANK_TRANSFER) &&
-        (qrCode || order.payment?.qrCode || DEV_SAMPLE_QR_URL) && (
-          <QRSection
-            qrCode={qrCode || DEV_SAMPLE_QR_URL}
-            paymentQrCode={order.payment?.qrCode}
-            subtotal={order.subtotal || 0}
-            primaryColor={primaryColor}
-            isDark={isDark}
-          />
-        )}
+      {qrStale && selectedMethod === PaymentMethod.BANK_TRANSFER && (
+        <Text style={[ps.xsText, ps.qrStaleNote, { color: primaryColor }]}>
+          {tPayment('order.qrStale')}
+        </Text>
+      )}
+      {qrCode && (
+        <QRSection
+          qrCode={qrCode}
+          paymentQrCode={undefined}
+          subtotal={order.subtotal || 0}
+          primaryColor={primaryColor}
+          isDark={isDark}
+        />
+      )}
     </View>
   )
 })
@@ -622,18 +633,17 @@ const cds = StyleSheet.create({
 const BottomActionBar = React.memo(function BottomActionBar({
   insetBottom,
   isDark,
-  isExpired,
-  isInitiatingPayment,
-  selectedPaymentMethod,
+  mode,
+  isBusy,
   primaryColor,
   onSubmit,
   children,
 }: {
   insetBottom: number
   isDark: boolean
-  isExpired: boolean
-  isInitiatingPayment: boolean
-  selectedPaymentMethod: PaymentMethod | null
+  mode: PayButtonMode
+  /** Đang tạo thanh toán hoặc đang kiểm tra trạng thái. */
+  isBusy: boolean
   primaryColor: string
   onSubmit: () => void
   children?: React.ReactNode
@@ -651,39 +661,48 @@ const BottomActionBar = React.memo(function BottomActionBar({
     [insetBottom, isDark],
   )
 
+  const isExpired = mode === 'expired'
+  const isDisabled = isExpired || mode === 'noMethod' || isBusy
   const btnStyle = useMemo(
     () => ({
       backgroundColor: isExpired
         ? isDark
           ? colors.destructive.dark
           : colors.destructive.light
-        : selectedPaymentMethod
+        : mode !== 'noMethod'
           ? primaryColor
           : isDark
             ? colors.gray[600]
             : colors.gray[300],
       opacity: isExpired ? 0.7 : 1,
     }),
-    [isExpired, isDark, selectedPaymentMethod, primaryColor],
+    [isExpired, isDark, mode, primaryColor],
   )
+
+  const label =
+    mode === 'expired'
+      ? tPayment('order.expiredButton')
+      : mode === 'noMethod'
+        ? t('paymentMethod.noMethodSelected')
+        : mode === 'check'
+          ? tPayment('order.checkPayment')
+          : mode === 'regenerate'
+            ? tPayment('order.regenerateQr')
+            : tCommon('common.checkout')
 
   return (
     <View style={[ps.bottomBar, barStyle]}>
       <Pressable
-        onPress={isExpired ? undefined : onSubmit}
-        disabled={isExpired || !selectedPaymentMethod || isInitiatingPayment}
+        onPress={isDisabled ? undefined : onSubmit}
+        disabled={isDisabled}
+        accessibilityRole="button"
+        accessibilityLabel={label}
         style={[ps.checkoutBtn, btnStyle]}
       >
-        {isInitiatingPayment ? (
+        {isBusy ? (
           <ActivityIndicator color={colors.white.light} />
         ) : (
-          <Text style={ps.checkoutBtnText}>
-            {isExpired
-              ? tPayment('order.expiredButton')
-              : selectedPaymentMethod
-                ? tCommon('common.checkout')
-                : t('paymentMethod.noMethodSelected')}
-          </Text>
+          <Text style={ps.checkoutBtnText}>{label}</Text>
         )}
       </Pressable>
       {children}
@@ -897,14 +916,69 @@ function PaymentPageContent() {
     },
     { method: null, transactionId: '', qrCode: null },
   )
-  const selectedPaymentMethod = paymentForm.method
   const selectedTransactionId = paymentForm.transactionId
-  const qrCode = paymentForm.qrCode
+
+  // Khách đổi voucher / điểm sau khi đã có QR → tổng tiền khác số trong QR.
+  const [qrStale, setQrStale] = useState(false)
+  // Sau khi tạo thanh toán, tới lúc đơn tải lại xong: giữ nút ở trạng thái
+  // bận để khách không tạo thanh toán lần nữa.
+  const [isRefreshingAfterPay, setIsRefreshingAfterPay] = useState(false)
+  const isOrderPending = order?.status === OrderStatus.PENDING
+  const bankTransfer = useMemo(
+    () =>
+      getBankTransferState({
+        selectedMethod: paymentForm.method,
+        serverMethod: isOrderPending
+          ? order?.payment?.paymentMethod
+          : undefined,
+        localQr: paymentForm.qrCode,
+        serverQr: isOrderPending ? order?.payment?.qrCode : undefined,
+        qrStale,
+        isExpired,
+      }),
+    [
+      paymentForm.method,
+      paymentForm.qrCode,
+      isOrderPending,
+      order?.payment?.paymentMethod,
+      order?.payment?.qrCode,
+      qrStale,
+      isExpired,
+    ],
+  )
+  const selectedPaymentMethod = bankTransfer.effectiveMethod
+  // Bản dev chưa có QR thật thì hiện QR mẫu để xem bố cục.
+  const shownQr =
+    bankTransfer.qr ??
+    (bankTransfer.button === 'pay' &&
+    selectedPaymentMethod === PaymentMethod.BANK_TRANSFER
+      ? DEV_SAMPLE_QR_URL
+      : null)
+
+  const awaitingTransferRef = useRef(false)
+  useEffect(() => {
+    awaitingTransferRef.current = bankTransfer.awaitingTransfer
+  }, [bankTransfer.awaitingTransfer])
+  const markQrStale = useCallback(() => {
+    if (awaitingTransferRef.current) setQrStale(true)
+  }, [])
+
+  // Đơn đang chờ chuyển khoản (kể cả mở lại từ lịch sử): tự kiểm tra định kỳ.
+  // Mốc tính từ lúc server tạo thanh toán nếu lần mở màn này chưa bấm gì.
+  const serverPaymentAt = order?.payment?.createdAt
+    ? Date.parse(order.payment.createdAt) || 0
+    : 0
+  const detectorSubmittedAt =
+    selectedPaymentMethod === PaymentMethod.BANK_TRANSFER
+      ? bankTransfer.awaitingTransfer
+        ? (paymentSubmittedAt ?? serverPaymentAt)
+        : null
+      : paymentSubmittedAt
 
   const { showSuccess } = usePaymentStatusDetector({
     orderSlug: orderSlug ?? '',
     method: selectedPaymentMethod,
-    submittedAt: paymentSubmittedAt,
+    submittedAt: detectorSubmittedAt,
     orderStatus: order?.status,
     onPaid: refetchOrder,
   })
@@ -927,13 +1001,20 @@ function PaymentPageContent() {
 
   const handleVoucherApplied = useCallback(() => {
     setShowVoucherSheet(false)
+    markQrStale()
     void refetchOrder()
-  }, [refetchOrder])
+  }, [refetchOrder, markQrStale])
 
   const handleVoucherRemoved = useCallback(() => {
     setShowVoucherSheet(false)
+    markQrStale()
     void refetchOrder()
-  }, [refetchOrder])
+  }, [refetchOrder, markQrStale])
+
+  const handleLoyaltyChanged = useCallback(() => {
+    markQrStale()
+    void refetchOrder()
+  }, [refetchOrder, markQrStale])
 
   const [conflictPendingMethod, setConflictPendingMethod] =
     useState<PaymentMethod | null>(null)
@@ -973,6 +1054,7 @@ function PaymentPageContent() {
           setShowConflictSheet(false)
           if (conflictPendingMethod) handleMethodChange(conflictPendingMethod)
           setConflictPendingMethod(null)
+          markQrStale()
           void refetchOrder()
         },
         onError: () => {
@@ -990,6 +1072,7 @@ function PaymentPageContent() {
     updateVoucherAuth,
     updateVoucherPublic,
     handleMethodChange,
+    markQrStale,
     refetchOrder,
     t,
   ])
@@ -1020,7 +1103,13 @@ function PaymentPageContent() {
             qrCode: response.result.qrCode,
           })
         setPaymentSubmittedAt(Date.now())
-        void refetchOrder()
+        // Tạo lại QR sau khi đổi tổng tiền: giữ QR ẩn tới khi đơn tải lại
+        // xong, để không hiện lại QR cũ của server trong lúc chờ.
+        setIsRefreshingAfterPay(true)
+        void Promise.resolve(refetchOrder()).finally(() => {
+          setQrStale(false)
+          setIsRefreshingAfterPay(false)
+        })
         if (selectedPaymentMethod === PaymentMethod.POINT) {
           showToast(t('paymentMethod.coinPaymentSubmitted'))
           void refetchCoinBalance()
@@ -1062,7 +1151,25 @@ function PaymentPageContent() {
     t,
   ])
 
+  // Đang chờ chuyển khoản: bấm nút là hỏi lại server, có phản hồi rõ ràng.
+  const [isCheckingPayment, setIsCheckingPayment] = useState(false)
+  const handleCheckPayment = useCallback(async () => {
+    setIsCheckingPayment(true)
+    try {
+      const res = await refetchOrder()
+      if (res.data?.result?.status !== OrderStatus.PAID) {
+        showToast(tPayment('order.notPaidYet'), 'info')
+      }
+    } finally {
+      setIsCheckingPayment(false)
+    }
+  }, [refetchOrder, tPayment])
+
   const handlePaymentSubmit = useCallback(() => {
+    if (bankTransfer.button === 'check') {
+      void handleCheckPayment()
+      return
+    }
     if (!selectedPaymentMethod || !orderSlug || !order) return
     if (
       order.payment?.paymentMethod &&
@@ -1083,6 +1190,8 @@ function PaymentPageContent() {
 
     executePayment()
   }, [
+    bankTransfer.button,
+    handleCheckPayment,
     selectedPaymentMethod,
     selectedTransactionId,
     orderSlug,
@@ -1255,6 +1364,16 @@ function PaymentPageContent() {
                 >
                   {tPayment('order.expiredDesc')}
                 </Text>
+                <Pressable
+                  onPress={() => navigateNative.replace(TAB_ROUTES.MENU)}
+                  accessibilityRole="button"
+                  hitSlop={8}
+                  style={ps.expiredBannerBtn}
+                >
+                  <Text style={[ps.semibold, { color: primaryColor }]}>
+                    {tPayment('order.backToMenu')}
+                  </Text>
+                </Pressable>
               </View>
             )}
 
@@ -1297,7 +1416,8 @@ function PaymentPageContent() {
               onMethodChange={handleMethodChange}
               onConflict={handlePaymentMethodConflict}
               isInitiating={isInitiatingPayment}
-              qrCode={qrCode}
+              qrCode={shownQr}
+              qrStale={qrStale}
               coinBalance={coinBalance}
             />
 
@@ -1374,8 +1494,8 @@ function PaymentPageContent() {
                   currentPointsUsed={order.accumulatedPointsToUse ?? 0}
                   isDark={isDark}
                   primaryColor={primaryColor}
-                  onApplied={refetchOrder}
-                  onCancelled={refetchOrder}
+                  onApplied={handleLoyaltyChanged}
+                  onCancelled={handleLoyaltyChanged}
                 />
               )}
 
@@ -1404,9 +1524,10 @@ function PaymentPageContent() {
           <BottomActionBar
             insetBottom={insets.bottom}
             isDark={isDark}
-            isExpired={isExpired}
-            isInitiatingPayment={isInitiatingPayment}
-            selectedPaymentMethod={selectedPaymentMethod}
+            mode={bankTransfer.button}
+            isBusy={
+              isInitiatingPayment || isCheckingPayment || isRefreshingAfterPay
+            }
             primaryColor={primaryColor}
             onSubmit={handlePaymentSubmit}
           ></BottomActionBar>
@@ -1532,6 +1653,12 @@ const ps = StyleSheet.create({
   },
   expiredBannerTitle: { fontSize: 14, fontWeight: '700' },
   expiredBannerSub: { fontSize: 12, lineHeight: 18 },
+  expiredBannerBtn: {
+    alignSelf: 'flex-start',
+    marginTop: 10,
+    paddingVertical: 6,
+  },
+  qrStaleNote: { paddingHorizontal: 16, paddingBottom: 16 },
   voucherTrigger: {
     flexDirection: 'row',
     alignItems: 'center',
