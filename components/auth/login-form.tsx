@@ -9,7 +9,12 @@ import {
 } from 'react-native'
 import * as Haptics from 'expo-haptics'
 import { useCallback, useEffect, useState } from 'react'
-import { Fingerprint, ScanFace } from 'lucide-react-native'
+import {
+  ChevronLeft,
+  Fingerprint,
+  ScanFace,
+  UserRound,
+} from 'lucide-react-native'
 import Animated, {
   runOnUI,
   useAnimatedStyle,
@@ -41,16 +46,22 @@ import type { ILoginResponse } from '@/types'
 import { extractStatusCode } from '@/lib/global-error-gate'
 import { showErrorToastMessage, showToast } from '@/utils'
 
+import { getLoginView, maskPhone, type LoginMode } from './login-view'
+
 interface LoginFormProps {
   onLoginSuccess?: () => void
   onBeforeNavigate?: () => void
   onLoadingChange?: (isLoading: boolean) => void
+  /** true khi đang ở màn chào khách quen / nhập mật khẩu của số đã bật Face
+   *  ID — panel ẩn tiêu đề "Đăng nhập" và link đăng ký. */
+  onReturningUserChange?: (isReturning: boolean) => void
 }
 
 export default function LoginForm({
   onLoginSuccess,
   onBeforeNavigate,
   onLoadingChange,
+  onReturningUserChange,
 }: LoginFormProps) {
   const { t } = useTranslation('auth')
   const loginSchema = useLoginSchema()
@@ -112,6 +123,30 @@ export default function LoginForm({
   const [bioType, setBioType] = useState<BiometricType | null>(null)
   const [bioPhone, setBioPhone] = useState<string | null>(null)
   const isDark = useColorScheme() === 'dark'
+
+  // Đã bật Face ID / vân tay: chào khách quen → (mật khẩu | tài khoản khác).
+  // Mỗi lần mở màn bắt đầu ở màn chào.
+  const [mode, setMode] = useState<LoginMode>('greeting')
+  const view = getLoginView(!!bioType && !!bioPhone, mode)
+  const isReturningView = view === 'greeting' || view === 'password'
+
+  useEffect(() => {
+    onReturningUserChange?.(isReturningView)
+  }, [isReturningView, onReturningUserChange])
+
+  const showPasswordMode = useCallback(() => setMode('password'), [])
+  const showOtherAccount = useCallback(() => {
+    setValue('phonenumber', '')
+    setValue('password', '')
+    clearErrors()
+    setMode('other')
+  }, [setValue, clearErrors])
+  const backToGreeting = useCallback(() => {
+    if (bioPhone) setValue('phonenumber', bioPhone)
+    setValue('password', '')
+    clearErrors()
+    setMode('greeting')
+  }, [bioPhone, setValue, clearErrors])
 
   // Sau khi đăng nhập bằng MẬT KHẨU thành công: số khác số đã bật thì xoá
   // bản cũ (một máy chỉ giữ một tài khoản), rồi mời bật cho số này. Mật khẩu
@@ -213,7 +248,11 @@ export default function LoginForm({
     const result = await readBiometricCredentials(
       t('biometric.prompt', { method }),
     )
-    if (result.status === 'cancelled') return
+    // Huỷ quét (kể cả từ màn nhập mật khẩu) thì về màn chào.
+    if (result.status === 'cancelled') {
+      setMode('greeting')
+      return
+    }
     if (result.status === 'invalidated') {
       setBioPhone(null)
       showToast(t('biometric.invalidated', { method }), 'info')
@@ -240,134 +279,279 @@ export default function LoginForm({
   }, [setValue])
 
   const isLoading = isPending || isSubmitting
-  const bioPrompt = bioType
-    ? t('biometric.prompt', { method: t(biometricLabelKey(bioType)) })
-    : ''
   const primaryColor = isDark ? colors.primary.dark : colors.primary.light
-  const dividerColor = isDark ? colors.border.dark : colors.border.light
   const mutedColor = isDark
     ? colors.mutedForeground.dark
     : colors.mutedForeground.light
+  const textColor = isDark ? colors.foreground.dark : colors.foreground.light
+  const bioMethod = bioType ? t(biometricLabelKey(bioType)) : ''
+  const BioIcon = bioType === 'face' ? ScanFace : Fingerprint
+  const maskedPhone = bioPhone ? maskPhone(bioPhone) : ''
 
   useEffect(() => {
     onLoadingChange?.(isLoading)
   }, [isLoading, onLoadingChange])
 
-  return (
+  const phoneField = (
+    <FormInput
+      control={control}
+      name="phonenumber"
+      label={t('login.phoneNumber')}
+      placeholder={t('login.enterPhoneNumber')}
+      keyboardType="number-pad"
+      autoCapitalize="none"
+      autoComplete="tel"
+      textContentType="username"
+      importantForAutofill="yes"
+      disabled={isLoading}
+      autoFocus={view === 'other'}
+      useTextInput
+      transformOnChange={(v) => v.replace(/\D/g, '')}
+      labelClassName="text-sm font-sans-medium text-gray-500 dark:text-gray-400"
+      containerClassName="mb-4"
+    />
+  )
+
+  const passwordField = (
     <View>
-      <Animated.View style={shakeStyle}>
-        <FormInput
-          control={control}
-          name="phonenumber"
-          label={t('login.phoneNumber')}
-          placeholder={t('login.enterPhoneNumber')}
-          keyboardType="number-pad"
-          autoCapitalize="none"
-          autoComplete="tel"
-          textContentType="username"
-          importantForAutofill="yes"
-          disabled={isLoading}
-          useTextInput
-          transformOnChange={(v) => v.replace(/\D/g, '')}
-          labelClassName="text-sm font-sans-medium text-gray-500 dark:text-gray-400"
-          containerClassName="mb-4"
-        />
-
-        {/* Chỉ quét khi khách bấm: tự quét thì Face ID nhận mặt gần như tức
-            thì, khách không kịp huỷ để đăng nhập tài khoản khác. */}
-        {bioType && bioPhone ? (
-          <>
-            <TouchableOpacity
-              testID="biometric-login-button"
-              accessibilityRole="button"
-              accessibilityLabel={bioPrompt}
-              className="flex-row items-center justify-center gap-2 rounded-lg border border-primary px-4 py-3"
-              style={{ minHeight: 48 }}
-              onPress={loginWithBiometric}
-              disabled={isLoading}
-            >
-              {bioType === 'face' ? (
-                <ScanFace size={22} color={primaryColor} />
-              ) : (
-                <Fingerprint size={22} color={primaryColor} />
-              )}
-              <Text className="font-sans-semibold text-base text-primary">
-                {bioPrompt}
-              </Text>
-            </TouchableOpacity>
-
-            <View className="my-4 flex-row items-center gap-3">
-              <View
-                className="h-px flex-1"
-                style={{ backgroundColor: dividerColor }}
-              />
-              <Text className="text-sm" style={{ color: mutedColor }}>
-                {t('login.or')}
-              </Text>
-              <View
-                className="h-px flex-1"
-                style={{ backgroundColor: dividerColor }}
-              />
-            </View>
-          </>
-        ) : null}
-
-        <View>
-          <Text className="mb-1 font-sans-medium text-sm text-gray-500 dark:text-gray-400">
-            {t('login.password')}
-          </Text>
-          <Controller
-            control={control}
-            name="password"
-            render={({
-              field: { onChange, onBlur, value },
-              fieldState: { invalid },
-            }) => (
-              <PasswordInputField
-                value={value}
-                onChange={onChange}
-                onBlur={onBlur}
-                placeholder={t('login.enterPassword')}
-                disabled={isLoading}
-                error={errors.password?.message}
-                invalid={invalid}
-              />
-            )}
+      <Text className="mb-1 font-sans-medium text-sm text-gray-500 dark:text-gray-400">
+        {t('login.password')}
+      </Text>
+      <Controller
+        control={control}
+        name="password"
+        render={({
+          field: { onChange, onBlur, value },
+          fieldState: { invalid },
+        }) => (
+          <PasswordInputField
+            value={value}
+            onChange={onChange}
+            onBlur={onBlur}
+            placeholder={t('login.enterPassword')}
+            disabled={isLoading}
+            error={errors.password?.message}
+            invalid={invalid}
+            autoFocus={view === 'password'}
           />
-        </View>
-      </Animated.View>
+        )}
+      />
+    </View>
+  )
 
+  const forgotLink = (
+    <TouchableOpacity
+      className="mt-2 self-start"
+      onPress={() => {
+        onBeforeNavigate?.()
+        // navigateWhenUnlocked: retry nếu navigation lock đang active (khi
+        // sheet đang đóng) thay vì silent drop như navigateNative.push.
+        navigateWhenUnlocked.push(ROUTE.FORGOT_PASSWORD)
+      }}
+      disabled={isLoading}
+      hitSlop={8}
+    >
+      <Text className="font-sans-semibold text-sm text-primary">
+        {t('login.forgotPassword')}
+      </Text>
+    </TouchableOpacity>
+  )
+
+  const loginButton = (
+    <TouchableOpacity
+      className="mt-6 items-center justify-center rounded-lg bg-primary py-4"
+      onPress={handleSubmit(onSubmit)}
+      disabled={isLoading}
+      accessibilityRole="button"
+    >
+      {isLoading ? (
+        <ActivityIndicator color={colors.white.light} />
+      ) : (
+        <Text className="font-sans-semibold text-base text-white">
+          {t('login.login')}
+        </Text>
+      )}
+    </TouchableOpacity>
+  )
+
+  const changeButton = (
+    <TouchableOpacity
+      testID="change-account-button"
+      accessibilityRole="button"
+      accessibilityLabel={t('login.changeAccountA11y')}
+      onPress={showOtherAccount}
+      disabled={isLoading}
+      hitSlop={12}
+      className="px-2 py-1"
+    >
+      <Text className="font-sans-semibold text-base text-primary">
+        {t('login.changeAccount')}
+      </Text>
+    </TouchableOpacity>
+  )
+
+  const avatar = (size: number) => (
+    <View
+      className="items-center justify-center rounded-full"
+      style={{
+        width: size,
+        height: size,
+        backgroundColor: `${primaryColor}1F`,
+      }}
+    >
+      <UserRound size={size * 0.5} color={primaryColor} />
+    </View>
+  )
+
+  const notYouRow = (
+    <View className="mt-8 flex-row flex-wrap items-center justify-center">
+      <Text className="font-sans text-sm" style={{ color: mutedColor }}>
+        {t('login.notYou')}{' '}
+      </Text>
       <TouchableOpacity
-        className="mt-2 self-start"
-        onPress={() => {
-          onBeforeNavigate?.()
-          // navigateWhenUnlocked: retry nếu navigation lock đang active (khi
-          // sheet đang đóng) thay vì silent drop như navigateNative.push.
-          navigateWhenUnlocked.push(ROUTE.FORGOT_PASSWORD)
-        }}
+        testID="other-account-link"
+        accessibilityRole="button"
+        onPress={showOtherAccount}
         disabled={isLoading}
-        hitSlop={8}
+        hitSlop={12}
       >
         <Text className="font-sans-semibold text-sm text-primary">
-          {t('login.forgotPassword')}
+          {t('login.otherAccount')}
         </Text>
       </TouchableOpacity>
+    </View>
+  )
 
-      <View className="mt-6">
+  // Đã bật Face ID / vân tay: màn chào khách quen, một nút chính. Chỉ quét khi
+  // khách bấm — tự quét thì Face ID nhận mặt gần như tức thì, khách không kịp
+  // chọn mật khẩu hay tài khoản khác.
+  if (view === 'greeting') {
+    return (
+      <View testID="login-greeting">
+        <View className="items-center">
+          {avatar(80)}
+          <Text
+            className="mt-5 text-center font-sans-bold text-2xl"
+            style={{ color: textColor }}
+          >
+            {t('login.welcomeBack')}
+          </Text>
+          <View className="mt-1 flex-row items-center">
+            <Text className="font-sans text-base" style={{ color: mutedColor }}>
+              {maskedPhone}
+            </Text>
+            {changeButton}
+          </View>
+        </View>
+
         <TouchableOpacity
-          className="items-center justify-center rounded-lg bg-primary py-4"
-          onPress={handleSubmit(onSubmit)}
+          testID="biometric-login-button"
+          accessibilityRole="button"
+          accessibilityLabel={t('biometric.prompt', { method: bioMethod })}
+          className="mt-10 flex-row items-center justify-center gap-2 rounded-lg bg-primary px-4 py-4"
+          onPress={loginWithBiometric}
           disabled={isLoading}
         >
           {isLoading ? (
-            <ActivityIndicator color="#fff" />
+            <ActivityIndicator color={colors.white.light} />
           ) : (
-            <Text className="font-sans-semibold text-base text-white">
-              {t('login.login')}
-            </Text>
+            <>
+              <BioIcon size={22} color={colors.white.light} />
+              <Text className="font-sans-semibold text-base text-white">
+                {t('biometric.prompt', { method: bioMethod })}
+              </Text>
+            </>
           )}
         </TouchableOpacity>
+
+        <TouchableOpacity
+          testID="use-password-button"
+          accessibilityRole="button"
+          className="mt-3 items-center justify-center py-3"
+          onPress={showPasswordMode}
+          disabled={isLoading}
+        >
+          <Text className="font-sans-semibold text-base text-primary">
+            {t('login.usePassword')}
+          </Text>
+        </TouchableOpacity>
+
+        {notYouRow}
       </View>
+    )
+  }
+
+  // Đang nhập mật khẩu cho số đã bật: giữ lời chào, có nút quét lại ngay.
+  if (view === 'password') {
+    return (
+      <View>
+        <View className="flex-row items-center gap-3">
+          {avatar(52)}
+          <View className="flex-1">
+            <Text
+              className="font-sans-bold text-xl"
+              style={{ color: textColor }}
+            >
+              {t('login.welcomeBack')}
+            </Text>
+            <Text className="font-sans text-sm" style={{ color: mutedColor }}>
+              {maskedPhone}
+            </Text>
+          </View>
+          {changeButton}
+        </View>
+
+        <Animated.View style={[shakeStyle, { marginTop: 28 }]}>
+          {passwordField}
+        </Animated.View>
+        {forgotLink}
+        {loginButton}
+
+        <TouchableOpacity
+          testID="use-biometric-button"
+          accessibilityRole="button"
+          accessibilityLabel={t('biometric.use', { method: bioMethod })}
+          className="mt-3 flex-row items-center justify-center gap-2 rounded-lg border border-primary px-4 py-3"
+          style={{ minHeight: 48 }}
+          onPress={loginWithBiometric}
+          disabled={isLoading}
+        >
+          <BioIcon size={20} color={primaryColor} />
+          <Text className="font-sans-semibold text-base text-primary">
+            {t('biometric.use', { method: bioMethod })}
+          </Text>
+        </TouchableOpacity>
+
+        {notYouRow}
+      </View>
+    )
+  }
+
+  // Chưa bật (standard) hoặc đổi sang tài khoản khác (other).
+  return (
+    <View>
+      {view === 'other' ? (
+        <TouchableOpacity
+          testID="back-to-greeting"
+          accessibilityRole="button"
+          className="mb-4 flex-row items-center gap-1 self-start py-2"
+          onPress={backToGreeting}
+          disabled={isLoading}
+          hitSlop={8}
+        >
+          <ChevronLeft size={18} color={primaryColor} />
+          <Text className="font-sans-semibold text-sm text-primary">
+            {t('login.backTo', { phone: maskedPhone })}
+          </Text>
+        </TouchableOpacity>
+      ) : null}
+
+      <Animated.View style={shakeStyle}>
+        {phoneField}
+        {passwordField}
+      </Animated.View>
+      {forgotLink}
+      {loginButton}
     </View>
   )
 }
