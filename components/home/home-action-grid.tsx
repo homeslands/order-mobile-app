@@ -28,7 +28,10 @@ import { NativeGesturePressable } from '@/components/navigation/native-gesture-p
 import { Text } from '@/components/ui/text'
 import { colors } from '@/constants'
 import { hotline } from '@/constants/env'
+import { prefetchOrderHistory } from '@/hooks/use-order'
 import { hasUsableSession, useQrActions } from '@/hooks/use-qr-actions'
+import { queryClient } from '@/lib/query-client'
+import { useUserStore } from '@/stores'
 import { navigateNative } from '@/lib/navigation'
 import { showToast } from '@/utils/toast'
 
@@ -147,7 +150,16 @@ export const HomeActionGrid = memo(function HomeActionGrid() {
     )
   }, [])
   const openOrderHistory = useCallback(() => {
-    navigateNative.push(hasUsableSession() ? '/profile/history' : '/auth/login')
+    if (!hasUsableSession()) {
+      navigateNative.push('/auth/login')
+      return
+    }
+    // Tải trước trang đầu ngay lúc bấm — màn chỉ tự gọi sau khi chuyển xong.
+    void prefetchOrderHistory(
+      queryClient,
+      useUserStore.getState().userInfo?.slug,
+    )
+    navigateNative.push('/profile/history')
   }, [])
   const openMenu = useCallback(() => {
     navigateNative.navigate('/(tabs)/menu')
