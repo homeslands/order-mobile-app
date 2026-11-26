@@ -1,6 +1,6 @@
 // Trang chi tiết món (bố cục mới): món một size không còn "nút" cam như thể có
-// lựa chọn; món nhiều size là thẻ có giá; khách ghi chú được bằng chip hoặc
-// gõ — trước đây trang này không có chỗ ghi chú.
+// lựa chọn; món nhiều size là thẻ có giá; khách gõ được ghi chú cho quán —
+// trước đây trang này không có chỗ ghi chú.
 import { fireEvent, render, screen } from '@testing-library/react-native'
 
 import { ProductDetailOptionsSection } from '@/components/product/product-detail-options-section'
@@ -29,7 +29,6 @@ const labels = {
   sizeLabel: 'Size',
   noteTitle: 'Ghi chú cho quán',
   notePlaceholder: 'Ghi chú thêm',
-  noteChips: ['Ít đá', 'Ít ngọt'],
   stockLabel: 'Còn',
 }
 
@@ -69,22 +68,6 @@ it('PD2 nhiều size: thẻ ghi giá / phần chênh, bấm thì chọn size', (
   )
 })
 
-it('PD3 bấm chip ghi chú: thêm cụm vào ghi chú', () => {
-  mockNote = 'Ít đá'
-  renderSection([v('s', 35000)])
-  fireEvent.press(screen.getByText('Ít ngọt'))
-  expect(mockSetNote).toHaveBeenCalledWith('Ít đá, Ít ngọt')
-})
-
-it('PD4 chip đã có trong ghi chú thì hiện là đang chọn', () => {
-  mockNote = 'Ít đá'
-  renderSection([v('s', 35000)])
-  const chip = screen.getByRole('checkbox', { name: 'Ít đá' })
-  expect(chip.props.accessibilityState).toEqual(
-    expect.objectContaining({ checked: true }),
-  )
-})
-
 it('PD5 gõ ghi chú: ghi thẳng vào ghi chú của món', () => {
   renderSection([v('s', 35000)])
   fireEvent.changeText(
@@ -94,7 +77,8 @@ it('PD5 gõ ghi chú: ghi thẳng vào ghi chú của món', () => {
   expect(mockSetNote).toHaveBeenCalledWith('giao sau 5 phút')
 })
 
-it('PD6 không còn khối "Mô tả / Không có mô tả" ở phần lựa chọn', () => {
+it('PD6 không có chip ghi chú (menu có cả đồ ăn), không còn khối "Mô tả / Không có mô tả" ở phần lựa chọn', () => {
   renderSection([v('s', 35000)])
   expect(screen.queryByText(/mô tả/i)).toBeNull()
+  expect(screen.queryAllByRole('checkbox')).toHaveLength(0)
 })

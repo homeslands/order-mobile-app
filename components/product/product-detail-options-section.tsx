@@ -3,8 +3,9 @@
  *
  * - Một size: chỉ ghi tên size (không phải nút — không có gì để chọn).
  * - Nhiều size: thẻ ghi tên + giá (size rẻ nhất giá đầy đủ, size khác phần chênh).
- * - Ghi chú: chip ghi chú nhanh + ô nhập, cùng sửa `note` trong store
- *   (handleAddToCart đọc note lúc bấm thêm vào giỏ).
+ * - Ghi chú cho quán: ô nhập tự do, ghi vào `note` trong store
+ *   (handleAddToCart đọc note lúc bấm thêm vào giỏ). Không có chip gợi ý
+ *   ("Ít đá"…) vì menu có cả đồ ăn và dữ liệu không phân biệt đồ uống.
  * Số lượng nằm ở footer (ProductPriceFooter).
  */
 import { colors } from '@/constants'
@@ -12,7 +13,6 @@ import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { hexToRgba } from '@/lib/utils'
 import type { IProductVariant } from '@/types'
 import { variantPriceLabels } from '@/utils/product-detail-calc'
-import { noteHasChip, toggleNoteChip } from '@/utils/product-note'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   Pressable,
@@ -52,14 +52,6 @@ const styles = StyleSheet.create({
   sizeName: { fontSize: 14, fontWeight: '600' },
   sizePrice: { fontSize: 12 },
   stock: { fontSize: 12 },
-  chipRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
-  chip: {
-    borderRadius: 999,
-    borderWidth: 1,
-    paddingHorizontal: 14,
-    paddingVertical: 7,
-  },
-  chipText: { fontSize: 13, fontWeight: '500' },
   noteInput: {
     minHeight: 44,
     borderRadius: 12,
@@ -126,75 +118,17 @@ const SizeCard = React.memo(function SizeCard({
   )
 })
 
-/** Chip ghi chú — sáng khi cụm đó đang có trong ghi chú */
-const NoteChip = React.memo(function NoteChip({
-  label,
-  selected,
-  onToggle,
-}: {
-  label: string
-  selected: boolean
-  onToggle: (label: string) => void
-}) {
-  const isDark = useColorScheme() === 'dark'
-  const primaryColor = usePrimaryColor()
-  const handlePress = useCallback(() => onToggle(label), [label, onToggle])
-
-  return (
-    <Pressable
-      onPress={handlePress}
-      accessibilityRole="checkbox"
-      accessibilityLabel={label}
-      accessibilityState={{ checked: selected }}
-      style={[
-        styles.chip,
-        selected
-          ? {
-              borderColor: primaryColor,
-              backgroundColor: hexToRgba(primaryColor, isDark ? 0.16 : 0.1),
-            }
-          : {
-              borderColor: isDark ? colors.gray[700] : colors.gray[200],
-              backgroundColor: 'transparent',
-            },
-      ]}
-    >
-      <Text
-        style={[
-          styles.chipText,
-          {
-            color: selected
-              ? primaryColor
-              : isDark
-                ? colors.gray[300]
-                : colors.gray[700],
-          },
-        ]}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  )
-})
-
 /** Ghi chú cho quán — chỉ phần này re-render khi khách gõ */
 const NoteSection = React.memo(function NoteSection({
   title,
   placeholder,
-  chips,
 }: {
   title: string
   placeholder: string
-  chips: string[]
 }) {
   const isDark = useColorScheme() === 'dark'
   const note = useDetailNote()
   const setNote = useDetailSetNote()
-
-  const handleToggle = useCallback(
-    (chip: string) => setNote(toggleNoteChip(note, chip)),
-    [note, setNote],
-  )
 
   return (
     <View style={styles.section}>
@@ -206,16 +140,6 @@ const NoteSection = React.memo(function NoteSection({
       >
         {title}
       </Text>
-      <View style={styles.chipRow}>
-        {chips.map((chip) => (
-          <NoteChip
-            key={chip}
-            label={chip}
-            selected={noteHasChip(note, chip)}
-            onToggle={handleToggle}
-          />
-        ))}
-      </View>
       <TextInput
         value={note}
         onChangeText={setNote}
@@ -246,7 +170,6 @@ export interface ProductDetailOptionsSectionProps {
   stockLabel: string
   noteTitle: string
   notePlaceholder: string
-  noteChips: string[]
 }
 
 export const ProductDetailOptionsSection = React.memo(
@@ -260,7 +183,6 @@ export const ProductDetailOptionsSection = React.memo(
     stockLabel,
     noteTitle,
     notePlaceholder,
-    noteChips,
   }: ProductDetailOptionsSectionProps) {
     const isDark = useColorScheme() === 'dark'
     const setSelection = useDetailSetSelection()
@@ -349,11 +271,7 @@ export const ProductDetailOptionsSection = React.memo(
           ]}
         />
 
-        <NoteSection
-          title={noteTitle}
-          placeholder={notePlaceholder}
-          chips={noteChips}
-        />
+        <NoteSection title={noteTitle} placeholder={notePlaceholder} />
       </View>
     )
   },

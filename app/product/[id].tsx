@@ -337,16 +337,6 @@ function ProductDetailContent() {
     router,
   ])
 
-  const noteChips = useMemo(
-    () => [
-      t('menu.noteChipLessIce'),
-      t('menu.noteChipNoIce'),
-      t('menu.noteChipLessSweet'),
-      t('menu.noteChipIceSeparate'),
-    ],
-    [t],
-  )
-
   const handleRetryLoad = useCallback(() => {
     refetchMenuItem()
   }, [refetchMenuItem])
@@ -438,7 +428,6 @@ function ProductDetailContent() {
               stockLabel={t('menu.stock')}
               noteTitle={t('menu.noteForStore')}
               notePlaceholder={t('menu.notePlaceholder')}
-              noteChips={noteChips}
             />
           </DeferredOptionsSection>
         </View>
