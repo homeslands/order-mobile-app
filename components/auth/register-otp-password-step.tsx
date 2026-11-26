@@ -26,6 +26,7 @@ import { RegisterProgressBar } from './register-progress-bar'
 import { PasswordInputField } from '@/components/input/password-input-field'
 import { PasswordRulesInput } from '@/components/input/password-rules-input'
 import { Button } from '@/components/ui'
+import { colors } from '@/constants'
 import {
   useAnimatedCountdown,
   useCompleteRegistration,
@@ -40,7 +41,8 @@ import {
   type TRegisterPasswordSchema,
 } from '@/schemas'
 import { asyncStorage, setSyncItem } from '@/utils/storage'
-import { showErrorToastMessage, showToast } from '@/utils'
+import { showErrorToast, showErrorToastMessage, showToast } from '@/utils'
+import { classifyRegisterError } from '@/utils/register-error'
 import { Text } from '@/components/ui/text'
 
 const ANIM_DURATION = 250
@@ -137,8 +139,11 @@ export default function RegisterOtpPasswordStep({
   const {
     control,
     handleSubmit,
+    setError,
     formState: { errors, isSubmitting },
-  } = useZodForm(schema, { defaultValues: { password: '', confirmPassword: '' } })
+  } = useZodForm(schema, {
+    defaultValues: { password: '', confirmPassword: '' },
+  })
 
   const { mutateAsync: completeRegistration, isPending } =
     useCompleteRegistration()
@@ -178,9 +183,7 @@ export default function RegisterOtpPasswordStep({
         setOtpExpiresAt(newExpiresAt)
         setSyncItem(`register:otp:${phone}`, newExpiresAt)
         setIsOtpExpired(false)
-        setResendAvailableAt(
-          new Date(Date.now() + 2 * 60 * 1000).toISOString(),
-        )
+        setResendAvailableAt(new Date(Date.now() + 2 * 60 * 1000).toISOString())
         setIsResendAvailable(false)
         setOtpValue('')
         showToast(t('register.otpResent'), 'success')
@@ -192,6 +195,41 @@ export default function RegisterOtpPasswordStep({
   }, [phone, resend, t])
 
   // ── Submit ────────────────────────────────────────────────────────────────
+  // Chỉ báo/xoá OTP khi BE nói rõ OTP sai hoặc hết hạn; lỗi mạng giữ OTP để
+  // người dùng bấm lại.
+  const handleCompleteError = (err: unknown) => {
+    const { kind, code } = classifyRegisterError(err)
+    switch (kind) {
+      case 'network':
+        showToast(t('register.noConnection'), 'error')
+        return
+      case 'otpInvalid':
+        showErrorToastMessage(t('register.otpInvalid'))
+        setOtpValue('')
+        return
+      case 'otpExpired':
+      case 'otpTooManyAttempts':
+        // BE đã vô hiệu mã — chuyển sang trạng thái hết hạn để mở nút Gửi lại.
+        showToast(
+          t(
+            kind === 'otpExpired'
+              ? 'register.otpExpiredResend'
+              : 'register.otpTooManyAttempts',
+          ),
+          'warning',
+        )
+        setOtpValue('')
+        setIsOtpExpired(true)
+        return
+      case 'invalidPassword':
+        setError('password', { message: t('register.passwordInvalid') })
+        return
+      default:
+        if (code) showErrorToast(code)
+        else showErrorToastMessage('toast.requestFailed')
+    }
+  }
+
   const onSubmit = async (data: TRegisterPasswordSchema) => {
     if (isOtpExpired) {
       showToast(t('register.otpExpiredResend'), 'warning')
@@ -199,32 +237,25 @@ export default function RegisterOtpPasswordStep({
       return
     }
     Keyboard.dismiss()
+    let res: Awaited<ReturnType<typeof completeRegistration>>
     try {
-      const res = await completeRegistration({
+      res = await completeRegistration({
         phonenumber: phone,
         otp: otpValue,
         password: data.password,
       })
+    } catch (err) {
+      handleCompleteError(err)
+      return
+    }
+    try {
       await handleAuthSuccess(res.result, () => {
         asyncStorage.removeItem(`register:otp:${phone}`)
         showToast(t('register.registerSuccess'), 'success')
         navigateNative.replace('/auth/register/profile')
       })
-    } catch (err) {
-      const apiErr = err as {
-        response?: { data?: { statusCode?: number }; status?: number }
-      }
-      const serverCode = apiErr?.response?.data?.statusCode
-      const status = apiErr?.response?.status
-      if (serverCode === 119048) {
-        showToast(t('register.otpExpiredResend'), 'warning')
-        setOtpValue('')
-      } else if (status === 400 || status === 422) {
-        showErrorToastMessage(t('register.otpInvalid'))
-        setOtpValue('')
-      } else {
-        showToast(t('register.profileUpdateFailed'), 'warning')
-      }
+    } catch {
+      showToast(t('register.profileUpdateFailed'), 'warning')
     }
   }
 
@@ -325,6 +356,18 @@ export default function RegisterOtpPasswordStep({
                     />
                   )}
                 />
+                {errors.password?.message ? (
+                  <Text
+                    className="mt-1 font-sans text-xs"
+                    style={{
+                      color: isDark
+                        ? colors.destructive.dark
+                        : colors.destructive.light,
+                    }}
+                  >
+                    {errors.password.message}
+                  </Text>
+                ) : null}
               </View>
 
               <View>
