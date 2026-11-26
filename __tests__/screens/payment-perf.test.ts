@@ -53,11 +53,11 @@ it('PP8 số dư Xu chỉ tải khi đơn còn chờ thanh toán', () => {
   expect(page).toMatch(/useCoinBalance\(\s*isLoggedIn && isOrderPending,?\s*\)/)
 })
 
-// Hàng chip chọn nhanh điểm tràn mép thẻ: lề hai bên bằng khoảng đệm thật ở
-// đầu / cuối (padding của contentContainer ngang không được áp trên máy).
-it('PP9 hàng chip điểm có lề hai bên bằng khoảng đệm đầu / cuối', () => {
+// Hàng chip chọn nhanh điểm nằm gọn trong lề thẻ: trước đây tràn ra mép thẻ
+// (marginHorizontal âm) nên khi cuộn, chip bị cắt sát mép, trông như không
+// có lề.
+it('PP9 hàng chip điểm không tràn ra mép thẻ', () => {
   const loyalty = read('app/payment/loyalty-points-input.tsx')
-  const row = loyalty.slice(loyalty.indexOf('style={s.chipsScroll}'))
-  expect(row.slice(0, 300)).toMatch(/<View style=\{s\.chipsEdge\} \/>/)
-  expect(row).toMatch(/<View style=\{s\.chipsEdge\} \/>\s*<\/ScrollView>/)
+  expect(loyalty).not.toMatch(/chipsScroll: \{ marginHorizontal: -16 \}/)
+  expect(loyalty).not.toMatch(/chipsEdge/)
 })

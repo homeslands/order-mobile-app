@@ -237,9 +237,6 @@ const LoyaltyPointsInput = memo(function LoyaltyPointsInput({
               style={s.chipsScroll}
               contentContainerStyle={s.chipsContent}
             >
-              {/* Lề trái / phải: hàng chip tràn mép thẻ, khoảng đệm thật luôn
-                  hiện (padding của contentContainer ngang không được áp). */}
-              <View style={s.chipsEdge} />
               {quickPresets.map((v) => (
                 <PresetChip
                   key={v}
@@ -267,7 +264,6 @@ const LoyaltyPointsInput = memo(function LoyaltyPointsInput({
                   onPress={handleUseMax}
                 />
               )}
-              <View style={s.chipsEdge} />
             </ScrollView>
 
             {/* Input row */}
@@ -415,10 +411,10 @@ const s = StyleSheet.create({
   },
   cancelRowText: { fontSize: 13 },
   cancelRowAction: { fontSize: 13, fontWeight: '700' },
-  chipsScroll: { marginHorizontal: -16 },
+  // Nằm gọn trong lề 16 của thẻ: chip bị cắt ở đường lề (thẳng hàng ô nhập),
+  // không tràn ra sát mép thẻ.
+  chipsScroll: { flexGrow: 0 },
   chipsContent: { gap: 8, flexDirection: 'row' },
-  // + gap 8 = lề 16, thẳng hàng với ô nhập bên dưới
-  chipsEdge: { width: 8 },
   chip: {
     paddingHorizontal: 14,
     paddingVertical: 7,
