@@ -2,7 +2,7 @@
  * Perf Product Detail Footer — Primary-colored add-to-cart button.
  * Floating effect: very subtle shadow + thin top border, không blur.
  */
-import { ShoppingBag } from 'lucide-react-native'
+import { RotateCw, ShoppingBag } from 'lucide-react-native'
 import React from 'react'
 import {
   Platform,
@@ -22,6 +22,7 @@ import {
   useDetailSelectedVariant,
 } from '@/stores/selectors'
 import { formatCurrency } from '@/utils'
+import { getProductAddButtonState } from '@/utils/menu-stock'
 import { GlassSurface } from '@/components/ui/glass-surface'
 import { Text } from '@/components/ui/text'
 
@@ -38,8 +39,13 @@ export interface ProductPriceFooterProps {
   chooseSizeLabel: string
   addToCartLabel: string
   outOfStockLabel: string
-  isLocked: boolean
+  retryLabel: string
+  /** Đã có dữ liệu món từ API */
+  isLoaded: boolean
+  isError: boolean
+  hasStock: boolean
   onAddToCart: () => void
+  onRetry: () => void
 }
 
 export const ProductPriceFooter = React.memo(function ProductPriceFooter({
@@ -47,8 +53,12 @@ export const ProductPriceFooter = React.memo(function ProductPriceFooter({
   chooseSizeLabel,
   addToCartLabel,
   outOfStockLabel,
-  isLocked,
+  retryLabel,
+  isLoaded,
+  isError,
+  hasStock,
   onAddToCart,
+  onRetry,
 }: ProductPriceFooterProps) {
   const insets = useSafeAreaInsets()
   const isDark = useColorScheme() === 'dark'
@@ -56,7 +66,20 @@ export const ProductPriceFooter = React.memo(function ProductPriceFooter({
   const price = useDetailPrice()
   const computedTotalPrice = useDetailComputedTotalPrice()
   const selectedVariant = useDetailSelectedVariant()
-  const isDisabled = isLocked || !selectedVariant
+  const buttonState = getProductAddButtonState({
+    hasData: isLoaded,
+    isError,
+    hasStock,
+    hasSelectedVariant: !!selectedVariant,
+  })
+  const isRetry = buttonState === 'error'
+  const isDisabled = buttonState === 'loading' || buttonState === 'outOfStock'
+  const ButtonIcon = isRetry ? RotateCw : ShoppingBag
+  const buttonLabel = isRetry
+    ? retryLabel
+    : buttonState === 'outOfStock'
+      ? outOfStockLabel
+      : addToCartLabel
 
   const bgColor = isDark ? colors.card.dark : colors.white.light
 
@@ -113,14 +136,19 @@ export const ProductPriceFooter = React.memo(function ProductPriceFooter({
 
         {/* Button */}
         <Pressable
-          onPress={isDisabled ? undefined : onAddToCart}
+          onPress={isDisabled ? undefined : isRetry ? onRetry : onAddToCart}
           disabled={isDisabled}
+          accessibilityRole="button"
+          accessibilityState={{
+            disabled: isDisabled,
+            busy: buttonState === 'loading',
+          }}
           style={[
             styles.button,
             { backgroundColor: isDisabled ? colors.gray[300] : primaryColor },
           ]}
         >
-          <ShoppingBag
+          <ButtonIcon
             size={18}
             color={isDisabled ? colors.gray[400] : colors.white.light}
           />
@@ -130,7 +158,7 @@ export const ProductPriceFooter = React.memo(function ProductPriceFooter({
               { color: isDisabled ? colors.gray[400] : colors.white.light },
             ]}
           >
-            {isDisabled ? outOfStockLabel : addToCartLabel}
+            {buttonLabel}
           </Text>
         </Pressable>
       </View>

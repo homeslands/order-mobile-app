@@ -33,6 +33,11 @@ import type { ISpecificMenuRequest } from '@/types'
 import { IOrderItem } from '@/types'
 import { getLocalDateString } from '@/utils/date'
 import { getAheadImageUrls } from '@/utils/menu-image-prefetch'
+import {
+  getMenuListEmptyState,
+  hasMenuItemStock,
+  isMenuLoadError,
+} from '@/utils/menu-stock'
 import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 import { showToast } from '@/utils/toast'
 import { useFocusEffect } from '@react-navigation/native'
@@ -40,7 +45,7 @@ import { FlashList, type FlashListRef } from '@shopify/flash-list'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
-import { MapPin } from 'lucide-react-native'
+import { CloudOff, MapPin } from 'lucide-react-native'
 import React, {
   startTransition,
   useCallback,
@@ -53,6 +58,7 @@ import { useTranslation } from 'react-i18next'
 import {
   AppState,
   InteractionManager,
+  Pressable,
   RefreshControl,
   StyleSheet,
   useColorScheme,
@@ -229,7 +235,13 @@ export default function MenuPage() {
   const hasBranch = !!menuFilter.branch || !!branchSlug
 
   // ── Catalog chips ──
-  const { data: catalogRes, isLoading: catalogLoading } = useCatalog({
+  const {
+    data: catalogRes,
+    isLoading: catalogLoading,
+    isError: catalogIsError,
+    isFetching: catalogFetching,
+    refetch: refetchCatalog,
+  } = useCatalog({
     enabled: hasBranch,
   })
   const catalogList = useMemo<CatalogChipData[]>(
@@ -354,6 +366,7 @@ export default function MenuPage() {
   // Single-query path for special filters.
   const {
     data: specialData,
+    error: specialError,
     isFetching: specialFetching,
     refetch: refetchSpecial,
   } = useQuery({
@@ -379,12 +392,23 @@ export default function MenuPage() {
     : catalogPages.isLoading ||
       (hasBranch && catalogList.length === 0 && catalogLoading)
 
+  // Lỗi tải thật (mạng / máy chủ). Danh sách danh mục lỗi mà chưa có dữ liệu
+  // thì không có gì để tải món — cũng tính là lỗi.
+  const isMenuError = useSpecialPath
+    ? isMenuLoadError(specialError)
+    : catalogPages.isError || (catalogIsError && catalogList.length === 0)
+
   const [isRefreshing, setIsRefreshing] = useState(false)
   const handleRefresh = useCallback(() => {
     setIsRefreshing(true)
     const done = useSpecialPath ? refetchSpecial() : refetchCatalogs()
     Promise.resolve(done).finally(() => setIsRefreshing(false))
   }, [useSpecialPath, refetchSpecial, refetchCatalogs])
+
+  const handleRetry = useCallback(() => {
+    if (catalogIsError) refetchCatalog()
+    handleRefresh()
+  }, [catalogIsError, refetchCatalog, handleRefresh])
 
   const refreshControlEl = useMemo(
     () => (
@@ -436,6 +460,11 @@ export default function MenuPage() {
         defaultVariantSlug: cheapestVariantSlug,
         menuItem: item,
         cheapestVariant: cheapestVariantObj,
+        hasStock: hasMenuItemStock({
+          isLocked: item.isLocked,
+          currentStock: item.currentStock,
+          isLimit: item.product?.isLimit,
+        }),
       }
     })
   }, [sourceItems])
@@ -583,13 +612,14 @@ export default function MenuPage() {
 
   const handleAddToCart = useCallback(
     (itemId: string) => {
+      const displayItem = itemsMapRef.current.get(itemId)
+      // Nút + của món hết hàng đã tắt; chặn thêm ở đây cho chắc.
+      if (!displayItem?.hasStock) return
+
       if (!useUserStore.getState().userInfo?.slug) {
         useLoginSheetStore.getState().open()
         return
       }
-
-      const displayItem = itemsMapRef.current.get(itemId)
-      if (!displayItem) return
 
       // Read store state at call time — no hook deps, no re-render cascade
       const store = useOrderFlowStore.getState()
@@ -631,7 +661,15 @@ export default function MenuPage() {
       }
 
       store.addOrderingItem(orderItem)
-      showToast(t('menu.addedToCart', { name: displayItem.name }))
+      // Nút + thêm size rẻ nhất — báo rõ size để khách không bất ngờ ở giỏ.
+      showToast(
+        orderItem.size
+          ? t('menu.addedToCartWithSize', {
+              name: displayItem.name,
+              size: orderItem.size,
+            })
+          : t('menu.addedToCart', { name: displayItem.name }),
+      )
     },
     [t],
   )
@@ -639,8 +677,46 @@ export default function MenuPage() {
   const catalogHeaderColor = isDark ? colors.gray[400] : colors.gray[500]
 
   const isMenuLoading = !allowFetch || isFetching
+  const emptyState = getMenuListEmptyState({
+    isLoading: isMenuLoading,
+    isError: isMenuError,
+    isRetrying: isRefreshing || catalogFetching,
+  })
   const listEmptyComponent = useMemo(() => {
-    if (!isMenuLoading && !searchKeyword) {
+    // Đang tải: khung dòng món thay cho chữ chờ — dữ liệu về là thay đúng chỗ,
+    // không nhảy bố cục.
+    if (emptyState === 'loading') return <MenuItemRowSkeleton isDark={isDark} />
+    if (emptyState === 'error') {
+      return (
+        <View style={styles.catalogEmptyBox}>
+          <CloudOff
+            size={40}
+            color={isDark ? colors.gray[500] : colors.gray[400]}
+            strokeWidth={1.5}
+          />
+          <Text
+            style={[
+              styles.catalogEmptyText,
+              { color: isDark ? colors.gray[400] : colors.gray[500] },
+            ]}
+          >
+            {t('menu.loadError')}
+          </Text>
+          <Pressable
+            onPress={handleRetry}
+            accessibilityRole="button"
+            style={[
+              styles.selectBranchBtn,
+              styles.retryBtn,
+              { backgroundColor: primaryColor },
+            ]}
+          >
+            <Text style={styles.selectBranchBtnText}>{t('menu.retry')}</Text>
+          </Pressable>
+        </View>
+      )
+    }
+    if (!searchKeyword) {
       return (
         <View style={styles.catalogEmptyBox}>
           <Image
@@ -659,9 +735,6 @@ export default function MenuPage() {
         </View>
       )
     }
-    // Đang tải: khung dòng món thay cho chữ chờ — dữ liệu về là thay đúng chỗ,
-    // không nhảy bố cục.
-    if (isMenuLoading) return <MenuItemRowSkeleton isDark={isDark} />
     return (
       <View
         style={[
@@ -678,7 +751,15 @@ export default function MenuPage() {
         </Text>
       </View>
     )
-  }, [isMenuLoading, searchKeyword, searchText, isDark, t])
+  }, [
+    emptyState,
+    searchKeyword,
+    searchText,
+    isDark,
+    primaryColor,
+    handleRetry,
+    t,
+  ])
 
   const renderItem = useCallback(
     ({ item }: { item: FlatItem }) => {
@@ -700,6 +781,7 @@ export default function MenuPage() {
           promotionValue={data.promotionValue}
           primaryColor={primaryColor}
           isDark={isDark}
+          hasStock={data.hasStock}
           onDetail={handleOpenDetail}
           onAddToCart={handleAddToCart}
         />
@@ -942,6 +1024,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: colors.white.light,
+  },
+  retryBtn: {
+    minHeight: 44,
   },
   emptyText: {
     fontSize: 14,
