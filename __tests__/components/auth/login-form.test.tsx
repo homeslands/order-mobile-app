@@ -321,4 +321,18 @@ describe('LoginForm — lỗi không phải sai thông tin đăng nhập', () =>
     expect(mockWithSequence).not.toHaveBeenCalled()
     expect(mockShowToast).not.toHaveBeenCalled()
   })
+
+  // Cổng API trả 502/504 dạng HTML: body không có statusCode nên global
+  // error handler bỏ qua — form phải tự báo, không thì bấm mà không thấy gì.
+  it('server lỗi không kèm mã trong body: tự báo, không tô đỏ', async () => {
+    const utils = await fillAndSubmitWith({
+      response: { status: 502, data: '<html>Bad Gateway</html>' },
+    })
+
+    expect(mockShowToast).toHaveBeenCalledWith('login.serverError', 'error')
+    expect(
+      utils.getByPlaceholderText('login.enterPassword').props.className,
+    ).not.toContain('border-destructive')
+    expect(mockWithSequence).not.toHaveBeenCalled()
+  })
 })

@@ -38,6 +38,7 @@ import {
 import { navigateWhenUnlocked } from '@/lib/navigation'
 import { useLoginSchema, TLoginSchema } from '@/schemas'
 import type { ILoginResponse } from '@/types'
+import { extractStatusCode } from '@/lib/global-error-gate'
 import { showErrorToastMessage, showToast } from '@/utils'
 
 interface LoginFormProps {
@@ -193,6 +194,11 @@ export default function LoginForm({
           // haptic. Lỗi server (5xx, 429…) không tô đỏ vì không phải lỗi
           // của khách.
           if (kind === 'credentials') triggerErrorFeedback()
+          // Cổng API trả 5xx dạng HTML: body không có mã nên global handler
+          // không báo gì — tự báo để khách biết bấm đã có phản hồi.
+          else if (kind === 'other' && extractStatusCode(error) == null) {
+            showToast(t('login.serverError'), 'error')
+          }
         },
       },
     )
