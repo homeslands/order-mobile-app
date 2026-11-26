@@ -44,4 +44,7 @@ it('HB3 ô giữ chỗ / nút tự vẽ cùng cỡ 44', () => {
   ]) {
     expect(read(f)).toMatch(/rightPlaceholder: \{\s*width: 44,\s*height: 44,/)
   }
+  expect(read('app/(tabs)/cart.tsx')).toMatch(
+    /placeholder: \{ width: 44, height: 44 \}/,
+  )
 })
