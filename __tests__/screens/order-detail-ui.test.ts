@@ -46,3 +46,22 @@ it('OD7 nút "Cập nhật đơn" là nút viền, nhường "Thanh toán" làm 
   const btn = detail.slice(detail.indexOf('onPress={handleUpdateOrder}'))
   expect(btn.slice(0, 300)).not.toMatch(/backgroundColor: primaryColor/)
 })
+
+it('OD8 mã đơn là số tham chiếu dễ đọc (không phải slug), chạm để sao chép', () => {
+  expect(detail).toMatch(/order\??\.referenceNumber/)
+  expect(detail).toMatch(/Clipboard\.setStringAsync\(/)
+  expect(detail).not.toMatch(/#\{order\.slug\}/)
+})
+
+it('OD9 "Khách hàng / Điện thoại" chỉ hiện với đơn giao hàng', () => {
+  expect(detail).toMatch(/isDelivery && \([\s\S]{0,600}order\.customer/)
+})
+
+it('OD10 thanh toán: tổng nổi bật kèm số món; phương thức + trạng thái gộp một dòng', () => {
+  expect(detail).toMatch(/menu\.catalogItemCount/)
+  expect(detail).toMatch(/\[paymentMethodLabel, paymentStatusLabel\]/)
+})
+
+it('OD11 ghi chú món là dòng chữ, không phải ô nhập bị khoá', () => {
+  expect(productItem).not.toMatch(/<TextInput\b/)
+})

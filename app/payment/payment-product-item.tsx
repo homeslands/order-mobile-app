@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react'
-import { StyleSheet, TextInput, View } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 
 import { APPLICABILITY_RULE, colors, VOUCHER_TYPE } from '@/constants'
 import type { IOrderItems } from '@/types'
@@ -23,7 +23,6 @@ export const PaymentProductItem = React.memo(function PaymentProductItem({
   primaryColor,
   isDark,
   isLast,
-  noNoteLabel,
 }: {
   item: IOrderItems
   displayItem: DisplayItemData | null
@@ -35,7 +34,6 @@ export const PaymentProductItem = React.memo(function PaymentProductItem({
   primaryColor: string
   isDark: boolean
   isLast: boolean
-  noNoteLabel: string
 }) {
   const { displayPrice, shouldShowLineThrough, original } = useMemo(() => {
     const orig = item.variant?.price || 0
@@ -164,16 +162,14 @@ export const PaymentProductItem = React.memo(function PaymentProductItem({
             },
           ]}
         >
-          <TextInput
-            value={item.note}
-            editable={false}
-            multiline
+          <Text
             style={[
-              pItemStyles.noteInput,
+              pItemStyles.noteText,
               { color: isDark ? colors.gray[400] : colors.gray[600] },
             ]}
-            placeholder={noNoteLabel}
-          />
+          >
+            {item.note}
+          </Text>
         </View>
       ) : null}
     </View>
@@ -219,10 +215,5 @@ export const pItemStyles = StyleSheet.create({
   },
   priceMain: { fontSize: 14, fontWeight: '600' },
   noteWrap: { marginTop: 8, borderRadius: 8 },
-  noteInput: {
-    width: '100%',
-    fontSize: 12,
-    padding: 8,
-    fontFamily: 'BeVietnamPro_400Regular',
-  },
+  noteText: { fontSize: 12, padding: 8 },
 })

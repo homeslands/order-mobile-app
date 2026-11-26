@@ -1402,7 +1402,6 @@ function PaymentPageContent() {
                   primaryColor={primaryColor}
                   isDark={isDark}
                   isLast={index === orderItems.length - 1}
-                  noNoteLabel={t('order.noNote')}
                 />
               ))}
             </View>
