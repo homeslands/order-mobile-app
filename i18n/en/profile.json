@@ -364,6 +364,7 @@
     "resendOtp": "Resend OTP",
     "resendVerificationEmail": "Resend Verification Email",
     "resendVerificationPhoneNumber": "Resend Verification Code",
+    "resendAfter": "Resend in {{seconds}}s",
     "seconds": "seconds",
     "sendVerifyEmail": "Send Verification Email",
     "sendVerifyPhoneNumber": "Send Verification Code",

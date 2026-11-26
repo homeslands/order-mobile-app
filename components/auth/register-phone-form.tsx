@@ -8,7 +8,8 @@ import { useInitiateRegistration, useZodForm } from '@/hooks'
 import { navigateNative } from '@/lib/navigation'
 import { getSyncItem, setSyncItem } from '@/utils/storage'
 import { showToast } from '@/utils'
-import { showErrorToast } from '@/utils/toast'
+import { classifyRegisterError } from '@/utils/register-error'
+import { showErrorToast, showErrorToastMessage } from '@/utils/toast'
 
 import { RegisterProgressBar } from './register-progress-bar'
 import { Text } from '@/components/ui/text'
@@ -61,8 +62,7 @@ export default function RegisterPhoneForm() {
         const e = err as {
           response?: { status?: number; data?: { statusCode?: number } }
         }
-        const serverCode =
-          e?.response?.data?.statusCode ?? e?.response?.status
+        const serverCode = e?.response?.data?.statusCode ?? e?.response?.status
         if (serverCode === 119046) {
           showToast(
             t('register.otpAlreadySent', { phone: data.phonenumber }),
@@ -83,8 +83,10 @@ export default function RegisterPhoneForm() {
         }
         if (serverCode) {
           showErrorToast(serverCode)
+        } else if (classifyRegisterError(err).kind === 'network') {
+          showToast(t('register.noConnection'), 'error')
         } else {
-          showToast(t('register.profileUpdateFailed'), 'warning')
+          showErrorToastMessage('toast.requestFailed')
         }
       },
     })

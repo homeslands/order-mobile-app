@@ -16,45 +16,12 @@ import Animated, {
 import { AnimatedCountdownText } from './animated-countdown-text'
 import { OTPInput } from './otp-input'
 import { Button } from '@/components/ui'
-import { useAnimatedCountdown } from '@/hooks'
+import { useAnimatedCountdown, useCountdown } from '@/hooks'
 import { Text } from '@/components/ui/text'
-
-/**
- * Resend button countdown text — isolated so only this sub-component
- * re-renders every second via runOnJS, not the entire OTPStepForgot.
- */
-const ResendCountdownLabel = React.memo(function ResendCountdownLabel({
-  countdownShared,
-  label,
-  className,
-}: {
-  countdownShared: SharedValue<number>
-  label: string
-  className: string
-}) {
-  const [displayTime, setDisplayTime] = useState(() => {
-    const s = Math.max(0, Math.floor(countdownShared.value))
-    const m = Math.floor(s / 60)
-    const sec = s % 60
-    return `${m}:${String(sec).padStart(2, '0')}`
-  })
-
-  useAnimatedReaction(
-    () => Math.floor(countdownShared.value),
-    (current) => {
-      if (current > 0) {
-        const m = Math.floor(current / 60)
-        const s = current % 60
-        runOnJS(setDisplayTime)(`${m}:${String(s).padStart(2, '0')}`)
-      }
-    },
-  )
-
-  return <Text className={className}>{`${label} (${displayTime})`}</Text>
-})
 
 export const OTPStepForgot = React.memo(function OTPStepForgot({
   expiresAt,
+  resendAvailableAt,
   otpValue,
   onOtpChange,
   isResending,
@@ -67,6 +34,7 @@ export const OTPStepForgot = React.memo(function OTPStepForgot({
   shakeTranslateX,
 }: {
   expiresAt: string
+  resendAvailableAt: string
   otpValue: string
   onOtpChange: (v: string) => void
   isResending: boolean
@@ -83,6 +51,8 @@ export const OTPStepForgot = React.memo(function OTPStepForgot({
 
   // UI-thread countdown — no JS re-renders during tick
   const otpShared = useAnimatedCountdown({ expiresAt, enabled: true })
+  // Cooldown gửi lại (60s) tách khỏi thời hạn OTP
+  const resendSeconds = useCountdown({ expiresAt: resendAvailableAt })
 
   // JS-thread expired state — updated once when countdown hits 0
   const [isExpired, setIsExpired] = useState(() => {
@@ -116,7 +86,7 @@ export const OTPStepForgot = React.memo(function OTPStepForgot({
   )
 
   const isVerifyDisabled = otpValue.length !== 6 || isVerifyingOTP || isExpired
-  const isResendDisabled = isResending || isVerifyingOTP || !isExpired
+  const isResendDisabled = isResending || isVerifyingOTP || resendSeconds > 0
 
   const shakeStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: shakeTranslateX?.value ?? 0 }],
@@ -176,15 +146,16 @@ export const OTPStepForgot = React.memo(function OTPStepForgot({
         >
           {isResending ? (
             <ActivityIndicator color={isExpired ? '#fff' : undefined} />
-          ) : !isExpired ? (
-            // Countdown text isolated — only ResendCountdownLabel re-renders per second
-            <ResendCountdownLabel
-              countdownShared={otpShared}
-              label={t('forgotPassword.resend')}
-              className="font-sans-semibold text-sm text-gray-500 dark:text-gray-400"
-            />
+          ) : resendSeconds > 0 ? (
+            <Text className="font-sans-semibold text-sm text-gray-500 dark:text-gray-400">
+              {t('forgotPassword.resendAfter', { seconds: resendSeconds })}
+            </Text>
           ) : (
-            <Text className="font-sans-semibold text-sm text-white">
+            <Text
+              className={`font-sans-semibold text-sm ${
+                isExpired ? 'text-white' : 'text-foreground'
+              }`}
+            >
               {t('forgotPassword.resend')}
             </Text>
           )}

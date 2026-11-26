@@ -30,8 +30,8 @@ import {
   useAnimatedCountdown,
   useConfirmEmailVerification,
   useCountdown,
-  useFormatTime,
   useProfile,
+  useResendCooldown,
   useResendEmailVerification,
   useScreenTransition,
   useVerifyEmail,
@@ -145,6 +145,7 @@ const headerStyles = StyleSheet.create({
 
 const OTPStepEmail = React.memo(function OTPStepEmail({
   expiresAt,
+  resendAvailableAt,
   otp,
   onOtpChange,
   isResending,
@@ -155,6 +156,7 @@ const OTPStepEmail = React.memo(function OTPStepEmail({
   isDark,
 }: {
   expiresAt: string
+  resendAvailableAt: string
   otp: string
   onOtpChange: (v: string) => void
   isResending: boolean
@@ -167,10 +169,10 @@ const OTPStepEmail = React.memo(function OTPStepEmail({
   const { t } = useTranslation('profile')
 
   const otpSeconds = useCountdown({ expiresAt, enabled: true })
-  const otpTimeDisplay = useFormatTime(otpSeconds)
+  const resendSeconds = useCountdown({ expiresAt: resendAvailableAt })
   const otpShared = useAnimatedCountdown({ expiresAt, enabled: true })
   const otpExpired = otpSeconds === 0
-  const canResend = otpSeconds <= 0
+  const canResend = resendSeconds <= 0
 
   useEffect(() => {
     if (otpExpired) onExpired()
@@ -224,8 +226,8 @@ const OTPStepEmail = React.memo(function OTPStepEmail({
                   : 'text-foreground'
             }`}
           >
-            {otpSeconds > 0
-              ? `${t('profile.verifyEmailScreen.button.resend')} (${otpTimeDisplay})`
+            {resendSeconds > 0
+              ? t('profile.resendAfter', { seconds: resendSeconds })
               : t('profile.verifyEmailScreen.button.resend')}
           </Text>
         )}
@@ -286,6 +288,7 @@ function VerifyEmailContent() {
 
   const [otp, setOtp] = useState('')
   const [otpExpired, setOtpExpired] = useState(false)
+  const { resendAvailableAt, restartResendCooldown } = useResendCooldown()
 
   const expiresAt = emailVerificationStatus?.expiresAt
   const showOtpStep = !!expiresAt
@@ -352,6 +355,7 @@ function VerifyEmailContent() {
           expiresAt: applyOtpBuffer(res.result.expiresAt),
           slug: res.result.slug,
         })
+        restartResendCooldown()
         showToast(t('profile.verifyEmailScreen.toast.resendSuccess'))
       },
       onError: (err: unknown) => {
@@ -370,7 +374,7 @@ function VerifyEmailContent() {
         else showToast(t('profile.verifyEmailFailed'), 'error')
       },
     })
-  }, [resendOtp, setEmailVerificationStatus, t])
+  }, [resendOtp, setEmailVerificationStatus, restartResendCooldown, t])
 
   const handleSendEmail = useCallback(
     ({ email }: TVerifyEmailFormSchema) => {
@@ -387,6 +391,7 @@ function VerifyEmailContent() {
               expiresAt: applyOtpBuffer(res.result.expiresAt),
               slug: res.result.slug,
             })
+            restartResendCooldown()
             showToast(t('profile.verifyEmailScreen.toast.sent'))
           },
           onError: (err: unknown) => {
@@ -409,6 +414,7 @@ function VerifyEmailContent() {
                     expiresAt: applyOtpBuffer(res.result.expiresAt),
                     slug: res.result.slug,
                   })
+                  restartResendCooldown()
                   setOtp('')
                   showToast(t('profile.verifyEmailScreen.toast.resendSuccess'))
                 },
@@ -441,7 +447,15 @@ function VerifyEmailContent() {
         },
       )
     },
-    [token, verifyEmail, resendOtp, queryClient, setEmailVerificationStatus, t],
+    [
+      token,
+      verifyEmail,
+      resendOtp,
+      queryClient,
+      setEmailVerificationStatus,
+      restartResendCooldown,
+      t,
+    ],
   )
 
   const handleVerifyOtp = useCallback(() => {
@@ -530,6 +544,7 @@ function VerifyEmailContent() {
         ) : (
           <OTPStepEmail
             expiresAt={expiresAt}
+            resendAvailableAt={resendAvailableAt}
             otp={otp}
             onOtpChange={handleOtpChange}
             isResending={isResending}

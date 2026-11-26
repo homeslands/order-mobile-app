@@ -364,6 +364,7 @@
     "resendOtp": "Gửi lại OTP",
     "resendVerificationEmail": "Gửi lại email xác minh",
     "resendVerificationPhoneNumber": "Gửi lại mã xác minh",
+    "resendAfter": "Gửi lại sau {{seconds}}s",
     "seconds": "giây",
     "sendVerifyEmail": "Gửi email xác minh",
     "sendVerifyPhoneNumber": "Gửi mã xác minh",

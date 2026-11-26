@@ -29,7 +29,7 @@ import {
   useAnimatedCountdown,
   useConfirmPhoneNumberVerification,
   useCountdown,
-  useFormatTime,
+  useResendCooldown,
   useResendPhoneNumberVerification,
   useScreenTransition,
   useVerifyPhoneNumber,
@@ -178,6 +178,7 @@ const PhoneNumberCard = React.memo(function PhoneNumberCard({
 
 const OTPStepPhone = React.memo(function OTPStepPhone({
   expiresAt,
+  resendAvailableAt,
   otpValue,
   onOtpChange,
   isResending,
@@ -188,6 +189,7 @@ const OTPStepPhone = React.memo(function OTPStepPhone({
   isDark,
 }: {
   expiresAt: string
+  resendAvailableAt: string
   otpValue: string
   onOtpChange: (v: string) => void
   isResending: boolean
@@ -200,7 +202,7 @@ const OTPStepPhone = React.memo(function OTPStepPhone({
   const { t } = useTranslation('profile')
 
   const otpSeconds = useCountdown({ expiresAt, enabled: true })
-  const otpTimeDisplay = useFormatTime(otpSeconds)
+  const resendSeconds = useCountdown({ expiresAt: resendAvailableAt })
   const otpShared = useAnimatedCountdown({ expiresAt, enabled: true })
   const otpExpired = otpSeconds === 0
 
@@ -208,7 +210,7 @@ const OTPStepPhone = React.memo(function OTPStepPhone({
     if (otpExpired) onExpired()
   }, [otpExpired, onExpired])
 
-  const isResendDisabled = isResending || isConfirming || otpSeconds > 0
+  const isResendDisabled = isResending || isConfirming || resendSeconds > 0
 
   return (
     <>
@@ -250,8 +252,8 @@ const OTPStepPhone = React.memo(function OTPStepPhone({
                   : 'text-foreground'
             }`}
           >
-            {otpSeconds > 0
-              ? `${t('profile.resendVerificationPhoneNumber')} (${otpTimeDisplay})`
+            {resendSeconds > 0
+              ? t('profile.resendAfter', { seconds: resendSeconds })
               : t('profile.resendVerificationPhoneNumber')}
           </Text>
         )}
@@ -316,6 +318,7 @@ function VerifyPhoneNumberContent() {
 
   const [otpValue, setOtpValue] = useState('')
   const [otpExpired, setOtpExpired] = useState(false)
+  const { resendAvailableAt, restartResendCooldown } = useResendCooldown()
 
   const expiresAt = phoneNumberVerificationStatus?.expiresAt
   const showOtpStep = !!expiresAt
@@ -371,6 +374,7 @@ function VerifyPhoneNumberContent() {
         setPhoneNumberVerificationStatus({
           expiresAt: applyOtpBuffer(response.result.expiresAt),
         })
+        restartResendCooldown()
         setOtpValue('')
         showToast(t('profile.verifyPhone.otpSent'))
       },
@@ -384,6 +388,7 @@ function VerifyPhoneNumberContent() {
               setPhoneNumberVerificationStatus({
                 expiresAt: applyOtpBuffer(response.result.expiresAt),
               })
+              restartResendCooldown()
               setOtpValue('')
               showToast(t('profile.verifyPhone.otpResent'))
             },
@@ -400,6 +405,7 @@ function VerifyPhoneNumberContent() {
     resendPhoneNumberVerification,
     queryClient,
     setPhoneNumberVerificationStatus,
+    restartResendCooldown,
     t,
   ])
 
@@ -434,11 +440,17 @@ function VerifyPhoneNumberContent() {
         setPhoneNumberVerificationStatus({
           expiresAt: applyOtpBuffer(response.result.expiresAt),
         })
+        restartResendCooldown()
         setOtpValue('')
         showToast(t('profile.verifyPhone.otpResent'))
       },
     })
-  }, [resendPhoneNumberVerification, setPhoneNumberVerificationStatus, t])
+  }, [
+    resendPhoneNumberVerification,
+    setPhoneNumberVerificationStatus,
+    restartResendCooldown,
+    t,
+  ])
 
   const handleOtpChange = useCallback((v: string) => setOtpValue(v), [])
 
@@ -490,6 +502,7 @@ function VerifyPhoneNumberContent() {
         ) : (
           <OTPStepPhone
             expiresAt={expiresAt}
+            resendAvailableAt={resendAvailableAt}
             otpValue={otpValue}
             onOtpChange={handleOtpChange}
             isResending={isResending}
