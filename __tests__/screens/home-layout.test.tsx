@@ -19,6 +19,9 @@ jest.mock('@tanstack/react-query', () => ({
   }),
 }))
 
+// Tải trước Menu có test riêng (lib/menu-queries); ở đây chỉ xét bố cục.
+jest.mock('@/lib/menu-queries', () => ({ prefetchMenu: jest.fn() }))
+
 jest.mock('@/components/home', () => {
   /* eslint-disable @typescript-eslint/no-require-imports */
   const { Text } = require('react-native')

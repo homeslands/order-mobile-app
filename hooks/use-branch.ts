@@ -1,4 +1,5 @@
-import { getAllBranches, getBranchInfoForDelivery } from '@/api'
+import { getBranchInfoForDelivery } from '@/api'
+import { branchesQueryOptions } from '@/lib/menu-queries'
 import { useQuery } from '@tanstack/react-query'
 
 export interface UseBranchOptions {
@@ -12,10 +13,8 @@ export interface UseBranchOptions {
 export const useBranch = (options?: UseBranchOptions) => {
   const enabled = options?.enabled ?? true
   return useQuery({
-    queryKey: ['branches'],
-    queryFn: async () => getAllBranches(),
+    ...branchesQueryOptions(),
     enabled,
-    staleTime: 10 * 60_000,
   })
 }
 
