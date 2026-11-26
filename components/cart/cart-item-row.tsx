@@ -35,8 +35,9 @@ const THEME_LIGHT = {
   chipTextColor: { color: colors.gray[600] },
   chipArrowColor: { color: colors.gray[400] },
   origPriceColor: { color: colors.gray[400] },
-  // Viền và biểu tượng − / + cùng một màu
-  qtyBtnBorder: { borderColor: colors.gray[400] },
+  // Viền nhạt hơn biểu tượng một bậc: đường viền liền trông đậm hơn nét mảnh
+  // của − / +, cùng mã màu thì viền nổi hơn nút.
+  qtyBtnBorder: { borderColor: colors.gray[300] },
   stepperColor: colors.gray[400],
   addNoteColor: { color: colors.gray[500] },
   qtyTextColor: { color: colors.gray[900] },
@@ -56,7 +57,7 @@ const THEME_DARK = {
   chipTextColor: { color: colors.gray[300] },
   chipArrowColor: { color: colors.gray[500] },
   origPriceColor: { color: colors.gray[500] },
-  qtyBtnBorder: { borderColor: colors.gray[500] },
+  qtyBtnBorder: { borderColor: colors.gray[600] },
   stepperColor: colors.gray[500],
   addNoteColor: { color: colors.gray[400] },
   qtyTextColor: { color: colors.gray[50] },
