@@ -38,6 +38,7 @@ import {
   isMenuLoadError,
 } from '@/utils/menu-stock'
 import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
+import { capitalizeFirst } from '@/utils/format'
 import { showToast } from '@/utils/toast'
 import { useFocusEffect } from '@react-navigation/native'
 import { FlashList, type FlashListRef } from '@shopify/flash-list'
@@ -750,7 +751,7 @@ export default function MenuPage() {
             <Text
               style={[styles.catalogHeaderName, { color: catalogHeaderColor }]}
             >
-              {item.name}
+              {capitalizeFirst(item.name)}
             </Text>
             <Text style={[styles.catalogHeaderCount, { color: countColor }]}>
               {t('menu.catalogItemCount', { count: item.count })}
@@ -1053,7 +1054,7 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingHorizontal: 16,
     paddingTop: 16,
-    paddingBottom: 4,
+    paddingBottom: 10,
   },
   catalogHeaderName: {
     fontSize: 17,
