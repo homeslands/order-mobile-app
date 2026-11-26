@@ -25,12 +25,12 @@ function ChangePasswordScreen() {
 
   const handleSubmit = () => {
     if (!oldPassword || !newPassword || !confirmPassword) {
-      showToast(t('changePassword.fillRequired'), 'error')
+      showToast(t('profile.changePassword.fillRequired'), 'error')
       return
     }
 
     if (newPassword !== confirmPassword) {
-      showToast(t('changePassword.passwordMismatch'), 'error')
+      showToast(t('profile.changePassword.passwordMismatch'), 'error')
       return
     }
 
@@ -40,11 +40,11 @@ function ChangePasswordScreen() {
         // Mật khẩu đã lưu cho Face ID/vân tay hết đúng: tắt, lần đăng nhập
         // bằng mật khẩu sau sẽ được mời bật lại.
         void disableBiometricLogin()
-        showToast(t('changePassword.success'))
+        showToast(t('profile.changePassword.success'))
         navigateNative.back()
       })
       .catch(() => {
-        showToast(t('changePassword.error'), 'error')
+        showToast(t('profile.changePassword.error'), 'error')
       })
       .finally(() => {
         setIsSubmitting(false)
@@ -73,7 +73,7 @@ function ChangePasswordScreen() {
           />
         </Button>
         <Text className="text-lg font-semibold text-gray-900 dark:text-gray-50">
-          {t('changePassword.title')}
+          {t('profile.changePassword.title')}
         </Text>
       </View>
 
@@ -82,12 +82,12 @@ function ChangePasswordScreen() {
           {/* Mật khẩu cũ */}
           <View className="mb-4">
             <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
-              {t('oldPassword')}
+              {t('profile.oldPassword')}
             </Text>
             <PasswordInputField
               value={oldPassword}
               onChange={setOldPassword}
-              placeholder={t('enterOldPassword')}
+              placeholder={t('profile.enterOldPassword')}
               disabled={isSubmitting}
             />
           </View>
@@ -95,12 +95,12 @@ function ChangePasswordScreen() {
           {/* Mật khẩu mới — có strength bar + rules */}
           <View className="mb-4">
             <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
-              {t('newPassword')}
+              {t('profile.newPassword')}
             </Text>
             <PasswordRulesInput
               value={newPassword}
               onChange={setNewPassword}
-              placeholder={t('enterNewPassword')}
+              placeholder={t('profile.enterNewPassword')}
               disabled={isSubmitting}
             />
           </View>
@@ -108,18 +108,18 @@ function ChangePasswordScreen() {
           {/* Xác nhận mật khẩu */}
           <View className="mb-2">
             <Text className="mb-1 text-xs text-gray-500 dark:text-gray-400">
-              {t('confirmPassword')}
+              {t('profile.confirmPassword')}
             </Text>
             <PasswordInputField
               value={confirmPassword}
               onChange={setConfirmPassword}
-              placeholder={t('enterConfirmPassword')}
+              placeholder={t('profile.enterConfirmPassword')}
               disabled={isSubmitting}
             />
           </View>
 
           <Text className="mt-1 text-xs text-gray-400 dark:text-gray-500">
-            {t('changePassword.passwordHint')}
+            {t('profile.changePassword.passwordHint')}
           </Text>
         </View>
 
@@ -132,8 +132,8 @@ function ChangePasswordScreen() {
           >
             <Text className="text-sm font-semibold text-white">
               {isSubmitting
-                ? t('changePassword.updating')
-                : t('changePassword.save')}
+                ? t('profile.changePassword.updating')
+                : t('profile.changePassword.save')}
             </Text>
           </Button>
         </View>

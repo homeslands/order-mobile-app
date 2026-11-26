@@ -12,6 +12,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'expo-router'
 import {
   Fingerprint,
+  KeyRound,
   Languages,
   ScanFace,
   SunMoon,
@@ -59,6 +60,7 @@ export default function SettingsScreen() {
   const setLogout = useAuthStore((s) => s.setLogout)
   const removeUserInfo = useUserStore((s) => s.removeUserInfo)
   const userPhone = useUserStore((s) => s.userInfo?.phonenumber)
+  const isLoggedIn = useUserStore((s) => !!s.userInfo)
   const { t: tAuth } = useTranslation('auth')
 
   // Đăng nhập bằng Face ID/vân tay: chỉ hiện khi đang bật cho ĐÚNG tài khoản
@@ -159,6 +161,10 @@ export default function SettingsScreen() {
   }, [removeUserInfo, setLogout, router, queryClient])
 
   const handleBack = useCallback(() => router.back(), [router])
+  const openChangePassword = useCallback(
+    () => router.push('/profile/change-password'),
+    [router],
+  )
 
   const primaryColor = isDark ? colors.primary.dark : colors.primary.light
   const divider = (
@@ -200,6 +206,19 @@ export default function SettingsScreen() {
             textColor={theme.text}
             textMuted={theme.textMuted}
           />
+          {isLoggedIn ? (
+            <>
+              {divider}
+              <ProfileMenuItem
+                icon={KeyRound}
+                iconColor={ICON_COLORS.indigo}
+                title={t('profile.changePassword.title', 'Đổi mật khẩu')}
+                onPress={openChangePassword}
+                textColor={theme.text}
+                textMuted={theme.textMuted}
+              />
+            </>
+          ) : null}
           {bioType ? (
             <>
               {divider}
