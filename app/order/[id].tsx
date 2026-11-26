@@ -188,6 +188,7 @@ function OrderDetailContent() {
   const getUserInfo = useUserStore((s) => s.getUserInfo)
   const isPending_ = order?.status === OrderStatus.PENDING
   const isDelivery = order?.type === OrderTypeEnum.DELIVERY
+  const secondaryBg = isDark ? colors.gray[800] : colors.gray[100]
   const discountColor = isDark ? colors.success.dark : colors.success.solid
   const dividerColor = isDark ? colors.gray[700] : colors.gray[100]
   const itemQty = (orderItems ?? []).reduce(
@@ -704,20 +705,37 @@ function OrderDetailContent() {
               isDark={isDark}
             />
 
-            {/* Update order — inline at bottom of scroll content, muted style */}
+            {/* Huỷ đơn — thao tác phá: chỉ là chữ đỏ ở cuối nội dung, không
+                nằm cạnh Thanh toán (vẫn mở hộp xác nhận như cũ). */}
             {isPending_ && (
-              <Pressable
-                onPress={handleUpdateOrder}
-                style={[ds.updateBtn, { borderColor: primaryColor }]}
-              >
-                <Text style={[ds.updateBtnText, { color: primaryColor }]}>
-                  {t('order.updateOrder', 'Cập nhật đơn hàng')}
-                </Text>
-              </Pressable>
+              <CancelOrderDialog
+                order={order}
+                renderTrigger={(open) => (
+                  <Pressable
+                    onPress={open}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    style={ds.cancelLink}
+                  >
+                    <Text
+                      style={[
+                        ds.cancelLinkText,
+                        {
+                          color: isDark
+                            ? colors.destructive.dark
+                            : colors.destructive.light,
+                        },
+                      ]}
+                    >
+                      {t('order.cancelOrder', 'Huỷ đơn')}
+                    </Text>
+                  </Pressable>
+                )}
+              />
             )}
           </View>
         </GestureScrollView>
-        {/* Sticky footer — cancel + payment */}
+        {/* Sticky footer — cập nhật + thanh toán */}
         {isPending_ && (
           <View
             style={[
@@ -729,13 +747,33 @@ function OrderDetailContent() {
               },
             ]}
           >
+            {/* Một nút chính: Thanh toán (cam, rộng hơn). Cập nhật đơn là nút
+                phụ nền xám. */}
             <View style={ds.footerRow}>
-              <CancelOrderDialog order={order} />
+              <Pressable
+                onPress={handleUpdateOrder}
+                style={[
+                  ds.actionBtnFilled,
+                  { backgroundColor: secondaryBg, flex: 1 },
+                ]}
+              >
+                <Text
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.85}
+                  style={[
+                    ds.actionBtnFilledText,
+                    { color: isDark ? colors.gray[50] : colors.gray[900] },
+                  ]}
+                >
+                  {t('order.updateOrder', 'Cập nhật đơn hàng')}
+                </Text>
+              </Pressable>
               <Pressable
                 onPress={handlePayment}
                 style={[
                   ds.actionBtnFilled,
-                  { backgroundColor: primaryColor, flex: 1 },
+                  { backgroundColor: primaryColor, flex: 1.4 },
                 ]}
               >
                 <Text
@@ -792,15 +830,8 @@ const ds = StyleSheet.create({
   receiptValueFlex: { flexShrink: 1, textAlign: 'right' },
   codeRow: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6 },
   xsText: { fontSize: 12 },
-  updateBtn: {
-    marginBottom: 16,
-    height: 46,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-  },
-  updateBtnText: { fontSize: 14, fontWeight: '600' },
+  cancelLink: { alignSelf: 'center', paddingVertical: 12, marginBottom: 8 },
+  cancelLinkText: { fontSize: 14, fontWeight: '600' },
   bottomBar: {
     borderTopWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 16,

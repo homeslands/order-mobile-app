@@ -65,3 +65,21 @@ it('OD10 thanh toán: tổng nổi bật kèm số món; phương thức + trạ
 it('OD11 ghi chú món là dòng chữ, không phải ô nhập bị khoá', () => {
   expect(productItem).not.toMatch(/<TextInput\b/)
 })
+
+// Ba nút từng tranh nhau: Huỷ (đỏ đặc) + Thanh toán (cam đặc) cạnh nhau, Cập
+// nhật (viền cam). Giờ một nút chính duy nhất.
+it('OD12 Thanh toán là nút chính duy nhất; Cập nhật là nút phụ nền xám cạnh nó', () => {
+  const footer = detail.slice(detail.indexOf('ds.footerRow'))
+  expect(footer).toMatch(/onPress=\{handleUpdateOrder\}/)
+  expect(footer).toMatch(/onPress=\{handlePayment\}/)
+  expect(detail).toMatch(/secondaryBg/)
+})
+
+it('OD13 Huỷ đơn là nút chữ đỏ, không nền đặc, không nằm cạnh Thanh toán', () => {
+  expect(detail).toMatch(/<CancelOrderDialog[\s\S]{0,80}renderTrigger=/)
+  const footer = detail.slice(
+    detail.indexOf('ds.footerRow'),
+    detail.indexOf('ds.footerRow') + 1200,
+  )
+  expect(footer).not.toMatch(/CancelOrderDialog/)
+})
