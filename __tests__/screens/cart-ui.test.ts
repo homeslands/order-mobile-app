@@ -41,3 +41,17 @@ it('CU4 ảnh món dùng thumbnail trên máy (MenuItemImage)', () => {
   expect(row).toMatch(/<MenuItemImage\b/)
   expect(row).not.toMatch(/from 'expo-image'/)
 })
+
+// FlashList v2 gọi createElement(ListFooterComponent): truyền hàm thì hàm mới
+// = component mới → cả phần dưới danh sách dựng lại (mất giờ lấy đã chọn, ô
+// ghi chú mất focus). Truyền element.
+it('CU5 phần dưới danh sách truyền dạng element, không phải hàm', () => {
+  expect(content).toMatch(/ListFooterComponent=\{listFooter\}/)
+  expect(content).toMatch(/const listFooter = useMemo\(/)
+})
+
+it('CU6 rời giỏ khi ghi chú đơn còn chờ ghi: ghi luôn, không mất', () => {
+  const note = read('components/cart/cart-order-note.tsx')
+  const cleanup = note.slice(note.indexOf('return () => {'))
+  expect(cleanup.slice(0, 400)).toMatch(/cartActions\.setDescription\(/)
+})

@@ -170,7 +170,10 @@ export default function CartContent() {
 
   // Dưới danh sách món: tuỳ chọn đơn (loại đơn / bàn / giờ lấy / voucher) rồi
   // ghi chú — thanh dưới cố định chỉ còn tổng tiền + Đặt hàng.
-  const CartListFooter = useCallback(
+  // Truyền element, không phải hàm: FlashList v2 gọi createElement(hàm) —
+  // hàm mới là component mới, cả phần này dựng lại (mất giờ lấy đã chọn, ô
+  // ghi chú mất focus).
+  const listFooter = useMemo(
     () => (
       <>
         <CartOrderOptions isDark={isDark} primaryColor={primaryColor} />
@@ -201,7 +204,7 @@ export default function CartContent() {
         contentContainerStyle={listContentStyle}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={ItemSeparator}
-        ListFooterComponent={CartListFooter}
+        ListFooterComponent={listFooter}
       />
       <CartFooter
         primaryColor={primaryColor}

@@ -34,13 +34,18 @@ export const CartOrderNote = memo(function CartOrderNote({
     }, DEBOUNCE_MS)
   }, [])
 
-  // Flush pending write + cleanup timer on unmount — prevents memory leak
-  // and stale-closure write after component is gone.
+  // Rời giỏ khi còn lượt ghi đang chờ: ghi luôn (trước chỉ huỷ hẹn giờ —
+  // gõ xong rời màn trong 400ms là mất ghi chú).
+  const latestNoteRef = useRef(initialNote)
+  useEffect(() => {
+    latestNoteRef.current = localNote
+  }, [localNote])
   useEffect(() => {
     return () => {
       if (debounceRef.current) {
         clearTimeout(debounceRef.current)
         debounceRef.current = null
+        cartActions.setDescription(latestNoteRef.current)
       }
     }
   }, [])
