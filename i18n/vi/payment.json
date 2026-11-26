@@ -120,7 +120,7 @@
     "paymentMethod": {
       "bankTransfer": "Chuyển khoản",
       "cash": "Tiền mặt",
-      "point": "Điểm tích lũy",
+      "point": "Xu",
       "creditCard": "Thẻ tín dụng"
     }
   }

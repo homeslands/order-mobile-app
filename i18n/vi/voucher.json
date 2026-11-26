@@ -153,7 +153,7 @@
     "paymentMethod": {
       "cash": "Tiền mặt",
       "bankTransfer": "Chuyển khoản",
-      "point": "Điểm tích lũy",
+      "point": "Xu",
       "creditCard": "Thẻ tín dụng",
       "error": "Vui lòng chọn ít nhất 1 phương thức thanh toán",
       "selected": "Đã chọn",
