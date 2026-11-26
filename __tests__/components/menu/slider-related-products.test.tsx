@@ -107,9 +107,19 @@ jest.mock('@/utils/product-image-url', () => ({
   getProductImageUrl: (p: string) => (p ? `https://img/${p}` : null),
   IMAGE_PRESET: { THUMB: 1, HERO: 2 },
 }))
-jest.mock('@/assets/images', () => ({ Images: { Food: {} } }))
+jest.mock('@/assets/images', () => ({
+  Images: { Food: { DefaultProductImage: 'default-product' } },
+}))
 jest.mock('expo-router', () => ({ useRouter: () => ({ navigate: () => {} }) }))
-jest.mock('expo-image', () => ({ Image: () => null }))
+jest.mock('expo-image', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { View } = require('react-native')
+  return {
+    Image: (p: { source: unknown }) => (
+      <View testID="product-image" {...{ source: p.source }} />
+    ),
+  }
+})
 jest.mock('lucide-react-native', () => ({
   ChevronRight: () => null,
   Plus: () => null,
@@ -172,9 +182,11 @@ it('RP4 còn nhiều món hơn số thẻ: có "Xem thêm" ở tiêu đề', () 
   expect(screen.getByText('menu.seeMore')).toBeTruthy()
 })
 
-it('RP5 món không có ảnh: hiện chữ cái đầu tên món thay ảnh mẫu', () => {
+it('RP5 món không có ảnh: dùng ảnh mặc định như Menu', () => {
   renderSlider()
-  expect(screen.getByText('M')).toBeTruthy()
+  expect(screen.getByTestId('product-image').props.source).toBe(
+    'default-product',
+  )
 })
 
 it('RP6 is wrapped in React.memo', () => {

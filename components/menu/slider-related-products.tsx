@@ -19,6 +19,7 @@ import {
   View,
 } from 'react-native'
 
+import { Images } from '@/assets/images'
 import { extractMenuItems } from '@/api/menu'
 import { OrderFlowStep, ROUTE, colors } from '@/constants'
 import { TAB_ROUTES } from '@/constants/navigation.config'
@@ -29,7 +30,6 @@ import {
   useSpecificMenu,
 } from '@/hooks'
 import { navigateNative } from '@/lib/navigation'
-import { hexToRgba } from '@/lib/utils'
 import { useOrderFlowStore, useBranchStore, useUserStore } from '@/stores'
 import { useLoginSheetStore } from '@/stores/login-sheet.store'
 import { useSetMenuFilter } from '@/stores/selectors'
@@ -115,7 +115,6 @@ const RelatedProductItem = React.memo(
       isLimit: item.product.isLimit,
     })
     const canAdd = hasStock && minPrice != null
-    const initial = item.product.name.trim().charAt(0).toUpperCase()
 
     return (
       <Pressable
@@ -130,7 +129,6 @@ const RelatedProductItem = React.memo(
           style={{
             width: itemWidth,
             height: itemWidth,
-            backgroundColor: hexToRgba(primaryColor, 0.12),
             opacity: hasStock ? 1 : 0.5,
           }}
         >
@@ -140,18 +138,18 @@ const RelatedProductItem = React.memo(
               style={{ width: '100%', height: '100%' }}
               contentFit="cover"
               recyclingKey={item.slug}
+              placeholder={Images.Food.DefaultProductImage}
+              placeholderContentFit="cover"
               cachePolicy="disk"
               priority="low"
             />
           ) : (
-            <View className="flex-1 items-center justify-center">
-              <Text
-                className="text-3xl font-bold"
-                style={{ color: primaryColor }}
-              >
-                {initial}
-              </Text>
-            </View>
+            // Món chưa có ảnh: ảnh mặc định, giống Menu.
+            <Image
+              source={Images.Food.DefaultProductImage}
+              style={{ width: '100%', height: '100%' }}
+              contentFit="cover"
+            />
           )}
           {promo > 0 && (
             <View className="absolute left-2 top-2 rounded-md bg-red-500 px-1.5 py-0.5">
