@@ -307,6 +307,7 @@
     "updateOrderItemNoteSuccess": "Cập nhật ghi chú món thành công",
     "updateOrderNoteSuccess": "Cập nhật ghi chú đơn hàng thành công",
     "updateOrderSuccess": "Cập nhật đơn hàng thành công",
+    "orderNoLongerEditable": "Đơn đã được thanh toán hoặc huỷ, không thể sửa nữa",
     "updateOrderTypeSuccess": "Cập nhật loại đơn hàng thành công",
     "updatePasswordSuccess": "Cập nhật mật khẩu thành công",
     "updatePermissionSuccess": "Cập nhật quyền hạn thành công",

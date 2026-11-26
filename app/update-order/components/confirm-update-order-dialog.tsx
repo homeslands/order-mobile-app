@@ -24,11 +24,14 @@ import {
   useUpdateNoteOrderItem,
   useUpdateOrderItem,
   useUpdateOrderType,
+  useUpdateOrderPayable,
   useUpdateOrderTotals,
   useUpdateVoucherInOrder,
 } from '@/hooks'
 import { navigateNative, scheduleTransitionTask } from '@/lib/navigation'
+import { getOrderBySlug } from '@/api'
 import { useOrderFlowStore } from '@/stores'
+import { useUpdateOrderSubmitStore } from '@/stores/update-order-submit.store'
 import { OrderTypeEnum } from '@/types'
 import { IOrderItemsParam } from '@/types/voucher.type'
 import {
@@ -58,6 +61,18 @@ export default memo(function ConfirmUpdateOrderDialog({
   const { t: tCommon } = useTranslation('common')
   const [sheetVisible, setSheetVisible] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  // Khoá bằng ref: hai lần bấm trước khi state kịp render lại đều thấy
+  // isSubmitting = false và cùng gửi → thêm trùng món.
+  const submittingRef = useRef(false)
+  const isMountedRef = useRef(true)
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
+  const setSubmitting = useUpdateOrderSubmitStore((s) => s.setSubmitting)
+  const initializeUpdating = useOrderFlowStore((s) => s.initializeUpdating)
   const sheetRef = useRef<BottomSheetModal>(null)
   const queryClient = useQueryClient()
   const isDark = useColorScheme() === 'dark'
@@ -77,18 +92,25 @@ export default memo(function ConfirmUpdateOrderDialog({
   const draft = updatingData?.updateDraft
   const originalOrder = updatingData?.originalOrder
   const orderType = (draft?.type as OrderTypeEnum) ?? OrderTypeEnum.AT_TABLE
-  const deliveryFee = originalOrder?.deliveryFee ?? 0
   const accumulatedPoints = originalOrder?.accumulatedPointsToUse ?? 0
 
   const { displayItems, cartTotals } = useUpdateOrderTotals()
-  const finalTotal =
-    (cartTotals?.finalTotal ?? 0) + deliveryFee - accumulatedPoints
+  // Cùng chỗ tính với thanh dưới (phí ship theo loại đơn / địa chỉ mới)
+  const { deliveryFee, finalTotal } = useUpdateOrderPayable()
 
   // ── Submit ──────────────────────────────────────────────────────────────────
 
   const handleConfirm = async () => {
-    if (!draft || !originalOrder || !orderSlug || isSubmitting) return
+    if (!draft || !originalOrder || !orderSlug) return
+    // Bản nháp còn sót của đơn khác — không gửi nhầm sang đơn này
+    if (originalOrder.slug !== orderSlug) return
+    if (submittingRef.current) return
+    submittingRef.current = true
     setIsSubmitting(true)
+    setSubmitting(true)
+    // Đã có lệnh nào vào server chưa — server không có lệnh lưu cả đơn một
+    // lần, nên hỏng giữa chừng là phần đầu đã được lưu.
+    let hasApplied = false
     try {
       const { toDelete, toAdd, toUpdateQty, toUpdateNote } =
         computeOrderApiDiff(originalOrder.orderItems, draft.orderItems)
@@ -114,14 +136,17 @@ export default memo(function ConfirmUpdateOrderDialog({
             deliveryPhone: draft.deliveryPhone ?? undefined,
           },
         })
+        hasApplied = true
       }
 
       if (toDelete.length > 0) {
+        hasApplied = true
         await Promise.all(toDelete.map((slug) => deleteOrderItem(slug)))
       }
 
       const newItemSlugMap = new Map<string, string>()
       if (toAdd.length > 0) {
+        hasApplied = true
         const addResults = await Promise.all(
           toAdd.map((item) =>
             addNewOrderItem({
@@ -139,6 +164,7 @@ export default memo(function ConfirmUpdateOrderDialog({
       }
 
       if (toUpdateQty.length > 0) {
+        hasApplied = true
         const originalBySlug = new Map(
           originalOrder.orderItems.map((i) => [i.slug, i]),
         )
@@ -165,6 +191,7 @@ export default memo(function ConfirmUpdateOrderDialog({
       const newItemsWithNote = toAdd.filter((i) => (i.note ?? '') !== '')
       const allNoteUpdates = [...toUpdateNote, ...newItemsWithNote]
       if (allNoteUpdates.length > 0) {
+        hasApplied = true
         await Promise.all(
           allNoteUpdates.map((item) => {
             const realSlug = isTempOrderItem(item.slug)
@@ -190,6 +217,7 @@ export default memo(function ConfirmUpdateOrderDialog({
             order: orderSlug,
           }),
         )
+        hasApplied = true
         await updateVoucherInOrder({
           slug: orderSlug,
           voucher: draft.voucher?.slug ?? null,
@@ -197,22 +225,45 @@ export default memo(function ConfirmUpdateOrderDialog({
         })
       }
 
-      navigateNative.replace(
-        `${ROUTE.CLIENT_PAYMENT.replace('[order]', orderSlug)}` as Parameters<
-          typeof navigateNative.replace
-        >[0],
-      )
+      // Khách đã rời màn trong lúc gửi thì không kéo họ sang thanh toán
+      if (isMountedRef.current) {
+        navigateNative.replace(
+          `${ROUTE.CLIENT_PAYMENT.replace('[order]', orderSlug)}` as Parameters<
+            typeof navigateNative.replace
+          >[0],
+        )
+      }
       scheduleTransitionTask(() => {
         clearUpdatingData()
         queryClient.invalidateQueries({ queryKey: ['order', orderSlug] })
+        queryClient.invalidateQueries({ queryKey: ['orders'] })
         showToast(tToast('toast.updateOrderSuccess'))
         sheetRef.current?.dismiss()
         onSuccess?.()
       })
     } catch {
-      showErrorToastMessage(t('order.updateOrderFailed'))
+      if (!hasApplied) {
+        showErrorToastMessage(t('order.updateOrderFailed'))
+      } else {
+        // Hỏng giữa chừng: dựng lại bản nháp theo đơn trên server, để lần thử
+        // sau không xoá lại món đã xoá (404) hay thêm trùng món đã thêm.
+        const fresh = await queryClient
+          .fetchQuery({
+            queryKey: ['order', orderSlug],
+            queryFn: () => getOrderBySlug(orderSlug),
+            staleTime: 0,
+          })
+          .catch(() => null)
+        if (fresh?.result && isMountedRef.current) {
+          initializeUpdating(fresh.result)
+        }
+        queryClient.invalidateQueries({ queryKey: ['orders'] })
+        showErrorToastMessage(t('order.updateOrderPartialFailed'))
+      }
     } finally {
-      setIsSubmitting(false)
+      submittingRef.current = false
+      setSubmitting(false)
+      if (isMountedRef.current) setIsSubmitting(false)
     }
   }
 

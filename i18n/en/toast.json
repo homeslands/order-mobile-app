@@ -307,6 +307,7 @@
     "updateOrderItemNoteSuccess": "Order item note updated successfully",
     "updateOrderNoteSuccess": "Order note updated successfully",
     "updateOrderSuccess": "Order updated successfully",
+    "orderNoLongerEditable": "This order has been paid or cancelled and can no longer be edited",
     "updateOrderTypeSuccess": "Order type updated successfully",
     "updatePasswordSuccess": "Password updated successfully",
     "updatePermissionSuccess": "Permission updated successfully",

@@ -392,6 +392,7 @@
     "updateNote": "Update",
     "updateOrder": "Update",
     "updateOrderFailed": "Update failed, please try again",
+    "updateOrderPartialFailed": "Some changes were not saved. The order has been reloaded — please review it and try again",
     "updatePayment": "Update payment",
     "usedVoucher": "Used voucher",
     "viewDetail": "Detail",

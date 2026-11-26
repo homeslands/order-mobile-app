@@ -7,12 +7,11 @@ import { useShallow } from 'zustand/react/shallow'
 
 import { colors, PHONE_NUMBER_REGEX } from '@/constants'
 import { FOOTER_BOTTOM_EXTRA } from '@/constants/status-bar'
-import { useTables, useUpdateOrderTotals } from '@/hooks'
-import { useCalculateDeliveryFee } from '@/hooks/use-branch-delivery'
+import { useTables, useUpdateOrderPayable } from '@/hooks'
 import { DeliveryAddressSheet, DeliveryInfoRow } from '@/components/delivery'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import { OrderStatus, OrderTypeEnum } from '@/types'
-import { parseKm, showErrorToastMessage } from '@/utils'
+import { showErrorToastMessage } from '@/utils'
 import { useEffect } from 'react'
 
 import ConfirmUpdateOrderDialog from './confirm-update-order-dialog'
@@ -55,26 +54,12 @@ export default memo(function UpdateOrderFooter({
   const orderItems = useMemo(() => draft?.orderItems ?? [], [draft])
   const draftDeliveryAddress = draft?.deliveryAddress ?? ''
   const draftDeliveryPhone = draft?.deliveryPhone ?? ''
-  const draftDeliveryDistance = draft?.deliveryDistance ?? 0
-  const accumulatedPointsToUse = originalOrder?.accumulatedPointsToUse ?? 0
 
   // Resolve table name from slug
   const branchFromStore = useBranchStore((s) => s.branch?.slug)
   const branchFromUser = useUserStore((s) => s.userInfo?.branch?.slug)
   const branchSlug = branchFromStore || branchFromUser
 
-  const { deliveryFee: newDeliveryFee } = useCalculateDeliveryFee(
-    parseKm(draftDeliveryDistance) ?? 0,
-    branchSlug ?? '',
-    {
-      enabled:
-        orderType === OrderTypeEnum.DELIVERY && draftDeliveryDistance > 0,
-    },
-  )
-  const effectiveDeliveryFee =
-    orderType === OrderTypeEnum.DELIVERY && draftDeliveryDistance > 0
-      ? (newDeliveryFee ?? originalOrder?.deliveryFee ?? 0)
-      : (originalOrder?.deliveryFee ?? 0)
   const { data: tablesData } = useTables(branchSlug ?? undefined)
   const tableName = useMemo(() => {
     if (!selectedTableSlug || !tablesData?.result) return null
@@ -89,16 +74,13 @@ export default memo(function UpdateOrderFooter({
     () => orderItems.reduce((acc, i) => acc + (i.quantity ?? 0), 0),
     [orderItems],
   )
-  const { cartTotals } = useUpdateOrderTotals()
-  const subtotal =
-    (cartTotals?.subTotalBeforeDiscount ?? 0) +
-    effectiveDeliveryFee -
-    accumulatedPointsToUse
-  const voucherDiscount = cartTotals?.voucherDiscount ?? 0
-  const finalTotal =
-    (cartTotals?.finalTotal ?? 0) +
-    effectiveDeliveryFee -
-    accumulatedPointsToUse
+  // Cùng chỗ tính với sheet xác nhận
+  const {
+    deliveryFee: effectiveDeliveryFee,
+    voucherDiscount,
+    totalBeforeVoucher,
+    finalTotal,
+  } = useUpdateOrderPayable()
 
   // Auto-remove voucher if maxItems exceeded
   const voucherSlug = voucher?.slug
@@ -123,6 +105,7 @@ export default memo(function UpdateOrderFooter({
     : t('menu.selectTable')
   const showTableSelect = orderType === OrderTypeEnum.AT_TABLE
   const confirmDisabled =
+    orderItems.length === 0 ||
     (orderType === OrderTypeEnum.AT_TABLE && !selectedTableSlug) ||
     (orderType === OrderTypeEnum.DELIVERY &&
       (!draftDeliveryAddress ||
@@ -305,7 +288,7 @@ export default memo(function UpdateOrderFooter({
             <View style={f.totalRow}>
               {voucherDiscount > 0 && (
                 <Text style={[f.totalOriginal, ft.mutedColorAlt]}>
-                  {formatCurrencyNative(subtotal)}
+                  {formatCurrencyNative(totalBeforeVoucher)}
                 </Text>
               )}
               <Text style={[f.totalValue, ft.primaryColorStyle]}>

@@ -1,4 +1,5 @@
 import { ScreenContainer } from '@/components/layout'
+import { QueryErrorState } from '@/components/ui/query-error-state'
 import { FloatingHeader } from '@/components/navigation/floating-header'
 import { useFocusEffect } from '@react-navigation/native'
 import { Image as ExpoImage } from 'expo-image'
@@ -14,7 +15,9 @@ import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { useOrderBySlug, useRunAfterTransition } from '@/hooks'
 import { navigateNative, useGpuWarmup } from '@/lib/navigation'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
+import { useUpdateOrderSubmitStore } from '@/stores/update-order-submit.store'
 import { OrderStatus } from '@/types'
+import { showErrorToastMessage } from '@/utils'
 
 import OrderCountdownNative from './components/order-countdown-native'
 import UpdateOrderContentNative from './components/update-order-content-native'
@@ -35,7 +38,6 @@ export default function UpdateOrderScreen() {
   const [allowFetch, setAllowFetch] = useState(false)
   const [isExpired, setIsExpired] = useState(false)
   const [isDataLoaded, setIsDataLoaded] = useState(false)
-  const [shouldReinitialize, setShouldReinitialize] = useState(false)
   const [activeTab, setActiveTab] = useState<'order' | 'menu'>('order')
   // Guard: prevent concurrent poll requests if network is slow
   const isFetchingRef = React.useRef(false)
@@ -43,11 +45,25 @@ export default function UpdateOrderScreen() {
   const {
     data: orderResponse,
     isPending,
+    isError,
     refetch: refetchOrder,
   } = useOrderBySlug(allowFetch ? slug : null)
   const order = orderResponse?.result
   const initializeUpdating = useOrderFlowStore((s) => s.initializeUpdating)
   const clearUpdatingData = useOrderFlowStore((s) => s.clearUpdatingData)
+  // Bản nháp có thể còn của đơn mở trước (lưu xuống máy) — chỉ dùng khi đúng
+  // là của đơn này
+  const draftSlug = useOrderFlowStore(
+    (s) => s.updatingData?.originalOrder?.slug,
+  )
+  const isSubmitting = useUpdateOrderSubmitStore((s) => s.isSubmitting)
+
+  // Rời màn (back, hết hạn, sang thanh toán) thì xoá bản nháp — để lại thì
+  // lần mở đơn khác có thể hiện / gửi nhầm bản nháp này, và giỏ kẹt ở bước sửa
+  // đơn (badge 0).
+  useEffect(() => {
+    return () => clearUpdatingData()
+  }, [clearUpdatingData])
 
   const branchFromOrder =
     typeof order?.branch === 'string'
@@ -71,7 +87,7 @@ export default function UpdateOrderScreen() {
 
   // Init updating data when order is valid
   useEffect(() => {
-    if (!order || !slug || !allowFetch) return
+    if (!order || !slug || !allowFetch || isExpired) return
     const isValidOrder =
       order.slug && order.orderItems && order.orderItems.length > 0
     if (isValidOrder && !isDataLoaded) {
@@ -86,19 +102,7 @@ export default function UpdateOrderScreen() {
       }
       requestAnimationFrame(run)
     }
-  }, [order, slug, allowFetch, isDataLoaded, initializeUpdating])
-
-  // Reinitialize when refetch completes
-  useEffect(() => {
-    if (!shouldReinitialize || !order) return
-    try {
-      initializeUpdating(order)
-      queueMicrotask(() => setShouldReinitialize(false))
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error('❌ Update Order: Reinitialize failed:', error)
-    }
-  }, [shouldReinitialize, order, initializeUpdating])
+  }, [order, slug, allowFetch, isDataLoaded, isExpired, initializeUpdating])
 
   // Polling when order is PENDING — guard prevents concurrent requests if network is slow.
   // Keep refetchOrder in a ref: react-query may return a new function reference per render,
@@ -110,7 +114,7 @@ export default function UpdateOrderScreen() {
 
   const isOrderPending = order?.status === OrderStatus.PENDING
   useEffect(() => {
-    if (!isOrderPending || !isDataLoaded || isExpired) return
+    if (!isOrderPending || !isDataLoaded || isExpired || isSubmitting) return
     const interval = setInterval(async () => {
       if (isFetchingRef.current) return
       isFetchingRef.current = true
@@ -118,7 +122,10 @@ export default function UpdateOrderScreen() {
         const { data } = await refetchOrderRef.current()
         const updated = data?.result
         if (updated && updated.status !== OrderStatus.PENDING) {
-          setShouldReinitialize(true)
+          // Đơn đã được trả / huỷ ở nơi khác — báo rõ rồi quay lại, thay vì
+          // âm thầm thay bản nháp (mất sửa đổi, nút xác nhận biến mất).
+          showErrorToastMessage('toast.orderNoLongerEditable')
+          navigateNative.back()
         }
       } catch {
         /* ignore */
@@ -127,13 +134,16 @@ export default function UpdateOrderScreen() {
       }
     }, 5000)
     return () => clearInterval(interval)
-  }, [isOrderPending, isDataLoaded, isExpired])
+  }, [isOrderPending, isDataLoaded, isExpired, isSubmitting])
 
-  const handleExpire = useCallback(() => {
-    setIsExpired(true)
-    clearUpdatingData()
-    setIsDataLoaded(false)
-  }, [clearUpdatingData])
+  const handleExpire = useCallback(() => setIsExpired(true), [])
+
+  // Hết giờ khi đang gửi thì chờ gửi xong (xong là đã sang thanh toán) —
+  // xoá bản nháp giữa chuỗi lệnh lưu sẽ làm hỏng đơn.
+  const showExpired = isExpired && !isSubmitting
+  useEffect(() => {
+    if (showExpired) clearUpdatingData()
+  }, [showExpired, clearUpdatingData])
 
   const handleBack = useCallback(() => {
     navigateNative.back()
@@ -145,14 +155,12 @@ export default function UpdateOrderScreen() {
 
   const handleTabOrder = useCallback(() => setActiveTab('order'), [])
   const handleTabMenu = useCallback(() => setActiveTab('menu'), [])
-
-  // ── Skeleton ────────────────────────────────────────────────────────────────
-  if (!allowFetch || isPending) {
-    return <UpdateOrderSkeleton />
-  }
+  const handleRetry = useCallback(() => {
+    void refetchOrder()
+  }, [refetchOrder])
 
   // ── Expired ─────────────────────────────────────────────────────────────────
-  if (isExpired) {
+  if (showExpired) {
     return (
       <ScreenContainer
         edges={['top']}
@@ -221,6 +229,32 @@ export default function UpdateOrderScreen() {
         </View>
       </ScreenContainer>
     )
+  }
+
+  // ── Lỗi tải đơn ─────────────────────────────────────────────────────────────
+  // Đơn không tải được, hoặc tải được mà không còn món (không dựng bản nháp
+  // được) — báo lỗi thay vì hiện bản nháp cũ / màn trống.
+  const hasItems = (order?.orderItems?.length ?? 0) > 0
+  if ((isError && !order) || (order && !hasItems)) {
+    return (
+      <View style={[s.screen, { backgroundColor: screenBg }]}>
+        <View style={[s.errorBody, { paddingTop: STATIC_TOP_INSET + 60 }]}>
+          <QueryErrorState onRetry={handleRetry} />
+        </View>
+        <FloatingHeader
+          title={t('order.updateOrder', 'Cập nhật đơn hàng')}
+          onBack={handleBack}
+          disableBlur
+        />
+      </View>
+    )
+  }
+
+  // ── Skeleton ────────────────────────────────────────────────────────────────
+  // Chờ tới khi bản nháp đã dựng từ ĐÚNG đơn này
+  const draftReady = isDataLoaded && draftSlug === slug
+  if (!allowFetch || isPending || !draftReady) {
+    return <UpdateOrderSkeleton />
   }
 
   // ── Main ────────────────────────────────────────────────────────────────────
@@ -335,6 +369,7 @@ export default function UpdateOrderScreen() {
 
 const s = StyleSheet.create({
   screen: { flex: 1 },
+  errorBody: { flex: 1 },
   // ── Expired ────────────────────────────────────────────────────────────────
   expiredHeader: {
     flexDirection: 'row',

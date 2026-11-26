@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
 
 import {
@@ -51,10 +51,12 @@ export function useOrderTypeOptionsForUpdateOrder() {
       { value: OrderTypeEnum.TAKE_OUT, label: t('menu.takeAway') },
     ]
 
+    // Cờ chưa tải xong: hiện đủ loại — đừng giấu giao hàng của đơn giao hàng
+    const flagsLoaded = !!featuresResponse
     const hasDeliveryInFeature = relevantParentFeature?.children?.some(
       (child) => child.name === SystemLockFeatureChild.DELIVERY,
     )
-    if (hasDeliveryInFeature) {
+    if (!flagsLoaded || hasDeliveryInFeature) {
       allTypes.push({
         value: OrderTypeEnum.DELIVERY,
         label: t('menu.delivery'),
@@ -71,7 +73,7 @@ export function useOrderTypeOptionsForUpdateOrder() {
       const featureKey = orderTypeToFeatureMap[type.value]
       return orderTypeLockStatus[featureKey] !== true
     })
-  }, [t, relevantParentFeature, orderTypeLockStatus])
+  }, [t, featuresResponse, relevantParentFeature, orderTypeLockStatus])
 
   const selectedType = useMemo(() => {
     if (currentType) {
@@ -81,14 +83,9 @@ export function useOrderTypeOptionsForUpdateOrder() {
     return orderTypes[0]
   }, [currentType, orderTypes])
 
-  // Auto-switch to available type if current type is locked or not available
-  // Mirrors the same pattern in use-order-type-options.ts
-  useEffect(() => {
-    const found = orderTypes.find((type) => type.value === currentType)
-    if (!found && orderTypes.length > 0) {
-      setDraftType(orderTypes[0].value as OrderTypeEnum)
-    }
-  }, [orderTypes, currentType, setDraftType])
+  // Không tự đổi loại của đơn đang sửa khi loại đó bị khoá: lúc cờ đang tải
+  // danh sách tạm thiếu loại, tự đổi sẽ âm thầm biến đơn giao hàng thành tại
+  // bàn. Sheet chỉ không cho chọn loại bị khoá.
 
   const handleChange = (value: string) => {
     setDraftType(value as OrderTypeEnum)
