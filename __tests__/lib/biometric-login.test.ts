@@ -7,6 +7,7 @@ import * as SecureStore from 'expo-secure-store'
 import { Platform } from 'react-native'
 
 import {
+  classifyLoginError,
   disableBiometricLogin,
   enableBiometricLogin,
   getBiometricType,
@@ -123,6 +124,33 @@ it('BL7 chỉ tắt khi server từ chối (4xx), không tắt khi mất mạng/
     false,
   )
   expect(shouldDisableAfterLoginError(new Error('Network Error'))).toBe(false)
+})
+
+// Mất mạng mà form tô đỏ + lắc thì khách tưởng sai mật khẩu. Phân loại để
+// lỗi mạng (không có response) được báo riêng.
+describe('classifyLoginError', () => {
+  it('LE1 không có response (mất mạng, timeout) là lỗi mạng', () => {
+    const axiosNetworkError = Object.assign(new Error('Network Error'), {
+      isAxiosError: true,
+      code: 'ERR_NETWORK',
+      response: undefined,
+    })
+    expect(classifyLoginError(axiosNetworkError)).toBe('network')
+    expect(classifyLoginError(new Error('timeout of 10000ms exceeded'))).toBe(
+      'network',
+    )
+  })
+
+  it.each([400, 401, 403, 404])(
+    'LE2 server từ chối %i là sai thông tin đăng nhập',
+    (status) => {
+      expect(classifyLoginError({ response: { status } })).toBe('credentials')
+    },
+  )
+
+  it.each([429, 500, 502, 503])('LE3 server lỗi %i là lỗi khác', (status) => {
+    expect(classifyLoginError({ response: { status } })).toBe('other')
+  })
 })
 
 // Android chỉ cho mở khoá dữ liệu (Keystore, SecureStore requireAuthentication)

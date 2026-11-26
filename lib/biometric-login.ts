@@ -142,7 +142,21 @@ export async function readBiometricCredentials(
  *  tài khoản bị khoá/xoá) thì mật khẩu đã lưu vô dụng → tắt. Mất mạng, lỗi
  *  server hay bị giới hạn tần suất thì giữ để thử lại sau. */
 export function shouldDisableAfterLoginError(error: unknown): boolean {
-  const status = (error as { response?: { status?: number } } | null)?.response
-    ?.status
+  return classifyLoginError(error) === 'credentials'
+}
+
+export type LoginErrorKind = 'network' | 'credentials' | 'other'
+
+/** Phân loại lỗi đăng nhập để báo đúng cho khách:
+ *  - 'network': không có response (mất mạng, timeout) — không phải sai mật khẩu.
+ *  - 'credentials': server từ chối số điện thoại / mật khẩu.
+ *  - 'other': server lỗi, bị giới hạn tần suất… */
+export function classifyLoginError(error: unknown): LoginErrorKind {
+  const response = (error as { response?: { status?: number } } | null)
+    ?.response
+  if (!response) return 'network'
+  const status = response.status
   return status === 400 || status === 401 || status === 403 || status === 404
+    ? 'credentials'
+    : 'other'
 }

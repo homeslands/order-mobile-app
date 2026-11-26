@@ -26,6 +26,7 @@ import { SHAKE } from '@/constants/motion'
 import { useLogin, usePostAuthActions, useZodForm } from '@/hooks'
 import {
   biometricLabelKey,
+  classifyLoginError,
   disableBiometricLogin,
   enableBiometricLogin,
   getBiometricType,
@@ -164,6 +165,14 @@ export default function LoginForm({
           if (!viaBiometric) void offerBiometric(phonenumber, password)
         },
         onError: (error) => {
+          const kind = classifyLoginError(error)
+          // Mất mạng không phải sai mật khẩu: không tô đỏ/lắc. Lỗi không có
+          // mã nên global error handler bỏ qua — tự báo ở đây. Đăng nhập bằng
+          // sinh trắc học thì giữ dữ liệu đã lưu để thử lại.
+          if (kind === 'network') {
+            showToast(t('login.networkError'), 'error')
+            return
+          }
           // Mật khẩu đã lưu bị server từ chối (đổi ở nơi khác…): tắt hẳn,
           // khách nhập mật khẩu và được mời bật lại.
           if (viaBiometric && shouldDisableAfterLoginError(error)) {
@@ -179,9 +188,11 @@ export default function LoginForm({
             }
             return
           }
-          // Toast do global error handler (QueryCache) đảm nhiệm.
-          // Ở đây chỉ lo phản hồi tại chỗ: viền đỏ + lắc + haptic.
-          triggerErrorFeedback()
+          // Toast do global error handler (MutationCache) đảm nhiệm.
+          // Ở đây chỉ lo phản hồi tại chỗ khi sai thông tin: viền đỏ + lắc +
+          // haptic. Lỗi server (5xx, 429…) không tô đỏ vì không phải lỗi
+          // của khách.
+          if (kind === 'credentials') triggerErrorFeedback()
         },
       },
     )

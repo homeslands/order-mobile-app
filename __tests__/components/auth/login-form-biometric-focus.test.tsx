@@ -22,8 +22,9 @@ jest.mock('react-native-reanimated', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-return
   return require('react-native-reanimated/mock')
 })
+const mockMutate = jest.fn()
 jest.mock('@/hooks', () => ({
-  useLogin: () => ({ mutate: jest.fn(), isPending: false }),
+  useLogin: () => ({ mutate: mockMutate, isPending: false }),
   usePostAuthActions: () => ({ handleAuthSuccess: jest.fn() }),
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-unsafe-member-access
   useZodForm: require('@/hooks/use-zod-form').useZodForm,
@@ -31,22 +32,32 @@ jest.mock('@/hooks', () => ({
 jest.mock('@/lib/navigation', () => ({
   navigateWhenUnlocked: { push: jest.fn() },
 }))
+const mockShowToast = jest.fn()
 jest.mock('@/utils', () => ({
   showErrorToastMessage: jest.fn(),
-  showToast: jest.fn(),
+  showToast: (...args: unknown[]) => mockShowToast(...args),
 }))
 
-const mockRead = jest.fn(async () => ({ status: 'cancelled' as const }))
+const mockRead = jest.fn(
+  async (): Promise<unknown> => ({ status: 'cancelled' }),
+)
 const mockEnabledPhone = jest.fn(async (): Promise<string | null> => null)
-jest.mock('@/lib/biometric-login', () => ({
-  biometricLabelKey: () => 'biometric.faceId',
-  disableBiometricLogin: jest.fn(),
-  enableBiometricLogin: jest.fn(),
-  getBiometricType: async () => 'face',
-  getEnabledPhone: () => mockEnabledPhone(),
-  readBiometricCredentials: (...args: unknown[]) => mockRead(...(args as [])),
-  shouldDisableAfterLoginError: () => false,
-}))
+const mockDisable = jest.fn()
+jest.mock('@/lib/biometric-login', () => {
+  const actual = jest.requireActual<typeof import('@/lib/biometric-login')>(
+    '@/lib/biometric-login',
+  )
+  return {
+    biometricLabelKey: () => 'biometric.faceId',
+    classifyLoginError: actual.classifyLoginError,
+    disableBiometricLogin: () => mockDisable(),
+    enableBiometricLogin: jest.fn(),
+    getBiometricType: async () => 'face',
+    getEnabledPhone: () => mockEnabledPhone(),
+    readBiometricCredentials: (...args: unknown[]) => mockRead(...(args as [])),
+    shouldDisableAfterLoginError: actual.shouldDisableAfterLoginError,
+  }
+})
 
 const focusedNavigation = {
   isFocused: () => true,
@@ -62,7 +73,11 @@ function renderFocused() {
 }
 
 beforeEach(() => {
-  mockRead.mockClear()
+  mockRead.mockReset()
+  mockRead.mockResolvedValue({ status: 'cancelled' })
+  mockMutate.mockReset()
+  mockShowToast.mockClear()
+  mockDisable.mockClear()
   mockEnabledPhone.mockReset()
   mockEnabledPhone.mockResolvedValue('0901234567')
 })
@@ -118,4 +133,27 @@ it('BB4 nút nằm dưới ô số điện thoại, trên vạch "hoặc" và ô
   const positions = order.map((key) => tree.indexOf(`"${key}"`))
   positions.forEach((p) => expect(p).toBeGreaterThan(-1))
   expect([...positions].sort((a, b) => a - b)).toEqual(positions)
+})
+
+it('BB5 đăng nhập bằng Face ID lúc mất mạng: báo mất kết nối, giữ dữ liệu đã lưu', async () => {
+  mockRead.mockResolvedValue({
+    status: 'ok',
+    phonenumber: '0901234567',
+    password: 'secret1',
+  })
+  mockMutate.mockImplementation(
+    (_vars: unknown, opts: { onError: (error: unknown) => void }) =>
+      opts.onError(new Error('Network Error')),
+  )
+  renderFocused()
+  await screen.findByTestId('biometric-login-button')
+  await act(async () => {
+    fireEvent.press(screen.getByTestId('biometric-login-button'))
+  })
+
+  await waitFor(() =>
+    expect(mockShowToast).toHaveBeenCalledWith('login.networkError', 'error'),
+  )
+  expect(mockDisable).not.toHaveBeenCalled()
+  expect(screen.getByTestId('biometric-login-button')).toBeTruthy()
 })
