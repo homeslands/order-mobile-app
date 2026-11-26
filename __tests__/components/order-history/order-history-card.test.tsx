@@ -103,12 +103,14 @@ it('OC3 dải ảnh tối đa 4, phần còn lại ghi "+N"', () => {
   expect(screen.getByText('+2')).toBeTruthy()
 })
 
-it('OC4 nhãn trạng thái theo trạng thái đơn, đúng màu', () => {
+it('OC4 nhãn trạng thái theo trạng thái đơn: nền đặc tông đậm, chữ trắng', () => {
   renderCard(order({ status: 'failed' } as Partial<IOrder>))
-  const badge = screen.getByText('Thất bại')
-  expect(StyleSheet.flatten(badge.props.style).color).toBe(
-    colors.destructive.light,
+  const text = screen.getByText('Thất bại')
+  expect(StyleSheet.flatten(text.props.style).color).toBe(colors.white.light)
+  const badge = StyleSheet.flatten(
+    screen.getByTestId('order-status-badge').props.style,
   )
+  expect(badge.backgroundColor).toBe(colors.destructive.dark)
 })
 
 it('OC5 bấm thẻ mở đơn', () => {
@@ -118,27 +120,33 @@ it('OC5 bấm thẻ mở đơn', () => {
 })
 
 // Bốn nhãn phải khác tông: trước đây "Chưa thanh toán" (vàng) và "Đã thanh
-// toán" (cam thương hiệu) trông như nhau.
-it('OC6 bốn trạng thái, bốn màu chữ khác nhau, không trùng màu giá (cam)', () => {
-  const textColor = (status: string, pay?: string) => {
+// toán" (cam thương hiệu) trông như nhau. Nền đặc tông đậm để chữ trắng đủ
+// tương phản (≥ 4.5:1).
+it('OC6 bốn trạng thái, bốn màu nền khác nhau, không trùng màu giá (cam)', () => {
+  const bg = (status: string, pay?: string) => {
     renderCard(
       order({
         status,
         payment: pay ? { statusCode: pay } : undefined,
       } as Partial<IOrder>),
     )
-    const label = screen.getByTestId('order-status-badge-text')
-    const c = StyleSheet.flatten(label.props.style).color as string
+    const c = StyleSheet.flatten(
+      screen.getByTestId('order-status-badge').props.style,
+    ).backgroundColor as string
     screen.unmount()
     return c
   }
   const all = [
-    textColor('pending'),
-    textColor('paid', 'completed'),
-    textColor('completed', 'completed'),
-    textColor('failed'),
+    bg('pending'),
+    bg('paid', 'completed'),
+    bg('completed', 'completed'),
+    bg('failed'),
   ]
+  expect(all).toEqual([
+    colors.warning.textLight,
+    colors.success.borderDark,
+    colors.gray[600],
+    colors.destructive.dark,
+  ])
   expect(new Set(all).size).toBe(4)
-  expect(all).not.toContain('#F7A737')
-  expect(all[1]).toBe(colors.success.borderDark)
 })

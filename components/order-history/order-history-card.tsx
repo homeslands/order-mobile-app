@@ -16,7 +16,6 @@ import {
   getOrderHistoryStatus,
   type OrderHistoryStatus,
 } from '@/lib/order-history-status'
-import { hexToRgba } from '@/lib/utils'
 import type { IOrder } from '@/types'
 import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
 
@@ -35,36 +34,21 @@ const pad = (n: number) => String(n).padStart(2, '0')
 const capFirst = (s: string) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s)
 
 /**
- * Bốn trạng thái, bốn tông khác nhau — và không dùng màu cam thương hiệu (đã
- * là màu giá tiền trong thẻ, và gần tông vàng "chưa thanh toán").
- * Chưa thanh toán: vàng (cần khách làm gì). Đã thanh toán: xanh (ổn, quán đang
- * làm). Hoàn tất: xám (xong, chỉ để tra lại). Thất bại: đỏ.
+ * Nhãn nền đặc tông đậm, chữ trắng — bốn tông khác nhau, đều đủ tương phản
+ * với chữ trắng cỡ nhỏ (≥ 4.5:1; tông sáng của token như #f59e0b / #22c55e
+ * chỉ ~2.2:1). Không dùng cam thương hiệu (đã là màu giá tiền trong thẻ).
+ * Chưa thanh toán: hổ phách. Đã thanh toán: xanh. Hoàn tất: xám. Thất bại: đỏ.
  */
-function statusColors(
-  status: OrderHistoryStatus,
-  isDark: boolean,
-): { bg: string; text: string } {
+function statusBg(status: OrderHistoryStatus): string {
   switch (status) {
     case 'failed':
-      return {
-        bg: hexToRgba(colors.destructive.light, isDark ? 0.2 : 0.12),
-        text: isDark ? colors.destructive.dark : colors.destructive.light,
-      }
+      return colors.destructive.dark
     case 'paid':
-      return {
-        bg: isDark ? colors.success.bgDark : colors.success.bgLight,
-        text: isDark ? colors.success.dark : colors.success.borderDark,
-      }
+      return colors.success.borderDark
     case 'completed':
-      return {
-        bg: isDark ? colors.gray[800] : colors.gray[100],
-        text: isDark ? colors.gray[300] : colors.gray[600],
-      }
+      return colors.gray[600]
     default:
-      return {
-        bg: isDark ? colors.warning.bgDark : colors.warning.bgLight,
-        text: isDark ? colors.warning.textDark : colors.warning.textLight,
-      }
+      return colors.warning.textLight
   }
 }
 
@@ -123,7 +107,6 @@ export const OrderHistoryCard = memo(function OrderHistoryCard({
   }, [order.orderItems, order.createdAt])
 
   const status = getOrderHistoryStatus(order)
-  const badge = statusColors(status, isDark)
   const muted = isDark ? colors.gray[400] : colors.gray[500]
   const strong = isDark ? colors.gray[50] : colors.gray[900]
   const typeLabel = labels.type[order.type] ?? ''
@@ -143,10 +126,13 @@ export const OrderHistoryCard = memo(function OrderHistoryCard({
             {[typeLabel, view.time].filter(Boolean).join(' · ')}
           </Text>
         </View>
-        <View style={[s.badge, { backgroundColor: badge.bg }]}>
+        <View
+          testID="order-status-badge"
+          style={[s.badge, { backgroundColor: statusBg(status) }]}
+        >
           <Text
             testID="order-status-badge-text"
-            style={[s.badgeText, { color: badge.text }]}
+            style={[s.badgeText, { color: colors.white.light }]}
           >
             {labels.status[status]}
           </Text>
