@@ -85,7 +85,7 @@ const VerifyPhoneHeader = React.memo(function VerifyPhoneHeader({
         style={[headerStyles.row, { paddingTop: STATIC_TOP_INSET + 10 }]}
         pointerEvents="auto"
       >
-        <GlassHeaderButton isDark={isDark} onPress={onBack} size={42}>
+        <GlassHeaderButton isDark={isDark} onPress={onBack}>
           <ChevronLeft
             size={20}
             color={isDark ? colors.gray[50] : colors.gray[900]}
@@ -124,8 +124,8 @@ const headerStyles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   rightPlaceholder: {
-    width: 42,
-    height: 42,
+    width: 44,
+    height: 44,
   },
   title: {
     fontSize: 17,

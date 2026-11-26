@@ -179,7 +179,6 @@ function EditHeader({
         <GlassHeaderButton
           isDark={isDark}
           onPress={onCancel}
-          size={42}
           paddingHorizontal={16}
         >
           <Text
@@ -211,7 +210,6 @@ function EditHeader({
         <GlassHeaderButton
           isDark={isDark}
           onPress={isDirty ? onConfirm : undefined}
-          size={42}
           solidColor={confirmBg}
           withoutShadow
         >
