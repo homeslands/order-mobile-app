@@ -263,7 +263,8 @@ export const CartItemRow = memo(
                   )}
                 </View>
 
-                <View style={[rowStyles.stepper, themeStyles.qtyBtnBorder]}>
+                {/* Hai nút tròn riêng − / +, số ở giữa */}
+                <View style={rowStyles.stepper}>
                   {/* Chỉ − / + (xoá món bằng vuốt); SL 1 thì − tắt */}
                   <Pressable
                     onPress={handleDecrease}
@@ -274,6 +275,7 @@ export const CartItemRow = memo(
                     accessibilityState={{ disabled: displayQty <= 1 }}
                     style={[
                       rowStyles.stepBtn,
+                      themeStyles.qtyBtnBorder,
                       displayQty <= 1 && rowStyles.stepBtnDisabled,
                     ]}
                   >
@@ -287,7 +289,7 @@ export const CartItemRow = memo(
                     hitSlop={6}
                     accessibilityRole="button"
                     accessibilityLabel={t('cart.increaseQty')}
-                    style={rowStyles.stepBtn}
+                    style={[rowStyles.stepBtn, themeStyles.qtyBtnBorder]}
                   >
                     <Plus size={16} color={themeStyles.stepperColor} />
                   </Pressable>
@@ -415,12 +417,13 @@ const rowStyles = StyleSheet.create({
   stepper: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderRadius: 999,
+    gap: 10,
   },
   stepBtn: {
-    width: 34,
-    height: 32,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
