@@ -86,3 +86,12 @@ it('CU11 nút xoá cả giỏ trung tính (kính), chỉ biểu tượng màu đ
   expect(btn.slice(0, 900)).toMatch(/<GlassHeaderButton\b/)
   expect(btn.slice(0, 900)).not.toMatch(/colors\.white\.light/)
 })
+
+// Bàn phím che ô ghi chú đơn / ghi chú món cuối danh sách: danh sách tự chừa
+// chỗ bàn phím và cuộn tới ô đang nhập (iOS: ScrollView tự xử lý first
+// responder khi bật automaticallyAdjustKeyboardInsets).
+it('CU12 danh sách giỏ chừa chỗ bàn phím, chạm ngoài không tắt nhầm', () => {
+  const list = content.slice(content.indexOf('<FlashList'))
+  expect(list.slice(0, 800)).toMatch(/automaticallyAdjustKeyboardInsets/)
+  expect(list.slice(0, 800)).toMatch(/keyboardShouldPersistTaps="handled"/)
+})

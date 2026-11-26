@@ -203,6 +203,11 @@ export default function CartContent() {
         getItemType={getCartItemType}
         contentContainerStyle={listContentStyle}
         showsVerticalScrollIndicator={false}
+        // Ô ghi chú đơn / ghi chú món cuối danh sách: chừa chỗ bàn phím và
+        // cuộn tới ô đang nhập (iOS tự xử lý theo ô đang focus).
+        automaticallyAdjustKeyboardInsets
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="interactive"
         ItemSeparatorComponent={ItemSeparator}
         ListFooterComponent={listFooter}
       />
