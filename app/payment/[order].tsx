@@ -2,6 +2,7 @@ import { ScreenContainer } from '@/components/layout'
 import { FloatingHeader } from '@/components/navigation/floating-header'
 import { useFocusEffect } from '@react-navigation/native'
 import { Image as ExpoImage } from 'expo-image'
+import { useQueryClient } from '@tanstack/react-query'
 import { useLocalSearchParams } from 'expo-router'
 import {
   CircleAlert,
@@ -77,7 +78,6 @@ import {
 import LoyaltyPointsInput from './loyalty-points-input'
 import VoucherConflictBottomSheet from './voucher-conflict-bottom-sheet'
 import { VoucherSheetInPayment } from './voucher-sheet-in-payment'
-import { InvoiceSection } from './payment-invoice-section'
 import { PaymentOrderInfoCard } from './payment-order-info-card'
 import { PaymentProductItem } from './payment-product-item'
 import { PaymentSummaryCard } from './payment-summary-card'
@@ -232,7 +232,7 @@ const QRSection = React.memo(function QRSection({
             source={activeQrUrl}
             style={ps.qrImage}
             contentFit="contain"
-            cachePolicy="none"
+            cachePolicy="memory"
             onError={handleImgError}
           />
         )}
@@ -281,6 +281,8 @@ const QRSection = React.memo(function QRSection({
 
 // ─── PaymentMethodSection (isolates qrCode + isInitiatingPayment state) ────
 
+const NO_METHODS: PaymentMethod[] = []
+
 const PaymentMethodSection = React.memo(function PaymentMethodSection({
   order,
   primaryColor,
@@ -308,6 +310,28 @@ const PaymentMethodSection = React.memo(function PaymentMethodSection({
 }) {
   const { t } = useTranslation('menu')
   const { t: tPayment } = useTranslation('payment')
+
+  // Phương thức đã trả xong: khoá lại. Ghi nhớ để PaymentMethodRadioGroup
+  // không nhận mảng / object mới mỗi lần render (mất memo, tính lại danh sách).
+  const paidMethod =
+    order?.payment?.paymentMethod &&
+    order.payment.statusMessage === OrderStatus.COMPLETED
+      ? (order.payment.paymentMethod as PaymentMethod)
+      : null
+  const disabledMethods = useMemo(
+    () => (paidMethod ? [paidMethod] : NO_METHODS),
+    [paidMethod],
+  )
+  const disabledReasons = useMemo(
+    () =>
+      paidMethod
+        ? ({ [paidMethod]: t('paymentMethod.alreadyPaid') } as Record<
+            PaymentMethod,
+            string
+          >)
+        : undefined,
+    [paidMethod, t],
+  )
 
   if (!order || order.status !== OrderStatus.PENDING) return null
 
@@ -344,22 +368,8 @@ const PaymentMethodSection = React.memo(function PaymentMethodSection({
           order={order}
           value={selectedMethod}
           defaultValue={order.payment?.paymentMethod || null}
-          disabledMethods={
-            order.payment?.paymentMethod &&
-            order.payment.statusMessage === OrderStatus.COMPLETED
-              ? [order.payment.paymentMethod as PaymentMethod]
-              : []
-          }
-          disabledReasons={
-            order.payment?.paymentMethod &&
-            order.payment.statusMessage === OrderStatus.COMPLETED
-              ? ({
-                  [order.payment.paymentMethod as PaymentMethod]: t(
-                    'paymentMethod.alreadyPaid',
-                  ),
-                } as Record<PaymentMethod, string>)
-              : undefined
-          }
+          disabledMethods={disabledMethods}
+          disabledReasons={disabledReasons}
           onSelect={onMethodChange}
           onConflict={onConflict}
           coinBalance={coinBalance}
@@ -748,10 +758,6 @@ function PaymentPageContent() {
   const order = orderResponse?.result
   const screenBg = isDark ? colors.background.dark : colors.background.light
 
-  // Defer non-critical sections until after navigation transition
-  const [transitionReady, setTransitionReady] = useState(false)
-  useRunAfterTransition(() => setTransitionReady(true), [])
-
   const [isRefreshing, setIsRefreshing] = useState(false)
   const handleRefresh = useCallback(async () => {
     setIsRefreshing(true)
@@ -825,15 +831,17 @@ function PaymentPageContent() {
   const isLoggedIn = !!userInfo
 
   // Coin balance — chỉ fetch khi logged in + order PENDING
-  const { balance: coinBalance, refetch: refetchCoinBalance } =
-    useCoinBalance(isLoggedIn)
+  const isOrderPending = order?.status === OrderStatus.PENDING
+  const { balance: coinBalance, refetch: refetchCoinBalance } = useCoinBalance(
+    isLoggedIn && isOrderPending,
+  )
 
   // Loyalty points — chỉ fetch khi logged in + order PENDING
-  const loyaltyData = useLoyaltyPoints(
+  const loyaltySlug =
     order?.status === OrderStatus.PENDING && isLoggedIn
       ? (userInfo?.slug ?? undefined)
-      : undefined,
-  )
+      : undefined
+  const loyaltyData = useLoyaltyPoints(loyaltySlug)
   const userTotalPoints = loyaltyData.data?.totalPoints ?? 0
   const refetchLoyalty = loyaltyData.refetch
 
@@ -845,7 +853,12 @@ function PaymentPageContent() {
   // On blur:
   //   - Clear ExpoImage memory cache ONLY when the order is in a terminal
   //     success state. While PENDING, we want the QR code to stay warm.
-  const lastFocusFetchAtRef = useRef(0)
+  // Mốc lần tải gần nhất = lúc dữ liệu đơn được tải (vd. tải trước lúc bấm):
+  // lần focus đầu không tải lại nếu vừa tải xong.
+  const queryClient = useQueryClient()
+  const lastFocusFetchAtRef = useRef(
+    queryClient.getQueryState(['order', orderSlug])?.dataUpdatedAt ?? 0,
+  )
   const FOCUS_REFETCH_INTERVAL_MS = 30_000
 
   useFocusEffect(
@@ -856,7 +869,8 @@ function PaymentPageContent() {
         void refetchOrder()
         if (isLoggedIn) {
           void refetchCoinBalance()
-          void refetchLoyalty()
+          // refetch() bỏ qua `enabled` — chưa có slug thì sẽ gọi /user//points
+          if (loyaltySlug) void refetchLoyalty()
         }
       }
       return () => {
@@ -871,6 +885,7 @@ function PaymentPageContent() {
       refetchOrder,
       refetchCoinBalance,
       refetchLoyalty,
+      loyaltySlug,
       isLoggedIn,
       order?.status,
     ]),
@@ -923,7 +938,6 @@ function PaymentPageContent() {
   // Sau khi tạo thanh toán, tới lúc đơn tải lại xong: giữ nút ở trạng thái
   // bận để khách không tạo thanh toán lần nữa.
   const [isRefreshingAfterPay, setIsRefreshingAfterPay] = useState(false)
-  const isOrderPending = order?.status === OrderStatus.PENDING
   const bankTransfer = useMemo(
     () =>
       getBankTransferState({
@@ -998,6 +1012,7 @@ function PaymentPageContent() {
   const { mutate: updateVoucherPublic } = useUpdatePublicVoucherInOrder()
 
   const [showVoucherSheet, setShowVoucherSheet] = useState(false)
+  const closeVoucherSheet = useCallback(() => setShowVoucherSheet(false), [])
 
   const handleVoucherApplied = useCallback(() => {
     setShowVoucherSheet(false)
@@ -1512,22 +1527,20 @@ function PaymentPageContent() {
             )}
 
             {/* Loyalty Points Input — deferred until after navigation transition */}
-            {transitionReady &&
-              isLoggedIn &&
-              order.status === OrderStatus.PENDING && (
-                <LoyaltyPointsInput
-                  orderSlug={orderSlug ?? ''}
-                  orderTotal={
-                    (order.subtotal ?? 0) + (order.accumulatedPointsToUse ?? 0)
-                  }
-                  userTotalPoints={userTotalPoints}
-                  currentPointsUsed={order.accumulatedPointsToUse ?? 0}
-                  isDark={isDark}
-                  primaryColor={primaryColor}
-                  onApplied={handleLoyaltyChanged}
-                  onCancelled={handleLoyaltyChanged}
-                />
-              )}
+            {isLoggedIn && order.status === OrderStatus.PENDING && (
+              <LoyaltyPointsInput
+                orderSlug={orderSlug ?? ''}
+                orderTotal={
+                  (order.subtotal ?? 0) + (order.accumulatedPointsToUse ?? 0)
+                }
+                userTotalPoints={userTotalPoints}
+                currentPointsUsed={order.accumulatedPointsToUse ?? 0}
+                isDark={isDark}
+                primaryColor={primaryColor}
+                onApplied={handleLoyaltyChanged}
+                onCancelled={handleLoyaltyChanged}
+              />
+            )}
 
             {/* Payment Summary — extracted to dedicated memoized component */}
             <PaymentSummaryCard
@@ -1537,15 +1550,6 @@ function PaymentPageContent() {
               primaryColor={primaryColor}
               isDark={isDark}
             />
-
-            {/* Invoice — deferred until after navigation transition */}
-            {transitionReady && (
-              <InvoiceSection
-                order={order}
-                primaryColor={primaryColor}
-                isDark={isDark}
-              />
-            )}
           </View>
         </GestureScrollView>
 
@@ -1571,7 +1575,7 @@ function PaymentPageContent() {
         {showVoucherSheet && (
           <VoucherSheetInPayment
             visible={showVoucherSheet}
-            onClose={() => setShowVoucherSheet(false)}
+            onClose={closeVoucherSheet}
             isDark={isDark}
             primaryColor={primaryColor}
             order={order}
@@ -1710,8 +1714,15 @@ const ps = StyleSheet.create({
 })
 
 export default function PaymentPage() {
-  const [ready, setReady] = useState(false)
-  useRunAfterTransition(() => setReady(true), [])
+  const { order: orderSlug } = useLocalSearchParams<{ order: string }>()
+  const queryClient = useQueryClient()
+  // Giỏ hàng / Chi tiết đơn tải trước ['order', slug] trước khi mở màn này —
+  // có dữ liệu thì hiện ngay, không chờ chuyển màn xong.
+  const [hasCache] = useState(
+    () => !!queryClient.getQueryData(['order', orderSlug]),
+  )
+  const [ready, setReady] = useState(hasCache)
+  useRunAfterTransition(() => setReady(true), [], { transitionType: 'stack' })
   if (!ready) return <PaymentSkeletonShell />
   return <PaymentPageContent />
 }

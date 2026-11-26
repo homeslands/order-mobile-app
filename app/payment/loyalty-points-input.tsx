@@ -411,8 +411,10 @@ const s = StyleSheet.create({
   },
   cancelRowText: { fontSize: 13 },
   cancelRowAction: { fontSize: 13, fontWeight: '700' },
-  chipsScroll: { marginHorizontal: -16 },
-  chipsContent: { paddingHorizontal: 16, gap: 8, flexDirection: 'row' },
+  // Nằm gọn trong lề 16 của thẻ: chip bị cắt ở đường lề (thẳng hàng ô nhập),
+  // không tràn ra sát mép thẻ.
+  chipsScroll: { flexGrow: 0 },
+  chipsContent: { gap: 8, flexDirection: 'row' },
   chip: {
     paddingHorizontal: 14,
     paddingVertical: 7,
