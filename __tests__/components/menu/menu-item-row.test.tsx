@@ -1,6 +1,7 @@
 // Hàng món ở tab Menu: món hết hàng phải trông khác và không thêm nhanh được
 // bằng nút "+" (trước đây vẫn thêm được món bị khoá / hết số lượng).
 import { fireEvent, render, screen } from '@testing-library/react-native'
+import { StyleSheet } from 'react-native'
 
 import {
   MENU_ROW_IMAGE_SIZE,
@@ -36,6 +37,8 @@ function renderRow(
     description: string
     isTopSell: boolean
     isNew: boolean
+    isFirst: boolean
+    isLast: boolean
   }> = {},
 ) {
   render(
@@ -45,6 +48,8 @@ function renderRow(
       description=""
       isTopSell={false}
       isNew={false}
+      isFirst={false}
+      isLast={false}
       {...over}
       imageUrl={null}
       listIndex={0}
@@ -108,4 +113,23 @@ it('món thường: không có nhãn', () => {
 
 it('ảnh món 88: dòng gọn nhưng ảnh đủ lớn để chọn món', () => {
   expect(MENU_ROW_IMAGE_SIZE).toBe(88)
+})
+
+// Inset grouped: món đầu nhóm bo góc trên, món cuối bo góc dưới, món giữa vuông.
+function radii() {
+  const flat = StyleSheet.flatten(screen.getByTestId('menu-row').props.style)
+  return [flat.borderTopLeftRadius ?? 0, flat.borderBottomLeftRadius ?? 0]
+}
+
+it('món đầu nhóm bo góc trên, món cuối bo góc dưới', () => {
+  renderRow(true, jest.fn(), { isFirst: true })
+  expect(radii()).toEqual([12, 0])
+})
+
+it('món giữa nhóm: góc vuông; nhóm một món: bo cả hai', () => {
+  renderRow(true)
+  expect(radii()).toEqual([0, 0])
+  screen.unmount()
+  renderRow(true, jest.fn(), { isFirst: true, isLast: true })
+  expect(radii()).toEqual([12, 12])
 })

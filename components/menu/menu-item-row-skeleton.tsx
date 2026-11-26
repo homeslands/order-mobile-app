@@ -1,6 +1,6 @@
 /**
  * Skeleton dòng món của tab Menu — cùng khung với MenuItemRow
- * (app/(tabs)/menu/menu-item-row.tsx): ảnh 88×88, đệm 16/12, chữ bên phải,
+ * (app/(tabs)/menu/menu-item-row.tsx): thẻ nhóm lề 16 bo 12, ảnh 88×88, chữ bên phải,
  * nút + 30. Khung khớp để lúc dữ liệu về không nhảy bố cục.
  */
 import { memo } from 'react'
@@ -18,9 +18,12 @@ export const MenuItemRowSkeleton = memo(function MenuItemRowSkeleton({
 }) {
   const rowBg = isDark ? colors.card.dark : colors.card.light
   return (
-    <View testID="menu-row-skeleton">
+    <View
+      testID="menu-row-skeleton"
+      style={[styles.group, { backgroundColor: rowBg }]}
+    >
       {ROWS.map((i) => (
-        <View key={i} style={[styles.row, { backgroundColor: rowBg }]}>
+        <View key={i} style={styles.row}>
           <Skeleton style={styles.image} />
           <View style={styles.content}>
             <Skeleton style={styles.name} />
@@ -35,11 +38,17 @@ export const MenuItemRowSkeleton = memo(function MenuItemRowSkeleton({
 })
 
 const styles = StyleSheet.create({
+  group: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingHorizontal: 16,
+    paddingHorizontal: 12,
     paddingVertical: 12,
   },
   image: { width: 88, height: 88, borderRadius: 12 },

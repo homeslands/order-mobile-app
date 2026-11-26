@@ -40,8 +40,15 @@ export const MENU_IMAGE_HIGH_PRIORITY_COUNT = 4
 export const MENU_ROW_IMAGE_SIZE = 88
 export const MENU_ITEM_ESTIMATED_HEIGHT = MENU_ROW_IMAGE_SIZE + 24
 const IMAGE_SIZE = MENU_ROW_IMAGE_SIZE
-/** Lề trái của chữ trong dòng — đường ngăn cách thụt tới đây (kiểu iOS). */
-export const MENU_ROW_TEXT_INSET = 16 + IMAGE_SIZE + 12
+/** Lề ngoài của thẻ nhóm (inset grouped) và đệm trong dòng. */
+export const MENU_GROUP_MARGIN = 16
+const ROW_PADDING_X = 12
+const GROUP_RADIUS = 12
+/**
+ * Lề trái của chữ, tính từ mép thẻ nhóm — đường ngăn cách giữa hai món thụt
+ * tới đây (kiểu iOS).
+ */
+export const MENU_ROW_TEXT_INSET = ROW_PADDING_X + IMAGE_SIZE + 12
 
 export const menuKeyExtractor = (item: MenuDisplayItem) => item.id
 export const menuViewabilityConfig = {
@@ -62,6 +69,8 @@ export const MenuItemRow = memo(
     description,
     isTopSell,
     isNew,
+    isFirst,
+    isLast,
     imageUrl,
     listIndex,
     rawPrice,
@@ -77,6 +86,9 @@ export const MenuItemRow = memo(
     description: string
     isTopSell: boolean
     isNew: boolean
+    /** Món đầu / cuối của nhóm — bo góc trên / dưới của thẻ nhóm */
+    isFirst: boolean
+    isLast: boolean
     imageUrl: string | null
     listIndex: number
     rawPrice: number
@@ -126,8 +138,14 @@ export const MenuItemRow = memo(
 
     return (
       <Pressable
+        testID="menu-row"
         onPress={handlePress}
-        style={[styles.row, { backgroundColor: rowBg }]}
+        style={[
+          styles.row,
+          { backgroundColor: rowBg },
+          isFirst && styles.rowFirst,
+          isLast && styles.rowLast,
+        ]}
       >
         <View style={styles.imageWrap}>
           <View style={[styles.imageInner, !hasStock && styles.imageSoldOut]}>
@@ -233,6 +251,8 @@ export const MenuItemRow = memo(
     prev.description === next.description &&
     prev.isTopSell === next.isTopSell &&
     prev.isNew === next.isNew &&
+    prev.isFirst === next.isFirst &&
+    prev.isLast === next.isLast &&
     prev.imageUrl === next.imageUrl &&
     prev.listIndex === next.listIndex &&
     prev.rawPrice === next.rawPrice &&
@@ -249,8 +269,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingHorizontal: 16,
+    marginHorizontal: MENU_GROUP_MARGIN,
+    paddingHorizontal: ROW_PADDING_X,
     paddingVertical: 12,
+  },
+  rowFirst: {
+    borderTopLeftRadius: GROUP_RADIUS,
+    borderTopRightRadius: GROUP_RADIUS,
+  },
+  rowLast: {
+    borderBottomLeftRadius: GROUP_RADIUS,
+    borderBottomRightRadius: GROUP_RADIUS,
   },
   imageWrap: {
     width: IMAGE_SIZE,

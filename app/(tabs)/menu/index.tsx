@@ -71,6 +71,7 @@ import { MenuFilterBar } from './menu-filter-bar'
 import { buildMenuSections, type MenuSectionRow } from '@/lib/menu-sections'
 import type { MenuDisplayItem } from './menu-item-row'
 import {
+  MENU_GROUP_MARGIN,
   MENU_ROW_TEXT_INSET,
   MENU_IMAGE_HIGH_PRIORITY_COUNT,
   MenuImagePhaseContext,
@@ -86,8 +87,9 @@ const menuKeyExtractor = (item: FlatItem) =>
 const menuGetItemType = (item: FlatItem) => item._kind
 
 /**
- * Đường ngăn cách giữa hai món liền nhau, thụt tới lề chữ (kiểu danh sách
- * iOS) — không kẻ quanh tiêu đề nhóm.
+ * Đường ngăn cách giữa hai món cùng nhóm, thụt tới lề chữ (kiểu inset grouped
+ * của iOS). Nền trắng cùng thẻ nhóm để thẻ liền mạch; không kẻ sau món cuối
+ * nhóm hay quanh tiêu đề.
  */
 function MenuRowSeparator({
   leadingItem,
@@ -97,17 +99,28 @@ function MenuRowSeparator({
   trailingItem?: FlatItem
 }) {
   const isDark = useColorScheme() === 'dark'
-  if (leadingItem?._kind !== 'item' || trailingItem?._kind !== 'item') {
+  if (
+    leadingItem?._kind !== 'item' ||
+    leadingItem.last ||
+    trailingItem?._kind !== 'item'
+  ) {
     return null
   }
   return (
     <View
       style={{
-        height: StyleSheet.hairlineWidth,
-        marginLeft: MENU_ROW_TEXT_INSET,
-        backgroundColor: isDark ? colors.border.dark : colors.border.light,
+        marginHorizontal: MENU_GROUP_MARGIN,
+        backgroundColor: isDark ? colors.card.dark : colors.card.light,
       }}
-    />
+    >
+      <View
+        style={{
+          height: StyleSheet.hairlineWidth,
+          marginLeft: MENU_ROW_TEXT_INSET,
+          backgroundColor: isDark ? colors.border.dark : colors.border.light,
+        }}
+      />
+    </View>
   )
 }
 
@@ -655,8 +668,9 @@ export default function MenuPage() {
 
   const catalogHeaderColor = isDark ? colors.gray[50] : colors.gray[900]
   const countColor = isDark ? colors.gray[400] : colors.gray[500]
-  // Nền danh sách = nền dòng món: tiêu đề nhóm dính phải đặc để che món cuộn qua.
-  const listBg = isDark ? colors.card.dark : colors.card.light
+  // Inset grouped: nền xám, mỗi nhóm là thẻ trắng. Tiêu đề nhóm dính dùng
+  // nền xám đặc để che món cuộn qua.
+  const listBg = isDark ? colors.background.dark : colors.background.light
 
   const isMenuLoading = !allowFetch || isFetching
   const emptyState = getMenuListEmptyState({
@@ -769,6 +783,8 @@ export default function MenuPage() {
           description={data.description}
           isTopSell={data.isTopSell}
           isNew={data.isNew}
+          isFirst={item.first}
+          isLast={item.last}
           rawPrice={data.rawPrice}
           promotionValue={data.promotionValue}
           primaryColor={primaryColor}
@@ -1052,8 +1068,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'baseline',
     gap: 6,
-    paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingHorizontal: 20,
+    paddingTop: 20,
     paddingBottom: 10,
   },
   catalogHeaderName: {
