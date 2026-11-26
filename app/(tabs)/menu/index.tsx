@@ -10,6 +10,7 @@ import {
 import { Images } from '@/assets/images'
 import { BranchHint, SelectBranchDropdown } from '@/components/branch'
 import { TabScreenLayout, useTabBarBottomPadding } from '@/components/layout'
+import { MenuCatalogHeader } from '@/components/menu/menu-catalog-header'
 import { MenuItemRowSkeleton } from '@/components/menu/menu-item-row-skeleton'
 import { PriceFilterSheet } from '@/components/menu/price-sheet'
 import { PressableWithFeedback } from '@/components/navigation/pressable-with-feedback'
@@ -38,10 +39,13 @@ import {
   isMenuLoadError,
 } from '@/utils/menu-stock'
 import { getProductImageUrl, IMAGE_PRESET } from '@/utils/product-image-url'
-import { capitalizeFirst } from '@/utils/format'
 import { showToast } from '@/utils/toast'
 import { useFocusEffect } from '@react-navigation/native'
-import { FlashList, type FlashListRef } from '@shopify/flash-list'
+import {
+  FlashList,
+  type FlashListRef,
+  type RenderTarget,
+} from '@shopify/flash-list'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Image } from 'expo-image'
 import { useRouter } from 'expo-router'
@@ -641,8 +645,6 @@ export default function MenuPage() {
     [t],
   )
 
-  const catalogHeaderColor = isDark ? colors.gray[50] : colors.gray[900]
-  const countColor = isDark ? colors.gray[400] : colors.gray[500]
   // Nền xám, mỗi món một thẻ trắng. Tiêu đề nhóm dính dùng nền xám đặc để che
   // món cuộn qua.
   const listBg = isDark ? colors.background.dark : colors.background.light
@@ -733,19 +735,17 @@ export default function MenuPage() {
   ])
 
   const renderItem = useCallback(
-    ({ item }: { item: FlatItem }) => {
+    ({ item, target }: { item: FlatItem; target?: RenderTarget }) => {
       if (item._kind === 'header') {
+        // Lướt tới đầu danh sách thì FlashList vẽ lại ô này ở lớp tiêu đề dính
+        // (target 'StickyHeader') — khi đó thành thanh tiêu đề.
         return (
-          <View style={[styles.catalogHeader, { backgroundColor: listBg }]}>
-            <Text
-              style={[styles.catalogHeaderName, { color: catalogHeaderColor }]}
-            >
-              {capitalizeFirst(item.name)}
-            </Text>
-            <Text style={[styles.catalogHeaderCount, { color: countColor }]}>
-              {t('menu.catalogItemCount', { count: item.count })}
-            </Text>
-          </View>
+          <MenuCatalogHeader
+            name={item.name}
+            countLabel={t('menu.catalogItemCount', { count: item.count })}
+            stuck={target === 'StickyHeader'}
+            isDark={isDark}
+          />
         )
       }
       const { data } = item
@@ -768,16 +768,7 @@ export default function MenuPage() {
         />
       )
     },
-    [
-      handleOpenDetail,
-      handleAddToCart,
-      primaryColor,
-      isDark,
-      catalogHeaderColor,
-      countColor,
-      listBg,
-      t,
-    ],
+    [handleOpenDetail, handleAddToCart, primaryColor, isDark, t],
   )
 
   const handleScrollBeginDrag = useCallback(() => {
@@ -1036,20 +1027,5 @@ const styles = StyleSheet.create({
     fontSize: 14,
     textAlign: 'center',
     paddingHorizontal: 32,
-  },
-  catalogHeader: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    gap: 6,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 10,
-  },
-  catalogHeaderName: {
-    fontSize: 17,
-    fontWeight: '700',
-  },
-  catalogHeaderCount: {
-    fontSize: 13,
   },
 })
