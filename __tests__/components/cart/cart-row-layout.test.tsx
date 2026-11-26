@@ -62,6 +62,9 @@ jest.mock('expo-image', () => ({ Image: () => null }))
 jest.mock('lucide-react-native', () => ({
   NotebookText: () => null,
   Trash2: () => null,
+  ChevronDown: () => null,
+  Minus: () => null,
+  Plus: () => null,
 }))
 
 jest.mock('@/components/ui/text', () => ({
@@ -121,7 +124,7 @@ afterEach(() => {
 
 it('CL1 bấm +/- không bắt danh sách tính lại bố cục', () => {
   render(row(makeItem({ quantity: 1 })))
-  fireEvent.press(screen.getByText('+'))
+  fireEvent.press(screen.getByLabelText('cart.increaseQty'))
   act(() => {
     jest.runAllTimers()
   })
@@ -130,7 +133,45 @@ it('CL1 bấm +/- không bắt danh sách tính lại bố cục', () => {
 })
 
 it('CL2 gõ ghi chú không bắt danh sách tính lại bố cục', () => {
-  render(row(makeItem({})))
+  render(row(makeItem({ note: 'ít đá' })))
   fireEvent.changeText(screen.getByPlaceholderText(NOTE_PLACEHOLDER), 'nóng')
   expect(mockSkips).toEqual([true])
+})
+
+// Dòng món gọn: ô ghi chú không mở sẵn dưới mọi món; số lượng 1 thì nút "−"
+// thành xoá (trước bị mờ, bấm không có gì).
+it('RU1 chưa có ghi chú: chỉ một dòng "Thêm ghi chú", bấm mới mở ô nhập', () => {
+  render(row(makeItem({ note: '' })))
+  expect(screen.queryByPlaceholderText(NOTE_PLACEHOLDER)).toBeNull()
+  fireEvent.press(screen.getByText('cart.addNote'))
+  expect(screen.getByPlaceholderText(NOTE_PLACEHOLDER)).toBeTruthy()
+})
+
+it('RU2 đã có ghi chú: hiện ghi chú, sửa ngay được', () => {
+  render(row(makeItem({ note: 'ít đá' })))
+  expect(screen.getByPlaceholderText(NOTE_PLACEHOLDER).props.value).toBe(
+    'ít đá',
+  )
+  expect(screen.queryByText('cart.addNote')).toBeNull()
+})
+
+it('RU3 số lượng 1: nút trái là Xoá món, bấm thì xoá', () => {
+  const onDelete = jest.fn()
+  render(
+    <CartItemRow
+      item={makeItem({ cartKey: 'k1', quantity: 1 })}
+      primaryColor="#000"
+      isDark={false}
+      onDelete={onDelete}
+    />,
+  )
+  expect(screen.queryByLabelText('cart.decreaseQty')).toBeNull()
+  fireEvent.press(screen.getByLabelText('cart.removeItem'))
+  expect(onDelete).toHaveBeenCalledWith('k1')
+})
+
+it('RU4 số lượng >1: nút trái là giảm số lượng', () => {
+  render(row(makeItem({ quantity: 3 })))
+  fireEvent.press(screen.getByLabelText('cart.decreaseQty'))
+  expect(screen.getByText('2')).toBeTruthy()
 })

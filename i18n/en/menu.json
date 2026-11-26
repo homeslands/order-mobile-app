@@ -143,6 +143,10 @@
   },
   "cart": {
     "title": "Cart",
+    "addNote": "Add a note",
+    "increaseQty": "Increase quantity",
+    "decreaseQty": "Decrease quantity",
+    "removeItem": "Remove item",
     "confirmTitle": "Clear cart?",
     "confirmDesc": "All items will be removed and cannot be undone.",
     "clearAll": "Clear all",

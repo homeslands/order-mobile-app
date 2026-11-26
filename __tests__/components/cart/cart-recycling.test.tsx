@@ -49,6 +49,9 @@ jest.mock('expo-image', () => ({ Image: () => null }))
 jest.mock('lucide-react-native', () => ({
   NotebookText: () => null,
   Trash2: () => null,
+  ChevronDown: () => null,
+  Minus: () => null,
+  Plus: () => null,
 }))
 
 jest.mock('@/components/ui/text', () => ({
@@ -110,12 +113,14 @@ describe('CartItemRow khi bị tái dùng sang món khác', () => {
   it('CR1 ô ghi chú hiện ghi chú của món mới', () => {
     const { rerender } = render(row(makeItem({ cartKey: 'a', note: 'ít đá' })))
     rerender(row(makeItem({ cartKey: 'b', note: '' })))
-    expect(screen.getByPlaceholderText(NOTE_PLACEHOLDER).props.value).toBe('')
+    // Món mới chưa có ghi chú: không còn ô nhập mở sẵn với ghi chú món cũ.
+    expect(screen.queryByPlaceholderText(NOTE_PLACEHOLDER)).toBeNull()
+    expect(screen.getByText('cart.addNote')).toBeTruthy()
   })
 
   it('CR2 số lượng đang chờ của món cũ không hiện ở món mới', () => {
     const { rerender } = render(row(makeItem({ cartKey: 'a', quantity: 1 })))
-    fireEvent.press(screen.getByText('+'))
+    fireEvent.press(screen.getByLabelText('cart.increaseQty'))
     expect(screen.getByText('2')).toBeTruthy()
     rerender(row(makeItem({ cartKey: 'b', quantity: 5 })))
     expect(screen.getByText('5')).toBeTruthy()
@@ -124,6 +129,7 @@ describe('CartItemRow khi bị tái dùng sang món khác', () => {
 
   it('CR3 ghi chú gõ dở ở món cũ vẫn lưu vào món cũ', () => {
     const { rerender } = render(row(makeItem({ cartKey: 'a' })))
+    fireEvent.press(screen.getByText('cart.addNote'))
     fireEvent.changeText(screen.getByPlaceholderText(NOTE_PLACEHOLDER), 'nóng')
     rerender(row(makeItem({ cartKey: 'b' })))
     act(() => {

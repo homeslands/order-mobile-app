@@ -6,7 +6,13 @@ import { cartActions, useCartItemVoucherDiscount } from '@/stores/cart.store'
 import { capitalizeFirst } from '@/utils'
 import { useRecyclingState } from '@shopify/flash-list'
 import { formatCurrencyNative } from 'cart-price-calc'
-import { NotebookText } from 'lucide-react-native'
+import {
+  ChevronDown,
+  Minus,
+  NotebookText,
+  Plus,
+  Trash2,
+} from 'lucide-react-native'
 import React, { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Pressable, StyleSheet, TextInput, View } from 'react-native'
@@ -34,7 +40,9 @@ const THEME_LIGHT = {
   chipArrowColor: { color: colors.gray[400] },
   origPriceColor: { color: colors.gray[400] },
   qtyBtnBorder: { borderColor: colors.gray[300] },
-  qtyBtnTextColor: { color: colors.gray[700] },
+  qtyIconColor: colors.gray[700],
+  removeColor: colors.destructive.light,
+  addNoteColor: { color: colors.gray[500] },
   qtyTextColor: { color: colors.gray[900] },
   noteRowTheme: {
     borderColor: colors.gray[200],
@@ -53,7 +61,9 @@ const THEME_DARK = {
   chipArrowColor: { color: colors.gray[500] },
   origPriceColor: { color: colors.gray[500] },
   qtyBtnBorder: { borderColor: colors.gray[700] },
-  qtyBtnTextColor: { color: colors.gray[300] },
+  qtyIconColor: colors.gray[300],
+  removeColor: colors.destructive.dark,
+  addNoteColor: { color: colors.gray[400] },
   qtyTextColor: { color: colors.gray[50] },
   noteRowTheme: {
     borderColor: colors.border.dark,
@@ -112,6 +122,13 @@ export const CartItemRow = memo(
       scheduleSync(next)
     }, [displayQty, scheduleSync, setPendingQty])
 
+    // Số lượng 1: nút trái là Xoá món (trước nút "−" mờ, bấm không có gì —
+    // xoá chỉ có vuốt, khách khó thấy). Vuốt để xoá vẫn giữ.
+    const handleRemove = useCallback(
+      () => onDelete(item.cartKey),
+      [onDelete, item.cartKey],
+    )
+
     const handleDecrease = useCallback(() => {
       if (displayQty <= 1) return
       const next = displayQty - 1
@@ -130,6 +147,14 @@ export const CartItemRow = memo(
       item.cartKey,
     ])
     const noteDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    // Ô ghi chú không mở sẵn dưới mọi món: chưa có ghi chú thì chỉ một dòng
+    // "Thêm ghi chú", bấm mới mở (đổi chiều cao ô → để FlashList đo lại).
+    const [noteOpen, setNoteOpen] = useRecyclingState(false, [item.cartKey])
+    const showNoteInput = noteOpen || localNote.length > 0
+    const openNote = useCallback(() => setNoteOpen(true), [setNoteOpen])
+    const handleNoteBlur = useCallback(() => {
+      if (!localNote.trim()) setNoteOpen(false)
+    }, [localNote, setNoteOpen])
 
     const handleNoteChange = useCallback(
       (text: string) => {
@@ -209,14 +234,10 @@ export const CartItemRow = memo(
                     >
                       {capitalizeFirst(item.sizeName)}
                     </Text>
-                    <Text
-                      style={[
-                        rowStyles.sizeChipArrow,
-                        themeStyles.chipArrowColor,
-                      ]}
-                    >
-                      ▾
-                    </Text>
+                    <ChevronDown
+                      size={12}
+                      color={themeStyles.chipArrowColor.color}
+                    />
                   </Pressable>
                 </View>
               ) : null}
@@ -242,62 +263,75 @@ export const CartItemRow = memo(
                   )}
                 </View>
 
-                <View style={rowStyles.qtyRow}>
-                  <Pressable
-                    onPress={handleDecrease}
-                    disabled={displayQty <= 1}
-                    style={[
-                      rowStyles.qtyBtn,
-                      themeStyles.qtyBtnBorder,
-                      displayQty <= 1 && rowStyles.qtyBtnDisabled,
-                    ]}
-                  >
-                    <Text
-                      style={[
-                        rowStyles.qtyBtnText,
-                        themeStyles.qtyBtnTextColor,
-                      ]}
+                <View style={[rowStyles.stepper, themeStyles.qtyBtnBorder]}>
+                  {displayQty <= 1 ? (
+                    <Pressable
+                      onPress={handleRemove}
+                      hitSlop={6}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('cart.removeItem')}
+                      style={rowStyles.stepBtn}
                     >
-                      −
-                    </Text>
-                  </Pressable>
+                      <Trash2 size={16} color={themeStyles.removeColor} />
+                    </Pressable>
+                  ) : (
+                    <Pressable
+                      onPress={handleDecrease}
+                      hitSlop={6}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('cart.decreaseQty')}
+                      style={rowStyles.stepBtn}
+                    >
+                      <Minus size={16} color={themeStyles.qtyIconColor} />
+                    </Pressable>
+                  )}
                   <Text style={[rowStyles.qtyText, themeStyles.qtyTextColor]}>
                     {displayQty}
                   </Text>
                   <Pressable
                     onPress={handleIncrease}
-                    style={[rowStyles.qtyBtn, themeStyles.qtyBtnBorder]}
+                    hitSlop={6}
+                    accessibilityRole="button"
+                    accessibilityLabel={t('cart.increaseQty')}
+                    style={rowStyles.stepBtn}
                   >
-                    <Text
-                      style={[
-                        rowStyles.qtyBtnText,
-                        themeStyles.qtyBtnTextColor,
-                      ]}
-                    >
-                      +
-                    </Text>
+                    <Plus size={16} color={primaryColor} />
                   </Pressable>
                 </View>
               </View>
             </View>
           </View>
 
-          {/* Note input — full width bottom */}
-          <View style={[rowStyles.noteRow, themeStyles.noteRowTheme]}>
-            <View style={rowStyles.noteIconWrap}>
+          {/* Ghi chú món: chưa có thì một dòng "Thêm ghi chú"; có rồi thì hiện
+              ghi chú, sửa ngay tại chỗ. */}
+          {showNoteInput ? (
+            <View style={[rowStyles.noteRow, themeStyles.noteRowTheme]}>
               <NotebookText size={12} color={themeStyles.noteIconColor} />
+              <TextInput
+                value={localNote}
+                onChangeText={handleNoteChange}
+                onBlur={handleNoteBlur}
+                autoFocus={noteOpen && localNote.length === 0}
+                placeholder={t('cart.itemNotePlaceholder')}
+                placeholderTextColor={themeStyles.notePlaceholderColor}
+                style={[rowStyles.noteInput, themeStyles.noteInputColor]}
+                multiline
+                textAlignVertical="top"
+              />
             </View>
-            <TextInput
-              value={localNote}
-              onChangeText={handleNoteChange}
-              placeholder={t('cart.itemNotePlaceholder')}
-              placeholderTextColor={themeStyles.notePlaceholderColor}
-              style={[rowStyles.noteInput, themeStyles.noteInputColor]}
-              multiline
-              numberOfLines={2}
-              textAlignVertical="top"
-            />
-          </View>
+          ) : (
+            <Pressable
+              onPress={openNote}
+              hitSlop={6}
+              accessibilityRole="button"
+              style={rowStyles.addNoteRow}
+            >
+              <NotebookText size={12} color={themeStyles.noteIconColor} />
+              <Text style={[rowStyles.addNoteText, themeStyles.addNoteColor]}>
+                {t('cart.addNote')}
+              </Text>
+            </Pressable>
+          )}
         </View>
       </CartSwipeable>
     )
@@ -312,13 +346,13 @@ export const CartItemRow = memo(
 
 const rowStyles = StyleSheet.create({
   card: {
-    marginHorizontal: 10,
+    marginHorizontal: 16,
     borderRadius: 16,
     overflow: 'hidden',
   },
   topRow: {
     flexDirection: 'row',
-    padding: 8,
+    padding: 10,
     gap: 12,
   },
   image: {
@@ -356,10 +390,6 @@ const rowStyles = StyleSheet.create({
     fontWeight: '500',
     flexShrink: 0,
   },
-  sizeChipArrow: {
-    fontSize: 8,
-    flexShrink: 0,
-  },
   bottomRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -379,26 +409,17 @@ const rowStyles = StyleSheet.create({
     fontSize: 12,
     textDecorationLine: 'line-through',
   },
-  qtyRow: {
+  stepper: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-  },
-  qtyBtn: {
-    width: 28,
-    height: 28,
-    borderRadius: 8,
     borderWidth: 1,
+    borderRadius: 999,
+  },
+  stepBtn: {
+    width: 34,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  qtyBtnDisabled: {
-    opacity: 0.3,
-  },
-  qtyBtnText: {
-    fontSize: 16,
-    fontWeight: '600',
-    lineHeight: 18,
   },
   qtyText: {
     fontSize: 14,
@@ -406,20 +427,27 @@ const rowStyles = StyleSheet.create({
     minWidth: 16,
     textAlign: 'center',
   },
-  noteIconWrap: {
-    marginTop: 1,
-  },
   noteRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginHorizontal: 8,
-    marginBottom: 8,
+    marginHorizontal: 10,
+    marginBottom: 10,
     paddingHorizontal: 8,
     paddingVertical: 6,
     borderWidth: 1,
     borderRadius: 10,
   },
+  addNoteRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    marginLeft: 10 + 76 + 12,
+    marginBottom: 10,
+    marginTop: -4,
+  },
+  addNoteText: { fontSize: 12, fontWeight: '500' },
   noteInput: {
     flex: 1,
     fontSize: 12,
