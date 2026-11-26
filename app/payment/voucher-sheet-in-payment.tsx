@@ -9,6 +9,7 @@ import {
   processVoucherList,
 } from '@/components/sheet/voucher-validation'
 import { colors, PaymentMethod } from '@/constants'
+import { extractStatusCode } from '@/lib/global-error-gate'
 import {
   usePublicVouchersForOrder,
   useSpecificPublicVoucher,
@@ -468,11 +469,15 @@ export const VoucherSheetInPayment = memo(function VoucherSheetInPayment({
               },
             )
           },
-          onError: () => {
+          onError: (error) => {
             // Hai ngữ cảnh khác nhau: trong camera thì báo tại chỗ, ngoài
             // camera thì toast — nên hai câu chữ cũng khác nhau.
+            // Máy chủ trả mã lỗi thì MutationCache (lib/query-client.ts) đã
+            // toast đúng lý do theo mã đó; toast chung ở đây chạy sau và đè
+            // mất nó (toast provider chỉ giữ một toast).
             if (onServerError) onServerError(tVoucher('scan.applyFailed'))
-            else showToast(tVoucher('voucherInvalid'), 'error')
+            else if (extractStatusCode(error) == null)
+              showToast(tVoucher('voucherInvalid'), 'error')
             setValidating(false)
           },
         },
