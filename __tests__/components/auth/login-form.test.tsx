@@ -26,7 +26,14 @@ jest.mock('@/lib/navigation', () => ({
   navigateNative: { push: jest.fn(), replace: jest.fn() },
 }))
 
-jest.mock('@/utils', () => ({ showErrorToastMessage: jest.fn() }))
+const mockShowToast = jest.fn()
+jest.mock('@/utils', () => ({
+  showErrorToastMessage: jest.fn(),
+  showToast: (...args: unknown[]) => mockShowToast(...args),
+}))
+
+// Server trả lời và từ chối: sai số điện thoại / mật khẩu.
+const credentialsError = { response: { status: 401 } }
 
 import {
   act,
@@ -160,7 +167,8 @@ describe('LoginForm — sai thông tin đăng nhập', () => {
 
   it('bật viền đỏ cả 2 ô và phát haptic khi server báo lỗi', async () => {
     mockMutate.mockImplementation(
-      (_vars: unknown, opts: { onError: () => void }) => opts.onError(),
+      (_vars: unknown, opts: { onError: (error: unknown) => void }) =>
+        opts.onError(credentialsError),
     )
     const utils = render(<LoginForm />)
 
@@ -177,7 +185,8 @@ describe('LoginForm — sai thông tin đăng nhập', () => {
 
   it('xoá viền đỏ khi người dùng sửa lại ô', async () => {
     mockMutate.mockImplementation(
-      (_vars: unknown, opts: { onError: () => void }) => opts.onError(),
+      (_vars: unknown, opts: { onError: (error: unknown) => void }) =>
+        opts.onError(credentialsError),
     )
     const utils = render(<LoginForm />)
     await fillAndSubmit(utils)
@@ -199,7 +208,8 @@ describe('LoginForm — sai thông tin đăng nhập', () => {
 
   it('sửa MỘT ô cũng xoá viền đỏ ở CẢ 2 ô (spec: sửa bất kỳ ô nào)', async () => {
     mockMutate.mockImplementation(
-      (_vars: unknown, opts: { onError: () => void }) => opts.onError(),
+      (_vars: unknown, opts: { onError: (error: unknown) => void }) =>
+        opts.onError(credentialsError),
     )
     const utils = render(<LoginForm />)
     await fillAndSubmit(utils)
@@ -228,7 +238,8 @@ describe('LoginForm — sai thông tin đăng nhập', () => {
 
   it('lắc chung một khối 2 ô nhập, không lan sang link/nút submit', async () => {
     mockMutate.mockImplementation(
-      (_vars: unknown, opts: { onError: () => void }) => opts.onError(),
+      (_vars: unknown, opts: { onError: (error: unknown) => void }) =>
+        opts.onError(credentialsError),
     )
     const utils = render(<LoginForm />)
 
@@ -252,5 +263,76 @@ describe('LoginForm — sai thông tin đăng nhập', () => {
     }
     expect(isDescendantOf(shakeWrapper, forgotLink)).toBe(false)
     expect(isDescendantOf(shakeWrapper, submitButton)).toBe(false)
+  })
+})
+
+// Mất mạng thì không có response, global error handler cũng bỏ qua (không
+// có mã lỗi) — trước đây form vẫn tô đỏ + lắc, khách tưởng sai mật khẩu.
+describe('LoginForm — lỗi không phải sai thông tin đăng nhập', () => {
+  beforeEach(() => {
+    mockMutate.mockReset()
+    mockShowToast.mockClear()
+    mockImpactAsync.mockClear()
+    mockWithSequence.mockClear()
+  })
+
+  const fillAndSubmitWith = async (error: unknown) => {
+    mockMutate.mockImplementation(
+      (_vars: unknown, opts: { onError: (error: unknown) => void }) =>
+        opts.onError(error),
+    )
+    const utils = render(<LoginForm />)
+    await act(async () => {
+      utils
+        .getByPlaceholderText('login.enterPhoneNumber')
+        .props.onChangeText('0901234567')
+      utils
+        .getByPlaceholderText('login.enterPassword')
+        .props.onChangeText('somepass1')
+    })
+    await act(async () => {
+      fireEvent.press(utils.getByText('login.login'))
+    })
+    return utils
+  }
+
+  it('mất mạng: báo không có kết nối, không tô đỏ, không lắc', async () => {
+    const utils = await fillAndSubmitWith(new Error('Network Error'))
+
+    expect(mockShowToast).toHaveBeenCalledWith('login.networkError', 'error')
+    expect(
+      utils.getByPlaceholderText('login.enterPhoneNumber').props.className,
+    ).not.toContain('border-destructive')
+    expect(
+      utils.getByPlaceholderText('login.enterPassword').props.className,
+    ).not.toContain('border-destructive')
+    expect(mockWithSequence).not.toHaveBeenCalled()
+    expect(mockImpactAsync).not.toHaveBeenCalled()
+  })
+
+  it('server lỗi (5xx): không tô đỏ, để global error handler báo', async () => {
+    const utils = await fillAndSubmitWith({
+      response: { status: 500, data: { statusCode: 500 } },
+    })
+
+    expect(
+      utils.getByPlaceholderText('login.enterPassword').props.className,
+    ).not.toContain('border-destructive')
+    expect(mockWithSequence).not.toHaveBeenCalled()
+    expect(mockShowToast).not.toHaveBeenCalled()
+  })
+
+  // Cổng API trả 502/504 dạng HTML: body không có statusCode nên global
+  // error handler bỏ qua — form phải tự báo, không thì bấm mà không thấy gì.
+  it('server lỗi không kèm mã trong body: tự báo, không tô đỏ', async () => {
+    const utils = await fillAndSubmitWith({
+      response: { status: 502, data: '<html>Bad Gateway</html>' },
+    })
+
+    expect(mockShowToast).toHaveBeenCalledWith('login.serverError', 'error')
+    expect(
+      utils.getByPlaceholderText('login.enterPassword').props.className,
+    ).not.toContain('border-destructive')
+    expect(mockWithSequence).not.toHaveBeenCalled()
   })
 })
