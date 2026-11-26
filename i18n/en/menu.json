@@ -178,6 +178,7 @@
     "orderNotePlaceholder": "Add order note...",
     "itemNotePlaceholder": "Add item note...",
     "placeOrder": "Place order",
+    "enterDeliveryAddress": "Enter delivery address",
     "confirmOrder": "Confirm order"
   },
   "order": {

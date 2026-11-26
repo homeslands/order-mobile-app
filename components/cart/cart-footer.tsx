@@ -16,6 +16,7 @@ import {
   STATIC_BOTTOM_INSET,
 } from '@/constants/status-bar'
 import { useCartValidation } from '@/hooks/use-cart-validation'
+import { useSingleFlight } from '@/hooks/use-single-flight'
 import { useOrderFlowStore, useUserStore } from '@/stores'
 import {
   cartActions,
@@ -34,9 +35,16 @@ import { formatCurrencyNative } from 'cart-price-calc'
 import { ChevronRight, ShoppingBag, Ticket } from 'lucide-react-native'
 import React, { memo, useCallback, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { Pressable, StyleSheet, View } from 'react-native'
+import {
+  ActivityIndicator,
+  type LayoutChangeEvent,
+  Pressable,
+  StyleSheet,
+  View,
+} from 'react-native'
 
 import { DeliveryAddressSheet, DeliveryInfoRow } from '@/components/delivery'
+import { getCartCheckoutStep } from './cart-checkout-step'
 import { ConfirmOrderSheet } from './cart-confirm-order-sheet'
 import { SimpleOrderTypeSheet } from './cart-order-type-sheet'
 import { SimpleTableSheet } from './cart-table-sheet'
@@ -73,9 +81,11 @@ function getAvailableOrderTypes(
 export const CartFooter = memo(function CartFooter({
   primaryColor,
   isDark,
+  onLayout,
 }: {
   primaryColor: string
   isDark: boolean
+  onLayout?: (e: LayoutChangeEvent) => void
 }) {
   const { t } = useTranslation('menu')
   const bottomInset = STATIC_BOTTOM_INSET
@@ -152,17 +162,18 @@ export const CartFooter = memo(function CartFooter({
   }, [])
   const showTableSelect = orderType === 'at-table'
   const tableLabel = tableName || t('menu.selectTable', 'Chọn bàn')
-  const needsDeliveryInfo =
-    orderType === 'delivery' &&
-    (!deliveryAddress || !deliveryPhone || !/^[0-9]{10}$/.test(deliveryPhone))
-  const isOrderDisabled = (showTableSelect && !tableName) || needsDeliveryInfo
-  const orderBtnLabel = useMemo(
+  const checkoutStep = useMemo(
     () =>
-      isOrderDisabled
-        ? t('menu.selectTable', 'Chọn bàn')
-        : t('cart.placeOrder', 'Đặt hàng'),
-    [isOrderDisabled, t],
+      getCartCheckoutStep({
+        type: orderType,
+        tableName,
+        deliveryAddress,
+        deliveryPhone,
+      }),
+    [orderType, tableName, deliveryAddress, deliveryPhone],
   )
+  const isMissingInfo = checkoutStep.missing !== null
+  const orderBtnLabel = t(checkoutStep.labelKey)
 
   const openOrderTypeSheet = useCallback(
     () => setOrderTypeSheetVisible(true),
@@ -176,7 +187,7 @@ export const CartFooter = memo(function CartFooter({
   // thường đã có cache. prefetchQuery tự dedupe nên bấm nhiều lần không tạo
   // request thừa.
   const prefetchOrderFlags = useCallback(() => {
-    if (isOrderDisabled) return
+    if (isMissingInfo) return
     void queryClient.prefetchQuery({
       queryKey: [
         QUERYKEY.systemFeatureFlagsByGroup,
@@ -185,11 +196,9 @@ export const CartFooter = memo(function CartFooter({
       queryFn: () => getSystemFeatureFlagsByGroup(SystemLockFeatureGroup.ORDER),
       staleTime: ORDER_FEATURE_FLAGS_STALE_MS,
     })
-  }, [queryClient, isOrderDisabled])
+  }, [queryClient, isMissingInfo])
   const openVoucherSheet = useCallback(() => setVoucherSheetOpen(true), [])
   const openConfirmSheet = useCallback(async () => {
-    if (isOrderDisabled) return
-
     // Chạy song song: validate menu + fetch feature flags (cả 2 thường đã warm cache)
     const [, flagsResponse] = await Promise.all([
       validate(true),
@@ -225,7 +234,17 @@ export const CartFooter = memo(function CartFooter({
     }
 
     setConfirmSheetVisible(true)
-  }, [isOrderDisabled, validate, queryClient, hasUser, setOrderingType])
+  }, [validate, queryClient, hasUser, setOrderingType])
+  // Đang kiểm thì khoá nút + bỏ qua lượt bấm lặp (lượt lặp từng mở thẳng sheet
+  // vì validate() trả null khi đang có lượt khác chạy).
+  const { run: runCheckout, isRunning: isChecking } =
+    useSingleFlight(openConfirmSheet)
+  // Thiếu thông tin thì mở thẳng chỗ cần điền thay vì im lặng.
+  const handleCheckoutPress = useCallback(() => {
+    if (checkoutStep.sheet === 'table') return openTableSheet()
+    if (checkoutStep.sheet === 'delivery') return openDeliverySheet()
+    void runCheckout()
+  }, [checkoutStep.sheet, openTableSheet, openDeliverySheet, runCheckout])
 
   // Memoize isDark/primaryColor-dependent styles
   const ft = useMemo(
@@ -295,18 +314,19 @@ export const CartFooter = memo(function CartFooter({
 
   const checkoutBtnBg = useMemo(
     () => ({
-      backgroundColor: isOrderDisabled
+      backgroundColor: isMissingInfo
         ? isDark
           ? colors.gray[700]
           : colors.gray[300]
         : primaryColor,
     }),
-    [isOrderDisabled, isDark, primaryColor],
+    [isMissingInfo, isDark, primaryColor],
   )
 
   return (
     <>
       <View
+        onLayout={onLayout}
         style={[
           footerStyles.container,
           { paddingBottom: bottomInset + FOOTER_BOTTOM_EXTRA },
@@ -420,25 +440,31 @@ export const CartFooter = memo(function CartFooter({
             </View>
           </View>
           <Pressable
-            onPress={openConfirmSheet}
+            onPress={handleCheckoutPress}
             onPressIn={prefetchOrderFlags}
-            disabled={isOrderDisabled}
+            disabled={isChecking}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: isChecking, busy: isChecking }}
             style={[
               footerStyles.checkoutBtn,
               checkoutBtnBg,
-              isOrderDisabled && footerStyles.checkoutBtnDisabled,
+              isMissingInfo && footerStyles.checkoutBtnDisabled,
             ]}
           >
-            <ShoppingBag
-              size={18}
-              color={
-                isOrderDisabled ? ft.disabledIconColor : colors.white.light
-              }
-            />
+            {isChecking ? (
+              <ActivityIndicator size="small" color={colors.white.light} />
+            ) : (
+              <ShoppingBag
+                size={18}
+                color={
+                  isMissingInfo ? ft.disabledIconColor : colors.white.light
+                }
+              />
+            )}
             <Text
               style={[
                 footerStyles.checkoutText,
-                isOrderDisabled && ft.disabledTextColor,
+                isMissingInfo && ft.disabledTextColor,
               ]}
             >
               {orderBtnLabel}

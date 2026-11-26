@@ -7,6 +7,7 @@ import {
 import { STATIC_TOP_INSET } from '@/constants/status-bar'
 import { shouldAutoRemoveVoucher } from '@/components/sheet/voucher-validation'
 import { useCartValidation } from '@/hooks/use-cart-validation'
+import { useLayoutHeight } from '@/hooks/use-layout-height'
 import { useMountOnFirstOpen } from '@/hooks/use-mount-on-first-open'
 import { usePrimaryColor } from '@/hooks/use-primary-color'
 import { scheduleTransitionTask } from '@/lib/navigation/transition-task-queue'
@@ -41,10 +42,6 @@ const getCartItemType = () => 'cartItem'
 
 const listStyles = StyleSheet.create({
   root: { flex: 1 },
-  content: {
-    paddingTop: STATIC_TOP_INSET + 60,
-    paddingBottom: 200,
-  },
   separator: { height: 10 },
 })
 
@@ -159,6 +156,17 @@ export default function CartContent() {
 
   const keyExtractor = useCallback((item: CartDisplayItem) => item.cartKey, [])
 
+  // Thanh dưới (absolute) cao khác nhau theo loại đơn/voucher/inset — chừa
+  // đúng chiều cao đo được để không che ô ghi chú và món cuối.
+  const [footerHeight, onFooterLayout] = useLayoutHeight()
+  const listContentStyle = useMemo(
+    () => ({
+      paddingTop: STATIC_TOP_INSET + 60,
+      paddingBottom: footerHeight + 16,
+    }),
+    [footerHeight],
+  )
+
   const CartOrderNoteFooter = useCallback(
     () => <CartOrderNote isDark={isDark} />,
     [isDark],
@@ -182,12 +190,16 @@ export default function CartContent() {
         renderItem={renderItem}
         keyExtractor={keyExtractor}
         getItemType={getCartItemType}
-        contentContainerStyle={listStyles.content}
+        contentContainerStyle={listContentStyle}
         showsVerticalScrollIndicator={false}
         ItemSeparatorComponent={ItemSeparator}
         ListFooterComponent={CartOrderNoteFooter}
       />
-      <CartFooter primaryColor={primaryColor} isDark={isDark} />
+      <CartFooter
+        primaryColor={primaryColor}
+        isDark={isDark}
+        onLayout={onFooterLayout}
+      />
       {sizeSheetMounted && (
         <CartSizeSheet
           visible={!!sizeSheetItemId}
