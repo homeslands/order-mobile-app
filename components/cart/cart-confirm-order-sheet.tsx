@@ -7,6 +7,7 @@ import {
 } from '@/hooks'
 import { scheduleTransitionTask } from '@/lib/navigation'
 import { navigateNative } from '@/lib/navigation/navigation-engine'
+import { capitalizeFirst } from '@/utils/format'
 import { useBranchStore, useOrderFlowStore, useUserStore } from '@/stores'
 import type { ICreateOrderRequest } from '@/types'
 import {
@@ -29,11 +30,14 @@ import { useQueryClient } from '@tanstack/react-query'
 import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
 import { useTranslation } from 'react-i18next'
 import { ActivityIndicator, Pressable, StyleSheet, View } from 'react-native'
+import type { IOrderItem } from '@/types'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { useShallow } from 'zustand/react/shallow'
 import { Text } from '@/components/ui/text'
 
 const CONFIRM_ORDER_SNAP = ['65%']
+/** Chiều cao thanh nút không kể vùng an toàn: đệm trên 12 + nút 48 + đệm dưới 12 */
+const FOOTER_HEIGHT = 12 + 48 + 12
 
 export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
   visible,
@@ -69,35 +73,16 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
   // right after first register+login, so it must NOT gate the branch source.
   const branchSlug = useBranchStore((s) => s.branch?.slug)
 
-  const order = useOrderFlowStore((s) => s.orderingData)
+  // Chỉ biết "có đơn hay không" — sheet đã đóng (vẫn được giữ sau lần mở đầu)
+  // không vẽ lại theo mỗi lần đổi số lượng / ghi chú trong giỏ. Dữ liệu đơn
+  // đọc lúc bấm đặt (getState) và trong ConfirmOrderBody (chỉ dựng khi mở).
+  const hasOrder = useOrderFlowStore((s) => !!s.orderingData)
   const transitionToPayment = useOrderFlowStore((s) => s.transitionToPayment)
-
-  const { displayItems, cartTotals } = useMemo(() => {
-    if (!visible || !order) {
-      return {
-        displayItems: [] as ReturnType<
-          typeof calculateCartDisplayAndTotals
-        >['displayItems'],
-        cartTotals: {
-          subTotalBeforeDiscount: 0,
-          promotionDiscount: 0,
-          voucherDiscount: 0,
-          finalTotal: 0,
-        },
-      }
-    }
-    return calculateCartDisplayAndTotals(order, order.voucher || null)
-  }, [visible, order])
-
-  const deliveryFee = useCalculateDeliveryFee(
-    parseKm(order?.deliveryDistance) || 0,
-    branchSlug || '',
-    { enabled: visible && hasUser },
-  )
 
   const isSubmitting = isPending || isPendingNoLogin
 
   const handleSubmit = useCallback(() => {
+    const order = useOrderFlowStore.getState().orderingData
     if (!order || !branchSlug) {
       if (!branchSlug) showErrorToast(11000)
       return
@@ -171,7 +156,6 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
       createOrderWithoutLogin(req, { onSuccess, onError })
     }
   }, [
-    order,
     branchSlug,
     hasUser,
     getUserInfo,
@@ -197,17 +181,21 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
     [],
   )
   useEffect(() => {
-    if (visible && order) sheetRef.current?.present()
+    if (visible && hasOrder) sheetRef.current?.present()
     else sheetRef.current?.dismiss()
-  }, [visible, order])
+  }, [visible, hasOrder])
 
+  // Thanh nút sát đáy sheet, nền phủ luôn vùng an toàn: trước đặt
+  // bottomInset={inset} nên dưới thanh nút có khe hở không nền — cuộn là lộ
+  // nội dung bên dưới.
   const renderFooter = useCallback(
     (props: BottomSheetFooterProps) => (
-      <BottomSheetFooter {...props} bottomInset={bottomInset}>
+      <BottomSheetFooter {...props} bottomInset={0}>
         <View
           style={[
-            confirmOrderStyles.footer,
+            s.footer,
             {
+              paddingBottom: bottomInset + 12,
               backgroundColor: isDark ? colors.card.dark : colors.white.light,
               borderTopColor: isDark ? colors.border.dark : colors.border.light,
             },
@@ -216,17 +204,18 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
           <Pressable
             onPress={() => sheetRef.current?.dismiss()}
             disabled={isSubmitting}
+            accessibilityRole="button"
             style={[
-              confirmOrderStyles.cancelBtn,
+              s.cancelBtn,
               {
-                backgroundColor: isDark ? colors.border.dark : colors.gray[100],
+                backgroundColor: isDark ? colors.gray[800] : colors.gray[100],
                 opacity: isSubmitting ? 0.5 : 1,
               },
             ]}
           >
             <Text
               style={[
-                confirmOrderStyles.cancelText,
+                s.cancelText,
                 { color: isDark ? colors.gray[50] : colors.gray[700] },
               ]}
             >
@@ -236,8 +225,10 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
           <Pressable
             onPress={handleSubmit}
             disabled={isSubmitting}
+            accessibilityRole="button"
+            accessibilityState={{ disabled: isSubmitting, busy: isSubmitting }}
             style={[
-              confirmOrderStyles.submitBtn,
+              s.submitBtn,
               {
                 backgroundColor: primaryColor,
                 opacity: isSubmitting ? 0.7 : 1,
@@ -245,11 +236,9 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
             ]}
           >
             {isSubmitting ? (
-              <ActivityIndicator size="small" color="#fff" />
+              <ActivityIndicator size="small" color={colors.white.light} />
             ) : (
-              <Text style={confirmOrderStyles.submitText}>
-                {t('order.create')}
-              </Text>
+              <Text style={s.submitText}>{t('order.create')}</Text>
             )}
           </Pressable>
         </View>
@@ -258,10 +247,7 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
     [isDark, primaryColor, handleSubmit, isSubmitting, t, tCommon, bottomInset],
   )
 
-  if (!visible || !order) return null
-
-  const totalWithDelivery =
-    cartTotals.finalTotal + (deliveryFee?.deliveryFee || 0)
+  if (!visible || !hasOrder) return null
 
   return (
     <BottomSheetModal
@@ -276,271 +262,254 @@ export const ConfirmOrderSheet = memo(function ConfirmOrderSheet({
       onDismiss={onClose}
       footerComponent={renderFooter}
     >
-      {/* Header */}
-      <View
-        style={[
-          confirmOrderStyles.header,
-          {
-            borderBottomColor: isDark
-              ? colors.border.dark
-              : colors.border.light,
-          },
-        ]}
-      >
-        <Text
-          style={[
-            confirmOrderStyles.title,
-            { color: isDark ? colors.gray[50] : colors.gray[900] },
-          ]}
-        >
+      <ConfirmOrderBody
+        isDark={isDark}
+        primaryColor={primaryColor}
+        hasUser={hasUser}
+        branchSlug={branchSlug}
+        bottomInset={bottomInset}
+      />
+    </BottomSheetModal>
+  )
+})
+
+/**
+ * Thân sheet — chỉ dựng khi sheet mở, nên chỉ ở đây mới theo dõi dữ liệu đơn
+ * và hỏi phí giao hàng.
+ */
+const ConfirmOrderBody = memo(function ConfirmOrderBody({
+  isDark,
+  primaryColor,
+  hasUser,
+  branchSlug,
+  bottomInset,
+}: {
+  isDark: boolean
+  primaryColor: string
+  hasUser: boolean
+  branchSlug: string | undefined
+  bottomInset: number
+}) {
+  const { t } = useTranslation('menu')
+  const order = useOrderFlowStore((s) => s.orderingData)
+
+  const { displayItems, cartTotals } = useMemo(() => {
+    if (order)
+      return calculateCartDisplayAndTotals(order, order.voucher || null)
+    return {
+      displayItems: [] as ReturnType<
+        typeof calculateCartDisplayAndTotals
+      >['displayItems'],
+      cartTotals: {
+        subTotalBeforeDiscount: 0,
+        promotionDiscount: 0,
+        voucherDiscount: 0,
+        finalTotal: 0,
+      },
+    }
+  }, [order])
+
+  const deliveryFee = useCalculateDeliveryFee(
+    parseKm(order?.deliveryDistance) || 0,
+    branchSlug || '',
+    { enabled: hasUser && order?.type === 'delivery' },
+  )
+
+  const c = useMemo(
+    () => ({
+      strong: isDark ? colors.gray[50] : colors.gray[900],
+      muted: isDark ? colors.gray[400] : colors.gray[500],
+      groupBg: isDark ? colors.background.dark : colors.gray[100],
+      divider: isDark ? colors.border.dark : colors.border.light,
+      discount: isDark ? colors.success.dark : colors.success.solid,
+    }),
+    [isDark],
+  )
+
+  const contentStyle = useMemo(
+    () => [
+      s.scrollContent,
+      { paddingBottom: FOOTER_HEIGHT + bottomInset + 16 },
+    ],
+    [bottomInset],
+  )
+
+  if (!order) return null
+
+  const totalWithDelivery =
+    cartTotals.finalTotal + (deliveryFee?.deliveryFee || 0)
+
+  // Các dòng thông tin đơn — một nhóm, ngăn bằng đường kẻ
+  const infoRows: Array<{ label: string; value: string }> = [
+    {
+      label: t('menu.orderType'),
+      value:
+        order.type === 'at-table'
+          ? t('menu.dineIn')
+          : order.type === 'delivery'
+            ? t('menu.delivery')
+            : t('menu.takeAway'),
+    },
+  ]
+  if (order.tableName) {
+    infoRows.push({ label: t('menu.tableName'), value: order.tableName })
+  }
+  if (order.type === 'take-out') {
+    infoRows.push({
+      label: t('menu.pickupTime'),
+      value:
+        !order.timeLeftTakeOut || order.timeLeftTakeOut === 0
+          ? t('menu.immediately')
+          : `${order.timeLeftTakeOut} ${t('menu.minutes')}`,
+    })
+  }
+  if (order.type === 'delivery') {
+    if (order.deliveryAddress) {
+      infoRows.push({
+        label: t('order.deliveryAddress'),
+        value: order.deliveryAddress,
+      })
+    }
+    if (order.deliveryPhone) {
+      infoRows.push({
+        label: t('order.deliveryPhone'),
+        value: order.deliveryPhone,
+      })
+    }
+  }
+  if (order.description?.trim()) {
+    infoRows.push({
+      label: t('order.orderNote'),
+      value: order.description.trim(),
+    })
+  }
+
+  return (
+    <>
+      <View style={[s.header, { borderBottomColor: c.divider }]}>
+        <Text style={[s.title, { color: c.strong }]}>
           {t('cart.confirmOrder')}
         </Text>
       </View>
 
-      {/* Scrollable content */}
       <BottomSheetScrollView
-        contentContainerStyle={confirmOrderStyles.scrollContent}
+        contentContainerStyle={contentStyle}
         showsVerticalScrollIndicator={false}
       >
-        {/* Order info rows */}
-        <View style={confirmOrderStyles.infoSection}>
-          <View
-            style={[
-              confirmOrderStyles.infoRow,
-              {
-                backgroundColor: isDark
-                  ? colors.background.dark
-                  : colors.gray[100],
-              },
-            ]}
-          >
-            <Text
-              style={[
-                confirmOrderStyles.infoLabel,
-                { color: isDark ? colors.gray[400] : colors.gray[500] },
-              ]}
-            >
-              {t('menu.orderType')}
-            </Text>
-            <Text
-              style={[
-                confirmOrderStyles.infoValue,
-                { color: isDark ? colors.gray[50] : colors.gray[900] },
-              ]}
-            >
-              {order.type === 'at-table'
-                ? t('menu.dineIn')
-                : order.type === 'delivery'
-                  ? t('menu.delivery')
-                  : t('menu.takeAway')}
-            </Text>
-          </View>
-          {order.tableName ? (
+        {/* Thông tin đơn */}
+        <View style={[s.group, { backgroundColor: c.groupBg }]}>
+          {infoRows.map((row, i) => (
             <View
+              key={row.label}
               style={[
-                confirmOrderStyles.infoRow,
-                {
-                  backgroundColor: isDark
-                    ? colors.background.dark
-                    : colors.gray[100],
+                s.infoRow,
+                i > 0 && {
+                  borderTopWidth: StyleSheet.hairlineWidth,
+                  borderTopColor: c.divider,
                 },
               ]}
             >
+              <Text style={[s.infoLabel, { color: c.muted }]}>{row.label}</Text>
               <Text
-                style={[
-                  confirmOrderStyles.infoLabel,
-                  { color: isDark ? colors.gray[400] : colors.gray[500] },
-                ]}
+                style={[s.infoValue, { color: c.strong }]}
+                numberOfLines={3}
               >
-                {t('menu.tableName')}
-              </Text>
-              <Text
-                style={[
-                  confirmOrderStyles.infoValue,
-                  { color: isDark ? colors.gray[50] : colors.gray[900] },
-                ]}
-              >
-                {order.tableName}
-              </Text>
-            </View>
-          ) : null}
-          {order.type === 'take-out' && (
-            <View
-              style={[
-                confirmOrderStyles.infoRow,
-                {
-                  backgroundColor: isDark
-                    ? colors.background.dark
-                    : colors.gray[100],
-                },
-              ]}
-            >
-              <Text
-                style={[
-                  confirmOrderStyles.infoLabel,
-                  { color: isDark ? colors.gray[400] : colors.gray[500] },
-                ]}
-              >
-                {t('menu.pickupTime')}
-              </Text>
-              <Text
-                style={[
-                  confirmOrderStyles.infoValue,
-                  { color: isDark ? colors.gray[50] : colors.gray[900] },
-                ]}
-              >
-                {!order.timeLeftTakeOut || order.timeLeftTakeOut === 0
-                  ? t('menu.immediately')
-                  : `${order.timeLeftTakeOut} ${t('menu.minutes')}`}
-              </Text>
-            </View>
-          )}
-        </View>
-
-        {/* Items */}
-        <View
-          style={[
-            confirmOrderStyles.itemsSection,
-            {
-              borderTopColor: isDark ? colors.border.dark : colors.border.light,
-            },
-          ]}
-        >
-          {displayItems.map((item, idx) => (
-            <View key={idx} style={confirmOrderStyles.itemRow}>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={[
-                    confirmOrderStyles.itemName,
-                    { color: isDark ? colors.gray[50] : colors.gray[900] },
-                  ]}
-                  numberOfLines={1}
-                >
-                  {(item as { name?: string }).name || ''} × {item.quantity}
-                </Text>
-                <Text
-                  style={{
-                    fontSize: 12,
-                    color: isDark ? colors.gray[400] : colors.gray[500],
-                  }}
-                >
-                  {t('order.size')}
-                  {((item as { size?: string }).size || '').toUpperCase()}
-                </Text>
-              </View>
-              <Text
-                style={[confirmOrderStyles.itemPrice, { color: primaryColor }]}
-              >
-                {formatCurrency(
-                  (item as { finalPrice?: number }).finalPrice
-                    ? (item as { finalPrice: number }).finalPrice *
-                        item.quantity
-                    : 0,
-                )}
+                {row.value}
               </Text>
             </View>
           ))}
         </View>
 
-        {/* Totals */}
-        <View
-          style={[
-            confirmOrderStyles.totalsSection,
-            {
-              borderTopColor: isDark ? colors.border.dark : colors.border.light,
-            },
-          ]}
-        >
-          <View style={confirmOrderStyles.totalRow}>
-            <Text
-              style={{
-                fontSize: 13,
-                color: isDark ? colors.gray[400] : colors.gray[500],
-              }}
-            >
+        {/* Món */}
+        <View style={s.itemsSection}>
+          {displayItems.map((item, idx) => {
+            // Size / ghi chú lấy từ món trong giỏ cùng vị trí
+            const source = order.orderItems[idx] as IOrderItem | undefined
+            const size = source?.size ? capitalizeFirst(source.size) : ''
+            return (
+              <View key={`${item.slug}-${idx}`} style={s.itemRow}>
+                <View style={s.itemInfo}>
+                  <Text
+                    style={[s.itemName, { color: c.strong }]}
+                    numberOfLines={1}
+                  >
+                    {capitalizeFirst(item.name || '')} × {item.quantity}
+                  </Text>
+                  {size ? (
+                    <Text style={[s.itemMeta, { color: c.muted }]}>{size}</Text>
+                  ) : null}
+                  {source?.note ? (
+                    <Text
+                      style={[s.itemNote, { color: c.muted }]}
+                      numberOfLines={2}
+                    >
+                      {source.note}
+                    </Text>
+                  ) : null}
+                </View>
+                <Text style={[s.itemPrice, { color: c.strong }]}>
+                  {formatCurrency((item.finalPrice ?? 0) * item.quantity)}
+                </Text>
+              </View>
+            )
+          })}
+        </View>
+
+        {/* Tiền */}
+        <View style={[s.totalsSection, { borderTopColor: c.divider }]}>
+          <View style={s.totalRow}>
+            <Text style={[s.totalText, { color: c.muted }]}>
               {t('order.subtotal')}
             </Text>
-            <Text
-              style={{
-                fontSize: 13,
-                color: isDark ? colors.gray[400] : colors.gray[500],
-              }}
-            >
+            <Text style={[s.totalText, { color: c.muted }]}>
               {formatCurrency(cartTotals.subTotalBeforeDiscount)}
             </Text>
           </View>
           {cartTotals.promotionDiscount > 0 && (
-            <View style={confirmOrderStyles.totalRow}>
-              <Text style={{ fontSize: 13, color: '#eab308' }}>
+            <View style={s.totalRow}>
+              <Text style={[s.totalText, { color: c.discount }]}>
                 {t('order.promotionDiscount')}
               </Text>
-              <Text style={{ fontSize: 13, color: '#eab308' }}>
+              <Text style={[s.totalText, { color: c.discount }]}>
                 -{formatCurrency(cartTotals.promotionDiscount)}
               </Text>
             </View>
           )}
           {cartTotals.voucherDiscount > 0 && (
-            <View style={confirmOrderStyles.totalRow}>
-              <Text style={{ fontSize: 13, color: '#22c55e' }}>
+            <View style={s.totalRow}>
+              <Text style={[s.totalText, { color: c.discount }]}>
                 {t('order.voucher')}
               </Text>
-              <Text style={{ fontSize: 13, color: '#22c55e' }}>
+              <Text style={[s.totalText, { color: c.discount }]}>
                 -{formatCurrency(cartTotals.voucherDiscount)}
               </Text>
             </View>
           )}
           {order.type === 'delivery' && (
-            <View style={confirmOrderStyles.totalRow}>
-              <Text
-                style={{
-                  fontSize: 13,
-                  color: isDark ? colors.gray[400] : colors.gray[500],
-                }}
-              >
+            <View style={s.totalRow}>
+              <Text style={[s.totalText, { color: c.muted }]}>
                 {t('order.deliveryFee')}
               </Text>
-              <Text
-                style={{
-                  fontSize: 13,
-                  color: isDark ? colors.gray[400] : colors.gray[500],
-                }}
-              >
+              <Text style={[s.totalText, { color: c.muted }]}>
                 {formatCurrency(deliveryFee?.deliveryFee || 0)}
               </Text>
             </View>
           )}
-          <View
-            style={[
-              confirmOrderStyles.totalRow,
-              confirmOrderStyles.finalRow,
-              {
-                borderTopColor: isDark
-                  ? colors.border.dark
-                  : colors.border.light,
-              },
-            ]}
-          >
-            <Text
-              style={[
-                confirmOrderStyles.finalLabel,
-                { color: isDark ? colors.gray[50] : colors.gray[900] },
-              ]}
-            >
+          <View style={[s.totalRow, s.finalRow, { borderTopColor: c.divider }]}>
+            <Text style={[s.finalLabel, { color: c.strong }]}>
               {t('order.totalPayment')}
             </Text>
-            <Text
-              style={[confirmOrderStyles.finalValue, { color: primaryColor }]}
-            >
+            <Text style={[s.finalValue, { color: primaryColor }]}>
               {formatCurrency(totalWithDelivery)}
             </Text>
           </View>
         </View>
       </BottomSheetScrollView>
-    </BottomSheetModal>
+    </>
   )
 })
 
-const confirmOrderStyles = StyleSheet.create({
+const s = StyleSheet.create({
   header: {
     paddingHorizontal: 20,
     paddingTop: 4,
@@ -553,66 +522,71 @@ const confirmOrderStyles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 80,
+    paddingTop: 12,
   },
-  infoSection: {
-    gap: 8,
-    paddingVertical: 12,
+  group: {
+    borderRadius: 12,
+    paddingHorizontal: 12,
   },
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 12,
+    alignItems: 'flex-start',
+    gap: 12,
     paddingVertical: 10,
-    borderRadius: 8,
   },
   infoLabel: {
-    fontSize: 13,
+    fontSize: 14,
   },
   infoValue: {
-    fontSize: 13,
+    flexShrink: 1,
+    fontSize: 14,
     fontWeight: '600',
+    textAlign: 'right',
   },
   itemsSection: {
-    gap: 10,
-    paddingVertical: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderStyle: 'dashed',
+    gap: 12,
+    paddingVertical: 16,
   },
   itemRow: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
+    gap: 12,
   },
+  itemInfo: { flex: 1, gap: 2 },
   itemName: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '600',
   },
+  itemMeta: { fontSize: 13 },
+  itemNote: { fontSize: 13, fontStyle: 'italic' },
   itemPrice: {
-    fontSize: 14,
-    fontWeight: '700',
+    fontSize: 15,
+    fontWeight: '600',
   },
   totalsSection: {
-    gap: 6,
-    paddingVertical: 12,
+    gap: 8,
+    paddingTop: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
+  totalText: { fontSize: 14 },
   finalRow: {
-    marginTop: 8,
-    paddingTop: 10,
-    borderTopWidth: 1,
+    marginTop: 4,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    alignItems: 'baseline',
   },
   finalLabel: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '700',
   },
   finalValue: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '800',
   },
   footer: {
@@ -620,13 +594,12 @@ const confirmOrderStyles = StyleSheet.create({
     gap: 10,
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 16,
     borderTopWidth: StyleSheet.hairlineWidth,
   },
   cancelBtn: {
     flex: 1,
     height: 48,
-    borderRadius: 12,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -634,16 +607,17 @@ const confirmOrderStyles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
   },
+  // Nút chính rộng hơn nút Huỷ
   submitBtn: {
-    flex: 1,
+    flex: 1.6,
     height: 48,
-    borderRadius: 12,
+    borderRadius: 999,
     alignItems: 'center',
     justifyContent: 'center',
   },
   submitText: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#ffffff',
+    color: colors.white.light,
   },
 })
