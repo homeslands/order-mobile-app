@@ -175,6 +175,7 @@
     "codeNotFound": "Code \"{{code}}\" not found",
     "maxOne": "Max: 1",
     "unavailable": "Unavailable",
+    "showMoreUnavailable": "Show more ({{count}})",
     "loadingVouchers": "Loading vouchers...",
     "currentlyApplied": "Currently Applied",
     "availableVouchers": "Available Vouchers",

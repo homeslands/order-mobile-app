@@ -57,6 +57,7 @@ export const VoucherCard = memo(function VoucherCard({
   onViewCondition,
   expiryText,
   discountLabel,
+  dimmed = false,
 }: {
   voucher: IVoucher
   isSelected: boolean
@@ -71,6 +72,12 @@ export const VoucherCard = memo(function VoucherCard({
    * nói giảm bao nhiêu — đây là thứ khách cần để chọn mã.
    */
   discountLabel?: string
+  /**
+   * Mã không dùng được: làm mờ thân thẻ để báo "không chọn được", nhưng chừa
+   * link "Điều kiện" ở chân thẻ — đó là lối xem lý do, mờ theo thì khách tưởng
+   * bấm không được.
+   */
+  dimmed?: boolean
 }) {
   const { t } = useTranslation('voucher')
 
@@ -138,7 +145,7 @@ export const VoucherCard = memo(function VoucherCard({
 
   return (
     <AnimatedPressable onPress={handlePress} style={[s.card, animatedStyle]}>
-      <View style={s.head}>
+      <View style={[s.head, dimmed && s.dimmed]}>
         <Text
           className="font-sans-bold"
           style={[s.title, { color: headlineColor }]}
@@ -192,7 +199,7 @@ export const VoucherCard = memo(function VoucherCard({
       {/* Đường đục lỗ. Vẽ nét đứt bằng SVG chứ không dùng
           `borderStyle: 'dashed'` — trên iOS viền 1px kiểu đó render ra thành
           nét liền. Một node Svg rẻ hơn là xếp vài chục ô vuông nhỏ. */}
-      <View style={s.perforation}>
+      <View style={[s.perforation, dimmed && s.dimmed]}>
         <View style={[notch, s.notchLeft]} />
         <View style={s.dashWrap}>
           <Svg height={1} width="100%">
@@ -299,5 +306,8 @@ const s = StyleSheet.create({
   },
   conditionText: {
     fontSize: 12,
+  },
+  dimmed: {
+    opacity: 0.5,
   },
 })

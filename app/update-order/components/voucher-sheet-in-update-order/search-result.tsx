@@ -5,6 +5,7 @@ import type { IVoucher } from '@/types'
 import { useTranslation } from 'react-i18next'
 import { StyleSheet, View } from 'react-native'
 import { Text } from '@/components/ui/text'
+import { VoucherUnavailableReason } from './invalid-list'
 
 /** Mã không dùng được không chọn được — chạm vào thân thẻ không làm gì. */
 const noop = () => {}
@@ -62,13 +63,13 @@ export function SearchResult({
 
   if (!processedFetched) return null
 
-  // Mã không dùng được cư xử như danh sách "Không khả dụng": mờ, không chọn
-  // được, chỉ mở Điều kiện để xem lý do. Cho chọn thì khách bấm "Áp dụng" rồi
-  // chỉ nhận toast chung "Voucher không hợp lệ" từ máy chủ.
+  // Mã không dùng được cư xử như danh sách "Không khả dụng": thân thẻ mờ,
+  // không chọn được, lý do in ngay dưới thẻ và link Điều kiện vẫn rõ. Cho
+  // chọn thì khách bấm "Áp dụng" rồi chỉ nhận toast chung từ máy chủ.
   const { isValid } = processedFetched
 
   return (
-    <View style={isValid ? undefined : styles.unavailable}>
+    <View>
       <VoucherCard
         voucher={fetchedVoucher}
         isSelected={isValid && selectedVoucher?.slug === fetchedVoucher.slug}
@@ -78,12 +79,18 @@ export function SearchResult({
         onViewCondition={onViewCondition}
         expiryText={processedFetched.expiryText}
         discountLabel={processedFetched.discountLabel}
+        dimmed={!isValid}
       />
+      {!isValid && (
+        <VoucherUnavailableReason
+          message={processedFetched.errorMessage}
+          isDark={isDark}
+        />
+      )}
     </View>
   )
 }
 
 const styles = StyleSheet.create({
   resultRow: { marginTop: 14 },
-  unavailable: { opacity: 0.5 },
 })
