@@ -1,15 +1,12 @@
 const mockShowToast = jest.fn()
-const mockReplace = jest.fn()
+const mockDismissTo = jest.fn()
 const mockRemoveUserInfo = jest.fn()
 
 jest.mock('@/utils/toast', () => ({
   showToast: (...a: unknown[]) => mockShowToast(...a),
 }))
-jest.mock('@/lib/navigation', () => ({
-  navigateWhenUnlocked: { replace: (...a: unknown[]) => mockReplace(...a) },
-}))
-jest.mock('@/lib/navigation/transition-task-queue', () => ({
-  scheduleTransitionTask: (fn: () => void) => fn(),
+jest.mock('expo-router', () => ({
+  router: { dismissTo: (...a: unknown[]) => mockDismissTo(...a) },
 }))
 jest.mock('@/stores/user.store', () => ({
   useUserStore: { getState: () => ({ removeUserInfo: mockRemoveUserInfo }) },
@@ -20,6 +17,7 @@ import {
   LOGIN_REQUIRED_ROUTES,
 } from '@/lib/auth/login-required-routes'
 import { onSessionExpiredUI } from '@/lib/auth/session-expiry-ui'
+import { STACK_TRANSITION_DURATION_MS } from '@/lib/navigation/constants'
 import { useLoginSheetStore } from '@/stores/login-sheet.store'
 
 describe('isLoginRequiredRoute', () => {
@@ -64,12 +62,17 @@ describe('isLoginRequiredRoute', () => {
 
 describe('onSessionExpiredUI', () => {
   beforeEach(() => {
+    jest.useFakeTimers()
     jest.clearAllMocks()
     useLoginSheetStore.setState({
       visible: false,
       onSuccess: null,
       onClose: null,
     })
+  })
+
+  afterEach(() => {
+    jest.useRealTimers()
   })
 
   it('màn thường: toast một lần, removeUserInfo ngay, không mở sheet', () => {
@@ -99,23 +102,34 @@ describe('onSessionExpiredUI', () => {
 
     it('success: không removeUserInfo, không điều hướng', () => {
       useLoginSheetStore.getState().close('success')
+      jest.runAllTimers()
       expect(mockRemoveUserInfo).not.toHaveBeenCalled()
-      expect(mockReplace).not.toHaveBeenCalled()
+      expect(mockDismissTo).not.toHaveBeenCalled()
     })
 
-    it('dismissed: về Home trước, rồi removeUserInfo', () => {
+    it('dismissed: dismissTo Home (không replace — tránh nhân đôi bộ tab)', () => {
       useLoginSheetStore.getState().close('dismissed')
-      expect(mockReplace).toHaveBeenCalledWith('/(tabs)/home')
-      expect(mockRemoveUserInfo).toHaveBeenCalledTimes(1)
-      expect(mockReplace.mock.invocationCallOrder[0]).toBeLessThan(
-        mockRemoveUserInfo.mock.invocationCallOrder[0],
-      )
+      expect(mockDismissTo).toHaveBeenCalledTimes(1)
+      expect(mockDismissTo).toHaveBeenCalledWith('/(tabs)/home')
     })
 
-    it('navigated: removeUserInfo, không điều hướng', () => {
-      useLoginSheetStore.getState().close('navigated')
+    it('dismissed: removeUserInfo chỉ chạy sau khi transition xong', () => {
+      useLoginSheetStore.getState().close('dismissed')
+      expect(mockRemoveUserInfo).not.toHaveBeenCalled()
+      jest.advanceTimersByTime(STACK_TRANSITION_DURATION_MS - 1)
+      expect(mockRemoveUserInfo).not.toHaveBeenCalled()
+      jest.advanceTimersByTime(1)
       expect(mockRemoveUserInfo).toHaveBeenCalledTimes(1)
-      expect(mockReplace).not.toHaveBeenCalled()
+    })
+
+    it('navigated: không điều hướng, removeUserInfo chỉ chạy sau khi transition xong', () => {
+      useLoginSheetStore.getState().close('navigated')
+      expect(mockRemoveUserInfo).not.toHaveBeenCalled()
+      jest.advanceTimersByTime(STACK_TRANSITION_DURATION_MS - 1)
+      expect(mockRemoveUserInfo).not.toHaveBeenCalled()
+      jest.advanceTimersByTime(1)
+      expect(mockRemoveUserInfo).toHaveBeenCalledTimes(1)
+      expect(mockDismissTo).not.toHaveBeenCalled()
     })
   })
 })
