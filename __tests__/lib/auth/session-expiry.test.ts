@@ -58,6 +58,27 @@ describe('expireSession', () => {
     expect(removeUserInfoSpy).toHaveBeenCalledTimes(1)
   })
 
+  it('silent: true removeUserInfo ngay sau setLogout, trước khi FCM cleanup xong', () => {
+    let release: () => void = () => {}
+    mockCleanup.mockReturnValue(
+      new Promise<void>((resolve) => {
+        release = resolve
+      }),
+    )
+    const p = expireSession({ silent: true })
+    try {
+      expect(removeUserInfoSpy).toHaveBeenCalledTimes(1)
+      expect(setLogoutSpy.mock.invocationCallOrder[0]).toBeLessThan(
+        removeUserInfoSpy.mock.invocationCallOrder[0],
+      )
+      expect(mockClearAll).not.toHaveBeenCalled()
+    } finally {
+      // Luôn nhả cleanup để inflight không dính sang test sau
+      release()
+    }
+    return p
+  })
+
   it('silent: false bật pending, không removeUserInfo', async () => {
     await expireSession({ silent: false })
     expect(useSessionExpiryStore.getState().pending).toBe(true)

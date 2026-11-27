@@ -46,6 +46,20 @@ const httpError = (status: number, data?: unknown) =>
     data,
   } as never)
 
+// Promise reject có spy trên .catch: biết được caller fire-and-forget đã gắn
+// handler hay chưa
+const mockExpireSessionRejecting = () => {
+  const catchSpy = jest.fn()
+  mockExpireSession.mockImplementation(() => {
+    const rejected = Promise.reject(new Error('boom'))
+    // Gắn handler thật ngay để test không tự sinh unhandled rejection
+    rejected.catch(() => {})
+    rejected.catch = catchSpy as never
+    return rejected
+  })
+  return catchSpy
+}
+
 describe('auth-refresh', () => {
   let postSpy: jest.SpyInstance
 
@@ -128,17 +142,20 @@ describe('auth-refresh', () => {
       ['500', httpError(500)],
       ['408', httpError(408)],
       ['429', httpError(429)],
-    ])('%s → transient, store giữ nguyên, không expireSession', async (_n, e) => {
-      postSpy.mockRejectedValueOnce(e)
-      const result = await refreshSession()
-      expect(result.status).toBe('transient')
-      expect(useAuthStore.getState()).toMatchObject({
-        token: 'OLD',
-        refreshToken: 'REFRESH',
-        isRefreshing: false,
-      })
-      expect(mockExpireSession).not.toHaveBeenCalled()
-    })
+    ])(
+      '%s → transient, store giữ nguyên, không expireSession',
+      async (_n, e) => {
+        postSpy.mockRejectedValueOnce(e)
+        const result = await refreshSession()
+        expect(result.status).toBe('transient')
+        expect(useAuthStore.getState()).toMatchObject({
+          token: 'OLD',
+          refreshToken: 'REFRESH',
+          isRefreshing: false,
+        })
+        expect(mockExpireSession).not.toHaveBeenCalled()
+      },
+    )
 
     it('401 khi access token đã hết hạn theo giờ server → invalid, expireSession 1 lần', async () => {
       postSpy.mockRejectedValueOnce(httpError(401))
@@ -162,6 +179,20 @@ describe('auth-refresh', () => {
       postSpy.mockRejectedValueOnce(httpError(422))
       expect(await refreshSession()).toEqual({ status: 'invalid' })
       expect(mockExpireSession).toHaveBeenCalledWith({ silent: false })
+    })
+
+    it('expireSession reject (đường 401) → đã gắn catch, không thành unhandled rejection', async () => {
+      const catchSpy = mockExpireSessionRejecting()
+      postSpy.mockRejectedValueOnce(httpError(401))
+      expect(await refreshSession()).toEqual({ status: 'invalid' })
+      expect(catchSpy).toHaveBeenCalledTimes(1)
+    })
+
+    it('expireSession reject (thiếu refreshToken) → đã gắn catch, không thành unhandled rejection', async () => {
+      const catchSpy = mockExpireSessionRejecting()
+      seedAuth({ refreshToken: undefined })
+      expect(await refreshSession()).toEqual({ status: 'invalid' })
+      expect(catchSpy).toHaveBeenCalledTimes(1)
     })
 
     it('có token nhưng không có refreshToken → invalid, không gọi mạng, dọn phiên 1 lần', async () => {

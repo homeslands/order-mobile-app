@@ -38,7 +38,7 @@ function cleanupIfRefreshTokenDead(): void {
   const exp = parseServerTime(expireTimeRefreshToken)
   if (exp === null || serverNow() < exp) return
   // setLogout runs synchronously inside, so the token is cleared on return
-  void expireSession({ silent: true })
+  void expireSession({ silent: true }).catch(() => {})
 }
 
 let ready: Promise<void> | null = null

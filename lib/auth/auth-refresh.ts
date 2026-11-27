@@ -45,7 +45,7 @@ const doRefresh = async (): Promise<RefreshResult> => {
   const auth = useAuthStore.getState()
   if (!auth.refreshToken) {
     // Có token mà không có refreshToken là phiên hỏng: không dọn thì mọi request bị từ chối mãi
-    if (auth.token) void expireSession({ silent: false })
+    if (auth.token) void expireSession({ silent: false }).catch(() => {})
     return { status: 'invalid' }
   }
 
@@ -89,7 +89,7 @@ const doRefresh = async (): Promise<RefreshResult> => {
         return { status: 'invalid' }
       }
       if (isAccessTokenStillValid(error)) return { status: 'still-valid' }
-      void expireSession({ silent: false })
+      void expireSession({ silent: false }).catch(() => {})
       return { status: 'invalid' }
     }
     return { status: 'transient', error }

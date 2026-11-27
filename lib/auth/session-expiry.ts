@@ -27,6 +27,8 @@ async function run(silent: boolean): Promise<void> {
   const deviceToken = useUserStore.getState().deviceToken
   // Synchronous on purpose: callers rely on logout being done on return
   useAuthStore.getState().setLogout()
+  // Silent: no UI owns userInfo, clear it now so nothing sees it without a token
+  if (silent) useUserStore.getState().removeUserInfo()
   queryClient.removeQueries({ queryKey: [QUERYKEY.loyaltyPoints] })
   if (!silent) useSessionExpiryStore.getState().markExpired()
 
@@ -47,7 +49,6 @@ async function run(silent: boolean): Promise<void> {
 
   // Clear notification store so next login starts with a clean slate
   useNotificationStore.getState().clearAll()
-  if (silent) useUserStore.getState().removeUserInfo()
 }
 
 /** Single-flight: concurrent calls share one promise. */

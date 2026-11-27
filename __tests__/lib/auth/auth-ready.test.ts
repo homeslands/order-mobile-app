@@ -122,6 +122,22 @@ describe('waitUntilAuthReady', () => {
     expect(logoutBeforeResolve).toBe(true)
   })
 
+  it('expireSession reject → đã gắn catch, không thành unhandled rejection', async () => {
+    mockHydrated = true
+    mockServerNow.mockReturnValue(AFTER_EXPIRY)
+    const catchSpy = jest.fn()
+    mockExpireSession.mockImplementation(() => {
+      const rejected = Promise.reject(new Error('boom'))
+      // Gắn handler thật ngay để test không tự sinh unhandled rejection
+      rejected.catch(() => {})
+      rejected.catch = catchSpy as never
+      return rejected
+    })
+    const { waitUntilAuthReady } = load()
+    expect(await settle(waitUntilAuthReady())).toBe(true)
+    expect(catchSpy).toHaveBeenCalledTimes(1)
+  })
+
   it('expireTimeRefreshToken rác thì không dọn', async () => {
     mockHydrated = true
     mockServerNow.mockReturnValue(AFTER_EXPIRY)
