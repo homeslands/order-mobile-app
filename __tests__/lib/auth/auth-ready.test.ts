@@ -2,6 +2,8 @@ const mockExpireSession = jest.fn()
 const mockSetLogout = jest.fn()
 const mockServerNow = jest.fn()
 const mockUnsubscribe = jest.fn()
+const mockRemoveUserInfo = jest.fn()
+let mockUserInfo: unknown = null
 let mockHydrated = false
 let mockFinishCb: (() => void) | null = null
 let mockState: Record<string, unknown> = {}
@@ -22,6 +24,15 @@ jest.mock('@/stores/auth.store', () => ({
         return mockUnsubscribe
       },
     },
+  },
+}))
+
+jest.mock('@/stores/user.store', () => ({
+  useUserStore: {
+    getState: () => ({
+      userInfo: mockUserInfo,
+      removeUserInfo: mockRemoveUserInfo,
+    }),
   },
 }))
 
@@ -54,6 +65,7 @@ describe('waitUntilAuthReady', () => {
     jest.clearAllMocks()
     mockHydrated = false
     mockFinishCb = null
+    mockUserInfo = null
     mockServerNow.mockReturnValue(NOW)
     mockExpireSession.mockImplementation(() => {
       mockSetLogout()
@@ -145,5 +157,59 @@ describe('waitUntilAuthReady', () => {
       waitUntilAuthReady(),
     ])
     expect(mockExpireSession).toHaveBeenCalledTimes(1)
+  })
+
+  describe('userInfo mồ côi (app bị tắt khi sheet đăng nhập đang mở)', () => {
+    beforeEach(() => {
+      mockUserInfo = { slug: 'u1' }
+      mockState = { token: null, refreshToken: null }
+    })
+
+    it('hydrate xong, không token, không refresh token → removeUserInfo', async () => {
+      const { waitUntilAuthReady } = load()
+      const p = waitUntilAuthReady()
+      mockFinishCb?.()
+      expect(await settle(p)).toBe(true)
+      expect(mockRemoveUserInfo).toHaveBeenCalledTimes(1)
+    })
+
+    it('đã hydrate sẵn → removeUserInfo', async () => {
+      mockHydrated = true
+      const { waitUntilAuthReady } = load()
+      await settle(waitUntilAuthReady())
+      expect(mockRemoveUserInfo).toHaveBeenCalledTimes(1)
+    })
+
+    it('hết 3000ms mà chưa hydrate (Keychain có thể đang khoá) → không xoá', async () => {
+      const { waitUntilAuthReady, AUTH_HYDRATION_TIMEOUT_MS } = load()
+      const p = waitUntilAuthReady()
+      jest.advanceTimersByTime(AUTH_HYDRATION_TIMEOUT_MS)
+      expect(await settle(p)).toBe(true)
+      expect(mockRemoveUserInfo).not.toHaveBeenCalled()
+    })
+
+    it('còn refresh token → không xoá', async () => {
+      mockHydrated = true
+      mockState = { token: null, refreshToken: 'r' }
+      const { waitUntilAuthReady } = load()
+      await settle(waitUntilAuthReady())
+      expect(mockRemoveUserInfo).not.toHaveBeenCalled()
+    })
+
+    it('còn access token → không xoá', async () => {
+      mockHydrated = true
+      mockState = { token: 'a', refreshToken: null }
+      const { waitUntilAuthReady } = load()
+      await settle(waitUntilAuthReady())
+      expect(mockRemoveUserInfo).not.toHaveBeenCalled()
+    })
+
+    it('không có userInfo → không gọi removeUserInfo', async () => {
+      mockHydrated = true
+      mockUserInfo = null
+      const { waitUntilAuthReady } = load()
+      await settle(waitUntilAuthReady())
+      expect(mockRemoveUserInfo).not.toHaveBeenCalled()
+    })
   })
 })
