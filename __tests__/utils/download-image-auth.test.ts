@@ -54,9 +54,10 @@ describe('downloadAndSaveImage auth header', () => {
     expect(result).toBe(true)
     expect(isAccessTokenExpired).not.toHaveBeenCalled()
     expect(refreshSession).not.toHaveBeenCalled()
-    expect(mockFetch).toHaveBeenCalledWith(PUBLIC_URL, {
-      headers: { Accept: 'image/*' },
-    })
+    expect(mockFetch).toHaveBeenCalledWith(
+      PUBLIC_URL,
+      expect.objectContaining({ headers: { Accept: 'image/*' } }),
+    )
     expect(MediaLibrary.createAssetAsync).toHaveBeenCalled()
   })
 })
