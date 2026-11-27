@@ -141,6 +141,9 @@ export async function downloadAndSaveImage(
       const isApiEndpoint = urlObj.pathname.includes('/api/')
       const headers: Record<string, string> = { Accept: 'image/*' }
       if (isApiEndpoint) {
+        const { isAccessTokenExpired, refreshSession } =
+          await import('@/lib/auth/auth-refresh')
+        if (isAccessTokenExpired()) await refreshSession()
         const { useAuthStore } = await import('@/stores')
         const token = useAuthStore.getState().token
         if (token) headers['Authorization'] = `Bearer ${token}`
