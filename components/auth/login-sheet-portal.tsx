@@ -23,8 +23,11 @@ const LoginSheetPortalComponent = () => {
     else sheetRef.current?.dismiss()
   }, [visible])
 
+  const handleDismiss = useCallback(() => close('dismissed'), [close])
+  const handleBeforeNavigate = useCallback(() => close('navigated'), [close])
+
   const handleLoginSuccess = useCallback(() => {
-    close()
+    close('success')
     onSuccess?.()
   }, [close, onSuccess])
 
@@ -49,7 +52,7 @@ const LoginSheetPortalComponent = () => {
       enableDynamicSizing={false}
       backdropComponent={renderBackdrop}
       backgroundComponent={GlassSheetBackground}
-      onDismiss={close}
+      onDismiss={handleDismiss}
     >
       <BottomSheetScrollView
         keyboardShouldPersistTaps="handled"
@@ -59,7 +62,7 @@ const LoginSheetPortalComponent = () => {
           compactTitle
           showHomeLink={false}
           onLoginSuccess={handleLoginSuccess}
-          onBeforeNavigate={close}
+          onBeforeNavigate={handleBeforeNavigate}
         />
       </BottomSheetScrollView>
     </BottomSheetModal>

@@ -18,6 +18,7 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 
 import LoginSheetPortal from '@/components/auth/login-sheet-portal'
+import SessionExpiryHandler from '@/components/auth/session-expiry-handler'
 import LogoutSheetPortal from '@/components/profile/logout-sheet-portal'
 import QRSelectionSheet from '@/components/profile/qr-selection-sheet'
 import ScanSheetPortal from '@/components/profile/scan-sheet-portal'
@@ -126,6 +127,7 @@ function AppContent() {
           <QueryClientProvider client={queryClient}>
             <BottomSheetModalProvider>
               <LoginSheetPortal />
+              <SessionExpiryHandler />
               <LogoutSheetPortal />
               <QRSelectionSheet />
               <ScanSheetPortal />
