@@ -4,6 +4,7 @@
  */
 import { configureHttpAuth } from '@/utils/http'
 import { useAuthStore } from '@/stores'
+import { waitUntilAuthReady } from '@/lib/auth/auth-ready'
 import {
   isAccessTokenExpired,
   refreshSession,
@@ -14,7 +15,9 @@ configureHttpAuth({
   getToken: () => useAuthStore.getState().token,
   isAccessTokenExpired,
   refreshSession,
-  // Task 6 thay bằng chờ hydrate
-  waitUntilReady: () => Promise.resolve(),
+  waitUntilReady: waitUntilAuthReady,
   resetRefresh: resetRefreshState,
 })
+
+// Kick off now so a dead session is cleaned up before any request is sent
+void waitUntilAuthReady()
