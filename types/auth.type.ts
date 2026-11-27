@@ -88,3 +88,16 @@ export interface IToken {
     permissions: string[]
   }
 }
+
+export interface IAuthTokens {
+  accessToken: string
+  refreshToken: string
+  expireTime: string
+  expireTimeRefreshToken: string
+}
+
+export type RefreshResult =
+  | { status: 'refreshed'; accessToken: string }
+  | { status: 'invalid' }
+  | { status: 'still-valid' }
+  | { status: 'transient'; error: unknown }

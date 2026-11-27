@@ -17,32 +17,19 @@ import { useProfile } from '@/hooks/use-profile'
 import { navigateNative } from '@/lib/navigation'
 import { useMasterTransitionOptional } from '@/lib/navigation/master-transition-provider'
 import { useAuthStore, useUserStore } from '@/stores'
+import { IAuthTokens } from '@/types'
 import { resetHttpState } from '@/utils/http'
 import { useShallow } from 'zustand/react/shallow'
 
-export interface ITokenPayload {
-  accessToken: string
-  refreshToken: string
-  expireTime: string
-  expireTimeRefreshToken: string
-}
+export type ITokenPayload = IAuthTokens
 
 export function usePostAuthActions() {
   const queryClient = useQueryClient()
   const masterTransition = useMasterTransitionOptional()
 
-  const {
-    setToken,
-    setRefreshToken,
-    setExpireTime,
-    setExpireTimeRefreshToken,
-    setLogout,
-  } = useAuthStore(
+  const { setTokens, setLogout } = useAuthStore(
     useShallow((s) => ({
-      setToken: s.setToken,
-      setRefreshToken: s.setRefreshToken,
-      setExpireTime: s.setExpireTime,
-      setExpireTimeRefreshToken: s.setExpireTimeRefreshToken,
+      setTokens: s.setTokens,
       setLogout: s.setLogout,
     })),
   )
@@ -75,10 +62,7 @@ export function usePostAuthActions() {
   const handleAuthSuccess = useCallback(
     async (tokens: ITokenPayload, onSuccess?: () => void) => {
       // 1. Lưu tokens
-      setToken(tokens.accessToken)
-      setRefreshToken(tokens.refreshToken)
-      setExpireTime(tokens.expireTime)
-      setExpireTimeRefreshToken(tokens.expireTimeRefreshToken)
+      setTokens(tokens)
 
       // 2. Fetch profile (cần token đã được lưu ở bước trên)
       const profile = await refetchProfile()
@@ -132,10 +116,7 @@ export function usePostAuthActions() {
       }
     },
     [
-      setToken,
-      setRefreshToken,
-      setExpireTime,
-      setExpireTimeRefreshToken,
+      setTokens,
       setLogout,
       setUserInfo,
       removeUserInfo,
